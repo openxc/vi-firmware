@@ -1,5 +1,7 @@
 CAN Translation Module
 =========================
 
+## Requirements
+
 The signal definition to Arduino sketch converison process requires the IntelHex
 Python package.

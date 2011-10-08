@@ -6,9 +6,9 @@ import datetime
 
 MAX_BYTES = 10 * 1000 * 10 * 5
 
-STARTING_MESSAGE_SIZE = 500
-ENDING_MESSAGE_SIZE = 9500
-MESSAGE_SIZE_STEP = 500
+STARTING_MESSAGE_SIZE = 20
+ENDING_MESSAGE_SIZE = 100
+MESSAGE_SIZE_STEP = 20
 
 class SerialDevice(object):
     def __init__(self, device="/dev/ttyUSB2", baud=2000000):
@@ -20,7 +20,7 @@ class SerialDevice(object):
         self.message_size = message_size
         self.device.write(bytearray([self.message_size / MESSAGE_SIZE_STEP]))
         self.device.flushOutput()
-        print "Message size switched to %d KB" % self.message_size
+        print "Message size switched to %d bytes" % self.message_size
         self.bytes_received = 0
 
     def read(self):

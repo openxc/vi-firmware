@@ -71,7 +71,7 @@ def main():
 
     print
     for key, value in results.iteritems():
-        print "%dKB messages -> %d KB/s" % (key, value)
+        print "%d byte messages -> %d KB/s" % (key, value)
 
 if __name__ == '__main__':
     main();

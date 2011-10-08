@@ -6,6 +6,9 @@ import datetime
 
 MAX_BYTES = 10 * 1000 * 10 * 5
 
+STARTING_MESSAGE_SIZE = 500
+ENDING_MESSAGE_SIZE = 9500
+MESSAGE_SIZE_STEP = 500
 
 class SerialDevice(object):
     def __init__(self, device="/dev/ttyUSB2", baud=2000000):
@@ -15,9 +18,9 @@ class SerialDevice(object):
 
     def initialize_message_size(self, message_size):
         self.message_size = message_size
-        self.device.write(bytearray([self.message_size / 1000]))
+        self.device.write(bytearray([self.message_size / MESSAGE_SIZE_STEP]))
         self.device.flushOutput()
-        print "Message size switched to %d" % self.message_size
+        print "Message size switched to %d KB" % self.message_size
         self.bytes_received = 0
 
     def read(self):
@@ -36,11 +39,9 @@ class SerialDevice(object):
                 self.bytes_received / 1000, self.message_size, elapsed_time)
 
     def throughput(self, elapsed_time):
-        return (
-            "The effective throughput for %d byte messages is %d KB/s" % (
-                self.message_size, self.bytes_received / 1000
-                    / max(1, elapsed_time.seconds + elapsed_time.microseconds /
-                        1000000.0)))
+        return (self.bytes_received / 1000 /
+                max(1, elapsed_time.seconds + elapsed_time.microseconds /
+                    1000000.0))
 
 def run_benchmark(serial_device, message_size, total_bytes=MAX_BYTES):
     serial_device.initialize_message_size(message_size)
@@ -54,15 +55,23 @@ def run_benchmark(serial_device, message_size, total_bytes=MAX_BYTES):
     print "Finished receiving."
 
     elapsed_time = datetime.datetime.now() - starting_time
+    throughput = serial_device.throughput(elapsed_time)
     print serial_device.total_time(elapsed_time)
-    print serial_device.throughput(elapsed_time)
+    print "The effective throughput for %d byte messages is %d KB/s" % (
+                message_size, throughput)
+    return throughput
 
 
 def main():
     device = SerialDevice()
+    results = {}
+    for message_size in range(STARTING_MESSAGE_SIZE, ENDING_MESSAGE_SIZE,
+            MESSAGE_SIZE_STEP):
+        results[message_size] = run_benchmark(device, message_size)
 
-    for message_size in range(1000, 250000, 1000):
-        run_benchmark(device, message_size)
+    print
+    for key, value in results.iteritems():
+        print "%dKB messages -> %d KB/s" % (key, value)
 
 if __name__ == '__main__':
     main();

@@ -10,7 +10,7 @@ void setup() {
 
 void loop() {
     if(Serial.available()) {
-        messageSize = Serial.read() * 1000;
+        messageSize = Serial.read() * 500;
         delay(100);
         for(int i = 0; i < messageSize; i++) {
             messageBuffer[i] = random(127);

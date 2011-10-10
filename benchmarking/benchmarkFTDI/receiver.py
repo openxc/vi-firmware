@@ -11,7 +11,7 @@ ENDING_MESSAGE_SIZE = 100
 MESSAGE_SIZE_STEP = 20
 
 class SerialDevice(object):
-    def __init__(self, device="/dev/ttyUSB2", baud=2000000):
+    def __init__(self, device="/dev/ttyUSB0", baud=2000000):
         self.device = serial.Serial(device, baud, timeout=10)
         self.device.flushInput()
         self.message_size = -1

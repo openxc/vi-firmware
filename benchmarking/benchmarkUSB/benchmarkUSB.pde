@@ -99,7 +99,7 @@ static boolean MY_USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, 
     switch(event)
     {
         case EVENT_TRANSFER:
-            Serial.println("Event: Transfer");
+            Serial.println("Event: Transfer completed");
             //Add application specific callback task or callback function here if desired.
             break;
 
@@ -130,7 +130,7 @@ static boolean MY_USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, 
             break;
 
         case EVENT_EP0_REQUEST:
-            Serial.println("Event: EP0 Request");
+            Serial.println("Event: Unrecognized EP0 (endpoint 0) Request");
             break;
 
         case EVENT_BUS_ERROR:

@@ -1,7 +1,7 @@
 #include <chipKITUSBDevice.h>
 
 // forward reference for the USB constructor
-static boolean MY_USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, word size);
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 // the size of our EP 1 HID buffer
 #define GEN_EP              1           // endpoint for data IO
@@ -13,11 +13,7 @@ byte rgHost2Device[USB_EP_SIZE];    // the OUT buffer which is always relative t
 
 USB_HANDLE hDevice2Host = 0;        // Handle to the HOST OUT buffer
 byte rgDevice2Host[USB_EP_SIZE];    // the OUT buffer which is always relative to the HOST, so this is really an in buffer to us
-
-// Create an instance of the USB device
-USBDevice usb(MY_USER_USB_CALLBACK_EVENT_HANDLER);  // specify the callback routine
-// USBDevice usb(NULL);     // use default callback routine
-// USBDevice usb;       // use default callback routine
+USBDevice usb(usbCallback);  // specify the callback routine
 
 void setup() {
     // Enable the serial port for some debugging messages
@@ -69,28 +65,7 @@ void loop() {
     }
 }
 
-/*******************************************************************
- * Function:        BOOL MY_USER_USB_CALLBACK_EVENT_HANDLER(
- *                        USB_EVENT event, void *pdata, WORD size)
- *
- * PreCondition:    None
- *
- * Input:           USB_EVENT event - the type of event
- *                  void *pdata - pointer to the event data
- *                  WORD size - size of the event data
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This function is called from the USB stack to
- *                  notify a user application that a USB event
- *                  occured.  This callback is in interrupt context
- *                  when the USB_INTERRUPT option is selected.
- *
- * Note:            None
- *******************************************************************/
-static boolean MY_USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, word size) {
+static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     // initial connection up to configure will be handled by the default callback routine.
     usb.DefaultCBEventHandler(event, pdata, size);

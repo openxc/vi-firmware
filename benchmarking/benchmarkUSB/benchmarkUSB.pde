@@ -2,6 +2,7 @@
 
 // forward reference for the USB constructor
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+static boolean customUSBCallback(USB_EVENT event);
 
 // the size of our EP 1 HID buffer
 #define GEN_EP              1           // endpoint for data IO
@@ -14,6 +15,8 @@ byte rgHost2Device[USB_EP_SIZE];    // the OUT buffer which is always relative t
 USB_HANDLE hDevice2Host = 0;        // Handle to the HOST OUT buffer
 byte rgDevice2Host[USB_EP_SIZE];    // the OUT buffer which is always relative to the HOST, so this is really an in buffer to us
 USBDevice usb(usbCallback);  // specify the callback routine
+
+extern volatile CTRL_TRF_SETUP SetupPkt;
 
 void setup() {
     // Enable the serial port for some debugging messages
@@ -41,27 +44,21 @@ void loop() {
         Serial.print("code: ");
         Serial.println(rgHost2Device[0], HEX);
 
-        // It is our sketch convention that the first byte from the PC
-        // is an opcode command to tell use what to do.
-        switch(rgHost2Device[0]) {
-        case SAY_WHAT:
-            //Echo back to the host PC the command sent to use so the PC knows
-            //we are responding to the same request
-            rgDevice2Host[0] = SAY_WHAT;
-            rgDevice2Host[1] = 1;
-
-            // make sure the HOST has read everything we have sent it, and we can put new stuff in the buffer
-            if(!usb.HandleBusy(hDevice2Host)) {
-                hDevice2Host = usb.GenWrite(GEN_EP, rgDevice2Host, USB_EP_SIZE);    // write out our data
-            }
-            break;
-
-        default:
-            break;
-        }
-
         // arm for the next read, it will busy until we get another command on EP 1
         hHost2Device = usb.GenRead(GEN_EP, rgHost2Device, USB_EP_SIZE);
+    }
+}
+
+static boolean customUSBCallback(USB_EVENT event, void *pdata, word size) {
+    Serial.println("Handling a custom control code");
+    switch(SetupPkt.bRequest) {
+    case SAY_WHAT:
+        Serial.println("WHAT?");
+        return true;
+    default:
+        Serial.print("Didn't recognize event: ");
+        Serial.println(SetupPkt.bRequest);
+        return false;
     }
 }
 
@@ -105,7 +102,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
             break;
 
         case EVENT_EP0_REQUEST:
-            Serial.println("Event: Unrecognized EP0 (endpoint 0) Request");
+            if(!customUSBCallback(event, pdata, size)) {
+                Serial.println("Event: Unrecognized EP0 (endpoint 0) Request");
+            }
             break;
 
         case EVENT_BUS_ERROR:

@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 import sys
+import string
 import serial
 import datetime
 from operator import itemgetter
 
-MAX_BYTES = 10 * 1000 * 10 * 5
+MAX_BYTES = 10 * 1000 * 10 * 1
 
 STARTING_MESSAGE_SIZE = 20
 ENDING_MESSAGE_SIZE = 100
 MESSAGE_SIZE_STEP = 20
 
-BAUD = 1500000
+BAUD = 112500
 
 class SerialDevice(object):
     def __init__(self, device="/dev/ttyUSB1", baud=115200):
@@ -54,6 +55,11 @@ def run_benchmark(serial_device, message_size, total_bytes=MAX_BYTES):
 
     while data is not None and serial_device.bytes_received < MAX_BYTES:
         data = serial_device.read()
+        print data
+        for character in string.ascii_lowercase[:message_size]:
+            if character not in data:
+                print data
+
     print
     print "Finished receiving."
 

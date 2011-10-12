@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define BAUD 1500000L
+#define BAUD 112500
 #define MESSAGE_SIZE_STEP 20
 
 int messageSize = 1;

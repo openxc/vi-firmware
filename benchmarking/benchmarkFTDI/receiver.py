@@ -3,6 +3,7 @@
 import sys
 import serial
 import datetime
+from operator import itemgetter
 
 MAX_BYTES = 10 * 1000 * 10 * 5
 
@@ -10,8 +11,10 @@ STARTING_MESSAGE_SIZE = 20
 ENDING_MESSAGE_SIZE = 100
 MESSAGE_SIZE_STEP = 20
 
+BAUD = 1500000
+
 class SerialDevice(object):
-    def __init__(self, device="/dev/ttyUSB0", baud=2000000):
+    def __init__(self, device="/dev/ttyUSB1", baud=115200):
         self.device = serial.Serial(device, baud, timeout=10)
         self.device.flushInput()
         self.message_size = -1
@@ -63,15 +66,18 @@ def run_benchmark(serial_device, message_size, total_bytes=MAX_BYTES):
 
 
 def main():
-    device = SerialDevice()
+    device = SerialDevice(baud=BAUD)
     results = {}
-    for message_size in range(STARTING_MESSAGE_SIZE, ENDING_MESSAGE_SIZE,
+    for message_size in range(STARTING_MESSAGE_SIZE, ENDING_MESSAGE_SIZE + 1,
             MESSAGE_SIZE_STEP):
         results[message_size] = run_benchmark(device, message_size)
 
     print
-    for key, value in results.iteritems():
-        print "%d byte messages -> %d KB/s" % (key, value)
+    results = [(key, "%d byte messages -> %d KB/s" % (key, value))
+            for key, value in results.iteritems()]
+
+    for result in sorted(results, key=itemgetter(0)):
+        print result[1]
 
 if __name__ == '__main__':
     main();

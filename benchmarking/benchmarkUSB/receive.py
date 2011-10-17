@@ -3,10 +3,9 @@
 from operator import itemgetter
 import datetime
 import sys
-import string
 import usb.core
 
-MAX_BYTES = 10 * 1000 * 10 * 5
+MAX_BYTES = 10 * 1000 * 10 * 1
 STARTING_MESSAGE_SIZE = 12
 ENDING_MESSAGE_SIZE = 64
 MESSAGE_SIZE_STEP = 12
@@ -16,15 +15,16 @@ PACKET_SIZE = 27
 
 
 class MessageDeviceBenchmarker(object):
-    def read_all(self):
-        data = self.read_one()
+    def read(self):
+        data = self._read()
 
         self.bytes_received += self.message_size
-        if self.bytes_received % (1000 * 10) == 0:
+        if self.bytes_received % (1000 * self.message_size) == 0:
             print "Received %d kilobytes so far..." % (
                     self.bytes_received / 1000),
             sys.stdout.flush()
             print "\r",
+        self._validate(data)
         return data
 
     def set_message_size(self, message_size):
@@ -32,6 +32,9 @@ class MessageDeviceBenchmarker(object):
         self.set_message_size_on_device(self.message_size)
         print "Message size switched to %d bytes" % self.message_size
         self.bytes_received = 0
+
+    def _validate(self, data):
+        pass
 
 
 class UsbDevice(MessageDeviceBenchmarker):
@@ -47,13 +50,16 @@ class UsbDevice(MessageDeviceBenchmarker):
         self.reconfigure()
 
     def set_message_size_on_device(self, message_size):
-        self.device.ctrl_transfer(0x40, self.MESSAGE_SIZE_CONTROL_MESSAGE,
-                message_size)
+        try:
+            self.device.ctrl_transfer(0x40, self.MESSAGE_SIZE_CONTROL_MESSAGE,
+                    message_size)
+        except usb.core.USBError:
+            pass
 
     def reconfigure(self):
         self.device.set_configuration()
 
-    def read_one(self):
+    def _read(self):
         return self.device.read(self.endpoint, self.message_size)
 
 
@@ -65,9 +71,6 @@ def run_benchmark(device, message_size, total_bytes=MAX_BYTES):
 
     while data is not None and device.bytes_received < MAX_BYTES:
         data = device.read()
-        for character in string.ascii_lowercase[:message_size]:
-            if character not in data:
-                print "Corruption detection on line: %s" % data
 
     print
     print "Finished receiving."

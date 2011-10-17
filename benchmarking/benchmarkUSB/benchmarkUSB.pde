@@ -4,19 +4,19 @@
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 static boolean customUSBCallback(USB_EVENT event);
 
-// the size of our EP 1 HID buffer
-#define GEN_EP              1           // endpoint for data IO
-#define USB_EP_SIZE         64          // size or our EP 1 i/o buffers.
-#define SAY_WHAT            0x80        // command from PC to say WHAT
+#define DATA_ENDPOINT 1
+#define DATA_ENDPOINT_BUFFER_SIZE 65
 
-USB_HANDLE hHost2Device = 0;        // Handle to the HOST OUT buffer
-byte rgHost2Device[USB_EP_SIZE];    // the OUT buffer which is always relative to the HOST, so this is really an in buffer to us
+#define MESSAGE_SIZE_SWITCH 0x80
 
-USB_HANDLE hDevice2Host = 0;        // Handle to the HOST OUT buffer
-byte rgDevice2Host[USB_EP_SIZE];    // the OUT buffer which is always relative to the HOST, so this is really an in buffer to us
+USB_HANDLE handleInput = 0;
+byte alpha[] = "abcdefghijklmnopqrstuvwxyz";
 USBDevice usb(usbCallback);  // specify the callback routine
 
+// This is a reference tot he last packet read, I believe
 extern volatile CTRL_TRF_SETUP SetupPkt;
+
+int messageSize = 27;
 
 void setup() {
     // Enable the serial port for some debugging messages
@@ -32,28 +32,30 @@ void setup() {
     // this should already be done becasue we said to wait until configured on InitializeSystem
     while(usb.GetDeviceState() < CONFIGURED_STATE);
 
-    Serial.println("Configured, usbOut = ");
-    Serial.println((int) hHost2Device, HEX);
+    Serial.println("Configured, usbIn = ");
+    Serial.println((int) handleInput, HEX);
 }
 
 void loop() {
-    // we are armed and waiting for something to come from the Host on EP 1
-    // when the handle is no longer busy, that means some data came in.
-    if(!usb.HandleBusy(hHost2Device)) {
-        // debug prints to see what command came in.
-        Serial.print("code: ");
-        Serial.println(rgHost2Device[0], HEX);
-
-        // arm for the next read, it will busy until we get another command on EP 1
-        hHost2Device = usb.GenRead(GEN_EP, rgHost2Device, USB_EP_SIZE);
+    // when the handle is no longer busy, that means the host read some data
+    // and we can write more. In USB parlance, "input" goes from the device to
+    // the host.
+    if(!usb.HandleBusy(handleInput)) {
+        handleInput = usb.GenWrite(DATA_ENDPOINT, alpha, messageSize);
     }
 }
 
-static boolean customUSBCallback(USB_EVENT event, void *pdata, word size) {
+static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     Serial.println("Handling a custom control code");
+    int newMessageSize = messageSize;
     switch(SetupPkt.bRequest) {
-    case SAY_WHAT:
-        Serial.println("WHAT?");
+    case MESSAGE_SIZE_SWITCH:
+        newMessageSize = SetupPkt.wValue;
+        if (newMessageSize < DATA_ENDPOINT_BUFFER_SIZE) {
+            messageSize = newMessageSize;
+            Serial.print("Set message size to: ");
+            Serial.println(messageSize, DEC);
+        }
         return true;
     default:
         Serial.print("Didn't recognize event: ");
@@ -89,12 +91,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
         case EVENT_CONFIGURED:
             Serial.println("Event: Configured");
-            // Enable Endpoint 1 (HID_EP) for both input and output... 2 endpoints are used for this.
-            usb.EnableEndpoint(GEN_EP,USB_OUT_ENABLED|USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-
-            // set up to wait (arm) for a command to come in on EP 1 (HID_EP)
-            rgHost2Device[0] = 0;
-            hHost2Device = usb.GenRead(GEN_EP, rgHost2Device, USB_EP_SIZE);
+            // Enable DATA_ENDPOINT for input and output
+            usb.EnableEndpoint(DATA_ENDPOINT,
+                    USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             break;
 
         case EVENT_SET_DESCRIPTOR:

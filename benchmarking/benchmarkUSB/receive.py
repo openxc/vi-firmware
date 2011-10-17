@@ -5,13 +5,12 @@ import datetime
 import sys
 import usb.core
 
-MAX_BYTES = 10 * 1000 * 10 * 1
-STARTING_MESSAGE_SIZE = 12
+MAX_BYTES = 10 * 1000
+STARTING_MESSAGE_SIZE = 48
 ENDING_MESSAGE_SIZE = 64
 MESSAGE_SIZE_STEP = 12
 
 DATA_ENDPOINT = 0x81
-PACKET_SIZE = 27
 
 
 class MessageDeviceBenchmarker(object):
@@ -32,6 +31,15 @@ class MessageDeviceBenchmarker(object):
         self.set_message_size_on_device(self.message_size)
         print "Message size switched to %d bytes" % self.message_size
         self.bytes_received = 0
+
+    def throughput(self, elapsed_time):
+        return (self.bytes_received / 1000 /
+                max(1, elapsed_time.seconds + elapsed_time.microseconds /
+                    1000000.0))
+
+    def total_time(self, elapsed_time):
+        return "Reading %s KB in %s byte chunks took %s" % (
+                self.bytes_received / 1000, self.message_size, elapsed_time)
 
     def _validate(self, data):
         pass

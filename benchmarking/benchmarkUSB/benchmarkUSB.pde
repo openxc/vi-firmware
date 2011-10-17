@@ -5,7 +5,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 static boolean customUSBCallback(USB_EVENT event);
 
 #define DATA_ENDPOINT 1
-#define DATA_ENDPOINT_BUFFER_SIZE 241
+#define DATA_ENDPOINT_BUFFER_SIZE 65
 
 #define MESSAGE_SIZE_SWITCH 0x80
 

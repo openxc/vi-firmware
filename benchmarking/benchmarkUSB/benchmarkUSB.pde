@@ -5,12 +5,13 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 static boolean customUSBCallback(USB_EVENT event);
 
 #define DATA_ENDPOINT 1
-#define DATA_ENDPOINT_BUFFER_SIZE 65
+#define DATA_ENDPOINT_BUFFER_SIZE 241
 
 #define MESSAGE_SIZE_SWITCH 0x80
 
 USB_HANDLE handleInput = 0;
 byte alpha[] = "abcdefghijklmnopqrstuvwxyz";
+uint8_t messageBuffer[DATA_ENDPOINT_BUFFER_SIZE];
 USBDevice usb(usbCallback);  // specify the callback routine
 
 // This is a reference tot he last packet read, I believe
@@ -41,7 +42,7 @@ void loop() {
     // and we can write more. In USB parlance, "input" goes from the device to
     // the host.
     if(!usb.HandleBusy(handleInput)) {
-        handleInput = usb.GenWrite(DATA_ENDPOINT, alpha, messageSize);
+        handleInput = usb.GenWrite(DATA_ENDPOINT, messageBuffer, messageSize);
     }
 }
 
@@ -55,6 +56,9 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
             messageSize = newMessageSize;
             Serial.print("Set message size to: ");
             Serial.println(messageSize, DEC);
+            for(int i = 0; i < messageSize; i++) {
+                messageBuffer[i] = alpha[i % 26];
+            }
         }
         return true;
     default:
@@ -73,7 +77,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     switch(event)
     {
         case EVENT_TRANSFER:
-            Serial.println("Event: Transfer completed");
+            //Serial.println("Event: Transfer completed");
             //Add application specific callback task or callback function here if desired.
             break;
 
@@ -91,9 +95,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
         case EVENT_CONFIGURED:
             Serial.println("Event: Configured");
-            // Enable DATA_ENDPOINT for input and output
+            // Enable DATA_ENDPOINT for input
             usb.EnableEndpoint(DATA_ENDPOINT,
-                    USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+                    USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             break;
 
         case EVENT_SET_DESCRIPTOR:

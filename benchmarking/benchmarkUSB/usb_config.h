@@ -159,7 +159,7 @@
 /** ENDPOINTS ALLOCATION *******************************************/
 
 /* Generic */
-#define USBGEN_EP_SIZE          64
+#define USBGEN_EP_SIZE          241
 #define USBGEN_EP_NUM            1
 
 /** DEFINITIONS ****************************************************/

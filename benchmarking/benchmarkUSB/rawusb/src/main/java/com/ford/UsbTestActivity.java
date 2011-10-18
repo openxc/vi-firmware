@@ -96,7 +96,7 @@ public class UsbTestActivity extends ListActivity {
                 UsbInterface iface = device.getInterface(0);
                 Log.i(TAG, "Device has " + iface.getEndpointCount() +
                     "endpoints");
-                UsbEndpoint endpoint = iface.getEndpoint(0);
+                UsbEndpoint endpoint = iface.getEndpoint(1);
                 UsbDeviceConnection connection = mUsbManager.openDevice(
                     device);
                 connection.claimInterface(iface, true);

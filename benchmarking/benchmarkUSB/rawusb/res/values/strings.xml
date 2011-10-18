@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello rawusb!</string>
+    <string name="hello">Testing raw USB access.</string>
     <string name="app_name">rawusb</string>
 </resources>

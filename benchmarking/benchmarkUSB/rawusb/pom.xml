@@ -10,11 +10,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.android</groupId>
+            <groupId>android</groupId>
             <artifactId>android</artifactId>
-            <version>
-             2.1.2
-                        </version>
+            <version>3.1_r3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.android.future</groupId>
+            <artifactId>usb</artifactId>
+            <version>12_r1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -31,7 +35,7 @@
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
                     <sdk>
-                        <platform>7</platform>
+                        <platform>12</platform>
                     </sdk>
                                         <deleteConflictingFiles>true</deleteConflictingFiles>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>

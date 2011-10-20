@@ -18,3 +18,6 @@ c346_ms_can.hex: ../cansignals/c346_ms_can.xml ../cansignals/c346_ms_mapping.txt
 
 c346_info_can.hex: ../cansignals/c346_info_can.xml ../cansignals/c346_info_mapping.txt xml_to_db.py
 	./xml_to_db.py ../cansignals/c346_info_can.xml ../cansignals/c346_info_mapping.txt c346_info_can.hex
+
+clean:
+	rm *.hex *.pde

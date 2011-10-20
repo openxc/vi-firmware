@@ -1,7 +1,109 @@
 CAN Translation Module
 =========================
 
-## Requirements
+## Old Requirements
 
 The signal definition to Arduino sketch converison process (done with the
 Makefile) requires the IntelHex Python package.
+
+
+## New Requirements
+
+The CAN translation module code runs on an Arudino-compatible Microcontroller
+connected to one or more CAN buses. It receives either all CAN messages or a
+filtered subset, performs any unit conversion or factoring required and outputs
+a generic version to a USB interface.
+
+## Input Specification
+
+The code in this repository requires a list of CAN messages with details of the
+signals of interest, and their corresponding generic versions. The input format
+is a JSON object like this:
+
+    {"messages": [
+        "ECM_z_5D20": [
+            {"signal_name": "StrAnglAct",
+                "human_signal_name": "Steering wheel angle",
+                "generic_name": "SteeringWheelAngle",
+                "bit_position": 52,
+                "bit_size": 12,
+                "transform": true,
+                "factor": 0.15392,
+                "offset": 0,
+                "handler": "handleSteeringWheelAngle"},
+            {"signal_name": "GrshftPos",
+                "human_signal_name": "Gearshift Position",
+                "generic_name": "GearshiftPosition",
+                "bit_position": 41,
+                "bit_size": 0,
+                "transform": false,
+                "states": {
+                    "1": "1st",
+                    "2": "2nd",
+                    "3": "3rd",
+                    "4": "4th",
+                    "5": "Reverse",
+                    "6": "Neutral",
+                }}
+        ]
+    ]}
+
+TODO add definitions of state names, translate at this level
+
+This is a list of CAN messages, and a list of signals within each message. The
+attributes of a signal are:
+
+`signal_name` - The official name of the signal - often a terse spelling.
+    Optional - just used to be able to reference back to original documentation
+    from this list.
+
+`human_signal_name` - A more friendly, human readable version of the signal's
+    name. Optional - just used in comments so the generated source is clearer.
+
+`bit_position` - The staring bit position of this signal within the message.
+
+`bit_size` - The width in bits of the signal.
+
+`transform` - A boolean that indicates if factor and offset transformations
+    should be applied to this signal.
+
+`factor` - If `transform` is `true`, the signal value is multiplied by this.
+    Optional.
+
+`offset` - If `transform` is `true`, this is added to the signal value.
+    Optional.
+
+`handler` - The name of a function that will be linked with the program and
+    should be applied to the signal for additional processing. Optional - see
+    the "Custom Handlers" section for more.
+
+`states` - For state values, this is a mapping between the raw states (usually
+    an integer) and the corresponding state in the generic signal.
+
+## Sketch Generation
+
+With this JSON list in hand, run the Makefile to generate a C source file
+version that is accessible from the CAN translation sketch. Don't add anything
+else to this file - it's derivitive of the master JSON, and can be wiped and
+recreated at any time.
+
+The generate source is a conversion of your JSON to an array of C-structs,
+ready to be read by the translator at runtime.
+
+## Output Specification
+
+The microcontroller has a second USB controller operating in USB device mode. It
+sends the generic vehicle data over via bulk USB transfer as packed JSON.
+
+The expected format is:
+
+    {"name": "SteeringWheelAngle",
+        "value": 45}
+
+If USB throughput becomes an issue, the wire format can be optimized in two
+ways:
+
+* Use previously agreed upon numeric identifiers for signals instead of English
+  names.
+* Serialize to a binary protocol with Apache Thrift, or Goole Protocol
+  Buffers or ASN.1.

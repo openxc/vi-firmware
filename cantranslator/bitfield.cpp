@@ -1,7 +1,6 @@
 #include "bitfield.h"
 
-unsigned long get_bit_field(CAN::RxMessageBuffer* message, int startPos,
-        int numBits) {
+unsigned long get_bit_field(uint8_t* data, int startPos, int numBits) {
   unsigned long ret = 0;
 
   // Calculate the starting byte.
@@ -13,7 +12,7 @@ unsigned long get_bit_field(CAN::RxMessageBuffer* message, int startPos,
     //Calculate the starting bit position
 
     int startBit = startPos % 8;
-    ret = message->data[startByte];
+    ret = data[startByte];
 
     // New method: bit fields are positioned according to big-endian
     // bit layout, but inside the bit field, values are represented
@@ -31,7 +30,7 @@ unsigned long get_bit_field(CAN::RxMessageBuffer* message, int startPos,
     // The lowest byte address contains the most significant bit.
     for (int i = startByte; i < endByte; i++) {
 	ret = ret << 8;
-	ret = ret | message->data[i];
+	ret = ret | data[i];
       }
     ret = ret & bitmask;
   }

@@ -90,7 +90,7 @@ def parse_messages(mem, offset, priority=None):
     for message_id, signal_indices in messages.iteritems():
         print '    case {0}:'.format(message_id)
         for signal_index in signal_indices:
-            print "        decode_can_signal(data, SIGNALS[%d]" % (
+            print "        decode_can_signal(data, &SIGNALS[%d]);" % (
                     signal_index)
         print "        break;"
     print "    }"

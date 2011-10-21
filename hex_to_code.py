@@ -11,105 +11,38 @@ import intelhex
 id_mapping = {}
 # XXXX End ugly hack.
 
-def print_mask(mask, value):
-    low = (value >> 3) & 0xff
-    high = (value << 5) & 0xff
-
-    print '  mcp2515_write_register(RXM{0}SIDH, 0x{1:x});'.format(mask, low)
-    print '  mcp2515_write_register(RXM{0}SIDL, 0x{1:x});'.format(mask, high)
-    print '  mcp2515_write_register(RXM{0}EID8, 0);'.format(mask)
-    print '  mcp2515_write_register(RXM{0}EID0, 0);'.format(mask)
-    print ''
-
-def print_filter(filter, value):
-    low = (value >> 3) & 0xff
-    high = (value << 5) & 0xff
-
-    print '  mcp2515_write_register(RXF{0}SIDH, 0x{1:x});'.format(filter, low)
-    print '  mcp2515_write_register(RXF{0}SIDL, 0x{1:x});'.format(filter, high)
-    print '  mcp2515_write_register(RXF{0}EID8, 0);'.format(filter)
-    print '  mcp2515_write_register(RXF{0}EID0, 0);'.format(filter)
-    print ''
-
 def create_filter_code(ids, priority):
-    print 'void'
-    print 'setup_filters() {'
-
     priority_ids = [id_mapping[p] for p in priority if p in id_mapping]
     remaining_ids = [i for i in ids if i not in priority_ids]
     all_ids = priority_ids + remaining_ids
 
-    if len(ids) <= 2:
-        print '  // Only one or two messages, one for each buffer.'
-        print '  // First, turn on filtering.'
-        if len(ids) == 1:
-            print '  // Enable overflow.'
-            print ('  mcp2515_write_register(RXB0CTRL, '
-                   '(0 << RXM1) | (1 << RXM0) | (1 << BUKT));')
+    masks = [(0, 0x7ff),
+            (1, 0x7ff),
+            (2, 0x7ff),
+            (3, 0x7ff)]
+
+    print "int FILTER_MASK_COUNT = %d;" % len(masks)
+    print "CanFilterMask FILTER_MASKS[%d] = {" % len(masks)
+    for i, mask in enumerate(masks):
+        print "    {%d, 0x%x}" % mask,
+        if i != len(masks) - 1:
+            print ","
         else:
-            print ('  mcp2515_write_register(RXB0CTRL, '
-                   '(0 << RXM1) | (1 << RXM0));')
-	print '  mcp2515_write_register(RXB1CTRL, (0 << RXM1) | (1 << RXM0));'
-        print ''
-        print '  // Now, set up the masks and filters.'
+            print "};"
+    print
 
-        print_mask(0, 0x7ff)
-        print_filter(0, all_ids[0])
-        # XXX I suspect all 1s won't match anything...
-        print_filter(1, 0x7ff)
-
-        print_mask(1, 0x7ff)
-        if len(ids) == 1:
-            # We don't want to match anything on this filter.
-            print_filter(2, 0x7ff)
+    print "int FILTER_COUNT = %d;" % len(all_ids)
+    print "CanFilter FILTERS[%d] = {" % len(all_ids)
+    for i, filter in enumerate(all_ids):
+        # TODO what is the relationship between mask and filter? mask is a big
+        # brush that catches a bunch of things, then filter does the fine
+        # grained?
+        print "    {%d, 0x%x, %d, %d}" % (i, all_ids[0], 1, 0),
+        if i != len(all_ids) - 1:
+            print ","
         else:
-            print_filter(2, all_ids[1])
-        print_filter(3, 0x7ff)
-        print_filter(4, 0x7ff)
-        print_filter(5, 0x7ff)
-
-    elif len(ids) <= 6:
-        print '  // 6 or fewer message ids filter them all.'
-	print ('  mcp2515_write_register(RXB0CTRL, '
-               '(0 << RXM1) | (1 << RXM0));')
-	print '  mcp2515_write_register(RXB1CTRL, (0 << RXM1) | (1 << RXM0));'
-
-        print_mask(0, 0x7ff)
-        print_mask(1, 0x7ff)
-
-        i = 0
-
-        for id in all_ids:
-            print_filter(i, id)
-            i += 1
-
-        for id in range(i, len(ids)):
-            print_filter(id, 0x7ff)
-
-    elif priority == None or len(priority) == 0:
-        print '  // No filtering, just accept all and rollover.'
-	print ('  mcp2515_write_register(RXB0CTRL, '
-               '(1 << RXM1) | (1 << RXM0) | (1 << BUKT));')
-	print '  mcp2515_write_register(RXB1CTRL, (1 << RXM1) | (1 << RXM0));'
-
-    else:
-        print '  // Filter into 0, accept all in 1.'
-        print ('  mcp2515_write_register(RXB0CTRL, '
-               '(0 << RXM1) | (1 << RXM0) | (1 << BUKT));')
-	print '  mcp2515_write_register(RXB1CTRL, (1 << RXM1) | (1 << RXM0));'
-        print ''
-        print '  // Now, set up the masks and filters.'
-
-        print_mask(0, 0x7ff)
-        print_filter(0, priority[0])
-        if len(priority) > 1:
-            print_filter(1, priority[1])
-        else:
-            # XXX I suspect all 1s won't match anything...
-            print_filter(1, 0x7ff)
-
-    print '}'
-    print ''
+            print "};"
+    print
 
 def parse_signal(mem, offset, message_id):
     (id, t_pos, len) = struct.unpack('<BBB', mem.gets(offset, 3))
@@ -183,9 +116,6 @@ def parse_messages(mem, offset, priority=None):
 def print_header():
     print "#include \"bitfield.h\"\n"
 
-def print_trailer():
-    print ""
-
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Convert hex file to Arduino '
                                      'sketch.')
@@ -205,7 +135,6 @@ def main(argv=None):
 
     print_header()
     parse_messages(mem, 1, args.priority)
-    print_trailer()
 
 if __name__ == "__main__":
     sys.exit(main())

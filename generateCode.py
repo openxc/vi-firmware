@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import sys
+import json
 import struct
 import argparse
 import intelhex
@@ -95,7 +96,7 @@ class Parser(object):
         print
         print "    switch (id) {"
         for message_id, signals in self.messages.iteritems():
-            print '    case {0}:'.format(message_id)
+            print "    case %x:" % message_id
             for signal in signals:
                 print "        decode_can_signal(data, &SIGNALS[%d]);" % (
                         signal.array_index)
@@ -111,11 +112,11 @@ class Parser(object):
         remaining_ids = [i for i in self.message_ids if i not in priority_ids]
         all_ids = priority_ids + remaining_ids
 
+        # TODO these aren't correct
         masks = [(0, 0x7ff),
                 (1, 0x7ff),
                 (2, 0x7ff),
                 (3, 0x7ff)]
-
 
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it becomes
@@ -158,16 +159,16 @@ class HexParser(Parser):
     def parse(self):
         hex_offset = 1
         while hex_offset < len(self.mem):
-            (id, num) = struct.unpack('<HB', self.mem.gets(hex_offset, 3))
-            self.message_ids.append(id)
+            (message_id, num) = struct.unpack('<HB', self.mem.gets(hex_offset, 3))
+            self.message_ids.append(message_id)
             hex_offset += 3
             for i in range(num):
-                hex_offset, signal = self.parse_signal(id, hex_offset)
+                hex_offset, signal = self.parse_signal(message_id, hex_offset)
                 self.signal_count += 1
-                self.messages[id].append(signal)
+                self.messages[message_id].append(signal)
 
     def parse_signal(self, message_id, hex_offset):
-        (id, t_pos, length) = struct.unpack('<BBB',
+        (signal_id, t_pos, length) = struct.unpack('<BBB',
                 self.mem.gets(hex_offset, 3))
         hex_offset += 3
         transform = (t_pos & 1 << 7) != 0
@@ -179,13 +180,28 @@ class HexParser(Parser):
         else:
             (offset, factor) = (0.0, 1.0)
 
-        id_mapping[id] = message_id
-        return hex_offset, Signal(id, "", position, length, transform, factor,
-                offset)
+        id_mapping[signal_id] = message_id
+        return hex_offset, Signal(signal_id, "", position, length, transform,
+                factor, offset)
 
 class JsonParser(Parser):
-    def parse():
-        raise NotImplementedError
+    def __init__(self, filename, priority):
+        super(JsonParser, self).__init__(priority)
+        with open(filename) as jsonFile:
+            self.data = json.load(jsonFile)
+
+    def parse(self):
+        for message in self.data['messages'].values():
+            self.message_ids.append(message['id'])
+            for signal in message['signals']:
+                self.signal_count += 1
+                self.messages[message['id']].append(Signal(signal['id'],
+                    signal['name'],
+                    signal['bit_position'],
+                    signal['bit_size'],
+                    signal['transform'],
+                    signal.get('factor', 1),
+                    signal.get('offset', 0)))
 
 def main():
     arguments = parse_options()

@@ -21,37 +21,40 @@ signals of interest, and their corresponding generic versions. The input format
 is a JSON object like this:
 
     {"messages": [
-        "ECM_z_5D20": [
-            {"signal_name": "StrAnglAct",
-                "human_signal_name": "Steering wheel angle",
-                "generic_name": "SteeringWheelAngle",
-                "bit_position": 52,
-                "bit_size": 12,
-                "transform": true,
-                "factor": 0.15392,
-                "offset": 0,
-                "handler": "handleSteeringWheelAngle"},
-            {"signal_name": "GrshftPos",
-                "human_signal_name": "Gearshift Position",
-                "generic_name": "GearshiftPosition",
-                "bit_position": 41,
-                "bit_size": 0,
-                "transform": false,
-                "states": {
-                    "1": "1st",
-                    "2": "2nd",
-                    "3": "3rd",
-                    "4": "4th",
-                    "5": "Reverse",
-                    "6": "Neutral",
-                }}
-        ]
+        "42": {
+            "name": "ECM_z_5D2",
+            "signals": {
+                {"signal_name": "StrAnglAct",
+                    "human_signal_name": "Steering wheel angle",
+                    "generic_name": "SteeringWheelAngle",
+                    "bit_position": 52,
+                    "bit_size": 12,
+                    "transform": true,
+                    "factor": 0.15392,
+                    "offset": 0,
+                    "handler": "handleSteeringWheelAngle"},
+                {"signal_name": "GrshftPos",
+                    "human_signal_name": "Gearshift Position",
+                    "generic_name": "GearshiftPosition",
+                    "bit_position": 41,
+                    "bit_size": 0,
+                    "transform": false,
+                    "states": {
+                        "1": "1st",
+                        "2": "2nd",
+                        "3": "3rd",
+                        "4": "4th",
+                        "5": "Reverse",
+                        "6": "Neutral",
+                    }}
+            }
+        }
     ]}
 
 TODO add definitions of state names, translate at this level
 
-This is a list of CAN messages, and a list of signals within each message. The
-attributes of a signal are:
+This is a list of CAN messages by numerical ID, and a list of signals within
+each message. The attributes of a signal are:
 
 `signal_name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation

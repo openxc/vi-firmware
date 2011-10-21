@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from collections import defaultdict
 import sys
 import struct
 import argparse
@@ -45,7 +46,7 @@ def create_filter_code(ids, priority):
     print
 
 def parse_signal(mem, offset, message_id):
-    (id, t_pos, len) = struct.unpack('<BBB', mem.gets(offset, 3))
+    (id, t_pos, length) = struct.unpack('<BBB', mem.gets(offset, 3))
     offset += 3
     transform = (t_pos & 1 << 7) != 0
     position = t_pos & ~(1 << 7)
@@ -56,65 +57,50 @@ def parse_signal(mem, offset, message_id):
         (off, factor) = (0.0, 1.0)
 
     id_mapping[id] = message_id
-
-    print ''
-    print '  // Signal {0}.'.format(id)
-    print '  ivalue = getBitField(data, {0}, {1});'.format(
-        position, len)
-    if (transform):
-        print '  fvalue = (float)ivalue * {0} + {1};'.format(factor, off)
-
-    print '  Serial.print(\'^\');'
-    print '  Serial.print({0}, DEC);'.format(id)
-    print '  Serial.print(\':\');'
-    if (transform):
-        print '  Serial.print(fvalue, 7);'
-    else:
-        print '  Serial.print(ivalue, DEC);'
-
-    print '  Serial.println(\'$\');'
-
-    return(offset)
+    signal_string =  "{%d, %s, %d, %d, %s, %d, %d}" % (id, "\"\"", position,
+            length, str(transform).lower(), factor, off)
+    return offset, signal_string
 
 
 def parse_messages(mem, offset, priority=None):
-    ids = []
+    print "void decode_can_message(int id, uint8_t* data) {"
 
+    messages = defaultdict(list)
+    signal_strings = []
+    ids = []
     while offset < len(mem):
         (id, num) = struct.unpack('<HB', mem.gets(offset, 3))
         ids.append(id)
         offset += 3
-
-        print 'void'
-        print 'decode_message_{0:x}(uint8_t* data) {{'.format(id)
-
-        print '  unsigned long ivalue;'
-        print '  float fvalue;'
-
         for i in range(num):
-            offset = parse_signal(mem, offset, id)
+            offset, signal_string = parse_signal(mem, offset, id)
+            signal_strings.append(signal_string)
+            messages[id].append(len(signal_strings) - 1)
 
-        print '}'
-        print ''
+    print "    CanSignal SIGNALS[%d] = {" % len(signal_strings)
+    for i, signal_string in enumerate(signal_strings):
+        print "        %s" % signal_string,
+        if i != len(signal_strings) - 1:
+            print ","
+        else:
+            print "};"
+    print
 
-    # Go back and print out a message parsing block.
-    print 'void'
-    print 'decode_can_message(int id, uint8_t* data) {'
-    print '  switch (id) {'
-
-    for i in ids:
-        print '    case {0}:'.format(i)
-        print '      decode_message_{0:x}(data);'.format(i)
-        print '      break;'
-
-    print '  }'
-    print '}'
+    print "    switch (id) {"
+    for message_id, signal_indices in messages.iteritems():
+        print '    case {0}:'.format(message_id)
+        for signal_index in signal_indices:
+            print "        decode_can_signal(data, SIGNALS[%d]" % (
+                    signal_index)
+        print "        break;"
+    print "    }"
+    print "}\n"
 
     # Create a set of filters.
     create_filter_code(ids, priority)
 
 def print_header():
-    print "#include \"bitfield.h\"\n"
+    print "#include \"canutil.h\"\n"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Convert hex file to Arduino '

@@ -22,28 +22,38 @@ def create_filter_code(ids, priority):
             (2, 0x7ff),
             (3, 0x7ff)]
 
+
+    # These arrays can't be initialized when we create the variables or else
+    # they end up in the .data portion of the compiled program, and it becomes
+    # too big for the microcontroller. Initializing them at runtime gets around
+    # that problem.
     print "int FILTER_MASK_COUNT = %d;" % len(masks)
-    print "CanFilterMask FILTER_MASKS[%d] = {" % len(masks)
+    print "CanFilterMask FILTER_MASKS[%d];" % len(masks)
+    print "int FILTER_COUNT = %d;" % len(all_ids)
+    print "CanFilter FILTERS[%d];" % len(all_ids)
+
+    print
+    print "void initialize_filter_arrays() {"
+
+    print "    FILTER_MASKS = {"
     for i, mask in enumerate(masks):
-        print "    {%d, 0x%x}" % mask,
+        print "        {%d, 0x%x}" % mask,
         if i != len(masks) - 1:
             print ","
         else:
             print "};"
-    print
 
-    print "int FILTER_COUNT = %d;" % len(all_ids)
-    print "CanFilter FILTERS[%d] = {" % len(all_ids)
+    print "    FILTERS = {"
     for i, filter in enumerate(all_ids):
         # TODO what is the relationship between mask and filter? mask is a big
         # brush that catches a bunch of things, then filter does the fine
         # grained?
-        print "    {%d, 0x%x, %d, %d}" % (i, all_ids[0], 1, 0),
+        print "        {%d, 0x%x, %d, %d}" % (i, all_ids[0], 1, 0),
         if i != len(all_ids) - 1:
             print ","
         else:
             print "};"
-    print
+    print "}"
 
 def parse_signal(mem, offset, message_id):
     (id, t_pos, length) = struct.unpack('<BBB', mem.gets(offset, 3))

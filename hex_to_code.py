@@ -20,7 +20,7 @@ def print_mask(mask, value):
     print '  mcp2515_write_register(RXM{0}EID8, 0);'.format(mask)
     print '  mcp2515_write_register(RXM{0}EID0, 0);'.format(mask)
     print ''
-    
+
 def print_filter(filter, value):
     low = (value >> 3) & 0xff
     high = (value << 5) & 0xff
@@ -38,7 +38,7 @@ def create_filter_code(ids, priority):
     priority_ids = [id_mapping[p] for p in priority if p in id_mapping]
     remaining_ids = [i for i in ids if i not in priority_ids]
     all_ids = priority_ids + remaining_ids
-    
+
     if len(ids) <= 2:
         print '  // Only one or two messages, one for each buffer.'
         print '  // First, turn on filtering.'
@@ -57,7 +57,7 @@ def create_filter_code(ids, priority):
         print_filter(0, all_ids[0])
         # XXX I suspect all 1s won't match anything...
         print_filter(1, 0x7ff)
-        
+
         print_mask(1, 0x7ff)
         if len(ids) == 1:
             # We don't want to match anything on this filter.
@@ -85,7 +85,7 @@ def create_filter_code(ids, priority):
 
         for id in range(i, len(ids)):
             print_filter(id, 0x7ff)
-        
+
     elif priority == None or len(priority) == 0:
         print '  // No filtering, just accept all and rollover.'
 	print ('  mcp2515_write_register(RXB0CTRL, '
@@ -123,13 +123,13 @@ def parse_signal(mem, offset, message_id):
         (off, factor) = (0.0, 1.0)
 
     id_mapping[id] = message_id
-    
+
     print ''
     print '  // Signal {0}.'.format(id)
-    print '  ivalue = get_bit_field(message, {0}, {1});'.format(
+    print '  ivalue = getBitField(data, {0}, {1});'.format(
         position, len)
     if (transform):
-        print '  fvalue = (float)ivalue * {0} + {1};'.format(factor, off) 
+        print '  fvalue = (float)ivalue * {0} + {1};'.format(factor, off)
 
     print '  Serial.print(\'^\');'
     print '  Serial.print({0}, DEC);'.format(id)
@@ -146,14 +146,14 @@ def parse_signal(mem, offset, message_id):
 
 def parse_messages(mem, offset, priority=None):
     ids = []
-    
+
     while offset < len(mem):
         (id, num) = struct.unpack('<HB', mem.gets(offset, 3))
         ids.append(id)
         offset += 3
 
         print 'void'
-        print 'decode_message_{0:x}(tCAN *message) {{'.format(id)
+        print 'decode_message_{0:x}(uint8_t* data) {{'.format(id)
 
         print '  unsigned long ivalue;'
         print '  float fvalue;'
@@ -166,12 +166,12 @@ def parse_messages(mem, offset, priority=None):
 
     # Go back and print out a message parsing block.
     print 'void'
-    print 'decode_can_message(tCAN *message) {'
-    print '  switch (message->id) {'
-    
+    print 'decode_can_message(int id, uint8_t* data) {'
+    print '  switch (id) {'
+
     for i in ids:
         print '    case {0}:'.format(i)
-        print '      decode_message_{0:x}(message);'.format(i)
+        print '      decode_message_{0:x}(data);'.format(i)
         print '      break;'
 
     print '  }'
@@ -181,46 +181,7 @@ def parse_messages(mem, offset, priority=None):
     create_filter_code(ids, priority)
 
 def print_header():
-    print "#include <mcp2515.h>"
-    print """
-unsigned long
-get_bit_field(tCAN *message, int startPos, int numBits) {
-  unsigned long ret = 0;
-
-  // Calculate the starting byte.
-  int startByte = startPos / 8;
-  // Mask out any other bits besides those in the bitfield.
-  unsigned long bitmask = (unsigned long)((0x1 << numBits) - 1);
-
-  if (numBits <= 8 ) {
-    //Calculate the starting bit position
-
-    int startBit = startPos % 8;
-    ret = message->data[startByte];
-
-    // New method: bit fields are positioned according to big-endian
-    // bit layout, but inside the bit field, values are represented
-    // as little-endian.
-    // Therefore, to get the bit field, we just need to convert to big-endian
-    // bit ordering to find the field, and directly use the value we find in
-    // the field.
-    // Calculate the end bit address of the field
-    int endBit = startBit + numBits;
-    ret = (ret >> (8 - endBit));
-    ret = (ret & bitmask);
-  } else {
-    int endByte = (startPos + numBits) / 8;
-
-    // The lowest byte address contains the most significant bit.
-    for (int i = startByte; i < endByte; i++) {
-	ret = ret << 8;
-	ret = ret | message->data[i];
-      }
-    ret = ret & bitmask;
-  }
-  return ret;
-}
-"""
+    print "#include \"bitfield.h\"\n"
 
 def print_trailer():
     print ""
@@ -233,7 +194,7 @@ def main(argv=None):
                         type=int, help='Ordered list of prioritized messages.')
 
     args = parser.parse_args(argv)
-    
+
     # Flatten the priority list.
     if args.priority:
         args.priority = [item for sublist in args.priority for item in sublist]

@@ -30,7 +30,7 @@ static volatile bool isCanMessageReceived = false;
 void initializeCan(uint32_t myaddr);
 void receiveCan(void);
 void handleCanInterrupt();
-void decode_hs_can_message(int id, uint8_t* data);
+void decode_can_message(int id, uint8_t* data);
 
 
 void setup() {
@@ -80,6 +80,7 @@ void initializeCan(uint32_t myaddr) {
      */
     canModule.configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
+    initialize_filter_arrays();
     configure_hs_filters(&canModule);
 
     /* Enable interrupt and events. Enable the receive channel not empty
@@ -112,7 +113,7 @@ void receiveCan(void) {
     Serial.print(byte(message->data[0]));
     Serial.println(message->msgSID.SID);
 
-    decode_hs_can_message(message->msgSID.SID, message->data);
+    decode_can_message(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module

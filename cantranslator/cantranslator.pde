@@ -7,6 +7,7 @@
 #include "WProgram.h"
 #include "chipKITCAN.h"
 #include "bitfield.h"
+#include "canutil.h"
 
 /* Network Node Addresses */
 #define node1can1 0x101L
@@ -29,7 +30,7 @@ static volatile bool isCanMessageReceived = false;
 void initializeCan(uint32_t myaddr);
 void receiveCan(void);
 void handleCanInterrupt();
-void decode_hs_can_message(CAN::RxMessageBuffer*);
+void decode_hs_can_message(int id, uint8_t* data);
 
 
 void setup() {
@@ -111,7 +112,7 @@ void receiveCan(void) {
     Serial.print(byte(message->data[0]));
     Serial.println(message->msgSID.SID);
 
-    decode_hs_can_message(message);
+    decode_hs_can_message(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module

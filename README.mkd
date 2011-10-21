@@ -21,10 +21,11 @@ signals of interest, and their corresponding generic versions. The input format
 is a JSON object like this:
 
     {"messages": [
-        "42": {
-            "name": "ECM_z_5D2",
+        "ECM_z_5D2": {
+            "id": 42,
             "signals": {
-                {"signal_name": "StrAnglAct",
+                {"name": "StrAnglAct",
+                    "id": 1,
                     "human_signal_name": "Steering wheel angle",
                     "generic_name": "SteeringWheelAngle",
                     "bit_position": 52,
@@ -33,7 +34,8 @@ is a JSON object like this:
                     "factor": 0.15392,
                     "offset": 0,
                     "handler": "handleSteeringWheelAngle"},
-                {"signal_name": "GrshftPos",
+                {"name": "GrshftPos",
+                    "id": 10,
                     "human_signal_name": "Gearshift Position",
                     "generic_name": "GearshiftPosition",
                     "bit_position": 41,
@@ -53,8 +55,8 @@ is a JSON object like this:
 
 TODO add definitions of state names, translate at this level
 
-This is a list of CAN messages by numerical ID, and a list of signals within
-each message. The attributes of a signal are:
+This is a list of CAN messages and a list of signals within each message. The
+attributes of a signal are:
 
 `signal_name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation

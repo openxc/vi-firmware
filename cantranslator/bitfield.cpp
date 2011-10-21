@@ -1,6 +1,6 @@
 #include "bitfield.h"
 
-unsigned long get_bit_field(uint8_t* data, int startPos, int numBits) {
+unsigned long getBitField(uint8_t* data, int startPos, int numBits) {
   unsigned long ret = 0;
 
   // Calculate the starting byte.

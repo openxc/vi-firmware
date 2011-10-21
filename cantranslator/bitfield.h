@@ -3,6 +3,6 @@
 
 #include "WProgram.h"
 
-unsigned long get_bit_field(uint8_t* data, int startPos, int numBits);
+unsigned long getBitField(uint8_t* data, int startPos, int numBits);
 
 #endif // _BITFIELD_H_

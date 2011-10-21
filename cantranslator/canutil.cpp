@@ -1,4 +1,5 @@
 #include "canutil.h"
+#include "bitfield.h"
 
 void configure_hs_filters(CAN *canMod) {
     extern int FILTER_COUNT;
@@ -19,4 +20,17 @@ void configure_hs_filters(CAN *canMod) {
                 (CAN::CHANNEL) FILTERS[i].channel);
         canMod->enableFilter((CAN::FILTER) FILTERS[i].number, true);
     }
+}
+
+void decode_can_message(uint8_t* data, CanSignal signal) {
+    unsigned long ivalue;
+    float fvalue;
+
+    ivalue = getBitField(data, signal.bitPosition, signal.bitSize);
+    fvalue = (float)ivalue * signal.factor + signal.offset;
+    Serial.print('^');
+    Serial.print(signal.id, DEC);
+    Serial.print(':');
+    Serial.print(fvalue, 4);
+    Serial.println('$');
 }

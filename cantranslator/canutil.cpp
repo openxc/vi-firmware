@@ -22,14 +22,14 @@ void configure_hs_filters(CAN *canMod) {
     }
 }
 
-void decode_can_message(uint8_t* data, CanSignal signal) {
+void decode_can_signal(uint8_t* data, CanSignal* signal) {
     unsigned long ivalue;
     float fvalue;
 
-    ivalue = getBitField(data, signal.bitPosition, signal.bitSize);
-    fvalue = (float)ivalue * signal.factor + signal.offset;
+    ivalue = getBitField(data, signal->bitPosition, signal->bitSize);
+    fvalue = (float)ivalue * signal->factor + signal->offset;
     Serial.print('^');
-    Serial.print(signal.id, DEC);
+    Serial.print(signal->id, DEC);
     Serial.print(':');
     Serial.print(fvalue, 4);
     Serial.println('$');

@@ -18,8 +18,6 @@ struct CanFilter {
 
 struct CanSignal {
     int id;
-    char* name;
-    char* humanName;
     char* genericName;
     int bitPosition;
     int bitSize;
@@ -29,6 +27,6 @@ struct CanSignal {
 };
 
 void configure_hs_filters(CAN *canMod);
-void decode_can_message(uint8_t* data, CanSignal signal);
+void decode_can_signal(uint8_t* data, CanSignal* signal);
 
-#endif // _CANUTIL_U
+#endif // _CANUTIL_H_

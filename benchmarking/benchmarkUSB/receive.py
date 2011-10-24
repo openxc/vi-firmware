@@ -4,18 +4,15 @@ from operator import itemgetter
 import datetime
 import json
 import sys
+import argparse
 import usb.core
-
-MAX_BYTES = 10 * 1000 * 10 * 100
-STARTING_MESSAGE_SIZE = 8192
-ENDING_MESSAGE_SIZE = 8192
-MESSAGE_SIZE_STEP = 12
-
-DATA_ENDPOINT = 0x81
 
 
 class MessageDeviceBenchmarker(object):
     def read(self):
+        if self.bytes_received >= self.MAX_BYTES:
+            return None
+
         data = self._read()
 
         self.bytes_received += self.message_size
@@ -42,11 +39,35 @@ class MessageDeviceBenchmarker(object):
         return "Reading %s KB in %s byte chunks took %s" % (
                 self.bytes_received / 1000, self.message_size, elapsed_time)
 
+    def run_benchmark(self, message_size):
+        self.set_message_size(message_size)
+
+        data = self.read()
+        starting_time = datetime.datetime.now()
+
+        while data is not None:
+            data = self.read()
+
+        print
+        print "Finished receiving."
+
+        elapsed_time = datetime.datetime.now() - starting_time
+        throughput = self.throughput(elapsed_time)
+        print self.total_time(elapsed_time)
+        print "The effective throughput for %d byte messages is %d KB/s" % (
+                    message_size, throughput)
+        return throughput
+
     def _validate(self, data):
         pass
 
 
 class UsbDevice(MessageDeviceBenchmarker):
+    DATA_ENDPOINT = 0x81
+    MAX_BYTES = 10 * 1000 * 10 * 100
+    STARTING_MESSAGE_SIZE = 512
+    ENDING_MESSAGE_SIZE = 8192
+    MESSAGE_SIZE_STEP = 512
     MESSAGE_SIZE_CONTROL_MESSAGE = 0x80
 
     def __init__(self, vendorId=0x04d8, endpoint=0x81):
@@ -76,32 +97,36 @@ class UsbDevice(MessageDeviceBenchmarker):
         assert "value" in data
 
 
-def run_benchmark(device, message_size, total_bytes=MAX_BYTES):
-    device.set_message_size(message_size)
+def parse_options():
+    parser = argparse.ArgumentParser(description="Benchmark USB and FTDI "
+            "transfer rates on the chipKIT")
+    parser.add_argument("--usb",
+            action="store_true",
+            dest="run_usb_benchmark",
+            default=True,
+            help="run the USB benchmark")
+    parser.add_argument("--ftdi",
+            action="store_true",
+            dest="run_ftdi_benchmark",
+            default=False,
+            help="run the FTDI benchmark")
 
-    data = device.read()
-    starting_time = datetime.datetime.now()
-
-    while data is not None and device.bytes_received < MAX_BYTES:
-        data = device.read()
-
-    print
-    print "Finished receiving."
-
-    elapsed_time = datetime.datetime.now() - starting_time
-    throughput = device.throughput(elapsed_time)
-    print device.total_time(elapsed_time)
-    print "The effective throughput for %d byte messages is %d KB/s" % (
-                message_size, throughput)
-    return throughput
+    arguments = parser.parse_args()
+    return arguments
 
 def main():
-    device = UsbDevice()
+    arguments = parse_options()
+
+    if arguments.run_ftdi_benchmark:
+        pass
+    else:
+        device = UsbDevice()
 
     results = {}
-    for message_size in range(STARTING_MESSAGE_SIZE, ENDING_MESSAGE_SIZE + 1,
-            MESSAGE_SIZE_STEP):
-        results[message_size] = run_benchmark(device, message_size)
+    for message_size in range(device.STARTING_MESSAGE_SIZE,
+            device.ENDING_MESSAGE_SIZE + 1,
+            device.MESSAGE_SIZE_STEP):
+        results[message_size] = device.run_benchmark(message_size)
 
     print
     results = [(key, "%d byte messages -> %d KB/s" % (key, value))

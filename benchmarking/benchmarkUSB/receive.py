@@ -5,9 +5,9 @@ import datetime
 import sys
 import usb.core
 
-MAX_BYTES = 10 * 1000 * 10 * 10
-STARTING_MESSAGE_SIZE = 64
-ENDING_MESSAGE_SIZE = 64
+MAX_BYTES = 10 * 1000 * 10 * 100
+STARTING_MESSAGE_SIZE = 8192
+ENDING_MESSAGE_SIZE = 8192
 MESSAGE_SIZE_STEP = 12
 
 DATA_ENDPOINT = 0x81
@@ -58,11 +58,9 @@ class UsbDevice(MessageDeviceBenchmarker):
         self.reconfigure()
 
     def set_message_size_on_device(self, message_size):
-        try:
-            self.device.ctrl_transfer(0x40, self.MESSAGE_SIZE_CONTROL_MESSAGE,
-                    message_size)
-        except usb.core.USBError:
-            pass
+        # USB device is just using max packet size of 64 - the variable is how
+        # much we request to read at once. The more the merrier.
+        pass
 
     def reconfigure(self):
         self.device.set_configuration()

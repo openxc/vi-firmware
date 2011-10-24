@@ -2,6 +2,7 @@
 
 from operator import itemgetter
 import datetime
+import json
 import sys
 import usb.core
 
@@ -67,6 +68,12 @@ class UsbDevice(MessageDeviceBenchmarker):
 
     def _read(self):
         return self.device.read(self.endpoint, self.message_size)
+
+    def _validate(self, data):
+        data = data.tostring()
+        data = json.loads(data)
+        assert "name" in data
+        assert "value" in data
 
 
 def run_benchmark(device, message_size, total_bytes=MAX_BYTES):

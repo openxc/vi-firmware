@@ -6,6 +6,8 @@ import json
 import sys
 import argparse
 import usb.core
+import serial
+import string
 
 
 class MessageDeviceBenchmarker(object):
@@ -62,6 +64,33 @@ class MessageDeviceBenchmarker(object):
         pass
 
 
+class FtdiDevice(MessageDeviceBenchmarker):
+    MAX_BYTES = 10 * 1000 * 10 * 5
+    STARTING_MESSAGE_SIZE = 20
+    ENDING_MESSAGE_SIZE = 100
+    MESSAGE_SIZE_STEP = 20
+
+    def __init__(self, device="/dev/ttyUSB0", baud=1152000):
+        self.device = serial.Serial(device, baud, timeout=10)
+        self.device.flushInput()
+        self.message_size = -1
+
+    def set_message_size_on_device(self, message_size):
+        self.message_size = message_size
+        self.device.write(bytearray([self.message_size /
+            self.MESSAGE_SIZE_STEP]))
+        self.device.flushOutput()
+        print "Message size switched to %d bytes" % self.message_size
+        self.bytes_received = 0
+
+    def _read(self):
+        return self.device.read(self.message_size)
+
+    def _validate(self, data):
+        for character in string.ascii_lowercase[:self.message_size]:
+            if character not in data:
+                print "Corruption detection on line: %s" % data
+
 class UsbDevice(MessageDeviceBenchmarker):
     DATA_ENDPOINT = 0x81
     MAX_BYTES = 10 * 1000 * 10 * 100
@@ -77,15 +106,12 @@ class UsbDevice(MessageDeviceBenchmarker):
         if not self.device:
             print "Couldn't find a USB device from vendor %s" % self.vendorId
             sys.exit()
-        self.reconfigure()
+        self.device.set_configuration()
 
     def set_message_size_on_device(self, message_size):
         # USB device is just using max packet size of 64 - the variable is how
         # much we request to read at once. The more the merrier.
         pass
-
-    def reconfigure(self):
-        self.device.set_configuration()
 
     def _read(self):
         return self.device.read(self.endpoint, self.message_size)
@@ -110,17 +136,26 @@ def parse_options():
             dest="run_ftdi_benchmark",
             default=False,
             help="run the FTDI benchmark")
+    parser.add_argument("--tty",
+            action="store",
+            dest="tty",
+            default="/dev/ttyUSB0")
+    parser.add_argument("--vendor",
+            action="store",
+            dest="vendor",
+            default=0x04d8)
 
     arguments = parser.parse_args()
     return arguments
+
 
 def main():
     arguments = parse_options()
 
     if arguments.run_ftdi_benchmark:
-        pass
+        device = FtdiDevice(device=arguments.tty)
     else:
-        device = UsbDevice()
+        device = UsbDevice(vendorId=arguments.vendor)
 
     results = {}
     for message_size in range(device.STARTING_MESSAGE_SIZE,

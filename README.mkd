@@ -20,10 +20,10 @@ The code in this repository requires a list of CAN messages with details of the
 signals of interest, and their corresponding generic versions. The input format
 is a JSON object like this:
 
-    {"messages": [
+    {"messages": {
         "ECM_z_5D2": {
             "id": 42,
-            "signals": {
+            "signals": [
                 {"name": "StrAnglAct",
                     "id": 1,
                     "human_signal_name": "Steering wheel angle",
@@ -49,9 +49,9 @@ is a JSON object like this:
                         "5": "Reverse",
                         "6": "Neutral",
                     }}
-            }
+            ]
         }
-    ]}
+    }}
 
 TODO add definitions of state names, translate at this level
 

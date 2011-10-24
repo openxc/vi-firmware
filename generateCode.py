@@ -183,18 +183,18 @@ class HexParser(Parser):
         id_mapping[signal_id] = message_id
         return hex_offset, Signal(signal_id, "", position, length, transform,
                 factor, offset)
-
 class JsonParser(Parser):
     def __init__(self, filename, priority):
         super(JsonParser, self).__init__(priority)
         with open(filename) as jsonFile:
             self.data = json.load(jsonFile)
 
+    # The JSON parser accepts the format specified in the README.
     def parse(self):
         for message in self.data['messages'].values():
             self.message_ids.append(message['id'])
+            self.signal_count += len(message['signals'])
             for signal in message['signals']:
-                self.signal_count += 1
                 self.messages[message['id']].append(Signal(signal['id'],
                     signal['name'],
                     signal['bit_position'],

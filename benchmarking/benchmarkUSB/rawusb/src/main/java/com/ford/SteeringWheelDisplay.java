@@ -59,27 +59,4 @@ public class SteeringWheelDisplay extends Activity {
 
         connection.controlTransfer(0x40, 0x80, 42, 0, null, 0, 0);
     }
-
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                synchronized (this) {
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(
-                            UsbManager.EXTRA_DEVICE);
-
-                    if (intent.getBooleanExtra(
-                                UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        if(device != null){
-                            //call method to set up device communication
-                        }
-                    }
-                    else {
-                        Log.d(TAG, "permission denied for device " + device);
-                    }
-                }
-            }
-        }
-    };
 }

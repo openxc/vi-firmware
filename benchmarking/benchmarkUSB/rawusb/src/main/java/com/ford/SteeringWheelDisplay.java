@@ -57,6 +57,29 @@ public class SteeringWheelDisplay extends Activity {
         mHandler.post(mSetupDeviceTask);
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        mHandler.removeCallbacks(mSetupDeviceTask);
+    }
+
+    private void transferData() {
+        byte[] bytes = new byte[64];
+        int transferred = 0;
+        while(transferred < 1000 * 1000) {
+            transferred += mConnection.bulkTransfer(mEndpoint, bytes,
+                bytes.length, 0);
+            final int currentTransferred = transferred;
+            mHandler.post(new Runnable() {
+                public void run() {
+                    mTransferredBytesView.setText(
+                        Integer.toString(currentTransferred / 1000));
+                }
+            });
+        }
+        Log.i(TAG, "Transferred " + transferred + " bytes");
+    }
+
     private final Runnable mSetupDeviceTask = new Runnable() {
         public void run() {
             String deviceName =
@@ -75,20 +98,12 @@ public class SteeringWheelDisplay extends Activity {
             mEndpoint = iface.getEndpoint(1);
             mConnection = mUsbManager.openDevice(device);
             mConnection.claimInterface(iface, true);
-            mHandler.post(mTransferDataTask);
-        }
-    };
 
-    private final Runnable mTransferDataTask = new Runnable() {
-        public void run() {
-            byte[] bytes = new byte[64];
-            int transferred = 0;
-            while(transferred < 1000 * 1000) {
-                transferred += mConnection.bulkTransfer(mEndpoint, bytes,
-                    bytes.length, 0);
-                mTransferredBytesView.setText(Integer.toString(transferred));
-            }
-            Log.i(TAG, "Transferred " + transferred + " bytes");
+            new Thread(new Runnable() {
+                public void run() {
+                    transferData();
+                }
+            }).start();
         }
     };
 }

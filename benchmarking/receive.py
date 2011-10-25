@@ -17,7 +17,7 @@ class MessageDeviceBenchmarker(object):
 
         data = self._read()
 
-        self.bytes_received += self.message_size
+        self.bytes_received += len(data)
         if self.bytes_received % (1000 * self.message_size) == 0:
             print "Received %d kilobytes so far..." % (
                     self.bytes_received / 1000),
@@ -93,10 +93,10 @@ class FtdiDevice(MessageDeviceBenchmarker):
 
 class UsbDevice(MessageDeviceBenchmarker):
     DATA_ENDPOINT = 0x81
-    MAX_BYTES = 10 * 1000 * 10 * 100
-    STARTING_MESSAGE_SIZE = 512
-    ENDING_MESSAGE_SIZE = 8192
-    MESSAGE_SIZE_STEP = 512
+    MAX_BYTES = 10 * 1000 * 100
+    STARTING_MESSAGE_SIZE = 64
+    ENDING_MESSAGE_SIZE = 1024
+    MESSAGE_SIZE_STEP = 128
     MESSAGE_SIZE_CONTROL_MESSAGE = 0x80
 
     def __init__(self, vendorId=0x04d8, endpoint=0x81):

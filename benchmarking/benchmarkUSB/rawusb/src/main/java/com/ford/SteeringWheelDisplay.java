@@ -76,7 +76,6 @@ public class SteeringWheelDisplay extends Activity {
         int transferred = 0;
         final long startTime = System.nanoTime();
         final long endTime;
-        int updateCount = 0;
         while(transferred < 1000 * 1000) {
             transferred += mConnection.bulkTransfer(mEndpoint, bytes,
                 bytes.length, 0);
@@ -93,7 +92,6 @@ public class SteeringWheelDisplay extends Activity {
                         kilobytesTransferred / elapsedTime + " KB/s");
                 }
             });
-            ++updateCount;
         }
         endTime = System.nanoTime();
         Log.i(TAG, "Transferred " + transferred + " bytes in "

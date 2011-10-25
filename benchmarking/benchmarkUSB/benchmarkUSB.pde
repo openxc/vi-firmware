@@ -45,10 +45,13 @@ void setup() {
 }
 
 void loop() {
-    // when the handle is no longer busy, that means the host read some data
-    // and we can write more. In USB parlance, "input" goes from the device to
-    // the host.
-    if(!usb.HandleBusy(handleInput)) {
+    // using our own loop seems faster than using the arduino's
+    while(true) {
+        // when the handle is no longer busy, that means the host read some
+        // data and we can write more. In USB parlance, "input" goes from the
+        // device to the host.
+        while(usb.HandleBusy(handleInput));
+
         handleInput = usb.GenWrite(DATA_ENDPOINT, messageBuffer, messageSize);
     }
 }

@@ -8,7 +8,7 @@ static boolean customUSBCallback(USB_EVENT event);
 #define DATA_ENDPOINT_BUFFER_SIZE 65
 
 USB_HANDLE handleInput = 0;
-byte message[] = "{\"name\":\"SteeringWheelAngle\",\"value\":45}";
+byte message[] = "{\"name\":\"SteeringWheelAngle\",\"value\":45}\r\n";
 int messageSize;
 uint8_t messageBuffer[DATA_ENDPOINT_BUFFER_SIZE];
 

@@ -4,6 +4,9 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 
 import android.content.BroadcastReceiver;
@@ -19,6 +22,8 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 
+import android.R.id;
+import android.R.id;
 import android.R.id;
 
 import android.util.Log;
@@ -38,9 +43,12 @@ public class SteeringWheelDisplay extends Activity {
     private TextView mTransferredBytesView;
     private TextView mElapsedTimeView;
     private TextView mTransferRateView;
+    private TextView mSteeringWheelAngleView;
 
     private UsbDeviceConnection mConnection;
     private UsbEndpoint mEndpoint;
+
+    StringBuffer mBuffer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,8 +63,12 @@ public class SteeringWheelDisplay extends Activity {
         mTransferredBytesView = (TextView) findViewById(R.id.transfer_total);
         mElapsedTimeView = (TextView) findViewById(R.id.elapsed_time);
         mTransferRateView = (TextView) findViewById(R.id.transfer_rate);
+        mSteeringWheelAngleView = (TextView) findViewById(
+                R.id.steering_wheel_angle);
 
         mElapsedTimeView.setText("0");
+
+        mBuffer = new StringBuffer();
     }
 
     @Override
@@ -71,14 +83,50 @@ public class SteeringWheelDisplay extends Activity {
         mHandler.removeCallbacks(mSetupDeviceTask);
     }
 
+    private void parseStringBuffer() {
+        int newlineIndex = mBuffer.indexOf("\r\n");
+        if(newlineIndex != -1) {
+            final String messageString = mBuffer.substring(0, newlineIndex);
+            mBuffer.delete(0, newlineIndex + 1);
+
+            try {
+                final JSONObject message = new JSONObject(messageString);
+                mHandler.post(new Runnable() {
+                        public void run() {
+                    try {
+                        mSteeringWheelAngleView.setText(
+                                message.getInt("value") + "");
+                    } catch(JSONException e) {
+                        Log.i(TAG, "Couldn't decode JSON from: " +
+                                messageString);
+                    }
+                }});
+            } catch(JSONException e) {
+                Log.i(TAG, "Couldn't decode JSON from: " +
+                        messageString);
+            }
+        }
+    }
+
     private void transferData() {
-        byte[] bytes = new byte[2048];
+        byte[] bytes = new byte[128];
         int transferred = 0;
         final long startTime = System.nanoTime();
         final long endTime;
         while(transferred < 1000 * 1000) {
-            transferred += mConnection.bulkTransfer(mEndpoint, bytes,
+            int received = mConnection.bulkTransfer(mEndpoint, bytes,
                 bytes.length, 0);
+            transferred += received;
+            byte[] receivedBytes = new byte[received];
+            System.arraycopy(bytes, 0, receivedBytes, 0, received);
+            mBuffer.append(new String(receivedBytes));
+
+            new Thread(new Runnable() {
+                public void run() {
+                    parseStringBuffer();
+                }
+            }).start();
+
             final int currentTransferred = transferred;
             mHandler.post(new Runnable() {
                 public void run() {

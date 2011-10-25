@@ -6,6 +6,8 @@
           android:debuggable="true">
       <uses-feature android:name="android.hardware.usb.host"
               android:required="true" />
+      <activity android:name=".SteeringWheelDisplay">
+      </activity>
       <activity android:name=".UsbTestActivity">
           <intent-filter>
               <action android:name="android.intent.action.MAIN" />

@@ -1,5 +1,7 @@
 package com.ford;
 
+import java.util.concurrent.TimeUnit;
+
 import java.util.Map;
 
 import android.app.Activity;
@@ -17,6 +19,8 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 
+import android.R.id;
+
 import android.util.Log;
 
 import android.widget.TextView;
@@ -24,8 +28,6 @@ import android.widget.TextView;
 public class SteeringWheelDisplay extends Activity {
 
     private static String TAG = "rawusb";
-    private static final String ACTION_USB_PERMISSION =
-            "com.ford.rawusb.USB_PERMISSION";
 
     private final Handler mHandler = new Handler();
     private UsbManager mUsbManager;
@@ -34,6 +36,8 @@ public class SteeringWheelDisplay extends Activity {
     private TextView mInterfaceCountView;
     private TextView mEndpointCountView;
     private TextView mTransferredBytesView;
+    private TextView mElapsedTimeView;
+    private TextView mTransferRateView;
 
     private UsbDeviceConnection mConnection;
     private UsbEndpoint mEndpoint;
@@ -49,6 +53,10 @@ public class SteeringWheelDisplay extends Activity {
         mInterfaceCountView = (TextView) findViewById(R.id.interface_count);
         mEndpointCountView = (TextView) findViewById(R.id.endpoint_count);
         mTransferredBytesView = (TextView) findViewById(R.id.transfer_total);
+        mElapsedTimeView = (TextView) findViewById(R.id.elapsed_time);
+        mTransferRateView = (TextView) findViewById(R.id.transfer_rate);
+
+        mElapsedTimeView.setText("0");
     }
 
     @Override
@@ -64,20 +72,34 @@ public class SteeringWheelDisplay extends Activity {
     }
 
     private void transferData() {
-        byte[] bytes = new byte[64];
+        byte[] bytes = new byte[2048];
         int transferred = 0;
+        final long startTime = System.nanoTime();
+        final long endTime;
+        int updateCount = 0;
         while(transferred < 1000 * 1000) {
             transferred += mConnection.bulkTransfer(mEndpoint, bytes,
                 bytes.length, 0);
             final int currentTransferred = transferred;
             mHandler.post(new Runnable() {
                 public void run() {
+                    double kilobytesTransferred = currentTransferred / 1000.0;
                     mTransferredBytesView.setText(
-                        Integer.toString(currentTransferred / 1000));
+                        Double.toString(kilobytesTransferred));
+                    long elapsedTime = TimeUnit.SECONDS.convert(
+                        System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+                    mElapsedTimeView.setText(elapsedTime + " seconds");
+                    mTransferRateView.setText(
+                        kilobytesTransferred / elapsedTime + " KB/s");
                 }
             });
+            ++updateCount;
         }
-        Log.i(TAG, "Transferred " + transferred + " bytes");
+        endTime = System.nanoTime();
+        Log.i(TAG, "Transferred " + transferred + " bytes in "
+            + TimeUnit.SECONDS.convert(endTime - startTime,
+                TimeUnit.NANOSECONDS)
+            + " seconds");
     }
 
     private final Runnable mSetupDeviceTask = new Runnable() {

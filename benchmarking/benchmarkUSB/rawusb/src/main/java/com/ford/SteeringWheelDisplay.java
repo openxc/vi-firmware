@@ -15,8 +15,11 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
 import android.os.Bundle;
+import android.os.Handler;
 
 import android.util.Log;
+
+import android.widget.TextView;
 
 public class SteeringWheelDisplay extends Activity {
 
@@ -24,39 +27,68 @@ public class SteeringWheelDisplay extends Activity {
     private static final String ACTION_USB_PERMISSION =
             "com.ford.rawusb.USB_PERMISSION";
 
+    private final Handler mHandler = new Handler();
     private UsbManager mUsbManager;
+
+    private TextView mDeviceNameView;
+    private TextView mInterfaceCountView;
+    private TextView mEndpointCountView;
+    private TextView mTransferredBytesView;
+
+    private UsbDeviceConnection mConnection;
+    private UsbEndpoint mEndpoint;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.detail);
 		Log.i(TAG, "SteeringWheelDisplay created");
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        setupDevice(getIntent().getStringExtra("usb_device_name"));
+
+        mDeviceNameView = (TextView) findViewById(R.id.device_name);
+        mInterfaceCountView = (TextView) findViewById(R.id.interface_count);
+        mEndpointCountView = (TextView) findViewById(R.id.endpoint_count);
+        mTransferredBytesView = (TextView) findViewById(R.id.transfer_total);
     }
 
-    private void setupDevice(String deviceName) {
-        Log.i(TAG, "Clicked " + deviceName);
+    @Override
+    public void onResume() {
+        super.onResume();
+        mHandler.post(mSetupDeviceTask);
+    }
 
-        Map<String, UsbDevice> devices = mUsbManager.getDeviceList();
-        UsbDevice device = devices.get(deviceName);
-        Log.i(TAG, "Device has " + device.getInterfaceCount() +
-            "interfaces");
-        UsbInterface iface = device.getInterface(0);
-        Log.i(TAG, "Device has " + iface.getEndpointCount() +
-            "endpoints");
-        UsbEndpoint endpoint = iface.getEndpoint(1);
-        UsbDeviceConnection connection = mUsbManager.openDevice(
-            device);
-        connection.claimInterface(iface, true);
+    private final Runnable mSetupDeviceTask = new Runnable() {
+        public void run() {
+            String deviceName =
+                getIntent().getStringExtra("usb_device_name");
+            Log.i(TAG, "Clicked " + deviceName);
 
-        byte[] bytes = new byte[64];
-        int transferred = connection.bulkTransfer(endpoint, bytes,
-            bytes.length, 0);
-        Log.i(TAG, "Transferred " + transferred + " bytes");
-        if(transferred > 0) {
-            Log.i(TAG, "Data: " + new String(bytes));
+            mDeviceNameView.setText(deviceName);
+
+            Map<String, UsbDevice> devices = mUsbManager.getDeviceList();
+            UsbDevice device = devices.get(deviceName);
+            mInterfaceCountView.setText(
+                    Integer.toString(device.getInterfaceCount()));
+            UsbInterface iface = device.getInterface(0);
+            mEndpointCountView.setText(
+                    Integer.toString(iface.getEndpointCount()));
+            mEndpoint = iface.getEndpoint(1);
+            mConnection = mUsbManager.openDevice(device);
+            mConnection.claimInterface(iface, true);
+            mHandler.post(mTransferDataTask);
         }
+    };
 
-        connection.controlTransfer(0x40, 0x80, 42, 0, null, 0, 0);
-    }
+    private final Runnable mTransferDataTask = new Runnable() {
+        public void run() {
+            byte[] bytes = new byte[64];
+            int transferred = 0;
+            while(transferred < 1000 * 1000) {
+                transferred += mConnection.bulkTransfer(mEndpoint, bytes,
+                    bytes.length, 0);
+                mTransferredBytesView.setText(Integer.toString(transferred));
+            }
+            Log.i(TAG, "Transferred " + transferred + " bytes");
+        }
+    };
 }

@@ -2,4 +2,8 @@
 <resources>
     <string name="nodevices">No USB devices available.</string>
     <string name="app_name">rawusb</string>
+    <string name="device_name_label">Device</string>
+    <string name="interface_count_label">Num. Interfaces</string>
+    <string name="endpoint_count_label">Num. Endpoints</string>
+    <string name="transfer_total_label">Transferred (KB)</string>
 </resources>

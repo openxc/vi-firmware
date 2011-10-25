@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical" >
+    <TextView android:id="@+id/device_name_label"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/device_name_label" />
+    <TextView android:id="@+id/device_name"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+    <TextView android:id="@+id/interface_count_label"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/interface_count_label" />
+    <TextView android:id="@+id/interface_count"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+    <TextView android:id="@+id/endpoint_count_label"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/endpoint_count_label" />
+    <TextView android:id="@+id/endpoint_count"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+    <TextView android:id="@+id/transfer_total_label"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/transfer_total_label" />
+    <TextView android:id="@+id/transfer_total"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+</LinearLayout>

@@ -9,6 +9,7 @@
 #include "chipKITUSBDevice.h"
 #include "bitfield.h"
 #include "canutil.h"
+#include "usbutil.h"
 
 /* Network Node Addresses */
 #define node1can1 0x101L

@@ -15,8 +15,10 @@ void send_message(uint8_t* message, int message_size) {
 }
 
 void initializeUsb() {
+    Serial.print("Initializing USB...  ");
     USB_DEVICE.InitializeSystem(true);
     while(USB_DEVICE.GetDeviceState() < CONFIGURED_STATE);
+    Serial.println("Done.");
 }
 
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {

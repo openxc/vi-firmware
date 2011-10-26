@@ -2,3 +2,4 @@ B299
 can_decoder_c346_*.pde
 *.hex
 build/
+benchmarking/

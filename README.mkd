@@ -47,7 +47,7 @@ is a JSON object like this:
                         "3": "3rd",
                         "4": "4th",
                         "5": "Reverse",
-                        "6": "Neutral",
+                        "6": "Neutral"
                     }}
             ]
         }

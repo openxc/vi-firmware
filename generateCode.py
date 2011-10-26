@@ -2,10 +2,8 @@
 
 from collections import defaultdict
 import sys
-import json
 import struct
 import argparse
-import intelhex
 
 # XXXX UGGGGGG Hack because this code is stupid.
 # XXXX Should really just parse XML into some intermediate structure and then
@@ -154,6 +152,7 @@ class Parser(object):
 class HexParser(Parser):
     def __init__(self, filename, priority):
         super(HexParser, self).__init__(priority)
+        import intelhex
         self.mem = intelhex.IntelHex(filename)
 
     def parse(self):
@@ -187,6 +186,7 @@ class JsonParser(Parser):
     def __init__(self, filename, priority):
         super(JsonParser, self).__init__(priority)
         with open(filename) as jsonFile:
+            import json
             self.data = json.load(jsonFile)
 
     # The JSON parser accepts the format specified in the README.

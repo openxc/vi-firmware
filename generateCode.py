@@ -94,7 +94,7 @@ class Parser(object):
         print
         print "    switch (id) {"
         for message_id, signals in self.messages.iteritems():
-            print "    case %x:" % message_id
+            print "    case 0x%x:" % message_id
             for signal in signals:
                 print "        decode_can_signal(data, &SIGNALS[%d]);" % (
                         signal.array_index)

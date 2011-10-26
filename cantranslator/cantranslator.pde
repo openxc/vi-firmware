@@ -37,6 +37,7 @@ void decode_can_message(int id, uint8_t* data);
 void setup() {
     Serial.begin(115200);
 
+    initializeUsb();
     initializeCan(node1can1);
     canModule.attachInterrupt(handleCanInterrupt);
 }

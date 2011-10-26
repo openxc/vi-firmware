@@ -5,6 +5,9 @@ USB_HANDLE USB_INPUT_HANDLE = 0;
 
 void send_message(uint8_t* message, int message_size) {
     int currentByte = 0;
+    Serial.print("sending message: ");
+    Serial.println((char*)message);
+
     while(currentByte <= message_size) {
         while(USB_DEVICE.HandleBusy(USB_INPUT_HANDLE));
         int bytesToTransfer = min(USB_PACKET_SIZE, message_size - currentByte);

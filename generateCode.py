@@ -22,8 +22,10 @@ def parse_options():
             metavar="FILE",
             help="generate source from this hex file")
     parser.add_argument("-j", "--json",
-            action="store",
-            dest="json_file",
+            action="append",
+	    type=str,
+	    nargs='*',
+            dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
     parser.add_argument('-p', '--priority',
@@ -40,10 +42,10 @@ def parse_options():
         arguments.priority = [item for sublist in arguments.priority
                 for item in sublist]
 
-    if arguments.hex_file and arguments.json_file:
+    if arguments.hex_file and arguments.json_files:
         raise argparse.ArgumentError(hex_arg,
                 "Can't specify both a hex and JSON file -- pick one!")
-    if not arguments.hex_file and not arguments.json_file:
+    if not arguments.hex_file and not arguments.json_files:
         raise argparse.ArgumentError(hex_arg,
                 "Must specify either a hex file or JSON file.")
 
@@ -184,32 +186,37 @@ class HexParser(Parser):
         return hex_offset, Signal(signal_id, "", position, length, transform,
                 factor, offset)
 class JsonParser(Parser):
-    def __init__(self, filename, priority):
+    def __init__(self, filenames, priority):
         super(JsonParser, self).__init__(priority)
-        with open(filename) as jsonFile:
-            self.data = json.load(jsonFile)
+	self.jsonFiles = filenames
+#        with open(filename) as jsonFile:
+#            self.data = json.load(jsonFile)
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
-        for message in self.data['messages'].values():
-            self.message_ids.append(message['id'])
-            self.signal_count += len(message['signals'])
-            for signal in message['signals']:
-                self.messages[message['id']].append(Signal(signal['id'],
-                    signal['name'],
-                    signal['bit_position'],
-                    signal['bit_size'],
-                    signal['transform'],
-                    signal.get('factor', 1),
-                    signal.get('offset', 0)))
+	for filename in self.jsonFiles:
+	    with open(filename[0]) as jsonFile:
+		self.data = json.load(jsonFile)
+		for message in self.data['messages'].values():
+		    self.message_ids.append(message['id'])
+		    self.signal_count += len(message['signals'])
+		    for signal in message['signals']:
+			self.messages[message['id']].append(Signal(signal['id'],
+			    signal['name'],
+			    signal['bit_position'],
+			    signal['bit_size'],
+			    signal['transform'],
+			    signal.get('factor', 1),
+			    signal.get('offset', 0)))
 
 def main():
     arguments = parse_options()
+ #   import pdb; pdb.set_trace()
 
     if arguments.hex_file:
         parser = HexParser(arguments.hex_file, arguments.priority)
     else:
-        parser = JsonParser(arguments.json_file, arguments.priority)
+        parser = JsonParser(arguments.json_files, arguments.priority)
 
     parser.parse()
     parser.print_source()

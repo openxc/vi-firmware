@@ -67,25 +67,29 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and sends the result over USB.
  *
- * data - the raw bytes of the CAN message that contains the signal.
  * signal - the details of the signal to decode and forward.
+ * data - the raw bytes of the CAN message that contains the signal.
  *
- * TODO this should return the final value instead of also calling sendSignal
  */
-void decodeCanSignal(CanSignal* signal, uint8_t* data);
+void translateCanSignal(CanSignal* signal, uint8_t* data);
 
-/* Public: Constructs a JSON version of the translated CAN signal and sends over
- *         USB.
+/* Internal: Parses a CAN signal from a message and applies required
+ *           transformation.
+ *
+ * signal - the details of the signal to decode and forward.
+ * data - the raw bytes of the CAN message that contains the signal.
+ *
+ * Returns the final, transformed value of the signal.
+ */
+float decodeCanSignal(CanSignal* signal, uint8_t* data);
+
+/* Internal: Constructs a JSON representation of the translated signal.
  *
  * signal - the CAN signal this value is an instance of.
  * value  - the final, translated value for the signal.
  *
- * Examples
- *
- *  sendSignal(SIGNALS[2], 42);
- *
- * TODO this should just build JSON and return it
+ * Returns JSON in a string.
  */
-void sendSignal(CanSignal* signal, float value);
+char* generateJson(CanSignal* signal, float value);
 
 #endif // _CANUTIL_H_

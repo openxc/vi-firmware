@@ -38,16 +38,20 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
 
     raw_value = getBitField(data, signal->bitPosition, signal->bitSize);
     final_value = (float)raw_value * signal->factor + signal->offset;
-
-    sendSignal(signal, final_value);
 }
 
-void sendSignal(CanSignal* signal, float value) {
+void translateCanSignal(CanSignal* signal, uint8_t* data) {
+    float value = decodeCanSignal(signal, data);
+    char* message = generateJson(signal, value);
+    // TODO what do we need to include to use strnlen here? we know the max
+    // length
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
+char* generateJson(CanSignal* signal, float value) {
     int message_length = MESSAGE_FORMAT_LENGTH + strlen(signal->genericName) +
         MESSAGE_VALUE_MAX_LENGTH;
     char message[message_length];
     sprintf(message, MESSAGE_FORMAT, signal->genericName, value);
-    // TODO what do we need to include to use strnlen here? we know the max
-    // length
-    sendMessage((uint8_t*) message, strlen(message));
+    return message;
 }

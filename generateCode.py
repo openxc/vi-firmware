@@ -95,7 +95,7 @@ class Parser(object):
         for message_id, signals in self.messages.iteritems():
             print "    case 0x%x:" % message_id
             for signal in signals:
-                print "        decodeCanSignal(&SIGNALS[%d], data);" % (
+                print "        translateCanSignal(&SIGNALS[%d], data);" % (
                         signal.array_index)
             print "        break;"
         print "    }"

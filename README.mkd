@@ -32,7 +32,12 @@ is a JSON object like this:
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "handler": "handleSteeringWheelAngle"},
+                    "valueHandler": "handleSteeringWheelAngle"},
+                {"name": "StrAnglSign",
+                    "id": 2,
+                    "human_signal_name": "Steering wheel angle sign",
+                    "bit_position": 52,
+                    "bit_size": 12},
                 {"name": "GrshftPos",
                     "id": 10,
                     "human_signal_name": "Gearshift Position",
@@ -56,12 +61,20 @@ TODO add definitions of state names, translate at this level
 This is a list of CAN messages and a list of signals within each message. The
 attributes of a signal are:
 
-`signal_name` - The official name of the signal - often a terse spelling.
+`name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation
     from this list.
 
+`id` - A globally unique, numerical ID for the signal.
+
 `human_signal_name` - A more friendly, human readable version of the signal's
     name. Optional - just used in comments so the generated source is clearer.
+
+`generic_name` - The name of the associated generic signal name (from the OpenXC
+        specification) that this should be translated to. Optional - if not
+        specified, the signal is read and stored in memory, but not sent to the
+        output bus. This is handy for combining the value of multiple signals
+        into a composite measurement such as steering wheel angle with its sign.
 
 `bit_position` - The staring bit position of this signal within the message.
 
@@ -71,12 +84,71 @@ attributes of a signal are:
 
 `offset` - This is added to the signal value if set. Optional.
 
-`handler` - The name of a function that will be linked with the program and
-    should be applied to the signal for additional processing. Optional - see
-    the "Custom Handlers" section for more.
+`valueHandler` - The name of a function that will be compiled with the sketch
+        and should be applied to the signal's value after the normal
+        translation. Optional - see the "Custom Handlers" section for more.
 
 `states` - For state values, this is a mapping between the raw states (usually
-    an integer) and the corresponding state in the generic signal.
+    an integer) and the corresponding state in the generic signal. TODO.
+
+## Custom Handlers
+
+The default handler for each signal is a simple passthrough, translating the
+signal's ID to an abstracted name (e.g. `SteeringWheelAngle`) and its value from
+engineering units to something more usable. Some signals require additional
+processing that you may wish to do within the translator and not on the host
+device. Other signals may need to be combined to make a composite signal that's
+more meaningful to developers.
+
+An good example is steering wheel angle. For an app developer to get a value
+that ranges from e.g. -350 to +350, we need to combine two different signals -
+the angle and the sign. If you want to make this combnation happen inside the
+translator, you can use a custom handler.
+
+There are three levels of custom handlers:
+
+* Message handlers - use these for custom processing of the entire CAN message.
+        TODO this might not be neccessary
+* Signal handlers - use these for custom processing of one signal
+* Value handlers - use these for making non-standard transformations to a signal
+  value
+
+For this example, we want to modify the value of `SteeringWheelAngle` by setting
+the sign positive or negative based on the value of the other signal
+(`StrAnglSign`). Every time a CAN signal is received, the new value is stored in
+memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
+the raw steering wheel angle value.
+
+    float handleSteeringWheelAngle(float value) {
+        if(SIGNAL[2].lastValue == 0) {
+            // left turn
+            value *= -1;
+        }
+        return value;
+    }
+
+A known issue with this method is that there is no guarantee that the last value
+of another signal arrived in the message or before/after the value you're
+current modifying. For steering wheel angle, that's probably OK - for other
+signals, not so much.
+
+If you need greater precision, you can provide a custom handler for the entire
+message to guarantee they arrived together. You can generate 0, 1 or many
+translated messages from one call to your handler function.
+
+    void handleSteeringWheelMessage(uint8_t* data) {
+        float steeringWheelAngle = decodeCanSignal(SIGNALS[1], data);
+        float steeringWheelSign = decodeCanSignal(SIGNALS[2], data);
+
+        float finalValue = steeringWheelAngle;
+        if(steeringWheelSign == 0) {
+            // left turn
+            finalValue *= -1;
+        }
+
+        char* message = generateJson(SIGNALS[1], finalValue);
+        sendMessage((uint8_t*) message, strlen(message));
+    }
 
 ## Sketch Generation
 

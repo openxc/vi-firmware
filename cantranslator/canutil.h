@@ -66,7 +66,7 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  */
 void translateCanSignal(CanSignal* signal, uint8_t* data);
 
-/* Internal: Parses a CAN signal from a message and applies required
+/* Public: Parses a CAN signal from a message and applies required
  *           transformation.
  *
  * signal - the details of the signal to decode and forward.
@@ -76,7 +76,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data);
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
-/* Internal: Constructs a JSON representation of the translated signal.
+/* Public: Constructs a JSON representation of the translated signal.
  *
  * signal - the CAN signal this value is an instance of.
  * value  - the final, translated value for the signal.

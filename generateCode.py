@@ -59,7 +59,7 @@ class Signal(object):
         self.array_index = 0
 
     def __str__(self):
-        return "{%d, \"%s\", %d, %d, %s, %d, %d}" % (
+        return "{%d, \"%s\", %d, %d, %s, %f, %f}" % (
                 self.id, self.name, self.position, self.length,
                 str(self.transform).lower(), self.factor, self.offset)
 

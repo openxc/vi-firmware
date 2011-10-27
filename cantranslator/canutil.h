@@ -28,8 +28,8 @@ struct CanSignal {
     float offset;
 };
 
-void configure_hs_filters(CAN *canMod, CanFilterMask*, CanFilter*);
-void decode_can_signal(uint8_t* data, CanSignal* signal);
-void send_signal(CanSignal* signal, float value);
+void configureFilters(CAN *canMod, CanFilterMask*, CanFilter*);
+void decodeCanSignal(uint8_t* data, CanSignal* signal);
+void sendSignal(CanSignal* signal, float value);
 
 #endif // _CANUTIL_H_

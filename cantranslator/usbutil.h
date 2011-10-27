@@ -18,7 +18,7 @@ const int MESSAGE_FORMAT_LENGTH = strlen(MESSAGE_FORMAT);
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
 void initializeUsb();
-void send_message(uint8_t* message, int message_size);
+void sendMessage(uint8_t* message, int message_size);
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 extern USBDevice USB_DEVICE;

@@ -3,12 +3,12 @@
 USBDevice USB_DEVICE(usbCallback);
 USB_HANDLE USB_INPUT_HANDLE = 0;
 
-void send_message(uint8_t* message, int message_size) {
+void sendMessage(uint8_t* message, int message_size) {
     int nextByteIndex = 0;
-    if(DEBUG) {
-        Serial.print("sending message: ");
-        Serial.println((char*)message);
-    }
+#ifdef DEBUG
+    Serial.print("sending message: ");
+    Serial.println((char*)message);
+#endif
 
     while(nextByteIndex < message_size) {
         while(USB_DEVICE.HandleBusy(USB_INPUT_HANDLE));

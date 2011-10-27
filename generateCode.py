@@ -75,7 +75,7 @@ class Parser(object):
 
     def print_header(self):
         print "#include \"canutil.h\"\n"
-        print "void decode_can_message(int id, uint8_t* data) {"
+        print "void decodeCanMessage(int id, uint8_t* data) {"
 
     def print_source(self):
         self.print_header()
@@ -96,7 +96,7 @@ class Parser(object):
         for message_id, signals in self.messages.iteritems():
             print "    case 0x%x:" % message_id
             for signal in signals:
-                print "        decode_can_signal(data, &SIGNALS[%d]);" % (
+                print "        decodeCanSignal(data, &SIGNALS[%d]);" % (
                         signal.array_index)
             print "        break;"
         print "    }"
@@ -126,7 +126,7 @@ class Parser(object):
         print "CanFilter FILTERS[%d];" % len(all_ids)
 
         print
-        print "CanFilterMask* initialize_filter_masks() {"
+        print "CanFilterMask* initializeFilterMasks() {"
         print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    FILTER_MASKS = {"
@@ -140,7 +140,7 @@ class Parser(object):
         print "}"
 
         print
-        print "CanFilter* initialize_filters() {"
+        print "CanFilter* initializeFilters() {"
         print "Serial.println(\"Initializing filters...\");"
 
         print "    FILTERS = {"

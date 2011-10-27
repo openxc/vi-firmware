@@ -18,7 +18,6 @@
 #define SYS_FREQ (80000000L)
 #define CAN_BUS_SPEED 500000
 
-#define DEBUG 0
 
 // this object uses CAN module 1
 CAN canModule(CAN::CAN1);
@@ -85,9 +84,9 @@ void initializeCan(uint32_t myaddr) {
      */
     canModule.configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    CanFilterMask* filterMasks = initialize_filter_masks();
-    CanFilter* filters = initialize_filters();
-    configure_hs_filters(&canModule, filterMasks, filters);
+    CanFilterMask* filterMasks = initializeFilterMasks();
+    CanFilter* filters = initializeFilters();
+    configureFilters(&canModule, filterMasks, filters);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The
@@ -116,7 +115,7 @@ void receiveCan(void) {
     }
 
     message = canModule.getRxMessage(CAN::CHANNEL1);
-    decode_can_message(message->msgSID.SID, message->data);
+    decodeCanMessage(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module

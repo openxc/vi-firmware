@@ -32,7 +32,7 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
     Serial.println("Done.");
 }
 
-void decodeCanSignal(uint8_t* data, CanSignal* signal) {
+float decodeCanSignal(CanSignal* signal, uint8_t* data) {
     unsigned long raw_value;
     float final_value;
 

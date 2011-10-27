@@ -71,9 +71,8 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  * signal - the details of the signal to decode and forward.
  *
  * TODO this should return the final value instead of also calling sendSignal
- * TODO flip the order of the arguments
  */
-void decodeCanSignal(uint8_t* data, CanSignal* signal);
+void decodeCanSignal(CanSignal* signal, uint8_t* data);
 
 /* Public: Constructs a JSON version of the translated CAN signal and sends over
  *         USB.

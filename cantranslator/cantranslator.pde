@@ -18,6 +18,8 @@
 #define SYS_FREQ (80000000L)
 #define CAN_BUS_SPEED 500000
 
+#define DEBUG 0
+
 // this object uses CAN module 1
 CAN canModule(CAN::CAN1);
 

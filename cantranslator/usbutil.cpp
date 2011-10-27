@@ -3,17 +3,17 @@
 USBDevice USB_DEVICE(usbCallback);
 USB_HANDLE USB_INPUT_HANDLE = 0;
 
-void sendMessage(uint8_t* message, int message_size) {
+void sendMessage(uint8_t* message, int messageSize) {
     int nextByteIndex = 0;
 #ifdef DEBUG
     Serial.print("sending message: ");
     Serial.println((char*)message);
 #endif
 
-    while(nextByteIndex < message_size) {
+    while(nextByteIndex < messageSize) {
         while(USB_DEVICE.HandleBusy(USB_INPUT_HANDLE));
         int bytesToTransfer = min(USB_PACKET_SIZE,
-                message_size - nextByteIndex);
+                messageSize - nextByteIndex);
         USB_INPUT_HANDLE = USB_DEVICE.GenWrite(DATA_ENDPOINT,
                 (uint8_t*)(message + nextByteIndex), bytesToTransfer);
         nextByteIndex += bytesToTransfer;

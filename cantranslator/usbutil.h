@@ -26,11 +26,9 @@ void initializeUsb();
 /* Public: Sends a message on the bulk transfer endpoint to the host.
  *
  * message - a buffer containing the message to send.
- * message_size - the length of the message.
- *
- * TODO rename message_size to messageSize
+ * messageSize - the length of the message.
  */
-void sendMessage(uint8_t* message, int message_size);
+void sendMessage(uint8_t* message, int messageSize);
 
 /* Internal: Handle asynchronous events from the USB controller.
  */

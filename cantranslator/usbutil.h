@@ -17,8 +17,23 @@ const int MESSAGE_FORMAT_LENGTH = strlen(MESSAGE_FORMAT);
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
+/* Public: Initializes the USB controller as a full-speed device with the
+ *         configuration specified in usb_descriptors.c. Must be called before
+ *         any other USB fuctions are used.
+ */
 void initializeUsb();
+
+/* Public: Sends a message on the bulk transfer endpoint to the host.
+ *
+ * message - a buffer containing the message to send.
+ * message_size - the length of the message.
+ *
+ * TODO rename message_size to messageSize
+ */
 void sendMessage(uint8_t* message, int message_size);
+
+/* Internal: Handle asynchronous events from the USB controller.
+ */
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 extern USBDevice USB_DEVICE;

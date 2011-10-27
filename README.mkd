@@ -30,7 +30,6 @@ is a JSON object like this:
                     "generic_name": "SteeringWheelAngle",
                     "bit_position": 52,
                     "bit_size": 12,
-                    "transform": true,
                     "factor": 0.15392,
                     "offset": 0,
                     "handler": "handleSteeringWheelAngle"},
@@ -40,7 +39,6 @@ is a JSON object like this:
                     "generic_name": "GearshiftPosition",
                     "bit_position": 41,
                     "bit_size": 0,
-                    "transform": false,
                     "states": {
                         "1": "1st",
                         "2": "2nd",
@@ -69,14 +67,9 @@ attributes of a signal are:
 
 `bit_size` - The width in bits of the signal.
 
-`transform` - A boolean that indicates if factor and offset transformations
-    should be applied to this signal.
+`factor` - The signal value is multiplied by this if set. Optional.
 
-`factor` - If `transform` is `true`, the signal value is multiplied by this.
-    Optional.
-
-`offset` - If `transform` is `true`, this is added to the signal value.
-    Optional.
+`offset` - This is added to the signal value if set. Optional.
 
 `handler` - The name of a function that will be linked with the program and
     should be applied to the signal for additional processing. Optional - see

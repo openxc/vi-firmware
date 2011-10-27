@@ -48,20 +48,19 @@ def parse_options():
     return arguments
 
 class Signal(object):
-    def __init__(self, id, name, position, length, transform, factor, offset):
+    def __init__(self, id, name, position, length, factor=1, offset=0):
         self.id = id
         self.name = name
         self.position = position
         self.length = length
-        self.transform = transform
         self.factor = factor
         self.offset = offset
         self.array_index = 0
 
     def __str__(self):
-        return "{%d, \"%s\", %d, %d, %s, %f, %f}" % (
-                self.id, self.name, self.position, self.length,
-                str(self.transform).lower(), self.factor, self.offset)
+        return "{%d, \"%s\", %d, %d, %f, %f}" % (
+                self.id, self.name, self.position, self.length, self.factor,
+                self.offset)
 
 class Parser(object):
     def __init__(self, priority):
@@ -178,8 +177,8 @@ class HexParser(Parser):
         (signal_id, t_pos, length) = struct.unpack('<BBB',
                 self.mem.gets(hex_offset, 3))
         hex_offset += 3
-        transform = (t_pos & 1 << 7) != 0
         position = t_pos & ~(1 << 7)
+        transform = (t_pos & 1 << 7) != 0
         if transform:
             (offset, factor) = struct.unpack('<ff',
                     self.mem.gets(hex_offset, 8))
@@ -188,8 +187,8 @@ class HexParser(Parser):
             (offset, factor) = (0.0, 1.0)
 
         id_mapping[signal_id] = message_id
-        return hex_offset, Signal(signal_id, "", position, length, transform,
-                factor, offset)
+        return hex_offset, Signal(signal_id, "", position, length, factor,
+                offset)
 class JsonParser(Parser):
     def __init__(self, filename, priority):
         super(JsonParser, self).__init__(priority)
@@ -207,7 +206,6 @@ class JsonParser(Parser):
                     signal['name'],
                     signal['bit_position'],
                     signal['bit_size'],
-                    signal['transform'],
                     signal.get('factor', 1),
                     signal.get('offset', 0)))
 

@@ -33,12 +33,9 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
 }
 
 float decodeCanSignal(CanSignal* signal, uint8_t* data) {
-    unsigned long rawValue;
-    float finalValue;
-
-    rawValue = getBitField(data, signal->bitPosition, signal->bitSize);
-    finalValue = (float)rawValue * signal->factor + signal->offset;
-    return finalValue;
+    unsigned long rawValue = getBitField(data, signal->bitPosition,
+            signal->bitSize);
+    return rawValue * signal->factor + signal->offset;
 }
 
 void translateCanSignal(CanSignal* signal, uint8_t* data) {

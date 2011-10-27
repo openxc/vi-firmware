@@ -36,21 +36,14 @@ struct CanFilter {
  * genericName - the name of the signal to be output over USB.
  * bitPosition - the starting bit of the signal in its CAN message.
  * bitSize     - the width of the bit field in the CAN message.
- * transform   - true if the singal's value should be transformed by the
- *               spcified factor and offset.
- *               TODO this may be redundant if we specify the factor and offset
- *               intelligently.
- * factor      - the final value will be multiplied by this factor if transform
- *               is true.
- * offset      - the final value will be added to this offset if transform is
- *               true.
+ * factor      - the final value will be multiplied by this factor.
+ * offset      - the final value will be added to this offset.
  */
 struct CanSignal {
     int id;
     char* genericName;
     int bitPosition;
     int bitSize;
-    bool transform;
     float factor;
     float offset;
 };

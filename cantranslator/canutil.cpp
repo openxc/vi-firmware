@@ -1,26 +1,35 @@
 #include "canutil.h"
 #include "usbutil.h"
 
-void configure_hs_filters(CAN *can_module) {
+void configure_hs_filters(CAN *can_module, CanFilterMask* filterMasks,
+        CanFilter* filters) {
     extern int FILTER_COUNT;
-    extern CanFilter* FILTERS;
     extern int FILTER_MASK_COUNT;
-    extern CanFilterMask* FILTER_MASKS;
 
+    Serial.print("Configuring ");
+    Serial.print(FILTER_MASK_COUNT, DEC);
+    Serial.print(" filter masks...  ");
     for(int i = 0; i < FILTER_MASK_COUNT; i++) {
+        Serial.print("Configuring filter mask ");
+        Serial.println(filterMasks[i].value, HEX);
         can_module->configureFilterMask(
-                (CAN::FILTER_MASK) FILTER_MASKS[i].number,
-                FILTER_MASKS[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
+                (CAN::FILTER_MASK) filterMasks[i].number,
+                filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
+    Serial.println("Done.");
 
+    Serial.print("Configuring ");
+    Serial.print(FILTER_COUNT, DEC);
+    Serial.print(" filters...  ");
     for(int i = 0; i < FILTER_COUNT; i++) {
-        can_module->configureFilter((CAN::FILTER) FILTERS[i].number,
-                FILTERS[i].value, CAN::SID);
-        can_module->linkFilterToChannel((CAN::FILTER) FILTERS[i].number,
-                (CAN::FILTER_MASK) FILTERS[i].maskNumber,
-                (CAN::CHANNEL) FILTERS[i].channel);
-        can_module->enableFilter((CAN::FILTER) FILTERS[i].number, true);
+        can_module->configureFilter((CAN::FILTER) filters[i].number,
+                filters[i].value, CAN::SID);
+        can_module->linkFilterToChannel((CAN::FILTER) filters[i].number,
+                (CAN::FILTER_MASK) filters[i].maskNumber,
+                (CAN::CHANNEL) filters[i].channel);
+        can_module->enableFilter((CAN::FILTER) filters[i].number, true);
     }
+    Serial.println("Done.");
 }
 
 void decode_can_signal(uint8_t* data, CanSignal* signal) {

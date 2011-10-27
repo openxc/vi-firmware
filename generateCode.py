@@ -126,7 +126,8 @@ class Parser(object):
         print "CanFilter FILTERS[%d];" % len(all_ids)
 
         print
-        print "void initialize_filter_arrays() {"
+        print "CanFilterMask* initialize_filter_masks() {"
+        print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    FILTER_MASKS = {"
         for i, mask in enumerate(masks):
@@ -135,6 +136,12 @@ class Parser(object):
                 print ","
             else:
                 print "};"
+        print "    return FILTER_MASKS;"
+        print "}"
+
+        print
+        print "CanFilter* initialize_filters() {"
+        print "Serial.println(\"Initializing filters...\");"
 
         print "    FILTERS = {"
         for i, filter in enumerate(all_ids):
@@ -146,6 +153,7 @@ class Parser(object):
                 print ","
             else:
                 print "};"
+        print "    return FILTERS;"
         print "}"
 
 

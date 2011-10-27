@@ -83,8 +83,9 @@ void initializeCan(uint32_t myaddr) {
      */
     canModule.configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    initialize_filter_arrays();
-    configure_hs_filters(&canModule);
+    CanFilterMask* filterMasks = initialize_filter_masks();
+    CanFilter* filters = initialize_filters();
+    configure_hs_filters(&canModule, filterMasks, filters);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The
@@ -113,9 +114,6 @@ void receiveCan(void) {
     }
 
     message = canModule.getRxMessage(CAN::CHANNEL1);
-    Serial.print(byte(message->data[0]));
-    Serial.println(message->msgSID.SID);
-
     decode_can_message(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that

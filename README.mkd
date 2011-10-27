@@ -32,7 +32,7 @@ is a JSON object like this:
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "valueHandler": "handleSteeringWheelAngle"},
+                    "value_handler": "handleSteeringWheelAngle"},
                 {"name": "StrAnglSign",
                     "id": 2,
                     "human_signal_name": "Steering wheel angle sign",
@@ -84,7 +84,7 @@ attributes of a signal are:
 
 `offset` - This is added to the signal value if set. Optional.
 
-`valueHandler` - The name of a function that will be compiled with the sketch
+`value_handler` - The name of a function that will be compiled with the sketch
         and should be applied to the signal's value after the normal
         translation. Optional - see the "Custom Handlers" section for more.
 
@@ -119,8 +119,9 @@ the sign positive or negative based on the value of the other signal
 memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
 the raw steering wheel angle value.
 
-    float handleSteeringWheelAngle(float value) {
-        if(SIGNAL[2].lastValue == 0) {
+    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
+            float value) {
+        if(signals[2].lastValue == 0) {
             // left turn
             value *= -1;
         }

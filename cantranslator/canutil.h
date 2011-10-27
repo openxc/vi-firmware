@@ -46,6 +46,7 @@ struct CanSignal {
     int bitSize;
     float factor;
     float offset;
+    int lastValue;
 };
 
 /* Public: Initializes message filter masks and filters on the CAN controller.
@@ -61,16 +62,29 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  *         transforations and sends the result over USB.
  *
  * signal - the details of the signal to decode and forward.
- * data - the raw bytes of the CAN message that contains the signal.
- *
+ * data   - the raw bytes of the CAN message that contains the signal.
  */
 void translateCanSignal(CanSignal* signal, uint8_t* data);
+
+/* Public: Parses a CAN signal from a CAN message, applies required
+ *         transforations and also runs the final float value through the
+ *         customHandler function before sending the result out over USB.
+ *
+ * signal        - the details of the signal to decode and forward.
+ * data          - the raw bytes of the CAN message that contains the signal.
+ * customHandler - a function pointer that performs extra processing on the
+ *                 float value.
+ * signals       - an array of all active signals.
+ */
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        float (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals);
 
 /* Public: Parses a CAN signal from a message and applies required
  *           transformation.
  *
  * signal - the details of the signal to decode and forward.
- * data - the raw bytes of the CAN message that contains the signal.
+ * data   - the raw bytes of the CAN message that contains the signal.
  *
  * Returns the final, transformed value of the signal.
  */

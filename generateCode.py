@@ -48,13 +48,15 @@ def parse_options():
     return arguments
 
 class Signal(object):
-    def __init__(self, id, name, position, length, factor=1, offset=0):
+    def __init__(self, id, name, position, length, factor=1, offset=0,
+            value_handler=None):
         self.id = id
         self.name = name
         self.position = position
         self.length = length
         self.factor = factor
         self.offset = offset
+        self.value_handler = value_handler
         self.array_index = 0
 
     def __str__(self):
@@ -95,7 +97,15 @@ class Parser(object):
         for message_id, signals in self.messages.iteritems():
             print "    case 0x%x:" % message_id
             for signal in signals:
-                print "        translateCanSignal(&SIGNALS[%d], data);" % (
+                if signal.value_handler:
+                    print ("        extern float %s("
+                        "CanSignal*, CanSignal*, float);" %
+                        signal.value_handler)
+                    print ("        translateCanSignalCustomValue(&SIGNALS[%d], "
+                        "data, &%s, SIGNALS);" % (
+                            signal.array_index, signal.value_handler))
+                else:
+                    print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
                         signal.array_index)
             print "        break;"
         print "    }"
@@ -207,7 +217,8 @@ class JsonParser(Parser):
                     signal['bit_position'],
                     signal['bit_size'],
                     signal.get('factor', 1),
-                    signal.get('offset', 0)))
+                    signal.get('offset', 0),
+                    signal.get('value_handler', None)))
 
 def main():
     arguments = parse_options()

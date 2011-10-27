@@ -38,12 +38,24 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
     return rawValue * signal->factor + signal->offset;
 }
 
-void translateCanSignal(CanSignal* signal, uint8_t* data) {
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        float (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
+    value = customHandler(signal, signals, value);
     char* message = generateJson(signal, value);
     // TODO what do we need to include to use strnlen here? we know the max
     // length
     sendMessage((uint8_t*) message, strlen(message));
+}
+
+float passthroughHandler(CanSignal* signal, CanSignal* signals,
+        float value) {
+    return value;
+}
+
+void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
+    translateCanSignalCustomValue(signal, data, passthroughHandler, signals);
 }
 
 char* generateJson(CanSignal* signal, float value) {

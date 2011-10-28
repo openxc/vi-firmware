@@ -14,22 +14,19 @@ class Network(object):
     def __init__(self, tree, signal_map = None):
         self.messages = {}
 
-        elem = tree.getroot()
-
-        for e in elem:
-            if e.tag == "Node":
-                self._parse_node(e, signal_map)
+        for node in tree.getroot().findall("Node"):
+            self._parse_node(node, signal_map)
 
     def to_dict(self):
         return {"messages": {message.name: message.to_dict()
-                for message in self.messages.values()}}
+                for message in self.messages.values()
+                if len(message.signals) > 0}}
 
     def _parse_node(self, node, signal_map):
-        for e in node:
-            # Looks like RxMessage elements are redundant.
-            if e.tag == "TxMessage":
-                m = Message(e, signal_map)
-                self.messages[m.id] = m
+        # Looks like RxMessage elements are redundant.
+        for message_node in node.findall("TxMessage"):
+            message = Message(message_node, signal_map)
+            self.messages[message.id] = message
 
 
 class Message(object):
@@ -39,56 +36,34 @@ class Message(object):
         self.signals = {}
 
         # XXX Is the number of bytes in DLC?
-        for e in node:
-            if e.tag == "Name":
-                self.name = e.text
-                logging.debug("Message: {0}".format(self.name))
-            elif e.tag == "ID":
-                self.id = int(e.text, 0)
-                logging.debug("Message: 0x{0:x}".format(self.id))
-            elif e.tag == "Signal":
-                s = Signal(e, signal_map)
-                self.signals[s.position] = s
+        self.name = node.find("Name").text
+        self.id = int(node.find("ID").text, 0)
+
+        for signal_node in node.findall("Signal"):
+            signal = Signal(signal_node)
+            if signal.name in signal_map:
+                signal.id = signal_map[signal.name]
+                self.signals[signal.position] = signal
 
     def to_dict(self):
         return {"id": self.id,
                 "signals": [signal.to_dict()
-                    for signal in self.signals.values() if signal.include]}
+                    for signal in self.signals.values()]}
 
 
 class Signal(object):
     """Contains a single CAN signal."""
 
-    def __init__(self, node, signal_map = None):
-        for e in node:
-            if e.tag == "Name":
-                self.name = e.text
-                logging.debug("Signal: {0}".format(self.name))
-            elif e.tag == "Bitposition":
-                self.position = int(e.text)
-                logging.debug("Position: {0}".format(self.position))
-            elif e.tag == "Bitsize":
-                self.size = int(e.text)
-                logging.debug("Size: {0}".format(self.size))
-            elif e.tag == "Factor":
-                self.factor = float(e.text)
-                logging.debug("Factor: {0}".format(self.factor))
-            elif e.tag == "Offset":
-                self.offset = float(e.text)
-                logging.debug("Offset: {0}".format(self.offset))
-            elif e.tag == "Unit":
-                self.unit = e.text
-                logging.debug("Unit: {0}".format(self.unit))
+    def __init__(self, node):
+        self.name = node.find("Name").text
+        self.position = int(node.find("Bitposition").text)
+        self.size = int(node.find("Bitsize").text)
+        self.factor = float(node.find("Factor").text)
+        self.offset = float(node.find("Offset").text)
 
-        # Have to invert the bit index to match the Excel mapping.
+        # Invert the bit index to match the Excel mapping.
         self.position = self._invert_bit_index(self.position, self.size)
 
-        if (signal_map and self.name in signal_map):
-            self.id = signal_map[self.name]
-            self.include = True
-        else:
-            self.id = -1
-            self.include = False
 
     def to_dict(self):
         return {"id": self.id,

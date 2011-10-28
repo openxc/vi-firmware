@@ -158,8 +158,26 @@ version that is accessible from the CAN translation sketch. Don't add anything
 else to this file - it's derivitive of the master JSON, and can be wiped and
 recreated at any time.
 
-The generate source is a conversion of your JSON to an array of C-structs,
+The generated source is a conversion of your JSON to an array of C-structs,
 ready to be read by the translator at runtime.
+
+To generate code, we've provided the `generate_code.py` script. Use it like so:
+
+    $ generate_code.py signals.json > cantranslator/signals.pde
+
+then rebuild your sketch - everything should build properly now.
+
+### Canoe
+
+If you use Canoe to store your "gold standard" CAN signal definitions, you may
+be able to use the included `xml_to_json.py` script to make your JSON for you.
+First, export the Canoe .dbc file as XML. Run the conversion script like this:
+
+    $ xml_to_json.py signals.xml signal_mapping.txt build/signals.json
+
+The `signal_mapping.txt` file is a simple mapping of the signal names that we
+are looking for in the XML and a unique numerical ID to assicate it
+with.
 
 ## Output Specification
 

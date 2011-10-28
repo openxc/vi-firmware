@@ -210,6 +210,7 @@ class JsonParser(Parser):
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
+	import json
 	for filename in self.jsonFiles:
 	    with open(filename[0]) as jsonFile:
 		self.data = json.load(jsonFile)

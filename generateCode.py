@@ -2,10 +2,8 @@
 
 from collections import defaultdict
 import sys
-import json
 import struct
 import argparse
-import intelhex
 
 # XXXX UGGGGGG Hack because this code is stupid.
 # XXXX Should really just parse XML into some intermediate structure and then
@@ -52,20 +50,21 @@ def parse_options():
     return arguments
 
 class Signal(object):
-    def __init__(self, id, name, position, length, transform, factor, offset):
+    def __init__(self, id, name, position, length, factor=1, offset=0,
+            value_handler=None):
         self.id = id
         self.name = name
         self.position = position
         self.length = length
-        self.transform = transform
         self.factor = factor
         self.offset = offset
+        self.value_handler = value_handler
         self.array_index = 0
 
     def __str__(self):
-        return "{%d, \"%s\", %d, %d, %s, %d, %d}" % (
-                self.id, self.name, self.position, self.length,
-                str(self.transform).lower(), self.factor, self.offset)
+        return "{%d, \"%s\", %d, %d, %f, %f}" % (
+                self.id, self.name, self.position, self.length, self.factor,
+                self.offset)
 
 class Parser(object):
     def __init__(self, priority):
@@ -79,7 +78,7 @@ class Parser(object):
 
     def print_header(self):
         print "#include \"canutil.h\"\n"
-        print "void decode_can_message(int id, uint8_t* data) {"
+        print "void decodeCanMessage(int id, uint8_t* data) {"
 
     def print_source(self):
         self.print_header()
@@ -98,9 +97,17 @@ class Parser(object):
         print
         print "    switch (id) {"
         for message_id, signals in self.messages.iteritems():
-            print "    case %x:" % message_id
+            print "    case 0x%x:" % message_id
             for signal in signals:
-                print "        decode_can_signal(data, &SIGNALS[%d]);" % (
+                if signal.value_handler:
+                    print ("        extern float %s("
+                        "CanSignal*, CanSignal*, float);" %
+                        signal.value_handler)
+                    print ("        translateCanSignalCustomValue(&SIGNALS[%d], "
+                        "data, &%s, SIGNALS);" % (
+                            signal.array_index, signal.value_handler))
+                else:
+                    print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
                         signal.array_index)
             print "        break;"
         print "    }"
@@ -130,7 +137,8 @@ class Parser(object):
         print "CanFilter FILTERS[%d];" % len(all_ids)
 
         print
-        print "void initialize_filter_arrays() {"
+        print "CanFilterMask* initializeFilterMasks() {"
+        print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    FILTER_MASKS = {"
         for i, mask in enumerate(masks):
@@ -139,6 +147,12 @@ class Parser(object):
                 print ","
             else:
                 print "};"
+        print "    return FILTER_MASKS;"
+        print "}"
+
+        print
+        print "CanFilter* initializeFilters() {"
+        print "Serial.println(\"Initializing filters...\");"
 
         print "    FILTERS = {"
         for i, filter in enumerate(all_ids):
@@ -150,12 +164,14 @@ class Parser(object):
                 print ","
             else:
                 print "};"
+        print "    return FILTERS;"
         print "}"
 
 
 class HexParser(Parser):
     def __init__(self, filename, priority):
         super(HexParser, self).__init__(priority)
+        import intelhex
         self.mem = intelhex.IntelHex(filename)
 
     def parse(self):
@@ -173,8 +189,8 @@ class HexParser(Parser):
         (signal_id, t_pos, length) = struct.unpack('<BBB',
                 self.mem.gets(hex_offset, 3))
         hex_offset += 3
-        transform = (t_pos & 1 << 7) != 0
         position = t_pos & ~(1 << 7)
+        transform = (t_pos & 1 << 7) != 0
         if transform:
             (offset, factor) = struct.unpack('<ff',
                     self.mem.gets(hex_offset, 8))
@@ -183,8 +199,8 @@ class HexParser(Parser):
             (offset, factor) = (0.0, 1.0)
 
         id_mapping[signal_id] = message_id
-        return hex_offset, Signal(signal_id, "", position, length, transform,
-                factor, offset)
+        return hex_offset, Signal(signal_id, "", position, length, factor,
+                offset)
 class JsonParser(Parser):
     def __init__(self, filenames, priority):
         super(JsonParser, self).__init__(priority)
@@ -205,9 +221,9 @@ class JsonParser(Parser):
 			    signal['name'],
 			    signal['bit_position'],
 			    signal['bit_size'],
-			    signal['transform'],
 			    signal.get('factor', 1),
-			    signal.get('offset', 0)))
+			    signal.get('offset', 0),
+			    signal.get('value_handler', None)))
 
 def main():
     arguments = parse_options()

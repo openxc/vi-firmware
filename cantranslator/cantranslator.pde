@@ -6,8 +6,10 @@
 
 #include "WProgram.h"
 #include "chipKITCAN.h"
+#include "chipKITUSBDevice.h"
 #include "bitfield.h"
 #include "canutil.h"
+#include "usbutil.h"
 
 /* Network Node Addresses */
 #define node1can1 0x101L
@@ -15,6 +17,7 @@
 
 #define SYS_FREQ (80000000L)
 #define CAN_BUS_SPEED 500000
+
 
 // this object uses CAN module 1
 CAN canModule(CAN::CAN1);
@@ -36,6 +39,7 @@ void decode_can_message(int id, uint8_t* data);
 void setup() {
     Serial.begin(115200);
 
+    initializeUsb();
     initializeCan(node1can1);
     canModule.attachInterrupt(handleCanInterrupt);
 }
@@ -80,8 +84,9 @@ void initializeCan(uint32_t myaddr) {
      */
     canModule.configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    initialize_filter_arrays();
-    configure_hs_filters(&canModule);
+    CanFilterMask* filterMasks = initializeFilterMasks();
+    CanFilter* filters = initializeFilters();
+    configureFilters(&canModule, filterMasks, filters);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The
@@ -110,10 +115,7 @@ void receiveCan(void) {
     }
 
     message = canModule.getRxMessage(CAN::CHANNEL1);
-    Serial.print(byte(message->data[0]));
-    Serial.println(message->msgSID.SID);
-
-    decode_can_message(message->msgSID.SID, message->data);
+    decodeCanMessage(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module

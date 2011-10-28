@@ -1,36 +1,67 @@
 #include "canutil.h"
-#include "bitfield.h"
+#include "usbutil.h"
 
-void configure_hs_filters(CAN *canMod) {
+void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
+        CanFilter* filters) {
     extern int FILTER_COUNT;
-    extern CanFilter* FILTERS;
     extern int FILTER_MASK_COUNT;
-    extern CanFilterMask* FILTER_MASKS;
 
+    Serial.print("Configuring ");
+    Serial.print(FILTER_MASK_COUNT, DEC);
+    Serial.print(" filter masks...  ");
     for(int i = 0; i < FILTER_MASK_COUNT; i++) {
-        canMod->configureFilterMask((CAN::FILTER_MASK) FILTER_MASKS[i].number,
-                FILTER_MASKS[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
+        Serial.print("Configuring filter mask ");
+        Serial.println(filterMasks[i].value, HEX);
+        can_module->configureFilterMask(
+                (CAN::FILTER_MASK) filterMasks[i].number,
+                filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
+    Serial.println("Done.");
 
+    Serial.print("Configuring ");
+    Serial.print(FILTER_COUNT, DEC);
+    Serial.print(" filters...  ");
     for(int i = 0; i < FILTER_COUNT; i++) {
-        canMod->configureFilter((CAN::FILTER) FILTERS[i].number,
-                FILTERS[i].value, CAN::SID);
-        canMod->linkFilterToChannel((CAN::FILTER) FILTERS[i].number,
-                (CAN::FILTER_MASK) FILTERS[i].maskNumber,
-                (CAN::CHANNEL) FILTERS[i].channel);
-        canMod->enableFilter((CAN::FILTER) FILTERS[i].number, true);
+        can_module->configureFilter((CAN::FILTER) filters[i].number,
+                filters[i].value, CAN::SID);
+        can_module->linkFilterToChannel((CAN::FILTER) filters[i].number,
+                (CAN::FILTER_MASK) filters[i].maskNumber,
+                (CAN::CHANNEL) filters[i].channel);
+        can_module->enableFilter((CAN::FILTER) filters[i].number, true);
     }
+    Serial.println("Done.");
 }
 
-void decode_can_signal(uint8_t* data, CanSignal* signal) {
-    unsigned long ivalue;
-    float fvalue;
+float decodeCanSignal(CanSignal* signal, uint8_t* data) {
+    unsigned long rawValue = getBitField(data, signal->bitPosition,
+            signal->bitSize);
+    return rawValue * signal->factor + signal->offset;
+}
 
-    ivalue = getBitField(data, signal->bitPosition, signal->bitSize);
-    fvalue = (float)ivalue * signal->factor + signal->offset;
-    Serial.print('^');
-    Serial.print(signal->id, DEC);
-    Serial.print(':');
-    Serial.print(fvalue, 4);
-    Serial.println('$');
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        float (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals) {
+    float value = decodeCanSignal(signal, data);
+    value = customHandler(signal, signals, value);
+    char* message = generateJson(signal, value);
+    // TODO what do we need to include to use strnlen here? we know the max
+    // length
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
+float passthroughHandler(CanSignal* signal, CanSignal* signals,
+        float value) {
+    return value;
+}
+
+void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
+    translateCanSignalCustomValue(signal, data, passthroughHandler, signals);
+}
+
+char* generateJson(CanSignal* signal, float value) {
+    int message_length = MESSAGE_FORMAT_LENGTH + strlen(signal->genericName) +
+        MESSAGE_VALUE_MAX_LENGTH;
+    char message[message_length];
+    sprintf(message, MESSAGE_FORMAT, signal->genericName, value);
+    return message;
 }

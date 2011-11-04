@@ -196,3 +196,49 @@ ways:
   names.
 * Serialize to a binary protocol with Apache Thrift, or Goole Protocol
   Buffers or ASN.1.
+
+## API
+
+This is the list of signals officially supported by the Android library.
+
+<dl>
+    <dt>SteeringWheelAngle</dt>
+    <dd>-400 to +400 degrees</dd>
+
+    <dt>PowertrainTorque</dt>
+    <dd>? Nm</dd>
+
+    <dt>EngineSpeed<dt>
+    <dd>0 to ? RPM</dd>
+
+    <dt>VehicleSpeed</dt>
+    <dd>0 to ? Km/h</dd>
+
+    <dt>AcceleratorPedalPosition</dt>
+    <dd>0 to 100%</dd>
+
+    <dt>ParkingBrakeStatus</dt>
+    <dd>Boolean (true == brake engaged)</dd>
+
+    <dt>BrakePedalStatus</dt>
+    <dd>Boolean (True == pedal pressed)</dd>
+
+    <dt>TransmissionGearPosition</dt>
+    <dd>States: 1, 2, 3, 4, 5, 6, 7, 8, R, N</dd>
+
+    <dt>OdometerValue</dt>
+    <dd>0 to ? Km</dd>
+
+    <dt>IgnitionStatus</dt>
+    <dd>States: off, accessory, run, start</dd>
+
+    <dt>FuelLevel</dt>
+    <dd>0 - ? L</dd>
+
+    <dt>DoorStatus</dt>
+    <dd>Events: one event type per door, value is boolean (true == ajar)</dd>
+
+    <dt>HeadlampStatus</dt>
+    <dd>States: off, dipped, main</dd>
+</dl>
+

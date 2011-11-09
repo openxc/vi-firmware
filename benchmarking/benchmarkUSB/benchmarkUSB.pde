@@ -7,17 +7,15 @@ static boolean customUSBCallback(USB_EVENT event);
 #define DATA_ENDPOINT 1
 #define DATA_ENDPOINT_BUFFER_SIZE 65
 
-#define MESSAGE_SIZE_SWITCH 0x80
-
 USB_HANDLE handleInput = 0;
-byte alpha[] = "abcdefghijklmnopqrstuvwxyz";
+byte message[] = "{\"name\":\"SteeringWheelAngle\",\"value\":45}\r\n";
+int messageSize;
 uint8_t messageBuffer[DATA_ENDPOINT_BUFFER_SIZE];
-USBDevice usb(usbCallback);  // specify the callback routine
+
+USBDevice usb(usbCallback);
 
 // This is a reference tot he last packet read, I believe
 extern volatile CTRL_TRF_SETUP SetupPkt;
-
-int messageSize = 27;
 
 void setup() {
     // Enable the serial port for some debugging messages
@@ -35,13 +33,25 @@ void setup() {
 
     Serial.println("Configured, usbIn = ");
     Serial.println((int) handleInput, HEX);
+
+    messageSize = strlen((char*)message);
+    Serial.print("Message is ");
+    Serial.print(messageSize, DEC);
+    Serial.println(" bytes");
+
+    for(int i = 0; i < messageSize; i++)  {
+        messageBuffer[i] = message[i];
+    }
 }
 
 void loop() {
-    // when the handle is no longer busy, that means the host read some data
-    // and we can write more. In USB parlance, "input" goes from the device to
-    // the host.
-    if(!usb.HandleBusy(handleInput)) {
+    // using our own loop seems faster than using the arduino's
+    while(true) {
+        // when the handle is no longer busy, that means the host read some
+        // data and we can write more. In USB parlance, "input" goes from the
+        // device to the host.
+        while(usb.HandleBusy(handleInput));
+
         handleInput = usb.GenWrite(DATA_ENDPOINT, messageBuffer, messageSize);
     }
 }
@@ -50,17 +60,6 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     Serial.println("Handling a custom control code");
     int newMessageSize = messageSize;
     switch(SetupPkt.bRequest) {
-    case MESSAGE_SIZE_SWITCH:
-        newMessageSize = SetupPkt.wValue;
-        if (newMessageSize < DATA_ENDPOINT_BUFFER_SIZE) {
-            messageSize = newMessageSize;
-            Serial.print("Set message size to: ");
-            Serial.println(messageSize, DEC);
-            for(int i = 0; i < messageSize; i++) {
-                messageBuffer[i] = alpha[i % 26];
-            }
-        }
-        return true;
     default:
         Serial.print("Didn't recognize event: ");
         Serial.println(SetupPkt.bRequest);

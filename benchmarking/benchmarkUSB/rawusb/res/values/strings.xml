@@ -2,4 +2,11 @@
 <resources>
     <string name="nodevices">No USB devices available.</string>
     <string name="app_name">rawusb</string>
+    <string name="device_name_label">Device</string>
+    <string name="interface_count_label">Num. Interfaces</string>
+    <string name="endpoint_count_label">Num. Endpoints</string>
+    <string name="transfer_total_label">Transferred (KB)</string>
+    <string name="elapsed_time_label">Elapsed Time</string>
+    <string name="transfer_rate_label">Transfer Rate</string>
+    <string name="steering_wheel_angle_label">Steering Wheel Angle</string>
 </resources>

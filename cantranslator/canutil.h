@@ -64,7 +64,7 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  * signal - the details of the signal to decode and forward.
  * data   - the raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(CanSignal* signal, uint8_t* data);
+void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and also runs the final float value through the

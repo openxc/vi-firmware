@@ -205,8 +205,6 @@ class JsonParser(Parser):
     def __init__(self, filenames, priority):
         super(JsonParser, self).__init__(priority)
 	self.jsonFiles = filenames
-#        with open(filename) as jsonFile:
-#            self.data = json.load(jsonFile)
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):

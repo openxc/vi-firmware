@@ -21,8 +21,8 @@ def parse_options():
             help="generate source from this hex file")
     parser.add_argument("-j", "--json",
             action="append",
-	    type=str,
-	    nargs='*',
+        type=str,
+        nargs='*',
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
@@ -63,7 +63,7 @@ class Signal(object):
         self.array_index = 0
 
     def __str__(self):
-        return "{%d, \"%s\", %d, %d, %f, %f} // %s" % (
+        return "{%d, \"%s\", %s, %d, %d, %f} // %s" % (
                 self.id, self.generic_name, self.position, self.length,
                 self.factor, self.offset, self.name)
 
@@ -207,30 +207,33 @@ class HexParser(Parser):
 class JsonParser(Parser):
     def __init__(self, filenames, priority):
         super(JsonParser, self).__init__(priority)
-	self.jsonFiles = filenames
+        self.jsonFiles = filenames
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
-	import json
-	for filename in self.jsonFiles:
-	    with open(filename[0]) as jsonFile:
-		self.data = json.load(jsonFile)
-		for message in self.data['messages'].values():
-		    self.message_ids.append(message['id'])
-		    self.signal_count += len(message['signals'])
-		    for signal in message['signals']:
-			self.messages[message['id']].append(Signal(signal['id'],
-			    signal['name'],
-			    signal['generic_name'],
-			    signal['bit_position'],
-			    signal['bit_size'],
-			    signal.get('factor', 1),
-			    signal.get('offset', 0),
-			    signal.get('value_handler', None)))
+        import json
+        for filename in self.jsonFiles:
+            with open(filename[0]) as jsonFile:
+                self.data = json.load(jsonFile)
+                for message in self.data['messages'].values():
+                    self.message_ids.append(message['id'])
+                    self.signal_count += len(message['signals'])
+                    for signal in message['signals']:
+                        # TODO we're keeping the numerical ID here even though
+                        # we're not using it now because it will make switching
+                        # to it in the future easier
+                        self.messages[message['id']].append(
+                                Signal(signal.get('id', 0),
+                                signal['name'],
+                                signal['generic_name'],
+                                signal['bit_position'],
+                                signal['bit_size'],
+                                signal.get('factor', 1),
+                                signal.get('offset', 0),
+                                signal.get('value_handler', None)))
 
 def main():
     arguments = parse_options()
- #   import pdb; pdb.set_trace()
 
     if arguments.hex_file:
         parser = HexParser(arguments.hex_file, arguments.priority)

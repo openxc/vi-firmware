@@ -11,7 +11,7 @@ from xml.etree.ElementTree import parse
 class Network(object):
     """Represents all the messages on a single bus."""
 
-    def __init__(self, tree, signal_map = None):
+    def __init__(self, tree, signal_map=None):
         self.messages = {}
 
         for node in tree.getroot().findall("Node"):
@@ -32,7 +32,7 @@ class Network(object):
 class Message(object):
     """Contains a single CAN message."""
 
-    def __init__(self, node, signal_map = None):
+    def __init__(self, node, signal_map=None):
         self.signals = {}
 
         # XXX Is the number of bytes in DLC?
@@ -42,7 +42,7 @@ class Message(object):
         for signal_node in node.findall("Signal"):
             signal = Signal(signal_node)
             if signal.name in signal_map:
-                signal.id = signal_map[signal.name]
+                signal.generic_name = signal_map[signal.name]
                 self.signals[signal.position] = signal
 
     def to_dict(self):
@@ -66,7 +66,7 @@ class Signal(object):
 
 
     def to_dict(self):
-        return {"id": self.id,
+        return {"generic_name": self.generic_name,
                 "name": self.name,
                 "bit_position": self.position,
                 "bit_size": self.size,
@@ -81,31 +81,30 @@ class Signal(object):
 
 def parse_map(mapping_filename):
     """Parses a text file that maps signal names to look up in the Canoe XML
-    document with a unique numerical ID.
+    document to their generic OpenXC counterparts.
 
     The expected file format is:
 
-        1:SteeringAngle
-        2:VehYawComp_W_Actl
-        6:EngAout_N_Actl
+        SteeringAngle:steering_wheel_angle
+        VehYawComp_W_Actl:yaw_rate
+        EngAout_N_Actl:engine_torque
         ...
 
     """
-    sig_map = {}
-
+    signal_map = {}
     with open(mapping_filename) as mapping_file:
         for line in mapping_file:
             try:
-                signal_id, name = line.strip().split(':', 1)
-                sig_map[name] = int(signal_id)
+                name, generic_name = line.strip().split(':', 1)
+                signal_map[name] = generic_name
             except ValueError:
                 print "Unable to parse line '%s'" % line
-    return(sig_map)
+    return signal_map
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
             description="Convert Canoe XML to the OpenXC JSON format.")
-    parser.add_argument("xml", default="c346_hs_mappint.txt",
+    parser.add_argument("xml", default="c346_hs_mapping.txt",
             help="Name of Canoe XML file")
     parser.add_argument("map", default="c346_hs_can.xml",
             help="Name of signal to ID map")
@@ -115,8 +114,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     tree = parse(args.xml)
-    sig_map = parse_map(args.map)
-    n = Network(tree, sig_map)
+    n = Network(tree, parse_map(args.map))
 
     data = n.to_dict()
     with open(args.out, 'w') as output_file:

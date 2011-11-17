@@ -50,10 +50,11 @@ def parse_options():
     return arguments
 
 class Signal(object):
-    def __init__(self, id, name, position, length, factor=1, offset=0,
-            value_handler=None):
+    def __init__(self, id, name, generic_name, position, length, factor=1,
+            offset=0, value_handler=None):
         self.id = id
         self.name = name
+        self.generic_name = generic_name
         self.position = position
         self.length = length
         self.factor = factor
@@ -62,9 +63,9 @@ class Signal(object):
         self.array_index = 0
 
     def __str__(self):
-        return "{%d, \"%s\", %d, %d, %f, %f}" % (
-                self.id, self.name, self.position, self.length, self.factor,
-                self.offset)
+        return "{%d, \"%s\", %d, %d, %f, %f} // %s" % (
+                self.id, self.generic_name, self.position, self.length,
+                self.factor, self.offset, self.name)
 
 class Parser(object):
     def __init__(self, priority):
@@ -92,7 +93,7 @@ class Parser(object):
                 if i != self.signal_count:
                     print ","
                 else:
-                    print "};"
+                    print "\n    };"
                 i += 1
         print
         print "    switch (id) {"
@@ -128,9 +129,9 @@ class Parser(object):
                 (3, 0x7ff)]
 
         # These arrays can't be initialized when we create the variables or else
-        # they end up in the .data portion of the compiled program, and it becomes
-        # too big for the microcontroller. Initializing them at runtime gets around
-        # that problem.
+        # they end up in the .data portion of the compiled program, and it
+        # becomes too big for the microcontroller. Initializing them at runtime
+        # gets around that problem.
         print "int FILTER_MASK_COUNT = %d;" % len(masks)
         print "CanFilterMask FILTER_MASKS[%d];" % len(masks)
         print "int FILTER_COUNT = %d;" % len(all_ids)
@@ -156,9 +157,9 @@ class Parser(object):
 
         print "    FILTERS = {"
         for i, filter in enumerate(all_ids):
-            # TODO what is the relationship between mask and filter? mask is a big
-            # brush that catches a bunch of things, then filter does the fine
-            # grained?
+            # TODO what is the relationship between mask and filter? mask is a
+            # big brush that catches a bunch of things, then filter does the
+            # fine grained?
             print "        {%d, 0x%x, %d, %d}" % (i, all_ids[0], 1, 0),
             if i != len(all_ids) - 1:
                 print ","
@@ -177,7 +178,8 @@ class HexParser(Parser):
     def parse(self):
         hex_offset = 1
         while hex_offset < len(self.mem):
-            (message_id, num) = struct.unpack('<HB', self.mem.gets(hex_offset, 3))
+            (message_id, num) = struct.unpack('<HB',
+                    self.mem.gets(hex_offset, 3))
             self.message_ids.append(message_id)
             hex_offset += 3
             for i in range(num):
@@ -199,8 +201,9 @@ class HexParser(Parser):
             (offset, factor) = (0.0, 1.0)
 
         id_mapping[signal_id] = message_id
-        return hex_offset, Signal(signal_id, "", position, length, factor,
+        return hex_offset, Signal(signal_id, "", "", position, length, factor,
                 offset)
+
 class JsonParser(Parser):
     def __init__(self, filenames, priority):
         super(JsonParser, self).__init__(priority)
@@ -218,6 +221,7 @@ class JsonParser(Parser):
 		    for signal in message['signals']:
 			self.messages[message['id']].append(Signal(signal['id'],
 			    signal['name'],
+			    signal['generic_name'],
 			    signal['bit_position'],
 			    signal['bit_size'],
 			    signal.get('factor', 1),

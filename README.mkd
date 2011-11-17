@@ -202,46 +202,46 @@ ways:
 This is the list of signals officially supported by the Android library.
 
 <dl>
-    <dt>SteeringWheelAngle</dt>
+    <dt>steering_wheel_angle</dt>
     <dd>-400 to +400 degrees</dd>
 
-    <dt>PowertrainTorque</dt>
+    <dt>powertrain_torque</dt>
     <dd>-500 to 1500 Nm</dd>
 
-    <dt>EngineSpeed<dt>
+    <dt>engine_speed<dt>
     <dd>0 to 16382 RPM</dd>
 
-    <dt>VehicleSpeed</dt>
+    <dt>vehicle_speed</dt>
     <dd>0 to 655 Km/h</dd>
 
-    <dt>AcceleratorPedalPosition</dt>
+    <dt>accelerator_pedal_position</dt>
     <dd>0 to 100%</dd>
 
-    <dt>ParkingBrakeStatus</dt>
+    <dt>parking_brake_status</dt>
     <dd>Boolean (true == brake engaged)</dd>
 
-    <dt>BrakePedalStatus</dt>
+    <dt>brake_pedal_status</dt>
     <dd>Boolean (True == pedal pressed)</dd>
 
-    <dt>TransmissionGearPosition</dt>
+    <dt>transmission_gear_position</dt>
     <dd>States: 1, 2, 3, 4, 5, 6, 7, 8, R, N</dd>
 
-    <dt>OdometerValue</dt>
+    <dt>odometer</dt>
     <dd>0 to 16777214 Km</dd>
 
-    <dt>IgnitionStatus</dt>
+    <dt>ignition_status</dt>
     <dd>States: off, accessory, run, start</dd>
 
-    <dt>FuelLevel</dt>
+    <dt>fuel_level</dt>
     <dd>0 - 204.6 L</dd>
 
-    <dt>DoorStatus</dt>
+    <dt>door_status</dt>
     <dd>Events: one event type per door, value is boolean (true == ajar)</dd>
 
-    <dt>HeadlampStatus</dt>
+    <dt>headlamp_status</dt>
     <dd>States: off, dipped, main</dd>
 
-    <dt>WindshieldWiperStatus</dt>
+    <dt>windshield_wiper_status</dt>
     <dd>Boolean</dd>
 </dl>
 

@@ -77,7 +77,15 @@ void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals);
  * signals       - an array of all active signals.
  */
 void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        char* (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals);
+
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals);
+
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        bool (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals);
 
 /* Public: Parses a CAN signal from a message and applies required
@@ -98,5 +106,8 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data);
  * Returns JSON in a string.
  */
 char* generateJson(CanSignal* signal, float value);
+char* generateJson(CanSignal* signal, char* value);
+char* generateJson(CanSignal* signal, bool value);
+k
 
 #endif // _CANUTIL_H_

@@ -5,14 +5,19 @@
 #include "chipKITUSBDevice.h"
 
 #define USB_PACKET_SIZE 64
-#define MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%f}\r\n"
-// TODO how to enforce this max? or just make it large enough...
-#define MESSAGE_VALUE_MAX_LENGTH 6
+#define NUMERICAL_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%f}\r\n"
+#define BOOLEAN_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%s}\r\n"
+#define STRING_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\"}\r\n"
+#define NUMERICAL_MESSAGE_VALUE_MAX_LENGTH 6
+#define BOOLEAN_MESSAGE_VALUE_MAX_LENGTH 4
+#define STRING_MESSAGE_VALUE_MAX_LENGTH 24
 
 #define DATA_ENDPOINT 1
 #define DATA_ENDPOINT_BUFFER_SIZE 65
 
 const int MESSAGE_FORMAT_LENGTH = strlen(MESSAGE_FORMAT);
+const int BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(BOOLEAN_MESSAGE_FORMAT);
+const int STRING_MESSAGE_FORMAT_LENGTH = strlen(STRING_MESSAGE_FORMAT);
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;

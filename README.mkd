@@ -121,7 +121,7 @@ the raw steering wheel angle value.
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
             float value) {
-        if(signals[2].lastValue == 0) {
+        if(signal->lastValue == 0) {
             // left turn
             value *= -1;
         }

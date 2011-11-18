@@ -44,13 +44,28 @@ void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
     float value = decodeCanSignal(signal, data);
     value = customHandler(signal, signals, value);
     char* message = generateJson(signal, value);
-    // TODO what do we need to include to use strnlen here? we know the max
-    // length
     sendMessage((uint8_t*) message, strlen(message));
 }
 
-float passthroughHandler(CanSignal* signal, CanSignal* signals,
-        float value) {
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        char* (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals) {
+    float value = decodeCanSignal(signal, data);
+    char* stringValue = customHandler(signal, signals, value);
+    char* message = generateJson(signal, stringValue);
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
+void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+        bool (*customHandler)(CanSignal*, CanSignal*, float),
+        CanSignal* signals) {
+    float value = decodeCanSignal(signal, data);
+    bool booleanValue = customHandler(signal, signals, value);
+    char* message = generateJson(signal, booleanValue);
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
+float passthroughHandler(CanSignal* signal, CanSignal* signals, float value) {
     return value;
 }
 
@@ -59,9 +74,27 @@ void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
 }
 
 char* generateJson(CanSignal* signal, float value) {
-    int message_length = MESSAGE_FORMAT_LENGTH + strlen(signal->genericName) +
-        MESSAGE_VALUE_MAX_LENGTH;
-    char message[message_length];
-    sprintf(message, MESSAGE_FORMAT, signal->genericName, value);
+    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
+        strlen(signal->genericName) +
+        NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
+    return message;
+}
+
+char* generateJson(CanSignal* signal, char* value) {
+    int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
+        strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, value);
+    return message;
+}
+
+char* generateJson(CanSignal* signal, bool value) {
+    int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
+        strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
+            value ? "true" : "false");
     return message;
 }

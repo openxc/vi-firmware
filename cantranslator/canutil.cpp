@@ -73,6 +73,15 @@ bool booleanHandler(CanSignal* signal, CanSignal* signals, float value) {
     return value == 0.0 ? false : true;
 }
 
+char* stateHandler(CanSignal* signal, CanSignal* signals, float value) {
+    for(int i = 0; i < signal->stateCount; i++) {
+        if(signal->states[i].value == value) {
+            return signal->states[i].name;
+        }
+    }
+    return "";
+}
+
 void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
     translateCanSignal(signal, data, passthroughHandler, signals);
 }

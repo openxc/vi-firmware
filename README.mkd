@@ -45,18 +45,16 @@ is a JSON object like this:
                     "bit_position": 41,
                     "bit_size": 0,
                     "states": {
-                        "1": "1st",
-                        "2": "2nd",
-                        "3": "3rd",
-                        "4": "4th",
-                        "5": "Reverse",
-                        "6": "Neutral"
+                        "FIRST": 1,
+                        "SECOND": 2,
+                        "THIRD": 3,
+                        "FOURTH": 4,
+                        "REVERSE": 5,
+                        "NEUTRAL": 6
                     }}
             ]
         }
     }}
-
-TODO add definitions of state names, translate at this level
 
 This is a list of CAN messages and a list of signals within each message. The
 attributes of a signal are:
@@ -89,7 +87,7 @@ attributes of a signal are:
         translation. Optional - see the "Custom Handlers" section for more.
 
 `states` - For state values, this is a mapping between the raw states (usually
-    an integer) and the corresponding state in the generic signal. TODO.
+    an integer) and the corresponding state in the generic signal.
 
 ## Custom Handlers
 
@@ -105,10 +103,16 @@ that ranges from e.g. -350 to +350, we need to combine two different signals -
 the angle and the sign. If you want to make this combnation happen inside the
 translator, you can use a custom handler.
 
+You may also need a custom handler to return a value of a type other than float.
+A handler is provided for dealing with boolean values, the `booleanHandler` - if
+you speficy that as your signal's `value_handler` the resulting JSON will
+contain `true` for 1.0 and `false` for 0.0. If you want to translate integer
+state values to string names (for parsing as an enum, for example) you will need
+to write a value handler that returns a `char*`.
+
 There are three levels of custom handlers:
 
 * Message handlers - use these for custom processing of the entire CAN message.
-        TODO this might not be neccessary
 * Signal handlers - use these for custom processing of one signal
 * Value handlers - use these for making non-standard transformations to a signal
   value

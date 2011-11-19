@@ -4,6 +4,7 @@ from collections import defaultdict
 import sys
 import struct
 import argparse
+import operator
 
 # XXXX UGGGGGG Hack because this code is stupid.
 # XXXX Should really just parse XML into some intermediate structure and then
@@ -51,7 +52,7 @@ def parse_options():
 
 class Signal(object):
     def __init__(self, id, name, generic_name, position, length, factor=1,
-            offset=0, value_handler=None):
+            offset=0, value_handler=None, states=None):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -61,11 +62,22 @@ class Signal(object):
         self.offset = offset
         self.value_handler = value_handler
         self.array_index = 0
+        self.states = states or []
 
     def __str__(self):
-        return "{%d, \"%s\", %s, %d, %d, %f} // %s" % (
+        return "{%d, \"%s\", %s, %d, %d, %f, SIGNAL_STATES[%d], %d} // %s" % (
                 self.id, self.generic_name, self.position, self.length,
-                self.factor, self.offset, self.name)
+                self.factor, self.offset, self.id, len(self.states), self.name)
+
+
+class SignalState(object):
+    def __init__(self, value, name):
+        self.value = value
+        self.name = name
+
+    def __str__(self):
+        return "{%d, \"%s\"}" % (self.value, self.name)
+
 
 class Parser(object):
     def __init__(self, priority):
@@ -83,19 +95,28 @@ class Parser(object):
 
     def print_source(self):
         self.print_header()
+        # TODO need to handle signals with more than 10 states
+        print "    CanSignalState SIGNAL_STATES[%d][%d] = {" % (
+                self.signal_count, 10)
+
+        for signals in self.messages.values():
+            for signal in signals:
+                print "        {",
+                for state in signal.states:
+                    print "%s," % state,
+                print "},"
+        print "    };"
+
         print "    CanSignal SIGNALS[%d] = {" % self.signal_count
 
         i = 1
         for signals in self.messages.values():
             for signal in signals:
                 signal.array_index = i - 1
-                print "        %s" % signal,
-                if i != self.signal_count:
-                    print ","
-                else:
-                    print "\n    };"
+                print "        %s," % signal,
                 i += 1
-        print
+        print "    };"
+
         print "    switch (id) {"
         for message_id, signals in self.messages.iteritems():
             print "    case 0x%x:" % message_id
@@ -104,7 +125,7 @@ class Parser(object):
                     print ("        extern float %s("
                         "CanSignal*, CanSignal*, float);" %
                         signal.value_handler)
-                    print ("        translateCanSignalCustomValue(&SIGNALS[%d], "
+                    print ("        translateCanSignal(&SIGNALS[%d], "
                         "data, &%s, SIGNALS);" % (
                             signal.array_index, signal.value_handler))
                 else:
@@ -143,11 +164,8 @@ class Parser(object):
 
         print "    FILTER_MASKS = {"
         for i, mask in enumerate(masks):
-            print "        {%d, 0x%x}" % mask,
-            if i != len(masks) - 1:
-                print ","
-            else:
-                print "};"
+            print "        {%d, 0x%x}," % mask
+        print "    };"
         print "    return FILTER_MASKS;"
         print "}"
 
@@ -160,11 +178,8 @@ class Parser(object):
             # TODO what is the relationship between mask and filter? mask is a
             # big brush that catches a bunch of things, then filter does the
             # fine grained?
-            print "        {%d, 0x%x, %d, %d}" % (i, all_ids[0], 1, 0),
-            if i != len(all_ids) - 1:
-                print ","
-            else:
-                print "};"
+            print "        {%d, 0x%x, %d, %d}," % (i, all_ids[0], 1, 0)
+        print "    };"
         print "    return FILTERS;"
         print "}"
 
@@ -219,6 +234,9 @@ class JsonParser(Parser):
                     self.message_ids.append(message['id'])
                     self.signal_count += len(message['signals'])
                     for signal in message['signals']:
+                        states = [SignalState(value, name)
+                                for name, value in signal.get('states',
+                                    {}).iteritems()]
                         # TODO we're keeping the numerical ID here even though
                         # we're not using it now because it will make switching
                         # to it in the future easier
@@ -230,7 +248,8 @@ class JsonParser(Parser):
                                 signal['bit_size'],
                                 signal.get('factor', 1),
                                 signal.get('offset', 0),
-                                signal.get('value_handler', None)))
+                                signal.get('value_handler', None),
+                                states))
 
 def main():
     arguments = parse_options()

@@ -30,6 +30,17 @@ struct CanFilter {
     int maskNumber;
 };
 
+/* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
+ * state names.
+ *
+ * value - the integer value of the state on the CAN bus.
+ * name  - the corresponding string name for the state in OpenXC>
+ */
+struct CanSignalState {
+    int value;
+    char* name;
+};
+
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
  * id          - the ID of the signal on the bus.
@@ -46,6 +57,8 @@ struct CanSignal {
     int bitSize;
     float factor;
     float offset;
+    CanSignalState* states;
+    int stateCount;
     int lastValue;
 };
 
@@ -76,15 +89,15 @@ void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals);
  *                 float value.
  * signals       - an array of all active signals.
  */
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         char* (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals);
 
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals);
 
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         bool (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals);
 

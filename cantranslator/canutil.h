@@ -108,6 +108,5 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data);
 char* generateJson(CanSignal* signal, float value);
 char* generateJson(CanSignal* signal, char* value);
 char* generateJson(CanSignal* signal, bool value);
-k
 
 #endif // _CANUTIL_H_

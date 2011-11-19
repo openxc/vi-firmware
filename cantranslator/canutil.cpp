@@ -38,7 +38,7 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
     return rawValue * signal->factor + signal->offset;
 }
 
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -47,7 +47,7 @@ void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
     sendMessage((uint8_t*) message, strlen(message));
 }
 
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         char* (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -56,7 +56,7 @@ void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
     sendMessage((uint8_t*) message, strlen(message));
 }
 
-void translateCanSignalCustomValue(CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanSignal* signal, uint8_t* data,
         bool (*customHandler)(CanSignal*, CanSignal*, float),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -69,8 +69,12 @@ float passthroughHandler(CanSignal* signal, CanSignal* signals, float value) {
     return value;
 }
 
+bool booleanHandler(CanSignal* signal, CanSignal* signals, float value) {
+    return value == 0.0 ? false : true;
+}
+
 void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
-    translateCanSignalCustomValue(signal, data, passthroughHandler, signals);
+    translateCanSignal(signal, data, passthroughHandler, signals);
 }
 
 char* generateJson(CanSignal* signal, float value) {

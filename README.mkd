@@ -32,7 +32,7 @@ is a JSON object like this:
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "value_handler": "handleSteeringWheelAngle"},
+                    "value_handler": "float handleSteeringWheelAngle"},
                 {"name": "StrAnglSign",
                     "id": 2,
                     "human_signal_name": "Steering wheel angle sign",
@@ -82,9 +82,10 @@ attributes of a signal are:
 
 `offset` - This is added to the signal value if set. Optional.
 
-`value_handler` - The name of a function that will be compiled with the sketch
-        and should be applied to the signal's value after the normal
-        translation. Optional - see the "Custom Handlers" section for more.
+`value_handler` - The return type and name of a function that will be compiled
+        with the sketch and should be applied to the signal's value after the
+        normal translation. Optional - see the "Custom Handlers" section for
+        more.
 
 `states` - For state values, this is a mapping between the raw states (usually
     an integer) and the corresponding state in the generic signal.
@@ -131,6 +132,8 @@ the raw steering wheel angle value.
         }
         return value;
     }
+
+The valid return types for value handlers are `bool`, `float` and `char*`.
 
 A known issue with this method is that there is no guarantee that the last value
 of another signal arrived in the message or before/after the value you're

@@ -128,8 +128,7 @@ class Parser(object):
             print "    case 0x%x:" % message_id
             for signal in signals:
                 if signal.value_handler:
-                    # TODO this changes based on the handler type!!
-                    print ("        extern float %s("
+                    print ("        extern %s("
                         "CanSignal*, CanSignal*, float);" %
                         signal.value_handler)
                     print ("        translateCanSignal(&SIGNALS[%d], "

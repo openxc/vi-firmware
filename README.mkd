@@ -260,7 +260,7 @@ This is the list of signals officially supported by the Android library.
     <dt>headlamp_status</dt>
     <dd>States: off, dipped, main</dd>
 
-    <dt>windshield_wiper_status</dt>
-    <dd>Boolean</dd>
+    <dt>windshield_wiper_speed</dt>
+    <dd>0 to 31</dd>
 </dl>
 

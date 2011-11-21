@@ -149,7 +149,7 @@ class Parser(object):
         remaining_ids = [i for i in self.message_ids if i not in priority_ids]
         all_ids = priority_ids + remaining_ids
 
-        # TODO these aren't correct
+        # TODO These cast a really wide net
         masks = [(0, 0x7ff),
                 (1, 0x7ff),
                 (2, 0x7ff),
@@ -180,11 +180,9 @@ class Parser(object):
         print "Serial.println(\"Initializing filters...\");"
 
         print "    FILTERS = {"
-        for i, filter in enumerate(all_ids):
-            # TODO what is the relationship between mask and filter? mask is a
-            # big brush that catches a bunch of things, then filter does the
-            # fine grained?
-            print "        {%d, 0x%x, %d, %d}," % (i, all_ids[0], 1, 0)
+        for i, can_filter in enumerate(all_ids):
+            # TODO be super smart and figure out good mask values dynamically
+            print "        {%d, 0x%x, %d, %d}," % (i, can_filter, 1, 0)
         print "    };"
         print "    return FILTERS;"
         print "}"

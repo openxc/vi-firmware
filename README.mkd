@@ -1,18 +1,30 @@
 CAN Translation Module
 =========================
 
-## Old Requirements
-
-The signal definition to Arduino sketch converison process (done with the
-Makefile) requires the IntelHex Python package.
-
-
-## New Requirements
+## Description
 
 The CAN translation module code runs on an Arudino-compatible Microcontroller
 connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
+
+## Installation
+
+If you have a chipKIT Max32, the source can be built and uploaded using the
+latest version of [MPIDE][] for your platform.
+
+You also need the chipKIT network shield libraries (provided by Microchip).
+Download these from the bottom of the [Max32 page][] and extract them to your
+MPIDE sketchbook directory in a subdirectory named `libraries`. It should look
+like this:
+
+    - /Users/me/sketchbook/
+    ---- libraries/
+    -------- chipKITUSBDevice/
+            ... other libraries
+
+[MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
+[Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32.
 
 ## Input Specification
 

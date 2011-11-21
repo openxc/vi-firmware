@@ -66,7 +66,7 @@ class Signal(object):
         self.states = states or []
 
     def __str__(self):
-        result =  "{%d, \"%s\", %s, %d, %d, %f" % (
+        result =  "{%d, \"%s\", %s, %d, %f, %f" % (
                 self.id, self.generic_name, self.position, self.length,
                 self.factor, self.offset)
         if len(self.states) > 0:
@@ -128,6 +128,7 @@ class Parser(object):
             print "    case 0x%x:" % message_id
             for signal in signals:
                 if signal.value_handler:
+                    # TODO this changes based on the handler type!!
                     print ("        extern float %s("
                         "CanSignal*, CanSignal*, float);" %
                         signal.value_handler)

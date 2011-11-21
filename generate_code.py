@@ -50,6 +50,7 @@ def parse_options():
 
     return arguments
 
+
 class Signal(object):
     def __init__(self, id, name, generic_name, position, length, factor=1,
             offset=0, value_handler=None, states=None):
@@ -65,9 +66,13 @@ class Signal(object):
         self.states = states or []
 
     def __str__(self):
-        return "{%d, \"%s\", %s, %d, %d, %f, SIGNAL_STATES[%d], %d} // %s" % (
+        result =  "{%d, \"%s\", %s, %d, %d, %f" % (
                 self.id, self.generic_name, self.position, self.length,
-                self.factor, self.offset, self.id, len(self.states), self.name)
+                self.factor, self.offset)
+        if len(self.states) > 0:
+            result += ", SIGNAL_STATES[%d], %d" % (self.id, len(self.states))
+        result += "}, // %s" % self.name
+        return result
 
 
 class SignalState(object):
@@ -101,10 +106,11 @@ class Parser(object):
 
         for signals in self.messages.values():
             for signal in signals:
-                print "        {",
-                for state in signal.states:
-                    print "%s," % state,
-                print "},"
+                if len(signal.states) > 0:
+                    print "        {",
+                    for state in signal.states:
+                        print "%s," % state,
+                    print "},"
         print "    };"
 
         print "    CanSignal SIGNALS[%d] = {" % self.signal_count
@@ -113,7 +119,7 @@ class Parser(object):
         for signals in self.messages.values():
             for signal in signals:
                 signal.array_index = i - 1
-                print "        %s," % signal,
+                print "        %s" % signal
                 i += 1
         print "    };"
 

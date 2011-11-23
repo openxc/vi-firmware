@@ -144,13 +144,13 @@ class Parser(object):
         print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    if(address == NODE_1_CAN_1_ADDRESS) {"
-        print "        *count = %d" % len(high_speed_masks)
+        print "        *count = %d;" % len(high_speed_masks)
         print "        FILTER_MASKS = {"
         for i, mask in enumerate(high_speed_masks):
             print "            {%d, 0x%x}," % mask
         print "        };"
         print "    } else if(address == NODE_1_CAN_2_ADDRESS) {"
-        print "        *count = %d" % len(infotainment_masks)
+        print "        *count = %d;" % len(infotainment_masks)
         print "        FILTER_MASKS = {"
         for i, mask in enumerate(infotainment_masks):
             print "            {%d, 0x%x}," % mask
@@ -166,7 +166,7 @@ class Parser(object):
         print "    switch(address) {"
         for bus_address, message_ids in self.message_ids.iteritems():
             print "    case %s:" % bus_address
-            print "        *count = %d" % len(message_ids)
+            print "        *count = %d;" % len(message_ids)
             print "        FILTERS = {"
             for i, can_filter in enumerate(message_ids):
                 # TODO be super smart and figure out good mask values dynamically

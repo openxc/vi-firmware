@@ -33,7 +33,6 @@ static volatile bool isCanMessageReceived = false;
 void initializeCan(uint32_t myaddr);
 void receiveCan(void);
 void handleCanInterrupt();
-void decode_can_message(int id, uint8_t* data);
 
 
 void setup() {

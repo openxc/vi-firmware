@@ -140,7 +140,7 @@ class Parser(object):
         # TODO when the masks are defined in JSON we can do this more
         # dynamically like the filters
         print
-        print "CanFilterMask* initializeFilterMasks(unit32_t address, int* count) {"
+        print "CanFilterMask* initializeFilterMasks(uint32_t address, int* count) {"
         print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    if(address == NODE_1_CAN_1_ADDRESS) {"
@@ -160,7 +160,7 @@ class Parser(object):
         print "}"
 
         print
-        print "CanFilter* initializeFilters(unit32_t address, int* count) {"
+        print "CanFilter* initializeFilters(uint32_t address, int* count) {"
         print "Serial.println(\"Initializing filters...\");"
 
         print "    switch(address) {"

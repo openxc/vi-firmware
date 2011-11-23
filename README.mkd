@@ -264,9 +264,9 @@ This is the list of signals officially supported by the Android library.
     <dd>0 to 31</dd>
 
     <dt>latitude</dt>
-    <dd>-89.0 to 89.0 degrees
+    <dd>-89.0 to 89.0 degrees</dd>
 
     <dt>longitude</dt>
-    <dd>-179.0 to 179.0 degrees
+    <dd>-179.0 to 179.0 degrees</dd>
 </dl>
 

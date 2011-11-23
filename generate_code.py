@@ -4,7 +4,6 @@ from collections import defaultdict
 import sys
 import struct
 import argparse
-import operator
 
 # XXXX UGGGGGG Hack because this code is stupid.
 # XXXX Should really just parse XML into some intermediate structure and then

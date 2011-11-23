@@ -5,12 +5,6 @@ import sys
 import struct
 import argparse
 
-# XXXX UGGGGGG Hack because this code is stupid.
-# XXXX Should really just parse XML into some intermediate structure and then
-# XXXX generate hex, code, etc. all from that format.
-id_mapping = {}
-# XXXX End ugly hack.
-
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C source code from "
             "CAN signal descriptions in JSON or hex")
@@ -26,19 +20,8 @@ def parse_options():
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
-    parser.add_argument('-p', '--priority',
-            action='append',
-            nargs='*',
-            type=int,
-            help='Ordered list of prioritized messages.')
 
     arguments = parser.parse_args()
-
-    # Flatten the priority list.
-    arguments.priority = arguments.priority or []
-    if len(arguments.priority) > 0:
-        arguments.priority = [item for sublist in arguments.priority
-                for item in sublist]
 
     if arguments.hex_file and arguments.json_files:
         raise argparse.ArgumentError(hex_arg,
@@ -84,11 +67,11 @@ class SignalState(object):
 
 
 class Parser(object):
-    def __init__(self, priority):
+    def __init__(self):
         self.messages = defaultdict(list)
         self.message_ids = []
+        self.id_mapping = {}
         self.signal_count = 0
-        self.priority = priority
 
     def parse(self):
         raise NotImplementedError
@@ -144,10 +127,6 @@ class Parser(object):
         self.print_filters()
 
     def print_filters(self):
-        priority_ids = [id_mapping[p] for p in self.priority if p in id_mapping]
-        remaining_ids = [i for i in self.message_ids if i not in priority_ids]
-        all_ids = priority_ids + remaining_ids
-
         # TODO These cast a really wide net
         masks = [(0, 0x7ff),
                 (1, 0x7ff),
@@ -160,8 +139,8 @@ class Parser(object):
         # gets around that problem.
         print "int FILTER_MASK_COUNT = %d;" % len(masks)
         print "CanFilterMask FILTER_MASKS[%d];" % len(masks)
-        print "int FILTER_COUNT = %d;" % len(all_ids)
-        print "CanFilter FILTERS[%d];" % len(all_ids)
+        print "int FILTER_COUNT = %d;" % len(self.message_ids)
+        print "CanFilter FILTERS[%d];" % len(self.message_ids)
 
         print
         print "CanFilterMask* initializeFilterMasks() {"
@@ -179,7 +158,7 @@ class Parser(object):
         print "Serial.println(\"Initializing filters...\");"
 
         print "    FILTERS = {"
-        for i, can_filter in enumerate(all_ids):
+        for i, can_filter in enumerate(self.message_ids):
             # TODO be super smart and figure out good mask values dynamically
             print "        {%d, 0x%x, %d, %d}," % (i, can_filter, 1, 0)
         print "    };"
@@ -188,8 +167,8 @@ class Parser(object):
 
 
 class HexParser(Parser):
-    def __init__(self, filename, priority):
-        super(HexParser, self).__init__(priority)
+    def __init__(self, filename):
+        super(HexParser, self).__init__()
         import intelhex
         self.mem = intelhex.IntelHex(filename)
 
@@ -218,13 +197,13 @@ class HexParser(Parser):
         else:
             (offset, factor) = (0.0, 1.0)
 
-        id_mapping[signal_id] = message_id
+        self.id_mapping[signal_id] = message_id
         return hex_offset, Signal(signal_id, "", "", position, length, factor,
                 offset)
 
 class JsonParser(Parser):
-    def __init__(self, filenames, priority):
-        super(JsonParser, self).__init__(priority)
+    def __init__(self, filenames):
+        super(JsonParser, self).__init__()
         self.jsonFiles = filenames
 
     # The JSON parser accepts the format specified in the README.
@@ -258,9 +237,9 @@ def main():
     arguments = parse_options()
 
     if arguments.hex_file:
-        parser = HexParser(arguments.hex_file, arguments.priority)
+        parser = HexParser(arguments.hex_file)
     else:
-        parser = JsonParser(arguments.json_files, arguments.priority)
+        parser = JsonParser(arguments.json_files)
 
     parser.parse()
     parser.print_source()

@@ -11,7 +11,8 @@ from xml.etree.ElementTree import parse
 class Network(object):
     """Represents all the messages on a single bus."""
 
-    def __init__(self, tree, signal_map=None):
+    def __init__(self, tree, address, signal_map=None):
+        self.address = address
         self.messages = {}
 
         for node in tree.getroot().findall("Node"):
@@ -20,7 +21,8 @@ class Network(object):
     def to_dict(self):
         return {"messages": {message.name: message.to_dict()
                 for message in self.messages.values()
-                if len(message.signals) > 0}}
+                if len(message.signals) > 0},
+                "bus_address": self.address}
 
     def _parse_node(self, node, signal_map):
         # Looks like RxMessage elements are redundant.
@@ -108,13 +110,14 @@ def main(argv=None):
             help="Name of Canoe XML file")
     parser.add_argument("map", default="c346_hs_can.xml",
             help="Name of signal to ID map")
+    parser.add_argument("address", help="address of CAN bus node")
     parser.add_argument("out", default="dump.json",
             help="Name out output JSON file")
 
     args = parser.parse_args(argv)
 
     tree = parse(args.xml)
-    n = Network(tree, parse_map(args.map))
+    n = Network(tree, args.address, parse_map(args.map))
 
     data = n.to_dict()
     with open(args.out, 'w') as output_file:

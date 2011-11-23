@@ -12,8 +12,8 @@
 #include "usbutil.h"
 
 /* Network Node Addresses */
-#define NODE_1_CAN_1_ADDRESS 0x101L
-#define NODE_1_CAN_2_ADDRESS 0x102L
+#define NODE_1_CAN_1_ADDRESS 0x101
+#define NODE_1_CAN_2_ADDRESS 0x102
 
 #define SYS_FREQ (80000000L)
 #define HIGH_SPEED_CAN_BUS_SPEED 500000
@@ -62,9 +62,9 @@ void loop() {
 /* Initialize the CAN controller. See inline comments
  * for description of the process.
  */
-void initializeCan(CAN* bus, uint32_t myaddr, int speed, uint8_t* messageArea) {
+void initializeCan(CAN* bus, uint32_t address, int speed, uint8_t* messageArea) {
     Serial.print("Initializing CAN bus at ");
-    Serial.println(myaddr, BYTE);
+    Serial.println(address, BYTE);
     CAN::BIT_CONFIG canBitConfig;
 
     /* Switch the CAN module ON and switch it to Configuration mode. Wait till
@@ -97,9 +97,12 @@ void initializeCan(CAN* bus, uint32_t myaddr, int speed, uint8_t* messageArea) {
     bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
     // TODO need to initialize different filters and masks for each module
-    CanFilterMask* filterMasks = initializeFilterMasks();
-    CanFilter* filters = initializeFilters();
-    configureFilters(bus, filterMasks, filters);
+    int filterMaskCount;
+    CanFilterMask* filterMasks = initializeFilterMasks(address,
+            &filterMaskCount);
+    int filterCount;
+    CanFilter* filters = initializeFilters(address, &filterCount);
+    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The

@@ -120,18 +120,18 @@ class Parser(object):
     def print_filters(self):
         # TODO These cast a really wide net and should also be defined at the
         # top level of the JSON
-        high_speed_masks = [(0, 0x7ff),
+        can1_masks = [(0, 0x7ff),
                 (1, 0x7ff),
                 (2, 0x7ff),
                 (3, 0x7ff)]
-        infotainment_masks = list(high_speed_masks)
+        can2_masks = list(can1_masks)
 
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
         print "CanFilterMask FILTER_MASKS[%d];" % (
-                max(len(high_speed_masks), len(infotainment_masks)))
+                max(len(can1_masks), len(can2_masks)))
 
         message_count = sum((len(message_ids) for message_ids in
                 self.message_ids.values()))
@@ -143,16 +143,16 @@ class Parser(object):
         print "CanFilterMask* initializeFilterMasks(uint32_t address, int* count) {"
         print "Serial.println(\"Initializing filter arrays...\");"
 
-        print "    if(address == NODE_1_CAN_1_ADDRESS) {"
-        print "        *count = %d;" % len(high_speed_masks)
+        print "    if(address == CAN_1_ADDRESS) {"
+        print "        *count = %d;" % len(can1_masks)
         print "        FILTER_MASKS = {"
-        for i, mask in enumerate(high_speed_masks):
+        for i, mask in enumerate(can1_masks):
             print "            {%d, 0x%x}," % mask
         print "        };"
-        print "    } else if(address == NODE_1_CAN_2_ADDRESS) {"
-        print "        *count = %d;" % len(infotainment_masks)
+        print "    } else if(address == CAN_2_ADDRESS) {"
+        print "        *count = %d;" % len(can2_masks)
         print "        FILTER_MASKS = {"
-        for i, mask in enumerate(infotainment_masks):
+        for i, mask in enumerate(can2_masks):
             print "            {%d, 0x%x}," % mask
         print "        };"
         print "    }"

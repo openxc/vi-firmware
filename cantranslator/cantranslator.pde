@@ -12,32 +12,30 @@
 #include "usbutil.h"
 
 /* Network Node Addresses */
-#define NODE_1_CAN_1_ADDRESS 0x101
-#define NODE_1_CAN_2_ADDRESS 0x102
+#define CAN_1_ADDRESS 0x101
+#define CAN_2_ADDRESS 0x102
 
 #define SYS_FREQ (80000000L)
-#define HIGH_SPEED_CAN_BUS_SPEED 500000
-#define INFOTAINMENT_CAN_BUS_SPEED 500000
+#define CAN_BUS_1_SPEED 500000
+#define CAN_BUS_2_SPEED 500000
 
 
-/* High-speed CAN must be connected the 1st transceiver */
-CAN highSpeedCan(CAN::CAN1);
-/* Infotainment CAN must be connected the 2nd transceiver */
-CAN infotainmentCan(CAN::CAN1);
+CAN can1(CAN::CAN1);
+CAN can2(CAN::CAN1);
 
 /* CAN Message Buffers */
-uint8_t highSpeedCanMessageArea[2 * 8 * 16];
-uint8_t infotainmentCanMessageArea[2 * 8 * 16];
+uint8_t can1MessageArea[2 * 8 * 16];
+uint8_t can2MessageArea[2 * 8 * 16];
 
 /* These are used as event flags by the interrupt service routines. */
-static volatile bool isHighSpeedCanMessageReceived = false;
-static volatile bool isInfotainmentCanMessageReceived = false;
+static volatile bool isCan1MessageReceived = false;
+static volatile bool isCan2MessageReceived = false;
 
 /* Forward declarations */
 
 void initializeCan(uint32_t);
 void receiveCan(CAN*, volatile bool*);
-void handleHighSpeedCanInterrupt();
+void handleCan1Interrupt();
 
 
 void setup() {
@@ -45,24 +43,23 @@ void setup() {
 
     initializeUsb();
 
-    initializeCan(&highSpeedCan, NODE_1_CAN_1_ADDRESS, HIGH_SPEED_CAN_BUS_SPEED,
-            highSpeedCanMessageArea);
-    initializeCan(&infotainmentCan, NODE_1_CAN_2_ADDRESS,
-            INFOTAINMENT_CAN_BUS_SPEED, infotainmentCanMessageArea);
+    initializeCan(&can1, CAN_1_ADDRESS, CAN_BUS_1_SPEED, can1MessageArea);
+    initializeCan(&can2, CAN_2_ADDRESS, CAN_BUS_2_SPEED, can2MessageArea);
 
-    highSpeedCan.attachInterrupt(handleHighSpeedCanInterrupt);
-    infotainmentCan.attachInterrupt(handleInfotainmentCanInterrupt);
+    can1.attachInterrupt(handleCan1Interrupt);
+    can2.attachInterrupt(handleCan2Interrupt);
 }
 
 void loop() {
-    receiveCan(&highSpeedCan, &isHighSpeedCanMessageReceived);
-    receiveCan(&infotainmentCan, &isInfotainmentCanMessageReceived);
+    receiveCan(&can1, &isCan1MessageReceived);
+    receiveCan(&can2, &isCan2MessageReceived);
 }
 
-/* Initialize the CAN controller. See inline comments
- * for description of the process.
+/* Initialize the CAN controller. See inline comments for description of the
+ * process.
  */
-void initializeCan(CAN* bus, uint32_t address, int speed, uint8_t* messageArea) {
+void initializeCan(CAN* bus, uint32_t address, int speed,
+        uint8_t* messageArea) {
     Serial.print("Initializing CAN bus at ");
     Serial.println(address, BYTE);
     CAN::BIT_CONFIG canBitConfig;
@@ -146,24 +143,24 @@ void receiveCan(CAN* bus, volatile bool* messageReceived) {
 /* Called by the Interrupt Service Routine whenever an event we registered for
  * occurs - this is where we wake up and decide to process a message.
  */
-void handleHighSpeedCanInterrupt() {
-    if((highSpeedCan.getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(highSpeedCan.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
+void handleCan1Interrupt() {
+    if((can1.getModuleEvent() & CAN::RX_EVENT) != 0) {
+        if(can1.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
             // Clear the event so we give up control of the CPU
-            highSpeedCan.enableChannelEvent(CAN::CHANNEL1,
+            can1.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            isHighSpeedCanMessageReceived = true;
+            isCan1MessageReceived = true;
         }
     }
 }
 
-void handleInfotainmentCanInterrupt() {
-    if((infotainmentCan.getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(infotainmentCan.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
+void handleCan2Interrupt() {
+    if((can2.getModuleEvent() & CAN::RX_EVENT) != 0) {
+        if(can2.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
             // Clear the event so we give up control of the CPU
-            infotainmentCan.enableChannelEvent(CAN::CHANNEL1,
+            can2.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            isInfotainmentCanMessageReceived = true;
+            isCan2MessageReceived = true;
         }
     }
 }

@@ -48,8 +48,8 @@ class Message(object):
 
     def to_dict(self):
         return {"id": self.id,
-                "signals": [signal.to_dict()
-                    for signal in self.signals.values()]}
+                "signals": {signal.name: signal.to_dict()
+                    for signal in self.signals.values()}}
 
 
 class Signal(object):
@@ -68,7 +68,6 @@ class Signal(object):
 
     def to_dict(self):
         return {"generic_name": self.generic_name,
-                "name": self.name,
                 "bit_position": self.position,
                 "bit_size": self.size,
                 "factor": self.factor,

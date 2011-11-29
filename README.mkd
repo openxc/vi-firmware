@@ -36,8 +36,8 @@ is a JSON object like this:
         "messages": {
             "ECM_z_5D2": {
                 "id": 42,
-                "signals": [
-                    {"name": "StrAnglAct",
+                "signals": {
+                    "StrAnglAct":
                         "id": 1,
                         "human_signal_name": "Steering wheel angle",
                         "generic_name": "SteeringWheelAngle",
@@ -46,12 +46,12 @@ is a JSON object like this:
                         "factor": 0.15392,
                         "offset": 0,
                         "value_handler": "float handleSteeringWheelAngle"},
-                    {"name": "StrAnglSign",
+                    "StrAnglSign":
                         "id": 2,
                         "human_signal_name": "Steering wheel angle sign",
                         "bit_position": 52,
                         "bit_size": 12},
-                    {"name": "GrshftPos",
+                    "GrshftPos":
                         "id": 10,
                         "human_signal_name": "Gearshift Position",
                         "generic_name": "GearshiftPosition",

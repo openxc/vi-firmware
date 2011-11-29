@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import collections
 from collections import defaultdict
 import sys
 import argparse
@@ -23,6 +24,36 @@ def parse_options():
 
     return arguments
 
+def quacks_like_dict(object):
+    """Check if object is dict-like"""
+    return isinstance(object, collections.Mapping)
+
+def merge(a, b):
+    """Merge two deep dicts non-destructively
+
+    Uses a stack to avoid maximum recursion depth exceptions
+
+    >>> a = {'a': 1, 'b': {1: 1, 2: 2}, 'd': 6}
+    >>> b = {'c': 3, 'b': {2: 7}, 'd': {'z': [1, 2, 3]}}
+    >>> c = merge(a, b)
+    >>> from pprint import pprint; pprint(c)
+    {'a': 1, 'b': {1: 1, 2: 7}, 'c': 3, 'd': {'z': [1, 2, 3]}}
+    """
+    assert quacks_like_dict(a), quacks_like_dict(b)
+    dst = a.copy()
+
+    stack = [(dst, b)]
+    while stack:
+        current_dst, current_src = stack.pop()
+        for key in current_src:
+            if key not in current_dst:
+                current_dst[key] = current_src[key]
+            else:
+                if quacks_like_dict(current_src[key]) and quacks_like_dict(current_dst[key]) :
+                    stack.append((current_dst[key], current_src[key]))
+                else:
+                    current_dst[key] = current_src[key]
+    return dst
 
 class Message(object):
     def __init__(self, id, name, handler=None):
@@ -111,9 +142,9 @@ class Parser(object):
             for message in bus:
                 print "    case 0x%x:" % message.id
                 if message.handler is not None:
-                    print ("        extern %s(unit8_t*, CanSignal*);"
+                    print ("        extern void %s(uint8_t*, CanSignal*);"
                             % message.handler)
-                    print "        %s(data, SIGNALS);" % signal.handler
+                    print "        %s(data, SIGNALS);" % message.handler
                 else:
                     for signal in message.signals:
                         if signal.handler:
@@ -204,13 +235,14 @@ class JsonParser(Parser):
         for filename in self.jsonFiles:
             with open(filename[0]) as jsonFile:
                 data = json.load(jsonFile)
-                merged_dict = dict(merged_dict.items() + data.items())
+                merged_dict = merge(merged_dict, data)
+
         for bus_address, bus_data in merged_dict.iteritems():
             for message_name, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_data['id'], message_name,
                         message_data.get('handler', None))
-                for signal in message_data['signals']:
+                for signal_name, signal in message_data['signals'].iteritems():
                     states = [SignalState(value, name)
                             for name, value in signal.get('states',
                                 {}).iteritems()]
@@ -219,7 +251,7 @@ class JsonParser(Parser):
                     # to it in the future easier
                     message.signals.append(
                             Signal(signal.get('id', 0),
-                            signal['name'],
+                            signal_name,
                             signal['generic_name'],
                             signal['bit_position'],
                             signal['bit_size'],

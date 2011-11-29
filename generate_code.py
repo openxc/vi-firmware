@@ -200,32 +200,34 @@ class JsonParser(Parser):
     # The JSON parser accepts the format specified in the README.
     def parse(self):
         import json
+        merged_dict = {}
         for filename in self.jsonFiles:
             with open(filename[0]) as jsonFile:
                 data = json.load(jsonFile)
-                bus = data['bus_address']
-                for message_name, message_data in data['messages'].iteritems():
-                    self.signal_count += len(message_data['signals'])
-                    message = Message(message_data['id'], message_name,
-                            message_data.get('handler', None))
-                    for signal in message_data['signals']:
-                        states = [SignalState(value, name)
-                                for name, value in signal.get('states',
-                                    {}).iteritems()]
-                        # TODO we're keeping the numerical ID here even though
-                        # we're not using it now because it will make switching
-                        # to it in the future easier
-                        message.signals.append(
-                                Signal(signal.get('id', 0),
-                                signal['name'],
-                                signal['generic_name'],
-                                signal['bit_position'],
-                                signal['bit_size'],
-                                signal.get('factor', 1),
-                                signal.get('offset', 0),
-                                signal.get('value_handler', None),
-                                states))
-                    self.buses[bus].append(message)
+                merged_dict = dict(merged_dict.items() + data.items())
+        for bus_address, bus_data in merged_dict.iteritems():
+            for message_name, message_data in bus_data['messages'].iteritems():
+                self.signal_count += len(message_data['signals'])
+                message = Message(message_data['id'], message_name,
+                        message_data.get('handler', None))
+                for signal in message_data['signals']:
+                    states = [SignalState(value, name)
+                            for name, value in signal.get('states',
+                                {}).iteritems()]
+                    # TODO we're keeping the numerical ID here even though
+                    # we're not using it now because it will make switching
+                    # to it in the future easier
+                    message.signals.append(
+                            Signal(signal.get('id', 0),
+                            signal['name'],
+                            signal['generic_name'],
+                            signal['bit_position'],
+                            signal['bit_size'],
+                            signal.get('factor', 1),
+                            signal.get('offset', 0),
+                            signal.get('value_handler', None),
+                            states))
+                self.buses[bus_address].append(message)
 
 def main():
     arguments = parse_options()

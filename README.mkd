@@ -32,45 +32,48 @@ The code in this repository requires a list of CAN messages with details of the
 signals of interest, and their corresponding generic versions. The input format
 is a JSON object like this:
 
-    {"messages": {
-        "ECM_z_5D2": {
-            "id": 42,
-            "signals": [
-                {"name": "StrAnglAct",
-                    "id": 1,
-                    "human_signal_name": "Steering wheel angle",
-                    "generic_name": "SteeringWheelAngle",
-                    "bit_position": 52,
-                    "bit_size": 12,
-                    "factor": 0.15392,
-                    "offset": 0,
-                    "value_handler": "float handleSteeringWheelAngle"},
-                {"name": "StrAnglSign",
-                    "id": 2,
-                    "human_signal_name": "Steering wheel angle sign",
-                    "bit_position": 52,
-                    "bit_size": 12},
-                {"name": "GrshftPos",
-                    "id": 10,
-                    "human_signal_name": "Gearshift Position",
-                    "generic_name": "GearshiftPosition",
-                    "bit_position": 41,
-                    "bit_size": 0,
-                    "states": {
-                        "FIRST": 1,
-                        "SECOND": 2,
-                        "THIRD": 3,
-                        "FOURTH": 4,
-                        "REVERSE": 5,
-                        "NEUTRAL": 6
-                    }}
-            ]
-        "message_handler": "handleSteeringWheelMessage"
+    {"0x102": {
+        "messages": {
+            "ECM_z_5D2": {
+                "id": 42,
+                "signals": [
+                    {"name": "StrAnglAct",
+                        "id": 1,
+                        "human_signal_name": "Steering wheel angle",
+                        "generic_name": "SteeringWheelAngle",
+                        "bit_position": 52,
+                        "bit_size": 12,
+                        "factor": 0.15392,
+                        "offset": 0,
+                        "value_handler": "float handleSteeringWheelAngle"},
+                    {"name": "StrAnglSign",
+                        "id": 2,
+                        "human_signal_name": "Steering wheel angle sign",
+                        "bit_position": 52,
+                        "bit_size": 12},
+                    {"name": "GrshftPos",
+                        "id": 10,
+                        "human_signal_name": "Gearshift Position",
+                        "generic_name": "GearshiftPosition",
+                        "bit_position": 41,
+                        "bit_size": 0,
+                        "states": {
+                            "FIRST": 1,
+                            "SECOND": 2,
+                            "THIRD": 3,
+                            "FOURTH": 4,
+                            "REVERSE": 5,
+                            "NEUTRAL": 6
+                        }}
+                ]
+            "message_handler": "handleSteeringWheelMessage"
+            }
         }
     }}
 
-This is a list of CAN messages and a list of signals within each message. The
-attributes of a signal are:
+This is a list of CAN buses (the `0x102` is the unique bus address), messages in
+each bus and a list of signals within each message. The attributes of a signal
+are:
 
 `name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation

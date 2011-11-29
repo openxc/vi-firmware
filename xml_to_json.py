@@ -19,10 +19,9 @@ class Network(object):
             self._parse_node(node, signal_map)
 
     def to_dict(self):
-        return {"messages": {message.name: message.to_dict()
+        return {self.address: {"messages": {message.name: message.to_dict()
                 for message in self.messages.values()
-                if len(message.signals) > 0},
-                "bus_address": self.address}
+                if len(message.signals) > 0}}}
 
     def _parse_node(self, node, signal_map):
         # Looks like RxMessage elements are redundant.

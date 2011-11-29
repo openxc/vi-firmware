@@ -108,3 +108,12 @@ char* generateJson(CanSignal* signal, bool value) {
             value ? "true" : "false");
     return message;
 }
+
+char* generateJson(CanSignal* signal, char* value, bool event) {
+    int messageLength = EVENT_BOOLEAN_MESSAGE_FORMAT_LENGTH +
+        strlen(signal->genericName) + EVENT_BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, EVENT_BOOLEAN_MESSAGE_FORMAT, signal->genericName,
+            value, event ? "true" : "false");
+    return message;
+}

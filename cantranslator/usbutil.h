@@ -7,9 +7,11 @@
 #define USB_PACKET_SIZE 64
 #define NUMERICAL_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%f}\r\n"
 #define BOOLEAN_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%s}\r\n"
+#define EVENT_BOOLEAN_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%s,\"event\":\"%s\"}\r\n"
 #define STRING_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\"}\r\n"
 #define NUMERICAL_MESSAGE_VALUE_MAX_LENGTH 6
 #define BOOLEAN_MESSAGE_VALUE_MAX_LENGTH 4
+#define EVENT_BOOLEAN_MESSAGE_VALUE_MAX_LENGTH 28
 #define STRING_MESSAGE_VALUE_MAX_LENGTH 24
 
 #define DATA_ENDPOINT 1
@@ -17,6 +19,8 @@
 
 const int NUMERICAL_MESSAGE_FORMAT_LENGTH = strlen(NUMERICAL_MESSAGE_FORMAT);
 const int BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(BOOLEAN_MESSAGE_FORMAT);
+const int EVENT_BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(
+        EVENT_BOOLEAN_MESSAGE_FORMAT);
 const int STRING_MESSAGE_FORMAT_LENGTH = strlen(STRING_MESSAGE_FORMAT);
 
 // This is a reference to the last packet read

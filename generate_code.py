@@ -24,9 +24,16 @@ def parse_options():
     return arguments
 
 
+class Message(object):
+    def __init__(self, id, name, handler=None):
+        self.id = id
+        self.name = name
+        self.handler = handler
+
+
 class Signal(object):
     def __init__(self, id, name, generic_name, position, length, factor=1,
-            offset=0, value_handler=None, states=None):
+            offset=0, handler=None, states=None):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -34,7 +41,7 @@ class Signal(object):
         self.length = length
         self.factor = factor
         self.offset = offset
-        self.value_handler = value_handler
+        self.handler = handler
         self.array_index = 0
         self.states = states or []
 
@@ -100,13 +107,13 @@ class Parser(object):
         for message_id, signals in self.messages.iteritems():
             print "    case 0x%x:" % message_id
             for signal in signals:
-                if signal.value_handler:
+                if signal.handler:
                     print ("        extern %s("
                         "CanSignal*, CanSignal*, float);" %
-                        signal.value_handler)
+                        signal.handler)
                     print ("        translateCanSignal(&SIGNALS[%d], "
                         "data, &%s, SIGNALS);" % (
-                            signal.array_index, signal.value_handler))
+                            signal.array_index, signal.handler))
                 else:
                     print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
                         signal.array_index)

@@ -111,15 +111,4 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
-/* Public: Constructs a JSON representation of the translated signal.
- *
- * signal - the CAN signal this value is an instance of.
- * value  - the final, translated value for the signal.
- *
- * Returns JSON in a string.
- */
-char* generateJson(CanSignal* signal, float value);
-char* generateJson(CanSignal* signal, char* value);
-char* generateJson(CanSignal* signal, bool value);
-
 #endif // _CANUTIL_H_

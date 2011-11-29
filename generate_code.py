@@ -92,6 +92,7 @@ class Parser(object):
                             print "%s," % state,
                         print "},"
         print "    };"
+        print
 
         print "    CanSignal SIGNALS[%d] = {" % self.signal_count
 
@@ -103,22 +104,28 @@ class Parser(object):
                     print "        %s" % signal
                     i += 1
         print "    };"
+        print
 
         print "    switch (id) {"
         for bus in self.buses.values():
             for message in bus:
                 print "    case 0x%x:" % message.id
-                for signal in message.signals:
-                    if signal.handler:
-                        print ("        extern %s("
-                            "CanSignal*, CanSignal*, float);" %
-                            signal.handler)
-                        print ("        translateCanSignal(&SIGNALS[%d], "
-                            "data, &%s, SIGNALS);" % (
-                                signal.array_index, signal.handler))
-                    else:
-                        print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
-                            signal.array_index)
+                if message.handler is not None:
+                    print ("        extern %s(unit8_t*, CanSignal*);"
+                            % message.handler)
+                    print "        %s(data, SIGNALS);" % signal.handler
+                else:
+                    for signal in message.signals:
+                        if signal.handler:
+                            print ("        extern %s("
+                                "CanSignal*, CanSignal*, float);" %
+                                signal.handler)
+                            print ("        translateCanSignal(&SIGNALS[%d], "
+                                "data, &%s, SIGNALS);" % (
+                                    signal.array_index, signal.handler))
+                        else:
+                            print ("        translateCanSignal(&SIGNALS[%d], "
+                                    "data, SIGNALS);" % (signal.array_index))
                 print "        break;"
         print "    }"
         print "}\n"

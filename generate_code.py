@@ -29,6 +29,7 @@ class Message(object):
         self.id = id
         self.name = name
         self.handler = handler
+        self.signals = []
 
 
 class Signal(object):
@@ -66,9 +67,7 @@ class SignalState(object):
 
 class Parser(object):
     def __init__(self):
-        self.messages = defaultdict(list)
-        self.message_ids = {}
-        self.id_mapping = {}
+        self.buses = defaultdict(list)
         self.signal_count = 0
 
     def parse(self):
@@ -84,40 +83,43 @@ class Parser(object):
         print "    CanSignalState SIGNAL_STATES[%d][%d] = {" % (
                 self.signal_count, 10)
 
-        for signals in self.messages.values():
-            for signal in signals:
-                if len(signal.states) > 0:
-                    print "        {",
-                    for state in signal.states:
-                        print "%s," % state,
-                    print "},"
+        for bus in self.buses.values():
+            for message in bus:
+                for signal in message.signals:
+                    if len(signal.states) > 0:
+                        print "        {",
+                        for state in signal.states:
+                            print "%s," % state,
+                        print "},"
         print "    };"
 
         print "    CanSignal SIGNALS[%d] = {" % self.signal_count
 
         i = 1
-        for signals in self.messages.values():
-            for signal in signals:
-                signal.array_index = i - 1
-                print "        %s" % signal
-                i += 1
+        for bus in self.buses.values():
+            for message in bus:
+                for signal in message.signals:
+                    signal.array_index = i - 1
+                    print "        %s" % signal
+                    i += 1
         print "    };"
 
         print "    switch (id) {"
-        for message_id, signals in self.messages.iteritems():
-            print "    case 0x%x:" % message_id
-            for signal in signals:
-                if signal.handler:
-                    print ("        extern %s("
-                        "CanSignal*, CanSignal*, float);" %
-                        signal.handler)
-                    print ("        translateCanSignal(&SIGNALS[%d], "
-                        "data, &%s, SIGNALS);" % (
-                            signal.array_index, signal.handler))
-                else:
-                    print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
-                        signal.array_index)
-            print "        break;"
+        for bus in self.buses.values():
+            for message in bus:
+                print "    case 0x%x:" % message.id
+                for signal in message.signals:
+                    if signal.handler:
+                        print ("        extern %s("
+                            "CanSignal*, CanSignal*, float);" %
+                            signal.handler)
+                        print ("        translateCanSignal(&SIGNALS[%d], "
+                            "data, &%s, SIGNALS);" % (
+                                signal.array_index, signal.handler))
+                    else:
+                        print "        translateCanSignal(&SIGNALS[%d], data, SIGNALS);" % (
+                            signal.array_index)
+                print "        break;"
         print "    }"
         print "}\n"
 
@@ -140,8 +142,7 @@ class Parser(object):
         print "CanFilterMask FILTER_MASKS[%d];" % (
                 max(len(can1_masks), len(can2_masks)))
 
-        message_count = sum((len(message_ids) for message_ids in
-                self.message_ids.values()))
+        message_count = sum((len(messages) for messages in self.buses.values()))
         print "CanFilter FILTERS[%d];" % message_count
 
         # TODO when the masks are defined in JSON we can do this more
@@ -171,13 +172,13 @@ class Parser(object):
         print "Serial.println(\"Initializing filters...\");"
 
         print "    switch(address) {"
-        for bus_address, message_ids in self.message_ids.iteritems():
+        for bus_address, messages in self.buses.iteritems():
             print "    case %s:" % bus_address
-            print "        *count = %d;" % len(message_ids)
+            print "        *count = %d;" % len(messages)
             print "        FILTERS = {"
-            for i, can_filter in enumerate(message_ids):
+            for i, message in enumerate(messages):
                 # TODO be super smart and figure out good mask values dynamically
-                print "            {%d, 0x%x, %d, %d}," % (i, can_filter, 1, 0)
+                print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
             print "        };"
         print "    }"
         print "    return FILTERS;"
@@ -196,18 +197,18 @@ class JsonParser(Parser):
             with open(filename[0]) as jsonFile:
                 data = json.load(jsonFile)
                 bus = data['bus_address']
-                self.message_ids[bus] = []
-                for message in data['messages'].values():
-                    self.message_ids[bus].append(message['id'])
-                    self.signal_count += len(message['signals'])
-                    for signal in message['signals']:
+                for message_name, message_data in data['messages'].iteritems():
+                    self.signal_count += len(message_data['signals'])
+                    message = Message(message_data['id'], message_name,
+                            message_data.get('handler', None))
+                    for signal in message_data['signals']:
                         states = [SignalState(value, name)
                                 for name, value in signal.get('states',
                                     {}).iteritems()]
                         # TODO we're keeping the numerical ID here even though
                         # we're not using it now because it will make switching
                         # to it in the future easier
-                        self.messages[message['id']].append(
+                        message.signals.append(
                                 Signal(signal.get('id', 0),
                                 signal['name'],
                                 signal['generic_name'],
@@ -217,6 +218,7 @@ class JsonParser(Parser):
                                 signal.get('offset', 0),
                                 signal.get('value_handler', None),
                                 states))
+                    self.buses[bus].append(message)
 
 def main():
     arguments = parse_options()

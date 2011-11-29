@@ -21,7 +21,7 @@
 
 
 CAN can1(CAN::CAN1);
-CAN can2(CAN::CAN1);
+CAN can2(CAN::CAN2);
 
 /* CAN Message Buffers */
 uint8_t can1MessageArea[2 * 8 * 16];
@@ -35,8 +35,6 @@ static volatile bool isCan2MessageReceived = false;
 
 void initializeCan(uint32_t);
 void receiveCan(CAN*, volatile bool*);
-void handleCan1Interrupt();
-
 
 void setup() {
     Serial.begin(115200);
@@ -58,10 +56,9 @@ void loop() {
 /* Initialize the CAN controller. See inline comments for description of the
  * process.
  */
-void initializeCan(CAN* bus, uint32_t address, int speed,
-        uint8_t* messageArea) {
+void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
     Serial.print("Initializing CAN bus at ");
-    Serial.println(address, BYTE);
+    Serial.println(address, DEC);
     CAN::BIT_CONFIG canBitConfig;
 
     /* Switch the CAN module ON and switch it to Configuration mode. Wait till
@@ -93,7 +90,6 @@ void initializeCan(CAN* bus, uint32_t address, int speed,
      */
     bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    // TODO need to initialize different filters and masks for each module
     int filterMaskCount;
     CanFilterMask* filterMasks = initializeFilterMasks(address,
             &filterMaskCount);
@@ -119,6 +115,8 @@ void initializeCan(CAN* bus, uint32_t address, int speed,
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
  */
+// TODO does this need to be a different function so the volatile bool is
+// pointing at the correct place? probably yes
 void receiveCan(CAN* bus, volatile bool* messageReceived) {
     CAN::RxMessageBuffer* message;
 

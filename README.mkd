@@ -162,9 +162,9 @@ If you need greater precision, you can provide a custom handler for the entire
 message to guarantee they arrived together. You can generate 0, 1 or many
 translated messages from one call to your handler function.
 
-    void handleSteeringWheelMessage(uint8_t* data) {
-        float steeringWheelAngle = decodeCanSignal(&SIGNALS[1], data);
-        float steeringWheelSign = decodeCanSignal(&SIGNALS[2], data);
+    void handleSteeringWheelMessage(uint8_t* data, CanSignal* signals) {
+        float steeringWheelAngle = decodeCanSignal(&signals[1], data);
+        float steeringWheelSign = decodeCanSignal(&signals[2], data);
 
         float finalValue = steeringWheelAngle;
         if(steeringWheelSign == 0) {
@@ -172,7 +172,7 @@ translated messages from one call to your handler function.
             finalValue *= -1;
         }
 
-        char* message = generateJson(SIGNALS[1], finalValue);
+        char* message = generateJson(signals[1], finalValue);
         sendMessage((uint8_t*) message, strlen(message));
     }
 

@@ -111,4 +111,21 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
+/* Public: Finds and returns the corresponding string state for an integer
+ *         value.
+ *
+ * signal  - the details of the signal that contains the state mapping.
+ * signals - the list of all signals
+ * value   - the numerical value that maps to a state
+ */
+char* stateHandler(CanSignal* signal, CanSignal* signals, float value);
+
+/* Public: Coerces a numerical value to a boolean.
+ *
+ * signal  - the details of the signal that contains the state mapping.
+ * signals - the list of all signals
+ * value   - the numerical value that will be converted to a boolean.
+ */
+bool booleanHandler(CanSignal* signal, CanSignal* signals, float value);
+
 #endif // _CANUTIL_H_

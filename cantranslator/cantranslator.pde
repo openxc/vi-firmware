@@ -12,54 +12,60 @@
 #include "usbutil.h"
 
 /* Network Node Addresses */
-#define node1can1 0x101L
-#define node2can1 0x201L
+#define CAN_1_ADDRESS 0x101
+#define CAN_2_ADDRESS 0x102
 
 #define SYS_FREQ (80000000L)
-#define CAN_BUS_SPEED 500000
+#define CAN_BUS_1_SPEED 500000
+#define CAN_BUS_2_SPEED 500000
 
 
-// this object uses CAN module 1
-CAN canModule(CAN::CAN1);
+CAN can1(CAN::CAN1);
+CAN can2(CAN::CAN2);
 
 /* CAN Message Buffers */
-uint8_t canMessageFifoArea[2 * 8 * 16];
+uint8_t can1MessageArea[2 * 8 * 16];
+uint8_t can2MessageArea[2 * 8 * 16];
 
 /* These are used as event flags by the interrupt service routines. */
-static volatile bool isCanMessageReceived = false;
+static volatile bool isCan1MessageReceived = false;
+static volatile bool isCan2MessageReceived = false;
 
 /* Forward declarations */
 
-void initializeCan(uint32_t myaddr);
-void receiveCan(void);
-void handleCanInterrupt();
-void decode_can_message(int id, uint8_t* data);
-
+void initializeCan(uint32_t);
+void receiveCan(CAN*, volatile bool*);
 
 void setup() {
     Serial.begin(115200);
 
     initializeUsb();
-    initializeCan(node1can1);
-    canModule.attachInterrupt(handleCanInterrupt);
+
+    initializeCan(&can1, CAN_1_ADDRESS, CAN_BUS_1_SPEED, can1MessageArea);
+    initializeCan(&can2, CAN_2_ADDRESS, CAN_BUS_2_SPEED, can2MessageArea);
+
+    can1.attachInterrupt(handleCan1Interrupt);
+    can2.attachInterrupt(handleCan2Interrupt);
 }
 
 void loop() {
-    receiveCan();
+    receiveCan(&can1, &isCan1MessageReceived);
+    receiveCan(&can2, &isCan2MessageReceived);
 }
 
-/* Initialize the CAN controller. See inline comments
- * for description of the process.
+/* Initialize the CAN controller. See inline comments for description of the
+ * process.
  */
-void initializeCan(uint32_t myaddr) {
-    Serial.print("Initializing CAN 1...  ");
+void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
+    Serial.print("Initializing CAN bus at ");
+    Serial.println(address, DEC);
     CAN::BIT_CONFIG canBitConfig;
 
     /* Switch the CAN module ON and switch it to Configuration mode. Wait till
      * the switch is complete */
-    canModule.enableModule(true);
-    canModule.setOperatingMode(CAN::CONFIGURATION);
-    while(canModule.getOperatingMode() != CAN::CONFIGURATION);
+    bus->enableModule(true);
+    bus->setOperatingMode(CAN::CONFIGURATION);
+    while(bus->getOperatingMode() != CAN::CONFIGURATION);
 
     /* Configure the CAN Module Clock. The CAN::BIT_CONFIG data structure
      * is used for this purpose. The propagation, phase segment 1 and phase
@@ -71,33 +77,36 @@ void initializeCan(uint32_t myaddr) {
     canBitConfig.phaseSeg2TimeSelect    = CAN::TRUE;
     canBitConfig.sample3Time            = CAN::TRUE;
     canBitConfig.syncJumpWidth          = CAN::BIT_2TQ;
-    canModule.setSpeed(&canBitConfig, SYS_FREQ, CAN_BUS_SPEED);
+    bus->setSpeed(&canBitConfig, SYS_FREQ, speed);
 
     /* Assign the buffer area to the CAN module. */
     /* Note the size of each Channel area. It is 2 (Channels) * 8 (Messages
      * Buffers) 16 (bytes/per message buffer) bytes. Each CAN module should have
      * its own message area. */
-    canModule.assignMemoryBuffer(canMessageFifoArea, 2 * 8 * 16);
+    bus->assignMemoryBuffer(messageArea, 2 * 8 * 16);
 
     /* Configure channel 1 for RX and size of 8 message buffers and receive the
      * full message.
      */
-    canModule.configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
+    bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    CanFilterMask* filterMasks = initializeFilterMasks();
-    CanFilter* filters = initializeFilters();
-    configureFilters(&canModule, filterMasks, filters);
+    int filterMaskCount;
+    CanFilterMask* filterMasks = initializeFilterMasks(address,
+            &filterMaskCount);
+    int filterCount;
+    CanFilter* filters = initializeFilters(address, &filterCount);
+    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The
      * interrrupt peripheral library is used to enable the CAN interrupt to the
      * CPU. */
-    canModule.enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
-    canModule.enableModuleEvent(CAN::RX_EVENT, true);
+    bus->enableModuleEvent(CAN::RX_EVENT, true);
 
-    canModule.setOperatingMode(CAN::LISTEN_ONLY);
-    while(canModule.getOperatingMode() != CAN::LISTEN_ONLY);
+    bus->setOperatingMode(CAN::LISTEN_ONLY);
+    while(bus->getOperatingMode() != CAN::LISTEN_ONLY);
 
     Serial.println("Done.");
 }
@@ -106,37 +115,50 @@ void initializeCan(uint32_t myaddr) {
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
  */
-void receiveCan(void) {
+// TODO does this need to be a different function so the volatile bool is
+// pointing at the correct place? probably yes
+void receiveCan(CAN* bus, volatile bool* messageReceived) {
     CAN::RxMessageBuffer* message;
 
-    if(isCanMessageReceived == false) {
-        // The isCanMessageReceived flag is updated by the CAN ISR.
+    if(*messageReceived == false) {
+        // The flag is updated by the CAN ISR.
         return;
     }
 
-    message = canModule.getRxMessage(CAN::CHANNEL1);
+    message = bus->getRxMessage(CAN::CHANNEL1);
     decodeCanMessage(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module
      * generates an interrupt when the event occurs.*/
-    canModule.updateChannel(CAN::CHANNEL1);
-    canModule.enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->updateChannel(CAN::CHANNEL1);
+    bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
 
-    isCanMessageReceived = false;
+    *messageReceived = false;
 }
 
 /* Called by the Interrupt Service Routine whenever an event we registered for
  * occurs - this is where we wake up and decide to process a message.
  */
-void handleCanInterrupt() {
-    if((canModule.getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(canModule.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
+void handleCan1Interrupt() {
+    if((can1.getModuleEvent() & CAN::RX_EVENT) != 0) {
+        if(can1.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
             // Clear the event so we give up control of the CPU
-            canModule.enableChannelEvent(CAN::CHANNEL1,
+            can1.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            isCanMessageReceived = true;
+            isCan1MessageReceived = true;
+        }
+    }
+}
+
+void handleCan2Interrupt() {
+    if((can2.getModuleEvent() & CAN::RX_EVENT) != 0) {
+        if(can2.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
+            // Clear the event so we give up control of the CPU
+            can2.enableChannelEvent(CAN::CHANNEL1,
+                    CAN::RX_CHANNEL_NOT_EMPTY, false);
+            isCan2MessageReceived = true;
         }
     }
 }

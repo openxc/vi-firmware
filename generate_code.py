@@ -2,50 +2,24 @@
 
 from collections import defaultdict
 import sys
-import struct
 import argparse
-
-# XXXX UGGGGGG Hack because this code is stupid.
-# XXXX Should really just parse XML into some intermediate structure and then
-# XXXX generate hex, code, etc. all from that format.
-id_mapping = {}
-# XXXX End ugly hack.
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C source code from "
-            "CAN signal descriptions in JSON or hex")
-    hex_arg = parser.add_argument("-x", "--hex",
-            action="store",
-            dest="hex_file",
-            metavar="FILE",
-            help="generate source from this hex file")
-    parser.add_argument("-j", "--json",
+            "CAN signal descriptions in JSON")
+    json_files = parser.add_argument("-j", "--json",
             action="append",
         type=str,
         nargs='*',
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
-    parser.add_argument('-p', '--priority',
-            action='append',
-            nargs='*',
-            type=int,
-            help='Ordered list of prioritized messages.')
 
     arguments = parser.parse_args()
 
-    # Flatten the priority list.
-    arguments.priority = arguments.priority or []
-    if len(arguments.priority) > 0:
-        arguments.priority = [item for sublist in arguments.priority
-                for item in sublist]
-
-    if arguments.hex_file and arguments.json_files:
-        raise argparse.ArgumentError(hex_arg,
-                "Can't specify both a hex and JSON file -- pick one!")
-    if not arguments.hex_file and not arguments.json_files:
-        raise argparse.ArgumentError(hex_arg,
-                "Must specify either a hex file or JSON file.")
+    if not arguments.json_files:
+        raise argparse.ArgumentError(json_files,
+                "Must specify at least one JSON file.")
 
     return arguments
 
@@ -84,11 +58,11 @@ class SignalState(object):
 
 
 class Parser(object):
-    def __init__(self, priority):
+    def __init__(self):
         self.messages = defaultdict(list)
-        self.message_ids = []
+        self.message_ids = {}
+        self.id_mapping = {}
         self.signal_count = 0
-        self.priority = priority
 
     def parse(self):
         raise NotImplementedError
@@ -144,87 +118,68 @@ class Parser(object):
         self.print_filters()
 
     def print_filters(self):
-        priority_ids = [id_mapping[p] for p in self.priority if p in id_mapping]
-        remaining_ids = [i for i in self.message_ids if i not in priority_ids]
-        all_ids = priority_ids + remaining_ids
-
-        # TODO These cast a really wide net
-        masks = [(0, 0x7ff),
+        # TODO These cast a really wide net and should also be defined at the
+        # top level of the JSON
+        can1_masks = [(0, 0x7ff),
                 (1, 0x7ff),
                 (2, 0x7ff),
                 (3, 0x7ff)]
+        can2_masks = list(can1_masks)
 
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        print "int FILTER_MASK_COUNT = %d;" % len(masks)
-        print "CanFilterMask FILTER_MASKS[%d];" % len(masks)
-        print "int FILTER_COUNT = %d;" % len(all_ids)
-        print "CanFilter FILTERS[%d];" % len(all_ids)
+        print "CanFilterMask FILTER_MASKS[%d];" % (
+                max(len(can1_masks), len(can2_masks)))
 
+        message_count = sum((len(message_ids) for message_ids in
+                self.message_ids.values()))
+        print "CanFilter FILTERS[%d];" % message_count
+
+        # TODO when the masks are defined in JSON we can do this more
+        # dynamically like the filters
         print
-        print "CanFilterMask* initializeFilterMasks() {"
+        print "CanFilterMask* initializeFilterMasks(uint32_t address, int* count) {"
         print "Serial.println(\"Initializing filter arrays...\");"
 
-        print "    FILTER_MASKS = {"
-        for i, mask in enumerate(masks):
-            print "        {%d, 0x%x}," % mask
-        print "    };"
+        print "    if(address == CAN_1_ADDRESS) {"
+        print "        *count = %d;" % len(can1_masks)
+        print "        FILTER_MASKS = {"
+        for i, mask in enumerate(can1_masks):
+            print "            {%d, 0x%x}," % mask
+        print "        };"
+        print "    } else if(address == CAN_2_ADDRESS) {"
+        print "        *count = %d;" % len(can2_masks)
+        print "        FILTER_MASKS = {"
+        for i, mask in enumerate(can2_masks):
+            print "            {%d, 0x%x}," % mask
+        print "        };"
+        print "    }"
         print "    return FILTER_MASKS;"
         print "}"
 
         print
-        print "CanFilter* initializeFilters() {"
+        print "CanFilter* initializeFilters(uint32_t address, int* count) {"
         print "Serial.println(\"Initializing filters...\");"
 
-        print "    FILTERS = {"
-        for i, can_filter in enumerate(all_ids):
-            # TODO be super smart and figure out good mask values dynamically
-            print "        {%d, 0x%x, %d, %d}," % (i, can_filter, 1, 0)
-        print "    };"
+        print "    switch(address) {"
+        for bus_address, message_ids in self.message_ids.iteritems():
+            print "    case %s:" % bus_address
+            print "        *count = %d;" % len(message_ids)
+            print "        FILTERS = {"
+            for i, can_filter in enumerate(message_ids):
+                # TODO be super smart and figure out good mask values dynamically
+                print "            {%d, 0x%x, %d, %d}," % (i, can_filter, 1, 0)
+            print "        };"
+        print "    }"
         print "    return FILTERS;"
         print "}"
 
 
-class HexParser(Parser):
-    def __init__(self, filename, priority):
-        super(HexParser, self).__init__(priority)
-        import intelhex
-        self.mem = intelhex.IntelHex(filename)
-
-    def parse(self):
-        hex_offset = 1
-        while hex_offset < len(self.mem):
-            (message_id, num) = struct.unpack('<HB',
-                    self.mem.gets(hex_offset, 3))
-            self.message_ids.append(message_id)
-            hex_offset += 3
-            for i in range(num):
-                hex_offset, signal = self.parse_signal(message_id, hex_offset)
-                self.signal_count += 1
-                self.messages[message_id].append(signal)
-
-    def parse_signal(self, message_id, hex_offset):
-        (signal_id, t_pos, length) = struct.unpack('<BBB',
-                self.mem.gets(hex_offset, 3))
-        hex_offset += 3
-        position = t_pos & ~(1 << 7)
-        transform = (t_pos & 1 << 7) != 0
-        if transform:
-            (offset, factor) = struct.unpack('<ff',
-                    self.mem.gets(hex_offset, 8))
-            hex_offset += 8
-        else:
-            (offset, factor) = (0.0, 1.0)
-
-        id_mapping[signal_id] = message_id
-        return hex_offset, Signal(signal_id, "", "", position, length, factor,
-                offset)
-
 class JsonParser(Parser):
-    def __init__(self, filenames, priority):
-        super(JsonParser, self).__init__(priority)
+    def __init__(self, filenames):
+        super(JsonParser, self).__init__()
         self.jsonFiles = filenames
 
     # The JSON parser accepts the format specified in the README.
@@ -232,9 +187,11 @@ class JsonParser(Parser):
         import json
         for filename in self.jsonFiles:
             with open(filename[0]) as jsonFile:
-                self.data = json.load(jsonFile)
-                for message in self.data['messages'].values():
-                    self.message_ids.append(message['id'])
+                data = json.load(jsonFile)
+                bus = data['bus_address']
+                self.message_ids[bus] = []
+                for message in data['messages'].values():
+                    self.message_ids[bus].append(message['id'])
                     self.signal_count += len(message['signals'])
                     for signal in message['signals']:
                         states = [SignalState(value, name)
@@ -257,10 +214,7 @@ class JsonParser(Parser):
 def main():
     arguments = parse_options()
 
-    if arguments.hex_file:
-        parser = HexParser(arguments.hex_file, arguments.priority)
-    else:
-        parser = JsonParser(arguments.json_files, arguments.priority)
+    parser = JsonParser(arguments.json_files)
 
     parser.parse()
     parser.print_source()

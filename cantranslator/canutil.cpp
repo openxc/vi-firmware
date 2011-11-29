@@ -2,14 +2,11 @@
 #include "usbutil.h"
 
 void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
-        CanFilter* filters) {
-    extern int FILTER_COUNT;
-    extern int FILTER_MASK_COUNT;
-
+        int filterMaskCount, CanFilter* filters, int filterCount) {
     Serial.print("Configuring ");
-    Serial.print(FILTER_MASK_COUNT, DEC);
+    Serial.print(filterMaskCount, DEC);
     Serial.print(" filter masks...  ");
-    for(int i = 0; i < FILTER_MASK_COUNT; i++) {
+    for(int i = 0; i < filterMaskCount; i++) {
         Serial.print("Configuring filter mask ");
         Serial.println(filterMasks[i].value, HEX);
         can_module->configureFilterMask(
@@ -19,9 +16,9 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
     Serial.println("Done.");
 
     Serial.print("Configuring ");
-    Serial.print(FILTER_COUNT, DEC);
+    Serial.print(filterCount, DEC);
     Serial.print(" filters...  ");
-    for(int i = 0; i < FILTER_COUNT; i++) {
+    for(int i = 0; i < filterCount; i++) {
         can_module->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
         can_module->linkFilterToChannel((CAN::FILTER) filters[i].number,

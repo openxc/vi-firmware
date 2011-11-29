@@ -69,7 +69,7 @@ struct CanSignal {
  * filters - an array of filters to initialize.
  */
 void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
-    CanFilter* filters);
+        int filterMaskCount, CanFilter* filters, int filterCount);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and sends the result over USB.

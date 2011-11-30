@@ -28,7 +28,7 @@ class UsbDevice(object):
             try:
                 message = json.loads(message)
             except ValueError:
-                # print "Bad: %s" % message
+                print "Bad: %s" % message
                 pass
             else:
                 print message

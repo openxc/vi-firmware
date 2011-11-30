@@ -18,6 +18,7 @@ void sendMessage(uint8_t* message, int messageSize) {
                 (uint8_t*)(message + nextByteIndex), bytesToTransfer);
         nextByteIndex += bytesToTransfer;
     }
+    while(USB_DEVICE.HandleBusy(USB_INPUT_HANDLE));
 }
 
 void initializeUsb() {

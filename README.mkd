@@ -201,19 +201,19 @@ translated messages from one call to your handler function.
 
 ## Sketch Generation
 
-With this JSON list in hand, run the Makefile to generate a C source file
-version that is accessible from the CAN translation sketch. Don't add anything
-else to this file - it's derivative of the master JSON, and can be wiped and
-recreated at any time.
-
-The generated source is a conversion of your JSON to an array of C-structs,
-ready to be read by the translator at runtime.
+With this JSON list in hand, you next need to generate the C source code that
+defines a `decodeCanMessage` function that can process the signals you've
+defined. The generated source is a conversion of your JSON to an array of
+C-structs, ready to be read by the translator at runtime.
 
 To generate code, we've provided the `generate_code.py` script. Use it like so:
 
     $ generate_code.py signals.json > cantranslator/signals.pde
 
 then rebuild your sketch - everything should build properly now.
+
+Don't add anything else to this file - it's derivative of the master JSON, and
+should be able to be wiped and recreated at any time.
 
 ### Canoe
 

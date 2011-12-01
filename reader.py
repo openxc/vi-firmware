@@ -45,8 +45,6 @@ class UsbDevice(object):
             self.message_buffer += self.device.read(self.endpoint,
                     128).tostring()
             parsed_message = self.parse_message()
-            if parsed_message is not None:
-                return parsed_message
 
             if (self.messages_received > 0 and
                     self.messages_received % 1000 == 0):
@@ -54,6 +52,10 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
+
+            if parsed_message is not None:
+                return parsed_message
+
 
     def run(self):
         message = self.read()

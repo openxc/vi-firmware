@@ -58,7 +58,7 @@ void loop() {
  * the packet payload to the serial monitor.
  */
 // TODO does this need to be a different function so the volatile bool is
-// pointing at the correct place? probably yes
+// pointing at the correct place? no, it should get the correct pointer, right?
 void receiveCan(CAN* bus, volatile bool* messageReceived) {
     CAN::RxMessageBuffer* message;
 

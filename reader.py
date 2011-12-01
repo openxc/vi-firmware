@@ -16,6 +16,9 @@ class UsbDevice(object):
         self.vendorId = vendorId
         self.endpoint = endpoint
         self.message_buffer = ""
+        self.messages_received = 0
+        self.good_messages = 0
+
         self.device = usb.core.find(idVendor=vendorId)
         if not self.device:
             print "Couldn't find a USB device from vendor %s" % self.vendorId
@@ -28,13 +31,13 @@ class UsbDevice(object):
             try:
                 message = json.loads(message)
             except ValueError:
-                print "Bad: %s" % message
                 pass
             else:
-                print message
+                self.good_messages += 1
                 return message
             finally:
                 self.message_buffer = remainder
+                self.messages_received += 1
 
 
     def read(self):
@@ -44,6 +47,13 @@ class UsbDevice(object):
             parsed_message = self.parse_message()
             if parsed_message is not None:
                 return parsed_message
+
+            if (self.messages_received > 0 and
+                    self.messages_received % 1000 == 0):
+                print "Received %d messages so far (%d%% valid)..." % (
+                        self.messages_received,
+                        float(self.good_messages) / self.messages_received
+                        * 100)
 
     def run(self):
         message = self.read()

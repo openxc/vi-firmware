@@ -1,8 +1,0 @@
-<classpath>
-  <classpathentry kind="src" path="src/main/java" including="**/*.java"/>
-  <classpathentry kind="src" path="target/generated-sources/r" including="**/*.java"/>
-  <classpathentry kind="output" path="target/classes"/>
-  <classpathentry kind="var" path="M2_REPO/android/android/3.1_r3/android-3.1_r3.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/android/future/usb/12_r1/usb-12_r1.jar"/>
-  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-</classpath>

@@ -5,6 +5,8 @@
 #include "chipKITCAN.h"
 #include "bitfield.h"
 
+#define SYS_FREQ (80000000L)
+
 /* Public: A CAN transceiver message filter mask.
  *
  * number - the ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
@@ -110,5 +112,10 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
  * Returns the final, transformed value of the signal.
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
+
+/* Initialize the CAN controller. See inline comments for description of the
+ * process.
+ */
+void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea);
 
 #endif // _CANUTIL_H_

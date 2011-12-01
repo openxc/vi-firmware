@@ -3,7 +3,7 @@ CAN Translation Module
 
 ## Description
 
-The CAN translation module code runs on an Arudino-compatible Microcontroller
+The CAN translation module code runs on an Arudino-compatible microcontroller
 connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
@@ -142,12 +142,12 @@ more meaningful to developers.
 
 An good example is steering wheel angle. For an app developer to get a value
 that ranges from e.g. -350 to +350, we need to combine two different signals -
-the angle and the sign. If you want to make this combnation happen inside the
+the angle and the sign. If you want to make this combination happen inside the
 translator, you can use a custom handler.
 
 You may also need a custom handler to return a value of a type other than float.
 A handler is provided for dealing with boolean values, the `booleanHandler` - if
-you speficy that as your signal's `value_handler` the resulting JSON will
+you specify that as your signal's `value_handler` the resulting JSON will
 contain `true` for 1.0 and `false` for 0.0. If you want to translate integer
 state values to string names (for parsing as an enum, for example) you will need
 to write a value handler that returns a `char*`.
@@ -203,7 +203,7 @@ translated messages from one call to your handler function.
 
 With this JSON list in hand, run the Makefile to generate a C source file
 version that is accessible from the CAN translation sketch. Don't add anything
-else to this file - it's derivitive of the master JSON, and can be wiped and
+else to this file - it's derivative of the master JSON, and can be wiped and
 recreated at any time.
 
 The generated source is a conversion of your JSON to an array of C-structs,
@@ -224,7 +224,7 @@ First, export the Canoe .dbc file as XML. Run the conversion script like this:
     $ xml_to_json.py signals.xml signal_mapping.txt build/signals.json
 
 The `signal_mapping.txt` file is a simple mapping of the signal names that we
-are looking for in the XML and a unique numerical ID to assicate it
+are looking for in the XML and a unique numerical ID to associate it
 with.
 
 ## Output Specification
@@ -242,7 +242,7 @@ ways:
 
 * Use previously agreed upon numeric identifiers for signals instead of English
   names.
-* Serialize to a binary protocol with Apache Thrift, or Goole Protocol
+* Serialize to a binary protocol with Apache Thrift, or Google Protocol
   Buffers or ASN.1.
 
 ## API

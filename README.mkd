@@ -26,6 +26,35 @@ like this:
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32.
 
+## Compiling and Uploading
+
+Once the libraries are installed and you have the `cantranslator` sketch open in
+MPIDE, you'll notice that it won't compile - it's missing the definition of a
+`decodeCanMessage` function. This is the piece you must implement yourself, or
+by following the input specification designed here, have auto-generated.
+
+The preferred method is the auto-generation script - it accepts JSON input that
+defines the CAN messages and signals of interest and rewrites it as C data
+structures, ready to be downloaded to the device. Check the "Input
+Specification" section for the details of the input format.
+
+Once you have one or more input JSON files, run the `generate_source.py` script
+to create a file that defines `decodeCanMessage`:
+
+    ./generate_code.py --json signals.json > signals.pde
+
+Drop the new `signals.pde` file in the `cantranslator` sketch folder, and it
+should now compile.
+
+If you have multiple CAN buses and want to define their signals and messages in
+separate files, just pass multiple JSON files:
+
+    ./generate_code.py --json highspeed.json --json mediumspeed.json > signals.pde
+
+Note that the JSON files are parsed and merged, so if you want to define custom
+handlers and states separately from the signal definition itself, you can store
+them in separate files and they will be merged on import.
+
 ## Input Specification
 
 The code in this repository requires a list of CAN messages with details of the

@@ -100,8 +100,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
     value = customHandler(signal, signals, value);
 
     int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-        strlen(signal->genericName) +
-        NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+        strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
     char message[messageLength];
     sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
 

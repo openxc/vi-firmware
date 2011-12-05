@@ -84,7 +84,8 @@ class Signal(object):
                 self.id, self.generic_name, self.position, self.length,
                 self.factor, self.offset)
         if len(self.states) > 0:
-            result += ", SIGNAL_STATES[%d], %d" % (self.id, len(self.states))
+            result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
+                    len(self.states))
         result += "}, // %s" % self.name
         return result
 
@@ -116,6 +117,7 @@ class Parser(object):
         print "    CanSignalState SIGNAL_STATES[%d][%d] = {" % (
                 self.signal_count, 10)
 
+        states_index = 0
         for bus in self.buses.values():
             for message in bus:
                 for signal in message.signals:
@@ -124,6 +126,8 @@ class Parser(object):
                         for state in signal.states:
                             print "%s," % state,
                         print "},"
+                        signal.states_index = states_index
+                        states_index += 1
         print "    };"
         print
 

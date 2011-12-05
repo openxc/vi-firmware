@@ -12,7 +12,8 @@ import string
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
 
-    def __init__(self, vendorId=0x04d8, endpoint=0x81):
+    def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False):
+        self.verbose = verbose
         self.vendorId = vendorId
         self.endpoint = endpoint
         self.message_buffer = ""
@@ -69,6 +70,8 @@ class UsbDevice(object):
     def validate(self, message):
         assert "name" in message
         assert "value" in message
+        if self.verbose:
+            print message
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -77,6 +80,10 @@ def parse_options():
             action="store",
             dest="vendor",
             default=0x04d8)
+    parser.add_argument("--verbose", "-v",
+            action="store_true",
+            dest="verbose",
+            default=False)
 
     arguments = parser.parse_args()
     return arguments
@@ -84,7 +91,7 @@ def parse_options():
 
 def main():
     arguments = parse_options()
-    device = UsbDevice(vendorId=arguments.vendor)
+    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose)
     device.run()
 
 if __name__ == '__main__':

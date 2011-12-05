@@ -76,6 +76,8 @@ class Signal(object):
         self.handler = handler
         self.array_index = 0
         self.states = states or []
+        if len(states) > 0 and self.handler is None:
+            self.handler = "char* stateHandler"
 
     def __str__(self):
         result =  "{%d, \"%s\", %s, %d, %f, %f" % (

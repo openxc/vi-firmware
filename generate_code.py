@@ -218,6 +218,7 @@ class Parser(object):
                 # TODO be super smart and figure out good mask values dynamically
                 print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
             print "        };"
+            print "        break;"
         print "    }"
         print "    return FILTERS;"
         print "}"

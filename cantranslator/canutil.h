@@ -5,6 +5,8 @@
 #include "chipKITCAN.h"
 #include "bitfield.h"
 
+#define SYS_FREQ (80000000L)
+
 /* Public: A CAN transceiver message filter mask.
  *
  * number - the ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
@@ -127,5 +129,10 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, float value);
  * value   - the numerical value that will be converted to a boolean.
  */
 bool booleanHandler(CanSignal* signal, CanSignal* signals, float value);
+
+/* Initialize the CAN controller. See inline comments for description of the
+ * process.
+ */
+void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea);
 
 #endif // _CANUTIL_H_

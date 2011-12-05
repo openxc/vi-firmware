@@ -12,10 +12,14 @@ import string
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
 
-    def __init__(self, vendorId=0x04d8, endpoint=0x81):
+    def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False):
+        self.verbose = verbose
         self.vendorId = vendorId
         self.endpoint = endpoint
         self.message_buffer = ""
+        self.messages_received = 0
+        self.good_messages = 0
+
         self.device = usb.core.find(idVendor=vendorId)
         if not self.device:
             print "Couldn't find a USB device from vendor %s" % self.vendorId
@@ -28,13 +32,13 @@ class UsbDevice(object):
             try:
                 message = json.loads(message)
             except ValueError:
-                # print "Bad: %s" % message
                 pass
             else:
-                print message
+                self.good_messages += 1
                 return message
             finally:
                 self.message_buffer = remainder
+                self.messages_received += 1
 
 
     def read(self):
@@ -42,8 +46,17 @@ class UsbDevice(object):
             self.message_buffer += self.device.read(self.endpoint,
                     128).tostring()
             parsed_message = self.parse_message()
+
+            if (self.messages_received > 0 and
+                    self.messages_received % 1000 == 0):
+                print "Received %d messages so far (%d%% valid)..." % (
+                        self.messages_received,
+                        float(self.good_messages) / self.messages_received
+                        * 100)
+
             if parsed_message is not None:
                 return parsed_message
+
 
     def run(self):
         message = self.read()
@@ -57,6 +70,8 @@ class UsbDevice(object):
     def validate(self, message):
         assert "name" in message
         assert "value" in message
+        if self.verbose:
+            print message
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -65,6 +80,10 @@ def parse_options():
             action="store",
             dest="vendor",
             default=0x04d8)
+    parser.add_argument("--verbose", "-v",
+            action="store_true",
+            dest="verbose",
+            default=False)
 
     arguments = parser.parse_args()
     return arguments
@@ -72,7 +91,7 @@ def parse_options():
 
 def main():
     arguments = parse_options()
-    device = UsbDevice(vendorId=arguments.vendor)
+    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose)
     device.run()
 
 if __name__ == '__main__':

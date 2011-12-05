@@ -3,7 +3,7 @@ CAN Translation Module
 
 ## Description
 
-The CAN translation module code runs on an Arudino-compatible Microcontroller
+The CAN translation module code runs on an Arudino-compatible microcontroller
 connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
@@ -25,6 +25,35 @@ like this:
 
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32.
+
+## Compiling and Uploading
+
+Once the libraries are installed and you have the `cantranslator` sketch open in
+MPIDE, you'll notice that it won't compile - it's missing the definition of a
+`decodeCanMessage` function. This is the piece you must implement yourself, or
+by following the input specification designed here, have auto-generated.
+
+The preferred method is the auto-generation script - it accepts JSON input that
+defines the CAN messages and signals of interest and rewrites it as C data
+structures, ready to be downloaded to the device. Check the "Input
+Specification" section for the details of the input format.
+
+Once you have one or more input JSON files, run the `generate_source.py` script
+to create a file that defines `decodeCanMessage`:
+
+    ./generate_code.py --json signals.json > signals.pde
+
+Drop the new `signals.pde` file in the `cantranslator` sketch folder, and it
+should now compile.
+
+If you have multiple CAN buses and want to define their signals and messages in
+separate files, just pass multiple JSON files:
+
+    ./generate_code.py --json highspeed.json --json mediumspeed.json > signals.pde
+
+Note that the JSON files are parsed and merged, so if you want to define custom
+handlers and states separately from the signal definition itself, you can store
+them in separate files and they will be merged on import.
 
 ## Input Specification
 
@@ -122,12 +151,12 @@ more meaningful to developers.
 
 An good example is steering wheel angle. For an app developer to get a value
 that ranges from e.g. -350 to +350, we need to combine two different signals -
-the angle and the sign. If you want to make this combnation happen inside the
+the angle and the sign. If you want to make this combination happen inside the
 translator, you can use a custom handler.
 
 You may also need a custom handler to return a value of a type other than float.
 A handler is provided for dealing with boolean values, the `booleanHandler` - if
-you speficy that as your signal's `value_handler` the resulting JSON will
+you specify that as your signal's `value_handler` the resulting JSON will
 contain `true` for 1.0 and `false` for 0.0. If you want to translate integer
 state values to string names (for parsing as an enum, for example) you will need
 to write a value handler that returns a `char*`.
@@ -181,19 +210,19 @@ translated messages from one call to your handler function.
 
 ## Sketch Generation
 
-With this JSON list in hand, run the Makefile to generate a C source file
-version that is accessible from the CAN translation sketch. Don't add anything
-else to this file - it's derivitive of the master JSON, and can be wiped and
-recreated at any time.
-
-The generated source is a conversion of your JSON to an array of C-structs,
-ready to be read by the translator at runtime.
+With this JSON list in hand, you next need to generate the C source code that
+defines a `decodeCanMessage` function that can process the signals you've
+defined. The generated source is a conversion of your JSON to an array of
+C-structs, ready to be read by the translator at runtime.
 
 To generate code, we've provided the `generate_code.py` script. Use it like so:
 
     $ generate_code.py signals.json > cantranslator/signals.pde
 
 then rebuild your sketch - everything should build properly now.
+
+Don't add anything else to this file - it's derivative of the master JSON, and
+should be able to be wiped and recreated at any time.
 
 ### Canoe
 
@@ -204,7 +233,7 @@ First, export the Canoe .dbc file as XML. Run the conversion script like this:
     $ xml_to_json.py signals.xml signal_mapping.txt build/signals.json
 
 The `signal_mapping.txt` file is a simple mapping of the signal names that we
-are looking for in the XML and a unique numerical ID to assicate it
+are looking for in the XML and a unique numerical ID to associate it
 with.
 
 ## Output Specification
@@ -222,7 +251,7 @@ ways:
 
 * Use previously agreed upon numeric identifiers for signals instead of English
   names.
-* Serialize to a binary protocol with Apache Thrift, or Goole Protocol
+* Serialize to a binary protocol with Apache Thrift, or Google Protocol
   Buffers or ASN.1.
 
 ## API

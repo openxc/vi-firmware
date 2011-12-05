@@ -155,7 +155,8 @@ class Parser(object):
                                 signal.handler)
                             print ("        translateCanSignal(&SIGNALS[%d], "
                                 "data, &%s, SIGNALS);" % (
-                                    signal.array_index, signal.handler))
+                                    signal.array_index,
+                                    signal.handler.split()[1]))
                         else:
                             print ("        translateCanSignal(&SIGNALS[%d], "
                                     "data, SIGNALS);" % (signal.array_index))

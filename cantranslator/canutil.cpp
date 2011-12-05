@@ -116,7 +116,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
     int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
         strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
     char message[messageLength];
-    sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, value);
+    sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
 
     sendMessage((uint8_t*) message, strlen(message));
 }

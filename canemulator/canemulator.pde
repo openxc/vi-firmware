@@ -13,8 +13,8 @@ char* SIGNALS[SIGNAL_COUNT] = {
     "vehicle_speed",
     "transmission_gear_position",
     "accelerator_pedal_position",
-    "brake_pedal_status",
-    "powertrain_torque",
+    "windshield_wiper_speed",
+    "steering_wheel_angle",
     "parking_brake_status",
 };
 

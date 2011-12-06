@@ -155,7 +155,7 @@ class Parser(object):
                     for signal in message.signals:
                         if signal.handler:
                             print ("        extern %s("
-                                "CanSignal*, CanSignal*, float);" %
+                                "CanSignal*, CanSignal*, float, bool*);" %
                                 signal.handler)
                             print ("        translateCanSignal(&SIGNALS[%d], "
                                 "data, &%s, SIGNALS);" % (

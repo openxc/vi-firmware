@@ -175,7 +175,7 @@ memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
 the raw steering wheel angle value.
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-            float value) {
+            float value, bool* send) {
         if(signal->lastValue == 0) {
             // left turn
             value *= -1;
@@ -183,7 +183,27 @@ the raw steering wheel angle value.
         return value;
     }
 
-The valid return types for value handlers are `bool`, `float` and `char*`.
+The valid return types for value handlers are `bool`, `float` and `char*` - the
+function prototype must match one of:
+
+    char* customHandler(CanSignal* signal, CanSignal* signals, float value,
+            bool* send);
+
+    float customHandler(CanSignal* signal, CanSignal* signals, float value,
+            bool* send);
+
+    bool customHandler(CanSignal* signal, CanSignal* signals, float value,
+            bool* send);
+
+where `signal` is a pointer to the `CanSignal` this is handling, `signals` is a
+an array of all signals, `value` is the raw value from CAN and `send` is a flag
+to indicate if this should be sent over USB.
+
+The `bool* send` parameter is a pointer to a `bool` you can flip to `false` if
+this signal value need not be sent over USB. This can be useful if you don't
+want to keep notifying the same status over and over again, but only in the
+event of a change in value (you can use the `lastValue` field on the CanSignal
+object to determine if this is true).
 
 A known issue with this method is that there is no guarantee that the last value
 of another signal arrived in the message or before/after the value you're

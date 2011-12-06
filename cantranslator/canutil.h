@@ -92,15 +92,15 @@ void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals);
  * signals       - an array of all active signals.
  */
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        char* (*customHandler)(CanSignal*, CanSignal*, float),
+        char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        float (*customHandler)(CanSignal*, CanSignal*, float),
+        float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        bool (*customHandler)(CanSignal*, CanSignal*, float),
+        bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 /* Public: Parses a CAN signal from a message and applies required
@@ -120,7 +120,8 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data);
  * signals - the list of all signals
  * value   - the numerical value that maps to a state
  */
-char* stateHandler(CanSignal* signal, CanSignal* signals, float value);
+char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send);
 
 /* Public: Coerces a numerical value to a boolean.
  *
@@ -128,7 +129,8 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, float value);
  * signals - the list of all signals
  * value   - the numerical value that will be converted to a boolean.
  */
-bool booleanHandler(CanSignal* signal, CanSignal* signals, float value);
+bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send);
 
 /* Initialize the CAN controller. See inline comments for description of the
  * process.

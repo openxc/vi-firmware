@@ -241,11 +241,6 @@ with.
 The microcontroller has a second USB controller operating in USB device mode. It
 sends the generic vehicle data over via bulk USB transfer as packed JSON.
 
-The expected format is:
-
-    {"name": "SteeringWheelAngle",
-        "value": 45}
-
 If USB throughput becomes an issue, the wire format can be optimized in two
 ways:
 
@@ -253,6 +248,23 @@ ways:
   names.
 * Serialize to a binary protocol with Apache Thrift, or Google Protocol
   Buffers or ASN.1.
+
+There are two valid message types - single valued and event.
+
+### Single Valued
+
+The expected format of a single valued message is:
+
+    {"name": "SteeringWheelAngle", "value": 45}
+
+### Event
+
+The expected format of an event message is:
+
+    {"name": "SteeringWheelAngle", "value": "up", "event": "pressed"}
+
+This format is good for something like a button even, where there are two
+discrete pieces of information in the measurement.
 
 ## API
 

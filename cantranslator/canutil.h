@@ -7,6 +7,10 @@
 
 #define SYS_FREQ (80000000L)
 
+/* Network Node Addresses */
+#define CAN_1_ADDRESS 0x101
+#define CAN_2_ADDRESS 0x102
+
 /* Public: A CAN transceiver message filter mask.
  *
  * number - the ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link

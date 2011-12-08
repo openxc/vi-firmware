@@ -11,13 +11,8 @@
 #include "canutil.h"
 #include "usbutil.h"
 
-/* Network Node Addresses */
-#define CAN_1_ADDRESS 0x101
-#define CAN_2_ADDRESS 0x102
-
 #define CAN_BUS_1_SPEED 500000
 #define CAN_BUS_2_SPEED 500000
-
 
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
@@ -34,6 +29,9 @@ static volatile bool isCan2MessageReceived = false;
 
 void initializeCan(uint32_t);
 void receiveCan(CAN*, volatile bool*);
+void handleCan1Interrupt();
+void handleCan2Interrupt();
+void decodeCanMessage(int id, uint8_t* data);
 
 void setup() {
     Serial.begin(115200);

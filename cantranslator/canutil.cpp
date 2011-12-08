@@ -94,63 +94,75 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
 }
 
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        float (*customHandler)(CanSignal*, CanSignal*, float),
+        float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
-    value = customHandler(signal, signals, value);
+    bool send = true;
+    value = customHandler(signal, signals, value, &send);
 
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-        strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
+    if(send) {
+        int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
+            strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+        char message[messageLength];
+        sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
 
-    sendMessage((uint8_t*) message, strlen(message));
+        sendMessage((uint8_t*) message, strlen(message));
+    }
 }
 
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        char* (*customHandler)(CanSignal*, CanSignal*, float),
+        char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
-    char* stringValue = customHandler(signal, signals, value);
+    bool send = true;
+    char* stringValue = customHandler(signal, signals, value, &send);
 
-    int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
-        strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
+    if(send) {
+        int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
+            strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
+        char message[messageLength];
+        sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
 
-    sendMessage((uint8_t*) message, strlen(message));
+        sendMessage((uint8_t*) message, strlen(message));
+    }
 }
 
 void translateCanSignal(CanSignal* signal, uint8_t* data,
-        bool (*customHandler)(CanSignal*, CanSignal*, float),
+        bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
-    bool booleanValue = customHandler(signal, signals, value);
+    bool send = true;
+    bool booleanValue = customHandler(signal, signals, value, &send);
 
-    int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
-        strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
-            value ? "true" : "false");
+    if(send) {
+        int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
+            strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
+        char message[messageLength];
+        sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
+                value ? "true" : "false");
 
-    sendMessage((uint8_t*) message, strlen(message));
+        sendMessage((uint8_t*) message, strlen(message));
+    }
 }
 
-float passthroughHandler(CanSignal* signal, CanSignal* signals, float value) {
+float passthroughHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send) {
     return value;
 }
 
-bool booleanHandler(CanSignal* signal, CanSignal* signals, float value) {
+bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send) {
     return value == 0.0 ? false : true;
 }
 
-char* stateHandler(CanSignal* signal, CanSignal* signals, float value) {
+char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send) {
     for(int i = 0; i < signal->stateCount; i++) {
         if(signal->states[i].value == value) {
             return signal->states[i].name;
         }
     }
-    return "";
+    *send = false;
 }
 
 void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {

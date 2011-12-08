@@ -18,6 +18,15 @@ char* SIGNALS[SIGNAL_COUNT] = {
     "parking_brake_status",
 };
 
+void writeMeasurement(char* measurementName, float value) {
+    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
+        strlen(measurementName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, NUMERICAL_MESSAGE_FORMAT, measurementName, value);
+
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
 void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
@@ -30,13 +39,4 @@ void loop() {
         writeMeasurement(SIGNALS[random(SIGNAL_COUNT)],
                 random(101) + random(100) * .1);
     }
-}
-
-void writeMeasurement(char* measurementName, float value) {
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, measurementName, value);
-
-    sendMessage((uint8_t*) message, strlen(message));
 }

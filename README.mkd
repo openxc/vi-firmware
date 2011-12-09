@@ -329,6 +329,24 @@ The expected format of an event message is:
 This format is good for something like a button even, where there are two
 discrete pieces of information in the measurement.
 
+## Viewer
+
+The `reader.py` Python program in this repository can be used to view the output
+of the CAN translator over micro-USB. Just plug it in and run the script with
+the `--verbose` flag to have all messages parsed and printed to stdout.
+
+    $ python reader.py -v
+
+## Traces
+
+You can record a trace of JSON messages from the CAN reader for use in testing.
+Plug the CAN translator's micro-USB port into a computer and run the `reader.py`
+program with the `--dump` flag to print all raw JSON messages to stdout.
+Redirect this to a file, and you've got your trace. This can be used directly
+by the openxc-android library, for example.
+
+    $ python reader.py -d > vehicle-data.trace
+
 ## API
 
 This is the list of signals officially supported by the Android library.

@@ -12,8 +12,10 @@ import string
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
 
-    def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False):
+    def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False,
+            dump=False):
         self.verbose = verbose
+        self.dump = dump
         self.vendorId = vendorId
         self.endpoint = endpoint
         self.message_buffer = ""
@@ -30,12 +32,14 @@ class UsbDevice(object):
         if "\r\n" in self.message_buffer:
             message,_,remainder= self.message_buffer.partition("\r\n")
             try:
-                message = json.loads(message)
+                parsed_message = json.loads(message)
             except ValueError:
                 pass
             else:
                 self.good_messages += 1
-                return message
+                if self.dump:
+                    print message
+                return parsed_message
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
@@ -84,6 +88,10 @@ def parse_options():
             action="store_true",
             dest="verbose",
             default=False)
+    parser.add_argument("--dump", "-d",
+            action="store_true",
+            dest="dump",
+            default=False)
 
     arguments = parser.parse_args()
     return arguments
@@ -91,7 +99,8 @@ def parse_options():
 
 def main():
     arguments = parse_options()
-    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose)
+    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
+            dump=arguments.dump)
     device.run()
 
 if __name__ == '__main__':

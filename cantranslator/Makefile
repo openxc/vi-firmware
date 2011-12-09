@@ -27,4 +27,4 @@ EXTRA_CPPFLAGS = -O2  -mno-smart-io $(MPROCESSOR) -DARDUINO=22 -D_BOARD_MEGA_=
 EXTRA_LDFLAGS = $(MPROCESSOR)
 NO_GNU99=true
 
-include $(PROJECTS)/arduino.mk/Arduino.mk
+include $(ARDUINO_MAKEFILE_HOME)/Arduino.mk

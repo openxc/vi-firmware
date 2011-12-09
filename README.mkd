@@ -26,6 +26,31 @@ like this:
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32.
 
+### Command Line Building
+
+Alternatively, you can use GNU Make to compile and upload code to the
+device. You still need to download and extract the MPIDE someplace, as it
+contains the PIC32 toolchain, but you don't have to use the GUI.
+
+This method requires that you clone the [arduino.mk]() repository someone on
+your computer. This contains Makefile definitions common to Arduino and chipKIT
+platforms.
+
+You also need to set a few environment variablse (e.g. in your .bashrc) for this
+method:
+
+`ARDUINO_HOME` - the path to the extracted MPIDE folder.
+
+`ARDUINO_SKETCHBOOK` - the path to the MPIDE sketchbook directory. Check in the
+	MPIDE preferences if you don't know this path offhand.
+
+`ARDUINO_MAKEFILE_HOME` - the path to the `arduino.mk` cloned repository
+
+Once this is set up, run `make` to compile the sketch and `make upload` to
+upload the sketch to the board.
+
+[arduino.mk]: https://github.com/peplin/arduino.mk
+
 ## Compiling and Uploading
 
 Once the libraries are installed and you have the `cantranslator` sketch open in

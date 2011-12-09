@@ -39,7 +39,7 @@ platforms.
 You also need to set a few environment variables (e.g. in your .bashrc) for this
 method:
 
-`ARDUINO_HOME` - the path to the extracted MPIDE folder.
+`ARDUINO_DIR` - the path to the extracted MPIDE folder.
 
 `ARDUINO_SKETCHBOOK` - the path to the MPIDE sketchbook directory. Check in the
 	MPIDE preferences if you don't know this path offhand.

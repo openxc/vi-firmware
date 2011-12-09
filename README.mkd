@@ -46,6 +46,9 @@ method:
 
 `ARDUINO_MAKEFILE_HOME` - the path to the `arduino.mk` cloned repository
 
+Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
+show up as `/dev/ttyUSB*` on your system - Mac OS X being an example.
+
 Once this is set up, run `make` to compile the sketch and `make upload` to
 upload the sketch to the board.
 

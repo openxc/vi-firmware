@@ -36,7 +36,7 @@ This method requires that you clone the [arduino.mk]() repository someone on
 your computer. This contains Makefile definitions common to Arduino and chipKIT
 platforms.
 
-You also need to set a few environment variablse (e.g. in your .bashrc) for this
+You also need to set a few environment variables (e.g. in your .bashrc) for this
 method:
 
 `ARDUINO_HOME` - the path to the extracted MPIDE folder.
@@ -82,6 +82,21 @@ separate files, just pass multiple JSON files:
 Note that the JSON files are parsed and merged, so if you want to define custom
 handlers and states separately from the signal definition itself, you can store
 them in separate files and they will be merged on import.
+
+### Uploading a Pre-built Binary
+
+Updates to the cantranslator may be distributed as precompiled binaries, e.g. if
+they are distributed by an OEM who does not wish to make the CAN signals public.
+
+In that case, you will have a .hex file and can use the `upload_hex.sh` script
+to update your device.
+
+    $ ./upload_hex new-version.hex
+
+This scripts does require that the MPIDE is installed, and the environment
+variables described in the "Command Line Building" section are set correctly. If
+you have an alternative `avrdude` you wish to use instead, you can modify the
+upload.sh script accordingly.
 
 ## Input Specification
 

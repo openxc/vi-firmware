@@ -13,18 +13,16 @@ OBJCOPY_NAME = pic32-objcopy
 AVRDUDE = $(ARDUINO_DIR)/hardware/tools/avrdude
 AVRDUDE_CONF = $(ARDUINO_DIR)/hardware/tools/avrdude.conf
 
-NO_MCU=true
-F_CPU=80000000L
+MCU_FLAG_NAME=mprocessor
+EXTRA_CPPFLAGS = -O2  -mno-smart-io -DARDUINO=22 -D_BOARD_MEGA_=
 
 TARGET       = cantranslator
 BOARD_TAG    = mega_pic32
+
+ifndef ARDUINO_PORT
 ARDUINO_PORT = /dev/ttyUSB*
+endif
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility
-
-MPROCESSOR = -mprocessor=32MX795F512L
-EXTRA_CPPFLAGS = -O2  -mno-smart-io $(MPROCESSOR) -DARDUINO=22 -D_BOARD_MEGA_=
-EXTRA_LDFLAGS = $(MPROCESSOR)
-NO_GNU99=true
 
 include $(ARDUINO_MAKEFILE_HOME)/Arduino.mk

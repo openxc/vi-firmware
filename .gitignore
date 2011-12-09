@@ -4,3 +4,4 @@ can_decoder_c346_*.pde
 build/
 benchmarking/
 build-cli
+release/

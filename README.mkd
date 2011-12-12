@@ -51,10 +51,27 @@ Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
 show up as `/dev/ttyUSB*` on your system - Mac OS X being an example.
 
 If you're on OS X and don't have the Perl YAML module installed (you most likely
-don't) then also define the processor type:
+don't) then there are a bunch of extra variables you need to define manually.
+For the Max32, these are the correct values:
 
-`MCU` - for the Max32 set this to `32MX795F512L`
-`F_CPU` - for the Max32 set this to `80000000L`
+    export AVRDUDE_ARD_PROGRAMMER=stk500v2
+    export AVRDUDE_ARD_BAUDRATE=115200
+    export MCU=32MX795F512L
+    export F_CPU=80000000L
+
+Regardless of if you have the YAML module on OS X, you will need to override the
+avrdude path:
+
+`AVRDUDE` - the path to the the avrdude binary
+    (e.g. `$ARDUINO_DIR/hardware/tools/avr/bin/avrdude` on OS X)
+
+`AVRDUDE_CONF` - the path to the avrdude.conf
+    (e.g. `$ARDUINO_DIR/hardware/tools/avr/etc/avrdude.conf` on OS X)
+
+For example:
+
+    export AVRDUDE=$ARDUINO_DIR/hardware/tools/avr/bin/avrdude
+    export AVRDUDE_CONF=$ARDUINO_DIR/hardware/tools/avr/etc/avrdude.conf
 
 Once this is set up, run `make` to compile the sketch and `make upload` to
 upload the sketch to the board.

@@ -50,6 +50,12 @@ method:
 Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
 show up as `/dev/ttyUSB*` on your system - Mac OS X being an example.
 
+If you're on OS X and don't have the Perl YAML module installed (you most likely
+don't) then also define the processor type:
+
+`MCU` - for the Max32 set this to `32MX795F512L`
+`F_CPU` - for the Max32 set this to `80000000L`
+
 Once this is set up, run `make` to compile the sketch and `make upload` to
 upload the sketch to the board.
 

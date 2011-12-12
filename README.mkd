@@ -62,13 +62,11 @@ For the Max32, these are the correct values:
 Regardless of if you have the YAML module on OS X, you will need to override the
 avrdude path:
 
-`AVRDUDE` - the path to the the avrdude binary
-    (e.g. `$ARDUINO_DIR/hardware/tools/avr/bin/avrdude` on OS X)
+`AVRDUDE` - the path to the the avrdude binary.
 
-`AVRDUDE_CONF` - the path to the avrdude.conf
-    (e.g. `$ARDUINO_DIR/hardware/tools/avr/etc/avrdude.conf` on OS X)
+`AVRDUDE_CONF` - the path to the avrdude.conf.
 
-For example:
+For example on OS X
 
     export AVRDUDE=$ARDUINO_DIR/hardware/tools/avr/bin/avrdude
     export AVRDUDE_CONF=$ARDUINO_DIR/hardware/tools/avr/etc/avrdude.conf

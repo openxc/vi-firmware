@@ -8,15 +8,15 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
+For more details, see the [OpenXC website](http://openxcplatform.com/developers/vehicle-interface/hardware.html).
+
 ## Installation
 
-If you have a chipKIT Max32, the source can be built and uploaded using the
-latest version of [MPIDE][] for your platform.
-
-You also need the chipKIT network shield libraries (provided by Microchip).
-Download these from the bottom of the [Max32 page][] and extract them to your
-MPIDE sketchbook directory in a subdirectory named `libraries`. It should look
-like this:
+Building the source for the CAN translator for the chipKIT microcontroller
+requires the [MPIDE][] and the CAN and USB libraries for the network sheild,
+provided by Microchip. Download these from the bottom of the [Max32 page][] and
+extract them to your MPIDE sketchbook directory in a subdirectory named
+`libraries`. It should look like this:
 
     - /Users/me/sketchbook/
     ---- libraries/
@@ -50,10 +50,7 @@ method (make sure to change these defaults if your system is different!):
     export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
 
 Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
-show up as `/dev/ttyUSB*` on your system - Mac OS X being an example.
-
-    # Set the TTY port on Mac OS X
-    export ARDUINO_PORT="/dev/tty.usbserial*"
+show up as `/dev/ttyUSB*` (in Linux) or `/dev/tty.usbserial*` (in Mac OS X).
 
 Once this is set up, run `make` to compile the sketch and `make upload` to
 upload the sketch to the board.

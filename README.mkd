@@ -421,5 +421,9 @@ This is the list of signals officially supported by the Android library.
 
     <dt>longitude</dt>
     <dd>-179.0 to 179.0 degrees</dd>
+
+    <dt>button_event</dt>
+    <dd>Value is State: left, right, up, down, ok.
+        Event is State: idle, pressed, released, held_short, held_long, stuck</dd>
 </dl>
 

@@ -7,7 +7,7 @@
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
 
-#define SIGNAL_COUNT 6
+#define SIGNAL_COUNT 7
 
 char* SIGNALS[SIGNAL_COUNT] = {
     "vehicle_speed",
@@ -16,6 +16,7 @@ char* SIGNALS[SIGNAL_COUNT] = {
     "windshield_wiper_speed",
     "steering_wheel_angle",
     "parking_brake_status",
+    "brake_pedal_status",
 };
 
 void writeMeasurement(char* measurementName, float value) {

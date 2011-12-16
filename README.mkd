@@ -3,20 +3,20 @@ CAN Translation Module
 
 ## Description
 
-The CAN translation module code runs on an Arudino-compatible microcontroller
+The CAN translation module code runs on an Arduino-compatible microcontroller
 connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
+For more details, see the [OpenXC website](http://openxcplatform.com/developers/vehicle-interface/hardware.html).
+
 ## Installation
 
-If you have a chipKIT Max32, the source can be built and uploaded using the
-latest version of [MPIDE][] for your platform.
-
-You also need the chipKIT network shield libraries (provided by Microchip).
-Download these from the bottom of the [Max32 page][] and extract them to your
-MPIDE sketchbook directory in a subdirectory named `libraries`. It should look
-like this:
+Building the source for the CAN translator for the chipKIT microcontroller
+requires the [MPIDE][] and the CAN and USB libraries for the network sheild,
+provided by Microchip. Download these from the bottom of the [Max32 page][] and
+extract them to your MPIDE sketchbook directory in a subdirectory named
+`libraries`. It should look like this:
 
     - /Users/me/sketchbook/
     ---- libraries/
@@ -37,39 +37,20 @@ your computer. This contains Makefile definitions common to Arduino and chipKIT
 platforms.
 
 You also need to set a few environment variables (e.g. in your .bashrc) for this
-method:
+method (make sure to change these defaults if your system is different!):
 
-`ARDUINO_DIR` - the path to the extracted MPIDE folder (e.g.
-    /Applications/Mpide.app/Contents/Resources/Java on OS X)
+    # Path to the extracted MPIDE folder (this is correct for OS X)
+    export ARDUINO_DIR=/Applications/Mpide.app/Contents/Resources/Java
 
-`ARDUINO_SKETCHBOOK` - the path to the MPIDE sketchbook directory. Check in the
-	MPIDE preferences if you don't know this path offhand.
+    # Path to the MPIDE sketchbook directory. Check in the MPIDE preferences
+    # if you don't know this path offhand - this is the default for OS X.
+    export ARDUINO_SKETCHBOOK=$HOME/Documents/Arduino
 
-`ARDUINO_MAKEFILE_HOME` - the path to the `arduino.mk` cloned repository
+    # Path to the `arduino.mk` cloned repository
+    export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
 
 Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
-show up as `/dev/ttyUSB*` on your system - Mac OS X being an example.
-
-If you're on OS X and don't have the Perl YAML module installed (you most likely
-don't) then there are a bunch of extra variables you need to define manually.
-For the Max32, these are the correct values:
-
-    export AVRDUDE_ARD_PROGRAMMER=stk500v2
-    export AVRDUDE_ARD_BAUDRATE=115200
-    export MCU=32MX795F512L
-    export F_CPU=80000000L
-
-Regardless of if you have the YAML module on OS X, you will need to override the
-avrdude path:
-
-`AVRDUDE` - the path to the the avrdude binary.
-
-`AVRDUDE_CONF` - the path to the avrdude.conf.
-
-For example on OS X
-
-    export AVRDUDE=$ARDUINO_DIR/hardware/tools/avr/bin/avrdude
-    export AVRDUDE_CONF=$ARDUINO_DIR/hardware/tools/avr/etc/avrdude.conf
+show up as `/dev/ttyUSB*` (in Linux) or `/dev/tty.usbserial*` (in Mac OS X).
 
 Once this is set up, run `make` to compile the sketch and `make upload` to
 upload the sketch to the board.
@@ -115,10 +96,11 @@ to update your device.
 
     $ ./upload_hex new-version.hex
 
-This scripts does require that the MPIDE is installed, and the environment
-variables described in the "Command Line Building" section are set correctly. If
-you have an alternative `avrdude` you wish to use instead, you can modify the
-upload.sh script accordingly.
+This script requires that MPIDE is installed, and the environment variable
+`ARDUINO_DIR` points to the MPIDE directory (see the "Command Line Building"
+section of the [README][cantranslator] for details). If you have an alternative
+`avrdude` you wish to use instead, you can modify the upload.sh script
+accordingly.
 
 ## Input Specification
 
@@ -371,55 +353,5 @@ by the openxc-android library, for example.
 
 ## API
 
-This is the list of signals officially supported by the Android library.
-
-<dl>
-    <dt>steering_wheel_angle</dt>
-    <dd>-400 to +400 degrees</dd>
-
-    <dt>powertrain_torque</dt>
-    <dd>-500 to 1500 Nm</dd>
-
-    <dt>engine_speed<dt>
-    <dd>0 to 16382 RPM</dd>
-
-    <dt>vehicle_speed</dt>
-    <dd>0 to 655 Km/h</dd>
-
-    <dt>accelerator_pedal_position</dt>
-    <dd>0 to 100%</dd>
-
-    <dt>parking_brake_status</dt>
-    <dd>Boolean (true == brake engaged)</dd>
-
-    <dt>brake_pedal_status</dt>
-    <dd>Boolean (True == pedal pressed)</dd>
-
-    <dt>transmission_gear_position</dt>
-    <dd>States: 1, 2, 3, 4, 5, 6, 7, 8, R, N</dd>
-
-    <dt>odometer</dt>
-    <dd>0 to 16777214 Km</dd>
-
-    <dt>ignition_status</dt>
-    <dd>States: off, accessory, run, start</dd>
-
-    <dt>fuel_level</dt>
-    <dd>0 - 204.6 L</dd>
-
-    <dt>door_status</dt>
-    <dd>Events: one event type per door, value is boolean (true == ajar)</dd>
-
-    <dt>headlamp_status</dt>
-    <dd>States: off, dipped, main</dd>
-
-    <dt>windshield_wiper_speed</dt>
-    <dd>0 to 31</dd>
-
-    <dt>latitude</dt>
-    <dd>-89.0 to 89.0 degrees</dd>
-
-    <dt>longitude</dt>
-    <dd>-179.0 to 179.0 degrees</dd>
-</dl>
-
+See the [OpenXC][] website for a list of officially supported
+[signal names](http://openxcplatform.com/developers/vehicle-interface/translation-specs.html).

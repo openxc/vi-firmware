@@ -148,9 +148,9 @@ class Parser(object):
             for message in bus:
                 print "    case 0x%x:" % message.id
                 if message.handler is not None:
-                    print ("        extern void %s(uint8_t*, CanSignal*);"
+                    print ("        extern void %s(int, uint8_t*, CanSignal*);"
                             % message.handler)
-                    print "        %s(data, SIGNALS);" % message.handler
+                    print "        %s(id, data, SIGNALS);" % message.handler
                 else:
                     for signal in message.signals:
                         if signal.handler:

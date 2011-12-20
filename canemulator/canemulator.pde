@@ -38,7 +38,7 @@ char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
 };
 
 char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
-    { "N", "1", "2" },
+    { "neutral", "first", "second" },
     { "off", "run", "accessory" },
 };
 

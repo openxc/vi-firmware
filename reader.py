@@ -39,6 +39,8 @@ class UsbDevice(object):
                 self.good_messages += 1
                 if self.dump:
                     print message
+                if self.verbose:
+                    print parsed_message
                 return parsed_message
             finally:
                 self.message_buffer = remainder
@@ -57,9 +59,6 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
-
-            if parsed_message is not None:
-                return parsed_message
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "

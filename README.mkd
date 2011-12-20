@@ -142,7 +142,7 @@ is a JSON object like this:
                             "NEUTRAL": 6
                         }}
                 ]
-            "message_handler": "handleSteeringWheelMessage"
+            "handler": "handleSteeringWheelMessage"
             }
         }
     }}
@@ -179,7 +179,7 @@ are:
         normal translation. Optional - see the "Custom Handlers" section for
         more.
 
-`message_handler` - The name of a function that will be compiled with the sketch
+`handler` - The name of a function that will be compiled with the sketch
     and should be applied to the entire raw message value. No other operations
     are performed on the data if this type of handler is used. Optional - see
     the "Custom Handlers" section for more.

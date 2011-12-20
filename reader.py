@@ -39,13 +39,15 @@ class UsbDevice(object):
                 self.good_messages += 1
                 if self.dump:
                     print message
+                if self.verbose:
+                    print parsed_message
                 return parsed_message
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
 
 
-    def read(self):
+    def run(self):
         while True:
             self.message_buffer += self.device.read(self.endpoint,
                     128).tostring()
@@ -57,25 +59,6 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
-
-            if parsed_message is not None:
-                return parsed_message
-
-
-    def run(self):
-        message = self.read()
-        while message is not None:
-            message = self.read()
-            self.validate(message)
-
-        print
-        print "Finished receiving."
-
-    def validate(self, message):
-        assert "name" in message
-        assert "value" in message
-        if self.verbose:
-            print message
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "

@@ -37,8 +37,9 @@ char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
     "ignition_status",
 };
 
-CanSignalState SIGNAL_STATES[STATE_SIGNAL_COUNT][5] = {
-    { {0, "N"}, {1, "1"}, {3, "3"}, {2, "2"}, {5, "5"}, },
+char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
+    { "N", "1", "2" },
+    { "off", "run", "accessory" },
 };
 
 void writeNumericalMeasurement(char* measurementName, float value) {
@@ -60,6 +61,15 @@ void writeBooleanMeasurement(char* measurementName, bool value) {
     sendMessage((uint8_t*) message, strlen(message));
 }
 
+void writeStateMeasurement(char* measurementName, char* value) {
+    int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
+        strlen(measurementName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, STRING_MESSAGE_FORMAT, measurementName, value);
+
+    sendMessage((uint8_t*) message, strlen(message));
+}
+
 void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
@@ -74,5 +84,9 @@ void loop() {
                 random(101) + random(100) * .1);
         writeBooleanMeasurement(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
                 random(2) == 1 ? true : false);
+
+        int stateSignalIndex = random(STATE_SIGNAL_COUNT);
+        writeStateMeasurement(STATE_SIGNALS[stateSignalIndex],
+                SIGNAL_STATES[stateSignalIndex][random(3)]);
     }
 }

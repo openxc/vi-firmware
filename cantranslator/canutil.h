@@ -136,6 +136,15 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
 bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
         bool* send);
 
+/* Public: Store the value of a signal, but flip the send flag to false.
+ *
+ * signal  - the details of the signal that contains the state mapping.
+ * signals - the list of all signals
+ * value   - the numerical value that will be converted to a boolean.
+ */
+float ignoreHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send);
+
 /* Initialize the CAN controller. See inline comments for description of the
  * process.
  */

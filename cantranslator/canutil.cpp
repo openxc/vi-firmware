@@ -158,6 +158,12 @@ bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
     return value == 0.0 ? false : true;
 }
 
+float ignoreHandler(CanSignal* signal, CanSignal* signals, float value,
+        bool* send) {
+    *send = false;
+    return 0.0;
+}
+
 char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
         bool* send) {
     for(int i = 0; i < signal->stateCount; i++) {

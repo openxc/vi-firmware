@@ -65,7 +65,7 @@ struct CanSignal {
     float offset;
     CanSignalState* states;
     int stateCount;
-    int lastValue;
+    float lastValue;
 };
 
 /* Public: Initializes message filter masks and filters on the CAN controller.

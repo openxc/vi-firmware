@@ -97,6 +97,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
+    signal->lastValue = value;
     bool send = true;
     value = customHandler(signal, signals, value, &send);
 
@@ -114,6 +115,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
+    signal->lastValue = value;
     bool send = true;
     char* stringValue = customHandler(signal, signals, value, &send);
 
@@ -131,6 +133,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
+    signal->lastValue = value;
     bool send = true;
     bool booleanValue = customHandler(signal, signals, value, &send);
 

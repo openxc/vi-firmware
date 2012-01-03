@@ -94,12 +94,12 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        float (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
     signal->lastValue = value;
     bool send = true;
-    value = customHandler(signal, signals, value, &send);
+    value = handler(signal, signals, value, &send);
 
     if(send) {
         int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
@@ -112,12 +112,12 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        char* (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
     signal->lastValue = value;
     bool send = true;
-    char* stringValue = customHandler(signal, signals, value, &send);
+    char* stringValue = handler(signal, signals, value, &send);
 
     if(send) {
         int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
@@ -130,12 +130,12 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        bool (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
     signal->lastValue = value;
     bool send = true;
-    bool booleanValue = customHandler(signal, signals, value, &send);
+    bool booleanValue = handler(signal, signals, value, &send);
 
     if(send) {
         int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +

@@ -14,6 +14,9 @@
 #define CAN_BUS_1_SPEED 500000
 #define CAN_BUS_2_SPEED 500000
 
+#define VERSION_CONTROL_COMMAND 0x80
+char* VERSION = "1.0";
+
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
@@ -102,6 +105,24 @@ void handleCan2Interrupt() {
     }
 }
 
+
+static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
+    switch(SetupPkt.bRequest) {
+    case VERSION_CONTROL_COMMAND:
+        Serial.print("Software version is ");
+        Serial.println(VERSION);
+        usbDevice.EP0SendRAMPtr(
+            (uint8_t*)VERSION,
+            strlen(VERSION),
+            USB_EP0_INCLUDE_ZERO);
+        return true;
+    default:
+        Serial.print("Didn't recognize event: ");
+        Serial.println(SetupPkt.bRequest);
+        return false;
+    }
+}
+
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
@@ -114,6 +135,13 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         usbDevice.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
         break;
+
+    case EVENT_EP0_REQUEST:
+        if(!customUSBCallback(event, pdata, size)) {
+            Serial.println("Event: Unrecognized EP0 (endpoint 0) Request");
+        }
+        break;
+
     default:
         break;
     }

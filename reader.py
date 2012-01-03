@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
-from operator import itemgetter
-import datetime
 import json
 import sys
 import argparse
 import usb.core
-import string
 
 
 class UsbDevice(object):
@@ -51,7 +48,7 @@ class UsbDevice(object):
         while True:
             self.message_buffer += self.device.read(self.endpoint,
                     128).tostring()
-            parsed_message = self.parse_message()
+            self.parse_message()
 
             if (self.messages_received > 0 and
                     self.messages_received % 1000 == 0):

@@ -65,7 +65,7 @@ class Message(object):
 
 class Signal(object):
     def __init__(self, id, name, generic_name, position, length, factor=1,
-            offset=0, max_value=0, handler=None, states=None):
+            offset=0, min_value=0, max_value=0, handler=None, states=None):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -73,6 +73,7 @@ class Signal(object):
         self.length = length
         self.factor = factor
         self.offset = offset
+        self.min_value = min_value
         self.max_value = max_value
         self.handler = handler
         self.array_index = 0
@@ -81,9 +82,9 @@ class Signal(object):
             self.handler = "char* stateHandler"
 
     def __str__(self):
-        result =  "{%d, \"%s\", %s, %d, %f, %f, %f" % (
+        result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f" % (
                 self.id, self.generic_name, self.position, self.length,
-                self.factor, self.offset, self.max_value)
+                self.factor, self.offset, self.min_value, self.max_value)
         if len(self.states) > 0:
             result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
@@ -267,6 +268,7 @@ class JsonParser(Parser):
                             signal['bit_size'],
                             signal.get('factor', None),
                             signal.get('offset', None),
+                            signal.get('min_value', None),
                             signal.get('max_value', None),
                             signal.get('value_handler', None),
                             states))

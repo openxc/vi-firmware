@@ -92,28 +92,28 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and also runs the final float value through the
- *         customHandler function before sending the result out over USB.
+ *         handler function before sending the result out over USB.
  *
  * usbDevice - the USB device to send the final formatted message on.
  * signal        - the details of the signal to decode and forward.
  * data          - the raw bytes of the CAN message that contains the signal.
- * customHandler - a function pointer that performs extra processing on the
+ * handler - a function pointer that performs extra processing on the
  *                 float value.
  * signals       - an array of all active signals.
  */
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        char* (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        float (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
+        bool (*handler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
 /* Public: Parses a CAN signal from a message and applies required

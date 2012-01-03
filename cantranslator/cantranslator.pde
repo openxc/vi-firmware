@@ -17,6 +17,8 @@
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
+USBDevice usbDevice(usbCallback);
+
 /* CAN Message Buffers */
 uint8_t can1MessageArea[2 * 8 * 16];
 uint8_t can2MessageArea[2 * 8 * 16];
@@ -36,7 +38,7 @@ void decodeCanMessage(int id, uint8_t* data);
 void setup() {
     Serial.begin(115200);
 
-    initializeUsb();
+    initializeUsb(&usbDevice);
 
     initializeCan(&can1, CAN_1_ADDRESS, CAN_BUS_1_SPEED, can1MessageArea);
     initializeCan(&can2, CAN_2_ADDRESS, CAN_BUS_2_SPEED, can2MessageArea);
@@ -97,5 +99,22 @@ void handleCan2Interrupt() {
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
             isCan2MessageReceived = true;
         }
+    }
+}
+
+static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
+    // initial connection up to configure will be handled by the default
+    // callback routine.
+    usbDevice.DefaultCBEventHandler(event, pdata, size);
+
+    switch(event) {
+    case EVENT_CONFIGURED:
+        Serial.println("Event: Configured");
+        // Enable DATA_ENDPOINT for input
+        usbDevice.EnableEndpoint(DATA_ENDPOINT,
+                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        break;
+    default:
+        break;
     }
 }

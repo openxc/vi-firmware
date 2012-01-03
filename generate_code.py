@@ -109,6 +109,7 @@ class Parser(object):
 
     def print_header(self):
         print "#include \"canutil.h\"\n"
+        print "extern USBDevice usbDevice;\n"
         print "void decodeCanMessage(int id, uint8_t* data) {"
 
     def print_source(self):
@@ -148,21 +149,21 @@ class Parser(object):
             for message in bus:
                 print "    case 0x%x:" % message.id
                 if message.handler is not None:
-                    print ("        extern void %s(int, uint8_t*, CanSignal*);"
+                    print ("        extern void %s(int, uint8_t*, CanSignal*, USBDevice* usbDevice);"
                             % message.handler)
-                    print "        %s(id, data, SIGNALS);" % message.handler
+                    print "        %s(id, data, SIGNALS, &usbDevice);" % message.handler
                 else:
                     for signal in message.signals:
                         if signal.handler:
                             print ("        extern %s("
                                 "CanSignal*, CanSignal*, float, bool*);" %
                                 signal.handler)
-                            print ("        translateCanSignal(&SIGNALS[%d], "
+                            print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
                                 "data, &%s, SIGNALS);" % (
                                     signal.array_index,
                                     signal.handler.split()[1]))
                         else:
-                            print ("        translateCanSignal(&SIGNALS[%d], "
+                            print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
                                     "data, SIGNALS);" % (signal.array_index))
                 print "        break;"
         print "    }"

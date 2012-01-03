@@ -93,7 +93,7 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
     return rawValue * signal->factor + signal->offset;
 }
 
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -107,11 +107,11 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         char message[messageLength];
         sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
 
-        sendMessage((uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }
 }
 
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
         char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -125,11 +125,11 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         char message[messageLength];
         sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
 
-        sendMessage((uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }
 }
 
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
         bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
@@ -144,7 +144,7 @@ void translateCanSignal(CanSignal* signal, uint8_t* data,
         sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
                 value ? "true" : "false");
 
-        sendMessage((uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }
 }
 
@@ -174,6 +174,7 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
     *send = false;
 }
 
-void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals) {
-    translateCanSignal(signal, data, passthroughHandler, signals);
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+        CanSignal* signals) {
+    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals);
 }

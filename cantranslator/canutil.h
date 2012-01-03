@@ -4,6 +4,7 @@
 #include "WProgram.h"
 #include "chipKITCAN.h"
 #include "bitfield.h"
+#include "usbutil.h"
 
 #define SYS_FREQ (80000000L)
 
@@ -80,30 +81,36 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and sends the result over USB.
  *
+ * usbDevice - the USB device to send the final formatted message on.
  * signal - the details of the signal to decode and forward.
  * data   - the raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(CanSignal* signal, uint8_t* data, CanSignal* signals);
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+        uint8_t* data, CanSignal* signals);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and also runs the final float value through the
  *         customHandler function before sending the result out over USB.
  *
+ * usbDevice - the USB device to send the final formatted message on.
  * signal        - the details of the signal to decode and forward.
  * data          - the raw bytes of the CAN message that contains the signal.
  * customHandler - a function pointer that performs extra processing on the
  *                 float value.
  * signals       - an array of all active signals.
  */
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         char* (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         float (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 
-void translateCanSignal(CanSignal* signal, uint8_t* data,
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         bool (*customHandler)(CanSignal*, CanSignal*, float, bool*),
         CanSignal* signals);
 

@@ -29,14 +29,15 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
  *         configuration specified in usb_descriptors.c. Must be called before
  *         any other USB fuctions are used.
  */
-void initializeUsb();
+void initializeUsb(USBDevice*);
 
 /* Public: Sends a message on the bulk transfer endpoint to the host.
  *
+ * usbDevice - the USB device to send this message on.
  * message - a buffer containing the message to send.
  * messageSize - the length of the message.
  */
-void sendMessage(uint8_t* message, int messageSize);
+void sendMessage(USBDevice* usbDevice, uint8_t* message, int messageSize);
 
 /* Internal: Handle asynchronous events from the USB controller.
  */

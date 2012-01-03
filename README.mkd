@@ -262,7 +262,7 @@ message to guarantee they arrived together. You can generate 0, 1 or many
 translated messages from one call to your handler function.
 
     void handleSteeringWheelMessage(int messageId, uint8_t* data,
-            CanSignal* signals) {
+            CanSignal* signals, USBDevice* usbDevice) {
         float steeringWheelAngle = decodeCanSignal(&signals[1], data);
         float steeringWheelSign = decodeCanSignal(&signals[2], data);
 
@@ -273,7 +273,7 @@ translated messages from one call to your handler function.
         }
 
         char* message = generateJson(signals[1], finalValue);
-        sendMessage((uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }
 
 ## Sketch Generation

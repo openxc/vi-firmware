@@ -342,6 +342,12 @@ the `--verbose` flag to have all messages parsed and printed to stdout.
 
     $ python reader.py -v
 
+It may also be neccessary to check the current version of the software you have
+on a CAN translator - the `--version` flag will tell you that.
+
+    $ python reader.py --version
+    Device is running version 1.0
+
 ## Traces
 
 You can record a trace of JSON messages from the CAN reader for use in testing.

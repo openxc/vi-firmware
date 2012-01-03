@@ -61,6 +61,7 @@ class Signal(object):
         self.size = int(node.find("Bitsize").text)
         self.factor = float(node.find("Factor").text)
         self.offset = float(node.find("Offset").text)
+        self.max_value = float(node.find("Maximum").text)
 
         # Invert the bit index to match the Excel mapping.
         self.position = self._invert_bit_index(self.position, self.size)
@@ -71,7 +72,8 @@ class Signal(object):
                 "bit_position": self.position,
                 "bit_size": self.size,
                 "factor": self.factor,
-                "offset": self.offset}
+                "offset": self.offset,
+                "max_value": self.max_value}
 
     def _invert_bit_index(self, i, l):
         (b, r) = divmod(i, 8)

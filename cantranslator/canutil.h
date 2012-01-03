@@ -64,6 +64,7 @@ struct CanSignal {
     int bitSize;
     float factor;
     float offset;
+    float maxValue;
     CanSignalState* states;
     int stateCount;
     float lastValue;

@@ -126,6 +126,9 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
+void sendNumericalMessage(CanSignal* signal, float value,
+        USBDevice* usbDevice);
+
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.
  *

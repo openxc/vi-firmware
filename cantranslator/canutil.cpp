@@ -102,13 +102,23 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     value = handler(signal, signals, value, &send);
 
     if(send) {
-        int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-            strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-        char message[messageLength];
-        sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
-
-        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+        sendNumericalMessage(signal, value, usbDevice);
     }
+}
+
+// TODO if we make value a void*, could this be used for all of the
+// translateCanSignal functions? We can pass in the formats no problem, but the
+// differently typed values mean you would need to repeat this entire function
+// multiple files anyway. I'm leaving this function for now because it's useful
+// in a custom handler.
+void sendNumericalMessage(CanSignal* signal, float value,
+        USBDevice* usbDevice) {
+    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH
+        + strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+    char message[messageLength];
+    sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
+
+    sendMessage(usbDevice, (uint8_t*) message, strlen(message));
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,

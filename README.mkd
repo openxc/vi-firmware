@@ -113,7 +113,7 @@ is a JSON object like this:
             "ECM_z_5D2": {
                 "id": 42,
                 "signals": {
-                    "StrAnglAct":
+                    "StrAnglAct": {
                         "id": 1,
                         "human_signal_name": "Steering wheel angle",
                         "generic_name": "SteeringWheelAngle",
@@ -122,12 +122,12 @@ is a JSON object like this:
                         "factor": 0.15392,
                         "offset": 0,
                         "value_handler": "float handleSteeringWheelAngle"},
-                    "StrAnglSign":
+                    "StrAnglSign": {
                         "id": 2,
                         "human_signal_name": "Steering wheel angle sign",
                         "bit_position": 52,
                         "bit_size": 12},
-                    "GrshftPos":
+                    "GrshftPos": {
                         "id": 10,
                         "human_signal_name": "Gearshift Position",
                         "generic_name": "GearshiftPosition",
@@ -140,9 +140,13 @@ is a JSON object like this:
                             "FOURTH": 4,
                             "REVERSE": 5,
                             "NEUTRAL": 6
-                        }}
-                ]
-            "handler": "handleSteeringWheelMessage"
+                        }
+                    },
+                    "StrAnglErr": {
+                        "value_handler": "float ignoreHandler"
+                    }
+                },
+                "handler": "handleSteeringWheelMessage"
             }
         }
     }}
@@ -184,6 +188,14 @@ are:
     are performed on the data if this type of handler is used. Optional - see
     the "Custom Handlers" section for more.
 
+`ignore` - Setting this to `true` on a signal will silence output of that
+signal. The translator will not monitor the signal nor store any of its values.
+This is useful if you are using a custom handler for an entire message, want
+to silence the normal output of the signals it handles, and you don't need the
+translator to keep track of the values of any of the signals separately. If you
+need to use the previously stored values of any of ths signals, you can use the
+`ignoreHandler` as a value handler for the signal.
+
 `states` - For state values, this is a mapping between the raw states (usually
     an integer) and the corresponding state in the generic signal.
 
@@ -208,10 +220,9 @@ contain `true` for 1.0 and `false` for 0.0. If you want to translate integer
 state values to string names (for parsing as an enum, for example) you will need
 to write a value handler that returns a `char*`.
 
-There are three levels of custom handlers:
+There are two levels of custom handlers:
 
 * Message handlers - use these for custom processing of the entire CAN message.
-* Signal handlers - use these for custom processing of one signal
 * Value handlers - use these for making non-standard transformations to a signal
   value
 
@@ -275,6 +286,13 @@ translated messages from one call to your handler function.
         char* message = generateJson(signals[1], finalValue);
         sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }
+
+Using a custom message handler will not stop individual messages for each signal
+from being output. To silence them but still store their values in
+`signal->lastvalue` as they come in, specify the special `ignoreHandler` as the
+`value_handler` for signals don't want to double send. The reason we don't do
+this automatically is that not all signals in a msesage are always handled by
+the same message handler.
 
 ## Sketch Generation
 

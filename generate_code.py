@@ -65,7 +65,8 @@ class Message(object):
 
 class Signal(object):
     def __init__(self, id, name, generic_name, position, length, factor=1,
-            offset=0, min_value=0, max_value=0, handler=None, states=None):
+            offset=0, min_value=0, max_value=0, handler=None, ignore=False,
+            states=None):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -76,6 +77,7 @@ class Signal(object):
         self.min_value = min_value
         self.max_value = max_value
         self.handler = handler
+        self.ignore = ignore
         self.array_index = 0
         self.states = states or []
         if len(states) > 0 and self.handler is None:
@@ -154,19 +156,18 @@ class Parser(object):
                     print ("        extern void %s(int, uint8_t*, CanSignal*, USBDevice* usbDevice);"
                             % message.handler)
                     print "        %s(id, data, SIGNALS, &usbDevice);" % message.handler
-                else:
-                    for signal in message.signals:
-                        if signal.handler:
-                            print ("        extern %s("
-                                "CanSignal*, CanSignal*, float, bool*);" %
-                                signal.handler)
-                            print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                                "data, &%s, SIGNALS);" % (
-                                    signal.array_index,
-                                    signal.handler.split()[1]))
-                        else:
-                            print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                                    "data, SIGNALS);" % (signal.array_index))
+                for signal in (s for s in message.signals if not s.ignore):
+                    if signal.handler:
+                        print ("        extern %s("
+                            "CanSignal*, CanSignal*, float, bool*);" %
+                            signal.handler)
+                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
+                            "data, &%s, SIGNALS);" % (
+                                signal.array_index,
+                                signal.handler.split()[1]))
+                    else:
+                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
+                                "data, SIGNALS);" % (signal.array_index))
                 print "        break;"
         print "    }"
         print "}\n"
@@ -271,6 +272,7 @@ class JsonParser(Parser):
                             signal.get('min_value', None),
                             signal.get('max_value', None),
                             signal.get('value_handler', None),
+                            signal.get('ignore', False),
                             states))
                 self.buses[bus_address].append(message)
 

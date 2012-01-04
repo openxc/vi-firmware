@@ -237,13 +237,13 @@ class Parser(object):
 class JsonParser(Parser):
     def __init__(self, filenames):
         super(JsonParser, self).__init__()
-        self.jsonFiles = filenames
+        self.json_files = filenames
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
         import json
         merged_dict = {}
-        for filename in self.jsonFiles:
+        for filename in self.json_files:
             with open(filename[0]) as jsonFile:
                 data = json.load(jsonFile)
                 merged_dict = merge(merged_dict, data)

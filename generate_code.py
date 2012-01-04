@@ -151,7 +151,7 @@ class Parser(object):
         print "    switch (id) {"
         for bus in self.buses.values():
             for message in bus:
-                print "    case 0x%x:" % message.id
+                print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
                     print ("        extern void %s(int, uint8_t*, CanSignal*, USBDevice* usbDevice);"
                             % message.handler)
@@ -162,12 +162,14 @@ class Parser(object):
                             "CanSignal*, CanSignal*, float, bool*);" %
                             signal.handler)
                         print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                            "data, &%s, SIGNALS);" % (
+                            "data, &%s, SIGNALS); // %s" % (
                                 signal.array_index,
-                                signal.handler.split()[1]))
+                                signal.handler.split()[1],
+                                signal.name))
                     else:
                         print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                                "data, SIGNALS);" % (signal.array_index))
+                                "data, SIGNALS); // %s" % (
+                                    signal.array_index, signal.name))
                 print "        break;"
         print "    }"
         print "}\n"

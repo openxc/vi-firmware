@@ -77,6 +77,6 @@ def release():
 def swap():
     prompt("Vehicle ID?", 'vehicle_id')
     with lcd("cantranslator"):
-        local("ln -fs ../../cansignals/shared/shared_handlers.cpp")
-        local("ln -fs ../../cansignals/%(vehicle_id)s/handlers.cpp")
-        local("ln -fs ../../cansignals/build/%(vehicle_id)s/all.cpp")
+        local("ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp")
+        local("ln -fs ../../cansignals/%(vehicle_id)s/handlers.cpp" % env)
+        local("ln -fs ../../cansignals/build/%(vehicle_id)s/all.cpp signals.cpp" % env)

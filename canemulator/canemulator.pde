@@ -12,6 +12,8 @@
 #define BOOLEAN_SIGNAL_COUNT 4
 #define STATE_SIGNAL_COUNT 2
 
+USBDevice usbDevice;
+
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
     "powertrain_torque",
@@ -48,7 +50,7 @@ void writeNumericalMeasurement(char* measurementName, float value) {
     char message[messageLength];
     sprintf(message, NUMERICAL_MESSAGE_FORMAT, measurementName, value);
 
-    sendMessage((uint8_t*) message, strlen(message));
+    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
 }
 
 void writeBooleanMeasurement(char* measurementName, bool value) {
@@ -58,7 +60,7 @@ void writeBooleanMeasurement(char* measurementName, bool value) {
     sprintf(message, BOOLEAN_MESSAGE_FORMAT, measurementName,
             value ? "true" : "false");
 
-    sendMessage((uint8_t*) message, strlen(message));
+    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
 }
 
 void writeStateMeasurement(char* measurementName, char* value) {
@@ -67,14 +69,14 @@ void writeStateMeasurement(char* measurementName, char* value) {
     char message[messageLength];
     sprintf(message, STRING_MESSAGE_FORMAT, measurementName, value);
 
-    sendMessage((uint8_t*) message, strlen(message));
+    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
 }
 
 void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
 
-    initializeUsb();
+    initializeUsb(&usbDevice);
 }
 
 void loop() {

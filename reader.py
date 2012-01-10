@@ -9,6 +9,7 @@ import usb.core
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
     VERSION_CONTROL_COMMAND = 0x80
+    RESET_CONTROL_COMMAND = 0x81
 
     def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False,
             dump=False):
@@ -31,6 +32,9 @@ class UsbDevice(object):
         raw_version = self.device.ctrl_transfer(0xC0,
                 self.VERSION_CONTROL_COMMAND, 0, 0, 10)
         return ''.join([chr(x) for x in raw_version])
+
+    def reset(self):
+        self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
     def parse_message(self):
         if "\r\n" in self.message_buffer:
@@ -83,6 +87,10 @@ def parse_options():
             action="store_true",
             dest="version",
             default=False)
+    parser.add_argument("--reset",
+            action="store_true",
+            dest="reset",
+            default=False)
 
     arguments = parser.parse_args()
     return arguments
@@ -95,6 +103,9 @@ def main():
             dump=arguments.dump)
     if arguments.version:
         print "Device is running version %s" % device.version
+    elif arguments.reset:
+        print "Resetting device..."
+        device.reset()
     else:
         device.run()
 

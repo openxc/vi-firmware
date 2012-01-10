@@ -15,6 +15,7 @@
 #define CAN_BUS_2_SPEED 500000
 
 #define VERSION_CONTROL_COMMAND 0x80
+#define RESET_CONTROL_COMMAND 0x81
 char* VERSION = "1.0";
 
 CAN can1(CAN::CAN1);
@@ -32,6 +33,7 @@ static volatile bool isCan2MessageReceived = false;
 
 /* Forward declarations */
 
+void initializeAllCan();
 void initializeCan(uint32_t);
 void receiveCan(CAN*, volatile bool*);
 void handleCan1Interrupt();
@@ -42,7 +44,10 @@ void setup() {
     Serial.begin(115200);
 
     initializeUsb(&usbDevice);
+    initializeAllCan();
+}
 
+void initializeAllCan() {
     initializeCan(&can1, CAN_1_ADDRESS, CAN_BUS_1_SPEED, can1MessageArea);
     initializeCan(&can2, CAN_2_ADDRESS, CAN_BUS_2_SPEED, can2MessageArea);
 
@@ -115,6 +120,10 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
             (uint8_t*)VERSION,
             strlen(VERSION),
             USB_EP0_INCLUDE_ZERO);
+        return true;
+    case RESET_CONTROL_COMMAND:
+        Serial.print("Resetting...");
+        initializeAllCan();
         return true;
     default:
         Serial.print("Didn't recognize event: ");

@@ -114,12 +114,11 @@ class Parser(object):
     def print_header(self):
         print "#include \"canutil.h\"\n"
         print "extern USBDevice usbDevice;\n"
-        print "void decodeCanMessage(int id, uint8_t* data) {"
 
     def print_source(self):
         self.print_header()
         # TODO need to handle signals with more than 10 states
-        print "    CanSignalState SIGNAL_STATES[%d][%d] = {" % (
+        print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (
                 self.signal_count, 10)
 
         states_index = 0
@@ -127,27 +126,28 @@ class Parser(object):
             for message in bus:
                 for signal in message.signals:
                     if len(signal.states) > 0:
-                        print "        {",
+                        print "    {",
                         for state in signal.states:
                             print "%s," % state,
                         print "},"
                         signal.states_index = states_index
                         states_index += 1
-        print "    };"
+        print "};"
         print
 
-        print "    CanSignal SIGNALS[%d] = {" % self.signal_count
+        print "CanSignal SIGNALS[%d] = {" % self.signal_count
 
         i = 1
         for bus in self.buses.values():
             for message in bus:
                 for signal in message.signals:
                     signal.array_index = i - 1
-                    print "        %s" % signal
+                    print "    %s" % signal
                     i += 1
-        print "    };"
+        print "};"
         print
 
+        print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
             for message in bus:

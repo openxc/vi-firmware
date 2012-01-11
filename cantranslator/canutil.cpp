@@ -98,11 +98,11 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
         CanSignal* signals) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    value = handler(signal, signals, value, &send);
+    float processedValue = handler(signal, signals, value, &send);
     signal->lastValue = value;
 
     if(send) {
-        sendNumericalMessage(signal, value, usbDevice);
+        sendNumericalMessage(signal, processedValue, usbDevice);
     }
 }
 

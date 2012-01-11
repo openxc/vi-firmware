@@ -9,7 +9,7 @@
 #include "canutil.h"
 
 #define NUMERICAL_SIGNAL_COUNT 10
-#define BOOLEAN_SIGNAL_COUNT 4
+#define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 
 USBDevice usbDevice;
@@ -21,7 +21,7 @@ char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "vehicle_speed",
     "accelerator_pedal_position",
     "odometer",
-    "windshield_wiper_speed",
+    "fine_odometer_since_restart",
     "latitude",
     "longitude",
     "fuel_level",
@@ -32,6 +32,7 @@ char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
     "brake_pedal_status",
     "headlamp_status",
     "high_beam_status",
+    "windshield_wiper_status",
 };
 
 char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {

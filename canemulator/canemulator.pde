@@ -12,7 +12,7 @@
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 
-USBDevice usbDevice;
+USBDevice usbDevice(usbCallback);
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -91,5 +91,19 @@ void loop() {
         int stateSignalIndex = random(STATE_SIGNAL_COUNT);
         writeStateMeasurement(STATE_SIGNALS[stateSignalIndex],
                 SIGNAL_STATES[stateSignalIndex][random(3)]);
+    }
+}
+
+static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
+    usbDevice.DefaultCBEventHandler(event, pdata, size);
+
+    switch(event) {
+    case EVENT_CONFIGURED:
+        usbDevice.EnableEndpoint(DATA_ENDPOINT,
+                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        break;
+
+    default:
+        break;
     }
 }

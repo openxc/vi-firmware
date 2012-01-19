@@ -247,8 +247,8 @@ class JsonParser(Parser):
         import json
         merged_dict = {}
         for filename in self.json_files:
-            with open(filename[0]) as jsonFile:
-                data = json.load(jsonFile)
+            with open(filename[0]) as json_file:
+                data = json.load(json_file)
                 merged_dict = merge(merged_dict, data)
 
         for bus_address, bus_data in merged_dict.iteritems():

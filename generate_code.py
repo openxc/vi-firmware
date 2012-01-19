@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import collections
+import itertools
 from collections import defaultdict
 import sys
 import argparse
@@ -64,9 +65,9 @@ class Message(object):
 
 
 class Signal(object):
-    def __init__(self, id, name, generic_name, position, length, factor=1,
-            offset=0, min_value=0, max_value=0, handler=None, ignore=False,
-            states=None):
+    def __init__(self, id=None, name=None, generic_name=None, position=None,
+            length=None, factor=1, offset=0, min_value=0, max_value=0,
+            handler=None, ignore=False, states=None):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -80,8 +81,40 @@ class Signal(object):
         self.ignore = ignore
         self.array_index = 0
         self.states = states or []
-        if len(states) > 0 and self.handler is None:
+        if len(self.states) > 0 and self.handler is None:
             self.handler = "char* stateHandler"
+
+    # Construct a Signal instance from an XML node exported from a Vector CANoe
+    # .dbc file.
+    @classmethod
+    def from_xml_node(cls, node):
+        signal = Signal(name=node.find("Name").text,
+                position=int(node.find("Bitposition").text),
+                length=int(node.find("Bitsize").text),
+                factor=float(node.find("Factor").text),
+                offset=float(node.find("Offset").text),
+                min_value=float(node.find("Minimum").text),
+                max_value=float(node.find("Maximum").text))
+
+        # Invert the bit index to match the Excel mapping.
+        signal.position = Signal._invert_bit_index(signal.position,
+                signal.length)
+        return signal
+
+    def to_dict(self):
+        return {"generic_name": self.generic_name,
+                "bit_position": self.position,
+                "bit_size": self.length,
+                "factor": self.factor,
+                "offset": self.offset,
+                "min_value": self.min_value,
+                "max_value": self.max_value}
+
+    @classmethod
+    def _invert_bit_index(cls, i, l):
+        (b, r) = divmod(i, 8)
+        end = (8 * b) + (7 - r)
+        return(end - l + 1)
 
     def __str__(self):
         result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f" % (
@@ -240,21 +273,23 @@ class Parser(object):
 class JsonParser(Parser):
     def __init__(self, filenames):
         super(JsonParser, self).__init__()
+        if not hasattr(filenames, "__iter__"):
+            filenames = [filenames]
         self.json_files = filenames
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
         import json
         merged_dict = {}
-        for filename in self.json_files:
-            with open(filename[0]) as json_file:
+        for filename in itertools.chain(self.json_files):
+            with open(filename) as json_file:
                 data = json.load(json_file)
                 merged_dict = merge(merged_dict, data)
 
         for bus_address, bus_data in merged_dict.iteritems():
             for message_name, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
-                message = Message(message_data['id'], message_name,
+                message = Message(message_data.get('id', None), message_name,
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].iteritems():
                     states = [SignalState(value, name)
@@ -267,8 +302,8 @@ class JsonParser(Parser):
                             Signal(signal.get('id', 0),
                             signal_name,
                             signal['generic_name'],
-                            signal['bit_position'],
-                            signal['bit_size'],
+                            signal.get('bit_position', None),
+                            signal.get('bit_size', None),
                             signal.get('factor', None),
                             signal.get('offset', None),
                             signal.get('min_value', None),

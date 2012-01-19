@@ -16,11 +16,20 @@ def parse_options():
             metavar="FILE",
             help="generate source from this JSON file")
 
+    message_set = parser.add_argument("-m", "--messageset",
+                        action="store",
+                        dest="message_set",
+                        help="which CAN message set (c346,b2xx) we're using")
+
     arguments = parser.parse_args()
 
     if not arguments.json_files:
         raise argparse.ArgumentError(json_files,
                 "Must specify at least one JSON file.")
+
+    if not arguments.message_set:
+        raise argparse.ArgumentError(message_set,
+                "Must specify the name of the message set")
 
     return arguments
 
@@ -104,9 +113,10 @@ class SignalState(object):
 
 
 class Parser(object):
-    def __init__(self):
+    def __init__(self, message_set):
         self.buses = defaultdict(list)
         self.signal_count = 0
+        self.message_set = message_set
 
     def parse(self):
         raise NotImplementedError
@@ -114,6 +124,7 @@ class Parser(object):
     def print_header(self):
         print "#include \"canutil.h\"\n"
         print "extern USBDevice usbDevice;\n"
+        print "char* MESSAGE_SET=\"%s\"\n" % self.message_set
 
     def print_source(self):
         self.print_header()
@@ -238,9 +249,10 @@ class Parser(object):
 
 
 class JsonParser(Parser):
-    def __init__(self, filenames):
-        super(JsonParser, self).__init__()
+    def __init__(self, filenames, message_set):
+        super(JsonParser, self).__init__(message_set)
         self.json_files = filenames
+        #which message set we're generating
 
     # The JSON parser accepts the format specified in the README.
     def parse(self):
@@ -281,7 +293,7 @@ class JsonParser(Parser):
 def main():
     arguments = parse_options()
 
-    parser = JsonParser(arguments.json_files)
+    parser = JsonParser(arguments.json_files, arguments.message_set)
 
     parser.parse()
     parser.print_source()

@@ -16,7 +16,7 @@
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
-char* VERSION = "1.1";
+char* VERSION = "1.1-dev";
 extern char* MESSAGE_SET;
 
 CAN can1(CAN::CAN1);

@@ -94,15 +94,15 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        float (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals) {
+        float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    float processedValue = handler(signal, signals, value, &send);
+    float processedValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
     if(send) {
-        sendNumericalMessage(signal, processedValue, usbDevice);
+        sendNumericalMessage(signal->genericName, processedValue, usbDevice);
     }
 }
 
@@ -111,22 +111,21 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
 // differently typed values mean you would need to repeat this entire function
 // multiple files anyway. I'm leaving this function for now because it's useful
 // in a custom handler.
-void sendNumericalMessage(CanSignal* signal, float value,
-        USBDevice* usbDevice) {
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH
-        + strlen(signal->genericName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
+void sendNumericalMessage(char* name, float value, USBDevice* usbDevice) {
+    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH + strlen(name)
+            + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
     char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, signal->genericName, value);
+    sprintf(message, NUMERICAL_MESSAGE_FORMAT, name, value);
 
     sendMessage(usbDevice, (uint8_t*) message, strlen(message));
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        char* (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals) {
+        char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    char* stringValue = handler(signal, signals, value, &send);
+    char* stringValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
     if(send) {
@@ -140,11 +139,11 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        bool (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals) {
+        bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    bool booleanValue = handler(signal, signals, value, &send);
+    bool booleanValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
     if(send) {
@@ -158,24 +157,24 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     }
 }
 
-float passthroughHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send) {
+float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
     return value;
 }
 
-bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send) {
+bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
     return value == 0.0 ? false : true;
 }
 
-float ignoreHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send) {
+float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
     *send = false;
     return 0.0;
 }
 
-char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send) {
+char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
     for(int i = 0; i < signal->stateCount; i++) {
         if(signal->states[i].value == value) {
             return signal->states[i].name;
@@ -185,6 +184,17 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        CanSignal* signals) {
-    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals);
+        CanSignal* signals, int signalCount) {
+    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals,
+            signalCount);
+}
+
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
+    for(int i = 0; i < signalCount; i++) {
+        CanSignal* signal = &signals[i];
+        if(!strcmp(name, signal->genericName)) {
+            return signal;
+        }
+    }
+    return 0;
 }

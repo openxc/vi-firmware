@@ -87,8 +87,8 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  * signal - the details of the signal to decode and forward.
  * data   - the raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
-        uint8_t* data, CanSignal* signals);
+void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+        CanSignal* signals, int signalCount);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and also runs the final float value through the
@@ -100,21 +100,22 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
  * handler - a function pointer that performs extra processing on the
  *                 float value.
  * signals       - an array of all active signals.
+ * signalCount   - the length of the signals array
  */
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        char* (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals);
+        char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount);
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        float (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals);
+        float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount);
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
-        bool (*handler)(CanSignal*, CanSignal*, float, bool*),
-        CanSignal* signals);
+        bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        CanSignal* signals, int signalCount);
 
 /* Public: Parses a CAN signal from a message and applies required
  *           transformation.
@@ -126,36 +127,49 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
-void sendNumericalMessage(CanSignal* signal, float value,
-        USBDevice* usbDevice);
+void sendNumericalMessage(char* name, float value, USBDevice* usbDevice);
 
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.
  *
  * signal  - the details of the signal that contains the state mapping.
  * signals - the list of all signals
+ * signalCount - the length of the signals array
  * value   - the numerical value that maps to a state
  */
-char* stateHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send);
+char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send);
 
 /* Public: Coerces a numerical value to a boolean.
  *
  * signal  - the details of the signal that contains the state mapping.
  * signals - the list of all signals
+ * signalCount - the length of the signals array
  * value   - the numerical value that will be converted to a boolean.
  */
-bool booleanHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send);
+bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send);
 
 /* Public: Store the value of a signal, but flip the send flag to false.
  *
  * signal  - the details of the signal that contains the state mapping.
  * signals - the list of all signals
+ * signalCount - the length of the signals array
  * value   - the numerical value that will be converted to a boolean.
  */
-float ignoreHandler(CanSignal* signal, CanSignal* signals, float value,
-        bool* send);
+float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send);
+
+/* Public: Look up the CanSignal representation of a signal based on its generic
+ *         name.
+ *
+ * name - the generic, OpenXC name of the signal
+ * signals - the list of all signals
+ * signalCount - the length of the signals array
+ *
+ * Returns a pointer to the CanSignal if found, otherwise null;
+ */
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
 
 /* Initialize the CAN controller. See inline comments for description of the
  * process.

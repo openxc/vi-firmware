@@ -233,7 +233,7 @@ memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
 the raw steering wheel angle value.
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-            float value, bool* send) {
+            int signalCount, float value, bool* send) {
         if(signal->lastValue == 0) {
             // left turn
             value *= -1;
@@ -244,14 +244,14 @@ the raw steering wheel angle value.
 The valid return types for value handlers are `bool`, `float` and `char*` - the
 function prototype must match one of:
 
-    char* customHandler(CanSignal* signal, CanSignal* signals, float value,
-            bool* send);
+    char* customHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+            float value, bool* send);
 
-    float customHandler(CanSignal* signal, CanSignal* signals, float value,
-            bool* send);
+    float customHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+            float value, bool* send);
 
-    bool customHandler(CanSignal* signal, CanSignal* signals, float value,
-            bool* send);
+    bool customhandler(cansignal* signal, cansignal* signals, int signalCount,
+            float value, bool* send);
 
 where `signal` is a pointer to the `CanSignal` this is handling, `signals` is a
 an array of all signals, `value` is the raw value from CAN and `send` is a flag
@@ -273,7 +273,7 @@ message to guarantee they arrived together. You can generate 0, 1 or many
 translated messages from one call to your handler function.
 
     void handleSteeringWheelMessage(int messageId, uint8_t* data,
-            CanSignal* signals, USBDevice* usbDevice) {
+            CanSignal* signals, int signalCount, USBDevice* usbDevice) {
         float steeringWheelAngle = decodeCanSignal(&signals[1], data);
         float steeringWheelSign = decodeCanSignal(&signals[2], data);
 

@@ -275,6 +275,8 @@ class JsonParser(Parser):
         super(JsonParser, self).__init__()
         if not hasattr(filenames, "__iter__"):
             filenames = [filenames]
+        else:
+            filenames = itertools.chain(*filenames)
         self.json_files = filenames
 
     # The JSON parser accepts the format specified in the README.

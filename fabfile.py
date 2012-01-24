@@ -72,11 +72,3 @@ def release():
     local("mkdir -p %(releases_directory)s" % env)
     local("cp cantranslator/build-cli/cantranslator.hex "
             "%(releases_directory)s/cantranslator-%(tag)s.hex" % env)
-
-@task
-def swap():
-    prompt("Vehicle ID?", 'vehicle_id')
-    with lcd("cantranslator"):
-        local("ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp")
-        local("ln -fs ../../cansignals/%(vehicle_id)s/handlers.cpp" % env)
-        local("ln -fs ../../cansignals/build/%(vehicle_id)s/all.cpp signals.cpp" % env)

@@ -196,5 +196,8 @@ CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
             return signal;
         }
     }
+    Serial.print("Could'nt find a signal with the genericName \:");
+    Serial.print(name);
+    Serial.println(" -- probably about to segfault");
     return 0;
 }

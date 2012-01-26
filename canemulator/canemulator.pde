@@ -8,7 +8,7 @@
 #include "usbutil.h"
 #include "canutil.h"
 
-#define NUMERICAL_SIGNAL_COUNT 10
+#define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
@@ -32,6 +32,7 @@ char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "latitude",
     "longitude",
     "fuel_level",
+    "fuel_consumed_since_restart",
 };
 
 char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {

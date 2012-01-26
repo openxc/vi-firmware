@@ -26,6 +26,12 @@ extract them to your MPIDE sketchbook directory in a subdirectory named
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32
 
+### GUI Building
+
+If you're using the MPIDE to compile and you get a whole mess of errors stemming
+from the chipKIT libraries, make sure you have the "chipKIT Max32" selected in
+MPIDE under Tools -> Board.
+
 ### Command Line Building
 
 Alternatively, you can use GNU Make to compile and upload code to the

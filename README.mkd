@@ -43,6 +43,10 @@ If you're using the MPIDE to compile and you get a whole mess of errors stemming
 from the chipKIT libraries, make sure you have the "chipKIT Max32" selected in
 MPIDE under Tools -> Board.
 
+If you're using Mac OS X, make sure to install the FTDI driver that comes with
+the MPIDE download. The chipKIT uses a different FTDI chip, so even if you've
+used the Arduino before, you still need to install this driver.
+
 ### Command Line Building
 
 Alternatively, you can use GNU Make to compile and upload code to the

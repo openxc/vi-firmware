@@ -91,6 +91,7 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data) {
     unsigned long rawValue = getBitField(data, signal->bitPosition,
             signal->bitSize);
     return rawValue * signal->factor + signal->offset;
+
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,

@@ -387,6 +387,22 @@ on a CAN translator - the `--version` flag will tell you that.
     $ python reader.py --version
     Device is running version 1.0
 
+### Dependencies
+
+The `reader.py` script requires the `pyusb` Python library to be installed along
+with a backing system library for accessing USB devices. `libusb-1.0` is the
+recommended library.
+
+In OS X, the best way to install `libusb-1.0` is with
+[homebrew](http://mxcl.github.com/homebrew/). `pyusb` can be installed on
+Linux/OS X using `easy_install` or `pip`.
+
+    $ sudo pip install pyusb
+
+    or
+
+    $ sudo easy_install pyusb
+
 ## Traces
 
 You can record a trace of JSON messages from the CAN reader for use in testing.

@@ -5,3 +5,5 @@ build/
 benchmarking/
 build-cli
 release/
+.DS_Store
+*.pyc

@@ -152,7 +152,7 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
             strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
         char message[messageLength];
         sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
-                value ? "true" : "false");
+                booleanValue ? "true" : "false");
 
         sendMessage(usbDevice, (uint8_t*) message, strlen(message));
     }

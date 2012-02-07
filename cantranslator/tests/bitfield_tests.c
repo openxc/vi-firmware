@@ -1,16 +1,18 @@
 #include <check.h>
+#include <stdint.h>
 #include "bitfield.h"
 
-START_TEST (test_foo)
+START_TEST (test_size)
 {
-    fail_unless(1 == 2);
+    uint8_t data = 0xFF;
+    fail_unless(getBitField(&data, 0, 4) == 0xF);
 }
 END_TEST
 
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
-    tcase_add_test(tc_core, test_foo);
+    tcase_add_test(tc_core, test_size);
     suite_add_tcase(s, tc_core);
 
     return s;

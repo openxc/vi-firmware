@@ -21,7 +21,7 @@ class DataPoint(object):
         self.Event = ''
 
         # Vocab is a list of acceptable strings for CurrentValue
-        self.Vocab = vocab
+        self.Vocab = vocab or []
 
     def NewVal(self, ParsedMess):
         self.DataPresent = True
@@ -56,7 +56,6 @@ class DataPoint(object):
             print colored('Bad Data:  ', 'red'), self.CurrentData, ' ', self.Event
         else:
             print colored('Good Data:  ', 'green'), self.CurrentData, ' ', self.Event
-    
 
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
@@ -129,7 +128,7 @@ class UsbDevice(object):
                 for point in self.DataPoints:
                     point.PrintVal()
                 print ' '
-                
+
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -165,7 +164,7 @@ def Setup_List():
     pointslist.append(DataPoint('engine_speed', float, 0, 8000))
     pointslist.append(DataPoint('transmission_gear_position', unicode, vocab = ['first', 'second', 'third',
                                                     'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'neutral', 'reverse']))
-    pointslist.append(DataPoint('ignition_status', unicode, vocab = ['off', 'accessory', 'run', 'start']))    
+    pointslist.append(DataPoint('ignition_status', unicode, vocab = ['off', 'accessory', 'run', 'start']))
     pointslist.append(DataPoint('brake_pedal_status', bool))
     pointslist.append(DataPoint('parking_brake_status', bool))
     pointslist.append(DataPoint('headlamp_status', bool))
@@ -182,11 +181,10 @@ def Setup_List():
     pointslist.append(DataPoint('latitude', float, -90, 90))
     pointslist.append(DataPoint('longitude', float, -180, 180))
     
-    
     for point in pointslist:
         point.PrintVal()
     print ' '
-        
+
     return pointslist
 
 def main():

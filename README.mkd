@@ -417,3 +417,13 @@ by the openxc-android library, for example.
 
 See the [OpenXC][] website for a list of officially supported
 [signal names](http://openxcplatform.com/developers/vehicle-interface/translation-specs.html).
+
+## Test Suite
+
+The non-chipKIT code in this repository includes a small test suite that uses
+the [check][] library. After installing that library, run the test suite like
+so:
+
+    cantranslator/ $ make test
+
+[check]: http://check.sourceforge.net

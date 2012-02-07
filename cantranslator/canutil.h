@@ -1,7 +1,7 @@
 #ifndef _CANUTIL_H_
 #define _CANUTIL_H_
 
-#include "WProgram.h"
+#include <stdint.h>
 #include "chipKITCAN.h"
 #include "bitfield.h"
 #include "usbutil.h"

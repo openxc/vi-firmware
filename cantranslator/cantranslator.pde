@@ -4,7 +4,6 @@
  *  chipKIT Network Shield libraries.
  */
 
-#include "WProgram.h"
 #include "chipKITCAN.h"
 #include "chipKITUSBDevice.h"
 #include "bitfield.h"

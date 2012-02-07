@@ -17,40 +17,46 @@ class DataPoint(object):
         self.DataType = datatype
         self.DataMin = datamin
         self.DataMax = datamax
+        self.Count = 0
+        self.Event = ''
 
     def SetVocab(self, Vocab):
         # Vocab is a list of acceptable strings for CurrentValue
         self.Vocab = Vocab
 
-    def NewVal(self, value):
+    def NewVal(self, ParsedMess):
         self.DataPresent = True
+        self.Count += 1
         if self.BadData==False:
-            self.CurrentData = value
-#            print type(value)
-            if type(value) != self.DataType:
+            self.CurrentData = ParsedMess['value']
+#            print type(self.CurrentData)
+            if type(self.CurrentData) != self.DataType:
                 self.BadData = True
             else:
-                if type(value) is unicode:
-                    if value in self.Vocab:
+                if type(self.CurrentData) is unicode:
+                    if self.CurrentData in self.Vocab:
                         self.BadData = False
+                        if len(ParsedMess) > 2:
+                            self.Event = ParsedMess['event']
                     else:
                         self.BadData = True
-                elif type(value) is bool:
+                elif type(self.CurrentData) is bool:
                     self.BadData = False
                 else:
-                    if value < self.DataMin:
+                    if self.CurrentData < self.DataMin:
                         self.BadData = True
-                    if value > self.DataMax:
+                    if self.CurrentData > self.DataMax:
                         self.BadData = True
 
     def PrintVal(self):
+        print self.Count, ' ', 
         print self.DataName, '  ',
         if self.DataPresent == False:
             print colored('No Data', 'yellow')
         elif self.BadData == True:
-            print colored('Bad Data:  ', 'red'), self.CurrentData
+            print colored('Bad Data:  ', 'red'), self.CurrentData, ' ', self.Event
         else:
-            print colored('Good Data:  ', 'green'), self.CurrentData
+            print colored('Good Data:  ', 'green'), self.CurrentData, ' ', self.Event
     
 
 class UsbDevice(object):
@@ -98,7 +104,8 @@ class UsbDevice(object):
                 for datapoint in self.DataPoints:
                     if datapoint.DataName == parsed_message['name']:
                         self.FoundIt = True
-                        datapoint.NewVal(parsed_message['value'])
+                        datapoint.NewVal(parsed_message)
+                        break
                 if not self.FoundIt:
                     if self.dump:
                         print message
@@ -154,19 +161,10 @@ def parse_options():
 
 def Setup_List():
     pointslist = []
-    
-    pointslist.append(DataPoint('steering_wheel_angle', float, -360, 360))
-    pointslist.append(DataPoint('windshield_wiper_status', bool))
-    pointslist.append(DataPoint('brake_pedal_status', bool))
-    pointslist.append(DataPoint('parking_brake_status', bool))
-    pointslist.append(DataPoint('latitude', float, -90, 90))
-    pointslist.append(DataPoint('longitude', float, -180, 180))
-    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
-    pointslist.append(DataPoint('odometer', float, 0, 10000))
-    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
-    pointslist.append(DataPoint('engine_speed', float, 0, 300))
-    pointslist.append(DataPoint('fuel_level', float, 0, 300))
-    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
+
+    NewPoint = DataPoint('door_status', unicode)
+    NewPoint.SetVocab(['driver', 'rear_right', 'rear_left', 'passenger'])
+    pointslist.append(NewPoint)
 
     NewPoint = DataPoint('transmission_gear_position', unicode)
     NewPoint.SetVocab(['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
@@ -176,6 +174,23 @@ def Setup_List():
     NewPoint = DataPoint('ignition_status', unicode)
     NewPoint.SetVocab(['off', 'accessory', 'run', 'start'])
     pointslist.append(NewPoint)
+    
+    pointslist.append(DataPoint('windshield_wiper_status', bool))
+    pointslist.append(DataPoint('brake_pedal_status', bool))
+    pointslist.append(DataPoint('parking_brake_status', bool))
+    pointslist.append(DataPoint('steering_wheel_angle', float, -360, 360))
+    pointslist.append(DataPoint('latitude', float, -90, 90))
+    pointslist.append(DataPoint('longitude', float, -180, 180))
+    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
+    pointslist.append(DataPoint('odometer', float, 0, 10000))
+    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('engine_speed', float, 0, 300))
+    pointslist.append(DataPoint('fuel_level', float, 0, 300))
+    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('high_beam_status', bool))
+    pointslist.append(DataPoint('headlamp_status', bool))
+    pointslist.append(DataPoint('accelerator_pedal_position', float, 0, 300))
+    pointslist.append(DataPoint('powertrain_torque', float, 0, 300))
 
     for point in pointslist:
         point.PrintVal()

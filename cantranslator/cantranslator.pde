@@ -63,8 +63,9 @@ void loop() {
     receiveCan(&can2, &isCan2MessageReceived);
 
     // a workaround to stop CAN from crashing indefinitely
-    if(receivedMessages % 500 == 0) {
+    if(receivedMessages % 1000 == 0) {
         initializeAllCan();
+        delay(100);
     }
     ++receivedMessages;
 }

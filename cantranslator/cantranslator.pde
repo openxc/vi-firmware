@@ -56,9 +56,17 @@ void initializeAllCan() {
     can2.attachInterrupt(handleCan2Interrupt);
 }
 
+int receivedMessages = 0;
+
 void loop() {
     receiveCan(&can1, &isCan1MessageReceived);
     receiveCan(&can2, &isCan2MessageReceived);
+
+    // a workaround to stop CAN from crashing indefinitely
+    if(receivedMessages % 500 == 0) {
+        initializeAllCan();
+    }
+    ++receivedMessages;
 }
 
 

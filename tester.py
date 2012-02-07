@@ -12,21 +12,20 @@ class DataPoint(object):
     CurrentData = 0.0
     Vocab = []
 
-    def __init__(self, dataname, datatype, datamin=0, datamax=0):
+    def __init__(self, dataname, datatype, datamin=0, datamax=0, vocab=None):
         self.DataName = dataname
         self.DataType = datatype
         self.DataMin = datamin
         self.DataMax = datamax
-        self.Count = 0
+#        self.Count = 0
         self.Event = ''
 
-    def SetVocab(self, Vocab):
         # Vocab is a list of acceptable strings for CurrentValue
-        self.Vocab = Vocab
+        self.Vocab = vocab
 
     def NewVal(self, ParsedMess):
         self.DataPresent = True
-        self.Count += 1
+#        self.Count += 1
         if self.BadData==False:
             self.CurrentData = ParsedMess['value']
 #            print type(self.CurrentData)
@@ -49,7 +48,7 @@ class DataPoint(object):
                         self.BadData = True
 
     def PrintVal(self):
-        print self.Count, ' ', 
+#        print self.Count, ' ', 
         print self.DataName, '  ',
         if self.DataPresent == False:
             print colored('No Data', 'yellow')
@@ -162,36 +161,28 @@ def parse_options():
 def Setup_List():
     pointslist = []
 
-    NewPoint = DataPoint('door_status', unicode)
-    NewPoint.SetVocab(['driver', 'rear_right', 'rear_left', 'passenger'])
-    pointslist.append(NewPoint)
-
-    NewPoint = DataPoint('transmission_gear_position', unicode)
-    NewPoint.SetVocab(['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
-                        'seventh', 'eighth', 'neutral', 'reverse'])
-    pointslist.append(NewPoint)
-
-    NewPoint = DataPoint('ignition_status', unicode)
-    NewPoint.SetVocab(['off', 'accessory', 'run', 'start'])
-    pointslist.append(NewPoint)
-    
-    pointslist.append(DataPoint('windshield_wiper_status', bool))
+    pointslist.append(DataPoint('steering_wheel_angle', float, -460, 460))
+    pointslist.append(DataPoint('engine_speed', float, 0, 8000))
+    pointslist.append(DataPoint('transmission_gear_position', unicode, vocab = ['first', 'second', 'third',
+                                                    'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'neutral', 'reverse']))
+    pointslist.append(DataPoint('ignition_status', unicode, vocab = ['off', 'accessory', 'run', 'start']))    
     pointslist.append(DataPoint('brake_pedal_status', bool))
     pointslist.append(DataPoint('parking_brake_status', bool))
-    pointslist.append(DataPoint('steering_wheel_angle', float, -360, 360))
-    pointslist.append(DataPoint('latitude', float, -90, 90))
-    pointslist.append(DataPoint('longitude', float, -180, 180))
-    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
-    pointslist.append(DataPoint('odometer', float, 0, 10000))
-    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
-    pointslist.append(DataPoint('engine_speed', float, 0, 300))
-    pointslist.append(DataPoint('fuel_level', float, 0, 300))
-    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
-    pointslist.append(DataPoint('high_beam_status', bool))
     pointslist.append(DataPoint('headlamp_status', bool))
     pointslist.append(DataPoint('accelerator_pedal_position', float, 0, 300))
-    pointslist.append(DataPoint('powertrain_torque', float, 0, 300))
-
+    pointslist.append(DataPoint('powertrain_torque', float, -100, 300))
+    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
+    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('door_status', unicode, vocab=['driver', 'rear_right', 'rear_left', 'passenger']))
+    pointslist.append(DataPoint('windshield_wiper_status', bool))
+    pointslist.append(DataPoint('odometer', float, 0, 10000))
+    pointslist.append(DataPoint('high_beam_status', bool))
+    pointslist.append(DataPoint('fuel_level', float, 0, 300))
+    pointslist.append(DataPoint('latitude', float, -90, 90))
+    pointslist.append(DataPoint('longitude', float, -180, 180))
+    
+    
     for point in pointslist:
         point.PrintVal()
     print ' '

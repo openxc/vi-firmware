@@ -12,15 +12,14 @@ class DataPoint(object):
     CurrentData = 0.0
     Vocab = []
 
-    def __init__(self, dataname, datatype, datamin=0, datamax=0):
+    def __init__(self, dataname, datatype, datamin=0, datamax=0, vocab=None):
         self.DataName = dataname
         self.DataType = datatype
         self.DataMin = datamin
         self.DataMax = datamax
 
-    def SetVocab(self, Vocab):
         # Vocab is a list of acceptable strings for CurrentValue
-        self.Vocab = Vocab
+        self.Vocab = vocab or []
 
     def NewVal(self, value):
         self.DataPresent = True
@@ -51,7 +50,7 @@ class DataPoint(object):
             print colored('Bad Data:  ', 'red'), self.CurrentData
         else:
             print colored('Good Data:  ', 'green'), self.CurrentData
-    
+
 
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
@@ -123,7 +122,7 @@ class UsbDevice(object):
                 for point in self.DataPoints:
                     point.PrintVal()
                 print ' '
-                
+
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -154,7 +153,7 @@ def parse_options():
 
 def Setup_List():
     pointslist = []
-    
+
     pointslist.append(DataPoint('steering_wheel_angle', float, -360, 360))
     pointslist.append(DataPoint('windshield_wiper_status', bool))
     pointslist.append(DataPoint('brake_pedal_status', bool))
@@ -168,19 +167,16 @@ def Setup_List():
     pointslist.append(DataPoint('fuel_level', float, 0, 300))
     pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
 
-    NewPoint = DataPoint('transmission_gear_position', unicode)
-    NewPoint.SetVocab(['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
-                        'seventh', 'eighth', 'neutral', 'reverse'])
-    pointslist.append(NewPoint)
-
-    NewPoint = DataPoint('ignition_status', unicode)
-    NewPoint.SetVocab(['off', 'accessory', 'run', 'start'])
-    pointslist.append(NewPoint)
+    pointslist.append(DataPoint('transmission_gear_position', unicode,
+            vocab=['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
+                'seventh', 'eighth', 'neutral', 'reverse']))
+    pointslist.append(DataPoint('ignition_status', unicode,
+            vocab=['off', 'accessory', 'run', 'start']))
 
     for point in pointslist:
         point.PrintVal()
     print ' '
-        
+
     return pointslist
 
 def main():

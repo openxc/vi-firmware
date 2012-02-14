@@ -5,6 +5,64 @@ import sys
 import argparse
 import usb.core
 
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(text, color):
+        return text
+
+
+class DataPoint(object):
+    BadData = False
+    DataPresent = False
+    CurrentData = 0.0
+    Vocab = []
+
+    def __init__(self, dataname, datatype, datamin=0, datamax=0, vocab=None):
+        self.DataName = dataname
+        self.DataType = datatype
+        self.DataMin = datamin
+        self.DataMax = datamax
+#        self.Count = 0
+        self.Event = ''
+
+        # Vocab is a list of acceptable strings for CurrentValue
+        self.Vocab = vocab or []
+
+    def NewVal(self, ParsedMess):
+        self.DataPresent = True
+#        self.Count += 1
+        if self.BadData==False:
+            self.CurrentData = ParsedMess['value']
+#            print type(self.CurrentData)
+            if type(self.CurrentData) != self.DataType:
+                self.BadData = True
+            else:
+                if type(self.CurrentData) is unicode:
+                    if self.CurrentData in self.Vocab:
+                        self.BadData = False
+                        if len(ParsedMess) > 2:
+                            self.Event = ParsedMess['event']
+                    else:
+                        self.BadData = True
+                elif type(self.CurrentData) is bool:
+                    self.BadData = False
+                else:
+                    if self.CurrentData < self.DataMin:
+                        self.BadData = True
+                    if self.CurrentData > self.DataMax:
+                        self.BadData = True
+
+    def PrintVal(self):
+#        print self.Count, ' ',
+        print self.DataName, '  ',
+        if self.DataPresent == False:
+            print colored('No Data', 'yellow')
+        elif self.BadData == True:
+            print colored('Bad Data:  ', 'red'), self.CurrentData, ' ', self.Event
+        else:
+            print colored('Good Data:  ', 'green'), self.CurrentData, ' ', self.Event
+
 
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
@@ -12,14 +70,16 @@ class UsbDevice(object):
     RESET_CONTROL_COMMAND = 0x81
 
     def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False,
-            dump=False):
+            dump=False, dashboard=False, elements=None):
         self.verbose = verbose
         self.dump = dump
+        self.dashboard = dashboard
         self.vendorId = vendorId
         self.endpoint = endpoint
         self.message_buffer = ""
         self.messages_received = 0
         self.good_messages = 0
+        self.elements = elements or []
 
         self.device = usb.core.find(idVendor=vendorId)
         if not self.device:
@@ -49,6 +109,13 @@ class UsbDevice(object):
                     print message
                 if self.verbose:
                     print parsed_message
+                if self.dashboard:
+                    found_element = False
+                    for element in self.elements:
+                        if element.DataName == parsed_message.get('name', None):
+                            found_element = True
+                            element.NewVal(parsed_message)
+                            break
                 return parsed_message
             finally:
                 self.message_buffer = remainder
@@ -67,6 +134,9 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
+                for element in self.elements:
+                    element.PrintVal()
+                print
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -91,16 +161,52 @@ def parse_options():
             action="store_true",
             dest="reset",
             default=False)
+    parser.add_argument("--dashboard",
+            action="store_true",
+            dest="dashboard",
+            default=False)
 
     arguments = parser.parse_args()
     return arguments
 
 
+def setup_list():
+    pointslist = []
+
+    pointslist.append(DataPoint('steering_wheel_angle', float, -460, 460))
+    pointslist.append(DataPoint('engine_speed', float, 0, 8000))
+    pointslist.append(DataPoint('transmission_gear_position', unicode, vocab = ['first', 'second', 'third',
+                                                    'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'neutral', 'reverse']))
+    pointslist.append(DataPoint('ignition_status', unicode, vocab = ['off', 'accessory', 'run', 'start']))
+    pointslist.append(DataPoint('brake_pedal_status', bool))
+    pointslist.append(DataPoint('parking_brake_status', bool))
+    pointslist.append(DataPoint('headlamp_status', bool))
+    pointslist.append(DataPoint('accelerator_pedal_position', float, 0, 300))
+    pointslist.append(DataPoint('powertrain_torque', float, -100, 300))
+    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
+    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
+    pointslist.append(DataPoint('door_status', unicode, vocab=['driver', 'rear_right', 'rear_left', 'passenger']))
+    pointslist.append(DataPoint('windshield_wiper_status', bool))
+    pointslist.append(DataPoint('odometer', float, 0, 10000))
+    pointslist.append(DataPoint('high_beam_status', bool))
+    pointslist.append(DataPoint('fuel_level', float, 0, 300))
+    pointslist.append(DataPoint('latitude', float, -90, 90))
+    pointslist.append(DataPoint('longitude', float, -180, 180))
+
+    for point in pointslist:
+        point.PrintVal()
+    print ' '
+
+    return pointslist
+
+
 def main():
     arguments = parse_options()
+    elements = setup_list()
 
     device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
-            dump=arguments.dump)
+            dump=arguments.dump, dashboard=arguments.dashboard)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

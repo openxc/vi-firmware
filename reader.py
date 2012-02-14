@@ -35,7 +35,7 @@ class DataPoint(object):
                     if self.current_data in self.vocab:
                         self.bad_data = False
                         if len(parsed_mess) > 2:
-                            self.Event = parsed_mess['event']
+                            self.event = parsed_mess['event']
                     else:
                         self.bad_data = True
                 elif type(self.current_data) is bool:
@@ -55,7 +55,7 @@ class DataPoint(object):
                 result += colored('Bad Data:  ', 'red')
             else:
                 result += colored('Good Data:  ', 'green')
-            result += self.current_data, ' ', self.Event
+            result += self.current_data, ' ', self.event
         return result
 
 

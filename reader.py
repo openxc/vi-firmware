@@ -28,7 +28,7 @@ class DataPoint(object):
 
     def NewVal(self, ParsedMess):
         self.data_present = True
-        if self.bad_data==False:
+        if not self.bad_data:
             self.current_data = ParsedMess['value']
             if type(self.current_data) != self.type:
                 self.bad_data = True
@@ -50,9 +50,9 @@ class DataPoint(object):
 
     def PrintVal(self):
         print self.name, '  ',
-        if self.data_present == False:
+        if not self.data_present:
             print colored('No Data', 'yellow')
-        elif self.bad_data == True:
+        elif self.bad_data:
             print (colored('Bad Data:  ', 'red'), self.current_data, ' ',
                     self.Event)
         else:

@@ -106,10 +106,8 @@ class UsbDevice(object):
                 if self.verbose:
                     print parsed_message
                 if self.dashboard:
-                    found_element = False
                     for element in self.elements:
                         if element.name == parsed_message.get('name', None):
-                            found_element = True
                             element.NewVal(parsed_message)
                             break
                 return parsed_message
@@ -202,10 +200,10 @@ def initialize_elements():
 
 def main():
     arguments = parse_options()
-    elements = initialize_elements()
 
     device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
-            dump=arguments.dump, dashboard=arguments.dashboard)
+            dump=arguments.dump, dashboard=arguments.dashboard,
+            elements=initialize_elements())
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

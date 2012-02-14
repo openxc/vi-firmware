@@ -26,25 +26,25 @@ class DataPoint(object):
         self.vocab = vocab or []
 
     def update(self, message):
-        if not self.bad_data:
-            self.current_data = parsed_mess['value']
-            if type(self.current_data) != self.type:
-                self.bad_data = True
-            else:
-                if type(self.current_data) is unicode:
-                    if self.current_data in self.vocab:
-                        self.bad_data = False
-                        if len(parsed_mess) > 2:
-                            self.event = parsed_mess['event']
-                    else:
-                        self.bad_data = True
-                elif type(self.current_data) is bool:
-                    self.bad_data = False
+        if self.bad_data:
+            # Received bad data at some point - leave it in an error state
+            return
+
+        self.current_data = parsed_mess['value']
+        if type(self.current_data) != self.type:
+            self.bad_data = True
+        else:
+            if type(self.current_data) is unicode:
+                if self.current_data in self.vocab:
+                    if len(parsed_mess) > 2:
+                        self.event = parsed_mess['event']
                 else:
-                    if self.current_data < self.min_value:
-                        self.bad_data = True
-                    if self.current_data > self.max_value:
-                        self.bad_data = True
+                    self.bad_data = True
+            else:
+                if self.current_data < self.min_value:
+                    self.bad_data = True
+                elif self.current_data > self.max_value:
+                    self.bad_data = True
 
     def __str__(self):
         result = self.name + "  "

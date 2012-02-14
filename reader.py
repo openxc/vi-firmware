@@ -23,7 +23,6 @@ class DataPoint(object):
         self.DataType = datatype
         self.DataMin = datamin
         self.DataMax = datamax
-#        self.Count = 0
         self.Event = ''
 
         # Vocab is a list of acceptable strings for CurrentValue
@@ -31,10 +30,8 @@ class DataPoint(object):
 
     def NewVal(self, ParsedMess):
         self.DataPresent = True
-#        self.Count += 1
         if self.BadData==False:
             self.CurrentData = ParsedMess['value']
-#            print type(self.CurrentData)
             if type(self.CurrentData) != self.DataType:
                 self.BadData = True
             else:
@@ -54,14 +51,15 @@ class DataPoint(object):
                         self.BadData = True
 
     def PrintVal(self):
-#        print self.Count, ' ',
         print self.DataName, '  ',
         if self.DataPresent == False:
             print colored('No Data', 'yellow')
         elif self.BadData == True:
-            print colored('Bad Data:  ', 'red'), self.CurrentData, ' ', self.Event
+            print colored('Bad Data:  ', 'red'), self.CurrentData, ' ',
+                self.Event
         else:
-            print colored('Good Data:  ', 'green'), self.CurrentData, ' ', self.Event
+            print colored('Good Data:  ', 'green'), self.CurrentData, ' ',
+            self.Event
 
 
 class UsbDevice(object):
@@ -121,7 +119,6 @@ class UsbDevice(object):
                 self.message_buffer = remainder
                 self.messages_received += 1
 
-
     def run(self):
         while True:
             self.message_buffer += self.device.read(self.endpoint,
@@ -137,6 +134,7 @@ class UsbDevice(object):
                 for element in self.elements:
                     element.PrintVal()
                 print
+
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -170,40 +168,43 @@ def parse_options():
     return arguments
 
 
-def setup_list():
-    pointslist = []
+def initialize_elements():
+    elements = []
 
-    pointslist.append(DataPoint('steering_wheel_angle', float, -460, 460))
-    pointslist.append(DataPoint('engine_speed', float, 0, 8000))
-    pointslist.append(DataPoint('transmission_gear_position', unicode, vocab = ['first', 'second', 'third',
-                                                    'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'neutral', 'reverse']))
-    pointslist.append(DataPoint('ignition_status', unicode, vocab = ['off', 'accessory', 'run', 'start']))
-    pointslist.append(DataPoint('brake_pedal_status', bool))
-    pointslist.append(DataPoint('parking_brake_status', bool))
-    pointslist.append(DataPoint('headlamp_status', bool))
-    pointslist.append(DataPoint('accelerator_pedal_position', float, 0, 300))
-    pointslist.append(DataPoint('powertrain_torque', float, -100, 300))
-    pointslist.append(DataPoint('vehicle_speed', float, 0, 120))
-    pointslist.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
-    pointslist.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
-    pointslist.append(DataPoint('door_status', unicode, vocab=['driver', 'rear_right', 'rear_left', 'passenger']))
-    pointslist.append(DataPoint('windshield_wiper_status', bool))
-    pointslist.append(DataPoint('odometer', float, 0, 10000))
-    pointslist.append(DataPoint('high_beam_status', bool))
-    pointslist.append(DataPoint('fuel_level', float, 0, 300))
-    pointslist.append(DataPoint('latitude', float, -90, 90))
-    pointslist.append(DataPoint('longitude', float, -180, 180))
+    elements.append(DataPoint('steering_wheel_angle', float, -460, 460))
+    elements.append(DataPoint('engine_speed', float, 0, 8000))
+    elements.append(DataPoint('transmission_gear_position', unicode,
+        vocab=['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
+            'seventh', 'eighth', 'neutral', 'reverse']))
+    elements.append(DataPoint('ignition_status', unicode,
+        vocab=['off', 'accessory', 'run', 'start']))
+    elements.append(DataPoint('brake_pedal_status', bool))
+    elements.append(DataPoint('parking_brake_status', bool))
+    elements.append(DataPoint('headlamp_status', bool))
+    elements.append(DataPoint('accelerator_pedal_position', float, 0, 300))
+    elements.append(DataPoint('powertrain_torque', float, -100, 300))
+    elements.append(DataPoint('vehicle_speed', float, 0, 120))
+    elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
+    elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
+    elements.append(DataPoint('door_status', unicode,
+        vocab=['driver', 'rear_right', 'rear_left', 'passenger']))
+    elements.append(DataPoint('windshield_wiper_status', bool))
+    elements.append(DataPoint('odometer', float, 0, 10000))
+    elements.append(DataPoint('high_beam_status', bool))
+    elements.append(DataPoint('fuel_level', float, 0, 300))
+    elements.append(DataPoint('latitude', float, -90, 90))
+    elements.append(DataPoint('longitude', float, -180, 180))
 
-    for point in pointslist:
+    for point in elements:
         point.PrintVal()
     print ' '
 
-    return pointslist
+    return elements
 
 
 def main():
     arguments = parse_options()
-    elements = setup_list()
+    elements = initialize_elements()
 
     device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
             dump=arguments.dump, dashboard=arguments.dashboard)

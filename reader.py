@@ -30,14 +30,14 @@ class DataPoint(object):
             # Received bad data at some point - leave it in an error state
             return
 
-        self.current_data = parsed_mess['value']
+        self.current_data = message['value']
         if type(self.current_data) != self.type:
             self.bad_data = True
         else:
             if type(self.current_data) is unicode:
                 if self.current_data in self.vocab:
-                    if len(parsed_mess) > 2:
-                        self.event = parsed_mess['event']
+                    if len(message) > 2:
+                        self.event = message['event']
                 else:
                     self.bad_data = True
             else:
@@ -55,7 +55,7 @@ class DataPoint(object):
                 result += colored('Bad Data:  ', 'red')
             else:
                 result += colored('Good Data:  ', 'green')
-            result += self.current_data, ' ', self.event
+            result += self.current_data +  ' ' + self.event
         return result
 
 

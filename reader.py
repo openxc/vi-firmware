@@ -26,18 +26,18 @@ class DataPoint(object):
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
 
-    def NewVal(self, ParsedMess):
+    def NewVal(self, parsed_mess):
         self.data_present = True
         if not self.bad_data:
-            self.current_data = ParsedMess['value']
+            self.current_data = parsed_mess['value']
             if type(self.current_data) != self.type:
                 self.bad_data = True
             else:
                 if type(self.current_data) is unicode:
                     if self.current_data in self.vocab:
                         self.bad_data = False
-                        if len(ParsedMess) > 2:
-                            self.Event = ParsedMess['event']
+                        if len(parsed_mess) > 2:
+                            self.Event = parsed_mess['event']
                     else:
                         self.bad_data = True
                 elif type(self.current_data) is bool:

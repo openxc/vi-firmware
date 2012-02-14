@@ -13,53 +13,51 @@ except ImportError:
 
 
 class DataPoint(object):
-    BadData = False
-    DataPresent = False
-    CurrentData = 0.0
-    Vocab = []
-
-    def __init__(self, dataname, datatype, datamin=0, datamax=0, vocab=None):
-        self.DataName = dataname
-        self.DataType = datatype
-        self.DataMin = datamin
-        self.DataMax = datamax
-        self.Event = ''
+    def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None):
+        self.name = name
+        self.type = value_type
+        self.min_value = min_value
+        self.max_value = max_value
+        self.event = ''
+        self.bad_data = False
+        self.data_present = False
+        self.current_data = 0.0
 
         # Vocab is a list of acceptable strings for CurrentValue
-        self.Vocab = vocab or []
+        self.vocab = vocab or []
 
     def NewVal(self, ParsedMess):
-        self.DataPresent = True
-        if self.BadData==False:
-            self.CurrentData = ParsedMess['value']
-            if type(self.CurrentData) != self.DataType:
-                self.BadData = True
+        self.data_present = True
+        if self.bad_data==False:
+            self.current_data = ParsedMess['value']
+            if type(self.current_data) != self.type:
+                self.bad_data = True
             else:
-                if type(self.CurrentData) is unicode:
-                    if self.CurrentData in self.Vocab:
-                        self.BadData = False
+                if type(self.current_data) is unicode:
+                    if self.current_data in self.vocab:
+                        self.bad_data = False
                         if len(ParsedMess) > 2:
                             self.Event = ParsedMess['event']
                     else:
-                        self.BadData = True
-                elif type(self.CurrentData) is bool:
-                    self.BadData = False
+                        self.bad_data = True
+                elif type(self.current_data) is bool:
+                    self.bad_data = False
                 else:
-                    if self.CurrentData < self.DataMin:
-                        self.BadData = True
-                    if self.CurrentData > self.DataMax:
-                        self.BadData = True
+                    if self.current_data < self.min_value:
+                        self.bad_data = True
+                    if self.current_data > self.max_value:
+                        self.bad_data = True
 
     def PrintVal(self):
-        print self.DataName, '  ',
-        if self.DataPresent == False:
+        print self.name, '  ',
+        if self.data_present == False:
             print colored('No Data', 'yellow')
-        elif self.BadData == True:
-            print colored('Bad Data:  ', 'red'), self.CurrentData, ' ',
-                self.Event
+        elif self.bad_data == True:
+            print (colored('Bad Data:  ', 'red'), self.current_data, ' ',
+                    self.Event)
         else:
-            print colored('Good Data:  ', 'green'), self.CurrentData, ' ',
-            self.Event
+            print (colored('Good Data:  ', 'green'), self.current_data, ' ',
+                    self.Event)
 
 
 class UsbDevice(object):
@@ -110,7 +108,7 @@ class UsbDevice(object):
                 if self.dashboard:
                     found_element = False
                     for element in self.elements:
-                        if element.DataName == parsed_message.get('name', None):
+                        if element.name == parsed_message.get('name', None):
                             found_element = True
                             element.NewVal(parsed_message)
                             break

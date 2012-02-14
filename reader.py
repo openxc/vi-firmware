@@ -20,14 +20,12 @@ class DataPoint(object):
         self.max_value = max_value
         self.event = ''
         self.bad_data = False
-        self.data_present = False
-        self.current_data = 0.0
+        self.current_data = None
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
 
     def update(self, message):
-        self.data_present = True
         if not self.bad_data:
             self.current_data = parsed_mess['value']
             if type(self.current_data) != self.type:
@@ -50,7 +48,7 @@ class DataPoint(object):
 
     def __str__(self):
         result = self.name + "  "
-        if not self.data_present:
+        if not self.current_data:
             result += colored('No Data', 'yellow')
         else:
             if self.bad_data:

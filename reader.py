@@ -26,7 +26,7 @@ class DataPoint(object):
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
 
-    def NewVal(self, parsed_mess):
+    def update(self, message):
         self.data_present = True
         if not self.bad_data:
             self.current_data = parsed_mess['value']
@@ -109,7 +109,7 @@ class UsbDevice(object):
                 if self.dashboard:
                     for element in self.elements:
                         if element.name == parsed_message.get('name', None):
-                            element.NewVal(parsed_message)
+                            element.update(parsed_message)
                             break
                 return parsed_message
             finally:

@@ -48,16 +48,17 @@ class DataPoint(object):
                     if self.current_data > self.max_value:
                         self.bad_data = True
 
-    def PrintVal(self):
-        print self.name, '  ',
+    def __str__(self):
+        result = self.name + "  "
         if not self.data_present:
-            print colored('No Data', 'yellow')
-        elif self.bad_data:
-            print (colored('Bad Data:  ', 'red'), self.current_data, ' ',
-                    self.Event)
+            result += colored('No Data', 'yellow')
         else:
-            print (colored('Good Data:  ', 'green'), self.current_data, ' ',
-                    self.Event)
+            if self.bad_data:
+                result += colored('Bad Data:  ', 'red')
+            else:
+                result += colored('Good Data:  ', 'green')
+            result += self.current_data, ' ', self.Event
+        return result
 
 
 class UsbDevice(object):
@@ -128,7 +129,7 @@ class UsbDevice(object):
                         float(self.good_messages) / self.messages_received
                         * 100)
                 for element in self.elements:
-                    element.PrintVal()
+                    print element
                 print
 
 
@@ -191,9 +192,9 @@ def initialize_elements():
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
 
-    for point in elements:
-        point.PrintVal()
-    print ' '
+    for element in elements:
+        print element
+    print
 
     return elements
 

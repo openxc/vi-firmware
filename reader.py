@@ -55,7 +55,7 @@ class DataPoint(object):
                 result += colored('Bad Data:  ', 'red')
             else:
                 result += colored('Good Data:  ', 'green')
-            result += self.current_data +  ' ' + self.event
+            result += str(self.current_data) + " " + str(self.event)
         return result
 
 

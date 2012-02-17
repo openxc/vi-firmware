@@ -18,6 +18,9 @@ class DataPoint(object):
         self.type = value_type
         self.min_value = min_value
         self.max_value = max_value
+        self.range = max_value - min_value
+        if self.range <= 0:
+            self.range = 1
         self.event = ''
         self.bad_data = False
         self.current_data = None
@@ -34,7 +37,9 @@ class DataPoint(object):
         if type(self.current_data) != self.type:
             self.bad_data = True
         else:
-            if type(self.current_data) is unicode:
+            if type(self.current_data) is bool:
+                return
+            elif type(self.current_data) is unicode:
                 if self.current_data in self.vocab:
                     if len(message) > 2:
                         self.event = message['event']
@@ -55,7 +60,24 @@ class DataPoint(object):
                 result += colored('Bad Data:  ', 'red')
             else:
                 result += colored('Good Data:  ', 'green')
+                if self.type == float:
+                    percent = self.current_data - self.min_value
+                    percent /= self.range
+                    Count = 0
+                    result += '*'
+                    percent -= .1
+                    while percent > 0:
+                        result += "-"
+                        Count += 1
+                        percent -= .1
+                    result += "|"
+                    Count += 1
+                    while Count < 10:
+                        result += "-"
+                        Count +=1
+                    result += "* "
             result += str(self.current_data) + " " + str(self.event)
+                
         return result
 
 
@@ -126,10 +148,10 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
-                for element in self.elements:
-                    print element
-                print
-
+                if self.dashboard:
+                    for element in self.elements:
+                        print element
+                    print
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -163,7 +185,7 @@ def parse_options():
     return arguments
 
 
-def initialize_elements():
+def initialize_elements(dashboard):
     elements = []
 
     elements.append(DataPoint('steering_wheel_angle', float, -460, 460))
@@ -176,7 +198,7 @@ def initialize_elements():
     elements.append(DataPoint('brake_pedal_status', bool))
     elements.append(DataPoint('parking_brake_status', bool))
     elements.append(DataPoint('headlamp_status', bool))
-    elements.append(DataPoint('accelerator_pedal_position', float, 0, 300))
+    elements.append(DataPoint('accelerator_pedal_position', float, 0, 200))
     elements.append(DataPoint('powertrain_torque', float, -100, 300))
     elements.append(DataPoint('vehicle_speed', float, 0, 120))
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
@@ -189,10 +211,11 @@ def initialize_elements():
     elements.append(DataPoint('fuel_level', float, 0, 300))
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
-
-    for element in elements:
-        print element
-    print
+    
+    if dashboard:
+        for element in elements:
+            print element
+        print
 
     return elements
 
@@ -202,7 +225,7 @@ def main():
 
     device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
             dump=arguments.dump, dashboard=arguments.dashboard,
-            elements=initialize_elements())
+            elements=initialize_elements(arguments.dashboard))
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

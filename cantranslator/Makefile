@@ -36,3 +36,6 @@ test: $(TESTS)
 $(TESTS): $(TEST_SRC)
 	@mkdir -p $(OBJDIR)/$(TEST_OBJDIR)
 	$(TEST_CC) $(TEST_CPPFLAGS) $< -o $@ $(TEST_LIBS)
+
+libopenxc.so: CFLAGS+=-fPIC -shared
+libopenxc.so: lib

@@ -7,7 +7,7 @@
 #include "chipKITCAN.h"
 #include "chipKITUSBDevice.h"
 #include "bitfield.h"
-#include "canutil.h"
+#include "canutil_chipkit.h"
 #include "usbutil.h"
 
 #define CAN_BUS_1_SPEED 500000

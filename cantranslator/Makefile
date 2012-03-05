@@ -1,5 +1,9 @@
 TARGET       = cantranslator
+ifdef DEBUG
+BOARD_TAG    = mega_pic32_dbg
+else
 BOARD_TAG    = mega_pic32
+endif
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility
 

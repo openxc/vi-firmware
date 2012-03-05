@@ -32,7 +32,7 @@ TESTABLE_OBJS = $(patsubst %,$(OBJDIR)/%,$(TESTABLE_OBJ_FILES))
 
 .PHONY: test
 test: CXX = g++
-test: CPPFLAGS = -I. -w -Wall
+test: CPPFLAGS = -I. -w -Wall -g -ggdb
 test: $(TESTS)
 	@sh tests/runtests.sh $(OBJDIR)/$(TEST_OBJDIR)
 

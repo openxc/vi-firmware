@@ -40,6 +40,6 @@ CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
         }
     }
     printf("Couldn't find a signal with the genericName \"%s\" "
-            "-- probably about to segfault", name);
+            "-- probably about to segfault\n", name);
     return 0;
 }

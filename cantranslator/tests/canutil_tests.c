@@ -6,7 +6,7 @@ CanSignalState SIGNAL_STATES[2][10] = {
     { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"}, {5, "neutral"}, {6, "second"}, },
 };
 
-CanSignal SIGNALS[3] = {
+CanSignal SIGNALS[2] = {
     {0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000, 33522.000000},
     {1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000, 0.000000, SIGNAL_STATES[0], 6, 4.0},
 };
@@ -46,11 +46,21 @@ START_TEST (test_can_signal_states)
 }
 END_TEST
 
+START_TEST (test_lookup_signal)
+{
+    fail_unless(lookupSignal("does_not_exist", SIGNALS, 2) == 0);
+    fail_unless(lookupSignal("powertrain_torque", SIGNALS, 2) == &SIGNALS[0]);
+    fail_unless(lookupSignal("transmission_gear_position", SIGNALS, 2)
+            == &SIGNALS[1]);
+}
+END_TEST
+
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
+    tcase_add_test(tc_core, test_lookup_signal);
     suite_add_tcase(s, tc_core);
 
     return s;

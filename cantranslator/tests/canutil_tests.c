@@ -70,6 +70,7 @@ START_TEST (test_passthrough_handler)
 {
     bool send = true;
     fail_unless(passthroughHandler(&SIGNALS[0], SIGNALS, 2, 42.0, &send) == 42.0);
+    fail_unless(send);
 }
 END_TEST
 
@@ -77,8 +78,19 @@ START_TEST (test_boolean_handler)
 {
     bool send = true;
     fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send));
+    fail_unless(send);
     fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 0.5, &send));
+    fail_unless(send);
     fail_unless(!booleanHandler(&SIGNALS[0], SIGNALS, 2, 0, &send));
+    fail_unless(send);
+}
+END_TEST
+
+START_TEST (test_ignore_handler)
+{
+    bool send = true;
+    ignoreHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send);
+    fail_unless(!send);
 }
 END_TEST
 
@@ -91,6 +103,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_decode_signal);
     tcase_add_test(tc_core, test_passthrough_handler);
     tcase_add_test(tc_core, test_boolean_handler);
+    tcase_add_test(tc_core, test_ignore_handler);
     suite_add_tcase(s, tc_core);
 
     return s;

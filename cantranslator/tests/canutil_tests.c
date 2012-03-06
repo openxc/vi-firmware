@@ -55,12 +55,24 @@ START_TEST (test_lookup_signal)
 }
 END_TEST
 
-Suite* bitfieldSuite(void) {
+START_TEST (test_decode_signal)
+{
+    CanSignal signal = SIGNALS[0];
+    uint8_t data = 0xEB;
+    float result = decodeCanSignal(&signal, &data);
+    float correctResult = 0xA * 1001.0 - 30000.0;
+    fail_unless(result == correctResult,
+            "decode is incorrect: %f but should be %f", result, correctResult);
+}
+END_TEST
+
+Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
     tcase_add_test(tc_core, test_lookup_signal);
+    tcase_add_test(tc_core, test_decode_signal);
     suite_add_tcase(s, tc_core);
 
     return s;
@@ -68,7 +80,7 @@ Suite* bitfieldSuite(void) {
 
 int main(void) {
     int numberFailed;
-    Suite* s = bitfieldSuite();
+    Suite* s = canutilSuite();
     SRunner *sr = srunner_create(s);
     // Don't fork so we can actually use gdb
     srunner_set_fork_status(sr, CK_NOFORK);

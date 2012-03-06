@@ -94,6 +94,17 @@ START_TEST (test_ignore_handler)
 }
 END_TEST
 
+START_TEST (test_state_handler)
+{
+    bool send = true;
+    fail_unless(strcmp(stateHandler(&SIGNALS[1], SIGNALS, 2, 2, &send),
+            SIGNAL_STATES[0][1].name) == 0);
+    fail_unless(send);
+    stateHandler(&SIGNALS[1], SIGNALS, 2, 42, &send);
+    fail_unless(!send);
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -104,6 +115,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_passthrough_handler);
     tcase_add_test(tc_core, test_boolean_handler);
     tcase_add_test(tc_core, test_ignore_handler);
+    tcase_add_test(tc_core, test_state_handler);
     suite_add_tcase(s, tc_core);
 
     return s;

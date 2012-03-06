@@ -73,6 +73,15 @@ START_TEST (test_passthrough_handler)
 }
 END_TEST
 
+START_TEST (test_boolean_handler)
+{
+    bool send = true;
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 0.5, &send));
+    fail_unless(!booleanHandler(&SIGNALS[0], SIGNALS, 2, 0, &send));
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -81,6 +90,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_lookup_signal);
     tcase_add_test(tc_core, test_decode_signal);
     tcase_add_test(tc_core, test_passthrough_handler);
+    tcase_add_test(tc_core, test_boolean_handler);
     suite_add_tcase(s, tc_core);
 
     return s;

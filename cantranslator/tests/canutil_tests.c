@@ -66,6 +66,13 @@ START_TEST (test_decode_signal)
 }
 END_TEST
 
+START_TEST (test_passthrough_handler)
+{
+    bool send = true;
+    fail_unless(passthroughHandler(&SIGNALS[0], SIGNALS, 2, 42.0, &send) == 42.0);
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -73,6 +80,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_can_signal_states);
     tcase_add_test(tc_core, test_lookup_signal);
     tcase_add_test(tc_core, test_decode_signal);
+    tcase_add_test(tc_core, test_passthrough_handler);
     suite_add_tcase(s, tc_core);
 
     return s;

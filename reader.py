@@ -77,7 +77,7 @@ class DataPoint(object):
                         Count +=1
                     result += "* "
             result += str(self.current_data) + " " + str(self.event)
-                
+
         return result
 
 
@@ -148,10 +148,10 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
-                if self.dashboard:
-                    for element in self.elements:
-                        print element
-                    print
+            if self.dashboard:
+                for element in self.elements:
+                    print element
+                print
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "

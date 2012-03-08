@@ -110,6 +110,12 @@ class Signal(object):
                 "min_value": self.min_value,
                 "max_value": self.max_value}
 
+    def validate(self):
+        if self.position == None:
+            sys.stderr.write("ERROR: %s is incomplete\n" % self.generic_name)
+            return False
+        return True
+
     @classmethod
     def _invert_bit_index(cls, i, l):
         (b, r) = divmod(i, 8)
@@ -148,7 +154,17 @@ class Parser(object):
         print "#include \"canutil.h\"\n"
         print "extern USBDevice usbDevice;\n"
 
+    def validate_messages(self):
+        valid = True
+        for bus in self.buses.values():
+            for message in bus:
+                for signal in message.signals:
+                    valid = valid and signal.validate()
+        return valid
+
     def print_source(self):
+        if not self.validate_messages():
+            sys.exit(1)
         self.print_header()
         # TODO need to handle signals with more than 10 states
         print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (

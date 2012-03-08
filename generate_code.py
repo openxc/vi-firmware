@@ -151,7 +151,7 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canutil.h\"\n"
+        print "#include \"canutil_chipkit.h\"\n"
         print "extern USBDevice usbDevice;\n"
 
     def validate_messages(self):

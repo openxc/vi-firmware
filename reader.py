@@ -53,7 +53,7 @@ class DataPoint(object):
 
     def __str__(self):
         result = self.name + "  "
-        if not self.current_data:
+        if self.current_data is None:
             result += colored('No Data', 'yellow')
         else:
             if self.bad_data:

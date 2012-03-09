@@ -211,12 +211,15 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('fuel_level', float, 0, 300))
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
-    
+
+    """
     if dashboard:
         for element in elements:
             print element
         print
+    """
 
+    print 'List of elements initialized.'
     return elements
 
 

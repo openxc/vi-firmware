@@ -1,7 +1,7 @@
 #ifndef _BITFIELD_H_
 #define _BITFIELD_H_
 
-#include "WProgram.h"
+#include <stdint.h>
 
 /* Public: Reads a subset of bits from a byte array.
  *

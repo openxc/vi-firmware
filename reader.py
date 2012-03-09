@@ -53,7 +53,7 @@ class DataPoint(object):
 
     def __str__(self):
         result = self.name + "  "
-        if not self.current_data:
+        if self.current_data is None:
             result += colored('No Data', 'yellow')
         else:
             if self.bad_data:
@@ -77,7 +77,7 @@ class DataPoint(object):
                         Count +=1
                     result += "* "
             result += str(self.current_data) + " " + str(self.event)
-                
+
         return result
 
 
@@ -148,10 +148,10 @@ class UsbDevice(object):
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100)
-                if self.dashboard:
-                    for element in self.elements:
-                        print element
-                    print
+            if self.dashboard:
+                for element in self.elements:
+                    print element
+                print
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -188,11 +188,11 @@ def parse_options():
 def initialize_elements(dashboard):
     elements = []
 
-    elements.append(DataPoint('steering_wheel_angle', float, -460, 460))
+    elements.append(DataPoint('steering_wheel_angle', float, -600, 600))
     elements.append(DataPoint('engine_speed', float, 0, 8000))
     elements.append(DataPoint('transmission_gear_position', unicode,
         vocab=['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
-            'seventh', 'eighth', 'neutral', 'reverse']))
+            'seventh', 'eighth', 'neutral', 'reverse', 'park']))
     elements.append(DataPoint('ignition_status', unicode,
         vocab=['off', 'accessory', 'run', 'start']))
     elements.append(DataPoint('brake_pedal_status', bool))
@@ -204,20 +204,13 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
     elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
     elements.append(DataPoint('door_status', unicode,
-        vocab=['driver', 'rear_right', 'rear_left', 'passenger']))
+        vocab=['driver', 'rear_left', 'rear_right', 'passenger']))
     elements.append(DataPoint('windshield_wiper_status', bool))
     elements.append(DataPoint('odometer', float, 0, 10000))
     elements.append(DataPoint('high_beam_status', bool))
     elements.append(DataPoint('fuel_level', float, 0, 300))
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
-
-    """
-    if dashboard:
-        for element in elements:
-            print element
-        print
-    """
 
     print 'List of elements initialized.'
     return elements

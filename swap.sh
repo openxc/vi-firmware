@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MODEL=$1
+YEAR=$2
 
 if [ -z "$MODEL" ]
 then
@@ -8,8 +9,16 @@ then
     read MODEL
 fi
 
-HANDLERS=../../cansignals/$MODEL/handlers.cpp
-SIGNALS=../../cansignals/build/$MODEL.cpp
+if [ -z "$YEAR" ]
+then
+    echo "Swap to which model year? "
+    read YEAR
+fi
+
+FULL_MODEL="$MODEL-$YEAR"
+
+HANDLERS=../../cansignals/$FULL_MODEL/handlers.cpp
+SIGNALS=../../cansignals/build/$FULL_MODEL.cpp
 
 pushd cantranslator
 if [ ! -f $HANDLERS ]
@@ -27,8 +36,8 @@ then
 fi
 
 ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
-ln -fs ../../cansignals/$MODEL/handlers.cpp
-ln -fs ../../cansignals/build/$MODEL.cpp signals.cpp
+ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
+ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
 
-echo "Swapped to $MODEL."
+echo "Swapped to $FULL_MODEL."
 popd

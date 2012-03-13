@@ -74,14 +74,16 @@ def main(argv=None):
 
     parser = JsonParser(arguments.mapping_filename)
     parser.parse()
-    if len(parser.buses) != 1:
-        raise RuntimeError("Exactly one CAN bus must be defined")
+    if len(parser.buses) > 1:
+        raise RuntimeError("No more than one CAN bus can be defined")
+    elif len(parser.buses) == 0:
+        data = {}
+    else:
+        tree = parse(arguments.xml)
+        bus_address, bus = parser.buses.items()[0]
+        n = Network(tree, bus_address, bus)
+        data = n.to_dict()
 
-    tree = parse(arguments.xml)
-    bus_address, bus = parser.buses.items()[0]
-    n = Network(tree, bus_address, bus)
-
-    data = n.to_dict()
     with open(arguments.out, 'w') as output_file:
         json.dump(data, output_file, indent=4)
     print "Wrote results to %s" % arguments.out

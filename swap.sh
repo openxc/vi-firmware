@@ -9,7 +9,7 @@ then
 fi
 
 HANDLERS=../../cansignals/$MODEL/handlers.cpp
-SIGNALS=../../cansignals/build/$MODEL/all.cpp
+SIGNALS=../../cansignals/build/$MODEL.cpp
 
 pushd cantranslator
 if [ ! -f $HANDLERS ]
@@ -28,7 +28,7 @@ fi
 
 ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
 ln -fs ../../cansignals/$MODEL/handlers.cpp
-ln -fs ../../cansignals/build/$MODEL/all.cpp signals.cpp
+ln -fs ../../cansignals/build/$MODEL.cpp signals.cpp
 
 echo "Swapped to $MODEL."
 popd

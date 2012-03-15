@@ -4,12 +4,8 @@ import json
 import sys
 import argparse
 import usb.core
-
-try:
-    from termcolor import colored
-except ImportError:
-    def colored(text, color):
-        return text
+import curses
+import curses.wrapper
 
 
 class DataPoint(object):
@@ -51,34 +47,35 @@ class DataPoint(object):
                 elif self.current_data > self.max_value:
                     self.bad_data = True
 
-    def __str__(self):
-        result = self.name + "  "
+    def print_to_window(self, window, row):
+        window.addstr(row, 0, self.name)
+        result = ""
         if self.current_data is None:
-            result += colored('No Data', 'yellow')
+            window.addstr(row, 30, "No Data", curses.color_pair(3))
         else:
             if self.bad_data:
-                result += colored('Bad Data:  ', 'red')
+                window.addstr(row, 30, "Bad", curses.color_pair(1))
             else:
-                result += colored('Good Data:  ', 'green')
+                window.addstr(row, 30, "Good", curses.color_pair(2))
                 if self.type == float:
                     percent = self.current_data - self.min_value
                     percent /= self.range
                     Count = 0
-                    result += '*'
+                    graph = "*"
                     percent -= .1
                     while percent > 0:
-                        result += "-"
+                        graph += "-"
                         Count += 1
                         percent -= .1
-                    result += "|"
+                    graph += "|"
                     Count += 1
                     while Count < 10:
-                        result += "-"
+                        graph += "-"
                         Count +=1
-                    result += "* "
-            result += str(self.current_data) + " " + str(self.event)
-
-        return result
+                    graph += "* "
+                    window.addstr(row, 40, graph)
+            window.addstr(row, 55, str(self.current_data) + " " +
+                    str(self.event))
 
 
 class UsbDevice(object):
@@ -136,22 +133,29 @@ class UsbDevice(object):
                 self.message_buffer = remainder
                 self.messages_received += 1
 
-    def run(self):
+    def run(self, window=None):
+        if window is not None:
+            curses.use_default_colors()
+            curses.init_pair(1, curses.COLOR_RED, -1)
+            curses.init_pair(2, curses.COLOR_GREEN, -1)
+            curses.init_pair(3, curses.COLOR_YELLOW, -1)
+
         while True:
             self.message_buffer += self.device.read(self.endpoint,
                     128).tostring()
             self.parse_message()
 
-            if (self.messages_received > 0 and
-                    self.messages_received % 1000 == 0):
-                print "Received %d messages so far (%d%% valid)..." % (
+            if window is not None:
+                window.addstr(len(self.elements), 0,
+                        "Received %d messages so far (%d%% valid)..." % (
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
-                        * 100)
-            if self.dashboard:
-                for element in self.elements:
-                    print element
-                print
+                        * 100), curses.A_REVERSE)
+            if self.dashboard and window is not None:
+                for row, element in enumerate(self.elements):
+                    element.print_to_window(window, row)
+                window.refresh()
+                window.clear()
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -212,11 +216,6 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
 
-    if dashboard:
-        for element in elements:
-            print element
-        print
-
     return elements
 
 
@@ -231,8 +230,10 @@ def main():
     elif arguments.reset:
         print "Resetting device..."
         device.reset()
+    elif arguments.dashboard:
+        curses.wrapper(device.run)
     else:
         device.run()
 
 if __name__ == '__main__':
-    main();
+    main()

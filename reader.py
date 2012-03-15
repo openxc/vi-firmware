@@ -145,17 +145,16 @@ class UsbDevice(object):
                     128).tostring()
             self.parse_message()
 
-            if window is not None:
+            if self.dashboard and window is not None:
+                window.erase()
+                for row, element in enumerate(self.elements):
+                    element.print_to_window(window, row)
                 window.addstr(len(self.elements), 0,
                         "Received %d messages so far (%d%% valid)..." % (
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100), curses.A_REVERSE)
-            if self.dashboard and window is not None:
-                for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row)
                 window.refresh()
-                window.clear()
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "

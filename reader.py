@@ -206,7 +206,7 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('door_status', unicode,
         vocab=['driver', 'rear_left', 'rear_right', 'passenger']))
     elements.append(DataPoint('windshield_wiper_status', bool))
-    elements.append(DataPoint('odometer', float, 0, 10000))
+    elements.append(DataPoint('odometer', float, 0, 100000))
     elements.append(DataPoint('high_beam_status', bool))
     elements.append(DataPoint('fuel_level', float, 0, 300))
     elements.append(DataPoint('latitude', float, -90, 90))

@@ -13,8 +13,11 @@ PORT=$2
 if [ -z $PORT ]; then
     PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
     if [ -z $PORT ]; then
-        echo "No CAN translator found - is it plugged in?"
-        exit 1
+        PORT=`ls /dev/tty.usbserial* 2> /dev/null | head -n 1`
+        if [ -z $PORT ]; then
+            echo "No CAN translator found - is it plugged in?"
+            exit 1
+        fi
     fi
 fi
 

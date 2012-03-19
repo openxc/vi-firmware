@@ -202,7 +202,7 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('parking_brake_status', bool))
     elements.append(DataPoint('headlamp_status', bool))
     elements.append(DataPoint('accelerator_pedal_position', float, 0, 100))
-    elements.append(DataPoint('powertrain_torque', float, -100, 300))
+    elements.append(DataPoint('powertrain_torque', float, -150, 300))
     elements.append(DataPoint('vehicle_speed', float, 0, 120))
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
     elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))

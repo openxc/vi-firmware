@@ -201,7 +201,7 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('brake_pedal_status', bool))
     elements.append(DataPoint('parking_brake_status', bool))
     elements.append(DataPoint('headlamp_status', bool))
-    elements.append(DataPoint('accelerator_pedal_position', float, 0, 200))
+    elements.append(DataPoint('accelerator_pedal_position', float, 0, 100))
     elements.append(DataPoint('powertrain_torque', float, -100, 300))
     elements.append(DataPoint('vehicle_speed', float, 0, 120))
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
@@ -214,6 +214,15 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('fuel_level', float, 0, 300))
     elements.append(DataPoint('latitude', float, -90, 90))
     elements.append(DataPoint('longitude', float, -180, 180))
+    elements.append(DataPoint('heater_status', bool))
+    elements.append(DataPoint('air_conditioning_status', bool))
+    elements.append(DataPoint('charging_status', bool))
+    elements.append(DataPoint('range', float, 0, 500))
+    elements.append(DataPoint('gear_lever_position', unicode,
+        vocab=['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
+            'seventh', 'neutral', 'reverse', 'park', 'drive', 'low', 'sport']))
+    elements.append(DataPoint('battery_level', float, 0, 100))
+    elements.append(DataPoint('cabin_temperature', float, -50, 150))
 
     return elements
 

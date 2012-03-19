@@ -271,7 +271,7 @@ class Parser(object):
 
         print
         print "CanFilter* initializeFilters(uint32_t address, int* count) {"
-        print "Serial.println(\"Initializing filters...\");"
+        print "    Serial.println(\"Initializing filters...\");"
 
         print "    switch(address) {"
         for bus_address, messages in self.buses.iteritems():

@@ -166,9 +166,9 @@ class Parser(object):
         if not self.validate_messages():
             sys.exit(1)
         self.print_header()
-        # TODO need to handle signals with more than 10 states
+        # TODO need to handle signals with more than 12 states
         print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (
-                self.signal_count, 10)
+                self.signal_count, 12)
 
         states_index = 0
         for bus in self.buses.values():

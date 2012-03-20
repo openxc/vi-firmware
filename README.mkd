@@ -436,3 +436,7 @@ and in Mac OS X, it's available through [homebrew][]:
 
 [check]: http://check.sourceforge.net
 [homebrew]: http://mxcl.github.com/homebrew/
+
+## License
+
+This source code is available under the BSD license.

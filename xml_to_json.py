@@ -81,7 +81,7 @@ def main(argv=None):
     else:
         tree = parse(arguments.xml)
         bus_address, bus = parser.buses.items()[0]
-        n = Network(tree, bus_address, bus)
+        n = Network(tree, bus_address, bus['messages'])
         data = n.to_dict()
 
     with open(arguments.out, 'w') as output_file:

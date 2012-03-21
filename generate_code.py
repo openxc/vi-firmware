@@ -50,7 +50,8 @@ def merge(a, b):
             if key not in current_dst:
                 current_dst[key] = current_src[key]
             else:
-                if quacks_like_dict(current_src[key]) and quacks_like_dict(current_dst[key]) :
+                if (quacks_like_dict(current_src[key]) and
+                        quacks_like_dict(current_dst[key])):
                     stack.append((current_dst[key], current_src[key]))
                 else:
                     current_dst[key] = current_src[key]
@@ -144,7 +145,7 @@ class SignalState(object):
 
 class Parser(object):
     def __init__(self):
-        self.buses = defaultdict(list)
+        self.buses = defaultdict(dict)
         self.signal_count = 0
 
     def parse(self):
@@ -157,7 +158,7 @@ class Parser(object):
     def validate_messages(self):
         valid = True
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 for signal in message.signals:
                     valid = valid and signal.validate()
         return valid
@@ -166,13 +167,22 @@ class Parser(object):
         if not self.validate_messages():
             sys.exit(1)
         self.print_header()
+
+        for i, bus in enumerate(self.buses.values()):
+            print "float CAN_BUS_%d_SPEED = %d;" % (i + 1, bus['speed'])
+        # we have to always have 2 bus speeds defined because we initialize both
+        # CAN transceivers, even if we only use one.
+        if(len(self.buses) == 1):
+            print "float CAN_BUS_2_SPEED = 500000;"
+        print
+
         # TODO need to handle signals with more than 12 states
         print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (
                 self.signal_count, 12)
 
         states_index = 0
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 for signal in message.signals:
                     if len(signal.states) > 0:
                         print "    {",
@@ -189,7 +199,7 @@ class Parser(object):
 
         i = 1
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 for signal in message.signals:
                     signal.array_index = i - 1
                     print "    %s" % signal
@@ -200,7 +210,7 @@ class Parser(object):
         print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
                     print ("        extern void %s(int, uint8_t*, CanSignal*, int, USBDevice* usbDevice);"
@@ -244,7 +254,8 @@ class Parser(object):
         print "CanFilterMask FILTER_MASKS[%d];" % (
                 max(len(can1_masks), len(can2_masks)))
 
-        message_count = sum((len(messages) for messages in self.buses.values()))
+        message_count = sum((len(bus['messages'])
+                for bus in self.buses.values()))
         print "CanFilter FILTERS[%d];" % message_count
 
         # TODO when the masks are defined in JSON we can do this more
@@ -274,12 +285,13 @@ class Parser(object):
         print "    Serial.println(\"Initializing filters...\");"
 
         print "    switch(address) {"
-        for bus_address, messages in self.buses.iteritems():
+        for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address
-            print "        *count = %d;" % len(messages)
+            print "        *count = %d;" % len(bus['messages'])
             print "        FILTERS = {"
-            for i, message in enumerate(messages):
-                # TODO be super smart and figure out good mask values dynamically
+            for i, message in enumerate(bus['messages']):
+                # TODO be super smart and figure out good mask values
+                # dynamically
                 print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
             print "        };"
             print "        break;"
@@ -307,6 +319,8 @@ class JsonParser(Parser):
                 merged_dict = merge(merged_dict, data)
 
         for bus_address, bus_data in merged_dict.iteritems():
+            self.buses[bus_address]['speed'] = bus_data['speed']
+            self.buses[bus_address].setdefault('messages', [])
             for message_name, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_data.get('id', None), message_name,
@@ -331,7 +345,7 @@ class JsonParser(Parser):
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
                             states))
-                self.buses[bus_address].append(message)
+                self.buses[bus_address]['messages'].append(message)
 
 def main():
     arguments = parse_options()

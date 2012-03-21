@@ -10,13 +10,13 @@
 #include "canutil_chipkit.h"
 #include "usbutil.h"
 
-#define CAN_BUS_1_SPEED 500000
-#define CAN_BUS_2_SPEED 500000
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
 char* VERSION = "1.2-dev";
 extern char* MESSAGE_SET;
+extern float CAN_BUS_1_SPEED;
+extern float CAN_BUS_2_SPEED;
 
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);

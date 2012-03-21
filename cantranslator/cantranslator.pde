@@ -67,7 +67,7 @@ void loop() {
     // https://fiesta.eecs.umich.edu/issues/244
     if(receivedMessages % 1000 == 0) {
         initializeAllCan();
-        delay(100);
+        delay(200);
     }
     ++receivedMessages;
 }

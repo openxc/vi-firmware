@@ -130,6 +130,7 @@ signals of interest, and their corresponding generic versions. The input format
 is a JSON object like this:
 
     {"0x102": {
+        "speed": 500000,
         "messages": {
             "ECM_z_5D2": {
                 "id": 42,
@@ -173,8 +174,8 @@ is a JSON object like this:
     }}
 
 This is a list of CAN buses (the `0x102` is the unique bus address), messages in
-each bus and a list of signals within each message. The attributes of a signal
-are:
+each bus and a list of signals within each message. The `speed` attribute on the
+bus is the CAN bus speed in Kbps. The attributes of a signal are:
 
 `name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation

@@ -20,7 +20,7 @@ FULL_MODEL="$MODEL-$YEAR"
 HANDLERS=../../cansignals/$FULL_MODEL/handlers.cpp
 SIGNALS=../../cansignals/build/$FULL_MODEL.cpp
 
-pushd cantranslator
+pushd cantranslator > /dev/null
 if [ ! -f $HANDLERS ]
 then
     echo "Couldn't find the handlers file at $HANDLERS"
@@ -40,4 +40,4 @@ ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
 ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
 
 echo "Swapped to $FULL_MODEL."
-popd
+popd > /dev/null

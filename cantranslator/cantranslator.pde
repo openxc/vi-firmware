@@ -10,14 +10,15 @@
 #include "canutil_chipkit.h"
 #include "usbutil.h"
 
-
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
-char* VERSION = "1.2-dev";
+
+
 extern char* MESSAGE_SET;
 extern float CAN_BUS_1_SPEED;
 extern float CAN_BUS_2_SPEED;
 
+char* VERSION = "1.2-dev";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
@@ -127,23 +128,16 @@ void handleCan2Interrupt() {
 static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {
     case VERSION_CONTROL_COMMAND:
-        char combined_version[100];
-
         Serial.print("Software version is ");
         Serial.print(VERSION);
         Serial.print("Message set ");
         Serial.println(MESSAGE_SET);
 
-        strcpy(combined_version, VERSION);
-        //Make sure we've got enough buffer
-        if (strlen(MESSAGE_SET) + 1 + strlen(VERSION) < 100){
-          combined_version[strlen(VERSION)] = ',';
-          strcpy(combined_version+strlen(VERSION) + 1, MESSAGE_SET);
-        }
-        usbDevice.EP0SendRAMPtr(
-            (uint8_t*)combined_version,
-            strlen(combined_version),
-            USB_EP0_INCLUDE_ZERO);
+        char combinedVersion[strlen(VERSION) + strlen(MESSAGE_SET) + 2];
+
+        sprintf(combinedVersion, "%s (%s)", VERSION, MESSAGE_SET);
+        usbDevice.EP0SendRAMPtr((uint8_t*)combinedVersion,
+                strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;
     case RESET_CONTROL_COMMAND:
         Serial.print("Resetting...");

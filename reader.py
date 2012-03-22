@@ -104,7 +104,7 @@ class UsbDevice(object):
     @property
     def version(self):
         raw_version = self.device.ctrl_transfer(0xC0,
-                self.VERSION_CONTROL_COMMAND, 0, 0, 10)
+                self.VERSION_CONTROL_COMMAND, 0, 0, 100)
         return ''.join([chr(x) for x in raw_version])
 
     def reset(self):

@@ -60,16 +60,6 @@ int receivedMessages = 0;
 void loop() {
     receiveCan(&can1, &isCan1MessageReceived);
     receiveCan(&can2, &isCan2MessageReceived);
-
-    // a workaround to stop CAN from crashing indefinitely
-    // See these tickets in Redmine:
-    // https://fiesta.eecs.umich.edu/issues/298
-    // https://fiesta.eecs.umich.edu/issues/244
-    if(receivedMessages % 1000 == 0) {
-        initializeAllCan();
-        delay(200);
-    }
-    ++receivedMessages;
 }
 
 
@@ -84,6 +74,17 @@ void receiveCan(CAN* bus, volatile bool* messageReceived) {
         // The flag is updated by the CAN ISR.
         return;
     }
+
+    // a workaround to stop CAN from crashing indefinitely
+    // See these tickets in Redmine:
+    // https://fiesta.eecs.umich.edu/issues/298
+    // https://fiesta.eecs.umich.edu/issues/244
+    if(receivedMessages > 0 && receivedMessages % 1000 == 0) {
+        // initializeAllCan();
+        Serial.println(receivedMessages, DEC);
+        delay(200);
+    }
+    ++receivedMessages;
 
     message = bus->getRxMessage(CAN::CHANNEL1);
     decodeCanMessage(message->msgSID.SID, message->data);

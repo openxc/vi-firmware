@@ -6,6 +6,7 @@ import argparse
 import usb.core
 import curses
 import curses.wrapper
+import time
 
 
 class DataPoint(object):
@@ -120,7 +121,7 @@ class UsbDevice(object):
             else:
                 self.good_messages += 1
                 if self.dump:
-                    print message
+                    print "%f: %s" % (time.time(), message)
                 if self.verbose:
                     print parsed_message
                 if self.dashboard:

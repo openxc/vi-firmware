@@ -128,14 +128,12 @@ void handleCan2Interrupt() {
 static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {
     case VERSION_CONTROL_COMMAND:
-        Serial.print("Software version is ");
-        Serial.print(VERSION);
-        Serial.print("Message set ");
-        Serial.println(MESSAGE_SET);
-
         char combinedVersion[strlen(VERSION) + strlen(MESSAGE_SET) + 2];
 
         sprintf(combinedVersion, "%s (%s)", VERSION, MESSAGE_SET);
+        Serial.print("Version: ");
+        Serial.println(combinedVersion);
+
         usbDevice.EP0SendRAMPtr((uint8_t*)combinedVersion,
                 strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;

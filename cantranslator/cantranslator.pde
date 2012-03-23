@@ -81,8 +81,7 @@ void receiveCan(CAN* bus, volatile bool* messageReceived) {
     // https://fiesta.eecs.umich.edu/issues/298
     // https://fiesta.eecs.umich.edu/issues/244
     if(receivedMessages > 0 && receivedMessages % 1000 == 0) {
-        // initializeAllCan();
-        Serial.println(receivedMessages, DEC);
+        initializeAllCan();
         delay(200);
     }
     ++receivedMessages;

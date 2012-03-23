@@ -143,7 +143,7 @@ class UsbDevice(object):
 
         while True:
             self.message_buffer += self.device.read(self.endpoint,
-                    128).tostring()
+                    128, 0, 1000000).tostring()
             self.parse_message()
 
             if self.dashboard and window is not None:

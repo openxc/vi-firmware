@@ -57,12 +57,36 @@ void initializeAllCan() {
 }
 
 int receivedMessages = 0;
+int loopsSinceBigChange = 0;
+int receivedMessagesAtLastMark = 0;
+
+void checkIfStalled() {
+    // a workaround to stop CAN from crashing indefinitely
+    // See these tickets in Redmine:
+    // https://fiesta.eecs.umich.edu/issues/298
+    // https://fiesta.eecs.umich.edu/issues/244
+    if(receivedMessages < receivedMessagesAtLastMark + 50) {
+        loopsSinceBigChange++;
+
+        if(loopsSinceBigChange > 500) {
+            initializeAllCan();
+            delay(200);
+            loopsSinceBigChange = 0;
+            receivedMessagesAtLastMark = receivedMessages;
+
+        }
+    } else {
+        loopsSinceBigChange = 0;
+        receivedMessagesAtLastMark = receivedMessages;
+    }
+}
 
 void loop() {
     receiveCan(&can1, &isCan1MessageReceived);
     receiveCan(&can2, &isCan2MessageReceived);
-}
 
+    checkIfStalled();
+}
 
 /*
  * Check to see if a packet has been received. If so, read the packet and print
@@ -74,15 +98,6 @@ void receiveCan(CAN* bus, volatile bool* messageReceived) {
     if(*messageReceived == false) {
         // The flag is updated by the CAN ISR.
         return;
-    }
-
-    // a workaround to stop CAN from crashing indefinitely
-    // See these tickets in Redmine:
-    // https://fiesta.eecs.umich.edu/issues/298
-    // https://fiesta.eecs.umich.edu/issues/244
-    if(receivedMessages > 0 && receivedMessages % 1000 == 0) {
-        initializeAllCan();
-        delay(200);
     }
     ++receivedMessages;
 

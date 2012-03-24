@@ -32,6 +32,10 @@ uint8_t can2MessageArea[2 * 8 * 16];
 static volatile bool isCan1MessageReceived = false;
 static volatile bool isCan2MessageReceived = false;
 
+int receivedMessages = 0;
+unsigned long lastSignificantChangeTime;
+int receivedMessagesAtLastMark = 0;
+
 /* Forward declarations */
 
 void initializeAllCan();
@@ -46,6 +50,7 @@ void setup() {
 
     initializeUsb(&usbDevice);
     initializeAllCan();
+    lastSignificantChangeTime = millis();
 }
 
 void initializeAllCan() {
@@ -56,28 +61,33 @@ void initializeAllCan() {
     can2.attachInterrupt(handleCan2Interrupt);
 }
 
-int receivedMessages = 0;
-int loopsSinceBigChange = 0;
-int receivedMessagesAtLastMark = 0;
+void mark() {
+    lastSignificantChangeTime = millis();
+    receivedMessagesAtLastMark = receivedMessages;
+}
 
 void checkIfStalled() {
     // a workaround to stop CAN from crashing indefinitely
     // See these tickets in Redmine:
     // https://fiesta.eecs.umich.edu/issues/298
     // https://fiesta.eecs.umich.edu/issues/244
-    if(receivedMessages < receivedMessagesAtLastMark + 50) {
-        loopsSinceBigChange++;
+    if(receivedMessagesAtLastMark + 10 < receivedMessages) {
+        mark();
+    }
 
-        if(loopsSinceBigChange > 500) {
-            initializeAllCan();
-            delay(200);
-            loopsSinceBigChange = 0;
-            receivedMessagesAtLastMark = receivedMessages;
-
-        }
-    } else {
-        loopsSinceBigChange = 0;
-        receivedMessagesAtLastMark = receivedMessages;
+    if(receivedMessages > 0 && receivedMessagesAtLastMark > 0
+            && millis() > lastSignificantChangeTime + 500) {
+        Serial.print("timeNow: ");
+        Serial.println(millis(), DEC);
+        Serial.print("lastSignificantChangeTime: ");
+        Serial.println(lastSignificantChangeTime, DEC);
+        Serial.print("receivedMessages: ");
+        Serial.println(receivedMessages, DEC);
+        Serial.print("receivedMessagesAtLastMark: ");
+        Serial.println(receivedMessagesAtLastMark, DEC);
+        initializeAllCan();
+        delay(200);
+        mark();
     }
 }
 

@@ -92,8 +92,13 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     float processedValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
-    if(send) {
-        sendNumericalMessage(signal->genericName, processedValue, usbDevice);
+    if(signal->sendClock == signal->sendFrequency) {
+        if(send) {
+            sendNumericalMessage(signal->genericName, processedValue, usbDevice);
+        }
+        signal->sendClock = 0;
+    } else {
+        ++signal->sendClock;
     }
 }
 
@@ -119,13 +124,18 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     char* stringValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
-    if(send) {
-        int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
-            strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
-        char message[messageLength];
-        sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
+    if(signal->sendClock == signal->sendFrequency) {
+        if(send) {
+            int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
+                strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
+            char message[messageLength];
+            sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
 
-        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+            sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+        }
+        signal->sendClock = 0;
+    } else {
+        ++signal->sendClock;
     }
 }
 
@@ -137,14 +147,19 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     bool booleanValue = handler(signal, signals, signalCount, value, &send);
     signal->lastValue = value;
 
-    if(send) {
-        int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
-            strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
-        char message[messageLength];
-        sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
-                booleanValue ? "true" : "false");
+    if(signal->sendClock == signal->sendFrequency) {
+        if(send) {
+            int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
+                strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
+            char message[messageLength];
+            sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
+                    booleanValue ? "true" : "false");
 
-        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+            sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+        }
+        signal->sendClock = 0;
+    } else {
+        ++signal->sendClock;
     }
 }
 

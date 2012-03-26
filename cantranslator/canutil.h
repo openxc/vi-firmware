@@ -50,6 +50,9 @@ struct CanSignalState {
  * bitSize     - the width of the bit field in the CAN message.
  * factor      - the final value will be multiplied by this factor.
  * offset      - the final value will be added to this offset.
+ * minValue    - the minimum value for the processed signal.
+ * maxValue    - the maximum value for the processed signal.
+ * sendFrequency - how often to pass along this message when received
  */
 struct CanSignal {
     int id;
@@ -60,6 +63,8 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
+    int sendFrequency;
+    int sendClock;
     CanSignalState* states;
     int stateCount;
     float lastValue;

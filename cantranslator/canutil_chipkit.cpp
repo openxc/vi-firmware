@@ -90,16 +90,18 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     float value = decodeCanSignal(signal, data);
     bool send = true;
     float processedValue = handler(signal, signals, signalCount, value, &send);
-    signal->lastValue = value;
 
     if(signal->sendClock == signal->sendFrequency) {
-        if(send) {
+        if(send && (signal->sendSame || !signal->received ||
+                    value != signal->lastValue)) {
+            signal->received = true;
             sendNumericalMessage(signal->genericName, processedValue, usbDevice);
         }
         signal->sendClock = 0;
     } else {
         ++signal->sendClock;
     }
+    signal->lastValue = value;
 }
 
 // TODO if we make value a void*, could this be used for all of the
@@ -122,10 +124,11 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     float value = decodeCanSignal(signal, data);
     bool send = true;
     char* stringValue = handler(signal, signals, signalCount, value, &send);
-    signal->lastValue = value;
 
     if(signal->sendClock == signal->sendFrequency) {
-        if(send) {
+        if(send && (signal->sendSame || !signal->received ||
+                    value != signal->lastValue)) {
+            signal->received = true;
             int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
                 strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
             char message[messageLength];
@@ -137,6 +140,7 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     } else {
         ++signal->sendClock;
     }
+    signal->lastValue = value;
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
@@ -145,10 +149,11 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     float value = decodeCanSignal(signal, data);
     bool send = true;
     bool booleanValue = handler(signal, signals, signalCount, value, &send);
-    signal->lastValue = value;
 
     if(signal->sendClock == signal->sendFrequency) {
-        if(send) {
+        if(send && (signal->sendSame || !signal->received ||
+                    value != signal->lastValue)) {
+            signal->received = true;
             int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
                 strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
             char message[messageLength];
@@ -161,6 +166,7 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     } else {
         ++signal->sendClock;
     }
+    signal->lastValue = value;
 }
 
 void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,

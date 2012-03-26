@@ -68,7 +68,8 @@ class Message(object):
 class Signal(object):
     def __init__(self, id=None, name=None, generic_name=None, position=None,
             length=None, factor=1, offset=0, min_value=0, max_value=0,
-            handler=None, ignore=False, states=None, send_frequency=0):
+            handler=None, ignore=False, states=None, send_frequency=0,
+            send_same=True):
         self.id = id
         self.name = name
         self.generic_name = generic_name
@@ -87,6 +88,7 @@ class Signal(object):
         # will be handled (and the other half is ignored). This is useful for
         # trimming down the data rate of the stream over USB.
         self.send_frequency = send_frequency
+        self.send_same = send_same
         self.states = states or []
         if len(self.states) > 0 and self.handler is None:
             self.handler = "char* stateHandler"
@@ -130,10 +132,10 @@ class Signal(object):
         return(end - l + 1)
 
     def __str__(self):
-        result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f, %d, 0" % (
+        result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f, %d, 0, %s, false" % (
                 self.id, self.generic_name, self.position, self.length,
                 self.factor, self.offset, self.min_value, self.max_value,
-                self.send_frequency)
+                self.send_frequency, str(self.send_same).lower())
         if len(self.states) > 0:
             result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
@@ -352,7 +354,8 @@ class JsonParser(Parser):
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
                             states,
-                            signal.get('send_frequency', 0)))
+                            signal.get('send_frequency', 0),
+                            signal.get('send_same', True)))
                 self.buses[bus_address]['messages'].append(message)
 
 def main():

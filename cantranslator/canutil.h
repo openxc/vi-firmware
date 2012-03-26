@@ -52,7 +52,9 @@ struct CanSignalState {
  * offset      - the final value will be added to this offset.
  * minValue    - the minimum value for the processed signal.
  * maxValue    - the maximum value for the processed signal.
- * sendFrequency - how often to pass along this message when received
+ * sendFrequency - how often to pass along this message when received.
+ * sendSame    - if true, will re-send even if the value hasn't changed.
+ * received    - mark true if this signal has ever been received.
  */
 struct CanSignal {
     int id;
@@ -65,6 +67,8 @@ struct CanSignal {
     float maxValue;
     int sendFrequency;
     int sendClock;
+    bool sendSame;
+    bool received;
     CanSignalState* states;
     int stateCount;
     float lastValue;

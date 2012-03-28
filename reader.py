@@ -10,7 +10,7 @@ import time
 
 
 class DataPoint(object):
-    def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None):
+    def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None, events=False):
         self.name = name
         self.type = value_type
         self.min_value = min_value
@@ -21,9 +21,15 @@ class DataPoint(object):
         self.event = ''
         self.bad_data = False
         self.current_data = None
+        self.events_active = events
+        self.events = []
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
+
+        if self.events_active is True:
+            for x in range(len(self.vocab)):
+                self.events.append("")
 
     def update(self, message):
         if self.bad_data:
@@ -38,8 +44,9 @@ class DataPoint(object):
                 return
             elif type(self.current_data) is unicode:
                 if self.current_data in self.vocab:
-                    if len(message) > 2:
-                        self.event = message['event']
+                    #Save the event in the proper spot.
+                    if (len(message) > 2) and (self.events_active is True):
+                        self.events[self.vocab.index(self.current_data)] = message['event']
                 else:
                     self.bad_data = True
             else:
@@ -75,9 +82,17 @@ class DataPoint(object):
                         Count +=1
                     graph += "* "
                     window.addstr(row, 40, graph)
-            window.addstr(row, 55, str(self.current_data) + " " +
-                    str(self.event))
-
+#            window.addstr(row, 55, str(self.current_data) + " " +
+#                    str(self.event))
+                
+            if self.events_active is False:
+                window.addstr(row, 55, str(self.current_data))
+            else:
+                result = ""
+                for item, value in enumerate(self.vocab):
+                    result = result + value + ":" + str(self.events[item]) + "  "
+                window.addstr(row, 55, result)
+                
 
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
@@ -208,7 +223,7 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
     elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
     elements.append(DataPoint('door_status', unicode,
-        vocab=['driver', 'rear_left', 'rear_right', 'passenger']))
+        vocab=['driver', 'rear_left', 'rear_right', 'passenger'], events=True))
     elements.append(DataPoint('windshield_wiper_status', bool))
     elements.append(DataPoint('odometer', float, 0, 100000))
     elements.append(DataPoint('high_beam_status', bool))

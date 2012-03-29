@@ -17,7 +17,12 @@ def generate_gpx(trace_file):
     segment = ET.SubElement(track, "trkseg")
     for line in open(trace_file):
         timestamp, data = line.split(':', 1)
-        record = json.loads(data)
+        try:
+            record = json.loads(data)
+        except ValueError:
+            sys.stderr.write("Skipping line: %s" % data)
+            continue
+
         if record['name'] == 'latitude':
             latitude = record['value']
         elif record['name'] == 'longitude':

@@ -6,6 +6,7 @@ from collections import defaultdict
 import sys
 import argparse
 
+
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C source code from "
             "CAN signal descriptions in JSON")
@@ -25,9 +26,11 @@ def parse_options():
 
     return arguments
 
+
 def quacks_like_dict(object):
     """Check if object is dict-like"""
     return isinstance(object, collections.Mapping)
+
 
 def merge(a, b):
     """Merge two deep dicts non-destructively
@@ -56,6 +59,7 @@ def merge(a, b):
                 else:
                     current_dst[key] = current_src[key]
     return dst
+
 
 class Message(object):
     def __init__(self, id, name, handler=None):

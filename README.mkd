@@ -133,10 +133,8 @@ is a JSON object like this:
         "speed": 500000,
         "messages": {
             "ECM_z_5D2": {
-                "id": 42,
                 "signals": {
                     "StrAnglAct": {
-                        "id": 1,
                         "human_signal_name": "Steering wheel angle",
                         "generic_name": "SteeringWheelAngle",
                         "bit_position": 52,
@@ -145,12 +143,10 @@ is a JSON object like this:
                         "offset": 0,
                         "value_handler": "float handleSteeringWheelAngle"},
                     "StrAnglSign": {
-                        "id": 2,
                         "human_signal_name": "Steering wheel angle sign",
                         "bit_position": 52,
                         "bit_size": 12},
                     "GrshftPos": {
-                        "id": 10,
                         "human_signal_name": "Gearshift Position",
                         "generic_name": "GearshiftPosition",
                         "bit_position": 41,
@@ -180,8 +176,6 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
 `name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation
     from this list.
-
-`id` - A globally unique, numerical ID for the signal.
 
 `human_signal_name` - A more friendly, human readable version of the signal's
     name. Optional - just used in comments so the generated source is clearer.

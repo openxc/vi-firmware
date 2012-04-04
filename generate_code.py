@@ -339,9 +339,11 @@ class JsonParser(Parser):
                 message = Message(message_data.get('id', None), message_name,
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].iteritems():
-                    states = [SignalState(value, name)
-                            for name, value in signal.get('states',
-                                {}).iteritems()]
+                    states = []
+                    for name, raw_matches in signal.get('states',
+                            {}).iteritems():
+                        for raw_match in raw_matches:
+                            states.append(SignalState(raw_match, name))
                     # TODO we're keeping the numerical ID here even though
                     # we're not using it now because it will make switching
                     # to it in the future easier

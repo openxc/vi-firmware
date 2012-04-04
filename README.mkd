@@ -160,12 +160,12 @@ is a JSON object like this:
                         "bit_position": 41,
                         "bit_size": 0,
                         "states": {
-                            "FIRST": 1,
-                            "SECOND": 2,
-                            "THIRD": 3,
-                            "FOURTH": 4,
-                            "REVERSE": 5,
-                            "NEUTRAL": 6
+                            "FIRST": [1],
+                            "SECOND": [2],
+                            "THIRD": [3],
+                            "FOURTH": [4],
+                            "REVERSE": [5],
+                            "NEUTRAL": [6]
                         }
                     },
                     "StrAnglErr": {
@@ -231,8 +231,11 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     of ths signals, you can use the `ignoreHandler` as a value handler for the
     signal.
 
-`states` - For state values, this is a mapping between the raw states (usually
-    an integer) and the corresponding state in the generic signal.
+`states` - For state values, this is a mapping between the desired descriptive
+    enum states (e.g. `off`) and a list of the corresponding raw state values
+    from the CAN bus (usually an integer). The raw values are specified as a
+    list to accomodate multiple raw states being coalesced into a single final
+    state (e.g. key off and key removed both mapping to just "off").
 
 `send_frequency` - Some CAN signals are sent at a very high frequency, likely
     more often than will ever be useful to an application. This attribute

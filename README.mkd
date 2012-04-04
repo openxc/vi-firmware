@@ -144,8 +144,16 @@ is a JSON object like this:
                         "value_handler": "float handleSteeringWheelAngle"},
                     "StrAnglSign": {
                         "human_signal_name": "Steering wheel angle sign",
+                        "generic_name": "steering_angle_sign",
+                        "value_handler": "float ignoreHandler",
                         "bit_position": 52,
                         "bit_size": 12},
+                    "EngSpd": {
+                        "generic_name": "engine_speed",
+                        "send_frequency": 15,
+                        "bit_position": 12,
+                        "bit_size": 8}
+                    },
                     "GrshftPos": {
                         "human_signal_name": "Gearshift Position",
                         "generic_name": "GearshiftPosition",
@@ -165,6 +173,17 @@ is a JSON object like this:
                     }
                 },
                 "handler": "handleSteeringWheelMessage"
+            },
+            "BrkSt": {
+                "signals": {
+                    "BrakePedalPosition": {
+                        "generic_name": "brake_pedal_status",
+                        "send_same": false,
+                        "value_handler": "bool booleanHandler",
+                        "bit_position": 0,
+                        "bit_size": 0
+                    }
+                }
             }
         }
     }}
@@ -181,10 +200,10 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     name. Optional - just used in comments so the generated source is clearer.
 
 `generic_name` - The name of the associated generic signal name (from the OpenXC
-        specification) that this should be translated to. Optional - if not
-        specified, the signal is read and stored in memory, but not sent to the
-        output bus. This is handy for combining the value of multiple signals
-        into a composite measurement such as steering wheel angle with its sign.
+    specification) that this should be translated to. Optional - if not
+    specified, the signal is read and stored in memory, but not sent to the
+    output bus. This is handy for combining the value of multiple signals into a
+    composite measurement such as steering wheel angle with its sign.
 
 `bit_position` - The staring bit position of this signal within the message.
 
@@ -195,9 +214,8 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
 `offset` - This is added to the signal value if set. Optional.
 
 `value_handler` - The return type and name of a function that will be compiled
-        with the sketch and should be applied to the signal's value after the
-        normal translation. Optional - see the "Custom Handlers" section for
-        more.
+    with the sketch and should be applied to the signal's value after the normal
+    translation. Optional - see the "Custom Handlers" section for more.
 
 `handler` - The name of a function that will be compiled with the sketch
     and should be applied to the entire raw message value. No other operations
@@ -205,15 +223,30 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     the "Custom Handlers" section for more.
 
 `ignore` - Setting this to `true` on a signal will silence output of that
-signal. The translator will not monitor the signal nor store any of its values.
-This is useful if you are using a custom handler for an entire message, want
-to silence the normal output of the signals it handles, and you don't need the
-translator to keep track of the values of any of the signals separately. If you
-need to use the previously stored values of any of ths signals, you can use the
-`ignoreHandler` as a value handler for the signal.
+    signal. The translator will not monitor the signal nor store any of its
+    values. This is useful if you are using a custom handler for an entire
+    message, want to silence the normal output of the signals it handles, and
+    you don't need the translator to keep track of the values of any of the
+    signals separately. If you need to use the previously stored values of any
+    of ths signals, you can use the `ignoreHandler` as a value handler for the
+    signal.
 
 `states` - For state values, this is a mapping between the raw states (usually
     an integer) and the corresponding state in the generic signal.
+
+`send_frequency` - Some CAN signals are sent at a very high frequency, likely
+    more often than will ever be useful to an application. This attribute
+    defaults to `1` meaning that `1/1` (i.e. 100%) of the values for this signal
+    will be processed and sent over USB. Increasing the value will reduce the
+    number of messages that are sent - a value of `10` means that only `1/10`
+    messages (i.e. every 10th message) is processed. You don't want to combine
+    this attribute with `send_same` or else you risk missing a status change
+    message if wasn't one of the messages the translator decided to let through.
+
+`send_same` - By default, all signals are process and sent over USB every time
+    they are received on the CAN bus. By setting this to `false`, you can force
+    a signal to be sent only if the value has actually changed. This works best
+    with boolean and state based signals.
 
 ## Custom Handlers
 

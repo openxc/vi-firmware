@@ -21,7 +21,7 @@ class Network(object):
             self._parse_node(node, all_messages)
 
     def to_dict(self):
-        return {self.address: {"messages": {message.name: message.to_dict()
+        return {self.address: {"messages": {message.id: message.to_dict()
                 for message in self.messages.values()
                 if len(message.signals) > 0}}}
 
@@ -51,7 +51,7 @@ class Message(object):
                         self.signals.append(signal)
 
     def to_dict(self):
-        return {"id": self.id,
+        return {"name": self.name,
                 "signals": {signal.name: signal.to_dict()
                     for signal in self.signals}}
 

@@ -63,7 +63,7 @@ def merge(a, b):
 
 class Message(object):
     def __init__(self, id, name, handler=None):
-        self.id = id
+        self.id = int(id)
         self.name = name
         self.handler = handler
         self.signals = []
@@ -334,9 +334,9 @@ class JsonParser(Parser):
         for bus_address, bus_data in merged_dict.iteritems():
             self.buses[bus_address]['speed'] = bus_data['speed']
             self.buses[bus_address].setdefault('messages', [])
-            for message_name, message_data in bus_data['messages'].iteritems():
+            for message_id, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
-                message = Message(message_data.get('id', None), message_name,
+                message = Message(message_id, message_data.get('name', None),
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].iteritems():
                     states = []

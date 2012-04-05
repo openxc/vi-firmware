@@ -7,8 +7,8 @@ CanSignalState SIGNAL_STATES[2][10] = {
 };
 
 CanSignal SIGNALS[2] = {
-    {0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000, 33522.000000},
-    {1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000, 0.000000, SIGNAL_STATES[0], 6, 4.0},
+    {0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000, 33522.000000, 1, 0, false, false},
+    {1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000, 0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, 4.0},
 };
 
 START_TEST (test_can_signal_struct)

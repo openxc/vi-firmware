@@ -71,7 +71,7 @@ class Message(object):
 
 class Signal(object):
     def __init__(self, id=None, name=None, generic_name=None, position=None,
-            length=None, factor=1, offset=0, min_value=0, max_value=0,
+            length=None, factor=1, offset=0, min_value=0.0, max_value=0.0,
             handler=None, ignore=False, states=None, send_frequency=0,
             send_same=True):
         self.id = id
@@ -353,10 +353,10 @@ class JsonParser(Parser):
                             signal['generic_name'],
                             signal.get('bit_position', None),
                             signal.get('bit_size', None),
-                            signal.get('factor', None),
-                            signal.get('offset', None),
-                            signal.get('min_value', None),
-                            signal.get('max_value', None),
+                            signal.get('factor', 1.0),
+                            signal.get('offset', 0.0),
+                            signal.get('min_value', 0.0),
+                            signal.get('max_value', 0.0),
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
                             states,

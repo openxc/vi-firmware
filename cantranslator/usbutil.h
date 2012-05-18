@@ -15,6 +15,7 @@
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 128
 
+
 const int NUMERICAL_MESSAGE_FORMAT_LENGTH = strlen(NUMERICAL_MESSAGE_FORMAT);
 const int BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(BOOLEAN_MESSAGE_FORMAT);
 const int STRING_MESSAGE_FORMAT_LENGTH = strlen(STRING_MESSAGE_FORMAT);
@@ -30,6 +31,11 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
 struct CanUsbDevice {
     USBDevice device;
     int endpoint;
+    int endpointSize;
+    // device to host
+    char sendBuffer[ENDPOINT_SIZE];
+    // host to device
+    char receiveBuffer[ENDPOINT_SIZE];
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the
@@ -45,6 +51,15 @@ void initializeUsb(CanUsbDevice*);
  * messageSize - the length of the message.
  */
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize);
+
+/* Public: TODO
+ */
+USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
+
+/* Public: TODO
+ */
+USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
+        void (*callback)(char*));
 
 /* Internal: Handle asynchronous events from the USB controller.
  */

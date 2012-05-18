@@ -13,6 +13,8 @@
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
 
+// USB
+#define DATA_ENDPOINT 1
 
 extern char* MESSAGE_SET;
 extern float CAN_BUS_1_SPEED;
@@ -23,8 +25,11 @@ CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
 // USB
+
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT};
+
+USB_HANDLE USB_OUTPUT_HANDLE = 0;
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
 
 /* CAN Message Buffers */
 uint8_t can1MessageArea[2 * 8 * 16];
@@ -93,9 +98,16 @@ void checkIfStalled() {
     }
 }
 
+void receiveWriteRequest(char* message) {
+    Serial.print("Received write request: ");
+    Serial.println(message);
+}
+
 void loop() {
     receiveCan(&can1, &isCan1MessageReceived);
     receiveCan(&can2, &isCan2MessageReceived);
+
+    readFromHost(&usbDevice, &USB_OUTPUT_HANDLE, &receiveWriteRequest);
 
     checkIfStalled();
 }
@@ -182,9 +194,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     switch(event) {
     case EVENT_CONFIGURED:
         Serial.println("Event: Configured");
-        // Enable DATA_ENDPOINT for input
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
-                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        armForRead(&usbDevice, usbDevice.receiveBuffer);
         break;
 
     case EVENT_EP0_REQUEST:

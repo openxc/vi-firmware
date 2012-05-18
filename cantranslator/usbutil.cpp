@@ -1,8 +1,8 @@
 #include "usbutil.h"
 
+// TODO move this up to cantranslator.pde
 USB_HANDLE USB_INPUT_HANDLE = 0;
 
-char SEND_BUFFER[ENDPOINT_SIZE];
 
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 #ifdef DEBUG
@@ -15,7 +15,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // the data to its own internal buffer. See #171 for background on this
     // issue.
     while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
-    strncpy(SEND_BUFFER, (char*)message, messageSize);
+    strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
 
     int nextByteIndex = 0;
     while(nextByteIndex < messageSize) {
@@ -23,7 +23,8 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
         int bytesToTransfer = min(USB_PACKET_SIZE,
                 messageSize - nextByteIndex);
         USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
-                (uint8_t*)(SEND_BUFFER + nextByteIndex), bytesToTransfer);
+                (uint8_t*)(usbDevice->sendBuffer + nextByteIndex),
+                bytesToTransfer);
         nextByteIndex += bytesToTransfer;
     }
 }
@@ -33,4 +34,21 @@ void initializeUsb(CanUsbDevice* usbDevice) {
     usbDevice->device.InitializeSystem(true);
     while(usbDevice->device.GetDeviceState() < CONFIGURED_STATE);
     Serial.println("Done.");
+}
+
+USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
+    buffer[0] = 0;
+    return usbDevice->device.GenRead(usbDevice->endpoint, (uint8_t*)buffer,
+            usbDevice->endpointSize);
+}
+
+USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
+        void (*callback)(char*)) {
+    if(!usbDevice->device.HandleBusy(handle)) {
+        Serial.print("Received message from host: ");
+        Serial.println(usbDevice->receiveBuffer);
+    }
+
+    callback(usbDevice->receiveBuffer);
+    return armForRead(usbDevice, usbDevice->receiveBuffer);
 }

@@ -377,17 +377,8 @@ with.
 ## Output Specification
 
 The microcontroller has a second USB controller operating in USB device mode. It
-sends the generic vehicle data over via bulk USB transfer as packed JSON.
-
-If USB throughput becomes an issue, the wire format can be optimized in two
-ways:
-
-* Use previously agreed upon numeric identifiers for signals instead of English
-  names.
-* Serialize to a binary protocol with Apache Thrift, or Google Protocol
-  Buffers or ASN.1.
-
-There are two valid message types - single valued and event.
+sends the generic vehicle data over via bulk USB transfer as JSON. There
+are two valid message types - single valued and event.
 
 ### Single Valued
 

@@ -166,7 +166,7 @@ class Parser(object):
 
     def print_header(self):
         print "#include \"canutil_chipkit.h\"\n"
-        print "extern USBDevice usbDevice;\n"
+        print "extern CanUsbDevice usbDevice;\n"
 
     def validate_messages(self):
         valid = True
@@ -227,7 +227,7 @@ class Parser(object):
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
                     print ("        extern void %s(int, " % message.handler +
-                            "uint8_t*, CanSignal*, int, USBDevice*);")
+                            "uint8_t*, CanSignal*, int, CanUsbDevice*);")
                     print ("        %s(id, data, SIGNALS, " % message.handler +
                             "SIGNAL_COUNT, &usbDevice);")
                 for signal in (s for s in message.signals if not s.ignore):

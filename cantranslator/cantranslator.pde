@@ -18,11 +18,13 @@ extern char* MESSAGE_SET;
 extern float CAN_BUS_1_SPEED;
 extern float CAN_BUS_2_SPEED;
 
-char* VERSION = "1.2-dev";
+char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
-USBDevice usbDevice(usbCallback);
+// USB
+#define DATA_ENDPOINT 1
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT};
 
 /* CAN Message Buffers */
 uint8_t can1MessageArea[2 * 8 * 16];
@@ -158,7 +160,7 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
         Serial.print("Version: ");
         Serial.println(combinedVersion);
 
-        usbDevice.EP0SendRAMPtr((uint8_t*)combinedVersion,
+        usbDevice.device.EP0SendRAMPtr((uint8_t*)combinedVersion,
                 strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;
     case RESET_CONTROL_COMMAND:
@@ -175,13 +177,13 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
-    usbDevice.DefaultCBEventHandler(event, pdata, size);
+    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
         Serial.println("Event: Configured");
         // Enable DATA_ENDPOINT for input
-        usbDevice.EnableEndpoint(DATA_ENDPOINT,
+        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
         break;
 

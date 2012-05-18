@@ -84,7 +84,8 @@ void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
     Serial.println("Done.");
 }
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -95,7 +96,8 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            sendNumericalMessage(signal->genericName, processedValue, usbDevice);
+            sendNumericalMessage(signal->genericName, processedValue,
+                    usbDevice);
         }
         signal->sendClock = 0;
     } else {
@@ -109,7 +111,7 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
 // differently typed values mean you would need to repeat this entire function
 // multiple files anyway. I'm leaving this function for now because it's useful
 // in a custom handler.
-void sendNumericalMessage(char* name, float value, USBDevice* usbDevice) {
+void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
     int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH + strlen(name)
             + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
     char message[messageLength];
@@ -118,7 +120,8 @@ void sendNumericalMessage(char* name, float value, USBDevice* usbDevice) {
     sendMessage(usbDevice, (uint8_t*) message, strlen(message));
 }
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -132,7 +135,8 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
             int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
                 strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
             char message[messageLength];
-            sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName, stringValue);
+            sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName,
+                    stringValue);
 
             sendMessage(usbDevice, (uint8_t*) message, strlen(message));
         }
@@ -143,7 +147,8 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     signal->lastValue = value;
 }
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+        uint8_t* data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -169,8 +174,8 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
     signal->lastValue = value;
 }
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        CanSignal* signals, int signalCount) {
-    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals,
-            signalCount);
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+        uint8_t* data, CanSignal* signals, int signalCount) {
+    translateCanSignal(usbDevice, signal, data, passthroughHandler,
+            signals, signalCount);
 }

@@ -166,7 +166,7 @@ class Parser(object):
 
     def print_header(self):
         print "#include \"canutil_chipkit.h\"\n"
-        print "extern USBDevice usbDevice;\n"
+        print "extern CanUsbDevice usbDevice;\n"
 
     def validate_messages(self):
         valid = True
@@ -226,24 +226,25 @@ class Parser(object):
             for message in bus['messages']:
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
-                    print ("        extern void %s(int, uint8_t*, CanSignal*, int, USBDevice* usbDevice);"
-                            % message.handler)
-                    print ("        %s(id, data, SIGNALS, SIGNAL_COUNT, &usbDevice);"
-                            % message.handler)
+                    print ("        extern void %s(int, " % message.handler +
+                            "uint8_t*, CanSignal*, int, CanUsbDevice*);")
+                    print ("        %s(id, data, SIGNALS, " % message.handler +
+                            "SIGNAL_COUNT, &usbDevice);")
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
                         print ("        extern %s("
                             "CanSignal*, CanSignal*, int, float, bool*);" %
                             signal.handler)
-                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                            "data, &%s, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                signal.array_index,
+                        print ("        translateCanSignal(&usbDevice, "
+                                "&SIGNALS[%d], " % signal.array_index +
+                                "data, &%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler.split()[1],
                                 signal.name))
                     else:
-                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                                "data, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                    signal.array_index, signal.name))
+                        print ("        translateCanSignal(&usbDevice, "
+                                "&SIGNALS[%d], " % signal.array_index +
+                                "data, SIGNALS, SIGNAL_COUNT); // %s"
+                                    % signal.name)
                 print "        break;"
         print "    }"
         print "}\n"
@@ -274,7 +275,8 @@ class Parser(object):
         # TODO when the masks are defined in JSON we can do this more
         # dynamically like the filters
         print
-        print "CanFilterMask* initializeFilterMasks(uint32_t address, int* count) {"
+        print ("CanFilterMask* initializeFilterMasks(uint32_t address, "
+                "int* count) {")
         print "Serial.println(\"Initializing filter arrays...\");"
 
         print "    if(address == CAN_1_ADDRESS) {"

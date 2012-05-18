@@ -14,7 +14,7 @@
 extern CanFilterMask* initializeFilterMasks(uint32_t, int*);
 extern CanFilter* initializeFilters(uint32_t, int*);
 
-void sendNumericalMessage(char* name, float value, USBDevice* usbDevice);
+void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
 
 /* Public: Initializes message filter masks and filters on the CAN controller.
  *
@@ -32,7 +32,7 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
  * signal - the details of the signal to decode and forward.
  * data   - the raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal, uint8_t* data,
         CanSignal* signals, int signalCount);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
@@ -40,24 +40,24 @@ void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
  *         handler function before sending the result out over USB.
  *
  * usbDevice - the USB device to send the final formatted message on.
- * signal        - the details of the signal to decode and forward.
- * data          - the raw bytes of the CAN message that contains the signal.
+ * signal - the details of the signal to decode and forward.
+ * data - the raw bytes of the CAN message that contains the signal.
  * handler - a function pointer that performs extra processing on the
- *                 float value.
- * signals       - an array of all active signals.
- * signalCount   - the length of the signals array
+ *           float value.
+ * signals - an array of all active signals.
+ * signalCount - the length of the signals array
  */
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
         char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);

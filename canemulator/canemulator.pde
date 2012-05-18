@@ -19,7 +19,9 @@
 const int BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH = strlen(
         BOOLEAN_EVENT_MESSAGE_FORMAT);
 
-USBDevice usbDevice(usbCallback);
+// USB
+#define DATA_ENDPOINT 1
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",

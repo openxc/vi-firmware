@@ -499,16 +499,31 @@ they stop receiving messages.
 
 ### Endpoint 1
 
-Endpoint 1 is configured as a bulk transfer endpoint. It accepts only `IN`
-transacations, meaning the host is reading data from the device.
+Endpoint 1 is configured as a bulk transfer endpoint. It accepts both `IN`
+and `OUT` transacations. The expected data format in both directions is
+newline-separated JSON messages conforming to the OpenXC standard.
 
 #### IN
 
-OpenXC JSON messages are sent to the host via `IN` transacations. When the host
-is ready to receive, it should issue a request to read data from this endpoint.
-A larger sized request will allow more messages to be batched together into one
-USB request and give high overall throughput (with the downside of introducing
-delay depending on the size of the request).
+OpenXC JSON messages read from the vehicle are sent to the host via `IN`
+transacations. When the host is ready to receive, it should issue a request to
+read data from this endpoint. A larger sized request will allow more messages to
+be batched together into one USB request and give high overall throughput (with
+the downside of introducing delay depending on the size of the request).
+
+#### OUT
+
+OpenXC JSON messages created by the host to send to the vehicle (i.e. to write
+to the CAN bus) are sent via `OUT` transactions. The CAN translator is prepared
+to accept writes from the host as soon as it initializes USB, so they can be
+sent at any time. There is no special demarcation on these messages to indicate
+they are writes - the fact that they are written in the `OUT` direction is
+sufficient.
+
+In the same way the CAN translator is pre-configured with a list of CAN signals
+to read and parse from the CAN bus, it is configured with a whitelist of
+messages and signals for which to accept writes from the host. If a message is
+sent with an unlisted ID it is silently ignored.
 
 ## License
 

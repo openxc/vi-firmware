@@ -409,6 +409,12 @@ on a CAN translator - the `--version` flag will tell you that.
     $ python reader.py --version
     Device is running version 1.0
 
+You can write a one-off message back to the CAN translator (which may or may not
+write it through to the CAN bus, depending on if it is an approved signal or
+not) using the `-w` flag:
+
+    $ python -w steering_wheel_angle 42.0
+
 ### Dependencies
 
 The `reader.py` script requires the `pyusb` Python library to be installed along

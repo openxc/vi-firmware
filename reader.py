@@ -10,7 +10,8 @@ import time
 
 
 class DataPoint(object):
-    def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None, events=False):
+    def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
+            events=False):
         self.name = name
         self.type = value_type
         self.min_value = min_value
@@ -46,7 +47,8 @@ class DataPoint(object):
                 if self.current_data in self.vocab:
                     #Save the event in the proper spot.
                     if (len(message) > 2) and (self.events_active is True):
-                        self.events[self.vocab.index(self.current_data)] = message['event']
+                        self.events[self.vocab.index(self.current_data)
+                                ] = message['event']
                 else:
                     self.bad_data = True
             else:
@@ -84,28 +86,28 @@ class DataPoint(object):
                     window.addstr(row, 40, graph)
 #            window.addstr(row, 55, str(self.current_data) + " " +
 #                    str(self.event))
-                
+
             if self.events_active is False:
                 window.addstr(row, 55, str(self.current_data))
             else:
                 result = ""
                 for item, value in enumerate(self.vocab):
-                    result = result + value + ":" + str(self.events[item]) + "  "
+                    result = (result + value + ":" + str(self.events[item])
+                            + "  ")
                 window.addstr(row, 55, result)
-                
+
 
 class UsbDevice(object):
-    DATA_ENDPOINT = 0x81
+    INTERFACE = 0
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendorId=0x04d8, endpoint=0x81, verbose=False,
-            dump=False, dashboard=False, elements=None):
+    def __init__(self, vendorId=0x04d8, verbose=False, dump=False,
+            dashboard=False, elements=None):
         self.verbose = verbose
         self.dump = dump
         self.dashboard = dashboard
         self.vendorId = vendorId
-        self.endpoint = endpoint
         self.message_buffer = ""
         self.messages_received = 0
         self.good_messages = 0
@@ -116,6 +118,20 @@ class UsbDevice(object):
             print "Couldn't find a USB device from vendor %s" % self.vendorId
             sys.exit()
         self.device.set_configuration()
+        config = self.device.get_active_configuration()
+        interface_number = config[(0,0)].bInterfaceNumber
+        interface = usb.util.find_descriptor(config,
+                bInterfaceNumber=interface_number)
+
+        self.endpoint = usb.util.find_descriptor(interface,
+                custom_match = \
+                        lambda e: \
+                        usb.util.endpoint_direction(e.bEndpointAddress) == \
+                        usb.util.ENDPOINT_OUT)
+
+        if not self.endpoint:
+            print "Couldn't find a proper endpoint on the USB device"
+            sys.exit()
 
     @property
     def version(self):
@@ -125,6 +141,12 @@ class UsbDevice(object):
 
     def reset(self):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
+
+    def write(self, name, value):
+        message = json.dumps({'name': name, 'value': value})
+        bytes_written = self.endpoint.write(message)
+        assert bytes_written == len(message)
+        print name, value
 
     def parse_message(self):
         if "\r\n" in self.message_buffer:
@@ -157,8 +179,7 @@ class UsbDevice(object):
             curses.init_pair(3, curses.COLOR_YELLOW, -1)
 
         while True:
-            self.message_buffer += self.device.read(self.endpoint,
-                    128, 0, 1000000).tostring()
+            self.message_buffer += self.endpoint.read(64, 1000000).tostring()
             self.parse_message()
 
             if self.dashboard and window is not None:
@@ -199,6 +220,10 @@ def parse_options():
             action="store_true",
             dest="dashboard",
             default=False)
+    parser.add_argument("--write", "-w",
+            nargs=2,
+            action="store",
+            dest="write")
 
     arguments = parser.parse_args()
     return arguments
@@ -256,6 +281,8 @@ def main():
         device.reset()
     elif arguments.dashboard:
         curses.wrapper(device.run)
+    elif arguments.write:
+        device.write(arguments.write[0], arguments.write[1])
     else:
         device.run()
 

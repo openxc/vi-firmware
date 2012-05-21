@@ -146,7 +146,6 @@ class UsbDevice(object):
         message = json.dumps({'name': name, 'value': value})
         bytes_written = self.endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
-        print name, value
 
     def parse_message(self):
         if "\r\n" in self.message_buffer:

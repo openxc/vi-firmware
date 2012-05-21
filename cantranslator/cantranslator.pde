@@ -98,9 +98,27 @@ void checkIfStalled() {
     }
 }
 
+void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
+    CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
+    if (message != NULL) {
+        message->msgSID.SID = destination;
+        message->msgEID.IDE = 0;
+        message->msgEID.DLC = 1;
+        memset(message->data, 0, 8);
+        memcpy(message->data, data, 8);
+
+        // Mark message as ready to be processed
+        bus->updateChannel(CAN::CHANNEL0);
+        bus->flushTxChannel(CAN::CHANNEL0);
+    }
+}
+
 void receiveWriteRequest(char* message) {
     Serial.print("Received write request: ");
     Serial.println(message);
+    // fake parking brake status
+    uint8_t data[8] = {0, 0, 0, 0, 0, 0, 0x8, 0};
+    sendCanMessage(&can1, 0xc8, data);
 }
 
 void loop() {
@@ -162,7 +180,6 @@ void handleCan2Interrupt() {
         }
     }
 }
-
 
 static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {

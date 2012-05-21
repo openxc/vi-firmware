@@ -181,8 +181,6 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
         initializeAllCan();
         return true;
     default:
-        Serial.print("Didn't recognize event: ");
-        Serial.println(SetupPkt.bRequest);
         return false;
     }
 }

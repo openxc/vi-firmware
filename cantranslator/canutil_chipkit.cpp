@@ -1,5 +1,6 @@
 #include "canutil_chipkit.h"
 #include "usbutil.h"
+#include "cJSON.h"
 
 void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
         int filterMaskCount, CanFilter* filters, int filterCount) {
@@ -106,18 +107,49 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
     signal->lastValue = value;
 }
 
+void sendJSON(cJSON* root, CanUsbDevice* usbDevice) {
+    char *message = cJSON_PrintUnformatted(root);
+    sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+    cJSON_Delete(root);
+    free(message);
+}
+
 // TODO if we make value a void*, could this be used for all of the
 // translateCanSignal functions? We can pass in the formats no problem, but the
 // differently typed values mean you would need to repeat this entire function
 // multiple files anyway. I'm leaving this function for now because it's useful
 // in a custom handler.
 void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH + strlen(name)
-            + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, name, value);
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+    cJSON_AddNumberToObject(root, VALUE_FIELD_NAME, value);
 
-    sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+    sendJSON(root, usbDevice);
+}
+
+void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+    Serial.println("creating bool");
+    cJSON_AddItemToObject(root, VALUE_FIELD_NAME, cJSON_CreateBool(value));
+    Serial.println("sending");
+    sendJSON(root, usbDevice);
+}
+
+void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+    cJSON_AddStringToObject(root, VALUE_FIELD_NAME, value);
+    sendJSON(root, usbDevice);
+}
+
+void sendEventedBooleanMessage(char* name, char* value, bool event,
+        CanUsbDevice* usbDevice) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+    cJSON_AddStringToObject(root, VALUE_FIELD_NAME, value);
+    cJSON_AddItemToObject(root, EVENT_FIELD_NAME, cJSON_CreateBool(event));
+    sendJSON(root, usbDevice);
 }
 
 void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
@@ -132,13 +164,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
-                strlen(signal->genericName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
-            char message[messageLength];
-            sprintf(message, STRING_MESSAGE_FORMAT, signal->genericName,
-                    stringValue);
-
-            sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+            sendStringMessage(signal->genericName, stringValue, usbDevice);
         }
         signal->sendClock = 0;
     } else {
@@ -159,13 +185,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
-                strlen(signal->genericName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
-            char message[messageLength];
-            sprintf(message, BOOLEAN_MESSAGE_FORMAT, signal->genericName,
-                    booleanValue ? "true" : "false");
-
-            sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+            sendBooleanMessage(signal->genericName, booleanValue, usbDevice);
         }
         signal->sendClock = 0;
     } else {

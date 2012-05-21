@@ -7,21 +7,16 @@
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
 #include "canutil.h"
+#include "canutil_chipkit.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-#define BOOLEAN_EVENT_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\",\"event\":%s}\r\n"
-#define BOOLEAN_EVENT_MESSAGE_VALUE_MAX_LENGTH 11
-
-const int BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH = strlen(
-        BOOLEAN_EVENT_MESSAGE_FORMAT);
-
 // USB
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -68,44 +63,6 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
     { {"driver", false}, {"passenger", true}, {"rear_right", true}},
 };
 
-void writeNumericalMeasurement(char* measurementName, float value) {
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, measurementName, value);
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeBooleanMeasurement(char* measurementName, bool value) {
-    int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, BOOLEAN_MESSAGE_FORMAT, measurementName,
-            value ? "true" : "false");
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeStateMeasurement(char* measurementName, char* value) {
-    int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, STRING_MESSAGE_FORMAT, measurementName, value);
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeEventMeasurement(char* measurementName, Event event) {
-    int messageLength = BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + BOOLEAN_EVENT_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, BOOLEAN_EVENT_MESSAGE_FORMAT, measurementName, event.value,
-            event.event ? "true" : "false");
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
 void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
@@ -115,19 +72,24 @@ void setup() {
 
 void loop() {
     while(1) {
-        writeNumericalMeasurement(
+        Serial.println("1");
+        sendNumericalMessage(
                 NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
-                random(101) + random(100) * .1);
-        writeBooleanMeasurement(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
-                random(2) == 1 ? true : false);
+                random(101) + random(100) * .1, &usbDevice);
+        Serial.println("2");
+        sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
+                random(2) == 1 ? true : false, &usbDevice);
 
+        Serial.println("3");
         int stateSignalIndex = random(STATE_SIGNAL_COUNT);
-        writeStateMeasurement(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][random(3)]);
+        sendStringMessage(STATE_SIGNALS[stateSignalIndex],
+                SIGNAL_STATES[stateSignalIndex][random(3)], &usbDevice);
 
+        Serial.println("4");
         int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
-        writeEventMeasurement(EVENT_SIGNALS[eventSignalIndex],
-                EVENT_SIGNAL_STATES[eventSignalIndex][random(3)]);
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
+        sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
+                randomEvent.value, randomEvent.event, &usbDevice);
     }
 }
 

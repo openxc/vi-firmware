@@ -123,14 +123,19 @@ class UsbDevice(object):
         interface = usb.util.find_descriptor(config,
                 bInterfaceNumber=interface_number)
 
-        self.endpoint = usb.util.find_descriptor(interface,
+        self.out_endpoint = usb.util.find_descriptor(interface,
                 custom_match = \
                         lambda e: \
                         usb.util.endpoint_direction(e.bEndpointAddress) == \
                         usb.util.ENDPOINT_OUT)
+        self.in_endpoint = usb.util.find_descriptor(interface,
+                custom_match = \
+                        lambda e: \
+                        usb.util.endpoint_direction(e.bEndpointAddress) == \
+                        usb.util.ENDPOINT_IN)
 
-        if not self.endpoint:
-            print "Couldn't find a proper endpoint on the USB device"
+        if not self.out_endpoint or not self.in_endpoint:
+            print "Couldn't find proper endpoints on the USB device"
             sys.exit()
 
     @property
@@ -144,7 +149,7 @@ class UsbDevice(object):
 
     def write(self, name, value):
         message = json.dumps({'name': name, 'value': value})
-        bytes_written = self.endpoint.write(message + "\x00")
+        bytes_written = self.out_endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
 
     def parse_message(self):
@@ -178,7 +183,7 @@ class UsbDevice(object):
             curses.init_pair(3, curses.COLOR_YELLOW, -1)
 
         while True:
-            self.message_buffer += self.endpoint.read(64, 1000000).tostring()
+            self.message_buffer += self.in_endpoint.read(64, 1000000).tostring()
             self.parse_message()
 
             if self.dashboard and window is not None:

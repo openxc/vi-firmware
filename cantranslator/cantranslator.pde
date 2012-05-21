@@ -107,7 +107,8 @@ void loop() {
     receiveCan(&can1, &isCan1MessageReceived);
     receiveCan(&can2, &isCan2MessageReceived);
 
-    readFromHost(&usbDevice, &USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    USB_OUTPUT_HANDLE = readFromHost(
+            &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
 
     checkIfStalled();
 }

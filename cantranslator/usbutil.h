@@ -13,7 +13,7 @@
 #define STRING_MESSAGE_VALUE_MAX_LENGTH 24
 
 // Don't try to send a message larger than this
-#define ENDPOINT_SIZE 128
+#define ENDPOINT_SIZE 64
 
 
 const int NUMERICAL_MESSAGE_FORMAT_LENGTH = strlen(NUMERICAL_MESSAGE_FORMAT);

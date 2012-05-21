@@ -9,6 +9,7 @@
 #include "bitfield.h"
 #include "canutil_chipkit.h"
 #include "usbutil.h"
+#include "cJSON.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -116,6 +117,17 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
 void receiveWriteRequest(char* message) {
     Serial.print("Received write request: ");
     Serial.println(message);
+
+    if(message != NULL) {
+        cJSON *root = cJSON_Parse(message);
+        if(root != NULL) {
+            Serial.println(cJSON_GetObjectItem(root, "name")->valuestring);
+            Serial.println(cJSON_GetObjectItem(root, "value")->valuedouble);
+            Serial.println("Done parsing JSON");
+            cJSON_Delete(root);
+        }
+    }
+
     // fake parking brake status
     uint8_t data[8] = {0, 0, 0, 0, 0, 0, 0x8, 0};
     sendCanMessage(&can1, 0xc8, data);

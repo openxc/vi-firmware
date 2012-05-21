@@ -21,7 +21,7 @@ const int BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH = strlen(
 
 // USB
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT};
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -132,11 +132,11 @@ void loop() {
 }
 
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
-    usbDevice.DefaultCBEventHandler(event, pdata, size);
+    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
-        usbDevice.EnableEndpoint(DATA_ENDPOINT,
+        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
         break;
 

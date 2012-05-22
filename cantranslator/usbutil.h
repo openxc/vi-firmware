@@ -5,20 +5,14 @@
 #include "chipKITUSBDevice.h"
 
 #define USB_PACKET_SIZE 64
-#define NUMERICAL_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%f}\r\n"
-#define BOOLEAN_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%s}\r\n"
-#define STRING_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\"}\r\n"
-#define NUMERICAL_MESSAGE_VALUE_MAX_LENGTH 6
-#define BOOLEAN_MESSAGE_VALUE_MAX_LENGTH 4
-#define STRING_MESSAGE_VALUE_MAX_LENGTH 24
+
+#define NAME_FIELD_NAME "name"
+#define VALUE_FIELD_NAME "value"
+#define EVENT_FIELD_NAME "event"
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
 
-
-const int NUMERICAL_MESSAGE_FORMAT_LENGTH = strlen(NUMERICAL_MESSAGE_FORMAT);
-const int BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(BOOLEAN_MESSAGE_FORMAT);
-const int STRING_MESSAGE_FORMAT_LENGTH = strlen(STRING_MESSAGE_FORMAT);
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;

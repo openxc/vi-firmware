@@ -116,40 +116,44 @@ void sendJSON(cJSON* root, CanUsbDevice* usbDevice) {
     free(message);
 }
 
+void sendJSONMessage(char* name, cJSON* value, cJSON* event,
+        CanUsbDevice* usbDevice) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+    cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
+    if(event != NULL) {
+        cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
+    }
+    sendJSON(root, usbDevice);
+}
+
 // TODO if we make value a void*, could this be used for all of the
 // translateCanSignal functions? We can pass in the formats no problem, but the
 // differently typed values mean you would need to repeat this entire function
 // multiple files anyway. I'm leaving this function for now because it's useful
 // in a custom handler.
 void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    cJSON_AddNumberToObject(root, VALUE_FIELD_NAME, value);
-
-    sendJSON(root, usbDevice);
+    sendJSONMessage(name, cJSON_CreateNumber(value), NULL, usbDevice);
 }
 
 void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice) {
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    cJSON_AddItemToObject(root, VALUE_FIELD_NAME, cJSON_CreateBool(value));
-    sendJSON(root, usbDevice);
+    sendJSONMessage(name, cJSON_CreateBool(value), NULL, usbDevice);
 }
 
 void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice) {
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    cJSON_AddStringToObject(root, VALUE_FIELD_NAME, value);
-    sendJSON(root, usbDevice);
+    sendJSONMessage(name, cJSON_CreateString(value), NULL, usbDevice);
 }
 
 void sendEventedBooleanMessage(char* name, char* value, bool event,
         CanUsbDevice* usbDevice) {
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    cJSON_AddStringToObject(root, VALUE_FIELD_NAME, value);
-    cJSON_AddItemToObject(root, EVENT_FIELD_NAME, cJSON_CreateBool(event));
-    sendJSON(root, usbDevice);
+    sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
+            usbDevice);
+}
+
+void sendEventedStringMessage(char* name, char* value, char* event,
+        CanUsbDevice* usbDevice) {
+    sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
+            usbDevice);
 }
 
 void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,

@@ -13,16 +13,21 @@ For more details, see the [OpenXC website](http://openxcplatform.com/developers/
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
-requires the [MPIDE][] and the CAN and USB libraries for the network sheild,
-provided by Microchip. Download these from the bottom of the [Max32 page][] and
-extract them to your MPIDE sketchbook directory in a subdirectory named
-`libraries`. It should look like this:
+requires the [MPIDE][] and a few library dependencies:
+
+* Microchip USB device library (downloaded from bottom of the [Max32 page][])
+* Microchip CAN library (downloaded from bottom of the [Max32 page][])
+* [cJSON](http://sourceforge.net/projects/cjson/)
+
+Download these libraries and extract them to your MPIDE sketchbook directory in
+a subdirectory named `libraries`. It should look like this:
 
     - /Users/me/sketchbook/
     ---- libraries/
     -------- chipKITUSBDevice/
+             chipKitCAN/
+             cJSON/
             ... other libraries
-
 
 If you plan to use the `reader.py` testing program, you will need to install
 the system library `libusb` and the Python package `pyusb`. In OS X, `libusb`

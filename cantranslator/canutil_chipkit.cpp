@@ -130,9 +130,7 @@ void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
 void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    Serial.println("creating bool");
     cJSON_AddItemToObject(root, VALUE_FIELD_NAME, cJSON_CreateBool(value));
-    Serial.println("sending");
     sendJSON(root, usbDevice);
 }
 

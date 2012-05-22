@@ -16,6 +16,8 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // issue.
     while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
     strncpy(SEND_BUFFER, (char*)message, messageSize);
+    SEND_BUFFER[messageSize] = '\n';
+    messageSize += 1;
 
     int nextByteIndex = 0;
     while(nextByteIndex < messageSize) {

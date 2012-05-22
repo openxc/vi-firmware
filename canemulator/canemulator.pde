@@ -72,20 +72,16 @@ void setup() {
 
 void loop() {
     while(1) {
-        Serial.println("1");
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
                 random(101) + random(100) * .1, &usbDevice);
-        Serial.println("2");
         sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
                 random(2) == 1 ? true : false, &usbDevice);
 
-        Serial.println("3");
         int stateSignalIndex = random(STATE_SIGNAL_COUNT);
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
                 SIGNAL_STATES[stateSignalIndex][random(3)], &usbDevice);
 
-        Serial.println("4");
         int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],

@@ -84,7 +84,7 @@ class DataPoint(object):
                     window.addstr(row, 40, graph)
 #            window.addstr(row, 55, str(self.current_data) + " " +
 #                    str(self.event))
-                
+
             if self.events_active is False:
                 window.addstr(row, 55, str(self.current_data))
             else:
@@ -92,7 +92,7 @@ class DataPoint(object):
                 for item, value in enumerate(self.vocab):
                     result = result + value + ":" + str(self.events[item]) + "  "
                 window.addstr(row, 55, result)
-                
+
 
 class UsbDevice(object):
     DATA_ENDPOINT = 0x81
@@ -127,8 +127,8 @@ class UsbDevice(object):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
     def parse_message(self):
-        if "\r\n" in self.message_buffer:
-            message,_,remainder= self.message_buffer.partition("\r\n")
+        if "\n" in self.message_buffer:
+            message,_,remainder= self.message_buffer.partition("\n")
             try:
                 parsed_message = json.loads(message)
             except ValueError:

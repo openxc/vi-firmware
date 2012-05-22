@@ -21,6 +21,12 @@ extern char* MESSAGE_SET;
 extern float CAN_BUS_1_SPEED;
 extern float CAN_BUS_2_SPEED;
 
+// TODO we get relocation errors at compile time if we try to reference this
+// here - how can we move the write receive handler into the signals file
+// without requiring it to be a part of the generator script?
+extern CanSignal* SIGNALS;
+extern int SIGNAL_COUNT;
+
 char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
@@ -114,6 +120,16 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
     }
 }
 
+void handleNumericalWrite(char* name, float value) {
+    CanSignal* signal = lookupSignal(name, SIGNALS, SIGNAL_COUNT);
+    if(signal != NULL) {
+        float engineeringValue = (value - signal->offset) / signal->factor;
+        uint8_t* data = setBitField(engineeringValue, signal->bitPosition,
+                signal->bitSize);
+        sendCanMessage(&can1, signal->messageId, data);
+    }
+}
+
 void receiveWriteRequest(char* message) {
     Serial.print("Received write request: ");
     Serial.println(message);
@@ -121,16 +137,12 @@ void receiveWriteRequest(char* message) {
     if(message != NULL) {
         cJSON *root = cJSON_Parse(message);
         if(root != NULL) {
-            Serial.println(cJSON_GetObjectItem(root, "name")->valuestring);
-            Serial.println(cJSON_GetObjectItem(root, "value")->valuedouble);
-            Serial.println("Done parsing JSON");
+            // TODO how do we know to get a string, bool or double?
+            handleNumericalWrite(cJSON_GetObjectItem(root, "name")->valuestring,
+                    cJSON_GetObjectItem(root, "value")->valuedouble);
             cJSON_Delete(root);
         }
     }
-
-    // fake parking brake status
-    uint8_t data[8] = {0, 0, 0, 0, 0, 0, 0x8, 0};
-    sendCanMessage(&can1, 0xc8, data);
 }
 
 void loop() {

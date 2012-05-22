@@ -32,3 +32,7 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
   unsigned long bitmask = (unsigned long)((0x1 << numBits) - 1);
   return ret & bitmask;
 }
+
+uint8_t* setBitField(float value, int startPos, int numBits) {
+    // TODO
+}

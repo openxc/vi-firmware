@@ -17,4 +17,7 @@
  */
 unsigned long getBitField(uint8_t* data, int startPos, int numBits);
 
+// TODO document
+uint8_t* setBitField(float value, int startPos, int numBits);
+
 #endif // _BITFIELD_H_

@@ -44,7 +44,7 @@ struct CanSignalState {
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
- * id          - the ID of the signal on the bus.
+ * messageId   - the ID of the message this signal is a part of signal.
  * genericName - the name of the signal to be output over USB.
  * bitPosition - the starting bit of the signal in its CAN message.
  * bitSize     - the width of the bit field in the CAN message.
@@ -57,7 +57,7 @@ struct CanSignalState {
  * received    - mark true if this signal has ever been received.
  */
 struct CanSignal {
-    int id;
+    int messageId;
     char* genericName;
     int bitPosition;
     int bitSize;

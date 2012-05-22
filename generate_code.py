@@ -70,11 +70,11 @@ class Message(object):
 
 
 class Signal(object):
-    def __init__(self, id=None, name=None, generic_name=None, position=None,
-            length=None, factor=1, offset=0, min_value=0.0, max_value=0.0,
-            handler=None, ignore=False, states=None, send_frequency=0,
-            send_same=True):
-        self.id = id
+    def __init__(self, message_id=None, name=None, generic_name=None,
+            position=None, length=None, factor=1, offset=0, min_value=0.0,
+            max_value=0.0, handler=None, ignore=False, states=None,
+            send_frequency=0, send_same=True):
+        self.message_id = message_id
         self.name = name
         self.generic_name = generic_name
         self.position = position
@@ -137,7 +137,7 @@ class Signal(object):
 
     def __str__(self):
         result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f, %d, 0, %s, false" % (
-                self.id, self.generic_name, self.position, self.length,
+                self.message_id, self.generic_name, self.position, self.length,
                 self.factor, self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower())
         if len(self.states) > 0:
@@ -350,7 +350,7 @@ class JsonParser(Parser):
                     # we're not using it now because it will make switching
                     # to it in the future easier
                     message.signals.append(
-                            Signal(signal.get('id', 0),
+                            Signal(int(message_id),
                             signal_name,
                             signal['generic_name'],
                             signal.get('bit_position', None),

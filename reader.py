@@ -158,8 +158,8 @@ class UsbDevice(object):
         assert bytes_written == len(message) + 1
 
     def parse_message(self):
-        if "\r\n" in self.message_buffer:
-            message,_,remainder= self.message_buffer.partition("\r\n")
+        if "\n" in self.message_buffer:
+            message,_,remainder= self.message_buffer.partition("\n")
             try:
                 parsed_message = json.loads(message)
             except ValueError:

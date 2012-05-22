@@ -14,7 +14,12 @@
 extern CanFilterMask* initializeFilterMasks(uint32_t, int*);
 extern CanFilter* initializeFilters(uint32_t, int*);
 
+// TODO document these
 void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
+void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice);
+void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice);
+void sendEventedBooleanMessage(char* name, char* value, bool event,
+        CanUsbDevice* usbDevice);
 
 /* Public: Initializes message filter masks and filters on the CAN controller.
  *

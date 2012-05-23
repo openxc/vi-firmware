@@ -14,7 +14,7 @@ CanSignal SIGNALS[2] = {
 START_TEST (test_can_signal_struct)
 {
     CanSignal signal = SIGNALS[0];
-    fail_unless(signal.id == 0, "ID didn't match: %f", signal.id);
+    fail_unless(signal.messageId == 0, "ID didn't match: %f", signal.messageId);
     fail_unless(strcmp(signal.genericName, "powertrain_torque") == 0,
             "generic name didn't match: %s", signal.genericName);
     fail_unless(signal.bitPosition == 2,
@@ -38,7 +38,7 @@ END_TEST
 START_TEST (test_can_signal_states)
 {
     CanSignal signal = SIGNALS[1];
-    fail_unless(signal.id == 1, "ID didn't match");
+    fail_unless(signal.messageId == 1, "ID didn't match");
     fail_unless(signal.stateCount == 6, "state count didn't match");
     CanSignalState state = signal.states[0];
     fail_unless(state.value == 1, "state value didn't match");

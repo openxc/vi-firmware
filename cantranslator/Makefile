@@ -19,6 +19,8 @@ ifndef ARDUINO_PORT
 	endif
 endif
 
+EXTRA_CXXFLAGS = -G0
+
 include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 
 TEST_OBJDIR = $(OBJDIR)/tests

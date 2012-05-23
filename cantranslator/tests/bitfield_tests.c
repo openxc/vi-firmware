@@ -44,12 +44,22 @@ START_TEST (test_get_multi_byte)
 }
 END_TEST
 
+START_TEST (test_set_field)
+{
+    uint8_t data[2] = {0, 0};
+    setBitField(data, 1, 0);
+    unsigned long result = getBitField(data, 0, 1);
+    fail_unless(result == 0x1);
+}
+END_TEST
+
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_one_byte);
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);
+    tcase_add_test(tc_core, test_set_field);
     suite_add_tcase(s, tc_core);
 
     return s;

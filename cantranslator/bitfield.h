@@ -17,7 +17,12 @@
  */
 unsigned long getBitField(uint8_t* data, int startPos, int numBits);
 
-// TODO document
-void setBitField(uint8_t* data,  float value, int startPos, int numBits);
+/* Public: Set the bit field in the given data array to the new value.
+ *
+ * data - a byte array with size at least startPos + numBits.
+ * value - the value to set in the bit field.
+ * startPos - the starting index of the bit field (beginning from 0).
+ */
+void setBitField(uint8_t* data,  float value, int startPos);
 
 #endif // _BITFIELD_H_

@@ -10,6 +10,7 @@
 #include "canutil_chipkit.h"
 #include "usbutil.h"
 #include "cJSON.h"
+#include "signals.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -24,7 +25,6 @@ extern float CAN_BUS_2_SPEED;
 // TODO we get relocation errors at compile time if we try to reference this
 // here - how can we move the write receive handler into the signals file
 // without requiring it to be a part of the generator script?
-extern CanSignal* SIGNALS;
 extern int SIGNAL_COUNT;
 
 char* VERSION = "2.0-pre";
@@ -121,7 +121,7 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
 }
 
 void handleNumericalWrite(char* name, float value) {
-    CanSignal* signal = lookupSignal(name, SIGNALS, SIGNAL_COUNT);
+    CanSignal* signal = lookupSignal(name, getSignalList(), SIGNAL_COUNT);
     if(signal != NULL) {
         float engineeringValue = (value - signal->offset) / signal->factor;
         uint8_t* data = setBitField(engineeringValue, signal->bitPosition,
@@ -131,12 +131,12 @@ void handleNumericalWrite(char* name, float value) {
 }
 
 void receiveWriteRequest(char* message) {
-    Serial.print("Received write request: ");
-    Serial.println(message);
-
     if(message != NULL) {
         cJSON *root = cJSON_Parse(message);
         if(root != NULL) {
+            Serial.print("Received write request: ");
+            Serial.println(message);
+
             // TODO how do we know to get a string, bool or double?
             handleNumericalWrite(cJSON_GetObjectItem(root, "name")->valuestring,
                     cJSON_GetObjectItem(root, "value")->valuedouble);

@@ -220,6 +220,10 @@ class Parser(object):
         print "};"
         print
 
+        print "CanSignal* getSignalList() {"
+        print "    return SIGNALS;"
+        print "}"
+
         print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"
         for bus in self.buses.values():

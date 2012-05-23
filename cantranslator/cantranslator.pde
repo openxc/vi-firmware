@@ -124,7 +124,9 @@ void handleNumericalWrite(char* name, float value) {
     CanSignal* signal = lookupSignal(name, getSignalList(), SIGNAL_COUNT);
     if(signal != NULL) {
         float engineeringValue = (value - signal->offset) / signal->factor;
-        uint8_t* data = setBitField(engineeringValue, signal->bitPosition,
+        uint8_t data[8];
+        memset(data, 0, 8);
+        setBitField(data, engineeringValue, signal->bitPosition,
                 signal->bitSize);
         sendCanMessage(&can1, signal->messageId, data);
     }

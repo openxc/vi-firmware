@@ -33,6 +33,6 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
   return ret & bitmask;
 }
 
-uint8_t* setBitField(float value, int startPos, int numBits) {
+void setBitField(uint8_t* data, float value, int startPos, int numBits) {
     // TODO
 }

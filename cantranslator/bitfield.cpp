@@ -4,6 +4,7 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
     unsigned long ret = 0;
 
     int startByte = startBit / 8;
+    int endBit;
 
     if (numBits <= 8 ) {
         // Bit fields are positioned according to big-endian bit layout, but
@@ -13,8 +14,7 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
         // the field.
         int bitPosition = startBit % 8;
         ret = data[startByte];
-        int endBit = bitPosition + numBits;
-        ret = ret >> (8 - endBit);
+        endBit = bitPosition + numBits;
     } else {
         int endByte = (startBit + numBits) / 8;
 
@@ -25,8 +25,9 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
         }
 
         //Calculates value to shift bitfield of interest to LSB
-        ret = ret >> (8 - ((startBit + numBits) % 8));
+        endBit = ((startBit + numBits) % 8);
     }
+    ret = ret >> (8 - endBit);
 
     // Mask out any other bits besides those in the bitfield.
     unsigned long bitmask = (unsigned long)((0x1 << numBits) - 1);

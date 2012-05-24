@@ -56,20 +56,25 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
         }
     }
 
-    ret = ret >> (8 - findEndBit(startBit, numBits));
+    ret >>= 8 - findEndBit(startBit, numBits);
     return ret & bitmask(numBits);
 }
 
-void setBitField(uint8_t* data, unsigned long value, int startPos,
+/**
+ * TODO it would be nice to have a warning if you call with this a value that
+ * won't fit in the number of bits you've specified it should use.
+ *
+ * TODO document this and all of the byte ordering in a sane fashion.
+ */
+void setBitField(uint8_t* data, unsigned long value, int startBit,
         int numBits) {
-    if(numBits > 8) {
-    }
-    value <<= 32 - numBits - startPos;
-    value &= reverseBitmask(numBits);
-    for(int i = 0; i < 8; i++) {
-        uint8_t block = (value >> ((7 - i - 1) * 4))
-            & reverseBitmaskVariableLength(numBits, 8);
+    int numBytes = numBits / 8 + 1;
+    int startByte = startingByte(startBit);
+    int endByte = endingByte(startBit, numBits);
+    for(int i = startByte; i <= endByte; i++) {
+        uint8_t block = (value >> ((numBytes * 8) - (8 * (i + 1)))) & bitmask(8);
         data[i] = data[i] | block;
     }
+    data[endByte] <<= 8 - findEndBit(startBit, numBits);
 }
 

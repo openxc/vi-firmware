@@ -59,6 +59,16 @@ START_TEST (test_set_field)
     setBitField(data, 1, 0, 1);
     unsigned long result = getBitField(data, 0, 1);
     fail_unless(result == 0x1);
+
+    memset(data, 0, 8);
+    setBitField(data, 1, 1, 1);
+    result = getBitField(data, 1, 1);
+    fail_unless(result == 0x1);
+
+    memset(data, 0, 8);
+    setBitField(data, 15, 3, 4);
+    result = getBitField(data, 3, 4);
+    fail_unless(result == 15);
 }
 END_TEST
 

@@ -19,11 +19,33 @@ int findEndBit(int startBit, int numBits) {
     }
 }
 
+unsigned long bitmask(int numBits) {
+    return (unsigned long)((0x1 << numBits) - 1);
+}
+
+unsigned long reverseBitmaskVariableLength(int numBits, int totalLength) {
+    unsigned long mask = bitmask(numBits);
+    return mask << totalLength - numBits;
+}
+
+unsigned long reverseBitmask(int numBits) {
+    return reverseBitmaskVariableLength(numBits, 32);
+}
+
+
+int startingByte(int startBit) {
+    return startBit / 8;
+}
+
+int endingByte(int startBit, int numBits) {
+    return (startBit + numBits - 1) / 8;
+}
+
 unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
     unsigned long ret = 0;
 
-    int startByte = startBit / 8;
-    int endByte = (startBit + numBits - 1) / 8;
+    int startByte = startingByte(startBit);
+    int endByte = endingByte(startBit, numBits);
 
     ret = data[startByte];
     if(startByte != endByte) {
@@ -35,12 +57,19 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
     }
 
     ret = ret >> (8 - findEndBit(startBit, numBits));
-
-    // Mask out any other bits besides those in the bitfield.
-    unsigned long bitmask = (unsigned long)((0x1 << numBits) - 1);
-    return ret & bitmask;
+    return ret & bitmask(numBits);
 }
 
-void setBitField(uint8_t* data, float value, int startPos) {
-    // TODO
+void setBitField(uint8_t* data, unsigned long value, int startPos,
+        int numBits) {
+    if(numBits > 8) {
+    }
+    value <<= 32 - numBits - startPos;
+    value &= reverseBitmask(numBits);
+    for(int i = 0; i < 8; i++) {
+        uint8_t block = (value >> ((7 - i - 1) * 4))
+            & reverseBitmaskVariableLength(numBits, 8);
+        data[i] = data[i] | block;
+    }
 }
+

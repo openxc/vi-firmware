@@ -23,6 +23,6 @@ unsigned long getBitField(uint8_t* data, int startPos, int numBits);
  * value - the value to set in the bit field.
  * startPos - the starting index of the bit field (beginning from 0).
  */
-void setBitField(uint8_t* data,  float value, int startPos);
+void setBitField(uint8_t* data, unsigned long value, int startPos, int numBits);
 
 #endif // _BITFIELD_H_

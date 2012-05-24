@@ -2,6 +2,15 @@
 #include <stdint.h>
 #include "bitfield.h"
 
+START_TEST (test_one_bit)
+{
+    uint8_t data = 0x80;
+    unsigned long result = getBitField(&data, 0, 1);
+    fail_unless(result == 0x1,
+            "First bits in 0x%X was 0x%X instead of 0x1", data, result);
+}
+END_TEST
+
 START_TEST (test_one_byte)
 {
     uint8_t data = 0xFA;
@@ -46,8 +55,8 @@ END_TEST
 
 START_TEST (test_set_field)
 {
-    uint8_t data[2] = {0, 0};
-    setBitField(data, 1, 0);
+    uint8_t data[8] = {0, 0};
+    setBitField(data, 1, 0, 1);
     unsigned long result = getBitField(data, 0, 1);
     fail_unless(result == 0x1);
 }
@@ -56,6 +65,7 @@ END_TEST
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
+    tcase_add_test(tc_core, test_one_bit);
     tcase_add_test(tc_core, test_one_byte);
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);

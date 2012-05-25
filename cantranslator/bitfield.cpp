@@ -6,17 +6,19 @@
  * Returns: a bit position from 0 to 7.
  */
 int findEndBit(int startBit, int numBits) {
+    int endBit = 0;
     if (numBits <= 8 ) {
         // Bit fields are positioned according to big-endian bit layout, but
         // inside the bit field, values are represented as little-endian.
         // Therefore, to get the bit field, we just need to convert to big-endian
         // bit ordering to find the field, and directly use the value we find in
         // the field.
-        return (startBit % 8) + numBits;
+        endBit = (startBit % 8) + numBits;
     } else {
         // Calculates value to shift bitfield of interest to LSB
-        return (startBit + numBits) % 8;
+        endBit = (startBit + numBits) % 8;
     }
+    return endBit == 0 ? 8 : endBit;
 }
 
 unsigned long bitmask(int numBits) {
@@ -42,12 +44,10 @@ int endingByte(int startBit, int numBits) {
 }
 
 unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
-    unsigned long ret = 0;
-
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
-    ret = data[startByte];
+    unsigned long ret = data[startByte];
     if(startByte != endByte) {
         // The lowest byte address contains the most significant bit.
         for (int i = startByte + 1; i <= endByte; i++) {

@@ -13,10 +13,10 @@ END_TEST
 
 START_TEST (test_full_message)
 {
-    uint8_t data[8] = {0xFF, 0xFC, 0x4D, 0xF3};
+    uint8_t data[4] = {0xFF, 0xFC, 0x4D, 0xF3};
     unsigned long result = getBitField(data, 16, 16);
     float expectedValue = 4.5;
-    float value = result * .1 - 2000;
+    float value = (result * .1 - 2000) * -1;
     fail_unless(value == expectedValue,
             "Field retrieved in 0x%X%X%X%X was %f instead of %f", data[0],
             data[1], data[2], data[3], value, expectedValue);

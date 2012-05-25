@@ -11,6 +11,18 @@ START_TEST (test_one_bit)
 }
 END_TEST
 
+START_TEST (test_full_message)
+{
+    uint8_t data[8] = {0xFF, 0xFC, 0x4D, 0xF3};
+    unsigned long result = getBitField(data, 16, 16);
+    float expectedValue = 4.5;
+    float value = result * .1 - 2000;
+    fail_unless(value == expectedValue,
+            "Field retrieved in 0x%X%X%X%X was %f instead of %f", data[0],
+            data[1], data[2], data[3], value, expectedValue);
+}
+END_TEST
+
 START_TEST (test_one_byte)
 {
     uint8_t data = 0xFA;
@@ -77,6 +89,7 @@ Suite* bitfieldSuite(void) {
     TCase *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_one_bit);
     tcase_add_test(tc_core, test_one_byte);
+    tcase_add_test(tc_core, test_full_message);
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);
     tcase_add_test(tc_core, test_set_field);

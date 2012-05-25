@@ -9,6 +9,11 @@
  * startPos - the starting index of the bit field (beginning from 0).
  * numBits - the width of the bit field to extract.
  *
+ * Bit fields are positioned according to big-endian bit layout, but inside the
+ * bit field, values are represented as little-endian. Therefore, to get the bit
+ * field, we just need to convert to big-endian bit ordering to find the field,
+ * and directly use the value we find in the field.
+ *
  * Examples
  *
  *  unsigned long value = getBitField(data, 2, 4);

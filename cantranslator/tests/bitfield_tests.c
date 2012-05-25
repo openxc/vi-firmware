@@ -96,6 +96,16 @@ START_TEST (test_set_doesnt_clobber_existing_data)
 }
 END_TEST
 
+START_TEST (test_get_off_byte_boundary)
+{
+    uint8_t data[2] = {0xFA, 0x12};
+    unsigned long result = getBitField(data, 4, 8);
+    fail_unless(result == 0xA1,
+            "Middle 4 bits in 0x%X%X was %d instead of 0xA1", data[0], data[1],
+            result);
+}
+END_TEST
+
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
@@ -104,6 +114,7 @@ Suite* bitfieldSuite(void) {
     tcase_add_test(tc_core, test_full_message);
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);
+    tcase_add_test(tc_core, test_get_off_byte_boundary);
     tcase_add_test(tc_core, test_set_field);
     tcase_add_test(tc_core, test_set_doesnt_clobber_existing_data);
     suite_add_tcase(s, tc_core);

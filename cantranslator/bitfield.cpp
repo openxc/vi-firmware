@@ -68,12 +68,15 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
  */
 void setBitField(uint8_t* data, unsigned long value, int startBit,
         int numBits) {
-    int numBytes = numBits / 8 + 1;
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
+    // TODO need to slide over numbits, I think. but this should work with
+    // values ending on the byte boundary
+    int numBytes = endByte - startByte + 1;
     for(int i = startByte; i <= endByte; i++) {
-        uint8_t block = (value >> ((numBytes * 8) - (8 * (i + 1)))) & bitmask(8);
-        data[i] = data[i] | block;
+        uint8_t block = (value >> ((numBytes * 8) -
+                    (8 * (i - startByte + 1)))) & bitmask(8);
+        data[i] = (data[i] | bitmask(8)) & block;
     }
     data[endByte] <<= 8 - findEndBit(startBit, numBits);
 }

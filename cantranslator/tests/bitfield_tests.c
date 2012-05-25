@@ -15,11 +15,10 @@ START_TEST (test_full_message)
 {
     uint8_t data[4] = {0xFF, 0xFC, 0x4D, 0xF3};
     unsigned long result = getBitField(data, 16, 16);
-    float expectedValue = 4.5;
-    float value = (result * .1 - 2000) * -1;
-    fail_unless(value == expectedValue,
-            "Field retrieved in 0x%X%X%X%X was %f instead of %f", data[0],
-            data[1], data[2], data[3], value, expectedValue);
+    unsigned long expectedValue = 19955;
+    fail_unless(result == expectedValue,
+            "Field retrieved in 0x%X%X%X%X was %d instead of %d", data[0],
+            data[1], data[2], data[3], result, expectedValue);
 }
 END_TEST
 
@@ -67,7 +66,7 @@ END_TEST
 
 START_TEST (test_set_field)
 {
-    uint8_t data[8] = {0, 0};
+    uint8_t data[2] = {0, 0};
     setBitField(data, 1, 0, 1);
     unsigned long result = getBitField(data, 0, 1);
     fail_unless(result == 0x1);
@@ -84,6 +83,19 @@ START_TEST (test_set_field)
 }
 END_TEST
 
+START_TEST (test_set_doesnt_clobber_existing_data)
+{
+    uint8_t data[4] = {0xFF, 0xFC, 0x4D, 0xF3};
+    unsigned long expectedValue = 20424;
+    setBitField(data, expectedValue, 16, 16);
+    unsigned long result = getBitField(data, 16, 16);
+    fail_unless(result == expectedValue,
+            "Field retrieved in 0x%X%X%X%X was %d instead of %d", data[0],
+            data[1], data[2], data[3], result, expectedValue);
+
+}
+END_TEST
+
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
@@ -93,6 +105,7 @@ Suite* bitfieldSuite(void) {
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);
     tcase_add_test(tc_core, test_set_field);
+    tcase_add_test(tc_core, test_set_doesnt_clobber_existing_data);
     suite_add_tcase(s, tc_core);
 
     return s;

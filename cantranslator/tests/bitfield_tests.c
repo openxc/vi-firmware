@@ -92,7 +92,6 @@ START_TEST (test_set_doesnt_clobber_existing_data)
     fail_unless(result == expectedValue,
             "Field retrieved in 0x%X%X%X%X was %d instead of %d", data[0],
             data[1], data[2], data[3], result, expectedValue);
-
 }
 END_TEST
 
@@ -103,6 +102,19 @@ START_TEST (test_get_off_byte_boundary)
     fail_unless(result == 0xA1,
             "Middle 4 bits in 0x%X%X was %d instead of 0xA1", data[0], data[1],
             result);
+}
+END_TEST
+
+START_TEST (test_set_off_byte_boundary)
+{
+    // TODO try getting and writing an odd number of bits
+    uint8_t data[4] = {0xFF, 0xFC, 0x4D, 0xF3};
+    unsigned long expectedValue = 0x12;
+    setBitField(data, expectedValue, 12, 8);
+    unsigned long result = getBitField(data, 12, 8);
+    fail_unless(result == expectedValue,
+            "Field retrieved in 0x%X%X%X%X was %d instead of %d", data[0],
+            data[1], data[2], data[3], result, expectedValue);
 }
 END_TEST
 
@@ -117,6 +129,7 @@ Suite* bitfieldSuite(void) {
     tcase_add_test(tc_core, test_get_off_byte_boundary);
     tcase_add_test(tc_core, test_set_field);
     tcase_add_test(tc_core, test_set_doesnt_clobber_existing_data);
+    tcase_add_test(tc_core, test_set_off_byte_boundary);
     suite_add_tcase(s, tc_core);
 
     return s;

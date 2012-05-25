@@ -7,11 +7,6 @@
  */
 int findEndBit(int startBit, int numBits) {
     int endBit = (startBit + numBits) % 8;
-    // Bit fields are positioned according to big-endian bit layout, but
-    // inside the bit field, values are represented as little-endian.
-    // Therefore, to get the bit field, we just need to convert to big-endian
-    // bit ordering to find the field, and directly use the value we find in
-    // the field.
     return endBit == 0 ? 8 : endBit;
 }
 

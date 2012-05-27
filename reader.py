@@ -38,6 +38,8 @@ class DataPoint(object):
             return
 
         self.current_data = message['value']
+        if type(self.current_data) == int:
+            self.current_data = float(self.current_data)
         if type(self.current_data) != self.type:
             self.bad_data = True
         else:

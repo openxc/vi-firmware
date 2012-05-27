@@ -350,9 +350,6 @@ class JsonParser(Parser):
                             {}).iteritems():
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
-                    # TODO we're keeping the numerical ID here even though
-                    # we're not using it now because it will make switching
-                    # to it in the future easier
                     message.signals.append(
                             Signal(int(message_id),
                             signal_name,

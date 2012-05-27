@@ -105,7 +105,7 @@ void checkIfStalled() {
     }
 }
 
-void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
+void sendCanMessage(CAN* bus, uint32_t destination, uint32_t* data) {
     CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
     if (message != NULL) {
         message->msgSID.SID = destination;
@@ -124,11 +124,10 @@ void handleNumericalWrite(char* name, float value) {
     CanSignal* signal = lookupSignal(name, getSignalList(), SIGNAL_COUNT);
     if(signal != NULL) {
         float engineeringValue = (value - signal->offset) / signal->factor;
-        uint8_t data[8];
-        memset(data, 0, 8);
-        setBitField(data, engineeringValue, signal->bitPosition,
+        uint32_t data = 0;
+        setBitField(&data, engineeringValue, signal->bitPosition,
                 signal->bitSize);
-        sendCanMessage(&can1, signal->messageId, data);
+        sendCanMessage(&can1, signal->messageId, &data);
     }
 }
 

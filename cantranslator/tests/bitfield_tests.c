@@ -96,30 +96,49 @@ END_TEST
 START_TEST (test_set_doesnt_clobber_existing_data)
 {
     uint32_t data = 0xFFFC4DF3;
-    unsigned long expectedValue = 0x4fc8;
-    setBitField(&data, expectedValue, 16, 16);
+    setBitField(&data, 0x4fc8, 16, 16);
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
     unsigned long result = getBitField((uint8_t*)&data, 0, 16);
     fail_unless(result == 0xc84f,
             "Field retrieved in 0x%X was 0x%X instead of 0x%X", data, result,
-            expectedValue);
+            0xc84f);
 }
 END_TEST
 
 START_TEST (test_set_off_byte_boundary)
 {
     uint32_t data = 0xFFFC4DF3;
-    unsigned long expectedValue = 0x12;
-    setBitField(&data, expectedValue, 12, 8);
+    setBitField(&data, 0x12, 12, 8);
     unsigned long result = getBitField((uint8_t*)&data, 8, 16);
     fail_unless(result == 0x2df1,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
-            expectedValue);
+            0x2df1);
 }
 END_TEST
 
-// TODO try getting and writing an odd number of bits
+START_TEST (test_set_odd_number_of_bits)
+{
+    uint32_t data = 0xFFFC4DF3;
+    setBitField(&data, 0x12, 11, 5);
+    unsigned long result = getBitField((uint8_t*)&data, 19, 5);
+    fail_unless(result == 0x12,
+            "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
+            0x12);
+
+    data = 0xFFFC4DF3;
+    setBitField(&data, 0x2, 11, 5);
+    result = getBitField((uint8_t*)&data, 19, 5);
+    fail_unless(result == 0x2,
+            "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
+            0x2);
+
+    result = getBitField((uint8_t*)&data, 16, 4);
+    fail_unless(result == 0xe,
+            "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
+            0xe);
+}
+END_TEST
 
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
@@ -133,6 +152,7 @@ Suite* bitfieldSuite(void) {
     tcase_add_test(tc_core, test_set_field);
     tcase_add_test(tc_core, test_set_doesnt_clobber_existing_data);
     tcase_add_test(tc_core, test_set_off_byte_boundary);
+    tcase_add_test(tc_core, test_set_odd_number_of_bits);
     suite_add_tcase(s, tc_core);
 
     return s;

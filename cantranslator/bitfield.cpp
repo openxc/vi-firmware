@@ -55,18 +55,10 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
  *
  * TODO document this and all of the byte ordering in a sane fashion.
  */
-void setBitField(uint8_t* data, unsigned long value, int startBit,
-        int numBits) {
-    int startByte = startingByte(startBit);
-    int endByte = endingByte(startBit, numBits);
-    // TODO need to slide over numbits, I think. but this should work with
-    // values ending on the byte boundary
-    int numBytes = endByte - startByte + 1;
-    for(int i = startByte; i <= endByte; i++) {
-        uint8_t block = (value >> ((numBytes * 8) -
-                    (8 * (i - startByte + 1)))) & bitmask(8);
-        data[i] = (data[i] | bitmask(8)) & block;
-    }
-    data[endByte] <<= 8 - findEndBit(startBit, numBits);
+void setBitField(uint32_t* data, uint32_t value, int startBit, int numBits) {
+    int shiftDistance = 32 - startBit - numBits;
+    value <<= shiftDistance;
+    *data &= ~(bitmask(numBits) << shiftDistance);
+    *data |= value;
 }
 

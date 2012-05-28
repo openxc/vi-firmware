@@ -11,11 +11,11 @@ CanSignalState SIGNAL_STATES[1][10] = {
 int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[3] = {
     {NULL, 0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, 1, 0, false, false},
+        33522.000000, 1, 0, false, false, NULL, 0, true},
     {NULL, 1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, 4.0},
+        0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
     {NULL, 2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
-        0, false, false},
+        0, false, false, NULL, 0, true},
 };
 
 START_TEST (test_can_signal_struct)
@@ -113,19 +113,19 @@ START_TEST (test_state_handler)
 }
 END_TEST
 
-START_TEST (test_passthrough_writer)
+START_TEST (test_number_writer)
 {
     bool send = true;
     uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
-    uint64_t expectedValue = 0x74000000;
+    uint64_t expectedValue = 0x7400000000000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
 
     value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(0x6), &send);
-    expectedValue = 0x60000000;
+    expectedValue = 0x6000000000000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -137,7 +137,7 @@ START_TEST (test_boolean_writer)
     bool send = true;
     uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(true), &send);
-    uint64_t expectedValue = 0x80000000;
+    uint64_t expectedValue = 0x8000000000000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -149,7 +149,7 @@ START_TEST (test_state_writer)
     bool send = true;
     uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
-    uint64_t expectedValue = 0x20000000;
+    uint64_t expectedValue = 0x2000000000000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -176,7 +176,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_boolean_handler);
     tcase_add_test(tc_core, test_ignore_handler);
     tcase_add_test(tc_core, test_state_handler);
-    tcase_add_test(tc_core, test_passthrough_writer);
+    tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
     tcase_add_test(tc_core, test_write_unknown_state);

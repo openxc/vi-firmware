@@ -78,17 +78,17 @@ START_TEST (test_set_field)
     setBitField(&data, 1, 0, 1);
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
-    unsigned long result = getBitField((uint8_t*)&data, 24, 1);
+    unsigned long result = getBitField((uint8_t*)&data, 56, 1);
     fail_unless(result == 0x1);
 
     memset(&data, 0, 8);
     setBitField(&data, 1, 1, 1);
-    result = getBitField((uint8_t*)&data, 25, 1);
+    result = getBitField((uint8_t*)&data, 57, 1);
     fail_unless(result == 0x1);
 
     memset(&data, 0, 8);
     setBitField(&data, 0xf, 3, 4);
-    result = getBitField((uint8_t*)&data, 27, 4);
+    result = getBitField((uint8_t*)&data, 59, 4);
     fail_unless(result == 0xf);
 }
 END_TEST
@@ -99,7 +99,7 @@ START_TEST (test_set_doesnt_clobber_existing_data)
     setBitField(&data, 0x4fc8, 16, 16);
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
-    unsigned long result = getBitField((uint8_t*)&data, 0, 16);
+    unsigned long result = getBitField((uint8_t*)&data, 32, 16);
     fail_unless(result == 0xc84f,
             "Field retrieved in 0x%X was 0x%X instead of 0x%X", data, result,
             0xc84f);
@@ -108,9 +108,9 @@ END_TEST
 
 START_TEST (test_set_off_byte_boundary)
 {
-    uint64_t data = 0xFFFC4DF3;
+    uint64_t data = 0xFFFC4DF300000000;
     setBitField(&data, 0x12, 12, 8);
-    unsigned long result = getBitField((uint8_t*)&data, 8, 16);
+    unsigned long result = getBitField((uint8_t*)&data, 40, 16);
     fail_unless(result == 0x2df1,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x2df1);
@@ -119,21 +119,21 @@ END_TEST
 
 START_TEST (test_set_odd_number_of_bits)
 {
-    uint64_t data = 0xFFFC4DF3;
+    uint64_t data = 0xFFFC4DF300000000;
     setBitField(&data, 0x12, 11, 5);
-    unsigned long result = getBitField((uint8_t*)&data, 19, 5);
+    unsigned long result = getBitField((uint8_t*)&data, 51, 5);
     fail_unless(result == 0x12,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x12);
 
-    data = 0xFFFC4DF3;
+    data = 0xFFFC4DF300000000;
     setBitField(&data, 0x2, 11, 5);
-    result = getBitField((uint8_t*)&data, 19, 5);
+    result = getBitField((uint8_t*)&data, 51, 5);
     fail_unless(result == 0x2,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x2);
 
-    result = getBitField((uint8_t*)&data, 16, 4);
+    result = getBitField((uint8_t*)&data, 48, 4);
     fail_unless(result == 0xe,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0xe);

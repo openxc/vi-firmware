@@ -63,16 +63,10 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     }
 }
 
-uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
+uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     checkWritePermission(signal, send);
     return encodeCanSignal(signal, value->valuedouble);
-}
-
-uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
-    checkWritePermission(signal, send);
-    return encodeCanSignal(signal, bool(value->valueint));
 }
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,

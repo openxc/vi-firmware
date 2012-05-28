@@ -226,7 +226,11 @@ void sendCanSignal(CanSignal* signal, cJSON* value,
         CanSignal* signals, int signalCount) {
     bool send = true;
     if(writer == NULL) {
-        writer = passthroughWriter;
+        if(signal->stateCount > 0) {
+            writer = stateWriter;
+        } else {
+            writer = numberWriter;
+        }
     }
     uint32_t data = writer(signal, signals, signalCount, value, &send);
 

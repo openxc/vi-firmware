@@ -85,9 +85,9 @@ struct CanSignal {
     bool received;
     CanSignalState* states;
     int stateCount;
-    float lastValue;
-    uint32_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
     bool writable;
+    uint32_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
+    float lastValue;
 };
 
 /* Public: Parses a CAN signal from a message and applies required
@@ -139,13 +139,10 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
-uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
+uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
-
-uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
 

@@ -73,7 +73,8 @@ class Signal(object):
     def __init__(self, bus_address=None, buses=None, message_id=None, name=None,
             generic_name=None, position=None, length=None, factor=1, offset=0,
             min_value=0.0, max_value=0.0, handler=None, ignore=False,
-            states=None, send_frequency=0, send_same=True):
+            states=None, send_frequency=0, send_same=True,
+            writable=False, write_handler=None):
         self.bus_address = bus_address
         self.buses = buses
         self.message_id = message_id
@@ -86,6 +87,8 @@ class Signal(object):
         self.min_value = min_value
         self.max_value = max_value
         self.handler = handler
+        self.writable = writable
+        self.write_handler = write_handler
         self.ignore = ignore
         self.array_index = 0
         # the frequency determines how often the message should be propagated. a
@@ -144,14 +147,18 @@ class Signal(object):
 
     def __str__(self):
         result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
-                    "%d, 0, %s, false" % (
+                    "%d, 0, %s, false, " % (
                 self._lookupBusIndex(), self.message_id,
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
+            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
+        else:
+            result += "NULL, 0"
+        result += ", %s, %s" % (str(self.writable).lower(),
+                self.write_handler or "NULL")
         result += "}, // %s" % self.name
         return result
 
@@ -383,7 +390,9 @@ class JsonParser(Parser):
                             signal.get('ignore', False),
                             states,
                             signal.get('send_frequency', 0),
-                            signal.get('send_same', True)))
+                            signal.get('send_same', True),
+                            signal.get('writable', False),
+                            signal.get('write_handler', None)))
                 self.buses[bus_address]['messages'].append(message)
 
 def main():

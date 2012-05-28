@@ -116,14 +116,14 @@ END_TEST
 START_TEST (test_passthrough_writer)
 {
     bool send = true;
-    uint64_t value = passthroughWriter(&SIGNALS[0], SIGNALS,
+    uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
     uint64_t expectedValue = 0x74000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
 
-    value = passthroughWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+    value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(0x6), &send);
     expectedValue = 0x60000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",

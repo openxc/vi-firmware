@@ -145,6 +145,9 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send);
+
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  *         name.

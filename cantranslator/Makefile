@@ -25,8 +25,8 @@ include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 
 TEST_OBJDIR = $(OBJDIR)/tests
 
-TEST_SRC=$(wildcard tests/*.c)
-TESTS=$(patsubst %.c,$(OBJDIR)/%,$(TEST_SRC))
+TEST_SRC=$(wildcard tests/*.cpp)
+TESTS=$(patsubst %.cpp,$(OBJDIR)/%,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o bitfield.o

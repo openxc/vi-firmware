@@ -4,6 +4,7 @@
 #include "canutil.h"
 #include "chipKITCAN.h"
 #include "usbutil.h"
+#include "cJSON.h"
 
 #define SYS_FREQ (80000000L)
 
@@ -72,5 +73,9 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
  */
 void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea);
 
+void sendCanSignal(CAN* bus, CanSignal* signal,
+        cJSON* value,
+        uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        CanSignal* signals, int signalCount);
 
 #endif // _CANUTIL_CHIPKIT_H_

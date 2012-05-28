@@ -105,26 +105,7 @@ void checkIfStalled() {
     }
 }
 
-void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
-    CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
-    if (message != NULL) {
-        message->msgSID.SID = destination;
-        message->msgEID.IDE = 0;
-        message->msgEID.DLC = 1;
-        memset(message->data, 0, 8);
-        memcpy(message->data, data, 8);
-
-        // Mark message as ready to be processed
-        bus->updateChannel(CAN::CHANNEL0);
-        bus->flushTxChannel(CAN::CHANNEL0);
-    }
-}
-
-void handleNumericalWrite(char* name, float value) {
-    CanSignal* signal = lookupSignal(name, getSignalList(), SIGNAL_COUNT);
-    if(signal != NULL) {
-        sendCanMessage(&can1, signal->messageId, data);
-    }
+CAN* lookupBusForSignal(CanSignal* signal) {
 }
 
 void receiveWriteRequest(char* message) {
@@ -134,9 +115,18 @@ void receiveWriteRequest(char* message) {
             Serial.print("Received write request: ");
             Serial.println(message);
 
-            // TODO how do we know to get a string, bool or double?
-            handleNumericalWrite(cJSON_GetObjectItem(root, "name")->valuestring,
-                    cJSON_GetObjectItem(root, "value")->valuedouble);
+            char* name = cJSON_GetObjectItem(root, "name")->valuestring;
+            CanSignal* signal = lookupSignal(name, getSignalList(),
+                    SIGNAL_COUNT);
+            if(signal != NULL) {
+                sendCanSignal(lookupBusForSignal(signal), signal,
+                        cJSON_GetObjectItem(root, "value"),
+                        signal->writeHandler, getSignalList(),
+                        SIGNAL_COUNT);
+            } else {
+                Serial.print("Writing not allowed for signal with name ");
+                Serial.println(name);
+            }
             cJSON_Delete(root);
         }
     }

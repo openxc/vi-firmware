@@ -1,6 +1,7 @@
 #include <check.h>
 #include <stdint.h>
 #include "canutil.h"
+#include "cJSON.h"
 
 CanSignalState SIGNAL_STATES[1][10] = {
     { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
@@ -115,25 +116,16 @@ END_TEST
 START_TEST (test_passthrough_writer)
 {
     bool send = true;
-    uint32_t value = passthroughWriter(&SIGNALS[0], SIGNALS, 2, 0xa, &send);
+    uint32_t value = passthroughWriter(&SIGNALS[0], SIGNALS,
+            SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
     uint32_t expectedValue = 0x74000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
 
-    value = passthroughWriter(&SIGNALS[1], SIGNALS, 2, 0x6, &send);
+    value = passthroughWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            cJSON_CreateNumber(0x6), &send);
     expectedValue = 0x60000000;
-    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
-            expectedValue, value);
-    fail_unless(send);
-}
-END_TEST
-
-START_TEST (test_number_writer)
-{
-    bool send = true;
-    uint32_t value = numberWriter(&SIGNALS[1], SIGNALS, 2, 6.0, &send);
-    uint32_t expectedValue = 0x60000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -143,8 +135,8 @@ END_TEST
 START_TEST (test_boolean_writer)
 {
     bool send = true;
-    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
-            &send);
+    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
+            cJSON_CreateNumber(true), &send);
     uint32_t expectedValue = 0x80000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
@@ -156,7 +148,7 @@ START_TEST (test_state_writer)
 {
     bool send = true;
     uint32_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            SIGNAL_STATES[0][1].name, &send);
+            cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
     uint32_t expectedValue = 0x20000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
@@ -167,7 +159,8 @@ END_TEST
 START_TEST (test_write_unknown_state)
 {
     bool send = true;
-    stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "not_a_state", &send);
+    stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            cJSON_CreateString("not_a_state"), &send);
     fail_unless(!send);
 }
 END_TEST
@@ -184,7 +177,6 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_ignore_handler);
     tcase_add_test(tc_core, test_state_handler);
     tcase_add_test(tc_core, test_passthrough_writer);
-    tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
     tcase_add_test(tc_core, test_write_unknown_state);

@@ -58,24 +58,19 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 }
 
 uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, uint32_t value, bool* send) {
-    return encodeCanSignal(signal, value);
-}
-
-uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
-    return encodeCanSignal(signal, value);
+        int signalCount, cJSON* value, bool* send) {
+    return encodeCanSignal(signal, value->valuedouble);
 }
 
 uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send) {
-    return encodeCanSignal(signal, int(value));
+        int signalCount, cJSON* value, bool* send) {
+    return encodeCanSignal(signal, bool(value->valueint));
 }
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, char* name, bool* send) {
+        int signalCount, cJSON* value, bool* send) {
     CanSignalState* signalState = lookupSignalState(signal, signals,
-            signalCount, name);
+            signalCount, value->valuestring);
     if(signalState != NULL) {
         return encodeCanSignal(signal, signalState->value);
     }

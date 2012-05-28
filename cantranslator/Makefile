@@ -34,7 +34,7 @@ TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES))
 
 test: CXX = g++
 test: CC = g++
-test: CPPFLAGS = -I. -w -Wall -g -ggdb
+test: CPPFLAGS = -I. -w -Wall -g -ggdb -I$(USER_LIB_PATH)/cJSON
 test: CXXFLAGS =
 test: LDFLAGS =
 test: LDLIBS = $(TEST_LIBS)
@@ -44,7 +44,12 @@ test: $(TEST_OBJDIR) $(TESTS)
 $(TEST_OBJDIR):
 	@mkdir -p $(TEST_OBJDIR)
 
-# TODO it would be nice to make these implicit rules to pick up any new tests
-$(TEST_OBJDIR)/bitfield_tests: $(TEST_OBJDIR)/bitfield_tests.o $(TESTABLE_OBJS)
+$(OBJDIR)/libs/cJSON.o: $(USER_LIB_PATH)/cJSON/cJSON.c
+	mkdir -p $(dir $@)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-$(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS)
+# TODO it would be nice to make these implicit rules to pick up any new tests
+$(TEST_OBJDIR)/bitfield_tests: $(TEST_OBJDIR)/bitfield_tests.o $(TESTABLE_OBJS) $(OBJDIR)/libs/cJSON.o
+
+$(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS) $(OBJDIR)/libs/cJSON.o
+

@@ -87,6 +87,21 @@ void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
     Serial.println("Done.");
 }
 
+void sendCanMessage(CAN* bus, uint32_t destination, uint32_t* data) {
+    CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
+    if (message != NULL) {
+        message->msgSID.SID = destination;
+        message->msgEID.IDE = 0;
+        message->msgEID.DLC = 1;
+        memset(message->data, 0, 8);
+        memcpy(message->data, data, 8);
+
+        // Mark message as ready to be processed
+        bus->updateChannel(CAN::CHANNEL0);
+        bus->flushTxChannel(CAN::CHANNEL0);
+    }
+}
+
 void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         uint8_t* data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
@@ -200,6 +215,21 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
 
 void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         uint8_t* data, CanSignal* signals, int signalCount) {
-    translateCanSignal(usbDevice, signal, data, passthroughHandler,
-            signals, signalCount);
+    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals,
+            signalCount);
+}
+
+void sendCanSignal(CAN* bus, CanSignal* signal,
+        cJSON* value,
+        uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        CanSignal* signals, int signalCount) {
+    bool send = true;
+    if(writer == NULL) {
+        writer = passthroughWriter;
+    }
+    uint32_t data = writer(signal, signals, signalCount, value, &send);
+
+    if(send) {
+        sendCanMessage(bus, signal->messageId, &data);
+    }
 }

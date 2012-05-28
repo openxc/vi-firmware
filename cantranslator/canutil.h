@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
+#include "cJSON.h"
 
 /* Public: A CAN transceiver message filter mask.
  *
@@ -72,6 +73,7 @@ struct CanSignal {
     CanSignalState* states;
     int stateCount;
     float lastValue;
+    uint32_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
 };
 
 /* Public: Parses a CAN signal from a message and applies required
@@ -124,16 +126,13 @@ float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
 uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, uint32_t value, bool* send);
-
-uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send);
+        int signalCount, cJSON* value, bool* send);
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, char* name, bool* send);
+        int signalCount, cJSON* value, bool* send);
 
 uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send);
+        int signalCount, cJSON* value, bool* send);
 
 
 /* Public: Look up the CanSignal representation of a signal based on its generic

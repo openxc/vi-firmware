@@ -84,6 +84,8 @@ void initializeCan(CanBus* bus) {
     bus->bus->setOperatingMode(CAN::LISTEN_ONLY);
     while(bus->bus->getOperatingMode() != CAN::LISTEN_ONLY);
 
+    bus->bus->attachInterrupt(bus->interruptHandler);
+
     Serial.println("Done.");
 }
 

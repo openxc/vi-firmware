@@ -44,8 +44,6 @@ void initializeAllCan();
 void initializeCan(uint32_t);
 void receiveCan(CanBus*);
 void receiveWriteRequest(char*);
-void handleCan1Interrupt();
-void handleCan2Interrupt();
 void decodeCanMessage(int id, uint8_t* data);
 void checkIfStalled();
 
@@ -70,9 +68,6 @@ void initializeAllCan() {
     for(int i = 0; i < CAN_BUS_COUNT; i++) {
         initializeCan(&CAN_BUSES[i]);
     }
-
-    can1.attachInterrupt(handleCan1Interrupt);
-    can2.attachInterrupt(handleCan2Interrupt);
 }
 
 void mark() {

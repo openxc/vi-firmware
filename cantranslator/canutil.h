@@ -12,6 +12,7 @@ struct CanBus {
     unsigned int speed;
     unsigned int address;
     CAN* bus;
+    void (*interruptHandler)();
     uint8_t buffer[2 * 8 * 16];
     // These are used as event flags by the interrupt service routines.
     volatile bool messageReceived;

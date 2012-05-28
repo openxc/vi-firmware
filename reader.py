@@ -150,10 +150,15 @@ class UsbDevice(object):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
     def write(self, name, value):
-        try:
-            value = float(value)
-        except ValueError:
-            pass
+        if value == "true":
+            value = True
+        elif value == "false":
+            value = False
+        else:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
 
         message = json.dumps({'name': name, 'value': value})
         bytes_written = self.out_endpoint.write(message + "\x00")

@@ -248,6 +248,11 @@ class Parser(object):
         print "}"
         print
 
+        print "CanBus* getCanBuses() {"
+        print "    return CAN_BUSES;"
+        print "}"
+        print
+
         print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
@@ -307,13 +312,13 @@ class Parser(object):
                 "int* count) {")
         print "Serial.println(\"Initializing filter arrays...\");"
 
-        print "    if(address == CAN_1_ADDRESS) {"
+        print "    if(address == CAN_BUSES[0].address) {"
         print "        *count = %d;" % len(can1_masks)
         print "        FILTER_MASKS = {"
         for i, mask in enumerate(can1_masks):
             print "            {%d, 0x%x}," % mask
         print "        };"
-        print "    } else if(address == CAN_2_ADDRESS) {"
+        print "    } else if(address == CAN_BUSES[1].address) {"
         print "        *count = %d;" % len(can2_masks)
         print "        FILTER_MASKS = {"
         for i, mask in enumerate(can2_masks):

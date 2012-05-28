@@ -8,10 +8,6 @@
 
 #define SYS_FREQ (80000000L)
 
-/* Network Node Addresses */
-#define CAN_1_ADDRESS 0x101
-#define CAN_2_ADDRESS 0x102
-
 extern CanFilterMask* initializeFilterMasks(uint64_t, int*);
 extern CanFilter* initializeFilters(uint64_t, int*);
 

@@ -100,6 +100,12 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
         message->msgEID.DLC = 8;
         memset(message->data, 0, 8);
         memcpy(message->data, data, 8);
+        Serial.print("Sending message 0x");
+        for(int i = 0; i < 8; i++) {
+            Serial.print(message->data[i], HEX);
+        }
+        Serial.print(" to 0x");
+        Serial.println(destination, HEX);
 
         // Mark message as ready to be processed
         bus->updateChannel(CAN::CHANNEL0);

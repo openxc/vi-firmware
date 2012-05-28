@@ -10,7 +10,7 @@
 
 struct CanBus {
     unsigned int speed;
-    unsigned int address;
+    uint32_t address;
     CAN* bus;
     void (*interruptHandler)();
     uint8_t buffer[2 * 8 * 16];

@@ -70,10 +70,12 @@ class Message(object):
 
 
 class Signal(object):
-    def __init__(self, message_id=None, name=None, generic_name=None,
-            position=None, length=None, factor=1, offset=0, min_value=0.0,
-            max_value=0.0, handler=None, ignore=False, states=None,
-            send_frequency=0, send_same=True):
+    def __init__(self, bus_address=None, buses=None, message_id=None, name=None,
+            generic_name=None, position=None, length=None, factor=1, offset=0,
+            min_value=0.0, max_value=0.0, handler=None, ignore=False,
+            states=None, send_frequency=0, send_same=True):
+        self.bus_address = bus_address
+        self.buses = buses
         self.message_id = message_id
         self.name = name
         self.generic_name = generic_name
@@ -135,11 +137,18 @@ class Signal(object):
         end = (8 * b) + (7 - r)
         return(end - l + 1)
 
+    def _lookupBusIndex(self):
+        for i, bus in enumerate(self.buses.iteritems()):
+            if bus[0] == self.bus_address:
+                return i
+
     def __str__(self):
-        result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f, %d, 0, %s, false" % (
-                self.message_id, self.generic_name, self.position, self.length,
-                self.factor, self.offset, self.min_value, self.max_value,
-                self.send_frequency, str(self.send_same).lower())
+        result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
+                    "%d, 0, %s, false" % (
+                self._lookupBusIndex(), self.message_id,
+                self.generic_name, self.position, self.length, self.factor,
+                self.offset, self.min_value, self.max_value,
+                self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
             result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
@@ -165,8 +174,14 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canutil_chipkit.h\"\n"
-        print "extern CanUsbDevice usbDevice;\n"
+        print "#include \"canutil_chipkit.h\""
+        print
+        print "extern CanUsbDevice usbDevice;"
+        print "extern CAN can1;"
+        print "extern CAN can2;"
+        print "extern void handleCan1Interrupt();"
+        print "extern void handleCan2Interrupt();"
+        print
 
     def validate_messages(self):
         valid = True
@@ -181,12 +196,13 @@ class Parser(object):
             sys.exit(1)
         self.print_header()
 
-        for i, bus in enumerate(self.buses.values()):
-            print "float CAN_BUS_%d_SPEED = %d;" % (i + 1, bus['speed'])
-        # we have to always have 2 bus speeds defined because we initialize both
-        # CAN transceivers, even if we only use one.
-        if(len(self.buses) == 1):
-            print "float CAN_BUS_2_SPEED = 500000;"
+        print "int CAN_BUS_COUNT = 2;"
+        print "CanBus CAN_BUSES[2] = {"
+        for i, bus in enumerate(self.buses.iteritems()):
+            bus_number = i + 1
+            print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
+                    bus[1]['speed'], bus[0], bus_number, bus_number)
+        print "};"
         print
 
         # TODO need to handle signals with more than 12 states
@@ -352,7 +368,9 @@ class JsonParser(Parser):
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
                     message.signals.append(
-                            Signal(int(message_id),
+                            Signal(bus_address,
+                            self.buses,
+                            int(message_id),
                             signal_name,
                             signal['generic_name'],
                             signal.get('bit_position', None),

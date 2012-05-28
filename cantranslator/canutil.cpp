@@ -46,6 +46,7 @@ uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
 
 uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
+    return encodeCanSignal(signal, value);
 }
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,

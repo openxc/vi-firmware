@@ -57,13 +57,21 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
     *send = false;
 }
 
+void checkWritePermission(CanSignal* signal, bool* send) {
+    if(!signal->writable) {
+        *send = false;
+    }
+}
+
 uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
+    checkWritePermission(signal, send);
     return encodeCanSignal(signal, value->valuedouble);
 }
 
 uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
+    checkWritePermission(signal, send);
     return encodeCanSignal(signal, bool(value->valueint));
 }
 
@@ -72,6 +80,7 @@ uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
     CanSignalState* signalState = lookupSignalState(signal, signals,
             signalCount, value->valuestring);
     if(signalState != NULL) {
+        checkWritePermission(signal, send);
         return encodeCanSignal(signal, signalState->value);
     }
     *send = false;

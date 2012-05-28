@@ -87,6 +87,7 @@ struct CanSignal {
     int stateCount;
     float lastValue;
     uint32_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
+    bool writable;
 };
 
 /* Public: Parses a CAN signal from a message and applies required

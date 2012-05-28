@@ -21,7 +21,6 @@
 extern char* MESSAGE_SET;
 extern int CAN_BUS_COUNT;
 extern int SIGNAL_COUNT;
-extern CanBus* CAN_BUSES;
 
 char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
@@ -41,7 +40,6 @@ int receivedMessagesAtLastMark = 0;
 /* Forward declarations */
 
 void initializeAllCan();
-void initializeCan(uint32_t);
 void receiveCan(CanBus*);
 void receiveWriteRequest(char*);
 void decodeCanMessage(int id, uint8_t* data);
@@ -57,7 +55,7 @@ void setup() {
 
 void loop() {
     for(int i = 0; i < CAN_BUS_COUNT; i++) {
-        receiveCan(&CAN_BUSES[i]);
+        receiveCan(&getCanBuses()[i]);
     }
     USB_OUTPUT_HANDLE = readFromHost(
             &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
@@ -66,7 +64,7 @@ void loop() {
 
 void initializeAllCan() {
     for(int i = 0; i < CAN_BUS_COUNT; i++) {
-        initializeCan(&CAN_BUSES[i]);
+        initializeCan(&(getCanBuses()[i]));
     }
 }
 
@@ -158,7 +156,7 @@ void handleCan1Interrupt() {
             // Clear the event so we give up control of the CPU
             can1.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            CAN_BUSES[0].messageReceived = true;
+            getCanBuses()[0].messageReceived = true;
         }
     }
 }
@@ -169,7 +167,7 @@ void handleCan2Interrupt() {
             // Clear the event so we give up control of the CPU
             can2.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            CAN_BUSES[1].messageReceived = true;
+            getCanBuses()[1].messageReceived = true;
         }
     }
 }

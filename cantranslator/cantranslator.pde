@@ -207,7 +207,8 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     case EVENT_CONFIGURED:
         Serial.println("Event: Configured");
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
-                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
+                USB_DISALLOW_SETUP);
         armForRead(&usbDevice, usbDevice.receiveBuffer);
         break;
 

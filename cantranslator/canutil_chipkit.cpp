@@ -31,8 +31,6 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
 }
 
 void initializeCan(CanBus* bus) {
-    Serial.print("Initializing CAN bus at ");
-    Serial.println(bus->address, DEC);
     CAN::BIT_CONFIG canBitConfig;
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
@@ -89,7 +87,7 @@ void initializeCan(CanBus* bus) {
     Serial.println("Done.");
 }
 
-void sendCanMessage(CAN* bus, uint32_t destination, uint32_t* data) {
+void sendCanMessage(CAN* bus, uint64_t destination, uint64_t* data) {
     CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
     if (message != NULL) {
         message->msgSID.SID = destination;
@@ -222,7 +220,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
 }
 
 void sendCanSignal(CanSignal* signal, cJSON* value,
-        uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
     bool send = true;
     if(writer == NULL) {
@@ -232,7 +230,7 @@ void sendCanSignal(CanSignal* signal, cJSON* value,
             writer = numberWriter;
         }
     }
-    uint32_t data = writer(signal, signals, signalCount, value, &send);
+    uint64_t data = writer(signal, signals, signalCount, value, &send);
 
     if(send) {
         sendCanMessage(signal->bus->bus, signal->messageId, &data);

@@ -12,8 +12,8 @@
 #define CAN_1_ADDRESS 0x101
 #define CAN_2_ADDRESS 0x102
 
-extern CanFilterMask* initializeFilterMasks(uint32_t, int*);
-extern CanFilter* initializeFilters(uint32_t, int*);
+extern CanFilterMask* initializeFilterMasks(uint64_t, int*);
+extern CanFilter* initializeFilters(uint64_t, int*);
 
 // TODO document these
 void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
@@ -74,7 +74,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
 void initializeCan(CanBus* bus);
 
 void sendCanSignal(CanSignal* signal, cJSON* value,
-        uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount);
 
 #endif // _CANUTIL_CHIPKIT_H_

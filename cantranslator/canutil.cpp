@@ -18,9 +18,9 @@ CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
     }
 }
 
-uint32_t encodeCanSignal(CanSignal* signal, float value) {
+uint64_t encodeCanSignal(CanSignal* signal, float value) {
     unsigned long rawValue = (value - signal->offset) / signal->factor;
-    uint32_t data = 0;
+    uint64_t data = 0;
     setBitField(&data, rawValue, signal->bitPosition, signal->bitSize);
     return data;
 }
@@ -63,18 +63,18 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     }
 }
 
-uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
+uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     return encodeCanSignal(signal, value->valueint);
 }
 
-uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
+uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     checkWritePermission(signal, send);
     return encodeCanSignal(signal, value->valuedouble);
 }
 
-uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     CanSignalState* signalState = lookupSignalState(signal, signals,
             signalCount, value->valuestring);

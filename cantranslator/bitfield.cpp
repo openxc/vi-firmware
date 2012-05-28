@@ -20,7 +20,7 @@ unsigned long reverseBitmaskVariableLength(int numBits, int totalLength) {
 }
 
 unsigned long reverseBitmask(int numBits) {
-    return reverseBitmaskVariableLength(numBits, 32);
+    return reverseBitmaskVariableLength(numBits, 64);
 }
 
 
@@ -55,8 +55,8 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
  *
  * TODO document this and all of the byte ordering in a sane fashion.
  */
-void setBitField(uint32_t* data, uint32_t value, int startBit, int numBits) {
-    int shiftDistance = 32 - startBit - numBits;
+void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
+    int shiftDistance = 64 - startBit - numBits;
     value <<= shiftDistance;
     *data &= ~(bitmask(numBits) << shiftDistance);
     *data |= value;

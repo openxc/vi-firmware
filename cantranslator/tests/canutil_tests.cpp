@@ -116,9 +116,9 @@ END_TEST
 START_TEST (test_passthrough_writer)
 {
     bool send = true;
-    uint32_t value = passthroughWriter(&SIGNALS[0], SIGNALS,
+    uint64_t value = passthroughWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
-    uint32_t expectedValue = 0x74000000;
+    uint64_t expectedValue = 0x74000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -135,9 +135,9 @@ END_TEST
 START_TEST (test_boolean_writer)
 {
     bool send = true;
-    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
+    uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(true), &send);
-    uint32_t expectedValue = 0x80000000;
+    uint64_t expectedValue = 0x80000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
@@ -147,9 +147,9 @@ END_TEST
 START_TEST (test_state_writer)
 {
     bool send = true;
-    uint32_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+    uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
-    uint32_t expectedValue = 0x20000000;
+    uint64_t expectedValue = 0x20000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);

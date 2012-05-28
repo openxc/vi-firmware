@@ -10,7 +10,7 @@
 
 struct CanBus {
     unsigned int speed;
-    uint32_t address;
+    uint64_t address;
     CAN* bus;
     void (*interruptHandler)();
     uint8_t buffer[2 * 8 * 16];
@@ -86,7 +86,7 @@ struct CanSignal {
     CanSignalState* states;
     int stateCount;
     bool writable;
-    uint32_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
+    uint64_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
     float lastValue;
 };
 
@@ -103,7 +103,7 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data);
 /*
  * TODO
  */
-uint32_t encodeCanSignal(CanSignal* signal, float value);
+uint64_t encodeCanSignal(CanSignal* signal, float value);
 
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.
@@ -139,10 +139,10 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
-uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
+uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
-uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
 

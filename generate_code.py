@@ -303,7 +303,7 @@ class Parser(object):
         # TODO when the masks are defined in JSON we can do this more
         # dynamically like the filters
         print
-        print ("CanFilterMask* initializeFilterMasks(uint32_t address, "
+        print ("CanFilterMask* initializeFilterMasks(uint64_t address, "
                 "int* count) {")
         print "Serial.println(\"Initializing filter arrays...\");"
 
@@ -324,7 +324,7 @@ class Parser(object):
         print "}"
 
         print
-        print "CanFilter* initializeFilters(uint32_t address, int* count) {"
+        print "CanFilter* initializeFilters(uint64_t address, int* count) {"
         print "    Serial.println(\"Initializing filters...\");"
 
         print "    switch(address) {"

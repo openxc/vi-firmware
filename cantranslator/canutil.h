@@ -130,7 +130,7 @@ uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
 
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, char* value, bool* send);
+        int signalCount, char* name, bool* send);
 
 uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, bool value, bool* send);

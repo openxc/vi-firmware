@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "canutil.h"
 
-CanSignalState SIGNAL_STATES[2][10] = {
+CanSignalState SIGNAL_STATES[1][10] = {
     { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
         {5, "neutral"}, {6, "second"}, },
 };
@@ -143,11 +143,32 @@ END_TEST
 START_TEST (test_boolean_writer)
 {
     bool send = true;
-    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, 2, true, &send);
+    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
+            &send);
     uint32_t expectedValue = 0x80000000;
     fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
             expectedValue, value);
     fail_unless(send);
+}
+END_TEST
+
+START_TEST (test_state_writer)
+{
+    bool send = true;
+    uint32_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            SIGNAL_STATES[0][1].name, &send);
+    uint32_t expectedValue = 0x20000000;
+    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
+            expectedValue, value);
+    fail_unless(send);
+}
+END_TEST
+
+START_TEST (test_write_unknown_state)
+{
+    bool send = true;
+    stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "not_a_state", &send);
+    fail_unless(!send);
 }
 END_TEST
 
@@ -165,6 +186,8 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_passthrough_writer);
     tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
+    tcase_add_test(tc_core, test_state_writer);
+    tcase_add_test(tc_core, test_write_unknown_state);
     suite_add_tcase(s, tc_core);
 
     return s;

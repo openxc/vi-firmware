@@ -84,14 +84,6 @@ void checkIfStalled() {
 
     if(receivedMessages > 0 && receivedMessagesAtLastMark > 0
             && millis() > lastSignificantChangeTime + 500) {
-        Serial.print("timeNow: ");
-        Serial.println(millis(), DEC);
-        Serial.print("lastSignificantChangeTime: ");
-        Serial.println(lastSignificantChangeTime, DEC);
-        Serial.print("receivedMessages: ");
-        Serial.println(receivedMessages, DEC);
-        Serial.print("receivedMessagesAtLastMark: ");
-        Serial.println(receivedMessagesAtLastMark, DEC);
         initializeAllCan();
         delay(200);
         mark();

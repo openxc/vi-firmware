@@ -123,11 +123,6 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint8_t* data) {
 void handleNumericalWrite(char* name, float value) {
     CanSignal* signal = lookupSignal(name, getSignalList(), SIGNAL_COUNT);
     if(signal != NULL) {
-        float engineeringValue = (value - signal->offset) / signal->factor;
-        uint8_t data[8];
-        memset(data, 0, 8);
-        setBitField(data, engineeringValue, signal->bitPosition,
-                signal->bitSize);
         sendCanMessage(&can1, signal->messageId, data);
     }
 }

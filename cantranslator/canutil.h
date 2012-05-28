@@ -84,6 +84,11 @@ struct CanSignal {
  */
 float decodeCanSignal(CanSignal* signal, uint8_t* data);
 
+/*
+ * TODO
+ */
+uint32_t encodeCanSignal(CanSignal* signal, float value);
+
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.
  *
@@ -117,6 +122,19 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
+
+uint32_t passthroughWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, uint32_t value, bool* send);
+
+uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send);
+
+uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, char* value, bool* send);
+
+uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, bool value, bool* send);
+
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  *         name.

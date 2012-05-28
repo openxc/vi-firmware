@@ -105,6 +105,23 @@ START_TEST (test_state_handler)
 }
 END_TEST
 
+START_TEST (test_passthrough_writer)
+{
+    bool send = true;
+    uint32_t value = passthroughWriter(&SIGNALS[0], SIGNALS, 2, 0xa, &send);
+    uint32_t expectedValue = 0x74000000;
+    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
+            expectedValue, value);
+    fail_unless(send);
+
+    value = passthroughWriter(&SIGNALS[1], SIGNALS, 2, 0x6, &send);
+    expectedValue = 0x60000000;
+    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
+            expectedValue, value);
+    fail_unless(send);
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -116,6 +133,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_boolean_handler);
     tcase_add_test(tc_core, test_ignore_handler);
     tcase_add_test(tc_core, test_state_handler);
+    tcase_add_test(tc_core, test_passthrough_writer);
     suite_add_tcase(s, tc_core);
 
     return s;

@@ -87,7 +87,7 @@ void initializeCan(CanBus* bus) {
     Serial.println("Done.");
 }
 
-void sendCanMessage(CAN* bus, uint64_t destination, uint64_t* data) {
+void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
     CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
     if (message != NULL) {
         message->messageWord[0] = 0;
@@ -107,6 +107,7 @@ void sendCanMessage(CAN* bus, uint64_t destination, uint64_t* data) {
     } else {
         Serial.println("Unable to get TX message area");
     }
+    delay(100);
 }
 
 void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
@@ -237,9 +238,12 @@ void sendCanSignal(CanSignal* signal, cJSON* value,
             writer = numberWriter;
         }
     }
-    uint64_t data = writer(signal, signals, signalCount, value, &send);
 
+    uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(send) {
         sendCanMessage(signal->bus->bus, signal->messageId, &data);
+    } else {
+        Serial.print("Not sending requested message ");
+        Serial.println(signal->messageId, HEX);
     }
 }

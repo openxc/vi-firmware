@@ -71,7 +71,7 @@ struct CanSignalState {
  */
 struct CanSignal {
     CanBus* bus;
-    int messageId;
+    uint32_t messageId;
     char* genericName;
     int bitPosition;
     int bitSize;

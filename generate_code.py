@@ -223,6 +223,7 @@ class Parser(object):
         print "CanSignal* getSignalList() {"
         print "    return SIGNALS;"
         print "}"
+        print
 
         print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"

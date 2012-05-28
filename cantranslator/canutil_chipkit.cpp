@@ -30,16 +30,16 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
     Serial.println("Done.");
 }
 
-void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
+void initializeCan(CanBus* bus) {
     Serial.print("Initializing CAN bus at ");
-    Serial.println(address, DEC);
+    Serial.println(bus->address, DEC);
     CAN::BIT_CONFIG canBitConfig;
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
-    bus->enableModule(true);
-    bus->setOperatingMode(CAN::CONFIGURATION);
-    while(bus->getOperatingMode() != CAN::CONFIGURATION);
+    bus->bus->enableModule(true);
+    bus->bus->setOperatingMode(CAN::CONFIGURATION);
+    while(bus->bus->getOperatingMode() != CAN::CONFIGURATION);
 
     // Configure the CAN Module Clock. The CAN::BIT_CONFIG data structure is
     // used for this purpose. The propagation, phase segment 1 and phase segment
@@ -50,39 +50,39 @@ void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
     canBitConfig.phaseSeg2TimeSelect    = CAN::TRUE;
     canBitConfig.sample3Time            = CAN::TRUE;
     canBitConfig.syncJumpWidth          = CAN::BIT_2TQ;
-    bus->setSpeed(&canBitConfig, SYS_FREQ, speed);
+    bus->bus->setSpeed(&canBitConfig, SYS_FREQ, bus->speed);
 
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    bus->assignMemoryBuffer(messageArea, 2 * 8 * 16);
+    bus->bus->assignMemoryBuffer(bus->buffer, 2 * 8 * 16);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit
     // Request" disabled, meaning that other nodes can't request for us to
     // transmit data.
-    bus->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
+    bus->bus->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
             CAN::LOW_MEDIUM_PRIORITY);
 
     // Configure channel 1 for RX with 8 byte buffers.
-    bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
+    bus->bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
     int filterMaskCount;
-    CanFilterMask* filterMasks = initializeFilterMasks(address,
+    CanFilterMask* filterMasks = initializeFilterMasks(bus->address,
             &filterMaskCount);
     int filterCount;
-    CanFilter* filters = initializeFilters(address, &filterCount);
-    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
+    CanFilter* filters = initializeFilters(bus->address, &filterCount);
+    configureFilters(bus->bus, filterMasks, filterMaskCount, filters, filterCount);
 
     // Enable interrupt and events. Enable the receive channel not empty event
     // (channel event) and the receive channel event (module event). The
     // interrrupt peripheral library is used to enable the CAN interrupt to the
     // CPU.
-    bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
-    bus->enableModuleEvent(CAN::RX_EVENT, true);
+    bus->bus->enableModuleEvent(CAN::RX_EVENT, true);
 
-    bus->setOperatingMode(CAN::LISTEN_ONLY);
-    while(bus->getOperatingMode() != CAN::LISTEN_ONLY);
+    bus->bus->setOperatingMode(CAN::LISTEN_ONLY);
+    while(bus->bus->getOperatingMode() != CAN::LISTEN_ONLY);
 
     Serial.println("Done.");
 }
@@ -219,8 +219,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
             signalCount);
 }
 
-void sendCanSignal(CAN* bus, CanSignal* signal,
-        cJSON* value,
+void sendCanSignal(CanSignal* signal, cJSON* value,
         uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
     bool send = true;
@@ -230,6 +229,6 @@ void sendCanSignal(CAN* bus, CanSignal* signal,
     uint32_t data = writer(signal, signals, signalCount, value, &send);
 
     if(send) {
-        sendCanMessage(bus, signal->messageId, &data);
+        sendCanMessage(signal->bus->bus, signal->messageId, &data);
     }
 }

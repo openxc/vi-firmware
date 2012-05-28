@@ -5,7 +5,17 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
+#include "chipKITCAN.h"
 #include "cJSON.h"
+
+struct CanBus {
+    unsigned int speed;
+    unsigned int address;
+    CAN* bus;
+    uint8_t buffer[2 * 8 * 16];
+    // These are used as event flags by the interrupt service routines.
+    volatile bool messageReceived;
+};
 
 /* Public: A CAN transceiver message filter mask.
  *
@@ -45,6 +55,7 @@ struct CanSignalState {
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
+ * bus         - the CAN bus this signal belongs on.
  * messageId   - the ID of the message this signal is a part of signal.
  * genericName - the name of the signal to be output over USB.
  * bitPosition - the starting bit of the signal in its CAN message.
@@ -58,6 +69,7 @@ struct CanSignalState {
  * received    - mark true if this signal has ever been received.
  */
 struct CanSignal {
+    CanBus* bus;
     int messageId;
     char* genericName;
     int bitPosition;

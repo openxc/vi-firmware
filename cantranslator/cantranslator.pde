@@ -19,13 +19,9 @@
 #define DATA_ENDPOINT 1
 
 extern char* MESSAGE_SET;
-extern float CAN_BUS_1_SPEED;
-extern float CAN_BUS_2_SPEED;
-
-// TODO we get relocation errors at compile time if we try to reference this
-// here - how can we move the write receive handler into the signals file
-// without requiring it to be a part of the generator script?
+extern int CAN_BUS_COUNT;
 extern int SIGNAL_COUNT;
+extern CanBus* CAN_BUSES;
 
 char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
@@ -38,14 +34,6 @@ CAN can2(CAN::CAN2);
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
 
-/* CAN Message Buffers */
-uint8_t can1MessageArea[2 * 8 * 16];
-uint8_t can2MessageArea[2 * 8 * 16];
-
-/* These are used as event flags by the interrupt service routines. */
-static volatile bool isCan1MessageReceived = false;
-static volatile bool isCan2MessageReceived = false;
-
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
@@ -54,7 +42,7 @@ int receivedMessagesAtLastMark = 0;
 
 void initializeAllCan();
 void initializeCan(uint32_t);
-void receiveCan(CAN*, volatile bool*);
+void receiveCan(CanBus*);
 void handleCan1Interrupt();
 void handleCan2Interrupt();
 void decodeCanMessage(int id, uint8_t* data);
@@ -68,8 +56,9 @@ void setup() {
 }
 
 void initializeAllCan() {
-    initializeCan(&can1, CAN_1_ADDRESS, CAN_BUS_1_SPEED, can1MessageArea);
-    initializeCan(&can2, CAN_2_ADDRESS, CAN_BUS_2_SPEED, can2MessageArea);
+    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+        initializeCan(&CAN_BUSES[i]);
+    }
 
     can1.attachInterrupt(handleCan1Interrupt);
     can2.attachInterrupt(handleCan2Interrupt);
@@ -105,10 +94,6 @@ void checkIfStalled() {
     }
 }
 
-CAN* lookupBusForSignal(CanSignal* signal) {
-    // TODO
-}
-
 void receiveWriteRequest(char* message) {
     if(message != NULL) {
         cJSON *root = cJSON_Parse(message);
@@ -120,7 +105,7 @@ void receiveWriteRequest(char* message) {
             CanSignal* signal = lookupSignal(name, getSignalList(),
                     SIGNAL_COUNT);
             if(signal != NULL) {
-                sendCanSignal(lookupBusForSignal(signal), signal,
+                sendCanSignal(signal,
                         cJSON_GetObjectItem(root, "value"),
                         signal->writeHandler, getSignalList(),
                         SIGNAL_COUNT);
@@ -134,12 +119,11 @@ void receiveWriteRequest(char* message) {
 }
 
 void loop() {
-    receiveCan(&can1, &isCan1MessageReceived);
-    receiveCan(&can2, &isCan2MessageReceived);
-
+    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+        receiveCan(&CAN_BUSES[i]);
+    }
     USB_OUTPUT_HANDLE = readFromHost(
             &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
-
     checkIfStalled();
 }
 
@@ -147,26 +131,26 @@ void loop() {
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
  */
-void receiveCan(CAN* bus, volatile bool* messageReceived) {
+void receiveCan(CanBus* bus) {
     CAN::RxMessageBuffer* message;
 
-    if(*messageReceived == false) {
+    if(bus->messageReceived == false) {
         // The flag is updated by the CAN ISR.
         return;
     }
     ++receivedMessages;
 
-    message = bus->getRxMessage(CAN::CHANNEL1);
+    message = bus->bus->getRxMessage(CAN::CHANNEL1);
     decodeCanMessage(message->msgSID.SID, message->data);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module
      * generates an interrupt when the event occurs.*/
-    bus->updateChannel(CAN::CHANNEL1);
-    bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->bus->updateChannel(CAN::CHANNEL1);
+    bus->bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
 
-    *messageReceived = false;
+    bus->messageReceived = false;
 }
 
 /* Called by the Interrupt Service Routine whenever an event we registered for
@@ -177,7 +161,7 @@ void handleCan1Interrupt() {
             // Clear the event so we give up control of the CPU
             can1.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            isCan1MessageReceived = true;
+            CAN_BUSES[0].messageReceived = true;
         }
     }
 }
@@ -188,7 +172,7 @@ void handleCan2Interrupt() {
             // Clear the event so we give up control of the CPU
             can2.enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
-            isCan2MessageReceived = true;
+            CAN_BUSES[1].messageReceived = true;
         }
     }
 }

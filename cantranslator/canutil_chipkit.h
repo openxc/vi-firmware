@@ -71,10 +71,9 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
 /* Initialize the CAN controller. See inline comments for description of the
  * process.
  */
-void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea);
+void initializeCan(CanBus* bus);
 
-void sendCanSignal(CAN* bus, CanSignal* signal,
-        cJSON* value,
+void sendCanSignal(CanSignal* signal, cJSON* value,
         uint32_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount);
 

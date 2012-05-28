@@ -43,9 +43,11 @@ int receivedMessagesAtLastMark = 0;
 void initializeAllCan();
 void initializeCan(uint32_t);
 void receiveCan(CanBus*);
+void receiveWriteRequest(char*);
 void handleCan1Interrupt();
 void handleCan2Interrupt();
 void decodeCanMessage(int id, uint8_t* data);
+void checkIfStalled();
 
 void setup() {
     Serial.begin(115200);
@@ -53,6 +55,15 @@ void setup() {
     initializeUsb(&usbDevice);
     initializeAllCan();
     lastSignificantChangeTime = millis();
+}
+
+void loop() {
+    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+        receiveCan(&CAN_BUSES[i]);
+    }
+    USB_OUTPUT_HANDLE = readFromHost(
+            &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    checkIfStalled();
 }
 
 void initializeAllCan() {
@@ -116,15 +127,6 @@ void receiveWriteRequest(char* message) {
             cJSON_Delete(root);
         }
     }
-}
-
-void loop() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
-        receiveCan(&CAN_BUSES[i]);
-    }
-    USB_OUTPUT_HANDLE = readFromHost(
-            &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
-    checkIfStalled();
 }
 
 /*

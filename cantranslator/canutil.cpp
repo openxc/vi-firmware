@@ -63,6 +63,11 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     }
 }
 
+uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send) {
+    return encodeCanSignal(signal, value->valueint);
+}
+
 uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     checkWritePermission(signal, send);

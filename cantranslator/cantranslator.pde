@@ -94,9 +94,6 @@ void receiveWriteRequest(char* message) {
     if(message != NULL) {
         cJSON *root = cJSON_Parse(message);
         if(root != NULL) {
-            Serial.print("Received write request: ");
-            Serial.println(message);
-
             char* name = cJSON_GetObjectItem(root, "name")->valuestring;
             CanSignal* signal = lookupSignal(name, getSignalList(),
                     SIGNAL_COUNT);

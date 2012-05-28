@@ -47,8 +47,6 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
         void (*callback)(char*)) {
     if(!usbDevice->device.HandleBusy(handle)) {
-        Serial.print("Received message from host: ");
-        Serial.println(usbDevice->receiveBuffer);
         callback(usbDevice->receiveBuffer);
         return armForRead(usbDevice, usbDevice->receiveBuffer);
     }

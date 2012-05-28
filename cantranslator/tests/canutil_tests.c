@@ -3,12 +3,18 @@
 #include "canutil.h"
 
 CanSignalState SIGNAL_STATES[2][10] = {
-    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"}, {5, "neutral"}, {6, "second"}, },
+    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
+        {5, "neutral"}, {6, "second"}, },
 };
 
-CanSignal SIGNALS[2] = {
-    {0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000, 33522.000000, 1, 0, false, false},
-    {1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000, 0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, 4.0},
+int SIGNAL_COUNT = 3;
+CanSignal SIGNALS[3] = {
+    {0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000,
+        33522.000000, 1, 0, false, false},
+    {1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, 4.0},
+    {2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
+        0, false, false},
 };
 
 START_TEST (test_can_signal_struct)
@@ -48,10 +54,11 @@ END_TEST
 
 START_TEST (test_lookup_signal)
 {
-    fail_unless(lookupSignal("does_not_exist", SIGNALS, 2) == 0);
-    fail_unless(lookupSignal("powertrain_torque", SIGNALS, 2) == &SIGNALS[0]);
-    fail_unless(lookupSignal("transmission_gear_position", SIGNALS, 2)
-            == &SIGNALS[1]);
+    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT) == 0);
+    fail_unless(lookupSignal("powertrain_torque", SIGNALS, SIGNAL_COUNT)
+            == &SIGNALS[0]);
+    fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
+            SIGNAL_COUNT) == &SIGNALS[1]);
 }
 END_TEST
 
@@ -69,7 +76,7 @@ END_TEST
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
-    fail_unless(passthroughHandler(&SIGNALS[0], SIGNALS, 2, 42.0, &send) == 42.0);
+    fail_unless(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 42.0, &send) == 42.0);
     fail_unless(send);
 }
 END_TEST
@@ -77,11 +84,11 @@ END_TEST
 START_TEST (test_boolean_handler)
 {
     bool send = true;
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 1.0, &send));
     fail_unless(send);
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, 2, 0.5, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0.5, &send));
     fail_unless(send);
-    fail_unless(!booleanHandler(&SIGNALS[0], SIGNALS, 2, 0, &send));
+    fail_unless(!booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0, &send));
     fail_unless(send);
 }
 END_TEST
@@ -133,6 +140,16 @@ START_TEST (test_number_writer)
 }
 END_TEST
 
+START_TEST (test_boolean_writer)
+{
+    bool send = true;
+    uint32_t value = booleanWriter(&SIGNALS[2], SIGNALS, 2, true, &send);
+    uint32_t expectedValue = 0x80000000;
+    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
+            expectedValue, value);
+    fail_unless(send);
+}
+END_TEST
 
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
@@ -147,6 +164,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_state_handler);
     tcase_add_test(tc_core, test_passthrough_writer);
     tcase_add_test(tc_core, test_number_writer);
+    tcase_add_test(tc_core, test_boolean_writer);
     suite_add_tcase(s, tc_core);
 
     return s;

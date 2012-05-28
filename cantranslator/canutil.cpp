@@ -49,11 +49,13 @@ uint32_t numberWriter(CanSignal* signal, CanSignal* signals,
     return encodeCanSignal(signal, value);
 }
 
+uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, bool value, bool* send) {
+    return encodeCanSignal(signal, int(value));
+}
+
 uint32_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, char* value, bool* send);
-
-uint32_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send);
 
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
     for(int i = 0; i < signalCount; i++) {

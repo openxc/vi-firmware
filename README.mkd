@@ -68,10 +68,6 @@ this method (make sure to change these defaults if your system is different!):
     # Path to the extracted MPIDE folder (this is correct for OS X)
     export ARDUINO_DIR=/Applications/Mpide.app/Contents/Resources/Java
 
-    # Path to the MPIDE sketchbook directory. Check in the MPIDE preferences
-    # if you don't know this path offhand - this is the default for OS X.
-    export ARDUINO_SKETCHBOOK=$HOME/Documents/Arduino
-
     # Path to the `arduino.mk` cloned repository
     export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
 

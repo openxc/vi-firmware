@@ -70,7 +70,8 @@ terminal that you run the commands. If you want them active in all terminals
 `~/.bashrc` and restart the terminals.
 
 Once this is set up, `cd` into the `cantranslator` subdirectory and run `make`
-to compile the sketch and `make upload` to upload the sketch to the board.
+to compile the sketch and `make clean && make upload` to upload the sketch to
+the board.
 
 [arduino.mk]: https://github.com/peplin/arduino.mk
 

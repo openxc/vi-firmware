@@ -66,7 +66,7 @@ You also need to set a few environment variables (e.g. in your `.bashrc`) for
 this method (make sure to change these defaults if your system is different!):
 
     # Path to the extracted MPIDE folder (this is correct for OS X)
-    export ARDUINO_DIR=/Applications/Mpide.app/Contents/Resources/Java
+    export MPIDE_DIR=/Applications/Mpide.app/Contents/Resources/Java
 
     # Path to the `arduino.mk` cloned repository
     export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
@@ -74,8 +74,13 @@ this method (make sure to change these defaults if your system is different!):
 Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
 show up as `/dev/ttyUSB*` (in Linux) or `/dev/tty.usbserial*` (in Mac OS X).
 
-Once this is set up, run `make` to compile the sketch and `make upload` to
-upload the sketch to the board.
+Remember that if you use `export`, the environment variables are only set in the
+terminal that you run the commands. If you want them active in all terminals
+(and you probably do), you need to add these `export ...` lines to the file
+`~/.bashrc` and restart the terminals.
+
+Once this is set up, `cd` into the `cantranslator` subdirectory and run `make`
+to compile the sketch and `make upload` to upload the sketch to the board.
 
 [arduino.mk]: https://github.com/peplin/arduino.mk
 
@@ -138,7 +143,7 @@ to update your device.
     $ ./upload_hex new-version.hex
 
 This script still requires that MPIDE is installed, and the environment variable
-`ARDUINO_DIR` points to the MPIDE directory (see the "Command Line Building"
+`MPIDE_DIR` points to the MPIDE directory (see the "Command Line Building"
 section of the [README][cantranslator] for details). If you have an alternative
 `avrdude` you wish to use instead, you can modify the upload.sh script
 accordingly.

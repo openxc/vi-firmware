@@ -13,16 +13,21 @@ For more details, see the [OpenXC website](http://openxcplatform.com/developers/
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
-requires the [MPIDE][] and the CAN and USB libraries for the network sheild,
-provided by Microchip. Download these from the bottom of the [Max32 page][] and
-extract them to your MPIDE sketchbook directory in a subdirectory named
-`libraries`. It should look like this:
+requires the [MPIDE][] and a few library dependencies:
+
+* Microchip USB device library (downloaded from bottom of the [Max32 page][])
+* Microchip CAN library (downloaded from bottom of the [Max32 page][])
+* [cJSON](http://sourceforge.net/projects/cjson/)
+
+Download these libraries and extract them to your MPIDE sketchbook directory in
+a subdirectory named `libraries`. It should look like this:
 
     - /Users/me/sketchbook/
     ---- libraries/
     -------- chipKITUSBDevice/
+             chipKitCAN/
+             cJSON/
             ... other libraries
-
 
 If you plan to use the `reader.py` testing program, you will need to install
 the system library `libusb` and the Python package `pyusb`. In OS X, `libusb`
@@ -53,19 +58,15 @@ Alternatively, you can use GNU Make to compile and upload code to the
 device. You still need to download and extract the MPIDE someplace, as it
 contains the PIC32 toolchain, but you don't have to use the GUI.
 
-This method requires that you clone the [arduino.mk]() repository someone on
+This method requires that you clone the [arduino.mk][] repository someone on
 your computer. This contains Makefile definitions common to Arduino and chipKIT
 platforms.
 
-You also need to set a few environment variables (e.g. in your .bashrc) for this
-method (make sure to change these defaults if your system is different!):
+You also need to set a few environment variables (e.g. in your `.bashrc`) for
+this method (make sure to change these defaults if your system is different!):
 
     # Path to the extracted MPIDE folder (this is correct for OS X)
     export ARDUINO_DIR=/Applications/Mpide.app/Contents/Resources/Java
-
-    # Path to the MPIDE sketchbook directory. Check in the MPIDE preferences
-    # if you don't know this path offhand - this is the default for OS X.
-    export ARDUINO_SKETCHBOOK=$HOME/Documents/Arduino
 
     # Path to the `arduino.mk` cloned repository
     export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
@@ -82,42 +83,61 @@ upload the sketch to the board.
 
 Once the libraries are installed and you have the `cantranslator` sketch open in
 MPIDE, you'll notice that it won't compile - it's missing the definition of a
-`decodeCanMessage` function. This is the piece you must implement yourself, or
-by following the input specification designed here, have auto-generated.
+`decodeCanMessage` function (and a few others). This is the piece you must
+implement yourself, or by following the input specification designed here, have
+auto-generated.
 
-The preferred method is the auto-generation script - it accepts JSON input that
-defines the CAN messages and signals of interest and rewrites it as C data
-structures, ready to be downloaded to the device. Check the "Input
-Specification" section for the details of the input format.
+You have three options: implementing these functions manually for your specific
+vehicle, using the code auto-generation scripts or using a pre-built binary.
+
+### Manual
+
+You must implement the functions defined in the `signals.h` header file. The
+documentation of those functions describes the expected effect of each.
+Implement these in a file called `signals.cpp` and the code should now compile.
+
+You must know the CAN message formats of the vehicle you want to use with the
+CAN translator, as you cannot implement these functions without that knowledge.
+
+### Auto-generation
+
+The code auto-generation script accepts JSON input that defines the CAN messages
+and signals of interest and rewrites it as C data structures, ready to be
+downloaded to the device. Check the "Input Specification" section for the
+details of the input format. You must know the CAN message formats of the
+vehicle you want to use with the CAN translator, as you cannot create these
+input files without that knowledge.
 
 Once you have one or more input JSON files, run the `generate_source.py` script
 to create a file that defines `decodeCanMessage`:
 
-    ./generate_code.py --json signals.json > signals.pde
+    ./generate_code.py --json signals.json > signals.cpp
 
-Drop the new `signals.pde` file in the `cantranslator` sketch folder, and it
+Drop the new `signals.cpp` file in the `cantranslator` sketch folder, and it
 should now compile.
 
 If you have multiple CAN buses and want to define their signals and messages in
 separate files, just pass multiple JSON files:
 
-    ./generate_code.py --json highspeed.json --json mediumspeed.json > signals.pde
+    ./generate_code.py --json highspeed.json --json mediumspeed.json > signals.cpp
 
 Note that the JSON files are parsed and merged, so if you want to define custom
 handlers and states separately from the signal definition itself, you can store
 them in separate files and they will be merged on import.
 
-### Uploading a Pre-built Binary
+### Pre-built Binary
 
-Updates to the cantranslator may be distributed as precompiled binaries, e.g. if
-they are distributed by an OEM who does not wish to make the CAN signals public.
+If you do not know the specific CAN message formats of the vehicle you wish to
+use with the CAN translator, you can potentially use a pre-compiled binary
+firmware distributed by the vehicle's OEM. The manufacturer may distribute the
+message definitions in this way to protect proprietary information.
 
-In that case, you will have a .hex file and can use the `upload_hex.sh` script
+In this case, you will have a .hex file and can use the `upload_hex.sh` script
 to update your device.
 
     $ ./upload_hex new-version.hex
 
-This script requires that MPIDE is installed, and the environment variable
+This script still requires that MPIDE is installed, and the environment variable
 `ARDUINO_DIR` points to the MPIDE directory (see the "Command Line Building"
 section of the [README][cantranslator] for details). If you have an alternative
 `avrdude` you wish to use instead, you can modify the upload.sh script
@@ -464,6 +484,15 @@ and in Mac OS X, it's available through [homebrew][]:
 
 [check]: http://check.sourceforge.net
 [homebrew]: http://mxcl.github.com/homebrew/
+
+## Emulator
+
+The repository includes a rudimentary CAN bus emulator. Open the
+`canemulator/canemulator.pde` sketch in MPIDE or run `make clean && make upload`
+from the `canemulator` directory to run this on the device.
+
+The emulator generates fakes values for many OpenXC signals and sends them over
+USB as if it were plugged into a live CAN bus.
 
 ## Device Driver
 

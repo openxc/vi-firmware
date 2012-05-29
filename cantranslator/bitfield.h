@@ -14,6 +14,15 @@
  * field, we just need to convert to big-endian bit ordering to find the field,
  * and directly use the value we find in the field.
  *
+ * For example, the bit layout of the value "42" (i.e. 00101010 set at position
+ * 14 with length 6 is:
+ *
+ *     000000000000001010100000000000000000000000000000000000000000000
+ *
+ * and the same value and position but with length 8 is:
+ *
+ *     000000000000000010101000000000000000000000000000000000000000000
+ *
  * Examples
  *
  *  unsigned long value = getBitField(data, 2, 4);

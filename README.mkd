@@ -29,18 +29,8 @@ a subdirectory named `libraries`. It should look like this:
              cJSON/
             ... other libraries
 
-If you plan to use the `reader.py` testing program, you will need to install
-the system library `libusb` and the Python package `pyusb`. In OS X, `libusb`
-can be installed with [homebrew][]. In Ubuntu, it can be installed with `sudo
-apt-get install libusb-0.1.4`. On either platform, `pyusb` can be installed with
-`sudo easy_install pyusb` or `sudo pip install pyusb`. (`pip` is the newer
-Python package manager and is preferrable, but it doesn't come installed out of
-the box in OS X. It's easy to install it (`sudo easy_install pip`) but not
-required.)
-
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32
-[homebrew]: http://mxcl.github.com/homebrew/
 
 ### GUI Building
 
@@ -426,7 +416,10 @@ The `reader.py` Python program in this repository can be used to view the output
 of the CAN translator over micro-USB. Just plug it in and run the script with
 the `--verbose` flag to have all messages parsed and printed to stdout.
 
+    # Show a real-time stream of all messages
     $ python reader.py -v
+    # Show a dashboard summary of the current values
+    $ python reader.py --dashboard
 
 It may also be neccessary to check the current version of the software you have
 on a CAN translator - the `--version` flag will tell you that.
@@ -440,15 +433,20 @@ The `reader.py` script requires the `pyusb` Python library to be installed along
 with a backing system library for accessing USB devices. `libusb-1.0` is the
 recommended library.
 
-In OS X, the best way to install `libusb-1.0` is with
-[homebrew](http://mxcl.github.com/homebrew/). `pyusb` can be installed on
-Linux/OS X using `easy_install` or `pip`.
+In OS X, first install [homebrew][]. Then:
 
-    $ sudo pip install pyusb
+    $ brew install libusb
 
-    or
+In Ubuntu:
 
-    $ sudo easy_install pyusb
+    $ sudo apt-get install libusb-0.1.4 python-setuptools
+
+Then on both platforms:
+
+    $ sudo -E easy_install pip
+    $ sudo -E pip install
+
+[homebrew]: http://mxcl.github.com/homebrew/
 
 ## Traces
 

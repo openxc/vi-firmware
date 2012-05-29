@@ -181,7 +181,8 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canutil_chipkit.h\""
+        print "#include \"canread_chipkit.h\""
+        print "#include \"canread.h\""
         print
         print "extern CanUsbDevice usbDevice;"
         print "extern CAN can1;"

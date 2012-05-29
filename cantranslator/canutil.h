@@ -10,21 +10,30 @@
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
+/* Public: A container for a CAN module paried with a certain bus.
+ *
+ * speed - The bus speed in bits per second (e.g. 500000)
+ * address - The address or ID of this node
+ * bus - a reference to the CAN module from the CAN library
+ * interruptHandler - a function to call by the Interrupt Service Routine when
+ *      a previously registered CAN event occurs.
+ * buffer - message area for 2 channels to store 8 16 byte messages.
+ * messageReceived - used as an event flags by the interrupt service routines.
+ */
 struct CanBus {
     unsigned int speed;
     uint64_t address;
     CAN* bus;
     void (*interruptHandler)();
-    // These are used as event flags by the interrupt service routines.
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;
 };
 
 /* Public: A CAN transceiver message filter mask.
  *
- * number - the ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
+ * number - The ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
  *     filters with the masks they match.
- * value - the value of the mask, e.g. 0x7ff.
+ * value - The value of the mask, e.g. 0x7ff.
  */
 struct CanFilterMask {
     int number;
@@ -33,10 +42,10 @@ struct CanFilterMask {
 
 /* Public: A CAN transceiver message filter.
  *
- * number - the ID of this filter, e.g. 0, 1, 2.
- * value - the filter's value.
- * channel - the CAN channel this filter should be applied to.
- * maskNumber - the ID of the mask this filter should be paired with.
+ * number - The ID of this filter, e.g. 0, 1, 2.
+ * value - The filter's value.
+ * channel - The CAN channel this filter should be applied to.
+ * maskNumber - The ID of the mask this filter should be paired with.
  */
 struct CanFilter {
     int number;
@@ -48,8 +57,8 @@ struct CanFilter {
 /* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
  * state names.
  *
- * value - the integer value of the state on the CAN bus.
- * name  - the corresponding string name for the state in OpenXC>
+ * value - The integer value of the state on the CAN bus.
+ * name  - The corresponding string name for the state in OpenXC>
  */
 struct CanSignalState {
     int value;
@@ -58,15 +67,15 @@ struct CanSignalState {
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
- * bus         - the CAN bus this signal belongs on.
- * messageId   - the ID of the message this signal is a part of signal.
- * genericName - the name of the signal to be output over USB.
- * bitPosition - the starting bit of the signal in its CAN message.
- * bitSize     - the width of the bit field in the CAN message.
- * factor      - the final value will be multiplied by this factor.
- * offset      - the final value will be added to this offset.
- * minValue    - the minimum value for the processed signal.
- * maxValue    - the maximum value for the processed signal.
+ * bus         - The CAN bus this signal belongs on.
+ * messageId   - The ID of the message this signal is a part of signal.
+ * genericName - The name of the signal to be output over USB.
+ * bitPosition - The starting bit of the signal in its CAN message.
+ * bitSize     - The width of the bit field in the CAN message.
+ * factor      - The final value will be multiplied by this factor.
+ * offset      - The final value will be added to this offset.
+ * minValue    - The minimum value for the processed signal.
+ * maxValue    - The maximum value for the processed signal.
  * sendFrequency - how often to pass along this message when received.
  * sendSame    - if true, will re-send even if the value hasn't changed.
  * received    - mark true if this signal has ever been received.
@@ -92,74 +101,30 @@ struct CanSignal {
     float lastValue;
 };
 
-/* Public: Parses a CAN signal from a message and applies required
- *           transformation.
- *
- * signal - the details of the signal to decode and forward.
- * data   - the raw bytes of the CAN message that contains the signal.
- *
- * Returns the final, transformed value of the signal.
- */
-float decodeCanSignal(CanSignal* signal, uint8_t* data);
-
-/*
- * TODO
- */
-uint64_t encodeCanSignal(CanSignal* signal, float value);
-
-/* Public: Finds and returns the corresponding string state for an integer
- *         value.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that maps to a state
- */
-char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-/* Public: Coerces a numerical value to a boolean.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that will be converted to a boolean.
- */
-bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-/* Public: Store the value of a signal, but flip the send flag to false.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that will be converted to a boolean.
- */
-float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
-
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
-
-uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
-
-
 /* Public: Look up the CanSignal representation of a signal based on its generic
  *         name.
  *
- * name - the generic, OpenXC name of the signal
- * signals - the list of all signals
- * signalCount - the length of the signals array
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
  *
- * Returns a pointer to the CanSignal if found, otherwise null;
+ * Returns a pointer to the CanSignal if found, otherwise null.
  */
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
+
+/* Public: Look up a CanSignalState for a CanSignal by its textual name.
+ *
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * name - the genericName of the desired signal.
+ *
+ * Returns
+ */
+CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
+        int signalCount, char* name);
+
+CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
+        int signalCount, int value);
 
 #endif // _CANUTIL_H_

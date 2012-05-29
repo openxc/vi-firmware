@@ -1,6 +1,8 @@
 #include <check.h>
 #include <stdint.h>
 #include "canutil.h"
+#include "canread.h"
+#include "canwrite.h"
 #include "cJSON.h"
 
 CanSignalState SIGNAL_STATES[1][10] = {

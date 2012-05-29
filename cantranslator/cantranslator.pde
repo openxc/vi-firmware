@@ -8,6 +8,7 @@
 #include "chipKITUSBDevice.h"
 #include "bitfield.h"
 #include "canutil_chipkit.h"
+#include "canwrite_chipkit.h"
 #include "usbutil.h"
 #include "cJSON.h"
 #include "signals.h"
@@ -41,9 +42,9 @@ int receivedMessagesAtLastMark = 0;
 
 void initializeAllCan();
 void receiveCan(CanBus*);
-void receiveWriteRequest(char*);
 void decodeCanMessage(int id, uint8_t* data);
 void checkIfStalled();
+void receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);

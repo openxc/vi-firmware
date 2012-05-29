@@ -427,6 +427,9 @@ on a CAN translator - the `--version` flag will tell you that.
     $ python reader.py --version
     Device is running version 1.0
 
+If you get an error when trying to run the dashboard regarding the window, try
+making the terminal window a bit taller - it has a minimum size.
+
 ### Dependencies
 
 The `reader.py` script requires the `pyusb` Python library to be installed along

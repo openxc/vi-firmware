@@ -53,7 +53,7 @@ void initializeCan(CanBus* bus) {
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    bus->bus->assignMemoryBuffer(bus->buffer, 2 * 8 * 16);
+    bus->bus->assignMemoryBuffer(bus->buffer, BUS_MEMORY_BUFFER_SIZE);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit
     // Request" disabled, meaning that other nodes can't request for us to

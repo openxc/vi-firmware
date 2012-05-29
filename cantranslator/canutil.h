@@ -8,13 +8,15 @@
 #include "chipKITCAN.h"
 #include "cJSON.h"
 
+#define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
+
 struct CanBus {
     unsigned int speed;
     uint64_t address;
     CAN* bus;
     void (*interruptHandler)();
-    uint8_t buffer[2 * 8 * 16];
     // These are used as event flags by the interrupt service routines.
+    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;
 };
 

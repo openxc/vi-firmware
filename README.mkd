@@ -483,6 +483,15 @@ and in Mac OS X, it's available through [homebrew][]:
 [check]: http://check.sourceforge.net
 [homebrew]: http://mxcl.github.com/homebrew/
 
+## Emulator
+
+The repository includes a rudimentary CAN bus emulator. Open the
+`canemulator/canemulator.pde` sketch in MPIDE or run `make clean && make upload`
+from the `canemulator` directory to run this on the device.
+
+The emulator generates fakes values for many OpenXC signals and sends them over
+USB as if it were plugged into a live CAN bus.
+
 ## Device Driver
 
 Most users do not need to know the details of the device driver, but for

@@ -12,7 +12,7 @@
  * recipients of the resulting CAN message.
  *
  * signal - The signal associated with the value
- * value  - The numerical value to encode. String-ified state values need to be
+ * value - The numerical value to encode. String-ified state values need to be
  *      converted back to their integer equivalents before calling this
  *      function.
  *
@@ -21,12 +21,53 @@
  */
 uint64_t encodeCanSignal(CanSignal* signal, float value);
 
+/* Public: Interpret the JSON value as a number and write it to the correct
+ * bitfield for the given signal.
+ *
+ * signal - The signal associated with the value.
+ * signals - An array of all CAN signals.
+ * signalCount - The size of the CAN signals array.
+ * value - The JSON object to write. The value will be interpreted as a double.
+ * send - An output argument that will be set to false if the value should
+ *     not be sent for any reason.
+ *
+ * Returns a 64-bit data block with the bit field for the signal set to the
+ * encoded value.
+ */
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+/* Public: Interpret the JSON value as a string, convert it to the correct
+ * integer value for the given CAN signal and write it to the signal's bitfield.
+ *
+ * signal - The signal associated with the value.
+ * signals - An array of all CAN signals.
+ * signalCount - The size of the CAN signals array.
+ * value - The JSON object to write. The value will be interpreted as a string
+ *      that corresponds to a signal state.
+ * send - An output argument that will be set to false if the value should
+ *     not be sent for any reason.
+ *
+ * Returns a 64-bit data block with the bit field for the signal set to the
+ * encoded value.
+ */
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+/* Public: Interpret the JSON value as a boolean and write it to the correct
+ * bitfield for the given signal. This will write either a 0 or 1.
+ *
+ * signal - The signal associated with the value.
+ * signals - An array of all CAN signals.
+ * signalCount - The size of the CAN signals array.
+ * value - The JSON object to write. The value will be interpreted as a integer
+ *      that represents a boolean.
+ * send - An output argument that will be set to false if the value should
+ *     not be sent for any reason.
+ *
+ * Returns a 64-bit data block with the bit field for the signal set to the
+ * encoded value.
+ */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 

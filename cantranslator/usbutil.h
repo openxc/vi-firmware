@@ -4,8 +4,7 @@
 #include <string.h>
 #include "chipKITUSBDevice.h"
 
-#define USB_PACKET_SIZE 64
-
+// TODO move these to canutil.h
 #define NAME_FIELD_NAME "name"
 #define VALUE_FIELD_NAME "value"
 #define EVENT_FIELD_NAME "event"
@@ -13,6 +12,7 @@
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
 
+#define USB_PACKET_SIZE 64
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;

@@ -79,6 +79,14 @@ struct CanSignalState {
  * sendFrequency - how often to pass along this message when received.
  * sendSame    - if true, will re-send even if the value hasn't changed.
  * received    - mark true if this signal has ever been received.
+ * states      - An array of CanSignalState describing the mapping
+ *               between numerical and string values for valid states.
+ * stateCount  - The length of the states array.
+ * writable    - True if the signal is allowed to be written from the USB host
+ *               back to CAN. Defaults to false.
+ * writeHandler - An optional function to encode a signal value to be written to
+ *                CAN into a uint64_t. If null, the default encoder is used.
+ * lastValue   - The last received value of the signal. Defaults to undefined.
  */
 struct CanSignal {
     CanBus* bus;
@@ -108,22 +116,35 @@ struct CanSignal {
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  *
- * Returns a pointer to the CanSignal if found, otherwise null.
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
 
-/* Public: Look up a CanSignalState for a CanSignal by its textual name.
+/* Public: Look up a CanSignalState for a CanSignal by its textual name. Use
+ * this to find the numerical value to write back to CAN when a string state is
+ * received from the user.
  *
  * name - The generic, OpenXC name of the signal.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * name - the genericName of the desired signal.
+ * name - the string name of the desired signal state.
  *
- * Returns
+ * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
 CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
         int signalCount, char* name);
 
+/* Public: Look up a CanSignalState for a CanSignal by its numerical value.
+ * Use this to find the string equivalent value to write over USB when a float
+ * value is received from CAN.
+ *
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * value - the numerical value equivalent for the state.
+ *
+ * Returns a pointer to the CanSignalState if found, otherwise NULL.
+ */
 CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
         int signalCount, int value);
 

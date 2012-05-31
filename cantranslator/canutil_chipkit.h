@@ -22,6 +22,8 @@ void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
 
 /* Public: Initialize the CAN controller. See inline comments for description of
  * the process.
+ *
+ * bus - A CanBus struct defining the bus's metadata for initialization.
  */
 void initializeCan(CanBus* bus);
 

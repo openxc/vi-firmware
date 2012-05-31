@@ -153,8 +153,7 @@ class Signal(object):
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
-                    len(self.states))
+            result += "SIGNAL_STATES[SIGNAL_COUNT], %d" % len(self.states)
         else:
             result += "NULL, 0"
         result += ", %s, %s" % (str(self.writable).lower(),
@@ -183,6 +182,7 @@ class Parser(object):
     def print_header(self):
         print "#include \"canread_chipkit.h\""
         print "#include \"canread.h\""
+        print "#include \"signals.h\""
         print
         print "extern CanUsbDevice usbDevice;"
         print "extern CAN can1;"
@@ -204,8 +204,7 @@ class Parser(object):
             sys.exit(1)
         self.print_header()
 
-        print "int CAN_BUS_COUNT = 2;"
-        print "CanBus CAN_BUSES[2] = {"
+        print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
             print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
@@ -231,7 +230,7 @@ class Parser(object):
         print "};"
         print
 
-        print "int SIGNAL_COUNT = %d;" % self.signal_count
+        print "const int SIGNAL_COUNT = %d;" % self.signal_count
         print "CanSignal SIGNALS[%d] = {" % self.signal_count
 
         i = 1
@@ -244,8 +243,13 @@ class Parser(object):
         print "};"
         print
 
-        print "CanSignal* getSignalList() {"
+        print "CanSignal* getSignals() {"
         print "    return SIGNALS;"
+        print "}"
+        print
+
+        print "int getSignalCount() {"
+        print "    return SIGNAL_COUNT;"
         print "}"
         print
 
@@ -270,8 +274,8 @@ class Parser(object):
                             "CanSignal*, CanSignal*, int, float, bool*);" %
                             signal.handler)
                         print ("        translateCanSignal(&usbDevice, "
-                                "&SIGNALS[%d], " % signal.array_index +
-                                "data, &%s, SIGNALS, SIGNAL_COUNT); // %s" % (
+                                "&SIGNALS[SIGNAL_COUNT], data, "
+                                "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler.split()[1],
                                 signal.name))
                     else:

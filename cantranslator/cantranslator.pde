@@ -20,8 +20,6 @@
 #define DATA_ENDPOINT 1
 
 extern char* MESSAGE_SET;
-extern int CAN_BUS_COUNT;
-extern int SIGNAL_COUNT;
 
 char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
@@ -96,13 +94,13 @@ void receiveWriteRequest(char* message) {
         cJSON *root = cJSON_Parse(message);
         if(root != NULL) {
             char* name = cJSON_GetObjectItem(root, "name")->valuestring;
-            CanSignal* signal = lookupSignal(name, getSignalList(),
-                    SIGNAL_COUNT);
+            CanSignal* signal = lookupSignal(name, getSignals(),
+                    getSignalCount());
             if(signal != NULL) {
                 sendCanSignal(signal,
                         cJSON_GetObjectItem(root, "value"),
-                        signal->writeHandler, getSignalList(),
-                        SIGNAL_COUNT);
+                        signal->writeHandler, getSignals(),
+                        getSignalCount());
             } else {
                 Serial.print("Writing not allowed for signal with name ");
                 Serial.println(name);

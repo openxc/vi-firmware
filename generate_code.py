@@ -153,7 +153,9 @@ class Signal(object):
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += "SIGNAL_STATES[SIGNAL_COUNT], %d" % len(self.states)
+            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
+                    len(self.states))
+
         else:
             result += "NULL, 0"
         result += ", %s, %s" % (str(self.writable).lower(),
@@ -213,8 +215,7 @@ class Parser(object):
         print
 
         # TODO need to handle signals with more than 12 states
-        print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (
-                self.signal_count, 12)
+        print "CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12
 
         states_index = 0
         for bus in self.buses.values():

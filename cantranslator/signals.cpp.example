@@ -1,0 +1,161 @@
+/* This is an example implementation of the functions defined in signals.h that
+ * are required to compile and deploy to the OpenXC CAN translator. This general
+ * implementation style is created by the generate_source.py script if you
+ * provide it with the JSON input file format described in the README.
+ *
+ * You must have information about the CAN message format for the vehicle you
+ * are using in order to implement these functions. Until these formats become
+ * public, developers can get a compiled version of this file from the vehicle
+ * OEM (if they're participating in OpenXC).
+ *
+ * The signals defined in this file are for demonstration purposes only - the
+ * message formats are not real, and won't work on any car.
+ */
+#include "canread_chipkit.h"
+#include "canread.h"
+#include "signals.h"
+
+extern CanUsbDevice usbDevice;
+extern CAN can1;
+extern CAN can2;
+extern void handleCan1Interrupt();
+extern void handleCan2Interrupt();
+
+// Define the speed of your CAN buses here (these are both 500Kbps buses).
+CanBus CAN_BUSES[CAN_BUS_COUNT] = {
+    { 500000, 0x101, &can1, handleCan1Interrupt, 0, false },
+    { 500000, 0x102, &can2, handleCan2Interrupt, 0, false },
+};
+
+// CAN signals with states for values are typically represented as integers on
+// the bus, e.g. 1 means left, 2 means right, 3 means up, etc. For OpenXC
+// messages, we convert those to human readable strings. Use this array to
+// define the mapping between numbers and strings for any signals that require
+// it.
+CanSignalState SIGNAL_STATES[19][12] = {
+    { {1, "first"}, {2, "second"}, {3, "third"}, {4, "fourth"}, {5, "reverse"}, {6, "park"}, {7, "neutral"}, },
+};
+
+// The getSignals() function below needs to return an array of all of the CAN
+// signals that you want to process. The CanSignal struct (defined in canutil.h)
+// has a lot of fields (some are optional) that you can use to define the format
+// and processing technique for the signal in question. Using a static array
+// like this is easy thing to generate automatically from OpenXC-style CAN
+// message definition files (check the README for more information on this).
+//
+// This file is typically generated automatically, so the struct initialize may
+// look a little terse. There are a bunch of extra comments on the first item to
+// give you a point of reference, but check the documentation in canutil.h for a
+// complete explanation of each field.
+const int SIGNAL_COUNT = 3;
+CanSignal SIGNALS[SIGNAL_COUNT] = {
+    {&CAN_BUSES[0], // the bus to look for this signal on (effects filter setup)
+        0x29, // the message ID
+        "fuel_level",  // the generic name for OpenXC messages
+        0,  // starting bit (in the 64-bit CAN message)
+        16, // bit length of the signal's field
+        0.512, // value multiplying factor
+        4.5923, // value offset
+        0, // minimum value after applying factor, offset and any handlers
+        100, // maximum value after apply factor, offset and any handlers
+        0, // send frequency, set to 0 to process every message
+        0, // private internal value
+        true,  // send the value even if it hasn't changed (sendSame)
+        false, // this is marked true if the signal has ever been received
+        NULL, // an optional list of signal states. this doesn't use states.
+        0,  // number of signal states.
+        false,  // this signal is NOT writable
+        NULL // signal is NOT writable, so no custom writer necessary
+        },
+    {&CAN_BUSES[0], 0x29, "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, 0, 0, true, false, NULL, 0, false, NULL},
+    {&CAN_BUSES[0], 0x52, "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, 0, 0, false, false, SIGNAL_STATES[0], 7, false, NULL},
+    {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, 0, true, false, NULL, 0, false, NULL},
+};
+
+CanSignal* getSignals() {
+    return SIGNALS;
+}
+
+int getSignalCount() {
+    return SIGNAL_COUNT;
+}
+
+CanBus* getCanBuses() {
+    return CAN_BUSES;
+}
+
+/* See signals.h for full documentation on this method.
+ *
+ * This approach to processing CAN messages switches on the ID of the message
+ * coming in, and processes all CAN signals that are in that message. There are
+ * many utility functions in canutil.h and canread.h to do this work, so you
+ * probably don't need to do much in this function besides call the
+ * translateCanSignal function that matches your desired output format (float,
+ * bool or string).
+ */
+void decodeCanMessage(int id, uint8_t* data) {
+    switch (id) {
+    case 0x29:
+        translateCanSignal(&usbDevice, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
+        extern float handleInvertedSteeringWheelAngle(CanSignal*, CanSignal*, int, float, bool*);
+        translateCanSignal(&usbDevice, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        break;
+    case 0x52:
+        extern char* stateHandler(CanSignal*, CanSignal*, int, float, bool*);
+        translateCanSignal(&usbDevice, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        break;
+    case 0x65:
+        translateCanSignal(&usbDevice, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        break;
+    }
+}
+
+CanFilterMask FILTER_MASKS[4];
+CanFilter FILTERS[2];
+
+CanFilterMask* initializeFilterMasks(uint64_t address, int* count) {
+Serial.println("Initializing filter arrays...");
+    if(address == CAN_BUSES[0].address) {
+        *count = 4;
+        FILTER_MASKS = {
+            {0, 0x7ff},
+            {1, 0x7ff},
+            {2, 0x7ff},
+            {3, 0x7ff},
+        };
+    } else if(address == CAN_BUSES[1].address) {
+        *count = 4;
+        FILTER_MASKS = {
+            {0, 0x7ff},
+            {1, 0x7ff},
+            {2, 0x7ff},
+            {3, 0x7ff},
+        };
+    }
+    return FILTER_MASKS;
+}
+
+/* See signals.h for full documentation. Depending on the address of the bus in
+ * parameter, we either create an array of filters for the 0x29 and 0x52
+ * messages, or one including just the 0x65 message (because that's on a
+ * different bus, the one attached to the 2nd CAN module).
+ */
+CanFilter* initializeFilters(uint64_t address, int* count) {
+    Serial.println("Initializing filters...");
+    switch(address) {
+    case 0x101:
+        *count = 2;
+        FILTERS = {
+            {0, 0x29, 1, 0},
+            {1, 0x52, 1, 0},
+        };
+        break;
+    case 0x102:
+        *count = 1;
+        FILTERS = {
+            {2, 0x65, 1, 0},
+        };
+        break;
+    }
+    return FILTERS;
+}

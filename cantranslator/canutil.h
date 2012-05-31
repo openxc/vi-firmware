@@ -72,12 +72,17 @@ struct CanSignalState {
  * genericName - The name of the signal to be output over USB.
  * bitPosition - The starting bit of the signal in its CAN message.
  * bitSize     - The width of the bit field in the CAN message.
- * factor      - The final value will be multiplied by this factor.
- * offset      - The final value will be added to this offset.
+ * factor      - The final value will be multiplied by this factor. Use 1 if you
+ *               don't need a factor.
+ * offset      - The final value will be added to this offset. Use 0 if you
+ *               don't need an offset.
  * minValue    - The minimum value for the processed signal.
  * maxValue    - The maximum value for the processed signal.
- * sendFrequency - how often to pass along this message when received.
- * sendSame    - if true, will re-send even if the value hasn't changed.
+ * sendFrequency - How often to pass along this message when received. To
+ *              process every value, set this to 0.
+ * sendClock   - An internal counter value, don't use this. TODO move this to
+ *              the end so we don't need to initialize it
+ * sendSame    - If true, will re-send even if the value hasn't changed.
  * received    - mark true if this signal has ever been received.
  * states      - An array of CanSignalState describing the mapping
  *               between numerical and string values for valid states.

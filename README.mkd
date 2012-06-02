@@ -418,7 +418,8 @@ with.
 
 The microcontroller has a second USB controller operating in USB device mode. It
 sends the generic vehicle data over via bulk USB transfer as JSON. There
-are two valid message types - single valued and event.
+are two valid message types - single valued and event. Each message is separated
+by a newline character.
 
 ### Single Valued
 

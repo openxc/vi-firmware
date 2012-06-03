@@ -214,6 +214,7 @@ class Parser(object):
         print "};"
         print
 
+        print "const int SIGNAL_COUNT = %d;" % self.signal_count
         # TODO need to handle signals with more than 12 states
         print "CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12
 
@@ -231,7 +232,6 @@ class Parser(object):
         print "};"
         print
 
-        print "const int SIGNAL_COUNT = %d;" % self.signal_count
         print "CanSignal SIGNALS[%d] = {" % self.signal_count
 
         i = 1

@@ -275,7 +275,7 @@ class Parser(object):
                             "CanSignal*, CanSignal*, int, float, bool*);" %
                             signal.handler)
                         print ("        translateCanSignal(&usbDevice, "
-                                "&SIGNALS[SIGNAL_COUNT], data, "
+                                "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler.split()[1],
                                 signal.name))

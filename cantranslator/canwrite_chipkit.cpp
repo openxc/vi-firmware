@@ -41,7 +41,6 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
     } else {
         Serial.println("Unable to get TX message area");
     }
-    delay(100);
 }
 
 void sendCanSignal(CanSignal* signal, cJSON* value,

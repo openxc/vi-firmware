@@ -78,8 +78,8 @@ void initializeCan(CanBus* bus) {
             true);
     bus->bus->enableModuleEvent(CAN::RX_EVENT, true);
 
-    bus->bus->setOperatingMode(CAN::LISTEN_ONLY);
-    while(bus->bus->getOperatingMode() != CAN::LISTEN_ONLY);
+    bus->bus->setOperatingMode(CAN::NORMAL_OPERATION);
+    while(bus->bus->getOperatingMode() != CAN::NORMAL_OPERATION);
 
     bus->bus->attachInterrupt(bus->interruptHandler);
 

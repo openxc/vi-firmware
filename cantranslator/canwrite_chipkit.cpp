@@ -27,7 +27,9 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
         message->msgEID.IDE = 0;
         message->msgEID.DLC = 8;
         memset(message->data, 0, 8);
-        memcpy(message->data, data, 8);
+        for(int i = 0; i < 8; i++) {
+            memcpy(&message->data[i], &((uint8_t*)data)[7 - i], 8);
+        }
         Serial.print("Sending message 0x");
         for(int i = 0; i < 8; i++) {
             Serial.print(message->data[i], HEX);

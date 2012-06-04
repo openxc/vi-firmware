@@ -21,9 +21,9 @@ class Network(object):
             self._parse_node(node, all_messages)
 
     def to_dict(self):
-        return {self.address: {"messages": {message.id: message.to_dict()
+        return {self.address: {"messages": dict((message.id, message.to_dict())
                 for message in self.messages.values()
-                if len(message.signals) > 0}}}
+                if len(message.signals) > 0)}}
 
     def _parse_node(self, node, all_messages):
         # Looks like RxMessage elements are redundant.
@@ -52,8 +52,8 @@ class Message(object):
 
     def to_dict(self):
         return {"name": self.name,
-                "signals": {signal.name: signal.to_dict()
-                    for signal in self.signals}}
+                "signals": dict((signal.name, signal.to_dict())
+                    for signal in self.signals)}
 
 
 def parse_options(argv):

@@ -52,8 +52,6 @@ unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
 /**
  * TODO it would be nice to have a warning if you call with this a value that
  * won't fit in the number of bits you've specified it should use.
- *
- * TODO document this and all of the byte ordering in a sane fashion.
  */
 void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
     int shiftDistance = 64 - startBit - numBits;

@@ -161,8 +161,6 @@ class UsbDevice(object):
                 pass
 
         message = json.dumps({'name': name, 'value': value})
-        # TODO why do we have to do this one write just to initialize things?
-        self.out_endpoint.write("")
         bytes_written = self.out_endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
 

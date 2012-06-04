@@ -184,6 +184,7 @@ class Parser(object):
     def print_header(self):
         print "#include \"canread_chipkit.h\""
         print "#include \"canread.h\""
+        print "#include \"canwrite.h\""
         print "#include \"signals.h\""
         print
         print "extern CanUsbDevice usbDevice;"

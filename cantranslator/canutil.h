@@ -80,8 +80,6 @@ struct CanSignalState {
  * maxValue    - The maximum value for the processed signal.
  * sendFrequency - How often to pass along this message when received. To
  *              process every value, set this to 0.
- * sendClock   - An internal counter value, don't use this. TODO move this to
- *              the end so we don't need to initialize it
  * sendSame    - If true, will re-send even if the value hasn't changed.
  * received    - mark true if this signal has ever been received.
  * states      - An array of CanSignalState describing the mapping
@@ -92,6 +90,7 @@ struct CanSignalState {
  * writeHandler - An optional function to encode a signal value to be written to
  *                CAN into a uint64_t. If null, the default encoder is used.
  * lastValue   - The last received value of the signal. Defaults to undefined.
+ * sendClock   - An internal counter value, don't use this.
  */
 struct CanSignal {
     CanBus* bus;
@@ -104,7 +103,6 @@ struct CanSignal {
     float minValue;
     float maxValue;
     int sendFrequency;
-    int sendClock;
     bool sendSame;
     bool received;
     CanSignalState* states;
@@ -112,6 +110,7 @@ struct CanSignal {
     bool writable;
     uint64_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
     float lastValue;
+    int sendClock;
 };
 
 /* Public: Look up the CanSignal representation of a signal based on its generic

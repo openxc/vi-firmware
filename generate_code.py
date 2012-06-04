@@ -147,7 +147,7 @@ class Signal(object):
 
     def __str__(self):
         result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
-                    "%d, 0, %s, false, " % (
+                    "%d, %s, false, " % (
                 self._lookupBusIndex(), self.message_id,
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
@@ -155,7 +155,6 @@ class Signal(object):
         if len(self.states) > 0:
             result += "SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
-
         else:
             result += "NULL, 0"
         result += ", %s, %s" % (str(self.writable).lower(),

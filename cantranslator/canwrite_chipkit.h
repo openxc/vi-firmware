@@ -12,20 +12,16 @@
  * writer function must know how to do this conversion (and return a fully
  * filled out uint64_t).
  *
- * If the message is unable to be sent (for example, if the output buffer is
- * overflowing), this function will fail silently.
- *
- * TODO return a boolean to indicate if the send was successful. depends on
- * sendCanMessage returining a status value
- *
  * signal - The CanSignal to send.
  * value - The value to send in the signal. This could be a boolean, number or
  *         string (i.e. a state value).
  * writer - A function to convert from the cJSON value to an encoded uint64_t.
  * signals - An array of all CAN signals.
  * signalCount - The size of the signals array.
+ *
+ * Returns true if the message was sent successfully.
  */
-void sendCanSignal(CanSignal* signal, cJSON* value,
+bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount);
 

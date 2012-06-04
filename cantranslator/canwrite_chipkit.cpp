@@ -5,17 +5,16 @@
 /* Private: Write a CAN message with the given data and node ID to the bus.
  *
  * The CAN module has an 8 message buffer and sends messages in FIFO order. If
- * the buffer is full, this function will fail silently and the message will not
- * be sent. Well, almost silently - it prints something out to the serial
- * terminal.
- *
- * TODO return a boolean indicating if the message was sent or not
+ * the buffer is full, this function will return false and the message will not
+ * be sent.
  *
  * bus - The CAN bus to send the message on.
  * destination - the destination node ID for the message.
  * data - the data for the message (just 64-bits, not an array or anything).
+ *
+ * Returns true if the message was sent successfully.
  */
-void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
+bool sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
     CAN::TxMessageBuffer* message = bus->getTxMessageBuffer(CAN::CHANNEL0);
     if (message != NULL) {
         message->messageWord[0] = 0;
@@ -40,12 +39,14 @@ void sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
         // Mark message as ready to be processed
         bus->updateChannel(CAN::CHANNEL0);
         bus->flushTxChannel(CAN::CHANNEL0);
+        return true;
     } else {
         Serial.println("Unable to get TX message area");
     }
+    return false;
 }
 
-void sendCanSignal(CanSignal* signal, cJSON* value,
+bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
     bool send = true;
@@ -60,8 +61,10 @@ void sendCanSignal(CanSignal* signal, cJSON* value,
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(send) {
         sendCanMessage(signal->bus->bus, signal->messageId, &data);
+        return true;
     } else {
         Serial.print("Not sending requested message ");
         Serial.println(signal->messageId, HEX);
     }
+    return false;
 }

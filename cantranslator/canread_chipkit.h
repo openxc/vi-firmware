@@ -4,6 +4,10 @@
 #include "canutil.h"
 #include "usbutil.h"
 
+#define NAME_FIELD_NAME "name"
+#define VALUE_FIELD_NAME "value"
+#define EVENT_FIELD_NAME "event"
+
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result over USB.
  *

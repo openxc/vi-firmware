@@ -4,11 +4,6 @@
 #include <string.h>
 #include "chipKITUSBDevice.h"
 
-// TODO move these to canutil.h
-#define NAME_FIELD_NAME "name"
-#define VALUE_FIELD_NAME "value"
-#define EVENT_FIELD_NAME "event"
-
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
 

@@ -200,6 +200,18 @@ is a JSON object like this:
                         "bit_size": 0
                     }
                 }
+            },
+            "Cluster": {
+                "signals": {
+                    "TurnSignalLeft": {
+                        "generic_name": "turn_signal_left",
+                        "value_handler": "bool booleanHandler",
+                        "bit_position": 0,
+                        "bit_size": 0,
+                        "writable": true,
+                        "write_handler": "booleanWriter"
+                    }
+                }
             }
         }
     }}
@@ -266,6 +278,18 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     they are received on the CAN bus. By setting this to `false`, you can force
     a signal to be sent only if the value has actually changed. This works best
     with boolean and state based signals.
+
+`writable` - The only signals read through the `OUT` channel of the USB device
+    (i.e. from the host device back to the CAN translator) that are actually
+    encoded and written back to the CAN bus are those marked with this flag
+    true. By default, the value will be interpreted as a floating point number.
+
+`write_handler` - If the signal is writable and is not a plain floating point
+    number (i.e. it is a boolean or state value), you can specify a custom function
+    here to encode the value for a CAN messages. This is only necessary for
+    boolean types at the moment - if your signal has states defined, we assume
+    you need to encode a string state value back to its original numerical
+    value.
 
 ## Custom Handlers
 

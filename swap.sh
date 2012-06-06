@@ -42,14 +42,14 @@ then
     # Normal UNIX-style symlinks can't be read in Windows, and if we try to use
     # Windows-style links, MPIDE just ignores all of those files. We have to
     # explicitly copy them to the directory.
-    cp -f ../../cansignals/shared/handlers.cpp shared_handlers.cpp
-    cp -f ../../cansignals/$FULL_MODEL/handlers.cpp handlers.cpp
-    cp -f ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+    COPY_PROGRAM="cp -f"
 else
-    ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
-    ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
-    ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+    COPY_PROGRAM="ln -fs"
 fi
+
+$COPY_PROGRAM ../../cansignals/shared/handlers.cpp shared_handlers.cpp
+$COPY_PROGRAM ../../cansignals/$FULL_MODEL/handlers.cpp handlers.cpp
+$COPY_PROGRAM ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
 
 echo "Swapped to $FULL_MODEL."
 popd > /dev/null

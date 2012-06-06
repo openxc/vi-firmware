@@ -13,11 +13,11 @@ CanSignalState SIGNAL_STATES[1][10] = {
 int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[3] = {
     {NULL, 0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, 1, 0, false, false, NULL, 0, true},
+        33522.000000, 1, false, false, NULL, 0, true},
     {NULL, 1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
+        0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
     {NULL, 2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
-        0, false, false, NULL, 0, true},
+        false, false, NULL, 0, true},
 };
 
 START_TEST (test_can_signal_struct)

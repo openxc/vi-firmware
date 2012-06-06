@@ -43,6 +43,10 @@ then
     # Windows-style links, MPIDE just ignores all of those files. We have to
     # explicitly copy them to the directory.
     COPY_PROGRAM="cp -f"
+    echo "It looks like you're using Cygwin. Symbolic links don't work in \
+Windows, so this will copy the compiled files from the cansignals \
+repository to the cantranslator folder."
+    echo "If you recompile in cansignals, you will need to re-run swap.sh!"
 else
     COPY_PROGRAM="ln -fs"
 fi

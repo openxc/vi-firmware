@@ -35,9 +35,21 @@ then
     exit 1
 fi
 
-ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
-ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
-ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+KERNEL=`uname -o`
+
+if [ "Cygwin" == $KERNEL ]
+then
+    # Normal UNIX-style symlinks can't be read in Windows, and if we try to use
+    # Windows-style links, MPIDE just ignores all of those files. We have to
+    # explicitly copy them to the directory.
+    cp -f ../../cansignals/shared/handlers.cpp shared_handlers.cpp
+    cp -f ../../cansignals/$FULL_MODEL/handlers.cpp handlers.cpp
+    cp -f ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+else
+    ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
+    ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
+    ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+fi
 
 echo "Swapped to $FULL_MODEL."
 popd > /dev/null

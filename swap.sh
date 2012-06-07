@@ -35,9 +35,25 @@ then
     exit 1
 fi
 
-ln -fs ../../cansignals/shared/handlers.cpp shared_handlers.cpp
-ln -fs ../../cansignals/$FULL_MODEL/handlers.cpp
-ln -fs ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
+KERNEL=`uname -o`
+
+if [ "Cygwin" == $KERNEL ]
+then
+    # Normal UNIX-style symlinks can't be read in Windows, and if we try to use
+    # Windows-style links, MPIDE just ignores all of those files. We have to
+    # explicitly copy them to the directory.
+    COPY_PROGRAM="cp -f"
+    echo "It looks like you're using Cygwin. Symbolic links don't work in \
+Windows, so this will copy the compiled files from the cansignals \
+repository to the cantranslator folder."
+    echo "If you recompile in cansignals, you will need to re-run swap.sh!"
+else
+    COPY_PROGRAM="ln -fs"
+fi
+
+$COPY_PROGRAM ../../cansignals/shared/handlers.cpp shared_handlers.cpp
+$COPY_PROGRAM ../../cansignals/$FULL_MODEL/handlers.cpp handlers.cpp
+$COPY_PROGRAM ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
 
 echo "Swapped to $FULL_MODEL."
 popd > /dev/null

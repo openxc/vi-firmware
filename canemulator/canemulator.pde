@@ -20,7 +20,7 @@ CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
-    "powertrain_torque",
+    "torque_at_transmission",
     "engine_speed",
     "vehicle_speed",
     "accelerator_pedal_position",

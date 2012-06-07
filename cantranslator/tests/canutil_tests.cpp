@@ -12,7 +12,7 @@ CanSignalState SIGNAL_STATES[1][10] = {
 
 int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[3] = {
-    {NULL, 0, "powertrain_torque", 2, 4, 1001.0, -30000.000000, -5000.000000,
+    {NULL, 0, "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
         33522.000000, 1, 0, false, false, NULL, 0, true},
     {NULL, 1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
         0.000000, 1, 0, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
@@ -24,7 +24,7 @@ START_TEST (test_can_signal_struct)
 {
     CanSignal signal = SIGNALS[0];
     fail_unless(signal.messageId == 0, "ID didn't match: %f", signal.messageId);
-    fail_unless(strcmp(signal.genericName, "powertrain_torque") == 0,
+    fail_unless(strcmp(signal.genericName, "torque_at_transmission") == 0,
             "generic name didn't match: %s", signal.genericName);
     fail_unless(signal.bitPosition == 2,
             "bit position didn't match: %f", signal.bitPosition);
@@ -58,7 +58,7 @@ END_TEST
 START_TEST (test_lookup_signal)
 {
     fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT) == 0);
-    fail_unless(lookupSignal("powertrain_torque", SIGNALS, SIGNAL_COUNT)
+    fail_unless(lookupSignal("torque_at_transmission", SIGNALS, SIGNAL_COUNT)
             == &SIGNALS[0]);
     fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
             SIGNAL_COUNT) == &SIGNALS[1]);

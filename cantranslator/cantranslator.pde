@@ -37,6 +37,9 @@ int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
 
+// buffer messages up to 4x 1 USB packet in size waiting for a NUL char
+char messageBuffer[ENDPOINT_SIZE * 4];
+
 /* Forward declarations */
 
 void initializeAllCan();
@@ -90,9 +93,31 @@ void checkIfStalled() {
     }
 }
 
+/*
+ * Thanks to https://gist.github.com/855214.
+ */
+const char *strnchr(const char *str, size_t len, int character) {
+    const char *end = str + len;
+    char c = (char)character;
+    do {
+        if(*str == c) {
+            return str;
+        }
+    } while (++str <= end);
+    return NULL;
+}
+
 void receiveWriteRequest(char* message) {
     if(message != NULL) {
-        cJSON *root = cJSON_Parse(message);
+        Serial.println(message);
+        Serial.println(messageBuffer);
+        // TODO we need to watch out when this gets over 4 packets in size
+        strncat(messageBuffer, message, ENDPOINT_SIZE);
+        if(strnchr(message, ENDPOINT_SIZE, NULL) == NULL) {
+            return;
+        }
+
+        cJSON *root = cJSON_Parse(messageBuffer);
         if(root != NULL) {
             char* name = cJSON_GetObjectItem(root, "name")->valuestring;
             CanSignal* signal = lookupSignal(name, getSignals(),
@@ -108,6 +133,7 @@ void receiveWriteRequest(char* message) {
             }
             cJSON_Delete(root);
         }
+        messageBuffer[0] = NULL;
     }
 }
 

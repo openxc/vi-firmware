@@ -1,0 +1,1 @@
+../cantranslator/canwrite.cpp

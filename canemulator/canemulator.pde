@@ -8,6 +8,7 @@
 #include "usbutil.h"
 #include "canutil.h"
 #include "canutil_chipkit.h"
+#include "canread_chipkit.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5

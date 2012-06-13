@@ -138,6 +138,11 @@ void receiveWriteRequest(char* message) {
         } else if(BUFFERED_PACKETS >= 4) {
             Serial.println("Incoming write is too long");
             resetPacketBuffer();
+        } else if(strnchr(PACKET_BUFFER, ENDPOINT_SIZE * BUFFERED_PACKETS - 1,
+                    NULL) != NULL) {
+            Serial.println("Incoming buffered write is corrupted -- "
+                    "clearing buffer");
+            resetPacketBuffer();
         }
     }
 }

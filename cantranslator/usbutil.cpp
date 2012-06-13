@@ -48,7 +48,7 @@ USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
         void (*callback)(char*)) {
     if(!usbDevice->device.HandleBusy(handle)) {
         // TODO see #569
-        delay(50);
+        delay(200);
         callback(usbDevice->receiveBuffer);
         return armForRead(usbDevice, usbDevice->receiveBuffer);
     }

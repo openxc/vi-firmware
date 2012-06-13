@@ -35,7 +35,7 @@ then
     exit 1
 fi
 
-KERNEL=`uname -o`
+KERNEL=`uname`
 
 if [ "Cygwin" == $KERNEL ]
 then

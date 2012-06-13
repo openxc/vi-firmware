@@ -37,8 +37,10 @@ int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
 
-// buffer messages up to 4x 1 USB packet in size waiting for a NUL char
-char messageBuffer[ENDPOINT_SIZE * 4];
+// buffer messages up to 4x 1 USB packet in size waiting for valid JSON
+const int PACKET_BUFFER_SIZE = ENDPOINT_SIZE * 4;
+char PACKET_BUFFER[PACKET_BUFFER_SIZE];
+int BUFFERED_PACKETS = 0;
 
 /* Forward declarations */
 
@@ -107,17 +109,17 @@ const char *strnchr(const char *str, size_t len, int character) {
     return NULL;
 }
 
-void receiveWriteRequest(char* message) {
-    if(message != NULL) {
-        Serial.println(message);
-        Serial.println(messageBuffer);
-        // TODO we need to watch out when this gets over 4 packets in size
-        strncat(messageBuffer, message, ENDPOINT_SIZE);
-        if(strnchr(message, ENDPOINT_SIZE, NULL) == NULL) {
-            return;
-        }
+void resetPacketBuffer() {
+    BUFFERED_PACKETS = 0;
+    memset(PACKET_BUFFER, 0, PACKET_BUFFER_SIZE);
+}
 
-        cJSON *root = cJSON_Parse(messageBuffer);
+void receiveWriteRequest(char* message) {
+    if(message[0] != NULL) {
+        strncpy((char*)(PACKET_BUFFER + (BUFFERED_PACKETS++ * ENDPOINT_SIZE)),
+                message, ENDPOINT_SIZE);
+
+        cJSON *root = cJSON_Parse(PACKET_BUFFER);
         if(root != NULL) {
             char* name = cJSON_GetObjectItem(root, "name")->valuestring;
             CanSignal* signal = lookupSignal(name, getSignals(),
@@ -132,8 +134,11 @@ void receiveWriteRequest(char* message) {
                 Serial.println(name);
             }
             cJSON_Delete(root);
+            resetPacketBuffer();
+        } else if(BUFFERED_PACKETS >= 4) {
+            Serial.println("Incoming write is too long");
+            resetPacketBuffer();
         }
-        messageBuffer[0] = NULL;
     }
 }
 

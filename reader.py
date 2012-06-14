@@ -7,11 +7,12 @@ import usb.core
 import curses
 import curses.wrapper
 import time
+from datetime import datetime
 
 
 class DataPoint(object):
     def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
-            events=False):
+            events=False, messages_received=0):
         self.name = name
         self.type = value_type
         self.min_value = min_value
@@ -21,9 +22,12 @@ class DataPoint(object):
             self.range = 1
         self.event = ''
         self.bad_data = False
+	self.bad_data_tally = 0
         self.current_data = None
         self.events_active = events
         self.events = []
+	self.messages_received = messages_received
+	self.rate_bytes_received = 0
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -34,10 +38,12 @@ class DataPoint(object):
 
     def update(self, message):
         if self.bad_data:
-            # Received bad data at some point - leave it in an error state
-            return
-
-        self.current_data = message['value']
+	    self.bad_data_tally += 1	
+	    self.bad_data = False
+	
+	self.rate_bytes_received += sys.getsizeof(message) 
+	self.messages_received += 1
+	self.current_data = message['value']
         if type(self.current_data) == int:
             self.current_data = float(self.current_data)
         if type(self.current_data) != self.type:
@@ -59,7 +65,7 @@ class DataPoint(object):
                 elif self.current_data > self.max_value:
                     self.bad_data = True
 
-    def print_to_window(self, window, row):
+    def print_to_window(self, window, row, begin_time):
         window.addstr(row, 0, self.name)
         result = ""
         if self.current_data is None:
@@ -94,10 +100,21 @@ class DataPoint(object):
             else:
                 result = ""
                 for item, value in enumerate(self.vocab):
-                    result = (result + value + ":" + str(self.events[item])
-                            + "  ")
+		    if value == "driver":
+			keyword = "dr"
+		    elif value == "passenger":
+			keyword = "ps"
+		    elif value == "rear_right":
+			keyword = "rr"
+		    elif value == "rear_left":
+			keyword = "rl"
+		    result = (result + keyword + ":" + str(self.events[item])
+                            + " ")
                 window.addstr(row, 55, result)
-
+	window.addstr(row, 90, "Bad data: " + str(self.bad_data_tally))
+	window.addstr(row, 107, "Messages: " + str(self.messages_received))
+	window.addstr(row, 127, "Data rate: " + str(self.rate_bytes_received / 
+	    ((datetime.now()-begin_time).total_seconds())))
 
 class UsbDevice(object):
     INTERFACE = 0
@@ -114,6 +131,9 @@ class UsbDevice(object):
         self.messages_received = 0
         self.good_messages = 0
         self.elements = elements or []
+	self.total_bytes_received = 0
+	self.rate_bytes_received = 0
+	self.begin_time = datetime.now()
 
         self.device = usb.core.find(idVendor=vendorId)
         if not self.device:
@@ -178,6 +198,8 @@ class UsbDevice(object):
                 if self.verbose:
                     print parsed_message
                 if self.dashboard:
+        	    self.total_bytes_received += sys.getsizeof(parsed_message)
+		    self.rate_bytes_received += sys.getsizeof(parsed_message)
                     for element in self.elements:
                         if element.name == parsed_message.get('name', None):
                             element.update(parsed_message)
@@ -186,6 +208,16 @@ class UsbDevice(object):
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
+
+    # This resets the number of bytes received for both individual messages and
+    # the total number of messages and also resets begin_time to set up a time 
+    # frame of 10 seconds in which to calculate the data rates 
+    def date_rate_management(self):
+    	if ((datetime.now() - self.begin_time).total_seconds() > 10):
+	    self.begin_time = datetime.now()
+	    self.rate_bytes_received = 0;
+	    for element in self.elements:
+                element.rate_bytes_received = 0
 
     def run(self, window=None):
         if window is not None:
@@ -197,16 +229,23 @@ class UsbDevice(object):
         while True:
             self.message_buffer += self.in_endpoint.read(64, 1000000).tostring()
             self.parse_message()
+	    self.date_rate_management()	
 
             if self.dashboard and window is not None:
                 window.erase()
                 for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row)
+                    element.print_to_window(window, row, self.begin_time)
                 window.addstr(len(self.elements), 0,
                         "Received %d messages so far (%d%% valid)..." % (
                         self.messages_received,
                         float(self.good_messages) / self.messages_received
                         * 100), curses.A_REVERSE)
+		window.addstr(len(self.elements)+1, 0, "Total Bytes Received: "+ 
+		    str(self.total_bytes_received), curses.A_REVERSE)
+		window.addstr(len(self.elements)+2, 0, "Overall Data Rate: "+ 
+		    str((self.rate_bytes_received) / (datetime.now() 
+		    - self.begin_time).total_seconds()) + " Bps",
+		     curses.A_REVERSE)
                 window.refresh()
 
 def parse_options():

@@ -478,7 +478,7 @@ In Ubuntu:
 Then on both platforms:
 
     $ sudo -E easy_install pip
-    $ sudo -E pip install
+    $ sudo -E pip install pyusb
 
 [homebrew]: http://mxcl.github.com/homebrew/
 

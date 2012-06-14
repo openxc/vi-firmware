@@ -27,7 +27,7 @@ class DataPoint(object):
         self.events_active = events
         self.events = []
 	self.messages_received = messages_received
-	self.rate_bytes_received = 0
+	self.rate_messages_received = 0
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -41,7 +41,7 @@ class DataPoint(object):
 	    self.bad_data_tally += 1	
 	    self.bad_data = False
 	
-	self.rate_bytes_received += sys.getsizeof(message) 
+	self.rate_messages_received += 1 
 	self.messages_received += 1
 	self.current_data = message['value']
         if type(self.current_data) == int:
@@ -113,7 +113,7 @@ class DataPoint(object):
                 window.addstr(row, 55, result)
 	window.addstr(row, 90, "Bad data: " + str(self.bad_data_tally))
 	window.addstr(row, 107, "Messages: " + str(self.messages_received))
-	window.addstr(row, 127, "Data rate: " + str(self.rate_bytes_received / 
+	window.addstr(row, 127, "Frequency: " + str(self.rate_messages_received / 
 	    ((datetime.now()-begin_time).total_seconds())))
 
 class UsbDevice(object):
@@ -217,7 +217,7 @@ class UsbDevice(object):
 	    self.begin_time = datetime.now()
 	    self.rate_bytes_received = 0;
 	    for element in self.elements:
-                element.rate_bytes_received = 0
+                element.rate_messages_received = 0
 
     def run(self, window=None):
         if window is not None:

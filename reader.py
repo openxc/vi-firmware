@@ -92,8 +92,6 @@ class DataPoint(object):
                         Count +=1
                     graph += "* "
                     window.addstr(row, 40, graph)
-#            window.addstr(row, 55, str(self.current_data) + " " +
-#                    str(self.event))
 
             if self.events_active is False:
                 window.addstr(row, 55, str(self.current_data))
@@ -114,7 +112,7 @@ class DataPoint(object):
 	window.addstr(row, 90, "Bad data: " + str(self.bad_data_tally))
 	window.addstr(row, 107, "Messages: " + str(self.messages_received))
 	window.addstr(row, 127, "Frequency: " + str(self.rate_messages_received / 
-	    ((datetime.now()-begin_time).total_seconds())))
+	    ((datetime.now() - begin_time).total_seconds())))
 
 class UsbDevice(object):
     INTERFACE = 0

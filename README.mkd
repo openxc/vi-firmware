@@ -263,7 +263,7 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
 `states` - For state values, this is a mapping between the desired descriptive
     enum states (e.g. `off`) and a list of the corresponding raw state values
     from the CAN bus (usually an integer). The raw values are specified as a
-    list to accomodate multiple raw states being coalesced into a single final
+    list to accommodate multiple raw states being coalesced into a single final
     state (e.g. key off and key removed both mapping to just "off").
 
 `send_frequency` - Some CAN signals are sent at a very high frequency, likely
@@ -384,7 +384,7 @@ Using a custom message handler will not stop individual messages for each signal
 from being output. To silence them but still store their values in
 `signal->lastvalue` as they come in, specify the special `ignoreHandler` as the
 `value_handler` for signals don't want to double send. The reason we don't do
-this automatically is that not all signals in a msesage are always handled by
+this automatically is that not all signals in a message are always handled by
 the same message handler.
 
 ## Sketch Generation
@@ -547,7 +547,7 @@ few control commands:
 
 Version control command: `0x80`
 
-The host can retreive the version of the CAN translator using the `0x80` control
+The host can retrieve the version of the CAN translator using the `0x80` control
 request. The data returned is a string containing the software version of the
 firmware and the configured vehicle platform in the format:
 
@@ -569,7 +569,7 @@ they stop receiving messages.
 
 Endpoint 1 is configured as a bulk transfer endpoint with the `IN` direction
 (device to host). OpenXC JSON messages read from the vehicle are sent to the
-host via `IN` transacations. When the host is ready to receive, it should issue
+host via `IN` transactions. When the host is ready to receive, it should issue
 a request to read data from this endpoint. A larger sized request will allow
 more messages to be batched together into one USB request and give high overall
 throughput (with the downside of introducing delay depending on the size of the

@@ -136,6 +136,10 @@ like so:
 
     $ ./upload_hex new-version.hex
 
+Note that if you are using Windows, you also need to install the
+[FTDI driver](http://www.ftdichip.com/Drivers/VCP.htm) - get the setup
+executable version from that page.
+
 ## Input Specification
 
 The code in this repository requires a list of CAN messages with details of the

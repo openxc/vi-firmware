@@ -9,15 +9,25 @@
 #
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+KERNEL=`uname`
 HEX_FILE=$1
 PORT=$2
 
+die() {
+    echo >&2 "$@"
+    exit 1
+}
+
 if [ -z $PORT ]; then
-    PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
-    if [ -z $PORT ]; then
-        PORT=`ls /dev/tty.usbserial* 2> /dev/null | head -n 1`
+    if [ ${KERNEL:0:7} == "MINGW32" ]; then
+        PORT="com3"
+    else
+        PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
         if [ -z $PORT ]; then
-            die "No CAN translator found - is it plugged in?"
+            PORT=`ls /dev/tty.usbserial* 2> /dev/null | head -n 1`
+            if [ -z $PORT ]; then
+                die "No CAN translator found - is it plugged in?"
+            fi
         fi
     fi
 fi
@@ -58,11 +68,6 @@ AVRDUDE_ARD_BAUDRATE=115200
 AVRDUDE_COM_OPTS="-q -V -p $MCU -C $AVRDUDE_CONF"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
 
-die() {
-    echo >&2 "$@"
-    exit 1
-}
-
 [ "$#" -eq 1 ] || die "path to hex file is required as a parameter"
 
 upload() {
@@ -78,5 +83,10 @@ reset() {
     $STTYF $PORT -hupcl
 }
 
-reset
+if [ ${KERNEL:0:6} == "MINGW32" ]; then
+    # no stty in windows, so we just skip it - you need to run this script right
+    # after you plug in the board so it's still in programmable mode.
+    reset
+fi
+
 upload

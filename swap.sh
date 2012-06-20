@@ -52,7 +52,9 @@ else
 fi
 
 $COPY_PROGRAM ../../cansignals/shared/handlers.cpp shared_handlers.cpp
+$COPY_PROGRAM ../../cansignals/shared/handlers.h shared_handlers.h
 $COPY_PROGRAM ../../cansignals/$FULL_MODEL/handlers.cpp handlers.cpp
+$COPY_PROGRAM ../../cansignals/$FULL_MODEL/handlers.h handlers.h
 $COPY_PROGRAM ../../cansignals/build/$FULL_MODEL.cpp signals.cpp
 
 echo "Swapped to $FULL_MODEL."

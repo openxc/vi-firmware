@@ -1,6 +1,18 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
+#include "canread_chipkit.h"
+#include "canread.h"
+#include "canwrite.h"
+#include "handlers.h"
+#include "shared_handlers.h"
+
+extern CanUsbDevice usbDevice;
+extern CAN can1;
+extern CAN can2;
+extern void handleCan1Interrupt();
+extern void handleCan2Interrupt();
+
 /* Public: The number of CAN buses to read. This is limited to 2, as the
  * hardware controller only has 2 CAN channels.
  */

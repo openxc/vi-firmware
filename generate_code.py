@@ -265,15 +265,10 @@ class Parser(object):
             for message in bus['messages']:
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
-                    print ("        extern void %s(int, " % message.handler +
-                            "uint8_t*, CanSignal*, int, CanUsbDevice*);")
                     print ("        %s(id, data, SIGNALS, " % message.handler +
                             "SIGNAL_COUNT, &usbDevice);")
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
-                        print ("        extern %s("
-                            "CanSignal*, CanSignal*, int, float, bool*);" %
-                            signal.handler)
                         print ("        translateCanSignal(&usbDevice, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (

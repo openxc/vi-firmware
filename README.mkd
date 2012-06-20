@@ -129,15 +129,12 @@ firmware distributed by the vehicle's OEM. The manufacturer may distribute the
 message definitions in this way to protect proprietary information.
 
 In this case, you will have a .hex file and can use the `upload_hex.sh` script
-to update your device.
+to update your device. This script requires that `avrdude` is installed, or that you have the
+`MPIDE_DIR` environment variable pointing to a valid MPIDE installation (see the
+"Command Line Building" section above for details). Once that's setup, run it
+like so:
 
     $ ./upload_hex new-version.hex
-
-This script still requires that MPIDE is installed, and the environment variable
-`MPIDE_DIR` points to the MPIDE directory (see the "Command Line Building"
-section of the [README][cantranslator] for details). If you have an alternative
-`avrdude` you wish to use instead, you can modify the upload.sh script
-accordingly.
 
 ## Input Specification
 

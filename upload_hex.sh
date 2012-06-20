@@ -8,42 +8,57 @@
 # don't need to have that installed.
 #
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HEX_FILE=$1
 PORT=$2
+
 if [ -z $PORT ]; then
     PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
     if [ -z $PORT ]; then
         PORT=`ls /dev/tty.usbserial* 2> /dev/null | head -n 1`
         if [ -z $PORT ]; then
-            echo "No CAN translator found - is it plugged in?"
-            exit 1
+            die "No CAN translator found - is it plugged in?"
         fi
     fi
 fi
 
-if [ -z $ARDUINO_DIR ]; then
-    echo "You must set the ARDUINO_DIR environment variable to the path \
-to your MPIDE installation before using this command."
-    exit 1
+if [ -z $MPIDE_DIR ]; then
+    echo "The environment variable MPIDE_DIR doesn't point to an MPIDE \
+installation."
+    if [ -z $AVRDUDE ]; then
+        AVRDUDE=`which avrdude`
+    fi
+
+    if [ -z $AVRDUDE_CONF ]; then
+        AVRDUDE_CONF="$DIR/conf/avrdude.conf"
+    fi
+
+    if [ -z $AVRDUDE ]; then
+        die "ERROR: No avrdude binary found in your path"
+    else
+        echo "Using $AVRDUDE with config $AVRDUDE_CONF..."
+    fi
+else
+    echo "Using avrdude from MPIDE installation..."
+    AVRDUDE_TOOLS_PATH=$MPIDE_DIR/hardware/tools
+    if [ "`uname`" = "Darwin" ]; then
+        AVRDUDE=$AVRDUDE_TOOLS_PATH/avr/bin/avrdude
+        AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avr/etc/avrdude.conf
+    else
+        AVRDUDE=$AVRDUDE_TOOLS_PATH/avrdude
+        AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avrdude.conf
+    fi
+
 fi
 
 MCU=32MX795F512L # chipKIT Max32
 AVRDUDE_ARD_PROGRAMMER=stk500v2
 AVRDUDE_ARD_BAUDRATE=115200
 
-AVRDUDE_TOOLS_PATH=$ARDUINO_DIR/hardware/tools
-if [ "`uname`" = "Darwin" ]; then
-    AVRDUDE=$AVRDUDE_TOOLS_PATH/avr/bin/avrdude
-    AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avr/etc/avrdude.conf
-else
-    AVRDUDE=$AVRDUDE_TOOLS_PATH/avrdude
-    AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avrdude.conf
-fi
-
 AVRDUDE_COM_OPTS="-q -V -p $MCU -C $AVRDUDE_CONF"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
 
-die () {
+die() {
     echo >&2 "$@"
     exit 1
 }

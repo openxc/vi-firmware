@@ -126,10 +126,16 @@ void receiveWriteRequest(char* message) {
             CanSignal* signal = lookupSignal(name, getSignals(),
                     getSignalCount());
             if(signal != NULL) {
-                sendCanSignal(signal,
-                        cJSON_GetObjectItem(root, "value"),
-                        signal->writeHandler, getSignals(),
-                        getSignalCount());
+                cJSON* value = cJSON_GetObjectItem(root, "value");
+                CanCommand* command = lookupCommand(name, getCommands(),
+                        getCommandCount());
+                if(command != NULL) {
+                    command->handler(name, value, getSignals(),
+                            getSignalCount());
+                } else {
+                    sendCanSignal(signal, value, getSignals(),
+                            getSignalCount());
+                }
             } else {
                 Serial.print("Writing not allowed for signal with name ");
                 Serial.println(name);

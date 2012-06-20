@@ -36,3 +36,14 @@ uint64_t encodeCanSignal(CanSignal* signal, float value) {
     return data;
 }
 
+CanCommand* lookupCommand(char* name, CanCommand* commands, int signalCount) {
+    for(int i = 0; i < signalCount; i++) {
+        CanCommand* command = &commands[i];
+        if(!strcmp(name, command->genericName)) {
+            return command;
+        }
+    }
+    printf("Couldn't find a command with the genericName \"%s\" "
+            "-- probably about to segfault\n", name);
+    return NULL;
+}

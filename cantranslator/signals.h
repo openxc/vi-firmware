@@ -23,6 +23,10 @@ const int CAN_BUS_COUNT = 2;
  */
 CanSignal* getSignals();
 
+CanCommand* getCommands();
+
+int getCommandCount();
+
 /* Public: Return the length of the array returned by getSignals(). */
 int getSignalCount();
 

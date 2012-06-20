@@ -61,6 +61,15 @@ def merge(a, b):
     return dst
 
 
+class Command(object):
+    def __init__(self, generic_name, handler=None):
+        self.generic_name = generic_name
+        self.handler = handler
+
+    def __str__(self):
+        return "{ \"%s\", %s }," % (self.generic_name, self.handler)
+
+
 class Message(object):
     def __init__(self, id, name, handler=None):
         self.id = int(id)
@@ -176,6 +185,7 @@ class Parser(object):
     def __init__(self):
         self.buses = defaultdict(dict)
         self.signal_count = 0
+        self.command_count = 0
 
     def parse(self):
         raise NotImplementedError
@@ -232,7 +242,7 @@ class Parser(object):
         print "};"
         print
 
-        print "CanSignal SIGNALS[%d] = {" % self.signal_count
+        print "CanSignal SIGNALS[SIGNAL_COUNT] = {"
 
         i = 1
         for bus in self.buses.values():
@@ -242,6 +252,25 @@ class Parser(object):
                     print "    %s" % signal
                     i += 1
         print "};"
+        print
+
+        print "const int COMMAND_COUNT = %d;" % 1
+        print "CanCommand COMMANDS[COMMAND_COUNT] = {"
+
+        for command in self.commands:
+            print "    ", command
+
+        print "};"
+        print
+
+        print "CanCommand* getCommands() {"
+        print "    return COMMANDS;"
+        print "}"
+        print
+
+        print "int getCommandCount() {"
+        print "    return COMMAND_COUNT;"
+        print "}"
         print
 
         print "CanSignal* getSignals() {"
@@ -369,6 +398,13 @@ class JsonParser(Parser):
         for bus_address, bus_data in merged_dict.iteritems():
             self.buses[bus_address]['speed'] = bus_data['speed']
             self.buses[bus_address].setdefault('messages', [])
+            self.commands = []
+            for command_id, command_data in bus_data.get(
+                    'commands', {}).iteritems():
+                self.command_count += 1
+                command = Command(command_id, command_data.get('handler', None))
+                self.commands.append(command)
+
             for message_id, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_id, message_data.get('name', None),

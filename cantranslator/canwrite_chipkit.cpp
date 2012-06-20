@@ -46,6 +46,23 @@ bool sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
     return false;
 }
 
+bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
+    if(send) {
+        sendCanMessage(signal->bus->bus, signal->messageId, &data);
+        return true;
+    } else {
+        Serial.print("Not sending requested message ");
+        Serial.println(signal->messageId, HEX);
+    }
+}
+
+bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+        int signalCount) {
+    uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*)
+        = signal->writeHandler;
+    return sendCanSignal(signal, value, writer, signals, signalCount);
+}
+
 bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
@@ -59,12 +76,5 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
     }
 
     uint64_t data = writer(signal, signals, signalCount, value, &send);
-    if(send) {
-        sendCanMessage(signal->bus->bus, signal->messageId, &data);
-        return true;
-    } else {
-        Serial.print("Not sending requested message ");
-        Serial.println(signal->messageId, HEX);
-    }
-    return false;
+    return sendCanSignal(signal, data, &send);
 }

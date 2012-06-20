@@ -100,7 +100,7 @@ class Signal(object):
         self.send_same = send_same
         self.states = states or []
         if len(self.states) > 0 and self.handler is None:
-            self.handler = "char* stateHandler"
+            self.handler = "stateHandler"
 
     # Construct a Signal instance from an XML node exported from a Vector CANoe
     # .dbc file.
@@ -272,8 +272,7 @@ class Parser(object):
                         print ("        translateCanSignal(&usbDevice, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                signal.handler.split()[1],
-                                signal.name))
+                                signal.handler, signal.name))
                     else:
                         print ("        translateCanSignal(&usbDevice, "
                                 "&SIGNALS[%d], " % signal.array_index +

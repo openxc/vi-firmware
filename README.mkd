@@ -158,11 +158,11 @@ is a JSON object like this:
                         "bit_size": 12,
                         "factor": 0.15392,
                         "offset": 0,
-                        "value_handler": "float handleSteeringWheelAngle"},
+                        "value_handler": "handleSteeringWheelAngle"},
                     "StrAnglSign": {
                         "human_signal_name": "Steering wheel angle sign",
                         "generic_name": "steering_angle_sign",
-                        "value_handler": "float ignoreHandler",
+                        "value_handler": "ignoreHandler",
                         "bit_position": 52,
                         "bit_size": 12},
                     "EngSpd": {
@@ -186,7 +186,7 @@ is a JSON object like this:
                         }
                     },
                     "StrAnglErr": {
-                        "value_handler": "float ignoreHandler"
+                        "value_handler": "ignoreHandler"
                     }
                 },
                 "handler": "handleSteeringWheelMessage"
@@ -196,7 +196,7 @@ is a JSON object like this:
                     "BrakePedalPosition": {
                         "generic_name": "brake_pedal_status",
                         "send_same": false,
-                        "value_handler": "bool booleanHandler",
+                        "value_handler": "booleanHandler",
                         "bit_position": 0,
                         "bit_size": 0
                     }
@@ -206,8 +206,16 @@ is a JSON object like this:
                 "signals": {
                     "TurnSignalLeft": {
                         "generic_name": "turn_signal_left",
-                        "value_handler": "bool booleanHandler",
+                        "value_handler": "booleanHandler",
                         "bit_position": 0,
+                        "bit_size": 0,
+                        "writable": true,
+                        "write_handler": "booleanWriter"
+                    },
+                    "TurnSignalRight": {
+                        "generic_name": "turn_signal_right",
+                        "value_handler": "booleanHandler",
+                        "bit_position": 1,
                         "bit_size": 0,
                         "writable": true,
                         "write_handler": "booleanWriter"
@@ -286,11 +294,11 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     true. By default, the value will be interpreted as a floating point number.
 
 `write_handler` - If the signal is writable and is not a plain floating point
-    number (i.e. it is a boolean or state value), you can specify a custom function
-    here to encode the value for a CAN messages. This is only necessary for
-    boolean types at the moment - if your signal has states defined, we assume
-    you need to encode a string state value back to its original numerical
-    value.
+    number (i.e. it is a boolean or state value), you can specify a custom
+    function here to encode the value for a CAN messages. This is only necessary
+    for boolean types at the moment - if your signal has states defined, we
+    assume you need to encode a string state value back to its original
+    numerical value.
 
 ## Custom Handlers
 

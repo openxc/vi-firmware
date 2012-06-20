@@ -83,7 +83,7 @@ reset() {
     $STTYF $PORT -hupcl
 }
 
-if [ ${KERNEL:0:6} == "MINGW32" ]; then
+if [ ${KERNEL:0:6} != "MINGW32" ]; then
     # no stty in windows, so we just skip it - you need to run this script right
     # after you plug in the board so it's still in programmable mode.
     reset

@@ -40,6 +40,11 @@ int getSignalCount();
  */
 CanBus* getCanBuses();
 
+/* Public: Return the name of the vehicle or architecture this translator is
+ * currently programmed for.
+ */
+char* getMessageSet();
+
 /* Public: Decode CAN signals from raw CAN messages, translate from engineering
  * units to something more human readable, and send the resulting value over USB
  * as an OpenXC-style JSON message.

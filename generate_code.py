@@ -17,6 +17,9 @@ def parse_options():
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
+    message_set = parser.add_argument("-m", "--message-set",
+            action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
+            help="name of the vehicle or platform")
 
     arguments = parser.parse_args()
 
@@ -182,7 +185,8 @@ class SignalState(object):
 
 
 class Parser(object):
-    def __init__(self):
+    def __init__(self, name=None):
+        self.name = name
         self.buses = defaultdict(dict)
         self.signal_count = 0
         self.command_count = 0
@@ -211,8 +215,14 @@ class Parser(object):
                     valid = valid and signal.validate()
         return valid
 
+    def validate_name(self):
+        if self.name is None:
+            sys.stderr.write("ERROR: missing message set (%s)" % self.name)
+            return False
+        return True
+
     def print_source(self):
-        if not self.validate_messages():
+        if not self.validate_messages() or not self.validate_name():
             sys.exit(1)
         self.print_header()
 
@@ -285,6 +295,11 @@ class Parser(object):
 
         print "CanBus* getCanBuses() {"
         print "    return CAN_BUSES;"
+        print "}"
+        print
+
+        print "char* getMessageSet() {"
+        print "    return \"%s\";" % self.name
         print "}"
         print
 
@@ -378,8 +393,8 @@ class Parser(object):
 
 
 class JsonParser(Parser):
-    def __init__(self, filenames):
-        super(JsonParser, self).__init__()
+    def __init__(self, filenames, name=None):
+        super(JsonParser, self).__init__(name)
         if not hasattr(filenames, "__iter__"):
             filenames = [filenames]
         else:
@@ -439,7 +454,7 @@ class JsonParser(Parser):
 def main():
     arguments = parse_options()
 
-    parser = JsonParser(arguments.json_files)
+    parser = JsonParser(arguments.json_files, arguments.message_set)
 
     parser.parse()
     parser.print_source()

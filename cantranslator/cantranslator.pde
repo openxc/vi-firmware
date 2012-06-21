@@ -21,8 +21,6 @@
 // USB
 #define DATA_ENDPOINT 1
 
-extern char* MESSAGE_SET;
-
 char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
@@ -207,9 +205,9 @@ void handleCan2Interrupt() {
 static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {
     case VERSION_CONTROL_COMMAND:
-        char combinedVersion[strlen(VERSION) + strlen(MESSAGE_SET) + 2];
+        char combinedVersion[strlen(VERSION) + strlen(getMessageSet()) + 2];
 
-        sprintf(combinedVersion, "%s (%s)", VERSION, MESSAGE_SET);
+        sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
         Serial.print("Version: ");
         Serial.println(combinedVersion);
 

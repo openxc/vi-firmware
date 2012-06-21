@@ -23,8 +23,13 @@ const int CAN_BUS_COUNT = 2;
  */
 CanSignal* getSignals();
 
+/* Public: Return an array of all OpenXC CAN commnds you are able to process and
+ * write back to CAN with a custom handler. Commands not defined here are
+ * handled using a 1-1 mapping from the signals list.
+ */
 CanCommand* getCommands();
 
+/* Public: Return the length of the array returned by getCommandCount(). */
 int getCommandCount();
 
 /* Public: Return the length of the array returned by getSignals(). */

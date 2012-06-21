@@ -25,9 +25,14 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount);
 
-bool sendCanSignal(CanSignal* signal, cJSON* value,
-        CanSignal* signals, int signalCount);
-
-bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
+/* Public: Write a CAN signal with the given value to the bus.
+ *
+ * Just like the above function sendCanSignal() that accepts a writer function,
+ * but uses the CanSignal's value for "writeHandler" instead.
+ *
+ * See above for argument descriptions.
+ */
+bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+        int signalCount);
 
 #endif // _CANWRITE_CHIPKIT_H_

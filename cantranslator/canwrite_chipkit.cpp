@@ -46,6 +46,14 @@ bool sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
     return false;
 }
 
+/* Private: Send the given data on CAN using the signal's message ID and bus.
+ *
+ * signal - the signal whose message we should write to CAN.
+ * data - the data for the CAN message.
+ * send - true if the message should actually be sent.
+ *
+ * Returns true if the message was sent on CAN.
+ */
 bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
     if(send) {
         sendCanMessage(signal->bus->bus, signal->messageId, &data);

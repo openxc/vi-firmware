@@ -169,8 +169,7 @@ is a JSON object like this:
                         "generic_name": "engine_speed",
                         "send_frequency": 15,
                         "bit_position": 12,
-                        "bit_size": 8}
-                    },
+                        "bit_size": 8},
                     "GrshftPos": {
                         "human_signal_name": "Gearshift Position",
                         "generic_name": "GearshiftPosition",
@@ -182,9 +181,8 @@ is a JSON object like this:
                             "THIRD": [3],
                             "FOURTH": [4],
                             "REVERSE": [5],
-                            "NEUTRAL": [6]
-                        }
-                    },
+                            "NEUTRAL": [6]}
+                        },
                     "StrAnglErr": {
                         "value_handler": "ignoreHandler"
                     }
@@ -221,6 +219,11 @@ is a JSON object like this:
                         "write_handler": "booleanWriter"
                     }
                 }
+            }
+        },
+        "commands": {
+            "turn_signal_status": {
+                "handler": handleTurnSignalCommand
             }
         }
     }}
@@ -299,6 +302,17 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     for boolean types at the moment - if your signal has states defined, we
     assume you need to encode a string state value back to its original
     numerical value.
+
+Optionally, you can specify completely custom handler functions to process
+incoming OpenXC messages from the USB host. In the `commands` section of the
+JSON object, you can specify the generic name of the OpenXC command and an
+associated function that matches the `WriteHandler` function prototype (from
+`canutil.h`). Any message received from the USB host with that name will be
+passed to your handler - this is useful for situations where there isn't a 1 to
+1 mapping between OpenXC command and CAN signal, e.g. if the left and right turn
+signal are split into two signals instead of the 1 state-based signal used by
+OpenXC. You can use the `sendCanSignal` function in `canwrite.h` to do the
+actual data sending on the CAN bus.
 
 ## Custom Handlers
 

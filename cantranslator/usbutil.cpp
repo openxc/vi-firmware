@@ -24,11 +24,16 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
         while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
         int bytesToTransfer = min(USB_PACKET_SIZE,
                 messageSize - nextByteIndex);
+        uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
+                + nextByteIndex);
         USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
-                (uint8_t*)(usbDevice->sendBuffer + nextByteIndex),
-                bytesToTransfer);
+                currentByte, bytesToTransfer);
+        // TODO we could import a newer version of SoftwareSerial and use its
+        // write() function instead.
+        usbDevice->serial.print(*currentByte);
         nextByteIndex += bytesToTransfer;
     }
+
 }
 
 void initializeUsb(CanUsbDevice* usbDevice) {

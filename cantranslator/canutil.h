@@ -113,8 +113,40 @@ struct CanSignal {
     int sendClock;
 };
 
+/* Public: The function definition for completely custom OpenXC command
+ * handlers.
+ *
+ * name - the name field in the message received over USB.
+ * value - the value of the message, parsed by the cJSON library and able to be
+ *         read as a string, boolean, float or int.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ *
+ * Returns true if the command caused something to be sent over CAN.
+ */
+typedef bool (*CommandHandler)(char* name, cJSON* value, CanSignal* signals,
+        int signalCount);
+
+/* Public: A command to read from USB and possibly write back to CAN.
+ *
+ * For completely customized CAN commands without a 1-1 mapping between an
+ * OpenXC message from the host and a CAN signal, you can define the name of the
+ * command and a custom function to handle it in the translator. An example is
+ * the "turn_signal_status" command in OpenXC, which has a value of "left" or
+ * "right". The vehicle may have separate CAN signals for the left and right
+ * turn signals, so you will need to implement a custom command handler to
+ *
+ * genericName - The name of message received over USB.
+ * handler - An function to actually process the recieved command's value
+ *                and write it to CAN in the proper signals.
+ */
+struct CanCommand {
+    char* genericName;
+    CommandHandler handler;
+};
+
 /* Public: Look up the CanSignal representation of a signal based on its generic
- *         name.
+ * name.
  *
  * name - The generic, OpenXC name of the signal.
  * signals - The list of all signals.
@@ -124,32 +156,44 @@ struct CanSignal {
  */
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
 
+/* Public: Look up the CanCommand representation of a command based on its
+ * generic name.
+ *
+ * name - The generic, OpenXC name of the command.
+ * commands - The list of all commands.
+ * commandCount - The length of the commands array.
+ *
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
+ */
+CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount);
+
 /* Public: Look up a CanSignalState for a CanSignal by its textual name. Use
  * this to find the numerical value to write back to CAN when a string state is
  * received from the user.
  *
- * name - The generic, OpenXC name of the signal.
+ * name - The string name of the desired signal state.
+ * signal - The CanSignal that should include this state.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * name - the string name of the desired signal state.
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
-        int signalCount, char* name);
+CanSignalState* lookupSignalState(char* name, CanSignal* signal,
+        CanSignal* signals, int signalCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its numerical value.
  * Use this to find the string equivalent value to write over USB when a float
  * value is received from CAN.
  *
- * name - The generic, OpenXC name of the signal.
+ * value - the numerical value equivalent for the state.
+ * name - The string name of the desired signal state.
+ * signal - The CanSignal that should include this state.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * value - the numerical value equivalent for the state.
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
-        int signalCount, int value);
+CanSignalState* lookupSignalState(int value, CanSignal* signal,
+        CanSignal* signals, int signalCount);
 
 #endif // _CANUTIL_H_

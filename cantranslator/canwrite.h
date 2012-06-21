@@ -3,14 +3,6 @@
 
 #include "canutil.h"
 
-typedef bool (*WriteHandler)(char* name, cJSON* value, CanSignal* signals,
-        int signalCount);
-
-struct CanCommand {
-    char* genericName;
-    WriteHandler handler;
-};
-
 /* Public: Encode and store value in a bit field for the given signal.
  *
  * The value is converted to engineering units (i.e. any offset or factor used
@@ -78,7 +70,5 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
  */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
-
-CanCommand* lookupCommand(char* name, CanCommand* commands, int signalCount);
 
 #endif // _CANWRITE_H_

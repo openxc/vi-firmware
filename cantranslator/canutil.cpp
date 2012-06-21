@@ -1,33 +1,70 @@
 #include "canutil.h"
 
-CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
-        int signalCount, char* name) {
-    for(int i = 0; i < signal->stateCount; i++) {
-        if(!strcmp(signal->states[i].name, name)) {
-            return &signal->states[i];
+int lookup(void* key,
+        bool (*comparator)(void* key, int index, void* candidates),
+        void* candidates, int candidateCount) {
+    for(int i = 0; i < candidateCount; i++) {
+        if(comparator(key, i, candidates)) {
+            return i;
         }
     }
-    return NULL;
+    return -1;
 }
 
-CanSignalState* lookupSignalState(CanSignal* signal, CanSignal* signals,
-        int signalCount, int value) {
-    for(int i = 0; i < signal->stateCount; i++) {
-        if(signal->states[i].value == value) {
-            return &signal->states[i];
-        }
+bool signalStateNameComparator(void* name, int index, void* states) {
+    return !strcmp((char*)name, ((CanSignalState*)states)[index].name);
+}
+
+CanSignalState* lookupSignalState(char* name, CanSignal* signal,
+        CanSignal* signals, int signalCount) {
+    int index = lookup((void*)name, signalStateNameComparator,
+            (void*)signal->states, signal->stateCount);
+    if(index != -1) {
+        return &signal->states[index];
+    } else {
+        return NULL;
     }
-    return NULL;
+}
+
+bool signalStateValueComparator(void* value, int index, void* states) {
+    return (*(int*)value) == ((CanSignalState*)states)[index].value;
+}
+
+CanSignalState* lookupSignalState(int value, CanSignal* signal,
+        CanSignal* signals, int signalCount) {
+    int index = lookup((void*)&value, signalStateValueComparator,
+            (void*)signal->states, signal->stateCount);
+    if(index != -1) {
+        return &signal->states[index];
+    } else {
+        return NULL;
+    }
+}
+
+bool signalComparator(void* name, int index, void* signals) {
+    return !strcmp((char*)name, ((CanSignal*)signals)[index].genericName);
 }
 
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
-    for(int i = 0; i < signalCount; i++) {
-        CanSignal* signal = &signals[i];
-        if(!strcmp(name, signal->genericName)) {
-            return signal;
-        }
+    int index = lookup((void*)name, signalComparator, (void*)signals,
+            signalCount);
+    if(index != -1) {
+        return &signals[index];
+    } else {
+        return NULL;
     }
-    printf("Couldn't find a signal with the genericName \"%s\" "
-            "-- probably about to segfault\n", name);
-    return NULL;
+}
+
+bool commandComparator(void* name, int index, void* commands) {
+    return !strcmp((char*)name, ((CanCommand*)commands)[index].genericName);
+}
+
+CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount) {
+    int index = lookup((void*)name, commandComparator, (void*)commands,
+            commandCount);
+    if(index != -1) {
+        return &commands[index];
+    } else {
+        return NULL;
+    }
 }

@@ -10,14 +10,19 @@ CanSignalState SIGNAL_STATES[1][10] = {
         {5, "neutral"}, {6, "second"}, },
 };
 
-int SIGNAL_COUNT = 3;
-CanSignal SIGNALS[3] = {
+const int SIGNAL_COUNT = 3;
+CanSignal SIGNALS[SIGNAL_COUNT] = {
     {NULL, 0, "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
         33522.000000, 1, false, false, NULL, 0, true},
     {NULL, 1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
         0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
     {NULL, 2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
         false, false, NULL, 0, true},
+};
+
+const int COMMAND_COUNT = 1;
+CanCommand COMMANDS[COMMAND_COUNT] = {
+    {"turn_signal_status", NULL},
 };
 
 START_TEST (test_can_signal_struct)
@@ -62,6 +67,36 @@ START_TEST (test_lookup_signal)
             == &SIGNALS[0]);
     fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
             SIGNAL_COUNT) == &SIGNALS[1]);
+}
+END_TEST
+
+START_TEST (test_lookup_signal_state_by_name)
+{
+    fail_unless(lookupSignalState("does_not_exist", &SIGNALS[1], SIGNALS,
+                SIGNAL_COUNT) == NULL);
+    fail_unless(lookupSignalState("reverse", &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
+            == &SIGNAL_STATES[0][0]);
+    fail_unless(lookupSignalState("third", &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
+            == &SIGNAL_STATES[0][1]);
+}
+END_TEST
+
+START_TEST (test_lookup_signal_state_by_value)
+{
+    fail_unless(lookupSignalState(42, &SIGNALS[1], SIGNALS,
+                SIGNAL_COUNT) == NULL);
+    fail_unless(lookupSignalState(1, &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
+            == &SIGNAL_STATES[0][0]);
+    fail_unless(lookupSignalState(2, &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
+            == &SIGNAL_STATES[0][1]);
+}
+END_TEST
+
+START_TEST (test_lookup_command)
+{
+    fail_unless(lookupCommand("does_not_exist", COMMANDS, COMMAND_COUNT) == 0);
+    fail_unless(lookupCommand("turn_signal_status", COMMANDS, COMMAND_COUNT)
+            == &COMMANDS[0]);
 }
 END_TEST
 
@@ -173,6 +208,9 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
     tcase_add_test(tc_core, test_lookup_signal);
+    tcase_add_test(tc_core, test_lookup_signal_state_by_name);
+    tcase_add_test(tc_core, test_lookup_signal_state_by_value);
+    tcase_add_test(tc_core, test_lookup_command);
     tcase_add_test(tc_core, test_decode_signal);
     tcase_add_test(tc_core, test_passthrough_handler);
     tcase_add_test(tc_core, test_boolean_handler);

@@ -24,8 +24,8 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(signal, signals,
-            signalCount, value);
+    CanSignalState* signalState = lookupSignalState(value, signal, signals,
+            signalCount);
     if(signalState != NULL) {
         return signalState->name;
     }

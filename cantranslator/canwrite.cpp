@@ -19,8 +19,8 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(signal, signals,
-            signalCount, value->valuestring);
+    CanSignalState* signalState = lookupSignalState(value->valuestring, signal,
+            signals, signalCount);
     if(signalState != NULL) {
         checkWritePermission(signal, send);
         return encodeCanSignal(signal, signalState->value);
@@ -34,16 +34,4 @@ uint64_t encodeCanSignal(CanSignal* signal, float value) {
     uint64_t data = 0;
     setBitField(&data, rawValue, signal->bitPosition, signal->bitSize);
     return data;
-}
-
-CanCommand* lookupCommand(char* name, CanCommand* commands, int signalCount) {
-    for(int i = 0; i < signalCount; i++) {
-        CanCommand* command = &commands[i];
-        if(!strcmp(name, command->genericName)) {
-            return command;
-        }
-    }
-    printf("Couldn't find a command with the genericName \"%s\" "
-            "-- probably about to segfault\n", name);
-    return NULL;
 }

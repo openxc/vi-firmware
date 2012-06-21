@@ -45,7 +45,6 @@ int BUFFERED_PACKETS = 0;
 
 void initializeAllCan();
 void receiveCan(CanBus*);
-void decodeCanMessage(int id, uint8_t* data);
 void checkIfStalled();
 void receiveWriteRequest(char*);
 

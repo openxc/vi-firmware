@@ -17,7 +17,8 @@
 
 // USB
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
+CanUsbDevice usbDevice = {USBDevice(usbCallback), SoftwareSerial(10, 11),
+    DATA_ENDPOINT, ENDPOINT_SIZE};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",

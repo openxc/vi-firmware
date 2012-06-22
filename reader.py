@@ -22,12 +22,12 @@ class DataPoint(object):
             self.range = 1
         self.event = ''
         self.bad_data = False
-	self.bad_data_tally = 0
+        self.bad_data_tally = 0
         self.current_data = None
         self.events_active = events
         self.events = []
-	self.messages_received = messages_received
-	self.rate_messages_received = 0
+        self.messages_received = messages_received
+        self.rate_messages_received = 0
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -38,12 +38,12 @@ class DataPoint(object):
 
     def update(self, message):
         if self.bad_data:
-	    self.bad_data_tally += 1	
-	    self.bad_data = False
-	
-	self.rate_messages_received += 1 
-	self.messages_received += 1
-	self.current_data = message['value']
+            self.bad_data_tally += 1
+            self.bad_data = False
+
+        self.rate_messages_received += 1
+        self.messages_received += 1
+        self.current_data = message.get('value', None)
         if type(self.current_data) == int:
             self.current_data = float(self.current_data)
         if type(self.current_data) != self.type:
@@ -68,74 +68,154 @@ class DataPoint(object):
     def print_to_window(self, window, row, begin_time):
         window.addstr(row, 0, self.name)
         result = ""
-        if self.current_data is None:
-            window.addstr(row, 30, "No Data", curses.color_pair(3))
-        else:
-            if self.bad_data:
-                window.addstr(row, 30, "Bad", curses.color_pair(1))
-            else:
-                window.addstr(row, 30, "Good", curses.color_pair(2))
-                if self.type == float:
-                    percent = self.current_data - self.min_value
-                    percent /= self.range
-                    Count = 0
-                    graph = "*"
-                    percent -= .1
-                    while percent > 0:
-                        graph += "-"
-                        Count += 1
-                        percent -= .1
-                    graph += "|"
+        if self.current_data is not None and not self.bad_data:
+            if self.type == float:
+                percent = self.current_data - self.min_value
+                percent /= self.range
+                Count = 0
+                graph = "*"
+                percent -= .1
+                while percent > 0:
+                    graph += "-"
                     Count += 1
-                    while Count < 10:
-                        graph += "-"
-                        Count +=1
-                    graph += "* "
-                    window.addstr(row, 40, graph)
+                    percent -= .1
+                graph += "|"
+                Count += 1
+                while Count < 10:
+                    graph += "-"
+                    Count +=1
+                graph += "* "
+                window.addstr(row, 30, graph)
 
             if self.events_active is False:
-                window.addstr(row, 55, str(self.current_data))
+                window.addstr(row, 45, str(self.current_data))
             else:
                 result = ""
                 for item, value in enumerate(self.vocab):
-		    if value == "driver":
-			keyword = "dr"
-		    elif value == "passenger":
-			keyword = "ps"
-		    elif value == "rear_right":
-			keyword = "rr"
-		    elif value == "rear_left":
-			keyword = "rl"
-		    result = (result + keyword + ":" + str(self.events[item])
-                            + " ")
-                window.addstr(row, 55, result)
-	window.addstr(row, 90, "Bad data: " + str(self.bad_data_tally))
-	window.addstr(row, 107, "Messages: " + str(self.messages_received))
-	window.addstr(row, 127, "Frequency: " + str(self.rate_messages_received / 
-	    ((datetime.now() - begin_time).total_seconds())))
+                    if value == "driver":
+                        keyword = "dr"
+                    elif value == "passenger":
+                        keyword = "ps"
+                    elif value == "rear_right":
+                        keyword = "rr"
+                    elif value == "rear_left":
+                        keyword = "rl"
+                result = (result + keyword + ":" + str(self.events[item]) + " ")
+                window.addstr(row, 45, result)
 
-class UsbDevice(object):
-    INTERFACE = 0
-    VERSION_CONTROL_COMMAND = 0x80
-    RESET_CONTROL_COMMAND = 0x81
+            if self.bad_data_tally > 0:
+                bad_data_color = curses.color_pair(1)
+            else:
+                bad_data_color = curses.color_pair(2)
 
-    def __init__(self, vendorId=0x04d8, verbose=False, dump=False,
-            dashboard=False, elements=None):
+            window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
+                    bad_data_color)
+            window.addstr(row, 95, "Messages: " + str(self.messages_received))
+            window.addstr(row, 110, "Frequency: " +
+                    str(int(self.rate_messages_received /
+                        ((datetime.now() - begin_time).total_seconds()))))
+
+
+class CanTranslator(object):
+    def __init__(self, verbose=False, dump=False, dashboard=False,
+            elements=None):
         self.verbose = verbose
         self.dump = dump
         self.dashboard = dashboard
-        self.vendorId = vendorId
         self.message_buffer = ""
         self.messages_received = 0
         self.good_messages = 0
         self.elements = elements or []
-	self.total_bytes_received = 0
-	self.rate_bytes_received = 0
-	self.begin_time = datetime.now()
+        self.total_bytes_received = 0
+        self.rate_bytes_received = 0
+        self.begin_time = datetime.now()
 
-        self.device = usb.core.find(idVendor=vendorId)
+    def parse_message(self):
+        if "\n" in self.message_buffer:
+            message,_,remainder= self.message_buffer.partition("\n")
+            try:
+                parsed_message = json.loads(message)
+            except ValueError:
+                pass
+            else:
+                self.good_messages += 1
+                if self.dump:
+                    print "%f: %s" % (time.time(), message)
+                if self.verbose:
+                    print parsed_message
+                if self.dashboard:
+                    self.total_bytes_received += sys.getsizeof(parsed_message)
+                self.rate_bytes_received += sys.getsizeof(parsed_message)
+                for element in self.elements:
+                    if element.name == parsed_message.get('name', None):
+                        element.update(parsed_message)
+                        break
+                return parsed_message
+            finally:
+                self.message_buffer = remainder
+                self.messages_received += 1
+
+    # This resets the number of bytes received for both individual messages and
+    # the total number of messages and also resets begin_time to set up a time
+    # frame of 10 seconds in which to calculate the data rates
+    def date_rate_management(self):
+        if ((datetime.now() - self.begin_time).total_seconds() > 10):
+            self.begin_time = datetime.now()
+            self.rate_bytes_received = 0;
+            for element in self.elements:
+                    element.rate_messages_received = 0
+
+    def run(self, window=None):
+        if window is not None:
+            curses.use_default_colors()
+            curses.init_pair(1, curses.COLOR_RED, -1)
+            curses.init_pair(2, curses.COLOR_GREEN, -1)
+            curses.init_pair(3, curses.COLOR_YELLOW, -1)
+
+        while True:
+            self.message_buffer += self.in_endpoint.read(64, 1000000).tostring()
+            self.parse_message()
+            self.date_rate_management()
+
+            if self.dashboard and window is not None:
+                window.erase()
+                for row, element in enumerate(self.elements):
+                    element.print_to_window(window, row, self.begin_time)
+                percentage_good = 0
+                if self.messages_received != 0:
+                    percentage_good = (self.good_messages /
+                            self.messages_received)
+                window.addstr(len(self.elements), 0,
+                        "Received %d messages so far (%d%% valid)..." % (
+                        self.messages_received, percentage_good * 100),
+                        curses.A_REVERSE)
+                window.addstr(len(self.elements) + 1, 0,
+                        "Total Bytes Received: " +
+                        str(self.total_bytes_received), curses.A_REVERSE)
+                window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
+                    str((self.rate_bytes_received) / (datetime.now()
+                    - self.begin_time).total_seconds()) + " Bps",
+                     curses.A_REVERSE)
+                window.refresh()
+
+
+class SerialCanTransaltor(CanTranslator):
+    pass
+
+
+class UsbDevice(CanTranslator):
+    INTERFACE = 0
+    VERSION_CONTROL_COMMAND = 0x80
+    RESET_CONTROL_COMMAND = 0x81
+
+    def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
+            dashboard=False, elements=None):
+        super(UsbDevice, self).__init__(verbose, dump, dashboard, elements)
+        self.vendor_id = vendor_id
+
+        self.device = usb.core.find(idVendor=vendor_id)
         if not self.device:
-            print "Couldn't find a USB device from vendor %s" % self.vendorId
+            print "Couldn't find a USB device from vendor %s" % self.vendor_id
             sys.exit()
         self.device.set_configuration()
         config = self.device.get_active_configuration()
@@ -181,70 +261,6 @@ class UsbDevice(object):
         message = json.dumps({'name': name, 'value': value})
         bytes_written = self.out_endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
-
-    def parse_message(self):
-        if "\n" in self.message_buffer:
-            message,_,remainder= self.message_buffer.partition("\n")
-            try:
-                parsed_message = json.loads(message)
-            except ValueError:
-                pass
-            else:
-                self.good_messages += 1
-                if self.dump:
-                    print "%f: %s" % (time.time(), message)
-                if self.verbose:
-                    print parsed_message
-                if self.dashboard:
-        	    self.total_bytes_received += sys.getsizeof(parsed_message)
-		    self.rate_bytes_received += sys.getsizeof(parsed_message)
-                    for element in self.elements:
-                        if element.name == parsed_message.get('name', None):
-                            element.update(parsed_message)
-                            break
-                return parsed_message
-            finally:
-                self.message_buffer = remainder
-                self.messages_received += 1
-
-    # This resets the number of bytes received for both individual messages and
-    # the total number of messages and also resets begin_time to set up a time 
-    # frame of 10 seconds in which to calculate the data rates 
-    def date_rate_management(self):
-    	if ((datetime.now() - self.begin_time).total_seconds() > 10):
-	    self.begin_time = datetime.now()
-	    self.rate_bytes_received = 0;
-	    for element in self.elements:
-                element.rate_messages_received = 0
-
-    def run(self, window=None):
-        if window is not None:
-            curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_RED, -1)
-            curses.init_pair(2, curses.COLOR_GREEN, -1)
-            curses.init_pair(3, curses.COLOR_YELLOW, -1)
-
-        while True:
-            self.message_buffer += self.in_endpoint.read(64, 1000000).tostring()
-            self.parse_message()
-	    self.date_rate_management()	
-
-            if self.dashboard and window is not None:
-                window.erase()
-                for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row, self.begin_time)
-                window.addstr(len(self.elements), 0,
-                        "Received %d messages so far (%d%% valid)..." % (
-                        self.messages_received,
-                        float(self.good_messages) / self.messages_received
-                        * 100), curses.A_REVERSE)
-		window.addstr(len(self.elements)+1, 0, "Total Bytes Received: "+ 
-		    str(self.total_bytes_received), curses.A_REVERSE)
-		window.addstr(len(self.elements)+2, 0, "Overall Data Rate: "+ 
-		    str((self.rate_bytes_received) / (datetime.now() 
-		    - self.begin_time).total_seconds()) + " Bps",
-		     curses.A_REVERSE)
-                window.refresh()
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -324,7 +340,7 @@ def initialize_elements(dashboard):
 def main():
     arguments = parse_options()
 
-    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
+    device = UsbDevice(vendor_id=arguments.vendor, verbose=arguments.verbose,
             dump=arguments.dump, dashboard=arguments.dashboard,
             elements=initialize_elements(arguments.dashboard))
     if arguments.version:

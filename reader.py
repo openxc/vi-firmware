@@ -57,7 +57,7 @@ class DataPoint(object):
                     #Save the event in the proper spot.
                     if (len(message) > 2) and (self.events_active is True):
                         self.events[self.vocab.index(self.current_data)
-                                ] = message['event']
+                                ] = message.get('event', None)
                 else:
                     self.bad_data = True
             else:

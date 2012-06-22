@@ -233,14 +233,17 @@ class UsbDevice(object):
                 window.erase()
                 for row, element in enumerate(self.elements):
                     element.print_to_window(window, row, self.begin_time)
+                percentage_good = 0
+                if self.messages_received != 0:
+                    percentage_good /= self.good_messages
                 window.addstr(len(self.elements), 0,
                         "Received %d messages so far (%d%% valid)..." % (
-                        self.messages_received,
-                        float(self.good_messages) / self.messages_received
-                        * 100), curses.A_REVERSE)
-                window.addstr(len(self.elements)+1, 0, "Total Bytes Received: "+
-                    str(self.total_bytes_received), curses.A_REVERSE)
-                window.addstr(len(self.elements)+2, 0, "Overall Data Rate: "+
+                        self.messages_received, percentage_good * 100),
+                        curses.A_REVERSE)
+                window.addstr(len(self.elements) + 1, 0,
+                        "Total Bytes Received: " +
+                        str(self.total_bytes_received), curses.A_REVERSE)
+                window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
                     str((self.rate_bytes_received) / (datetime.now()
                     - self.begin_time).total_seconds()) + " Bps",
                      curses.A_REVERSE)

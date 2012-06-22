@@ -111,8 +111,9 @@ class DataPoint(object):
             window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
                     bad_data_color)
             window.addstr(row, 95, "Messages: " + str(self.messages_received))
-            window.addstr(row, 110, "Frequency: " + str(self.rate_messages_received /
-                ((datetime.now() - begin_time).total_seconds())))
+            window.addstr(row, 110, "Frequency: " +
+                    str(int(self.rate_messages_received /
+                        ((datetime.now() - begin_time).total_seconds()))))
 
 
 class CanTranslator(object):

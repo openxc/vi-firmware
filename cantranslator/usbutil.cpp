@@ -10,6 +10,13 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     Serial.println((char*)message);
 #endif
 
+    strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
+    usbDevice->sendBuffer[messageSize] = '\n';
+    messageSize += 1;
+    // TODO we could import a newer version of SoftwareSerial and use its
+    // write() function instead.
+    Serial.write((const uint8_t*)usbDevice->sendBuffer, messageSize);
+
     // Make sure the USB write is 100% complete before messing with this buffer
     // after we copy the message into it - the Microchip library doesn't copy
     // the data to its own internal buffer. See #171 for background on this
@@ -32,9 +39,6 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
                 + nextByteIndex);
         USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
                 currentByte, bytesToTransfer);
-        // TODO we could import a newer version of SoftwareSerial and use its
-        // write() function instead.
-        usbDevice->serial.print(*currentByte);
         nextByteIndex += bytesToTransfer;
     }
 }

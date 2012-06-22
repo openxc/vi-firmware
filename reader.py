@@ -43,7 +43,7 @@ class DataPoint(object):
 
         self.rate_messages_received += 1
         self.messages_received += 1
-        self.current_data = message['value']
+        self.current_data = message.get('value', None)
         if type(self.current_data) == int:
             self.current_data = float(self.current_data)
         if type(self.current_data) != self.type:

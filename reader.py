@@ -68,63 +68,59 @@ class DataPoint(object):
     def print_to_window(self, window, row, begin_time):
         window.addstr(row, 0, self.name)
         result = ""
-        if self.current_data is None:
-            window.addstr(row, 30, "No Data", curses.color_pair(3))
-        else:
-            if self.bad_data:
-                window.addstr(row, 30, "Bad", curses.color_pair(1))
-            else:
-                window.addstr(row, 30, "Good", curses.color_pair(2))
-                if self.type == float:
-                    percent = self.current_data - self.min_value
-                    percent /= self.range
-                    Count = 0
-                    graph = "*"
-                    percent -= .1
-                    while percent > 0:
-                        graph += "-"
-                        Count += 1
-                        percent -= .1
-                    graph += "|"
+        if self.current_data is not None and not self.bad_data:
+            if self.type == float:
+                percent = self.current_data - self.min_value
+                percent /= self.range
+                Count = 0
+                graph = "*"
+                percent -= .1
+                while percent > 0:
+                    graph += "-"
                     Count += 1
-                    while Count < 10:
-                        graph += "-"
-                        Count +=1
-                    graph += "* "
-                    window.addstr(row, 40, graph)
+                    percent -= .1
+                graph += "|"
+                Count += 1
+                while Count < 10:
+                    graph += "-"
+                    Count +=1
+                graph += "* "
+                window.addstr(row, 30, graph)
 
             if self.events_active is False:
-                window.addstr(row, 55, str(self.current_data))
+                window.addstr(row, 45, str(self.current_data))
             else:
                 result = ""
                 for item, value in enumerate(self.vocab):
-		    if value == "driver":
-			keyword = "dr"
-		    elif value == "passenger":
-			keyword = "ps"
-		    elif value == "rear_right":
-			keyword = "rr"
-		    elif value == "rear_left":
-			keyword = "rl"
-		    result = (result + keyword + ":" + str(self.events[item])
-                            + " ")
-                window.addstr(row, 55, result)
-	window.addstr(row, 90, "Bad data: " + str(self.bad_data_tally))
-	window.addstr(row, 107, "Messages: " + str(self.messages_received))
-	window.addstr(row, 127, "Frequency: " + str(self.rate_messages_received / 
-	    ((datetime.now() - begin_time).total_seconds())))
+                    if value == "driver":
+                        keyword = "dr"
+                    elif value == "passenger":
+                        keyword = "ps"
+                    elif value == "rear_right":
+                        keyword = "rr"
+                    elif value == "rear_left":
+                        keyword = "rl"
+                result = (result + keyword + ":" + str(self.events[item]) + " ")
+                window.addstr(row, 45, result)
 
-class UsbDevice(object):
-    INTERFACE = 0
-    VERSION_CONTROL_COMMAND = 0x80
-    RESET_CONTROL_COMMAND = 0x81
+            if self.bad_data_tally > 0:
+                bad_data_color = curses.color_pair(1)
+            else:
+                bad_data_color = curses.color_pair(2)
 
-    def __init__(self, vendorId=0x04d8, verbose=False, dump=False,
-            dashboard=False, elements=None):
+            window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
+                    bad_data_color)
+            window.addstr(row, 95, "Messages: " + str(self.messages_received))
+            window.addstr(row, 110, "Frequency: " + str(self.rate_messages_received /
+                ((datetime.now() - begin_time).total_seconds())))
+
+
+class CanTranslator(object):
+    def __init__(self, verbose=False, dump=False, dashboard=False,
+            elements=None):
         self.verbose = verbose
         self.dump = dump
         self.dashboard = dashboard
-        self.vendorId = vendorId
         self.message_buffer = ""
         self.messages_received = 0
         self.good_messages = 0
@@ -132,55 +128,6 @@ class UsbDevice(object):
         self.total_bytes_received = 0
         self.rate_bytes_received = 0
         self.begin_time = datetime.now()
-
-        self.device = usb.core.find(idVendor=vendorId)
-        if not self.device:
-            print "Couldn't find a USB device from vendor %s" % self.vendorId
-            sys.exit()
-        self.device.set_configuration()
-        config = self.device.get_active_configuration()
-        interface_number = config[(0,0)].bInterfaceNumber
-        interface = usb.util.find_descriptor(config,
-                bInterfaceNumber=interface_number)
-
-        self.out_endpoint = usb.util.find_descriptor(interface,
-                custom_match = \
-                        lambda e: \
-                        usb.util.endpoint_direction(e.bEndpointAddress) == \
-                        usb.util.ENDPOINT_OUT)
-        self.in_endpoint = usb.util.find_descriptor(interface,
-                custom_match = \
-                        lambda e: \
-                        usb.util.endpoint_direction(e.bEndpointAddress) == \
-                        usb.util.ENDPOINT_IN)
-
-        if not self.out_endpoint or not self.in_endpoint:
-            print "Couldn't find proper endpoints on the USB device"
-            sys.exit()
-
-    @property
-    def version(self):
-        raw_version = self.device.ctrl_transfer(0xC0,
-                self.VERSION_CONTROL_COMMAND, 0, 0, 100)
-        return ''.join([chr(x) for x in raw_version])
-
-    def reset(self):
-        self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
-
-    def write(self, name, value):
-        if value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        else:
-            try:
-                value = float(value)
-            except ValueError:
-                pass
-
-        message = json.dumps({'name': name, 'value': value})
-        bytes_written = self.out_endpoint.write(message + "\x00")
-        assert bytes_written == len(message) + 1
 
     def parse_message(self):
         if "\n" in self.message_buffer:
@@ -235,7 +182,8 @@ class UsbDevice(object):
                     element.print_to_window(window, row, self.begin_time)
                 percentage_good = 0
                 if self.messages_received != 0:
-                    percentage_good /= self.good_messages
+                    percentage_good = (self.good_messages /
+                            self.messages_received)
                 window.addstr(len(self.elements), 0,
                         "Received %d messages so far (%d%% valid)..." % (
                         self.messages_received, percentage_good * 100),
@@ -248,6 +196,70 @@ class UsbDevice(object):
                     - self.begin_time).total_seconds()) + " Bps",
                      curses.A_REVERSE)
                 window.refresh()
+
+
+class SerialCanTransaltor(CanTranslator):
+    pass
+
+
+class UsbDevice(CanTranslator):
+    INTERFACE = 0
+    VERSION_CONTROL_COMMAND = 0x80
+    RESET_CONTROL_COMMAND = 0x81
+
+    def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
+            dashboard=False, elements=None):
+        super(UsbDevice, self).__init__(verbose, dump, dashboard, elements)
+        self.vendor_id = vendor_id
+
+        self.device = usb.core.find(idVendor=vendor_id)
+        if not self.device:
+            print "Couldn't find a USB device from vendor %s" % self.vendor_id
+            sys.exit()
+        self.device.set_configuration()
+        config = self.device.get_active_configuration()
+        interface_number = config[(0,0)].bInterfaceNumber
+        interface = usb.util.find_descriptor(config,
+                bInterfaceNumber=interface_number)
+
+        self.out_endpoint = usb.util.find_descriptor(interface,
+                custom_match = \
+                        lambda e: \
+                        usb.util.endpoint_direction(e.bEndpointAddress) == \
+                        usb.util.ENDPOINT_OUT)
+        self.in_endpoint = usb.util.find_descriptor(interface,
+                custom_match = \
+                        lambda e: \
+                        usb.util.endpoint_direction(e.bEndpointAddress) == \
+                        usb.util.ENDPOINT_IN)
+
+        if not self.out_endpoint or not self.in_endpoint:
+            print "Couldn't find proper endpoints on the USB device"
+            sys.exit()
+
+    @property
+    def version(self):
+        raw_version = self.device.ctrl_transfer(0xC0,
+                self.VERSION_CONTROL_COMMAND, 0, 0, 100)
+        return ''.join([chr(x) for x in raw_version])
+
+    def reset(self):
+        self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
+
+    def write(self, name, value):
+        if value == "true":
+            value = True
+        elif value == "false":
+            value = False
+        else:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+
+        message = json.dumps({'name': name, 'value': value})
+        bytes_written = self.out_endpoint.write(message + "\x00")
+        assert bytes_written == len(message) + 1
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -327,7 +339,7 @@ def initialize_elements(dashboard):
 def main():
     arguments = parse_options()
 
-    device = UsbDevice(vendorId=arguments.vendor, verbose=arguments.verbose,
+    device = UsbDevice(vendor_id=arguments.vendor, verbose=arguments.verbose,
             dump=arguments.dump, dashboard=arguments.dashboard,
             elements=initialize_elements(arguments.dashboard))
     if arguments.version:

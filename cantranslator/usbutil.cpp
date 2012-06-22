@@ -14,10 +14,14 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // after we copy the message into it - the Microchip library doesn't copy
     // the data to its own internal buffer. See #171 for background on this
     // issue.
-    while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
-    strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
-    usbDevice->sendBuffer[messageSize] = '\n';
-    messageSize += 1;
+    int i = 0;
+    while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
+        i++;
+        if(i > 1) {
+            // bail, USB probably isn't connected
+            return;
+        }
+    }
 
     int nextByteIndex = 0;
     while(nextByteIndex < messageSize) {
@@ -33,7 +37,6 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
         usbDevice->serial.print(*currentByte);
         nextByteIndex += bytesToTransfer;
     }
-
 }
 
 void initializeUsb(CanUsbDevice* usbDevice) {

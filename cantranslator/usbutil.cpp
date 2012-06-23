@@ -13,9 +13,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';
     messageSize += 1;
-    // TODO we could import a newer version of SoftwareSerial and use its
-    // write() function instead.
-    Serial.write((const uint8_t*)usbDevice->sendBuffer, messageSize);
+    usbDevice->serial.write((const uint8_t*)usbDevice->sendBuffer, messageSize);
 
     // Make sure the USB write is 100% complete before messing with this buffer
     // after we copy the message into it - the Microchip library doesn't copy

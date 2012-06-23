@@ -17,7 +17,7 @@
 
 // USB
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), SoftwareSerial(10, 11),
+CanUsbDevice usbDevice = {USBDevice(usbCallback), Serial1,
     DATA_ENDPOINT, ENDPOINT_SIZE};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
@@ -67,6 +67,7 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 
 void setup() {
     Serial.begin(115200);
+    Serial1.begin(115200);
     randomSeed(analogRead(0));
 
     initializeUsb(&usbDevice);

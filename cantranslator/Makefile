@@ -5,8 +5,7 @@ else
 BOARD_TAG    = mega_pic32
 endif
 
-ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON \
-			   SoftwareSerial
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
 
 SERIAL_BAUDRATE = 115200
 

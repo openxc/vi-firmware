@@ -30,7 +30,7 @@ CAN can2(CAN::CAN2);
 #define DATA_ENDPOINT 1
 
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
-CanUsbDevice usbDevice = {USBDevice(usbCallback), SoftwareSerial(10, 11),
+CanUsbDevice usbDevice = {USBDevice(usbCallback), Serial1,
     DATA_ENDPOINT, ENDPOINT_SIZE};
 
 int receivedMessages = 0;

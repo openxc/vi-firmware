@@ -136,6 +136,8 @@ class CanTranslator(object):
             message,_,remainder= self.message_buffer.partition("\n")
             try:
                 parsed_message = json.loads(message)
+                if not isinstance(parsed_message, dict):
+                    raise ValueError()
             except ValueError:
                 pass
             else:
@@ -201,7 +203,7 @@ class CanTranslator(object):
 
 
 class SerialCanTransaltor(CanTranslator):
-    def __init__(self, port="/dev/ttyUSB0", baud_rate=115200, verbose=False,
+    def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
             dump=False, dashboard=False, elements=None):
         super(SerialCanTransaltor, self).__init__(verbose, dump, dashboard,
                 elements)

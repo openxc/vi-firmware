@@ -3,7 +3,6 @@
 
 #include <string.h>
 #include "chipKITUSBDevice.h"
-#include "SoftwareSerial.h"
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
@@ -20,7 +19,7 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
  */
 struct CanUsbDevice {
     USBDevice device;
-    SoftwareSerial serial;
+    HardwareSerial serial;
     int endpoint;
     int endpointSize;
     // device to host

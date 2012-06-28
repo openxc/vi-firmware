@@ -210,6 +210,7 @@ class SerialCanTransaltor(CanTranslator):
         self.port = port
         self.baud_rate = baud_rate
         self.device = serial.Serial(self.port, self.baud_rate)
+        print "Opened serial device at %s" % self.port
 
     def read(self):
         return self.device.readline()
@@ -313,6 +314,10 @@ def parse_options():
             nargs=2,
             action="store",
             dest="write")
+    parser.add_argument("--serial-device",
+            action="store",
+            dest="serial_device",
+            default=None)
 
     arguments = parser.parse_args()
     return arguments
@@ -363,6 +368,8 @@ def main():
     if arguments.serial:
         device_class = SerialCanTransaltor
         kwargs = dict()
+        if arguments.serial_device:
+            kwargs['port'] = arguments.serial_device
     else:
         device_class = UsbCanTranslator
         kwargs = dict(vendor_id=arguments.vendor)

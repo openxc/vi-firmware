@@ -183,7 +183,7 @@ class CanTranslator(object):
                     element.print_to_window(window, row, self.begin_time)
                 percentage_good = 0
                 if self.messages_received != 0:
-                    percentage_good = (self.good_messages /
+                    percentage_good = (float(self.good_messages) /
                             self.messages_received)
                 window.addstr(len(self.elements), 0,
                         "Received %d messages so far (%d%% valid)..." % (

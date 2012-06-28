@@ -4,7 +4,6 @@ import json
 import sys
 import argparse
 import usb.core
-import serial
 import curses
 import curses.wrapper
 import time
@@ -209,6 +208,7 @@ class SerialCanTransaltor(CanTranslator):
                 elements)
         self.port = port
         self.baud_rate = baud_rate
+        import serial
         self.device = serial.Serial(self.port, self.baud_rate)
         print "Opened serial device at %s" % self.port
 

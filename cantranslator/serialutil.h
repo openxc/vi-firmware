@@ -3,7 +3,7 @@
 
 #include "WProgram.h"
 
-#define SERIAL_BUFFER_SIZE 64
+#define SERIAL_BUFFER_SIZE 64 * 4
 
 /* Public: a container for a CAN translator Serial device and associated
  * metadata.

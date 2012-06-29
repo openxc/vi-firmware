@@ -65,6 +65,16 @@ void loop() {
     checkIfStalled();
 }
 
+int main(void) {
+	init();
+	setup();
+
+	for (;;)
+		loop();
+
+	return 0;
+}
+
 void initializeAllCan() {
     for(int i = 0; i < CAN_BUS_COUNT; i++) {
         initializeCan(&(getCanBuses()[i]));

@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "chipKITUSBDevice.h"
+#include "serialutil.h"
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
@@ -27,7 +28,7 @@ struct CanUsbDevice {
     USBDevice device;
     int endpoint;
     int endpointSize;
-    HardwareSerial serial;
+    SerialDevice serial;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
     // host to device

@@ -7,8 +7,8 @@
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
-
 #define USB_PACKET_SIZE 64
+#define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
@@ -33,6 +33,9 @@ struct CanUsbDevice {
     char sendBuffer[ENDPOINT_SIZE];
     // host to device
     char receiveBuffer[ENDPOINT_SIZE];
+    // buffer messages up to 4x 1 USB packet in size waiting for valid JSON
+    char packetBuffer[PACKET_BUFFER_SIZE];
+    int bufferedPackets;
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the
@@ -70,7 +73,7 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
  * callback - a function that handles USB in requests
  */
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        void (*callback)(char*));
+        bool (*callback)(char*));
 
 /* Internal: Handle asynchronous events from the USB controller.
  */

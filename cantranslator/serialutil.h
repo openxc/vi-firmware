@@ -12,8 +12,9 @@ struct SerialDevice {
     HardwareSerial device;
     // host to device
     char receiveBuffer[SERIAL_BUFFER_SIZE];
+    int receiveBufferIndex;
 };
 
-void readFromSerial(SerialDevice* serial, void (*callback)(char*));
+void readFromSerial(SerialDevice* serial, bool (*callback)(char*));
 
 #endif // _SERIALUTIL_H_

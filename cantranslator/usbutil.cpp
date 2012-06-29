@@ -60,12 +60,48 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
             usbDevice->endpointSize);
 }
 
+void resetPacketBuffer(CanUsbDevice* usbDevice) {
+    usbDevice->bufferedPackets = 0;
+    memset(usbDevice->packetBuffer, 0, PACKET_BUFFER_SIZE);
+}
+
+/*
+ * Thanks to https://gist.github.com/855214.
+ */
+const char *strnchr(const char *str, size_t len, int character) {
+    const char *end = str + len;
+    char c = (char)character;
+    do {
+        if(*str == c) {
+            return str;
+        }
+    } while (++str <= end);
+    return NULL;
+}
+
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        void (*callback)(char*)) {
+        bool (*callback)(char*)) {
     if(!usbDevice->device.HandleBusy(handle)) {
         // TODO see #569
         delay(200);
-        callback(usbDevice->receiveBuffer);
+        if(usbDevice->receiveBuffer[0] != NULL) {
+            strncpy((char*)(usbDevice->packetBuffer +
+                        (usbDevice->bufferedPackets++ * ENDPOINT_SIZE)),
+                        usbDevice->receiveBuffer, ENDPOINT_SIZE);
+
+            if(callback(usbDevice->packetBuffer)) {
+                resetPacketBuffer(usbDevice);
+            } else if(usbDevice->bufferedPackets >= 4) {
+                Serial.println("Incoming write is too long");
+                resetPacketBuffer(usbDevice);
+            } else if(strnchr(usbDevice->packetBuffer,
+                        ENDPOINT_SIZE * usbDevice->bufferedPackets - 1,
+                        NULL) != NULL) {
+                Serial.println("Incoming buffered write is corrupted -- "
+                        "clearing buffer");
+                resetPacketBuffer(usbDevice);
+            }
+        }
         return armForRead(usbDevice, usbDevice->receiveBuffer);
     }
     return handle;

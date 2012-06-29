@@ -67,7 +67,7 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 
 void setup() {
     Serial.begin(115200);
-    Serial1.begin(115200);
+    usbDevice.serial.begin(115200);
     randomSeed(analogRead(0));
 
     initializeUsb(&usbDevice);

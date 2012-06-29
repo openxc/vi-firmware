@@ -19,7 +19,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // explicitly set to do so at compile-time. Alternatively, we could send
     // on serial whenever we detect below that we're probably not connected to a
     // USB device, but explicit is better than implicit.
-    usbDevice->serial.write((const uint8_t*)usbDevice->sendBuffer, messageSize);
+    usbDevice->serial->device->write((const uint8_t*)usbDevice->sendBuffer, messageSize);
 #endif
 
     // Make sure the USB write is 100% complete before messing with this buffer

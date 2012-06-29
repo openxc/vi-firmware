@@ -93,6 +93,16 @@ void loop() {
     }
 }
 
+int main(void) {
+	init();
+	setup();
+
+	for (;;)
+		loop();
+
+	return 0;
+}
+
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     usbDevice.device.DefaultCBEventHandler(event, pdata, size);
 

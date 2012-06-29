@@ -11,6 +11,7 @@
 #include "canutil_chipkit.h"
 #include "canwrite_chipkit.h"
 #include "usbutil.h"
+#include "serialutil.h"
 #include "cJSON.h"
 #include "signals.h"
 #include "handlers.h"
@@ -65,6 +66,7 @@ void loop() {
     }
     USB_OUTPUT_HANDLE = readFromHost(
             &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    readFromSerial(&serialDevice, &receiveWriteRequest);
     checkIfStalled();
 }
 

@@ -51,6 +51,7 @@ void receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);
+    usbDevice.serial.begin(115200);
 
     initializeUsb(&usbDevice);
     initializeAllCan();

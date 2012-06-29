@@ -459,6 +459,14 @@ The expected format of an event message is:
 This format is good for something like a button even, where there are two
 discrete pieces of information in the measurement.
 
+## Serial Output
+
+You can optionally enable sending the output data over a serial connection in
+addition to USB. Re-compile the firmware with the `USE_SERIAL` environment
+variable to activate a serial connection on pins 18 and 19 on the chipKIT Max32:
+
+    $ USE_SERIAL=1 make
+
 ## Viewer
 
 The `reader.py` Python program in this repository can be used to view the output

@@ -7,6 +7,7 @@
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
 #include "canutil.h"
+#include "serialutil.h"
 #include "canutil_chipkit.h"
 #include "canread_chipkit.h"
 

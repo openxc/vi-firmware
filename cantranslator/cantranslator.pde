@@ -31,7 +31,7 @@ CAN can2(CAN::CAN2);
 #define DATA_ENDPOINT 1
 
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
-SerialDevice serialDevice = {Serial1};
+SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
         ENDPOINT_SIZE, serialDevice};
 
@@ -48,7 +48,7 @@ bool receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);
-    serialDevice.device.begin(115200);
+    serialDevice.device->begin(115200);
 
     initializeUsb(&usbDevice);
     initializeAllCan();
@@ -96,7 +96,12 @@ void checkIfStalled() {
 bool receiveWriteRequest(char* message) {
     cJSON *root = cJSON_Parse(message);
     if(root != NULL) {
-        char* name = cJSON_GetObjectItem(root, "name")->valuestring;
+        cJSON* nameObject = cJSON_GetObjectItem(root, "name");
+        if(nameObject == NULL) {
+            Serial.println("Write request is malformed, missing name");
+            return true;
+        }
+        char* name = nameObject->valuestring;
         CanSignal* signal = lookupSignal(name, getSignals(),
                 getSignalCount());
         if(signal != NULL) {

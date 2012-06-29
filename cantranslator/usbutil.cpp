@@ -51,6 +51,9 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 void initializeUsb(CanUsbDevice* usbDevice) {
     Serial.print("Initializing USB...  ");
     usbDevice->device.InitializeSystem(true);
+    // TODO we will block here until a USB device is attached, which means
+    // nothing will go out over serial until we attach the micro-USB port at
+    // least once.
     while(usbDevice->device.GetDeviceState() < CONFIGURED_STATE);
     Serial.println("Done.");
 }
@@ -68,10 +71,11 @@ USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
         delay(200);
         if(usbDevice->receiveBuffer[0] != NULL) {
             strncpy((char*)(usbDevice->packetBuffer +
-                        (usbDevice->bufferedPackets++ * ENDPOINT_SIZE)),
-                        usbDevice->receiveBuffer, ENDPOINT_SIZE);
-            processBuffer(usbDevice->packetBuffer, &usbDevice->bufferedPackets,
-                    PACKET_BUFFER_SIZE, callback);
+                        usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
+                        ENDPOINT_SIZE);
+            usbDevice->packetBufferIndex += ENDPOINT_SIZE;
+            processBuffer(usbDevice->packetBuffer,
+                &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
         }
         return armForRead(usbDevice, usbDevice->receiveBuffer);
     }

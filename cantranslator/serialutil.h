@@ -9,7 +9,7 @@
  * metadata.
  */
 struct SerialDevice {
-    HardwareSerial device;
+    HardwareSerial* device;
     // host to device
     char receiveBuffer[SERIAL_BUFFER_SIZE];
     int receiveBufferIndex;

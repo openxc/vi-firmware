@@ -35,7 +35,7 @@ struct CanUsbDevice {
     char receiveBuffer[ENDPOINT_SIZE];
     // buffer messages up to 4x 1 USB packet in size waiting for valid JSON
     char packetBuffer[PACKET_BUFFER_SIZE];
-    int bufferedPackets;
+    int packetBufferIndex;
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the

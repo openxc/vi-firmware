@@ -3,33 +3,44 @@
 
 #include <string.h>
 #include "chipKITUSBDevice.h"
+#include "serialutil.h"
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
-
 #define USB_PACKET_SIZE 64
+#define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
- * device - the UsbDevice attached to the host
- * endpoint - the endpoint to use to send and receive messages
+ * device - The UsbDevice attached to the host.
+ * endpoint - The endpoint to use to send and receive messages.
+ * endpointSize - The packet size of the endpoint.
+ * serial - A serial device to use in parallel to USB. TODO Yes, this is
+ *      a struct for USB devices, but this is the place where this reference
+ *      makes the most sense right now. Since we're actually using the
+ *      hard-coded Serial1 object instead of SoftwareSerial as I had initially
+ *      planned, we could actually drop this reference altogether.
  */
 struct CanUsbDevice {
     USBDevice device;
     int endpoint;
     int endpointSize;
+    SerialDevice* serial;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
     // host to device
     char receiveBuffer[ENDPOINT_SIZE];
+    // buffer messages up to 4x 1 USB packet in size waiting for valid JSON
+    char packetBuffer[PACKET_BUFFER_SIZE];
+    int packetBufferIndex;
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the
- *         configuration specified in usb_descriptors.c. Must be called before
- *         any other USB fuctions are used.
+ * configuration specified in usb_descriptors.c. Must be called before
+ * any other USB fuctions are used.
  */
 void initializeUsb(CanUsbDevice*);
 
@@ -62,7 +73,7 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
  * callback - a function that handles USB in requests
  */
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        void (*callback)(char*));
+        bool (*callback)(char*));
 
 /* Internal: Handle asynchronous events from the USB controller.
  */

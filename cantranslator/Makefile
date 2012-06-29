@@ -1,11 +1,17 @@
 TARGET       = cantranslator
+
 ifdef DEBUG
 BOARD_TAG    = mega_pic32_dbg
 else
 BOARD_TAG    = mega_pic32
 endif
 
+ifdef USE_SERIAL
+EXTRA_CXXFLAGS += -DUSE_SERIAL
+endif
+
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
+NO_CORE_MAIN_FUNCTION = 1
 
 SERIAL_BAUDRATE = 115200
 
@@ -19,7 +25,7 @@ ifndef ARDUINO_PORT
 	endif
 endif
 
-EXTRA_CXXFLAGS = -G0
+EXTRA_CXXFLAGS += -G0
 
 include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 

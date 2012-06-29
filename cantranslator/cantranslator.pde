@@ -11,6 +11,7 @@
 #include "canutil_chipkit.h"
 #include "canwrite_chipkit.h"
 #include "usbutil.h"
+#include "serialutil.h"
 #include "cJSON.h"
 #include "signals.h"
 #include "handlers.h"
@@ -30,27 +31,25 @@ CAN can2(CAN::CAN2);
 #define DATA_ENDPOINT 1
 
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
+SerialDevice serialDevice = {&Serial1};
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+        ENDPOINT_SIZE, &serialDevice};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
-
-// buffer messages up to 4x 1 USB packet in size waiting for valid JSON
-const int PACKET_BUFFER_SIZE = ENDPOINT_SIZE * 4;
-char PACKET_BUFFER[PACKET_BUFFER_SIZE];
-int BUFFERED_PACKETS = 0;
 
 /* Forward declarations */
 
 void initializeAllCan();
 void receiveCan(CanBus*);
 void checkIfStalled();
-void receiveWriteRequest(char*);
+bool receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);
 
+    initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
     initializeAllCan();
     lastSignificantChangeTime = millis();
@@ -62,7 +61,18 @@ void loop() {
     }
     USB_OUTPUT_HANDLE = readFromHost(
             &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    readFromSerial(&serialDevice, &receiveWriteRequest);
     checkIfStalled();
+}
+
+int main(void) {
+	init();
+	setup();
+
+	for (;;)
+		loop();
+
+	return 0;
 }
 
 void initializeAllCan() {
@@ -93,62 +103,36 @@ void checkIfStalled() {
     }
 }
 
-/*
- * Thanks to https://gist.github.com/855214.
- */
-const char *strnchr(const char *str, size_t len, int character) {
-    const char *end = str + len;
-    char c = (char)character;
-    do {
-        if(*str == c) {
-            return str;
+bool receiveWriteRequest(char* message) {
+    cJSON *root = cJSON_Parse(message);
+    if(root != NULL) {
+        cJSON* nameObject = cJSON_GetObjectItem(root, "name");
+        if(nameObject == NULL) {
+            Serial.println("Write request is malformed, missing name");
+            return true;
         }
-    } while (++str <= end);
-    return NULL;
-}
-
-void resetPacketBuffer() {
-    BUFFERED_PACKETS = 0;
-    memset(PACKET_BUFFER, 0, PACKET_BUFFER_SIZE);
-}
-
-void receiveWriteRequest(char* message) {
-    if(message[0] != NULL) {
-        strncpy((char*)(PACKET_BUFFER + (BUFFERED_PACKETS++ * ENDPOINT_SIZE)),
-                message, ENDPOINT_SIZE);
-
-        cJSON *root = cJSON_Parse(PACKET_BUFFER);
-        if(root != NULL) {
-            char* name = cJSON_GetObjectItem(root, "name")->valuestring;
-            CanSignal* signal = lookupSignal(name, getSignals(),
-                    getSignalCount());
-            if(signal != NULL) {
-                cJSON* value = cJSON_GetObjectItem(root, "value");
-                CanCommand* command = lookupCommand(name, getCommands(),
-                        getCommandCount());
-                if(command != NULL) {
-                    command->handler(name, value, getSignals(),
-                            getSignalCount());
-                } else {
-                    sendCanSignal(signal, value, getSignals(),
-                            getSignalCount());
-                }
+        char* name = nameObject->valuestring;
+        CanSignal* signal = lookupSignal(name, getSignals(),
+                getSignalCount());
+        if(signal != NULL) {
+            cJSON* value = cJSON_GetObjectItem(root, "value");
+            CanCommand* command = lookupCommand(name, getCommands(),
+                    getCommandCount());
+            if(command != NULL) {
+                command->handler(name, value, getSignals(),
+                        getSignalCount());
             } else {
-                Serial.print("Writing not allowed for signal with name ");
-                Serial.println(name);
+                sendCanSignal(signal, value, getSignals(),
+                        getSignalCount());
             }
-            cJSON_Delete(root);
-            resetPacketBuffer();
-        } else if(BUFFERED_PACKETS >= 4) {
-            Serial.println("Incoming write is too long");
-            resetPacketBuffer();
-        } else if(strnchr(PACKET_BUFFER, ENDPOINT_SIZE * BUFFERED_PACKETS - 1,
-                    NULL) != NULL) {
-            Serial.println("Incoming buffered write is corrupted -- "
-                    "clearing buffer");
-            resetPacketBuffer();
+        } else {
+            Serial.print("Writing not allowed for signal with name ");
+            Serial.println(name);
         }
+        cJSON_Delete(root);
+        return true;
     }
+    return false;
 }
 
 /*

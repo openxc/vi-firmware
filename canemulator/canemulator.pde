@@ -7,6 +7,7 @@
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
 #include "canutil.h"
+#include "serialutil.h"
 #include "canutil_chipkit.h"
 #include "canread_chipkit.h"
 
@@ -17,7 +18,9 @@
 
 // USB
 #define DATA_ENDPOINT 1
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT, ENDPOINT_SIZE};
+SerialDevice serialDevice = {&Serial1};
+CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+        ENDPOINT_SIZE, &serialDevice};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -68,6 +71,7 @@ void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
 
+    initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
 }
 
@@ -88,6 +92,16 @@ void loop() {
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &usbDevice);
     }
+}
+
+int main(void) {
+	init();
+	setup();
+
+	for (;;)
+		loop();
+
+	return 0;
 }
 
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {

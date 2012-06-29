@@ -56,7 +56,7 @@ class DataPoint(object):
                     #Save the event in the proper spot.
                     if (len(message) > 2) and (self.events_active is True):
                         self.events[self.vocab.index(self.current_data)
-                                ] = message['event']
+                                ] = message.get('event', None)
                 else:
                     self.bad_data = True
             else:
@@ -135,6 +135,8 @@ class CanTranslator(object):
             message,_,remainder= self.message_buffer.partition("\n")
             try:
                 parsed_message = json.loads(message)
+                if not isinstance(parsed_message, dict):
+                    raise ValueError()
             except ValueError:
                 pass
             else:
@@ -173,7 +175,7 @@ class CanTranslator(object):
             curses.init_pair(3, curses.COLOR_YELLOW, -1)
 
         while True:
-            self.message_buffer += self.in_endpoint.read(64, 1000000).tostring()
+            self.message_buffer += self.read()
             self.parse_message()
             self.date_rate_management()
 
@@ -200,17 +202,29 @@ class CanTranslator(object):
 
 
 class SerialCanTransaltor(CanTranslator):
-    pass
+    def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
+            dump=False, dashboard=False, elements=None):
+        super(SerialCanTransaltor, self).__init__(verbose, dump, dashboard,
+                elements)
+        self.port = port
+        self.baud_rate = baud_rate
+        import serial
+        self.device = serial.Serial(self.port, self.baud_rate)
+        print "Opened serial device at %s" % self.port
+
+    def read(self):
+        return self.device.readline()
 
 
-class UsbDevice(CanTranslator):
+class UsbCanTranslator(CanTranslator):
     INTERFACE = 0
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
     def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
             dashboard=False, elements=None):
-        super(UsbDevice, self).__init__(verbose, dump, dashboard, elements)
+        super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
+                elements)
         self.vendor_id = vendor_id
 
         self.device = usb.core.find(idVendor=vendor_id)
@@ -237,6 +251,9 @@ class UsbDevice(CanTranslator):
         if not self.out_endpoint or not self.in_endpoint:
             print "Couldn't find proper endpoints on the USB device"
             sys.exit()
+
+    def read(self):
+        return self.in_endpoint.read(64, 1000000).tostring()
 
     @property
     def version(self):
@@ -273,6 +290,10 @@ def parse_options():
             action="store_true",
             dest="verbose",
             default=False)
+    parser.add_argument("--serial", "-s",
+            action="store_true",
+            dest="serial",
+            default=False)
     parser.add_argument("--dump", "-d",
             action="store_true",
             dest="dump",
@@ -293,6 +314,10 @@ def parse_options():
             nargs=2,
             action="store",
             dest="write")
+    parser.add_argument("--serial-device",
+            action="store",
+            dest="serial_device",
+            default=None)
 
     arguments = parser.parse_args()
     return arguments
@@ -340,9 +365,18 @@ def initialize_elements(dashboard):
 def main():
     arguments = parse_options()
 
-    device = UsbDevice(vendor_id=arguments.vendor, verbose=arguments.verbose,
-            dump=arguments.dump, dashboard=arguments.dashboard,
-            elements=initialize_elements(arguments.dashboard))
+    if arguments.serial:
+        device_class = SerialCanTransaltor
+        kwargs = dict()
+        if arguments.serial_device:
+            kwargs['port'] = arguments.serial_device
+    else:
+        device_class = UsbCanTranslator
+        kwargs = dict(vendor_id=arguments.vendor)
+
+    device = device_class(verbose=arguments.verbose, dump=arguments.dump,
+            dashboard=arguments.dashboard,
+            elements=initialize_elements(arguments.dashboard), **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

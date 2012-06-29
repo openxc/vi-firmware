@@ -467,6 +467,11 @@ variable to activate a serial connection on pins 18 and 19 on the chipKIT Max32:
 
     $ USE_SERIAL=1 make
 
+In the same way that you can send OpenXC writes over USB using the OUT direction
+of the USB endpoint, you can send identically formatted messages in the opposite
+direction on the serial device - from the host to the CAN translator. They'll be
+processed in exactly the same way.
+
 ## Viewer
 
 The `reader.py` Python program in this repository can be used to view the output

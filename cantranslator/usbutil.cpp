@@ -35,6 +35,10 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
         }
     }
 
+    if(!usbDevice->configured) {
+        return;
+    }
+
     int nextByteIndex = 0;
     while(nextByteIndex < messageSize) {
         while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
@@ -49,12 +53,8 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 }
 
 void initializeUsb(CanUsbDevice* usbDevice) {
-    Serial.print("Initializing USB...  ");
-    usbDevice->device.InitializeSystem(true);
-    // TODO we will block here until a USB device is attached, which means
-    // nothing will go out over serial until we attach the micro-USB port at
-    // least once.
-    while(usbDevice->device.GetDeviceState() < CONFIGURED_STATE);
+    Serial.print("Initializing USB.....");
+    usbDevice->device.InitializeSystem(false);
     Serial.println("Done.");
 }
 

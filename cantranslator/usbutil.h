@@ -29,6 +29,7 @@ struct CanUsbDevice {
     int endpoint;
     int endpointSize;
     SerialDevice* serial;
+    bool configured;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
     // host to device

@@ -33,7 +33,7 @@ CAN can2(CAN::CAN2);
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
 SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        ENDPOINT_SIZE, &serialDevice};
+        ENDPOINT_SIZE, &serialDevice, false};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
@@ -214,6 +214,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     switch(event) {
     case EVENT_CONFIGURED:
         Serial.println("Event: Configured");
+        usbDevice.configured = true;
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);

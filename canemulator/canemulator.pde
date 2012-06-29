@@ -111,6 +111,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     case EVENT_CONFIGURED:
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        usbDevice.configured = true;
         break;
 
     default:

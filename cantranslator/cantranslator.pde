@@ -48,8 +48,8 @@ bool receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);
-    serialDevice.device->begin(115200);
 
+    initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
     initializeAllCan();
     lastSignificantChangeTime = millis();

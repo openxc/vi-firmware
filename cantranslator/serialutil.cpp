@@ -13,3 +13,9 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(char*)) {
                 SERIAL_BUFFER_SIZE, callback);
     }
 }
+
+void initializeSerial(SerialDevice* serial) {
+    serial->device->begin(115200);
+    resetBuffer(serial->receiveBuffer, &serial->receiveBufferIndex,
+            SERIAL_BUFFER_SIZE);
+}

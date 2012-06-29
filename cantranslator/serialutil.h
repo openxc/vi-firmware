@@ -17,4 +17,6 @@ struct SerialDevice {
 
 void readFromSerial(SerialDevice* serial, bool (*callback)(char*));
 
+void initializeSerial(SerialDevice* serial);
+
 #endif // _SERIALUTIL_H_

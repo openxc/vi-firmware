@@ -14,14 +14,20 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
- * device - the UsbDevice attached to the host
- * endpoint - the endpoint to use to send and receive messages
+ * device - The UsbDevice attached to the host.
+ * endpoint - The endpoint to use to send and receive messages.
+ * endpointSize - The packet size of the endpoint.
+ * serial - A serial device to use in parallel to USB. TODO Yes, this is
+ *      a struct for USB devices, but this is the place where this reference
+ *      makes the most sense right now. Since we're actually using the
+ *      hard-coded Serial1 object instead of SoftwareSerial as I had initially
+ *      planned, we could actually drop this reference altogether.
  */
 struct CanUsbDevice {
     USBDevice device;
-    HardwareSerial serial;
     int endpoint;
     int endpointSize;
+    HardwareSerial serial;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
     // host to device

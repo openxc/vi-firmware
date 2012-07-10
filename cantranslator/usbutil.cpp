@@ -10,6 +10,20 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     Serial.print("sending message: ");
     Serial.println((char*)message);
 #endif
+    // Make sure the USB write is 100% complete before messing with this buffer
+    // after we copy the message into it - the Microchip library doesn't copy
+    // the data to its own internal buffer. See #171 for background on this
+    // issue.
+    int i = 0;
+    bool usbConnected = usbDevice->configured;
+    while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
+        i++;
+        if(i > 1) {
+            // stop waiting, USB probably isn't connected
+            usbConnected = false;
+            break;
+        }
+    }
 
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';
@@ -22,20 +36,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     usbDevice->serial->device->write((const uint8_t*)usbDevice->sendBuffer, messageSize);
 #endif
 
-    // Make sure the USB write is 100% complete before messing with this buffer
-    // after we copy the message into it - the Microchip library doesn't copy
-    // the data to its own internal buffer. See #171 for background on this
-    // issue.
-    int i = 0;
-    while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
-        i++;
-        if(i > 1) {
-            // bail, USB probably isn't connected
-            return;
-        }
-    }
-
-    if(!usbDevice->configured) {
+    if(!usbConnected) {
         return;
     }
 

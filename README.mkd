@@ -461,16 +461,17 @@ discrete pieces of information in the measurement.
 
 ## Serial Output
 
-You can optionally enable sending the output data over a serial connection in
-addition to USB. Re-compile the firmware with the `USE_SERIAL` environment
-variable to activate a serial connection on pins 18 and 19 on the chipKIT Max32:
-
-    $ USE_SERIAL=1 make
+You can optionally receive the output data over a serial connection in
+addition to USB. The messages are automatically sent over a UART connection on
+pins 18 and 19 of the chipKIT Max32 at a baud rate of 115200 when not being sent
+over USB. To be absolutely clear, OpenXC messages are only sent over serial if
+an active USB connection is **not** already receiving the messages.
 
 In the same way that you can send OpenXC writes over USB using the OUT direction
 of the USB endpoint, you can send identically formatted messages in the opposite
 direction on the serial device - from the host to the CAN translator. They'll be
-processed in exactly the same way.
+processed in exactly the same way. These write messages are accepted via serial
+even if USB is connected.
 
 ## Viewer
 

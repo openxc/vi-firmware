@@ -6,10 +6,6 @@ else
 BOARD_TAG    = mega_pic32
 endif
 
-ifdef USE_SERIAL
-EXTRA_CXXFLAGS += -DUSE_SERIAL
-endif
-
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
 NO_CORE_MAIN_FUNCTION = 1
 

@@ -28,28 +28,25 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';
     messageSize += 1;
-#ifdef USE_SERIAL
-    // Serial transfers are really, really slow, so we don't want to send unless
-    // explicitly set to do so at compile-time. Alternatively, we could send
-    // on serial whenever we detect below that we're probably not connected to a
-    // USB device, but explicit is better than implicit.
-    usbDevice->serial->device->write((const uint8_t*)usbDevice->sendBuffer, messageSize);
-#endif
 
     if(!usbConnected) {
-        return;
-    }
-
-    int nextByteIndex = 0;
-    while(nextByteIndex < messageSize) {
-        while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
-        int bytesToTransfer = min(USB_PACKET_SIZE,
-                messageSize - nextByteIndex);
-        uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
-                + nextByteIndex);
-        USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
-                currentByte, bytesToTransfer);
-        nextByteIndex += bytesToTransfer;
+        // Serial transfers are really, really slow, so we don't want to send unless
+        // explicitly set to do so at compile-time. Alternatively, we could send
+        // on serial whenever we detect below that we're probably not connected to a
+        // USB device, but explicit is better than implicit.
+        usbDevice->serial->device->write((const uint8_t*)usbDevice->sendBuffer, messageSize);
+    } else {
+        int nextByteIndex = 0;
+        while(nextByteIndex < messageSize) {
+            while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
+            int bytesToTransfer = min(USB_PACKET_SIZE,
+                    messageSize - nextByteIndex);
+            uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
+                    + nextByteIndex);
+            USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
+                    currentByte, bytesToTransfer);
+            nextByteIndex += bytesToTransfer;
+        }
     }
 }
 

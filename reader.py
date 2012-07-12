@@ -27,7 +27,7 @@ class DataPoint(object):
         self.events_active = events
         self.events = []
         self.messages_received = messages_received
-        self.rate_messages_received = 0
+        self.messages_received_mark = messages_received
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -41,7 +41,6 @@ class DataPoint(object):
             self.bad_data_tally += 1
             self.bad_data = False
 
-        self.rate_messages_received += 1
         self.messages_received += 1
         self.current_data = message.get('value', None)
         if type(self.current_data) == int:
@@ -65,7 +64,7 @@ class DataPoint(object):
                 elif self.current_data > self.max_value:
                     self.bad_data = True
 
-    def print_to_window(self, window, row, begin_time):
+    def print_to_window(self, window, row, average_time_mark):
         window.addstr(row, 0, self.name)
         result = ""
         if self.current_data is not None:
@@ -122,8 +121,8 @@ class DataPoint(object):
                 message_count_color)
 
         window.addstr(row, 110, "Frequency (Hz): " +
-                str(int(self.rate_messages_received /
-                    ((datetime.now() - begin_time).total_seconds()))))
+                str(int((self.messages_received - self.messages_received_mark) /
+                    ((datetime.now() - average_time_mark).total_seconds()))))
 
 
 class CanTranslator(object):
@@ -137,8 +136,8 @@ class CanTranslator(object):
         self.good_messages = 0
         self.elements = elements or []
         self.total_bytes_received = 0
-        self.rate_bytes_received = 0
-        self.begin_time = datetime.now()
+        self.bytes_received_mark = 0
+        self.average_time_mark = datetime.now()
 
     def parse_message(self):
         if "\n" in self.message_buffer:
@@ -157,7 +156,6 @@ class CanTranslator(object):
                     print parsed_message
                 if self.dashboard:
                     self.total_bytes_received += sys.getsizeof(parsed_message)
-                self.rate_bytes_received += sys.getsizeof(parsed_message)
                 for element in self.elements:
                     if element.name == parsed_message.get('name', None):
                         element.update(parsed_message)
@@ -167,15 +165,14 @@ class CanTranslator(object):
                 self.message_buffer = remainder
                 self.messages_received += 1
 
-    # This resets the number of bytes received for both individual messages and
-    # the total number of messages and also resets begin_time to set up a time
-    # frame of 10 seconds in which to calculate the data rates
+    # Every 10 seconds, mark what the current message and bytes received counts
+    # are so we can do a rolling average.
     def date_rate_management(self):
-        if ((datetime.now() - self.begin_time).total_seconds() > 10):
-            self.begin_time = datetime.now()
-            self.rate_bytes_received = 0;
+        if ((datetime.now() - self.average_time_mark).total_seconds() > 10):
+            self.average_time_mark = datetime.now()
+            self.bytes_received_mark = self.total_bytes_received;
             for element in self.elements:
-                    element.rate_messages_received = 0
+                    element.messages_received_mark = element.messages_received
 
     def run(self, window=None):
         if window is not None:
@@ -192,7 +189,7 @@ class CanTranslator(object):
             if self.dashboard and window is not None:
                 window.erase()
                 for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row, self.begin_time)
+                    element.print_to_window(window, row, self.average_time_mark)
                 percentage_good = 0
                 if self.messages_received != 0:
                     percentage_good = (float(self.good_messages) /
@@ -205,8 +202,9 @@ class CanTranslator(object):
                         "Total Bytes Received: " +
                         str(self.total_bytes_received), curses.A_REVERSE)
                 window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
-                    str((self.rate_bytes_received) / (datetime.now()
-                    - self.begin_time).total_seconds()) + " Bps",
+                    str((self.total_bytes_received - self.bytes_received_mark)
+                        / (datetime.now() - self.average_time_mark
+                            ).total_seconds()) + " Bps",
                      curses.A_REVERSE)
                 window.refresh()
 

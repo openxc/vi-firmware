@@ -121,7 +121,7 @@ class DataPoint(object):
         window.addstr(row, 95, "Messages: " + str(self.messages_received),
                 message_count_color)
 
-        window.addstr(row, 110, "Frequency: " +
+        window.addstr(row, 110, "Frequency (Hz): " +
                 str(int(self.rate_messages_received /
                     ((datetime.now() - begin_time).total_seconds()))))
 

@@ -68,8 +68,8 @@ class DataPoint(object):
     def print_to_window(self, window, row, begin_time):
         window.addstr(row, 0, self.name)
         result = ""
-        if self.current_data is not None and not self.bad_data:
-            if self.type == float:
+        if self.current_data is not None:
+            if self.type == float and not self.bad_data:
                 percent = self.current_data - self.min_value
                 percent /= self.range
                 Count = 0
@@ -88,9 +88,8 @@ class DataPoint(object):
                 window.addstr(row, 30, graph)
 
             if self.events_active is False:
-                window.addstr(row, 45, str(self.current_data))
+                value = str(self.current_data)
             else:
-                result = ""
                 for item, value in enumerate(self.vocab):
                     if value == "driver":
                         keyword = "dr"
@@ -100,20 +99,31 @@ class DataPoint(object):
                         keyword = "rr"
                     elif value == "rear_left":
                         keyword = "rl"
-                result = (result + keyword + ":" + str(self.events[item]) + " ")
-                window.addstr(row, 45, result)
-
-            if self.bad_data_tally > 0:
-                bad_data_color = curses.color_pair(1)
+                value += "%s: %s " % (keyword, str(self.events[item]))
+            if self.bad_data:
+                value += " (invalid)"
+                value_color = curses.color_pair(1)
             else:
-                bad_data_color = curses.color_pair(2)
+                value_color = curses.color_pair(0)
+            window.addstr(row, 45, value, value_color)
 
-            window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
-                    bad_data_color)
-            window.addstr(row, 95, "Messages: " + str(self.messages_received))
-            window.addstr(row, 110, "Frequency: " +
-                    str(int(self.rate_messages_received /
-                        ((datetime.now() - begin_time).total_seconds()))))
+        if self.bad_data_tally > 0:
+            bad_data_color = curses.color_pair(1)
+        else:
+            bad_data_color = curses.color_pair(2)
+        window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
+                bad_data_color)
+
+        if self.messages_received > 0:
+            message_count_color = curses.color_pair(0)
+        else:
+            message_count_color = curses.color_pair(3)
+        window.addstr(row, 95, "Messages: " + str(self.messages_received),
+                message_count_color)
+
+        window.addstr(row, 110, "Frequency: " +
+                str(int(self.rate_messages_received /
+                    ((datetime.now() - begin_time).total_seconds()))))
 
 
 class CanTranslator(object):
@@ -337,7 +347,7 @@ def initialize_elements(dashboard):
     elements.append(DataPoint('parking_brake_status', bool))
     elements.append(DataPoint('headlamp_status', bool))
     elements.append(DataPoint('accelerator_pedal_position', float, 0, 100))
-    elements.append(DataPoint('torque_at_transmission', float, -400, 1500))
+    elements.append(DataPoint('torque_at_transmission', float, -800, 1500))
     elements.append(DataPoint('vehicle_speed', float, 0, 120))
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
     elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))

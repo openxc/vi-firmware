@@ -35,4 +35,15 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount);
 
+/* Public: Send the given data on CAN using the signal's message ID and bus. The
+ * data is assumed to be 64-bits and is used unmodified as the message's value.
+ *
+ * signal - the signal whose message we should write to CAN.
+ * data - the data for the CAN message.
+ * send - true if the message should actually be sent.
+ *
+ * Returns true if the message was sent on CAN.
+ */
+bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
+
 #endif // _CANWRITE_CHIPKIT_H_

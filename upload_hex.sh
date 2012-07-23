@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Upload a PIC32 compatible application compiled to a .hex file to a device.
 #

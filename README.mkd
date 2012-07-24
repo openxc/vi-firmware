@@ -8,7 +8,8 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
-For more details, see the [OpenXC website](http://openxcplatform.com/developers/vehicle-interface/hardware.html).
+For more documentation, see the Vehicle Interface section on the [OpenXC
+website](http://openxcplatform.com).
 
 ## Installation
 
@@ -473,52 +474,7 @@ direction on the serial device - from the host to the CAN translator. They'll be
 processed in exactly the same way. These write messages are accepted via serial
 even if USB is connected.
 
-## Viewer
-
-The `reader.py` Python program in this repository can be used to view the output
-of the CAN translator over micro-USB. Just plug it in and run the script with
-the `--verbose` flag to have all messages parsed and printed to stdout.
-
-    # Show a real-time stream of all messages
-    $ python reader.py -v
-    # Show a dashboard summary of the current values
-    $ python reader.py --dashboard
-
-If you get an error when trying to run the dashboard regarding the window, try
-making the terminal window a bit taller - it has a minimum size.
-
-It may also be neccessary to check the current version of the software you have
-on a CAN translator - the `--version` flag will tell you that.
-
-    $ python reader.py --version
-    Device is running version 1.0
-
-You can write a one-off message back to the CAN translator (which may or may not
-write it through to the CAN bus, depending on if it is an approved signal or
-not) using the `-w` flag:
-
-    $ python -w steering_wheel_angle 42.0
-
-### Dependencies
-
-The `reader.py` script requires the `pyusb` Python library to be installed along
-with a backing system library for accessing USB devices. `libusb-1.0` is the
-recommended library.
-
-In OS X, first install [homebrew][]. Then:
-
-    $ brew install libusb
-
-In Ubuntu:
-
-    $ sudo apt-get install libusb-0.1.4 python-setuptools
-
-Then on both platforms:
-
-    $ sudo -E easy_install pip
-    $ sudo -E pip install pyusb
-
-[homebrew]: http://mxcl.github.com/homebrew/
+## Reader
 
 ## Traces
 

@@ -18,10 +18,10 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     bool usbConnected = usbDevice->configured;
     while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
         i++;
-        if(i > 10000) {
+        if(i > 200000) {
             // stop waiting, USB probably isn't connected
             usbConnected = false;
-            break;
+            // break;
         }
     }
 

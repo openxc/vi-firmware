@@ -79,7 +79,7 @@ void loop() {
     while(1) {
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
-                random(101) + random(100) * .1, &usbDevice);
+                random(50) + random(100) * .1, &usbDevice);
         sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
                 random(2) == 1 ? true : false, &usbDevice);
 

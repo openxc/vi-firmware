@@ -139,7 +139,10 @@ that's setup, run it like so:
 
 Note that if you are using Windows, you also need to install the
 [FTDI driver](http://www.ftdichip.com/Drivers/VCP.htm) - get the setup
-executable version from that page.
+executable version from that page. In Windows you also need to run the command
+with `sh` in front:
+
+    $ sh ./upload_hex.sh new-version.hex
 
 ## Input Specification
 

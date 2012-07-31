@@ -51,6 +51,7 @@ void setup() {
 
     initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
+    armForRead(&usbDevice, usbDevice.receiveBuffer);
     initializeAllCan();
     lastSignificantChangeTime = millis();
 }

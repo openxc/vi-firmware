@@ -223,9 +223,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
 
     case EVENT_EP0_REQUEST:
-        if(!customUSBCallback(event, pdata, size)) {
-            Serial.println("Event: Unrecognized EP0 (endpoint 0) Request");
-        }
+        customUSBCallback(event, pdata, size);
         break;
 
     default:

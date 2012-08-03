@@ -11,7 +11,7 @@ from datetime import datetime
 
 # timedelta.total_seconds() is only in 2.7, so we backport it here for 2.6
 def total_seconds(delta):
-    return (delta.microseconds + (delta.sconds
+    return (delta.microseconds + (delta.seconds
         + delta.days * 24 * 3600) * 10**6) / 10**6
 
 class DataPoint(object):

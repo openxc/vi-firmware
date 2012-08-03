@@ -9,6 +9,10 @@ import curses.wrapper
 import time
 from datetime import datetime
 
+# timedelta.total_seconds() is only in 2.7, so we backport it here for 2.6
+def total_seconds(delta):
+    return (delta.microseconds + (delta.seconds
+        + delta.days * 24 * 3600) * 10**6) / 10**6
 
 class DataPoint(object):
     def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
@@ -33,7 +37,7 @@ class DataPoint(object):
         self.vocab = vocab or []
 
         if self.events_active is True:
-            for x in range(len(self.vocab)):
+            for _ in range(len(self.vocab)):
                 self.events.append("")
 
     def update(self, message):
@@ -66,29 +70,29 @@ class DataPoint(object):
 
     def print_to_window(self, window, row, average_time_mark):
         window.addstr(row, 0, self.name)
-        result = ""
         if self.current_data is not None:
             if self.type == float and not self.bad_data:
                 percent = self.current_data - self.min_value
                 percent /= self.range
-                Count = 0
+                count = 0
                 graph = "*"
                 percent -= .1
                 while percent > 0:
                     graph += "-"
-                    Count += 1
+                    count += 1
                     percent -= .1
                 graph += "|"
-                Count += 1
-                while Count < 10:
+                count += 1
+                while count < 10:
                     graph += "-"
-                    Count +=1
+                    count += 1
                 graph += "* "
                 window.addstr(row, 30, graph)
 
             if self.events_active is False:
                 value = str(self.current_data)
             else:
+                result = ""
                 for item, value in enumerate(self.vocab):
                     if value == "driver":
                         keyword = "dr"
@@ -98,7 +102,9 @@ class DataPoint(object):
                         keyword = "rr"
                     elif value == "rear_left":
                         keyword = "rl"
-                value += "%s: %s " % (keyword, str(self.events[item]))
+                    result += "%s: %s " % (keyword, str(self.events[item]))
+                value = result
+
             if self.bad_data:
                 value += " (invalid)"
                 value_color = curses.color_pair(1)
@@ -122,7 +128,7 @@ class DataPoint(object):
 
         window.addstr(row, 110, "Frequency (Hz): " +
                 str(int((self.messages_received - self.messages_received_mark) /
-                    ((datetime.now() - average_time_mark).total_seconds()))))
+                    (total_seconds(datetime.now() - average_time_mark)))))
 
 
 class CanTranslator(object):
@@ -141,7 +147,7 @@ class CanTranslator(object):
 
     def parse_message(self):
         if "\n" in self.message_buffer:
-            message,_,remainder= self.message_buffer.partition("\n")
+            message, _, remainder = self.message_buffer.partition("\n")
             try:
                 parsed_message = json.loads(message)
                 if not isinstance(parsed_message, dict):
@@ -168,11 +174,14 @@ class CanTranslator(object):
     # Every 10 seconds, mark what the current message and bytes received counts
     # are so we can do a rolling average.
     def date_rate_management(self):
-        if ((datetime.now() - self.average_time_mark).total_seconds() > 10):
+        if (total_seconds(datetime.now() - self.average_time_mark) > 10):
             self.average_time_mark = datetime.now()
-            self.bytes_received_mark = self.total_bytes_received;
+            self.bytes_received_mark = self.total_bytes_received
             for element in self.elements:
-                    element.messages_received_mark = element.messages_received
+                element.messages_received_mark = element.messages_received
+
+    def read(self):
+        return ""
 
     def run(self, window=None):
         if window is not None:
@@ -203,8 +212,8 @@ class CanTranslator(object):
                         str(self.total_bytes_received), curses.A_REVERSE)
                 window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
                     str((self.total_bytes_received - self.bytes_received_mark)
-                        / (datetime.now() - self.average_time_mark
-                            ).total_seconds()) + " Bps",
+                        / total_seconds(datetime.now() -
+                            self.average_time_mark)) + " Bps",
                      curses.A_REVERSE)
                 window.refresh()
 
@@ -241,7 +250,7 @@ class UsbCanTranslator(CanTranslator):
             sys.exit()
         self.device.set_configuration()
         config = self.device.get_active_configuration()
-        interface_number = config[(0,0)].bInterfaceNumber
+        interface_number = config[(0, 0)].bInterfaceNumber
         interface = usb.util.find_descriptor(config,
                 bInterfaceNumber=interface_number)
 
@@ -331,7 +340,7 @@ def parse_options():
     return arguments
 
 
-def initialize_elements(dashboard):
+def initialize_elements():
     elements = []
 
     elements.append(DataPoint('steering_wheel_angle', float, -600, 600))
@@ -384,7 +393,7 @@ def main():
 
     device = device_class(verbose=arguments.verbose, dump=arguments.dump,
             dashboard=arguments.dashboard,
-            elements=initialize_elements(arguments.dashboard), **kwargs)
+            elements=initialize_elements(), **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

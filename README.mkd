@@ -8,12 +8,14 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
-For more details, see the [OpenXC website](http://openxcplatform.com/developers/vehicle-interface/hardware.html).
+For more documentation, see the [vehicle
+interface](http://openxcplatform.com/vehicle-interface/index.html) section on
+the [OpenXC website](http://openxcplatform.com).
 
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
-requires the [MPIDE][] and a few library dependencies:
+requires [MPIDE][] and a few library dependencies:
 
 * Microchip USB device library (downloaded from bottom of the [Max32 page][])
 * Microchip CAN library (downloaded from bottom of the [Max32 page][])
@@ -36,21 +38,23 @@ a subdirectory named `libraries`. It should look like this:
 
 If you're using the MPIDE to compile and you get a whole mess of errors stemming
 from the chipKIT libraries, make sure you have the "chipKIT Max32" selected in
-MPIDE under Tools -> Board.
+MPIDE under `Tools -> Board`.
 
-If you're using Mac OS X, make sure to install the FTDI driver that comes with
-the MPIDE download. The chipKIT uses a different FTDI chip, so even if you've
-used the Arduino before, you still need to install this driver.
+If you're using Mac OS X or Windows, make sure to install the FTDI driver that
+comes with the MPIDE download. The chipKIT uses a different FTDI chip, so even
+if you've used the Arduino before, you still need to install this driver.
 
 ### Command Line Building
 
-Alternatively, you can use GNU Make to compile and upload code to the
-device. You still need to download and extract the MPIDE someplace, as it
-contains the PIC32 toolchain, but you don't have to use the GUI.
+Alternatively, you can use GNU Make to compile and upload code to the device.
+You still need to download and extract the MPIDE someplace, as it contains the
+PIC32 compilation toolchain, but you don't have to use the GUI.
 
 This method requires that you clone the [arduino.mk][] repository someone on
 your computer. This contains Makefile definitions common to Arduino and chipKIT
 platforms.
+
+    $ git clone https://github.com/peplin/arduino.mk.git
 
 You also need to set a few environment variables (e.g. in your `.bashrc`) for
 this method (make sure to change these defaults if your system is different!):
@@ -58,7 +62,7 @@ this method (make sure to change these defaults if your system is different!):
     # Path to the extracted MPIDE folder (this is correct for OS X)
     export MPIDE_DIR=/Applications/Mpide.app/Contents/Resources/Java
 
-    # Path to the `arduino.mk` cloned repository
+    # Path to the `arduino.mk` repository you just cloned
     export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
 
 Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
@@ -67,7 +71,7 @@ show up as `/dev/ttyUSB*` (in Linux) or `/dev/tty.usbserial*` (in Mac OS X).
 Remember that if you use `export`, the environment variables are only set in the
 terminal that you run the commands. If you want them active in all terminals
 (and you probably do), you need to add these `export ...` lines to the file
-`~/.bashrc` and restart the terminals.
+`~/.bashrc` and restart your terminals.
 
 Once this is set up, `cd` into the `cantranslator` subdirectory and run `make`
 to compile the sketch and `make clean && make upload` to upload the sketch to
@@ -123,22 +127,9 @@ them in separate files and they will be merged on import.
 
 ### Pre-built Binary
 
-If you do not know the specific CAN message formats of the vehicle you wish to
-use with the CAN translator, you can potentially use a pre-compiled binary
-firmware distributed by the vehicle's OEM. The manufacturer may distribute the
-message definitions in this way to protect proprietary information.
-
-In this case, you will have a .hex file and can use the `upload_hex.sh` script
-to update your device. This script requires that `avrdude` is installed, or that
-you have the `MPIDE_DIR` environment variable pointing to a valid MPIDE
-installation (see the "Command Line Building" section above for details). Once
-that's setup, run it like so:
-
-    $ ./upload_hex.sh new-version.hex
-
-Note that if you are using Windows, you also need to install the
-[FTDI driver](http://www.ftdichip.com/Drivers/VCP.htm) - get the setup
-executable version from that page.
+See the [firmware
+section](http://openxcplatform.com/vehicle-interface/firmware.html) of the
+[OpenXC website](http://openxcplatform.com).
 
 ## Input Specification
 
@@ -425,11 +416,12 @@ then rebuild your sketch - everything should build properly now.
 Don't add anything else to this file - it's derivative of the master JSON, and
 should be able to be wiped and recreated at any time.
 
-### Canoe
+### Vector DBC files
 
 If you use Canoe to store your "gold standard" CAN signal definitions, you may
 be able to use the included `xml_to_json.py` script to make your JSON for you.
-First, export the Canoe .dbc file as XML. Run the conversion script like this:
+First, export the Canoe .dbc file as XML - you can do this with Vector CANdb++.
+Run the conversion script like this:
 
     $ xml_to_json.py signals.xml signal_mapping.txt build/signals.json
 
@@ -439,25 +431,9 @@ with.
 
 ## Output Specification
 
-The microcontroller has a second USB controller operating in USB device mode. It
-sends the generic vehicle data over via bulk USB transfer as JSON. There
-are two valid message types - single valued and event. Each message is separated
-by a newline character.
-
-### Single Valued
-
-The expected format of a single valued message is:
-
-    {"name": "SteeringWheelAngle", "value": 45}
-
-### Event
-
-The expected format of an event message is:
-
-    {"name": "SteeringWheelAngle", "value": "up", "event": "pressed"}
-
-This format is good for something like a button even, where there are two
-discrete pieces of information in the measurement.
+See the [output
+format](http://openxcplatform.com/vehicle-interface/output-format.html) section
+of the [OpenXC][] website for details on the output format.
 
 ## Serial Output
 
@@ -473,52 +449,7 @@ direction on the serial device - from the host to the CAN translator. They'll be
 processed in exactly the same way. These write messages are accepted via serial
 even if USB is connected.
 
-## Viewer
-
-The `reader.py` Python program in this repository can be used to view the output
-of the CAN translator over micro-USB. Just plug it in and run the script with
-the `--verbose` flag to have all messages parsed and printed to stdout.
-
-    # Show a real-time stream of all messages
-    $ python reader.py -v
-    # Show a dashboard summary of the current values
-    $ python reader.py --dashboard
-
-If you get an error when trying to run the dashboard regarding the window, try
-making the terminal window a bit taller - it has a minimum size.
-
-It may also be neccessary to check the current version of the software you have
-on a CAN translator - the `--version` flag will tell you that.
-
-    $ python reader.py --version
-    Device is running version 1.0
-
-You can write a one-off message back to the CAN translator (which may or may not
-write it through to the CAN bus, depending on if it is an approved signal or
-not) using the `-w` flag:
-
-    $ python -w steering_wheel_angle 42.0
-
-### Dependencies
-
-The `reader.py` script requires the `pyusb` Python library to be installed along
-with a backing system library for accessing USB devices. `libusb-1.0` is the
-recommended library.
-
-In OS X, first install [homebrew][]. Then:
-
-    $ brew install libusb
-
-In Ubuntu:
-
-    $ sudo apt-get install libusb-0.1.4 python-setuptools
-
-Then on both platforms:
-
-    $ sudo -E easy_install pip
-    $ sudo -E pip install pyusb
-
-[homebrew]: http://mxcl.github.com/homebrew/
+## Reader
 
 ## Traces
 
@@ -533,7 +464,7 @@ by the openxc-android library, for example.
 ## API
 
 See the [OpenXC][] website for a list of officially supported
-[signal names](http://openxcplatform.com/developers/vehicle-interface/translation-specs.html).
+[signal names](http://openxcplatform.com/vehicle-interface/output-format.html).
 
 ## Test Suite
 

@@ -73,6 +73,7 @@ void setup() {
 
     initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
+    delay(5000);  //emulate delay from CAN setup
 }
 
 void loop() {

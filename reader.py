@@ -9,6 +9,9 @@ import curses.wrapper
 import time
 from datetime import datetime
 
+# timedelta.total_seconds() is only in 2.7, so we backport it here for 2.6
+def total_seconds(td):
+    return (td.microseconds + (td.sconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 class DataPoint(object):
     def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
@@ -122,7 +125,7 @@ class DataPoint(object):
 
         window.addstr(row, 110, "Frequency (Hz): " +
                 str(int((self.messages_received - self.messages_received_mark) /
-                    ((datetime.now() - average_time_mark).total_seconds()))))
+                    (total_seconds(datetime.now() - average_time_mark)))))
 
 
 class CanTranslator(object):
@@ -168,7 +171,7 @@ class CanTranslator(object):
     # Every 10 seconds, mark what the current message and bytes received counts
     # are so we can do a rolling average.
     def date_rate_management(self):
-        if ((datetime.now() - self.average_time_mark).total_seconds() > 10):
+        if (total_seconds(datetime.now() - self.average_time_mark) > 10):
             self.average_time_mark = datetime.now()
             self.bytes_received_mark = self.total_bytes_received;
             for element in self.elements:
@@ -203,8 +206,8 @@ class CanTranslator(object):
                         str(self.total_bytes_received), curses.A_REVERSE)
                 window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
                     str((self.total_bytes_received - self.bytes_received_mark)
-                        / (datetime.now() - self.average_time_mark
-                            ).total_seconds()) + " Bps",
+                        / total_seconds(datetime.now() -
+                            self.average_time_mark)) + " Bps",
                      curses.A_REVERSE)
                 window.refresh()
 

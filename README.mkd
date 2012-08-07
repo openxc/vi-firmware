@@ -31,27 +31,25 @@ a subdirectory named `libraries`. It should look like this:
              cJSON/
             ... other libraries
 
+If you're using Mac OS X or Windows, make sure to install the FTDI driver that
+comes with the MPIDE download. The chipKIT uses a different FTDI chip, so even
+if you've used the Arduino before, you still need to install this driver.
+
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32
 
 ### GUI Building
 
-If you're using the MPIDE to compile and you get a whole mess of errors stemming
-from the chipKIT libraries, make sure you have the "chipKIT Max32" selected in
-MPIDE under `Tools -> Board`.
-
-If you're using Mac OS X or Windows, make sure to install the FTDI driver that
-comes with the MPIDE download. The chipKIT uses a different FTDI chip, so even
-if you've used the Arduino before, you still need to install this driver.
+Although we just installed MPIDE, building via the GUI is **not supported**.
 
 ### Command Line Building
 
-Alternatively, you can use GNU Make to compile and upload code to the device.
-You still need to download and extract the MPIDE someplace, as it contains the
-PIC32 compilation toolchain, but you don't have to use the GUI.
+We use GNU Make to compile and upload code to the device. You still need to
+download and extract the MPIDE someplace, as it contains the PIC32 compilation
+toolchain.
 
-This method requires that you clone the [arduino.mk][] repository someone on
-your computer. This contains Makefile definitions common to Arduino and chipKIT
+This requires that you clone the [arduino.mk][] repository someone on your
+computer. This contains Makefile definitions common to Arduino and chipKIT
 platforms.
 
     $ git clone https://github.com/peplin/arduino.mk.git
@@ -73,19 +71,21 @@ terminal that you run the commands. If you want them active in all terminals
 (and you probably do), you need to add these `export ...` lines to the file
 `~/.bashrc` and restart your terminals.
 
-Once this is set up, `cd` into the `cantranslator` subdirectory and run `make`
-to compile the sketch and `make clean && make upload` to upload the sketch to
-the board.
+Once this is set up, `cd` into the `cantranslator` subdirectory, build and
+upload to the device:
+
+    $ make clean
+    $ make
+    $ make upload
 
 [arduino.mk]: https://github.com/peplin/arduino.mk
 
 ## Compiling and Uploading
 
-Once the libraries are installed and you have the `cantranslator` sketch open in
-MPIDE, you'll notice that it won't compile - it's missing the definition of a
-`decodeCanMessage` function (and a few others). This is the piece you must
-implement yourself, or by following the input specification designed here, have
-auto-generated.
+Once the libraries are installed and you run `make`, you'll notice that it won't
+compile - it's missing the definition of a `decodeCanMessage` function (and a
+few others). This is the piece you must implement yourself, or by following the
+input specification designed here, have auto-generated.
 
 You have three options: implementing these functions manually for your specific
 vehicle, using the code auto-generation scripts or using a pre-built binary.
@@ -487,9 +487,8 @@ and in Mac OS X, it's available through [homebrew][]:
 
 ## Emulator
 
-The repository includes a rudimentary CAN bus emulator. Open the
-`canemulator/canemulator.pde` sketch in MPIDE or run `make clean && make upload`
-from the `canemulator` directory to run this on the device.
+The repository includes a rudimentary CAN bus emulator. Run `make clean && make
+upload` from the `canemulator` directory to run this on the device.
 
 The emulator generates fakes values for many OpenXC signals and sends them over
 USB as if it were plugged into a live CAN bus.

@@ -15,21 +15,21 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // the data to its own internal buffer. See #171 for background on this
     // issue.
     int i = 0;
-    bool usbConnected = usbDevice->configured;
-    while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
+    while(usbDevice->configured && usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
         i++;
-        if(i > 200000) {
-            // stop waiting, USB probably isn't connected
-            usbConnected = false;
-            // break;
+        if(i > 1000000) {
+            // USB was probably unplugged, mark it as unplugged and continue on
+            // sending over serial.
+            usbDevice->configured = false;
         }
     }
+    Serial.println(i);
 
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';
     messageSize += 1;
 
-    if(!usbConnected) {
+    if(!usbDevice->configured) {
         // Serial transfers are really, really slow, so we don't want to send unless
         // explicitly set to do so at compile-time. Alternatively, we could send
         // on serial whenever we detect below that we're probably not connected to a

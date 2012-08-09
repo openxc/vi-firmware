@@ -128,7 +128,7 @@ class DataPoint(object):
 
         window.addstr(row, 110, "Frequency (Hz): " +
                 str(int((self.messages_received - self.messages_received_mark) /
-                    (total_seconds(datetime.now() - average_time_mark)))))
+                    (total_seconds(datetime.now() - average_time_mark) + 0.1))))
 
 
 class CanTranslator(object):
@@ -212,8 +212,8 @@ class CanTranslator(object):
                         str(self.total_bytes_received), curses.A_REVERSE)
                 window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
                     str((self.total_bytes_received - self.bytes_received_mark)
-                        / total_seconds(datetime.now() -
-                            self.average_time_mark)) + " Bps",
+                        / (total_seconds(datetime.now() -
+                            self.average_time_mark) + 0.1)) + " Bps",
                      curses.A_REVERSE)
                 window.refresh()
 

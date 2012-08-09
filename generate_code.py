@@ -264,7 +264,7 @@ class Parser(object):
         print "};"
         print
 
-        print "const int COMMAND_COUNT = %d;" % 1
+        print "const int COMMAND_COUNT = %d;" % self.command_count
         print "CanCommand COMMANDS[COMMAND_COUNT] = {"
 
         for command in self.commands:

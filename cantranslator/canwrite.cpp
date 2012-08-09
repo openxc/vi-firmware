@@ -30,7 +30,7 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
 }
 
 uint64_t encodeCanSignal(CanSignal* signal, float value) {
-    unsigned long rawValue = (value - signal->offset) / signal->factor;
+    unsigned long rawValue = (value - signal->offset) / signal->factor + 0.5;
     uint64_t data = 0;
     setBitField(&data, rawValue, signal->bitPosition, signal->bitSize);
     return data;

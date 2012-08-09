@@ -23,7 +23,6 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
             usbDevice->configured = false;
         }
     }
-    Serial.println(i);
 
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';

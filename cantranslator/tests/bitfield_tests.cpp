@@ -103,6 +103,12 @@ START_TEST (test_set_doesnt_clobber_existing_data)
     fail_unless(result == 0xc84f,
             "Field retrieved in 0x%X was 0x%X instead of 0x%X", data, result,
             0xc84f);
+
+    data = 0x8000000000000000;
+    setBitField(&data, 1, 21, 1);
+    fail_unless(data == 0x8000040000000000,
+            "Expected combined value 0x8000040000000000 but got 0x%X%X",
+            data >> 32, data);
 }
 END_TEST
 

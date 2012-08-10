@@ -71,8 +71,8 @@ END_TEST
 
 START_TEST (test_encode_can_signal)
 {
-    uint64_t value = encodeCanSignal(&SIGNALS[0], 42.0);
-    check_equal_unit64(value, 0x7400000000000000);
+    uint64_t value = encodeCanSignal(&SIGNALS[1], 0);
+    check_equal_unit64(value, 0);
 }
 END_TEST
 

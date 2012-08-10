@@ -24,6 +24,10 @@ chipKIT provided by Digilent) and a few library dependencies:
   device library)
 * [cJSON](http://sourceforge.net/projects/cjson/)
 
+Installing MPIDE can be a bit quirky on some platforms, so if you're having
+trouble take a look at the [installation guide for
+MPIDE](http://chipkit.org/wiki/index.php?title=MPIDE_Installation).
+
 Download these libraries and extract them to your MPIDE sketchbook directory in
 a subdirectory named `libraries`. It should look like this:
 

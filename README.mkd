@@ -15,7 +15,8 @@ the [OpenXC website](http://openxcplatform.com).
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
-requires [MPIDE][] and a few library dependencies:
+requires [MPIDE][] (the development environment and compiler toolchain for
+chipKIT provided by Digilent) and a few library dependencies:
 
 * Microchip USB device library (download DSD-0000318 from
     the bottom of the [Network Shield page][])

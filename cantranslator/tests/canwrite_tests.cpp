@@ -1,5 +1,6 @@
 #include <check.h>
 #include <stdint.h>
+#include "helpers.h"
 #include "canutil.h"
 #include "canwrite.h"
 #include "cJSON.h"
@@ -29,16 +30,12 @@ START_TEST (test_number_writer)
     bool send = true;
     uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
-    uint64_t expectedValue = 0x7400000000000000;
-    fail_unless(value == expectedValue, "Expected 0x%X%X but got 0x%X%X",
-            expectedValue, expectedValue >> 32, value, value >> 32);
+    check_equal_unit64(value, 0x7400000000000000);
     fail_unless(send);
 
     value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(0x6), &send);
-    expectedValue = 0x6000000000000000;
-    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
-            expectedValue, value);
+    check_equal_unit64(value, 0x6000000000000000);
     fail_unless(send);
 }
 END_TEST
@@ -48,9 +45,7 @@ START_TEST (test_boolean_writer)
     bool send = true;
     uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(true), &send);
-    uint64_t expectedValue = 0x8000000000000000;
-    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
-            expectedValue, value);
+    check_equal_unit64(value, 0x8000000000000000);
     fail_unless(send);
 }
 END_TEST
@@ -60,9 +55,7 @@ START_TEST (test_state_writer)
     bool send = true;
     uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
-    uint64_t expectedValue = 0x2000000000000000;
-    fail_unless(value == expectedValue, "Expected 0x%X but got 0x%X",
-            expectedValue, value);
+    check_equal_unit64(value, 0x2000000000000000);
     fail_unless(send);
 }
 END_TEST
@@ -76,6 +69,13 @@ START_TEST (test_write_unknown_state)
 }
 END_TEST
 
+START_TEST (test_encode_can_signal)
+{
+    uint64_t value = encodeCanSignal(&SIGNALS[0], 42.0);
+    check_equal_unit64(value, 0x7400000000000000);
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
@@ -83,6 +83,7 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
     tcase_add_test(tc_core, test_write_unknown_state);
+    tcase_add_test(tc_core, test_encode_can_signal);
     suite_add_tcase(s, tc_core);
 
     return s;

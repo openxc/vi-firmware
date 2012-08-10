@@ -33,7 +33,7 @@ TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o
 TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
-				$(OBJDIR)/libs/cJSON.o
+				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o
 
 test: CXX = g++
 test: CC = g++

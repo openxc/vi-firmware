@@ -32,7 +32,8 @@ TESTS=$(patsubst %.cpp,$(OBJDIR)/%,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o
-TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES))
+TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
+				$(OBJDIR)/libs/cJSON.o
 
 test: CXX = g++
 test: CC = g++
@@ -52,7 +53,10 @@ $(OBJDIR)/libs/cJSON.o: $(USER_LIB_PATH)/cJSON/cJSON.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 # TODO it would be nice to make these implicit rules to pick up any new tests
-$(TEST_OBJDIR)/bitfield_tests: $(TEST_OBJDIR)/bitfield_tests.o $(TESTABLE_OBJS) $(OBJDIR)/libs/cJSON.o
+$(TEST_OBJDIR)/bitfield_tests: $(TEST_OBJDIR)/bitfield_tests.o $(TESTABLE_OBJS)
 
-$(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS) $(OBJDIR)/libs/cJSON.o
+$(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS)
 
+$(TEST_OBJDIR)/canread_tests: $(TEST_OBJDIR)/canread_tests.o $(TESTABLE_OBJS)
+
+$(TEST_OBJDIR)/canwrite_tests: $(TEST_OBJDIR)/canwrite_tests.o $(TESTABLE_OBJS)

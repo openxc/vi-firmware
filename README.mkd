@@ -17,8 +17,10 @@ the [OpenXC website](http://openxcplatform.com).
 Building the source for the CAN translator for the chipKIT microcontroller
 requires [MPIDE][] and a few library dependencies:
 
-* Microchip USB device library (downloaded from bottom of the [Max32 page][])
-* Microchip CAN library (downloaded from bottom of the [Max32 page][])
+* Microchip USB device library (download DSD-0000318 from
+    the bottom of the [Network Shield page][])
+* Microchip CAN library (included in the same DSD-0000318 package as the USB
+  device library)
 * [cJSON](http://sourceforge.net/projects/cjson/)
 
 Download these libraries and extract them to your MPIDE sketchbook directory in
@@ -37,6 +39,7 @@ if you've used the Arduino before, you still need to install this driver.
 
 [MPIDE]: https://github.com/chipKIT32/chipKIT32-MAX/downloads
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32
+[Network Shield page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,943&Prod=CHIPKIT-NETWORK-SHIELD
 
 ### GUI Building
 

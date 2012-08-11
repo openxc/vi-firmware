@@ -99,7 +99,7 @@ void checkIfStalled() {
     if(receivedMessages > 0 && receivedMessagesAtLastMark > 0
             && millis() > lastSignificantChangeTime + 500) {
         initializeAllCan();
-        delay(200);
+        delay(1000);
         mark();
     }
 }

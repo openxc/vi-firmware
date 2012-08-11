@@ -45,14 +45,27 @@ bool signalComparator(void* name, int index, void* signals) {
     return !strcmp((char*)name, ((CanSignal*)signals)[index].genericName);
 }
 
-CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
-    int index = lookup((void*)name, signalComparator, (void*)signals,
-            signalCount);
+bool writableSignalComparator(void* name, int index, void* signals) {
+    return signalComparator(name, index, signals) &&
+            ((CanSignal*)signals)[index].writable;
+}
+
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
+        bool writable) {
+    bool (*comparator)(void* key, int index, void* candidates) = signalComparator;
+    if(writable) {
+        comparator = writableSignalComparator;
+    }
+    int index = lookup((void*)name, comparator, (void*)signals, signalCount);
     if(index != -1) {
         return &signals[index];
     } else {
         return NULL;
     }
+}
+
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
+    return lookupSignal(name, signals, signalCount, false);
 }
 
 bool commandComparator(void* name, int index, void* commands) {

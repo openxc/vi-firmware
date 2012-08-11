@@ -64,9 +64,9 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
         bool (*callback)(char*)) {
     if(!usbDevice->device.HandleBusy(handle)) {
-        // TODO see #569
-        delay(200);
         if(usbDevice->receiveBuffer[0] != NULL) {
+            // TODO see #569
+            delay(200);
             strncpy((char*)(usbDevice->packetBuffer +
                         usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
                         ENDPOINT_SIZE);

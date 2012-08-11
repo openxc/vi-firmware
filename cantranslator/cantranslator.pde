@@ -114,7 +114,7 @@ bool receiveWriteRequest(char* message) {
         }
         char* name = nameObject->valuestring;
         CanSignal* signal = lookupSignal(name, getSignals(),
-                getSignalCount());
+                getSignalCount(), true);
         if(signal != NULL) {
             cJSON* value = cJSON_GetObjectItem(root, "value");
             CanCommand* command = lookupCommand(name, getCommands(),

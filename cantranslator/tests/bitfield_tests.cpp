@@ -5,7 +5,7 @@
 START_TEST (test_one_bit)
 {
     uint8_t data = 0x80;
-    unsigned long result = getBitField(&data, 0, 1);
+    uint64_t result = getBitField(&data, 0, 1);
     fail_unless(result == 0x1,
             "First bits in 0x%X was 0x%X instead of 0x1", data, result);
 }
@@ -14,8 +14,8 @@ END_TEST
 START_TEST (test_full_message)
 {
     uint8_t data[4] = {0xFF, 0xFC, 0x4D, 0xF3};
-    unsigned long result = getBitField(data, 16, 16);
-    unsigned long expectedValue = 19955;
+    uint64_t result = getBitField(data, 16, 16);
+    uint64_t expectedValue = 19955;
     fail_unless(result == expectedValue,
             "Field retrieved in 0x%X%X%X%X was %d instead of %d", data[0],
             data[1], data[2], data[3], result, expectedValue);
@@ -25,7 +25,7 @@ END_TEST
 START_TEST (test_one_byte)
 {
     uint8_t data = 0xFA;
-    unsigned long result = getBitField(&data, 0, 4);
+    uint64_t result = getBitField(&data, 0, 4);
     fail_unless(result == 0xF,
             "First 4 bits in 0x%X was 0x%X instead of 0xF", data, result);
     result = getBitField(&data, 4, 4);
@@ -40,7 +40,7 @@ END_TEST
 START_TEST (test_multi_byte)
 {
     uint8_t data[2] = {0xFA, 0x12};
-    unsigned long result = getBitField(data, 0, 4);
+    uint64_t result = getBitField(data, 0, 4);
     fail_unless(result == 0xF,
             "First 4 bits in 0x%X was %d instead of 0xF", data[0], result);
     result = getBitField(data, 4, 4);
@@ -58,7 +58,7 @@ END_TEST
 START_TEST (test_get_multi_byte)
 {
     uint8_t data[2] = {0xFA, 0x12};
-    unsigned long result = getBitField(data, 0, 9);
+    uint64_t result = getBitField(data, 0, 9);
     fail_unless(result == 0x1F4,
             "First 4 bits in 0x%X was 0x%X instead of 0x1F4", data[0], result);
 }
@@ -67,7 +67,7 @@ END_TEST
 START_TEST (test_get_off_byte_boundary)
 {
     uint8_t data[4] = {0xFA, 0x12, 0x00, 0x00};
-    unsigned long result = getBitField(data, 4, 8);
+    uint64_t result = getBitField(data, 4, 8);
     fail_unless(result == 0xA1,
             "Middle 4 bits in 0x%X was %d instead of 0xA1", data, result);
 } END_TEST
@@ -78,7 +78,7 @@ START_TEST (test_set_field)
     setBitField(&data, 1, 0, 1);
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
-    unsigned long result = getBitField((uint8_t*)&data, 56, 1);
+    uint64_t result = getBitField((uint8_t*)&data, 56, 1);
     fail_unless(result == 0x1);
 
     memset(&data, 0, 8);
@@ -99,7 +99,7 @@ START_TEST (test_set_doesnt_clobber_existing_data)
     setBitField(&data, 0x4fc8, 16, 16);
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
-    unsigned long result = getBitField((uint8_t*)&data, 32, 16);
+    uint64_t result = getBitField((uint8_t*)&data, 32, 16);
     fail_unless(result == 0xc84f,
             "Field retrieved in 0x%X was 0x%X instead of 0x%X", data, result,
             0xc84f);
@@ -116,7 +116,7 @@ START_TEST (test_set_off_byte_boundary)
 {
     uint64_t data = 0xFFFC4DF300000000;
     setBitField(&data, 0x12, 12, 8);
-    unsigned long result = getBitField((uint8_t*)&data, 40, 16);
+    uint64_t result = getBitField((uint8_t*)&data, 40, 16);
     fail_unless(result == 0x2df1,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x2df1);
@@ -127,7 +127,7 @@ START_TEST (test_set_odd_number_of_bits)
 {
     uint64_t data = 0xFFFC4DF300000000;
     setBitField(&data, 0x12, 11, 5);
-    unsigned long result = getBitField((uint8_t*)&data, 51, 5);
+    uint64_t result = getBitField((uint8_t*)&data, 51, 5);
     fail_unless(result == 0x12,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x12);

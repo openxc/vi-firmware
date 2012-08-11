@@ -25,11 +25,11 @@
  *
  * Examples
  *
- *  unsigned long value = getBitField(data, 2, 4);
+ *  uint64_t value = getBitField(data, 2, 4);
  *
  * Returns the value of the requested bit field.
  */
-unsigned long getBitField(uint8_t* data, int startPos, int numBits);
+uint64_t getBitField(uint8_t* data, int startPos, int numBits);
 
 /* Public: Set the bit field in the given data array to the new value.
  *

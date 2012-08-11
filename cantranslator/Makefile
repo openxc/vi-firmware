@@ -37,10 +37,10 @@ TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
 
 test: CXX = g++
 test: CC = g++
-test: CPPFLAGS = -I. -w -Wall -g -ggdb -I$(USER_LIB_PATH)/cJSON \
+test: CPPFLAGS = -I. -m32 -w -Wall -g -ggdb -I$(USER_LIB_PATH)/cJSON \
 		-I$(USER_LIB_PATH)/chipKITCAN
 test: CXXFLAGS =
-test: LDFLAGS =
+test: LDFLAGS = -m32
 test: LDLIBS = $(TEST_LIBS)
 test: $(TEST_OBJDIR) $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)

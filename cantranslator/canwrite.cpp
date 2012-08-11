@@ -45,7 +45,7 @@ uint64_t encodeCanSignal(CanSignal* signal, float value) {
 }
 
 uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
-    unsigned long rawValue = (value - signal->offset) / signal->factor;
+    uint64_t rawValue = (value - signal->offset) / signal->factor;
     if(rawValue > 0) {
         // round up to avoid losing precision when we cast to an int
         rawValue += 0.5;

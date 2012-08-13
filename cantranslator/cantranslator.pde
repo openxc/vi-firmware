@@ -33,7 +33,7 @@ CAN can2(CAN::CAN2);
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
 SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        ENDPOINT_SIZE, &serialDevice, false};
+        ENDPOINT_SIZE, &serialDevice, true};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
@@ -57,7 +57,7 @@ void setup() {
 }
 
 void loop() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+    for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
     USB_OUTPUT_HANDLE = readFromHost(
@@ -77,7 +77,7 @@ int main(void) {
 }
 
 void initializeAllCan() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+    for(int i = 0; i < getCanBusCount(); i++) {
         initializeCan(&(getCanBuses()[i]));
     }
 }
@@ -99,7 +99,7 @@ void checkIfStalled() {
     if(receivedMessages > 0 && receivedMessagesAtLastMark > 0
             && millis() > lastSignificantChangeTime + 500) {
         initializeAllCan();
-        delay(200);
+        delay(1000);
         mark();
     }
 }
@@ -114,7 +114,7 @@ bool receiveWriteRequest(char* message) {
         }
         char* name = nameObject->valuestring;
         CanSignal* signal = lookupSignal(name, getSignals(),
-                getSignalCount());
+                getSignalCount(), true);
         if(signal != NULL) {
             cJSON* value = cJSON_GetObjectItem(root, "value");
             CanCommand* command = lookupCommand(name, getCommands(),
@@ -216,6 +216,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     case EVENT_CONFIGURED:
         Serial.println("Event: Configured");
         usbDevice.configured = true;
+        mark();
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);

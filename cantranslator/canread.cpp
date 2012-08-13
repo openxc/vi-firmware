@@ -1,7 +1,7 @@
 #include "canread.h"
 
 float decodeCanSignal(CanSignal* signal, uint8_t* data) {
-    unsigned long rawValue = getBitField(data, signal->bitPosition,
+    uint64_t rawValue = getBitField(data, signal->bitPosition,
             signal->bitSize);
     return rawValue * signal->factor + signal->offset;
 }

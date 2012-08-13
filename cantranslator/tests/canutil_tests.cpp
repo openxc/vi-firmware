@@ -10,7 +10,7 @@ CanSignalState SIGNAL_STATES[1][10] = {
         {5, "neutral"}, {6, "second"}, },
 };
 
-const int SIGNAL_COUNT = 3;
+const int SIGNAL_COUNT = 5;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
     {NULL, 0, "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
         33522.000000, 1, false, false, NULL, 0, true},
@@ -18,6 +18,10 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
         0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
     {NULL, 2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
         false, false, NULL, 0, true},
+    {NULL, 2, "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
+        false, true, NULL, 0, false},
+    {NULL, 2, "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
+        false, true, NULL, 0, true},
 };
 
 const int COMMAND_COUNT = 1;
@@ -70,6 +74,18 @@ START_TEST (test_lookup_signal)
 }
 END_TEST
 
+START_TEST (test_lookup_writable_signal)
+{
+    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT, true) == 0);
+    fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
+            SIGNAL_COUNT, false) == &SIGNALS[1]);
+    fail_unless(lookupSignal("command", SIGNALS,
+            SIGNAL_COUNT, false) == &SIGNALS[3]);
+    fail_unless(lookupSignal("command", SIGNALS,
+            SIGNAL_COUNT, true) == &SIGNALS[4]);
+}
+END_TEST
+
 START_TEST (test_lookup_signal_state_by_name)
 {
     fail_unless(lookupSignalState("does_not_exist", &SIGNALS[1], SIGNALS,
@@ -106,6 +122,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
     tcase_add_test(tc_core, test_lookup_signal);
+    tcase_add_test(tc_core, test_lookup_writable_signal);
     tcase_add_test(tc_core, test_lookup_signal_state_by_name);
     tcase_add_test(tc_core, test_lookup_signal_state_by_value);
     tcase_add_test(tc_core, test_lookup_command);

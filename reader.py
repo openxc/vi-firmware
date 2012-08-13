@@ -69,6 +69,7 @@ class DataPoint(object):
                     self.bad_data = True
 
     def print_to_window(self, window, row, average_time_mark):
+        width = window.getmaxyx()[1]
         window.addstr(row, 0, self.name)
         if self.current_data is not None:
             if self.type == float and not self.bad_data:
@@ -116,19 +117,26 @@ class DataPoint(object):
             bad_data_color = curses.color_pair(1)
         else:
             bad_data_color = curses.color_pair(2)
-        window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
-                bad_data_color)
+
+        if width > 90:
+            window.addstr(row, 80, "Errors: " + str(self.bad_data_tally),
+                    bad_data_color)
 
         if self.messages_received > 0:
             message_count_color = curses.color_pair(0)
         else:
             message_count_color = curses.color_pair(3)
-        window.addstr(row, 95, "Messages: " + str(self.messages_received),
-                message_count_color)
 
-        window.addstr(row, 110, "Frequency (Hz): " +
-                str(int((self.messages_received - self.messages_received_mark) /
-                    (total_seconds(datetime.now() - average_time_mark) + 0.1))))
+        if width > 100:
+            window.addstr(row, 95, "Messages: " + str(self.messages_received),
+                    message_count_color)
+
+        if width >= 115:
+            window.addstr(row, 110, "Frequency (Hz): " +
+                    str(int((self.messages_received -
+                        self.messages_received_mark) /
+                        (total_seconds(datetime.now() - average_time_mark) +
+                            0.1))))
 
 
 class CanTranslator(object):

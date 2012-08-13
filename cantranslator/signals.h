@@ -16,7 +16,7 @@ extern void handleCan2Interrupt();
 /* Public: The number of CAN buses to read. This is limited to 2, as the
  * hardware controller only has 2 CAN channels.
  */
-const int CAN_BUS_COUNT = 2;
+int getCanBusCount();
 
 /* Public: Return an array of all CAN signals you are able to process and
  * translate to send over USB.

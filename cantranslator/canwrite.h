@@ -21,6 +21,23 @@
  */
 uint64_t encodeCanSignal(CanSignal* signal, float value);
 
+/* Public: Encode and store a value in the bit field for a signal, but using the
+ * given data as the starting point.
+ *
+ * This function is useful when you need to set more than one signal in a single
+ * CAN message and you don't want them to clobber one another.
+ *
+ * signal - The signal associated with the value
+ * value - The numerical value to encode. String-ified state values need to be
+ *      converted back to their integer equivalents before calling this
+ *      function.
+ * data - the starting 64-bit data block to set the bit field in.
+ *
+ * Returns a the 64-bit data block provided but with the bit field for the
+ * signal set to the encoded value.
+ */
+uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data);
+
 /* Public: Interpret the JSON value as a number and write it to the correct
  * bitfield for the given signal.
  *
@@ -36,6 +53,9 @@ uint64_t encodeCanSignal(CanSignal* signal, float value);
  */
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
+
+uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send, uint64_t data);
 
 /* Public: Interpret the JSON value as a string, convert it to the correct
  * integer value for the given CAN signal and write it to the signal's bitfield.
@@ -70,5 +90,8 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
  */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
+
+uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send, uint64_t data);
 
 #endif // _CANWRITE_H_

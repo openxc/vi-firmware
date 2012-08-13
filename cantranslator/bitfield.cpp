@@ -10,16 +10,16 @@ int findEndBit(int startBit, int numBits) {
     return endBit == 0 ? 8 : endBit;
 }
 
-unsigned long bitmask(int numBits) {
-    return (unsigned long)((0x1 << numBits) - 1);
+uint64_t bitmask(int numBits) {
+    return (0x1 << numBits) - 1;
 }
 
-unsigned long reverseBitmaskVariableLength(int numBits, int totalLength) {
-    unsigned long mask = bitmask(numBits);
+uint64_t reverseBitmaskVariableLength(int numBits, int totalLength) {
+    uint64_t mask = bitmask(numBits);
     return mask << totalLength - numBits;
 }
 
-unsigned long reverseBitmask(int numBits) {
+uint64_t reverseBitmask(int numBits) {
     return reverseBitmaskVariableLength(numBits, 64);
 }
 
@@ -32,11 +32,11 @@ int endingByte(int startBit, int numBits) {
     return (startBit + numBits - 1) / 8;
 }
 
-unsigned long getBitField(uint8_t* data, int startBit, int numBits) {
+uint64_t getBitField(uint8_t* data, int startBit, int numBits) {
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
-    unsigned long ret = data[startByte];
+    uint64_t ret = data[startByte];
     if(startByte != endByte) {
         // The lowest byte address contains the most significant bit.
         for (int i = startByte + 1; i <= endByte; i++) {

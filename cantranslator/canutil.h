@@ -146,7 +146,8 @@ struct CanCommand {
 };
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
- * name.
+ * name. The signal may or may not be writable - the first result will be
+ * returned.
  *
  * name - The generic, OpenXC name of the signal.
  * signals - The list of all signals.
@@ -155,6 +156,19 @@ struct CanCommand {
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
+
+/* Public: Look up the CanSignal representation of a signal based on its generic
+ * name.
+ *
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * writable - If true, only consider signals that are writable as candidates.
+ *
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
+ */
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
+        bool writable);
 
 /* Public: Look up the CanCommand representation of a command based on its
  * generic name.

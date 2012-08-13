@@ -86,41 +86,6 @@ def compile_trip(trace_file, tripNum):
                 currentTraceFile.close()
                 trace_file = get_next_file(trace_file)
 
-
-def generate_gpx(trace_file):
-    root = ET.Element("gpx")
-
-    track = ET.SubElement(root, "trk")
-    number = ET.SubElement(track, "number")
-    number.text = "1"
-
-    latitude = None
-    longitude = None
-
-    segment = ET.SubElement(track, "trkseg")
-    for line in open(trace_file):
-        timestamp, data = line.split(':', 1)
-        try:
-            record = json.loads(data)
-        except ValueError:
-            sys.stderr.write("Skipping line: %s" % data)
-            continue
-
-        if record['name'] == 'latitude':
-            latitude = record['value']
-        elif record['name'] == 'longitude':
-            longitude = record['value']
-
-        if latitude and longitude:
-            point = ET.SubElement(segment, "trkpt")
-            point.set('lat', str(latitude))
-            point.set('lon', str(longitude))
-            latitude = longitude = None
-
-    return ET.tostring(ET.ElementTree(root).getroot())
-
-    
-
 if __name__ == '__main__':
     if len(sys.argv) is not 3:
         print "Must provide the path to the first trace file in a trip and the trip number."

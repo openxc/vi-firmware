@@ -32,6 +32,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
             // USB was probably unplugged, mark it as unplugged and continue on
             // sending over serial.
             usbDevice->configured = false;
+            Serial.println("Assuming USB not connected and marking unconfigured");
         }
     }
 

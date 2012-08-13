@@ -226,6 +226,7 @@ class Parser(object):
             sys.exit(1)
         self.print_header()
 
+        print "const int CAN_BUS_COUNT = %d;" % len(self.buses)
         print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
@@ -273,6 +274,7 @@ class Parser(object):
         print "};"
         print
 
+        # TODO store all of this in a separate, committed .cpp file
         print "CanCommand* getCommands() {"
         print "    return COMMANDS;"
         print "}"
@@ -295,6 +297,11 @@ class Parser(object):
 
         print "CanBus* getCanBuses() {"
         print "    return CAN_BUSES;"
+        print "}"
+        print
+
+        print "int getCanBusCount() {"
+        print "    return CAN_BUS_COUNT;"
         print "}"
         print
 

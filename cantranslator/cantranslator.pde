@@ -57,7 +57,7 @@ void setup() {
 }
 
 void loop() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+    for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
     USB_OUTPUT_HANDLE = readFromHost(
@@ -77,7 +77,7 @@ int main(void) {
 }
 
 void initializeAllCan() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
+    for(int i = 0; i < getCanBusCount(); i++) {
         initializeCan(&(getCanBuses()[i]));
     }
 }

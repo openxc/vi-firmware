@@ -33,7 +33,7 @@ CAN can2(CAN::CAN2);
 USB_HANDLE USB_OUTPUT_HANDLE = 0;
 SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        ENDPOINT_SIZE, &serialDevice, false};
+        ENDPOINT_SIZE, &serialDevice, true};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;

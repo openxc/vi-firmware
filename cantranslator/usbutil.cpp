@@ -4,12 +4,23 @@
 // TODO move this up to cantranslator.pde
 USB_HANDLE USB_INPUT_HANDLE = 0;
 
+// TODO document this and clean it up.
+int USB_ATTEMPT_CLOCK = 0;
 
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 #ifdef DEBUG
     Serial.print("sending message: ");
     Serial.println((char*)message);
 #endif
+
+    if(!usbDevice->configured) {
+        USB_ATTEMPT_CLOCK += 1;
+    }
+
+    if(USB_ATTEMPT_CLOCK > 10) {
+        usbDevice->configured = true;
+    }
+
     // Make sure the USB write is 100% complete before messing with this buffer
     // after we copy the message into it - the Microchip library doesn't copy
     // the data to its own internal buffer. See #171 for background on this
@@ -17,7 +28,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     int i = 0;
     while(usbDevice->configured && usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
         i++;
-        if(i > 1000000) {
+        if(i > 10000000) {
             // USB was probably unplugged, mark it as unplugged and continue on
             // sending over serial.
             usbDevice->configured = false;

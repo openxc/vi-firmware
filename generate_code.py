@@ -199,6 +199,8 @@ class Parser(object):
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""
+        print "#include \"handlers.h\""
+        print "#include \"shared_handlers.h\""
         print
         print "extern CanUsbDevice usbDevice;"
         print "extern CAN can1;"

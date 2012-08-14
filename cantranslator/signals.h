@@ -4,8 +4,6 @@
 #include "canread_chipkit.h"
 #include "canread.h"
 #include "canwrite.h"
-#include "handlers.h"
-#include "shared_handlers.h"
 
 extern CanUsbDevice usbDevice;
 extern CAN can1;

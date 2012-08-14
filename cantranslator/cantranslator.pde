@@ -14,7 +14,6 @@
 #include "serialutil.h"
 #include "cJSON.h"
 #include "signals.h"
-#include "handlers.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81

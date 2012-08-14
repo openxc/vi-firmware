@@ -10,14 +10,16 @@ CanSignalState SIGNAL_STATES[1][10] = {
         {5, "neutral"}, {6, "second"}, },
 };
 
-const int SIGNAL_COUNT = 3;
+const int SIGNAL_COUNT = 4;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {NULL, 0, "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
+    {NULL, 0, "torque_at_transmission", 2, 6, 1001.0, -30000.000000, -5000.000000,
         33522.000000, 1, false, false, NULL, 0, true},
     {NULL, 1, "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
         0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
     {NULL, 2, "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
         false, false, NULL, 0, true},
+    {NULL, 3, "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
+        0, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
 };
 
 const int COMMAND_COUNT = 1;
@@ -30,7 +32,7 @@ START_TEST (test_number_writer)
     bool send = true;
     uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
-    check_equal_unit64(value, 0x7400000000000000);
+    check_equal_unit64(value, 0x1e00000000000000);
     fail_unless(send);
 
     value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
@@ -76,6 +78,13 @@ START_TEST (test_encode_can_signal)
 }
 END_TEST
 
+START_TEST (test_encode_can_signal_rounding_precision)
+{
+    uint64_t value = encodeCanSignal(&SIGNALS[3], 50);
+    check_equal_unit64(value, 0x061a800000000000);
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
@@ -84,6 +93,7 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_core, test_state_writer);
     tcase_add_test(tc_core, test_write_unknown_state);
     tcase_add_test(tc_core, test_encode_can_signal);
+    tcase_add_test(tc_core, test_encode_can_signal_rounding_precision);
     suite_add_tcase(s, tc_core);
 
     return s;

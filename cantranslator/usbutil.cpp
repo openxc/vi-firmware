@@ -16,7 +16,14 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     // issue.
     int i = 0;
     while(usbDevice->configured &&
-            usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) { }
+            usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
+        ++i;
+        if(i > 50000) {
+            // USB most likely not connected or at least not requesting reads,
+            // so we bail as to not block the main loop.
+            return;
+        }
+    }
 
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';

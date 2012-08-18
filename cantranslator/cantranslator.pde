@@ -9,7 +9,6 @@
 #include "chipKITUSBDevice.h"
 #include "signals.h"
 #include "bitfield.h"
-#include "canwrite_chipkit.h"
 #include "usbutil.h"
 #include "serialutil.h"
 #include "cJSON.h"

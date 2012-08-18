@@ -37,8 +37,8 @@ TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
 
 test: CXX = g++
 test: CC = g++
-test: CPPFLAGS = -I. -m32 -w -Wall -g -ggdb -I$(USER_LIB_PATH)/cJSON \
-		-I$(USER_LIB_PATH)/chipKITCAN
+test: CPPFLAGS = -I. -m32 -w -Wall -g -ggdb $(SYS_INCLUDES)
+
 test: CXXFLAGS =
 test: LDFLAGS = -m32
 test: LDLIBS = $(TEST_LIBS)

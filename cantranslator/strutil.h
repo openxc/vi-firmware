@@ -6,6 +6,6 @@
 /*
  * Thanks to https://gist.github.com/855214.
  */
-const char *strnchr(const char *str, size_t len, int character);
+const char *strnchr(const char *str, size_t len, char character);
 
 #endif // _STRUTIL_H_

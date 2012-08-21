@@ -79,7 +79,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
  * value - The numerical value for the value field of the OpenXC message.
  * usbDevice - The USB device to send on.
  */
-void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
+void sendNumericalMessage(const char* name, float value, CanUsbDevice* usbDevice);
 
 /* Public: Send the given name and value out over the default in endpoint of the
  * USB device in an OpenXC JSON message followed by a newline.
@@ -88,7 +88,7 @@ void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
  * value - The string value for the value field of the OpenXC message.
  * usbDevice - The USB device to send on.
  */
-void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice);
+void sendStringMessage(const char* name, const char* value, CanUsbDevice* usbDevice);
 
 /* Public: Send the given name and value out over the default in endpoint of the
  * USB device in an OpenXC JSON message followed by a newline.
@@ -97,7 +97,7 @@ void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice);
  * value - The boolean value for the value field of the OpenXC message.
  * usbDevice - The USB device to send on.
  */
-void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice);
+void sendBooleanMessage(const char* name, bool value, CanUsbDevice* usbDevice);
 
 /* Public: Send the given name and value out over the default in endpoint of the
  * USB device in an OpenXC JSON message followed by a newline.
@@ -107,7 +107,7 @@ void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice);
  * event - The boolean event for the event field of the OpenXC message.
  * usbDevice - The USB device to send on.
  */
-void sendEventedBooleanMessage(char* name, char* value, bool event,
+void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         CanUsbDevice* usbDevice);
 
 #endif // _CANREAD_CHIPKIT_H_

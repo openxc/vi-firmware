@@ -1,6 +1,5 @@
 #include "canutil.h"
 #include "signals.h"
-#include "WProgram.h"
 
 /* Private: Initializes message filter masks and filters on the CAN controller.
  *
@@ -10,21 +9,16 @@
  */
 void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
         int filterMaskCount, CanFilter* filters, int filterCount) {
-    Serial.print("Configuring ");
-    Serial.print(filterMaskCount, DEC);
-    Serial.print(" filter masks...  ");
+    printf("Configuring %d filter masks...\n", filterMaskCount);
     for(int i = 0; i < filterMaskCount; i++) {
-        Serial.print("Configuring filter mask ");
-        Serial.println(filterMasks[i].value, HEX);
+        printf("Configuring filter mask %x\n", filterMasks[i].value);
         bus->bus->configureFilterMask(
                 (CAN::FILTER_MASK) filterMasks[i].number,
                 filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
-    Serial.println("Done.");
+    printf("Done.\n");
 
-    Serial.print("Configuring ");
-    Serial.print(filterCount, DEC);
-    Serial.print(" filters...  ");
+    printf("Configuring %d filters...\n", filterCount);
     for(int i = 0; i < filterCount; i++) {
         bus->bus->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
@@ -33,7 +27,7 @@ void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
                 (CAN::CHANNEL) filters[i].channel);
         bus->bus->enableFilter((CAN::FILTER) filters[i].number, true);
     }
-    Serial.println("Done.");
+    printf("Done.");
 }
 
 void initializeCan(CanBus* bus) {
@@ -90,6 +84,6 @@ void initializeCan(CanBus* bus) {
 
     bus->bus->attachInterrupt(bus->interruptHandler);
 
-    Serial.println("Done.");
+    printf("Done.");
 }
 

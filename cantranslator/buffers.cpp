@@ -1,6 +1,7 @@
 #include "buffers.h"
 #include "strutil.h"
-#include "WProgram.h"
+#include <stdio.h>
+#include <string.h>
 
 void resetBuffer(char* buffer, int* bufferIndex, const int bufferSize) {
     *bufferIndex = 0;
@@ -12,11 +13,10 @@ void processBuffer(char* buffer, int* bufferIndex, const int bufferSize,
     if(callback(buffer)) {
         resetBuffer(buffer, bufferIndex, bufferSize);
     } else if(*bufferIndex >= bufferSize) {
-        Serial.println("Incoming write is too long");
+        printf("Incoming write is too long");
         resetBuffer(buffer, bufferIndex, bufferSize);
-    } else if(strnchr(buffer, bufferSize, NULL) != NULL) {
-        Serial.println("Incoming buffered write is corrupted -- "
-                "clearing buffer");
+    } else if(strnchr(buffer, bufferSize, '\0') != NULL) {
+        printf("Incoming buffered write is corrupted -- clearing buffer");
         resetBuffer(buffer, bufferIndex, bufferSize);
     }
 }

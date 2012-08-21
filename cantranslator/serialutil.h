@@ -1,8 +1,6 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-#include "WProgram.h"
-
 #define SERIAL_BUFFER_SIZE 64 * 4
 
 /* Public: a container for a CAN translator Serial device and associated
@@ -11,7 +9,7 @@
  * device - A pointer to the hardware serial device to use for OpenXC messages.
  */
 struct SerialDevice {
-    HardwareSerial* device;
+    void* device;
     // host to device
     char receiveBuffer[SERIAL_BUFFER_SIZE];
     int receiveBufferIndex;

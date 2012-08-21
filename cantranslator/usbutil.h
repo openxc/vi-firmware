@@ -1,17 +1,116 @@
 #ifndef _USBUTIL_H_
 #define _USBUTIL_H_
 
+#include "usbutil.h"
 #include <string.h>
-#include "chipKITUSBDevice.h"
-#include "serialutil.h"
+#include <stdint.h>
+// #include "serialutil.h"
+
+extern "C" {
+#include "serial_fifo.h"
+#include "usbapi.h"
+}
+
+#define MAX_USB_PACKET_SIZE 64
 
 // Don't try to send a message larger than this
-#define ENDPOINT_SIZE 64
-#define USB_PACKET_SIZE 64
-#define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
+#define PACKET_BUFFER_SIZE MAX_USB_PACKET_SIZE * 4
 
-// This is a reference to the last packet read
-extern volatile CTRL_TRF_SETUP SetupPkt;
+#define LE_WORD(x)		((x)&0xFF),((x)>>8)
+
+/* Configuration Attributes */
+#define _DEFAULT    (0x01<<7)       //Default Value (Bit 7 is set)
+#define _SELF       (0x01<<6)       //Self-powered (Supports if set)
+#define _RWU        (0x01<<5)       //Remote Wakeup (Supports if set)
+#define _HNP	    (0x01 << 1)     //HNP (Supports if set)
+#define _SRP	  	(0x01)		    //SRP (Supports if set)
+
+/* Endpoint Transfer Type */
+#define _CTRL       0x00            //Control Transfer
+#define _ISO        0x01            //Isochronous Transfer
+#define _BULK       0x02            //Bulk Transfer
+
+#define _EP01_OUT   0x01
+#define _EP01_IN    0x81
+
+static const U8 USB_DESCRIPTORS[] = {
+
+    // Device descriptor
+	0x12,              		// size of the descriptor in bytes
+	DESC_DEVICE,
+	LE_WORD(0x0110),		// bcdUSB
+	0x00,              		// bDeviceClass
+	0x00,              		// bDeviceSubClass
+	0x00,              		// bDeviceProtocol
+	MAX_USB_PACKET_SIZE,  		// bMaxPacketSize
+	LE_WORD(0xFFFF),		// idVendor
+	LE_WORD(0x0001),		// idProduct
+	LE_WORD(0x0100),		// bcdDevice
+	0x01,              		// iManufacturer
+	0x02,              		// iProduct
+	0x03,              		// iSerialNumber
+	0x01,              		// bNumConfigurations
+
+    // Configuration 1 Descriptor
+    0x09,                   // Size of this descriptor in bytes
+    DESC_CONFIGURATION,                // CONFIGURATION descriptor type
+	LE_WORD(0x22),  		// wTotalLength
+	0x01,  					// bNumInterfaces
+	0x01,  					// bConfigurationValue
+	0x00,  					// iConfiguration
+	0x80,  					// bmAttributes
+	0x32,  					// bMaxPower
+
+    // Interface Descriptor
+	0x09,
+	DESC_INTERFACE,
+	0x00,  		 			// bInterfaceNumber
+	0x00,   				// bAlternateSetting
+	0x02,   				// bNumEndPoints
+	0x03,   				// bInterfaceClass = HID
+	0x00,   				// bInterfaceSubClass
+	0x00,   				// bInterfaceProtocol
+	0x00,   				// iInterface
+
+    // Endpoint descriptor
+	0x07,
+	DESC_ENDPOINT,
+	_EP01_OUT,				// bEndpointAddress
+	_BULK,   				// bmAttributes = INT
+	LE_WORD(MAX_USB_PACKET_SIZE),// wMaxPacketSize
+	1,						// bInterval
+
+	0x07,
+	DESC_ENDPOINT,
+	_EP01_IN,				// bEndpointAddress
+	_BULK,   				// bmAttributes = INT
+	LE_WORD(MAX_USB_PACKET_SIZE), // wMaxPacketSize
+	1,						// bInterval
+
+    // language code string descriptors
+	0x04,
+	DESC_STRING,
+	LE_WORD(0x0409),
+
+	// manufacturer string
+	0x0E,
+	DESC_STRING,
+    'F','o','r','d',' ','M','o','t','o','r', 'C','o','m','p','a','n','y',
+
+	// product string
+	0x12,
+	DESC_STRING,
+    'O','p','e','n','X','C',' ','C','A','N',' ',
+    'T','r','a','n','s', 'l','a','t','o','r',
+
+	// serial number string
+	0x12,
+	DESC_STRING,
+	'D', 0, 'E', 0, 'A', 0, 'D', 0, 'C', 0, '0', 0, 'D', 0, 'E', 0,
+
+	// terminator
+	0
+};
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
@@ -25,15 +124,15 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
  *      planned, we could actually drop this reference altogether.
  */
 struct CanUsbDevice {
-    USBDevice device;
     int endpoint;
     int endpointSize;
-    SerialDevice* serial;
+    // SerialDevice* serial;
     bool configured;
     // device to host
-    char sendBuffer[ENDPOINT_SIZE];
+    char sendBuffer[MAX_USB_PACKET_SIZE];
     // host to device
-    char receiveBuffer[ENDPOINT_SIZE];
+    char receiveBuffer[MAX_USB_PACKET_SIZE];
+    fifo_t transmitQueue;
     // buffer messages up to 4x 1 USB packet in size waiting for valid JSON
     char packetBuffer[PACKET_BUFFER_SIZE];
     int packetBufferIndex;
@@ -61,7 +160,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize);
  * usbDevice - the CAN USB device to arm the endpoint on
  * buffer - the destination buffer for the next IN transfer.
  */
-USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
+void* armForRead(CanUsbDevice* usbDevice, char* buffer);
 
 /* Public: Pass the next IN request message to the callback, if available.
  *
@@ -73,14 +172,13 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
  * handle - the USB handle for IN transfers
  * callback - a function that handles USB in requests
  */
-USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
+void* readFromHost(CanUsbDevice* usbDevice, void* handle,
         bool (*callback)(char*));
 
 /* Internal: Handle asynchronous events from the USB controller.
  */
-static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+// static bool usbCallback(void* event, void *pdata, int size);
 
 extern CanUsbDevice USB_DEVICE;
-extern USB_HANDLE USB_INPUT_HANDLE;
 
 #endif // _USBUTIL_H_

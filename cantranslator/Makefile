@@ -5,7 +5,7 @@ SYS_OBJECTS = ./mbed/LPC1768/GCC_ARM/startup_LPC17xx.o \
 			  ./mbed/LPC1768/GCC_ARM/core_cm3.o \
 			  ./mbed/LPC1768/GCC_ARM/system_LPC17xx.o
 INCLUDE_PATHS = -I. -I./mbed -I./mbed/LPC1768 -I./mbed/LPC1768/GCC_ARM \
-				-I./cJSON
+				-I./cJSON -I./usb
 LIBRARY_PATHS = -L./mbed/LPC1768/GCC_ARM
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = ./mbed/LPC1768/GCC_ARM/LPC1768.ld
@@ -13,7 +13,7 @@ OBJDIR  	  = build
 
 ###############################################################################
 
-CC= $(GCC_BIN)arm-none-eabi-gcc
+CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
 CC_FLAGS = -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
@@ -24,24 +24,26 @@ CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM -DNDEBUG
 
 AS = $(GCC_BIN)arm-none-eabi-as
 
-LD = $(GCC_BIN)arm-none-eabi-gcc
+LD = $(GCC_BIN)arm-none-eabi-g++
 LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
-LOCAL_C_SRCS    = $(wildcard **/*.c)
-LOCAL_CPP_SRCS  = $(wildcard **/*.cpp)
+LOCAL_C_SRCS    = $(wildcard *.c)
+LOCAL_C_SRCS    += $(wildcard usb/*.c)
+LOCAL_CPP_SRCS  = $(wildcard *.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
-OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
+OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o
 
 TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
 
-all: $(TARGET_BIN) | $(OBJDIR)
+all: $(OBJDIR) $(TARGET_BIN)
 
 $(OBJDIR):
 		@mkdir -p $(OBJDIR)
+		@mkdir -p $(OBJDIR)/usb
 
 clean:
 	rm -rf $(OBJDIR)
@@ -62,7 +64,7 @@ $(OBJDIR)/%.o: %.cpp
 
 $(TARGET_ELF): $(OBJECTS) $(SYS_OBJECTS)
 	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) $(LIBRARY_PATHS) -o $@ $^ \
-			$(LIBRARIES) $(LD_SYS_LIBS) $(LIBRARIES) $(LD_SYS_LIBS)
+			$(LIBRARIES) $(LD_SYS_LIBS)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(OBJCOPY) -O binary $< $@

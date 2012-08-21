@@ -5,7 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
+
+extern "C" {
 #include "cJSON.h"
+}
 
 #define SYS_FREQ (80000000L)
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16

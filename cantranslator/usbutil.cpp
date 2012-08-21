@@ -1,29 +1,19 @@
 #include "usbutil.h"
+#include "usbapi.h"
 #include "buffers.h"
+#include "LPC17xx.h"
+#include <algorithm>
+#include <stdio.h>
 
 // TODO move this up to cantranslator.pde
-USB_HANDLE USB_INPUT_HANDLE = 0;
+void* USB_INPUT_HANDLE = 0;
+
+static U8 abBulkBuf[64];
 
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 #ifdef DEBUG
-    Serial.print("sending message: ");
-    Serial.println((char*)message);
+    printf("sending message: %s", message);
 #endif
-
-    // Make sure the USB write is 100% complete before messing with this buffer
-    // after we copy the message into it - the Microchip library doesn't copy
-    // the data to its own internal buffer. See #171 for background on this
-    // issue.
-    int i = 0;
-    while(usbDevice->configured &&
-            usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
-        ++i;
-        if(i > 50000) {
-            // USB most likely not connected or at least not requesting reads,
-            // so we bail as to not block the main loop.
-            return;
-        }
-    }
 
     strncpy(usbDevice->sendBuffer, (char*)message, messageSize);
     usbDevice->sendBuffer[messageSize] = '\n';
@@ -38,44 +28,72 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
 #else
     int nextByteIndex = 0;
     while(nextByteIndex < messageSize) {
-        while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
-        int bytesToTransfer = min(USB_PACKET_SIZE,
-                messageSize - nextByteIndex);
-        uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
-                + nextByteIndex);
-        USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
-                currentByte, bytesToTransfer);
+        int bytesToTransfer = std::min(MAX_USB_PACKET_SIZE, messageSize - nextByteIndex);
+        U8 currentByte = *(U8*)(usbDevice->sendBuffer + nextByteIndex);
+        fifo_put(&USB_DEVICE.transmitQueue, currentByte);
         nextByteIndex += bytesToTransfer;
     }
 #endif
 }
 
+static void handleBulkIn(U8 endpoint, U8 endpointStatus) {
+	int i, length;
+
+	if (fifo_avail(&USB_DEVICE.transmitQueue) == 0) {
+		// no more data, disable further NAK interrupts until next USB frame
+		USBHwNakIntEnable(0);
+		return;
+	}
+
+	// get bytes from transmit FIFO into intermediate buffer
+	for (i = 0; i < MAX_USB_PACKET_SIZE; i++) {
+		if (!fifo_get(&USB_DEVICE.transmitQueue, (U8*)&USB_DEVICE.sendBuffer[i])) {
+			break;
+		}
+	}
+	length = i;
+
+	if(length > 0) {
+		USBHwEPWrite(endpoint, (U8*)USB_DEVICE.sendBuffer, length);
+	}
+}
+
 void initializeUsb(CanUsbDevice* usbDevice) {
-    Serial.print("Initializing USB.....");
-    usbDevice->device.InitializeSystem(false);
-    Serial.println("Done.");
+    printf("Initializing USB.....");
+
+	USBInit();
+	USBRegisterDescriptors(USB_DESCRIPTORS);
+	USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);
+	// USBHwRegisterEPIntHandler(_EP01_OUT, handleBulkOut);
+    NVIC_EnableIRQ(USB_IRQn);
+
+	USBHwConnect(TRUE);
+
+    printf("Done.");
 }
 
-USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
+void* armForRead(CanUsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
-    return usbDevice->device.GenRead(usbDevice->endpoint, (uint8_t*)buffer,
-            usbDevice->endpointSize);
+    // return usbDevice->device.GenRead(usbDevice->endpoint, (uint8_t*)buffer,
+            // usbDevice->endpointSize);
+    return NULL;
 }
 
-USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
+void* readFromHost(CanUsbDevice* usbDevice, void* handle,
         bool (*callback)(char*)) {
-    if(!usbDevice->device.HandleBusy(handle)) {
-        // TODO see #569
-        delay(500);
-        if(usbDevice->receiveBuffer[0] != NULL) {
-            strncpy((char*)(usbDevice->packetBuffer +
-                        usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
-                        ENDPOINT_SIZE);
-            usbDevice->packetBufferIndex += ENDPOINT_SIZE;
-            processBuffer(usbDevice->packetBuffer,
-                &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
-        }
-        return armForRead(usbDevice, usbDevice->receiveBuffer);
-    }
-    return handle;
+    // if(!usbDevice->device.HandleBusy(handle)) {
+        // // TODO see #569
+        // delay(500);
+        // if(usbDevice->receiveBuffer[0] != NULL) {
+            // strncpy((char*)(usbDevice->packetBuffer +
+                        // usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
+                        // ENDPOINT_SIZE);
+            // usbDevice->packetBufferIndex += ENDPOINT_SIZE;
+            // processBuffer(usbDevice->packetBuffer,
+                // &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
+        // }
+        // return armForRead(usbDevice, usbDevice->receiveBuffer);
+    // }
+    // return handle;
+    return NULL;
 }

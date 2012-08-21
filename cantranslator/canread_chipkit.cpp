@@ -1,6 +1,6 @@
 #include "canread_chipkit.h"
 #include "canread.h"
-#include "WProgram.h"
+#include <stdlib.h>
 
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it over the default input endpoint for the USB device.
@@ -25,7 +25,7 @@ void sendJSON(cJSON* root, CanUsbDevice* usbDevice) {
  * event - (Optional) The event for the event field of the OpenXC message.
  * usbDevice - The USB device to send on.
  */
-void sendJSONMessage(char* name, cJSON* value, cJSON* event,
+void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
         CanUsbDevice* usbDevice) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
@@ -36,25 +36,25 @@ void sendJSONMessage(char* name, cJSON* value, cJSON* event,
     sendJSON(root, usbDevice);
 }
 
-void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
+void sendNumericalMessage(const char* name, float value, CanUsbDevice* usbDevice) {
     sendJSONMessage(name, cJSON_CreateNumber(value), NULL, usbDevice);
 }
 
-void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice) {
+void sendBooleanMessage(const char* name, bool value, CanUsbDevice* usbDevice) {
     sendJSONMessage(name, cJSON_CreateBool(value), NULL, usbDevice);
 }
 
-void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice) {
+void sendStringMessage(const char* name, const char* value, CanUsbDevice* usbDevice) {
     sendJSONMessage(name, cJSON_CreateString(value), NULL, usbDevice);
 }
 
-void sendEventedBooleanMessage(char* name, char* value, bool event,
+void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         CanUsbDevice* usbDevice) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
             usbDevice);
 }
 
-void sendEventedStringMessage(char* name, char* value, char* event,
+void sendEventedStringMessage(const char* name, const char* value, const char* event,
         CanUsbDevice* usbDevice) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
             usbDevice);
@@ -91,7 +91,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    char* stringValue = handler(signal, signals, signalCount, value, &send);
+    const char* stringValue = handler(signal, signals, signalCount, value, &send);
 
     if(signal->sendClock == signal->sendFrequency) {
         if(send && (signal->sendSame || !signal->received ||

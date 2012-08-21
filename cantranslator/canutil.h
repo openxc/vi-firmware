@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
-#include "chipKITCAN.h"
 #include "cJSON.h"
 
 #define SYS_FREQ (80000000L)
@@ -24,7 +23,7 @@
 struct CanBus {
     unsigned int speed;
     uint64_t address;
-    CAN* bus;
+    void* bus;
     void (*interruptHandler)();
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;

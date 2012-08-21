@@ -4,10 +4,8 @@ SYS_OBJECTS = ./mbed/LPC1768/GCC_ARM/startup_LPC17xx.o \
 			  ./mbed/LPC1768/GCC_ARM/cmsis_nvic.o \
 			  ./mbed/LPC1768/GCC_ARM/core_cm3.o \
 			  ./mbed/LPC1768/GCC_ARM/system_LPC17xx.o
-# TODO why do I have to explicitly include /usr/include? is it not on the
-# include path for embedded arm?
 INCLUDE_PATHS = -I. -I./mbed -I./mbed/LPC1768 -I./mbed/LPC1768/GCC_ARM \
-				-I./cJSON -I/usr/include
+				-I./cJSON
 LIBRARY_PATHS = -L./mbed/LPC1768/GCC_ARM
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = ./mbed/LPC1768/GCC_ARM/LPC1768.ld
@@ -32,15 +30,10 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
-LOCAL_C_SRCS    = $(wildcard *.c)
-LOCAL_CPP_SRCS  = $(wildcard *.cpp)
-LOCAL_CC_SRCS   = $(wildcard *.cc)
-LOCAL_PDE_SRCS  = $(wildcard *.$(SUFFIX))
-LOCAL_AS_SRCS   = $(wildcard *.S)
-LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o) \
-		$(LOCAL_CC_SRCS:.cc=.o) $(LOCAL_PDE_SRCS:.$(SUFFIX)=.o) \
-		$(LOCAL_AS_SRCS:.S=.o)
-OBJECTS      = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
+LOCAL_C_SRCS    = $(wildcard **/*.c)
+LOCAL_CPP_SRCS  = $(wildcard **/*.cpp)
+LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
+OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
 
 TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
@@ -54,10 +47,14 @@ clean:
 	rm -rf $(OBJDIR)
 
 .s.o:
-	$(AS)  $(CC_FLAGS) $(CC_SYMBOLS) -o $@ $<
+	$(AS) $(CC_FLAGS) $(CC_SYMBOLS) -o $@ $<
+
+$(OBJDIR)/libs/cJSON.o: cJSON/cJSON.c
+	mkdir -p $(dir $@)
+	$(CC) -c -lm $(CC_FLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.c
-	$(CC)  $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS)   $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS)   $(INCLUDE_PATHS) -o $@ $<
 
 $(OBJDIR)/%.o: %.cpp
 	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
@@ -75,19 +72,18 @@ $(TARGET_BIN): $(TARGET_ELF)
 TEST_OBJDIR = $(OBJDIR)/tests
 
 TEST_SRC=$(wildcard tests/*.cpp)
-TESTS=$(patsubst %.cpp,$(OBJDIR)/%,$(TEST_SRC))
+TESTS=$(patsubst %.cpp,$(OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o
-TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
-				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o
+TESTABLE_OBJS = $(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o \
+				$(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES))
 
-test: CXX = g++
+test: LD = g++
 test: CC = g++
-test: CPPFLAGS = -I. -m32 -w -Wall -g -ggdb $(SYS_INCLUDES)
-
-test: CXXFLAGS =
-test: LDFLAGS = -m32
+test: CPP = g++
+test: CC_FLAGS = -I. -c -std=gnu99 -m32 -w -Wall -g -ggdb
+test: LDFLAGS = -m32 -lm
 test: LDLIBS = $(TEST_LIBS)
 test: $(TEST_OBJDIR) $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)
@@ -95,15 +91,8 @@ test: $(TEST_OBJDIR) $(TESTS)
 $(TEST_OBJDIR):
 	@mkdir -p $(TEST_OBJDIR)
 
-$(OBJDIR)/libs/cJSON.o: $(USER_LIB_PATH)/cJSON/cJSON.c
-	mkdir -p $(dir $@)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+$(TEST_OBJDIR)/%.o: tests/%.cpp
+	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
-# TODO it would be nice to make these implicit rules to pick up any new tests
-$(TEST_OBJDIR)/bitfield_tests: $(TEST_OBJDIR)/bitfield_tests.o $(TESTABLE_OBJS)
-
-$(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS)
-
-$(TEST_OBJDIR)/canread_tests: $(TEST_OBJDIR)/canread_tests.o $(TESTABLE_OBJS)
-
-$(TEST_OBJDIR)/canwrite_tests: $(TEST_OBJDIR)/canwrite_tests.o $(TESTABLE_OBJS)
+$(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TESTABLE_OBJS)
+	$(LD) $(LDFLAGS) $(LDLIBS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^

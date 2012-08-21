@@ -1,6 +1,6 @@
 echo "Running unit tests:"
 
-for i in $1/*_tests
+for i in $1/*.bin
 do
     if test -f $i
     then

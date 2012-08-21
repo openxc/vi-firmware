@@ -1,7 +1,14 @@
-#include "canutil_chipkit.h"
+#include "canutil.h"
+#include "signals.h"
 #include "WProgram.h"
 
-void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
+/* Private: Initializes message filter masks and filters on the CAN controller.
+ *
+ * canMod - a pointer to an initialized CAN module class.
+ * filterMasks - an array of the filter masks to initialize.
+ * filters - an array of filters to initialize.
+ */
+void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
         int filterMaskCount, CanFilter* filters, int filterCount) {
     Serial.print("Configuring ");
     Serial.print(filterMaskCount, DEC);
@@ -9,7 +16,7 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
     for(int i = 0; i < filterMaskCount; i++) {
         Serial.print("Configuring filter mask ");
         Serial.println(filterMasks[i].value, HEX);
-        can_module->configureFilterMask(
+        bus->bus->configureFilterMask(
                 (CAN::FILTER_MASK) filterMasks[i].number,
                 filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
@@ -19,12 +26,12 @@ void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
     Serial.print(filterCount, DEC);
     Serial.print(" filters...  ");
     for(int i = 0; i < filterCount; i++) {
-        can_module->configureFilter((CAN::FILTER) filters[i].number,
+        bus->bus->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
-        can_module->linkFilterToChannel((CAN::FILTER) filters[i].number,
+        bus->bus->linkFilterToChannel((CAN::FILTER) filters[i].number,
                 (CAN::FILTER_MASK) filters[i].maskNumber,
                 (CAN::CHANNEL) filters[i].channel);
-        can_module->enableFilter((CAN::FILTER) filters[i].number, true);
+        bus->bus->enableFilter((CAN::FILTER) filters[i].number, true);
     }
     Serial.println("Done.");
 }
@@ -68,7 +75,7 @@ void initializeCan(CanBus* bus) {
             &filterMaskCount);
     int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);
-    configureFilters(bus->bus, filterMasks, filterMaskCount, filters, filterCount);
+    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
 
     // Enable interrupt and events. Enable the receive channel not empty event
     // (channel event) and the receive channel event (module event). The

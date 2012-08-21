@@ -53,3 +53,26 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
     setBitField(&data, rawValue, signal->bitPosition, signal->bitSize);
     return data;
 }
+
+bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+        int signalCount) {
+    uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*)
+        = signal->writeHandler;
+    return sendCanSignal(signal, value, writer, signals, signalCount);
+}
+
+bool sendCanSignal(CanSignal* signal, cJSON* value,
+        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        CanSignal* signals, int signalCount) {
+    bool send = true;
+    if(writer == NULL) {
+        if(signal->stateCount > 0) {
+            writer = stateWriter;
+        } else {
+            writer = numberWriter;
+        }
+    }
+
+    uint64_t data = writer(signal, signals, signalCount, value, &send);
+    return sendCanSignal(signal, data, &send);
+}

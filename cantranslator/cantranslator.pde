@@ -7,13 +7,11 @@
 #include <stdint.h>
 #include "chipKITCAN.h"
 #include "chipKITUSBDevice.h"
+#include "signals.h"
 #include "bitfield.h"
-#include "canutil_chipkit.h"
-#include "canwrite_chipkit.h"
 #include "usbutil.h"
 #include "serialutil.h"
 #include "cJSON.h"
-#include "signals.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81

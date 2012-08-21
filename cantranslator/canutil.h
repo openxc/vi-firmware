@@ -8,6 +8,7 @@
 #include "chipKITCAN.h"
 #include "cJSON.h"
 
+#define SYS_FREQ (80000000L)
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 /* Public: A container for a CAN module paried with a certain bus.
@@ -209,5 +210,12 @@ CanSignalState* lookupSignalState(char* name, CanSignal* signal,
  */
 CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
+
+/* Public: Initialize the CAN controller. See inline comments for description of
+ * the process.
+ *
+ * bus - A CanBus struct defining the bus's metadata for initialization.
+ */
+void initializeCan(CanBus* bus);
 
 #endif // _CANUTIL_H_

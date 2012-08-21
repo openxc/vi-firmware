@@ -45,6 +45,10 @@ $(OBJDIR):
 		@mkdir -p $(OBJDIR)
 		@mkdir -p $(OBJDIR)/usb
 
+flash: all
+	@openocd -f config/flash.cfg
+
+
 clean:
 	rm -rf $(OBJDIR)
 

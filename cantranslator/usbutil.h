@@ -54,7 +54,8 @@ static const U8 USB_DESCRIPTORS[] = {
     // Configuration 1 Descriptor
     0x09,                   // Size of this descriptor in bytes
     DESC_CONFIGURATION,                // CONFIGURATION descriptor type
-	LE_WORD(0x22),  		// wTotalLength
+    // TODO get nicer variables from lpc17xx.cmsis.driver
+	LE_WORD(0x20),  		// wTotalLength
 	0x01,  					// bNumInterfaces
 	0x01,  					// bConfigurationValue
 	0x00,  					// iConfiguration
@@ -67,23 +68,23 @@ static const U8 USB_DESCRIPTORS[] = {
 	0x00,  		 			// bInterfaceNumber
 	0x00,   				// bAlternateSetting
 	0x02,   				// bNumEndPoints
-	0x03,   				// bInterfaceClass = HID
-	0x00,   				// bInterfaceSubClass
-	0x00,   				// bInterfaceProtocol
+	0xFF,   				// bInterfaceClass
+	0xFF,   				// bInterfaceSubClass
+	0xFF,   				// bInterfaceProtocol
 	0x00,   				// iInterface
 
     // Endpoint descriptor
 	0x07,
 	DESC_ENDPOINT,
 	_EP01_OUT,				// bEndpointAddress
-	_BULK,   				// bmAttributes = INT
+	_BULK,   				// bmAttributes
 	LE_WORD(MAX_USB_PACKET_SIZE),// wMaxPacketSize
 	1,						// bInterval
 
 	0x07,
 	DESC_ENDPOINT,
 	_EP01_IN,				// bEndpointAddress
-	_BULK,   				// bmAttributes = INT
+	_BULK,   				// bmAttributes
 	LE_WORD(MAX_USB_PACKET_SIZE), // wMaxPacketSize
 	1,						// bInterval
 

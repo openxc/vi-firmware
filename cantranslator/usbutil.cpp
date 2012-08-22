@@ -65,7 +65,8 @@ void initializeUsb(CanUsbDevice* usbDevice) {
 	USBRegisterDescriptors(USB_DESCRIPTORS);
 	USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);
 	// USBHwRegisterEPIntHandler(_EP01_OUT, handleBulkOut);
-    NVIC_EnableIRQ(USB_IRQn);
+	// TODO how to do override the built-in empty loop IRQ handler?
+    // NVIC_EnableIRQ(USB_IRQn);
 
 	USBHwConnect(TRUE);
 

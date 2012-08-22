@@ -73,6 +73,7 @@ void setup() {
 
 void loop() {
     while(1) {
+		USBHwISR();
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
                 rand() % 50 + rand() % 100 * .1, &USB_DEVICE);

@@ -15,7 +15,7 @@ OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
-CC_FLAGS = -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions \
+CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
@@ -38,6 +38,12 @@ OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o
 
 TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
+
+ifdef DEBUG
+CC_FLAGS += -Os -g -ggdb
+else
+CC_FLAGS += -O2
+endif
 
 all: $(OBJDIR) $(TARGET_BIN)
 

@@ -23,9 +23,13 @@ char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
-// USB
+/* Forward declarations */
 
-#define DATA_ENDPOINT 1
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+void initializeAllCan();
+void receiveCan(CanBus*);
+void checkIfStalled();
+bool receiveWriteRequest(uint8_t*);
 
 SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
@@ -34,13 +38,6 @@ CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
-
-/* Forward declarations */
-
-void initializeAllCan();
-void receiveCan(CanBus*);
-void checkIfStalled();
-bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     Serial.begin(115200);

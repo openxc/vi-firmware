@@ -2,20 +2,23 @@
 #define _USBUTIL_H_
 
 #include <string.h>
+
+#ifdef CHIPKIT
 #include "chipKITUSBDevice.h"
 #include "serialutil.h"
+#endif CHIPKIT
 
-extern "C" {
 #include "queue.h"
-}
 
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
 #define USB_PACKET_SIZE 64
 #define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
 
+#ifdef CHIPKIT
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
+#endif
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
@@ -29,10 +32,11 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
  *      planned, we could actually drop this reference altogether.
  */
 struct CanUsbDevice {
+#ifdef CHIPKIT
     USBDevice device;
+#endif
     int endpoint;
     int endpointSize;
-    SerialDevice* serial;
     bool configured;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
@@ -40,8 +44,11 @@ struct CanUsbDevice {
     // host to device
     char receiveBuffer[ENDPOINT_SIZE];
     ByteQueue receiveQueue;
+#ifdef CHIPKIT
+    SerialDevice* serial;
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
+#endif
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the
@@ -78,10 +85,6 @@ void armForRead(CanUsbDevice* usbDevice, char* buffer);
  * callback - a function that handles USB in requests
  */
 void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*));
-
-/* Internal: Handle asynchronous events from the USB controller.
- */
-static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 void processInputQueue(CanUsbDevice* usbDevice);
 

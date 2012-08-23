@@ -4,13 +4,16 @@
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     for(int i = 0; i < messageSize; i++) {
         if(!queue_push(&usbDevice->sendQueue, (uint8_t)message[i])) {
+#ifdef CHIPKIT
             Serial.println("Dropped incoming CAN message -- send queue full");
+#endif
             return;
         }
     }
     queue_push(&usbDevice->sendQueue, (uint8_t)'\n');
 }
 
+#ifdef CHIPKIT
 void processInputQueue(CanUsbDevice* usbDevice) {
     while(!queue_empty(&usbDevice->sendQueue)) {
 
@@ -85,3 +88,4 @@ void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         armForRead(usbDevice, usbDevice->receiveBuffer);
     }
 }
+#endif // CHIPKIT

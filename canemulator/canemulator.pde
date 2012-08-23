@@ -8,7 +8,6 @@
 #include "usbutil.h"
 #include "canutil.h"
 #include "serialutil.h"
-#include "canutil_chipkit.h"
 #include "canread_chipkit.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
@@ -91,6 +90,7 @@ void loop() {
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &usbDevice);
+        processInputQueue(&usbDevice);
     }
 }
 

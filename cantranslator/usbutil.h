@@ -5,6 +5,10 @@
 #include "chipKITUSBDevice.h"
 #include "serialutil.h"
 
+extern "C" {
+#include "queue.h"
+}
+
 // Don't try to send a message larger than this
 #define ENDPOINT_SIZE 64
 #define USB_PACKET_SIZE 64
@@ -32,6 +36,7 @@ struct CanUsbDevice {
     bool configured;
     // device to host
     char sendBuffer[ENDPOINT_SIZE];
+    ByteQueue sendQueue;
     // host to device
     char receiveBuffer[ENDPOINT_SIZE];
     // buffer messages up to 4x 1 USB packet in size waiting for valid JSON
@@ -80,7 +85,8 @@ USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
  */
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
-extern CanUsbDevice USB_DEVICE;
+void processInputQueue(CanUsbDevice* usbDevice);
+
 extern USB_HANDLE USB_INPUT_HANDLE;
 
 #endif // _USBUTIL_H_

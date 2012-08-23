@@ -1,7 +1,6 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
-#include "canread_chipkit.h"
 #include "canread.h"
 #include "canwrite.h"
 

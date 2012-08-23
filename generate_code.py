@@ -195,7 +195,6 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canread_chipkit.h\""
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""

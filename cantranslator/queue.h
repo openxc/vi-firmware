@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_QUEUE_LENGTH  128
+#define MAX_QUEUE_LENGTH  512
 
 // Internal pointers must have 1 more so we can tell the difference between full
 // and empty

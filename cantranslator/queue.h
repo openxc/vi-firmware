@@ -6,10 +6,14 @@
 
 #define MAX_QUEUE_LENGTH  128
 
+// Internal pointers must have 1 more so we can tell the difference between full
+// and empty
+#define MAX_INTERNAL_QUEUE_LENGTH  (MAX_QUEUE_LENGTH + 1)
+
 typedef struct {
     int     head;
     int     tail;
-    uint8_t elements[MAX_QUEUE_LENGTH];
+    uint8_t elements[MAX_INTERNAL_QUEUE_LENGTH];
 } ByteQueue;
 
 void queue_init(ByteQueue* queue);

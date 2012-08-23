@@ -5,7 +5,7 @@ void queue_init(ByteQueue* queue) {
 }
 
 bool queue_push(ByteQueue* queue, uint8_t value) {
-	int next = (queue->head + 1) % (MAX_QUEUE_LENGTH + 1);
+	int next = (queue->head + 1) % MAX_INTERNAL_QUEUE_LENGTH;
 	if (next == queue->tail) {
 		return false;
 	}
@@ -22,7 +22,7 @@ uint8_t queue_pop(ByteQueue* queue) {
 		return 0;
 	}
 
-	int next = (queue->tail + 1) % (MAX_QUEUE_LENGTH + 1);
+	int next = (queue->tail + 1) % MAX_INTERNAL_QUEUE_LENGTH;
 	uint8_t value = queue->elements[queue->tail];
 	queue->tail = next;
 
@@ -31,7 +31,7 @@ uint8_t queue_pop(ByteQueue* queue) {
 
 
 int queue_length(ByteQueue* queue) {
-	return queue->head - queue->tail;
+	return (MAX_INTERNAL_QUEUE_LENGTH + queue->head - queue->tail) % MAX_INTERNAL_QUEUE_LENGTH;
 }
 
 bool queue_full(ByteQueue* queue) {

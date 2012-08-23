@@ -3,7 +3,9 @@
 
 #include "WProgram.h"
 
-#define SERIAL_BUFFER_SIZE 64 * 4
+extern "C" {
+#include "queue.h"
+}
 
 /* Public: a container for a CAN translator Serial device and associated
  * metadata.
@@ -13,8 +15,7 @@
 struct SerialDevice {
     HardwareSerial* device;
     // host to device
-    char receiveBuffer[SERIAL_BUFFER_SIZE];
-    int receiveBufferIndex;
+    ByteQueue receiveQueue;
 };
 
 /* Public: Try to read a message from the serial device and process it using the
@@ -26,7 +27,7 @@ struct SerialDevice {
  * serial - The serial device to read from.
  * callback - a function that handles incoming messages.
  */
-void readFromSerial(SerialDevice* serial, bool (*callback)(char*));
+void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*));
 
 /* Public: Initializes the serial device at at 115200 baud rate and initializes
  * the receive buffer.

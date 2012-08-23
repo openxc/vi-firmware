@@ -41,7 +41,7 @@ int receivedMessagesAtLastMark = 0;
 void initializeAllCan();
 void receiveCan(CanBus*);
 void checkIfStalled();
-bool receiveWriteRequest(char*);
+bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     Serial.begin(115200);
@@ -102,8 +102,8 @@ void checkIfStalled() {
     }
 }
 
-bool receiveWriteRequest(char* message) {
-    cJSON *root = cJSON_Parse(message);
+bool receiveWriteRequest(uint8_t* message) {
+    cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {

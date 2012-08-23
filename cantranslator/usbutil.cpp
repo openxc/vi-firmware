@@ -7,8 +7,7 @@ USB_HANDLE USB_INPUT_HANDLE = 0;
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     for(int i = 0; i < messageSize; i++) {
         if(!queue_push(&usbDevice->sendQueue, (uint8_t)message[i])) {
-            Serial.println("Dropped an incoming CAN message because "
-                    "the USB buffer was full");
+            Serial.println("Dropped incoming CAN message -- send queue full");
             return;
         }
     }
@@ -60,7 +59,6 @@ void processInputQueue(CanUsbDevice* usbDevice) {
     }
 }
 
-
 void initializeUsb(CanUsbDevice* usbDevice) {
     Serial.print("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
@@ -75,17 +73,18 @@ USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
 }
 
 USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        bool (*callback)(char*)) {
+        bool (*callback)(uint8_t*)) {
     if(!usbDevice->device.HandleBusy(handle)) {
         // TODO see #569
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
-            strncpy((char*)(usbDevice->packetBuffer +
-                        usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
-                        ENDPOINT_SIZE);
-            usbDevice->packetBufferIndex += ENDPOINT_SIZE;
-            processBuffer(usbDevice->packetBuffer,
-                &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
+            for(int i = 0; i < ENDPOINT_SIZE; i++) {
+                if(!queue_push(&usbDevice->receiveQueue,
+                            usbDevice->receiveBuffer[i])) {
+                    Serial.println("Dropped write from host -- queue is full");
+                }
+            }
+            processQueue(&usbDevice->receiveQueue, callback);
         }
         return armForRead(usbDevice, usbDevice->receiveBuffer);
     }

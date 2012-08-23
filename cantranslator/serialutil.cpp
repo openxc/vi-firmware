@@ -1,21 +1,19 @@
 #include "serialutil.h"
 #include "buffers.h"
 
-void readFromSerial(SerialDevice* serial, bool (*callback)(char*)) {
+void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
     int bytesAvailable = serial->device->available();
     if(bytesAvailable > 0) {
-        for(int i = 0; i < bytesAvailable &&
-                serial->receiveBufferIndex < SERIAL_BUFFER_SIZE; i++) {
+        for(int i = 0; i < bytesAvailable && !queue_full(&serial->receiveQueue);
+						i++) {
             char byte = serial->device->read();
-            serial->receiveBuffer[serial->receiveBufferIndex++] = byte;
+			queue_push(&serial->receiveQueue, (uint8_t) byte);
         }
-        processBuffer(serial->receiveBuffer, &serial->receiveBufferIndex,
-                SERIAL_BUFFER_SIZE, callback);
+		processQueue(&serial->receiveQueue, callback);
     }
 }
 
 void initializeSerial(SerialDevice* serial) {
     serial->device->begin(115200);
-    resetBuffer(serial->receiveBuffer, &serial->receiveBufferIndex,
-            SERIAL_BUFFER_SIZE);
+	queue_init(&serial->receiveQueue);
 }

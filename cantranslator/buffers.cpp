@@ -2,21 +2,16 @@
 #include "strutil.h"
 #include "WProgram.h"
 
-void resetBuffer(char* buffer, int* bufferIndex, const int bufferSize) {
-    *bufferIndex = 0;
-    memset(buffer, '\n', bufferSize);
-}
-
-void processBuffer(char* buffer, int* bufferIndex, const int bufferSize,
-        bool (*callback)(char*)) {
-    if(callback(buffer)) {
-        resetBuffer(buffer, bufferIndex, bufferSize);
-    } else if(*bufferIndex >= bufferSize) {
+void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
+    uint8_t snapshot[MAX_QUEUE_LENGTH];
+    queue_snapshot(queue, snapshot);
+    if(callback(snapshot)) {
+        queue_init(queue);
+    } else if(queue_full(queue)) {
         Serial.println("Incoming write is too long");
-        resetBuffer(buffer, bufferIndex, bufferSize);
-    } else if(strnchr(buffer, bufferSize, NULL) != NULL) {
-        Serial.println("Incoming buffered write is corrupted -- "
-                "clearing buffer");
-        resetBuffer(buffer, bufferIndex, bufferSize);
+        queue_init(queue);
+    } else if(strnchr((char*)snapshot, queue_length(queue), NULL) != NULL) {
+        Serial.println("Incoming buffered write corrupted -- clearing buffer");
+        queue_init(queue);
     }
 }

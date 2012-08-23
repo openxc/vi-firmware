@@ -1,6 +1,5 @@
 #include "canread_chipkit.h"
 #include "canread.h"
-#include "WProgram.h"
 
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it over the default input endpoint for the USB device.

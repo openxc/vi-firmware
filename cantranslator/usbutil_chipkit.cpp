@@ -2,7 +2,7 @@
 
 #include "usbutil.h"
 #include "buffers.h"
-#include "WProgram.h"
+#include "log.h"
 
 void processInputQueue(CanUsbDevice* usbDevice) {
     while(!queue_empty(&usbDevice->sendQueue)) {
@@ -50,10 +50,10 @@ void processInputQueue(CanUsbDevice* usbDevice) {
 }
 
 void initializeUsb(CanUsbDevice* usbDevice) {
-    Serial.print("Initializing USB.....");
+    debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
     queue_init(&usbDevice->sendQueue);
-    Serial.println("Done.");
+    debug("Done.");
 }
 
 void armForRead(CanUsbDevice* usbDevice, char* buffer) {
@@ -70,7 +70,7 @@ void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
             for(int i = 0; i < ENDPOINT_SIZE; i++) {
                 if(!queue_push(&usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
-                    Serial.println("Dropped write from host -- queue is full");
+                    debug("Dropped write from host -- queue is full");
                 }
             }
             processQueue(&usbDevice->receiveQueue, callback);

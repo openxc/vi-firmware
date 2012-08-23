@@ -11,6 +11,7 @@
 #include "bitfield.h"
 #include "usbutil.h"
 #include "serialutil.h"
+#include "log.h"
 #include "cJSON.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -105,7 +106,7 @@ bool receiveWriteRequest(uint8_t* message) {
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            Serial.println("Write request is malformed, missing name");
+            debug("Write request is malformed, missing name");
             return true;
         }
         char* name = nameObject->valuestring;
@@ -123,8 +124,7 @@ bool receiveWriteRequest(uint8_t* message) {
                         getSignalCount());
             }
         } else {
-            Serial.print("Writing not allowed for signal with name ");
-            Serial.println(name);
+            debug("Writing not allowed for signal with name %s", name);
         }
         cJSON_Delete(root);
         return true;
@@ -186,16 +186,14 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {
     case VERSION_CONTROL_COMMAND:
         char combinedVersion[strlen(VERSION) + strlen(getMessageSet()) + 2];
-
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        Serial.print("Version: ");
-        Serial.println(combinedVersion);
+        debug("Version: %s (%s)", combinedVersion);
 
         usbDevice.device.EP0SendRAMPtr((uint8_t*)combinedVersion,
                 strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;
     case RESET_CONTROL_COMMAND:
-        Serial.print("Resetting...");
+        debug("Resetting...");
         initializeAllCan();
         return true;
     default:
@@ -210,7 +208,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     switch(event) {
     case EVENT_CONFIGURED:
-        Serial.println("Event: Configured");
+        debug("USB Configured");
         usbDevice.configured = true;
         mark();
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,

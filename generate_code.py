@@ -199,6 +199,7 @@ class Parser(object):
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""
+        print "#include \"log.h\""
         print "#include \"handlers.h\""
         print "#include \"shared_handlers.h\""
         print
@@ -363,7 +364,7 @@ class Parser(object):
         print
         print ("CanFilterMask* initializeFilterMasks(uint64_t address, "
                 "int* count) {")
-        print "Serial.println(\"Initializing filter arrays...\");"
+        print "debug(\"Initializing filter arrays...\");"
 
         print "    if(address == CAN_BUSES[0].address) {"
         print "        *count = %d;" % len(can1_masks)
@@ -383,7 +384,7 @@ class Parser(object):
 
         print
         print "CanFilter* initializeFilters(uint64_t address, int* count) {"
-        print "    Serial.println(\"Initializing filters...\");"
+        print "    debug(\"Initializing filters...\");"
 
         print "    switch(address) {"
         for bus_address, bus in self.buses.iteritems():

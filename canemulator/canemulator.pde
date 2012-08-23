@@ -3,7 +3,6 @@
  *  JSON messages over USB.
  */
 
-#include "WProgram.h"
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
 #include "canutil.h"
@@ -14,6 +13,8 @@
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
+
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 // USB
 #define DATA_ENDPOINT 1

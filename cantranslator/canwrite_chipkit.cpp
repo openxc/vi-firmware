@@ -1,5 +1,5 @@
 #include "canwrite.h"
-#include "WProgram.h"
+#include "log.h"
 
 /* Private: Write a CAN message with the given data and node ID to the bus.
  *
@@ -28,19 +28,18 @@ bool sendCanMessage(CAN* bus, uint32_t destination, uint64_t* data) {
         for(int i = 0; i < 8; i++) {
             memcpy(&message->data[i], &((uint8_t*)data)[7 - i], 8);
         }
-        Serial.print("Sending message 0x");
+        debug("Sending message 0x");
         for(int i = 0; i < 8; i++) {
-            Serial.print(message->data[i], HEX);
+            debug("%x", message->data[i]);
         }
-        Serial.print(" to 0x");
-        Serial.println(destination, HEX);
+        debug(" to 0x%X", destination);
 
         // Mark message as ready to be processed
         bus->updateChannel(CAN::CHANNEL0);
         bus->flushTxChannel(CAN::CHANNEL0);
         return true;
     } else {
-        Serial.println("Unable to get TX message area");
+        debug("Unable to get TX message area");
     }
     return false;
 }
@@ -50,8 +49,7 @@ bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
         sendCanMessage(signal->bus->bus, signal->messageId, &data);
         return true;
     } else {
-        Serial.print("Not sending requested message ");
-        Serial.println(signal->messageId, HEX);
+        debug("Not sending requested message %x", signal->messageId);
     }
 }
 

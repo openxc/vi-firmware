@@ -1,6 +1,9 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-void log(const char* message);
+#include <stdarg.h>
+#include <stdio.h>
 
-#endif _LOG_H_
+void debug(const char* format, ...);
+
+#endif // _LOG_H_

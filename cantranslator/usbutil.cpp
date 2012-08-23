@@ -5,7 +5,7 @@
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     for(int i = 0; i < messageSize; i++) {
         if(!queue_push(&usbDevice->sendQueue, (uint8_t)message[i])) {
-            log("Dropped incoming CAN message -- send queue full");
+            debug("Dropped incoming CAN message -- send queue full");
             return;
         }
     }

@@ -2,6 +2,7 @@
 #define _QUEUE_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_QUEUE_LENGTH  128
 

@@ -22,5 +22,6 @@ uint8_t queue_pop(ByteQueue* queue);
 bool  queue_full(ByteQueue* queue);
 bool  queue_empty(ByteQueue* queue);
 int queue_length(ByteQueue* queue);
+void queue_snapshot(ByteQueue* queue, uint8_t* snapshot);
 
 #endif // _QUEUE_H_

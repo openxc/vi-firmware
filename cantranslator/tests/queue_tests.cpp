@@ -1,6 +1,7 @@
 #include <check.h>
 #include <stdint.h>
 #include "queue.h"
+#include <stdio.h>
 
 START_TEST (test_push)
 {
@@ -92,6 +93,26 @@ START_TEST (test_length)
 }
 END_TEST
 
+START_TEST (test_snapshot)
+{
+    ByteQueue queue;
+    queue_init(&queue);
+    uint8_t expected[MAX_QUEUE_LENGTH];
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
+        uint8_t value = i % 255;
+        queue_push(&queue, value);
+        expected[i] = value;
+    }
+
+    uint8_t snapshot[MAX_QUEUE_LENGTH];
+    queue_snapshot(&queue, snapshot);
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
+        fail_unless(snapshot[i] == expected[i],
+                "expected %d but found %d", expected[i], snapshot[i]);
+    }
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("queue");
     TCase *tc_core = tcase_create("core");
@@ -99,6 +120,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_pop);
     tcase_add_test(tc_core, test_fill_er_up);
     tcase_add_test(tc_core, test_length);
+    tcase_add_test(tc_core, test_snapshot);
     suite_add_tcase(s, tc_core);
 
     return s;

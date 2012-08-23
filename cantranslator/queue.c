@@ -41,3 +41,11 @@ bool queue_full(ByteQueue* queue) {
 bool queue_empty(ByteQueue* queue) {
     return queue_length(queue) == 0;
 }
+
+void queue_snapshot(ByteQueue* queue, uint8_t* snapshot) {
+    int i;
+    for(i = 0; i < queue_length(queue); i++) {
+        snapshot[i] = queue->elements[
+            (queue->tail + i) % MAX_INTERNAL_QUEUE_LENGTH];
+    }
+}

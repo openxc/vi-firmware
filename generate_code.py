@@ -368,16 +368,12 @@ class Parser(object):
 
         print "    if(address == CAN_BUSES[0].address) {"
         print "        *count = %d;" % len(can1_masks)
-        print "        FILTER_MASKS = {"
         for i, mask in enumerate(can1_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
+            print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
         print "    } else if(address == CAN_BUSES[1].address) {"
         print "        *count = %d;" % len(can2_masks)
-        print "        FILTER_MASKS = {"
         for i, mask in enumerate(can2_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
+            print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
         print "    }"
         print "    return FILTER_MASKS;"
         print "}"
@@ -390,12 +386,11 @@ class Parser(object):
         for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address
             print "        *count = %d;" % len(bus['messages'])
-            print "        FILTERS = {"
             for i, message in enumerate(bus['messages']):
                 # TODO be super smart and figure out good mask values
                 # dynamically
-                print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
-            print "        };"
+                print "        FILTERS[%d] = {%d, 0x%x, %d, %d};" % (
+                        i, i, message.id, 1, 0)
             print "        break;"
         print "    }"
         print "    return FILTERS;"

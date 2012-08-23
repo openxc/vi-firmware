@@ -6,7 +6,7 @@
 #ifdef CHIPKIT
 #include "chipKITUSBDevice.h"
 #include "serialutil.h"
-#endif CHIPKIT
+#endif // CHIPKIT
 
 #include "queue.h"
 
@@ -14,11 +14,6 @@
 #define ENDPOINT_SIZE 64
 #define USB_PACKET_SIZE 64
 #define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
-
-#ifdef CHIPKIT
-// This is a reference to the last packet read
-extern volatile CTRL_TRF_SETUP SetupPkt;
-#endif
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
@@ -34,7 +29,7 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
 struct CanUsbDevice {
 #ifdef CHIPKIT
     USBDevice device;
-#endif
+#endif // CHIPKIT
     int endpoint;
     int endpointSize;
     bool configured;
@@ -48,7 +43,7 @@ struct CanUsbDevice {
     SerialDevice* serial;
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
-#endif
+#endif // CHIPKIT
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the

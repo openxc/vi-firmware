@@ -23,6 +23,9 @@ char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
+// This is a reference to the last packet read
+extern volatile CTRL_TRF_SETUP SetupPkt;
+
 /* Forward declarations */
 
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);

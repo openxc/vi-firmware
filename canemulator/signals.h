@@ -1,0 +1,1 @@
+../cantranslator/signals.h

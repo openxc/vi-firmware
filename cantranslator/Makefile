@@ -31,7 +31,7 @@ TEST_SRC=$(wildcard tests/*.cpp)
 TESTS=$(patsubst %.cpp,$(OBJDIR)/%,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
-TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o
+TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o queue.o
 TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
 				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o
 
@@ -60,3 +60,5 @@ $(TEST_OBJDIR)/canutil_tests: $(TEST_OBJDIR)/canutil_tests.o $(TESTABLE_OBJS)
 $(TEST_OBJDIR)/canread_tests: $(TEST_OBJDIR)/canread_tests.o $(TESTABLE_OBJS)
 
 $(TEST_OBJDIR)/canwrite_tests: $(TEST_OBJDIR)/canwrite_tests.o $(TESTABLE_OBJS)
+
+$(TEST_OBJDIR)/queue_tests: $(TEST_OBJDIR)/queue_tests.o $(TESTABLE_OBJS)

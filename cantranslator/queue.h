@@ -13,8 +13,8 @@ typedef struct {
 } ByteQueue;
 
 void queue_init(ByteQueue* queue);
-bool queue_put(ByteQueue* queue, uint8_t value);
-uint8_t queue_get(ByteQueue* queue);
+bool queue_push(ByteQueue* queue, uint8_t value);
+uint8_t queue_pop(ByteQueue* queue);
 bool  queue_full(ByteQueue* queue);
 bool  queue_empty(ByteQueue* queue);
 int queue_length(ByteQueue* queue);

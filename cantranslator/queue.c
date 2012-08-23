@@ -4,7 +4,7 @@ void queue_init(ByteQueue* queue) {
     queue->head = queue->tail = 0;
 }
 
-bool queue_put(ByteQueue* queue, uint8_t value) {
+bool queue_push(ByteQueue* queue, uint8_t value) {
 	int next = (queue->head + 1) % (MAX_QUEUE_LENGTH + 1);
 	if (next == queue->tail) {
 		return false;
@@ -16,7 +16,7 @@ bool queue_put(ByteQueue* queue, uint8_t value) {
 	return true;
 }
 
-uint8_t queue_get(ByteQueue* queue) {
+uint8_t queue_pop(ByteQueue* queue) {
 	if (queue->head == queue->tail) {
         // TODO error condition?
 		return 0;

@@ -30,19 +30,20 @@ START_TEST (test_fill_er_up)
 {
     ByteQueue queue;
     queue_init(&queue);
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH; i++) {
-        bool success = queue_push(&queue, i);
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
+        bool success = queue_push(&queue, (uint8_t) (i % 255));
         fail_unless(success, "wasn't able to add the %dth element", i + 1);
     }
 
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH; i++) {
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
         uint8_t value = queue_pop(&queue);
         if(i < MAX_QUEUE_LENGTH - 1) {
             fail_unless(!queue_empty(&queue),
                     "didn't expect queue to be empty on %dth iteration", i + 1);
         }
-        fail_unless(value == i, "expected %d but got %d out of the queue",
-                i, value);
+        uint8_t expected = i % 255;
+        fail_unless(value == expected,
+                "expected %d but got %d out of the queue", expected, value);
     }
     fail_unless(queue_empty(&queue));
 }
@@ -53,8 +54,8 @@ START_TEST (test_length)
     ByteQueue queue;
     queue_init(&queue);
     fail_unless(queue_length(&queue) == 0);
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH; i++) {
-        queue_push(&queue, i);
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
+        queue_push(&queue,  (uint8_t) (i % 255));
         if(i == MAX_QUEUE_LENGTH - 1) {
             break;
         }
@@ -63,26 +64,26 @@ START_TEST (test_length)
                 queue_length(&queue));
     }
 
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH; i++) {
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
         queue_pop(&queue);
         fail_unless(queue_length(&queue) == MAX_QUEUE_LENGTH - i - 1);
     }
     fail_unless(queue_length(&queue) == 0);
 
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH; i++) {
-        queue_push(&queue, i);
+    for(int i = 0; i < MAX_QUEUE_LENGTH; i++) {
+        queue_push(&queue, (uint8_t) (i % 255));
         fail_unless(queue_length(&queue) == i + 1,
                 "expected length of %d but found %d", i + 1,
                 queue_length(&queue));
     }
 
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH / 2; i++) {
+    for(int i = 0; i < MAX_QUEUE_LENGTH / 2; i++) {
         queue_pop(&queue);
         fail_unless(queue_length(&queue) == MAX_QUEUE_LENGTH - i - 1);
     }
 
-    for(uint8_t i = 0; i < MAX_QUEUE_LENGTH / 2; i++) {
-        queue_push(&queue, i);
+    for(int i = 0; i < MAX_QUEUE_LENGTH / 2; i++) {
+        queue_push(&queue, (uint8_t) (i % 255));
         int expectedLength =  i + (MAX_QUEUE_LENGTH / 2) + 1;
         fail_unless(queue_length(&queue) == expectedLength,
                 "expected length of %d but found %d", expectedLength,

@@ -27,7 +27,6 @@ CAN can2(CAN::CAN2);
 
 #define DATA_ENDPOINT 1
 
-USB_HANDLE USB_OUTPUT_HANDLE = 0;
 SerialDevice serialDevice = {&Serial1};
 CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
         ENDPOINT_SIZE, &serialDevice, true};
@@ -58,8 +57,7 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
     processInputQueue(&usbDevice);
-    USB_OUTPUT_HANDLE = readFromHost(
-            &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    readFromHost(&usbDevice, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);
     checkIfStalled();
 }

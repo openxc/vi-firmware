@@ -40,6 +40,8 @@ struct CanUsbDevice {
     // host to device
     char receiveBuffer[ENDPOINT_SIZE];
     ByteQueue receiveQueue;
+    USB_HANDLE deviceToHostHandle;
+    USB_HANDLE hostToDeviceHandle;
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the
@@ -64,27 +66,23 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize);
  * usbDevice - the CAN USB device to arm the endpoint on
  * buffer - the destination buffer for the next IN transfer.
  */
-USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer);
+void armForRead(CanUsbDevice* usbDevice, char* buffer);
 
 /* Public: Pass the next IN request message to the callback, if available.
  *
- * Checks if the handle is not busy, indicating the presence of a new IN request
- * from the host. If a message is available, the callback is notified and the
- * endpoint is re-armed for the next USB transfer.
+ * Checks if the input handle is not busy, indicating the presence of a new IN
+ * request from the host. If a message is available, the callback is notified
+ * and the endpoint is re-armed for the next USB transfer.
  *
  * usbDevice - the CAN USB device to arm the endpoint on
- * handle - the USB handle for IN transfers
  * callback - a function that handles USB in requests
  */
-USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        bool (*callback)(uint8_t*));
+void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*));
 
 /* Internal: Handle asynchronous events from the USB controller.
  */
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
 void processInputQueue(CanUsbDevice* usbDevice);
-
-extern USB_HANDLE USB_INPUT_HANDLE;
 
 #endif // _USBUTIL_H_

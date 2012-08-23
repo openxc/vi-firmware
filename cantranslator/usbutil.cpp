@@ -1,9 +1,6 @@
 #include "usbutil.h"
 #include "buffers.h"
 
-// TODO move this up to cantranslator.pde
-USB_HANDLE USB_INPUT_HANDLE = 0;
-
 void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize) {
     for(int i = 0; i < messageSize; i++) {
         if(!queue_push(&usbDevice->sendQueue, (uint8_t)message[i])) {
@@ -23,7 +20,7 @@ void processInputQueue(CanUsbDevice* usbDevice) {
         // issue.
         int i = 0;
         while(usbDevice->configured &&
-                usbDevice->device.HandleBusy(USB_INPUT_HANDLE)) {
+                usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
             ++i;
             if(i > 50000) {
                 // USB most likely not connected or at least not requesting reads,
@@ -47,12 +44,12 @@ void processInputQueue(CanUsbDevice* usbDevice) {
 #else
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
-            while(usbDevice->device.HandleBusy(USB_INPUT_HANDLE));
+            while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
             int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
             uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
                     + nextByteIndex);
-            USB_INPUT_HANDLE = usbDevice->device.GenWrite(usbDevice->endpoint,
-                    currentByte, bytesToTransfer);
+            usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
+                    usbDevice->endpoint, currentByte, bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
 #endif
@@ -66,15 +63,14 @@ void initializeUsb(CanUsbDevice* usbDevice) {
     Serial.println("Done.");
 }
 
-USB_HANDLE armForRead(CanUsbDevice* usbDevice, char* buffer) {
+void armForRead(CanUsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
-    return usbDevice->device.GenRead(usbDevice->endpoint, (uint8_t*)buffer,
-            usbDevice->endpointSize);
+    usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(
+            usbDevice->endpoint, (uint8_t*)buffer, usbDevice->endpointSize);
 }
 
-USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
-        bool (*callback)(uint8_t*)) {
-    if(!usbDevice->device.HandleBusy(handle)) {
+void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+    if(!usbDevice->device.HandleBusy(usbDevice->hostToDeviceHandle)) {
         // TODO see #569
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
@@ -86,7 +82,6 @@ USB_HANDLE readFromHost(CanUsbDevice* usbDevice, USB_HANDLE handle,
             }
             processQueue(&usbDevice->receiveQueue, callback);
         }
-        return armForRead(usbDevice, usbDevice->receiveBuffer);
+        armForRead(usbDevice, usbDevice->receiveBuffer);
     }
-    return handle;
 }

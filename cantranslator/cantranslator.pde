@@ -57,6 +57,7 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
+    processInputQueue(&usbDevice);
     USB_OUTPUT_HANDLE = readFromHost(
             &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);

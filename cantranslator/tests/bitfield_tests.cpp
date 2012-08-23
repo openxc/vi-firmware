@@ -104,9 +104,9 @@ START_TEST (test_set_doesnt_clobber_existing_data)
             "Field retrieved in 0x%X was 0x%X instead of 0x%X", data, result,
             0xc84f);
 
-    data = 0x8000000000000000;
+    data = 0x8000000000000000LLU;
     setBitField(&data, 1, 21, 1);
-    fail_unless(data == 0x8000040000000000,
+    fail_unless(data == 0x8000040000000000LLU,
             "Expected combined value 0x8000040000000000 but got 0x%X%X",
             data >> 32, data);
 }
@@ -114,7 +114,7 @@ END_TEST
 
 START_TEST (test_set_off_byte_boundary)
 {
-    uint64_t data = 0xFFFC4DF300000000;
+    uint64_t data = 0xFFFC4DF300000000LLU;
     setBitField(&data, 0x12, 12, 8);
     uint64_t result = getBitField((uint8_t*)&data, 40, 16);
     fail_unless(result == 0x2df1,
@@ -125,14 +125,14 @@ END_TEST
 
 START_TEST (test_set_odd_number_of_bits)
 {
-    uint64_t data = 0xFFFC4DF300000000;
+    uint64_t data = 0xFFFC4DF300000000LLU;
     setBitField(&data, 0x12, 11, 5);
     uint64_t result = getBitField((uint8_t*)&data, 51, 5);
     fail_unless(result == 0x12,
             "Field set in 0x%X%X%X%X was %d instead of %d", data, result,
             0x12);
 
-    data = 0xFFFC4DF300000000;
+    data = 0xFFFC4DF300000000LLU;
     setBitField(&data, 0x2, 11, 5);
     result = getBitField((uint8_t*)&data, 51, 5);
     fail_unless(result == 0x2,

@@ -32,12 +32,12 @@ START_TEST (test_number_writer)
     bool send = true;
     uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
             SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
-    check_equal_unit64(value, 0x1e00000000000000);
+    check_equal_unit64(value, 0x1e00000000000000LLU);
     fail_unless(send);
 
     value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(0x6), &send);
-    check_equal_unit64(value, 0x6000000000000000);
+    check_equal_unit64(value, 0x6000000000000000LLU);
     fail_unless(send);
 }
 END_TEST
@@ -47,7 +47,7 @@ START_TEST (test_boolean_writer)
     bool send = true;
     uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateNumber(true), &send);
-    check_equal_unit64(value, 0x8000000000000000);
+    check_equal_unit64(value, 0x8000000000000000LLU);
     fail_unless(send);
 }
 END_TEST
@@ -57,7 +57,7 @@ START_TEST (test_state_writer)
     bool send = true;
     uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
-    check_equal_unit64(value, 0x2000000000000000);
+    check_equal_unit64(value, 0x2000000000000000LLU);
     fail_unless(send);
 }
 END_TEST
@@ -81,7 +81,7 @@ END_TEST
 START_TEST (test_encode_can_signal_rounding_precision)
 {
     uint64_t value = encodeCanSignal(&SIGNALS[3], 50);
-    check_equal_unit64(value, 0x061a800000000000);
+    check_equal_unit64(value, 0x061a800000000000LLU);
 }
 END_TEST
 

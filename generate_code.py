@@ -202,7 +202,7 @@ class Parser(object):
         print "#include \"handlers.h\""
         print "#include \"shared_handlers.h\""
         print
-        print "extern CanUsbDevice usbDevice;"
+        print "extern Listener listener;"
         print "extern CAN can1;"
         print "extern CAN can2;"
         print "extern void handleCan1Interrupt();"
@@ -319,15 +319,15 @@ class Parser(object):
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
                     print ("        %s(id, data, SIGNALS, " % message.handler +
-                            "SIGNAL_COUNT, &usbDevice);")
+                            "SIGNAL_COUNT, &listener);")
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print ("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name))
                     else:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print ("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name)

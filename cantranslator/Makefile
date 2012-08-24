@@ -27,14 +27,15 @@ include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 
 TEST_OBJDIR = $(OBJDIR)/tests
 
-TEST_SRC=$(wildcard tests/*.cpp)
+TEST_SRC=$(wildcard tests/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(OBJDIR)/%,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o queue.o \
-					 usbutil.o log.o
+					 usbutil.o log.o listener.o serialutil.o
 TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
-				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o
+				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o \
+				$(TEST_OBJDIR)/usbutil_mock.o $(TEST_OBJDIR)/serialutil_mock.o
 
 test: CXX = g++
 test: CC = g++

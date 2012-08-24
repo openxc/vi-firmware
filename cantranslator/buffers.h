@@ -1,9 +1,7 @@
 #ifndef _BUFFERS_H_
 #define _BUFFERS_H_
 
-extern "C" {
 #include "queue.h"
-}
 
 /* Public: Pass the buffer in the queue to the callback, which should return
  * true if an OpenXC message is found and processed, then reset the queue back

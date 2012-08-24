@@ -2,34 +2,34 @@
 #define _CANREAD_H_
 
 #include "canutil.h"
-#include "usbutil.h"
+#include "listener.h"
 
 #define NAME_FIELD_NAME "name"
 #define VALUE_FIELD_NAME "value"
 #define EVENT_FIELD_NAME "event"
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and send the result over USB.
+ * transforations and send the result to the listener;
  *
- * usbDevice - The USB device to send the final formatted message on.
+ * listener - The listener device to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal, uint8_t* data,
+void translateCanSignal(Listener* listener, CanSignal* signal, uint8_t* data,
         CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and also run the final float value through the handler
- * function before sending the result out over USB.
+ * function before sending the result to the listener.
  *
- * usbDevice - The USB device to send the final formatted message on.
+ * listener - The listener device to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - a function that performs extra processing on the float value.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -38,14 +38,14 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
  * transforations and (expecting the float value to be 0 or 1) convert it to a
  * boolean.
  *
- * usbDevice - The USB device to send the final formatted message on.
+ * listener - The listener device to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - a function that converts the float value to a boolean.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array
  */
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -59,7 +59,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
  *
  * TODO do error checking, durr.
  *
- * usbDevice - The USB device to send the final formatted message on.
+ * listener - The listener device to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - A function that returns the string state value associated with the
@@ -67,48 +67,48 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
  * signals - An array of all active signals.
  * signalCount - The length of the signals array>
  */
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
-/* Public: Send the given name and value out over the default in endpoint of the
- * USB device in an OpenXC JSON message followed by a newline.
+/* Public: Send the given name and value out to the listener in an OpenXC JSON
+ * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The numerical value for the value field of the OpenXC message.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
-void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice);
+void sendNumericalMessage(char* name, float value, Listener* listener);
 
-/* Public: Send the given name and value out over the default in endpoint of the
- * USB device in an OpenXC JSON message followed by a newline.
+/* Public: Send the given name and value out to the listener in an OpenXC JSON
+ * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
-void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice);
+void sendStringMessage(char* name, char* value, Listener* listener);
 
-/* Public: Send the given name and value out over the default in endpoint of the
- * USB device in an OpenXC JSON message followed by a newline.
+/* Public: Send the given name and value out to the listener in an OpenXC JSON
+ * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The boolean value for the value field of the OpenXC message.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
-void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice);
+void sendBooleanMessage(char* name, bool value, Listener* listener);
 
-/* Public: Send the given name and value out over the default in endpoint of the
- * USB device in an OpenXC JSON message followed by a newline.
+/* Public: Send the given name and value out to the listener in an OpenXC JSON
+ * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
  * event - The boolean event for the event field of the OpenXC message.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
 void sendEventedBooleanMessage(char* name, char* value, bool event,
-        CanUsbDevice* usbDevice);
+        Listener* listener);
 
 /* Public: Parse a CAN signal from a message and apply required transformation.
  *

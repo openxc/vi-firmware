@@ -1,11 +1,13 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
+#ifdef CHIPKIT
 #include "WProgram.h"
+#endif // CHIPKIT
 
-extern "C" {
 #include "queue.h"
-}
+
+#define MAX_MESSAGE_SIZE 128
 
 /* Public: a container for a CAN translator Serial device and associated
  * metadata.
@@ -13,7 +15,11 @@ extern "C" {
  * device - A pointer to the hardware serial device to use for OpenXC messages.
  */
 struct SerialDevice {
+#ifdef CHIPKIT
     HardwareSerial* device;
+#endif // CHIPKIT
+    // device to host
+    ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
 };
@@ -33,5 +39,15 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*));
  * the receive buffer.
  */
 void initializeSerial(SerialDevice* serial);
+
+/* Public: Sends a message on the bulk transfer endpoint to the host.
+ *
+ * device - the serial device to send this message on.
+ * message - a buffer containing the message to send.
+ * messageSize - the length of the message.
+ */
+void sendMessage(SerialDevice* device, uint8_t* message, int messageSize);
+
+void processInputQueue(SerialDevice* device);
 
 #endif // _SERIALUTIL_H_

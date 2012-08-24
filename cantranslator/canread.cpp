@@ -35,67 +35,65 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 }
 
 /* Private: Serialize the root JSON object to a string (ending with a newline)
- * and send it over the default input endpoint for the USB device.
+ * and send it to the listener.
  *
  * root - The JSON object to send.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
-void sendJSON(cJSON* root, CanUsbDevice* usbDevice) {
+void sendJSON(cJSON* root, Listener* listener) {
     char *message = cJSON_PrintUnformatted(root);
-    sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+    sendMessage(listener, (uint8_t*) message, strlen(message));
     cJSON_Delete(root);
     free(message);
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to
- * the OpenXC standard) and send it out over the default input endpoint for the
- * USB device.
+ * the OpenXC standard) and send it out to the listener.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The numerical, string or booelan for the value field of the OpenXC
  *     message.
  * event - (Optional) The event for the event field of the OpenXC message.
- * usbDevice - The USB device to send on.
+ * listener - The listener device to send on.
  */
-void sendJSONMessage(char* name, cJSON* value, cJSON* event,
-        CanUsbDevice* usbDevice) {
+void sendJSONMessage(char* name, cJSON* value, cJSON* event, Listener* listener) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
     cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
     if(event != NULL) {
         cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
     }
-    sendJSON(root, usbDevice);
+    sendJSON(root, listener);
 }
 
-void sendNumericalMessage(char* name, float value, CanUsbDevice* usbDevice) {
-    sendJSONMessage(name, cJSON_CreateNumber(value), NULL, usbDevice);
+void sendNumericalMessage(char* name, float value, Listener* listener) {
+    sendJSONMessage(name, cJSON_CreateNumber(value), NULL, listener);
 }
 
-void sendBooleanMessage(char* name, bool value, CanUsbDevice* usbDevice) {
-    sendJSONMessage(name, cJSON_CreateBool(value), NULL, usbDevice);
+void sendBooleanMessage(char* name, bool value, Listener* listener) {
+    sendJSONMessage(name, cJSON_CreateBool(value), NULL, listener);
 }
 
-void sendStringMessage(char* name, char* value, CanUsbDevice* usbDevice) {
-    sendJSONMessage(name, cJSON_CreateString(value), NULL, usbDevice);
+void sendStringMessage(char* name, char* value, Listener* listener) {
+    sendJSONMessage(name, cJSON_CreateString(value), NULL, listener);
 }
 
 void sendEventedBooleanMessage(char* name, char* value, bool event,
-        CanUsbDevice* usbDevice) {
+        Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
-            usbDevice);
+            listener);
 }
 
 void sendEventedStringMessage(char* name, char* value, char* event,
-        CanUsbDevice* usbDevice) {
+        Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
-            usbDevice);
+            listener);
 }
 
 // TODO there is lots of duplicated code in these functions, but I don't see an
 // obvious way to share code and still keep the different data types returned
 // by the handlers.
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -107,8 +105,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            sendNumericalMessage(signal->genericName, processedValue,
-                    usbDevice);
+            sendNumericalMessage(signal->genericName, processedValue, listener);
         }
         signal->sendClock = 0;
     } else {
@@ -117,7 +114,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
     signal->lastValue = value;
 }
 
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -129,7 +126,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            sendStringMessage(signal->genericName, stringValue, usbDevice);
+            sendStringMessage(signal->genericName, stringValue, listener);
         }
         signal->sendClock = 0;
     } else {
@@ -138,7 +135,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
     signal->lastValue = value;
 }
 
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -150,7 +147,7 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
         if(send && (signal->sendSame || !signal->received ||
                     value != signal->lastValue)) {
             signal->received = true;
-            sendBooleanMessage(signal->genericName, booleanValue, usbDevice);
+            sendBooleanMessage(signal->genericName, booleanValue, listener);
         }
         signal->sendClock = 0;
     } else {
@@ -159,8 +156,8 @@ void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
     signal->lastValue = value;
 }
 
-void translateCanSignal(CanUsbDevice* usbDevice, CanSignal* signal,
+void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data, CanSignal* signals, int signalCount) {
-    translateCanSignal(usbDevice, signal, data, passthroughHandler, signals,
+    translateCanSignal(listener, signal, data, passthroughHandler, signals,
             signalCount);
 }

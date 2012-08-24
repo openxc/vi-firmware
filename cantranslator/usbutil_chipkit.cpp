@@ -1,10 +1,8 @@
-#ifdef CHIPKIT
-
 #include "usbutil.h"
 #include "buffers.h"
 #include "log.h"
 
-void processInputQueue(CanUsbDevice* usbDevice) {
+void processInputQueue(UsbDevice* usbDevice) {
     while(!queue_empty(&usbDevice->sendQueue)) {
 
         // Make sure the USB write is 100% complete before messing with this buffer
@@ -27,14 +25,6 @@ void processInputQueue(CanUsbDevice* usbDevice) {
             usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
-#ifdef BLUETOOTH
-        // Serial transfers are really, really slow, so we don't want to send unless
-        // explicitly set to do so at compile-time. Alternatively, we could send
-        // on serial whenever we detect below that we're probably not connected to a
-        // USB device, but explicit is better than implicit.
-        usbDevice->serial->device->write((const uint8_t*)usbDevice->sendBuffer,
-                byteCount);
-#else
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
             while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
@@ -45,24 +35,23 @@ void processInputQueue(CanUsbDevice* usbDevice) {
                     usbDevice->endpoint, currentByte, bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
-#endif
     }
 }
 
-void initializeUsb(CanUsbDevice* usbDevice) {
+void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
     queue_init(&usbDevice->sendQueue);
     debug("Done.");
 }
 
-void armForRead(CanUsbDevice* usbDevice, char* buffer) {
+void armForRead(UsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
     usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(
             usbDevice->endpoint, (uint8_t*)buffer, usbDevice->endpointSize);
 }
 
-void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     if(!usbDevice->device.HandleBusy(usbDevice->hostToDeviceHandle)) {
         // TODO see #569
         delay(500);
@@ -78,4 +67,3 @@ void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         armForRead(usbDevice, usbDevice->receiveBuffer);
     }
 }
-#endif // CHIPKIT

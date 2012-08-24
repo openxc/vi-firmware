@@ -13,6 +13,7 @@
 #include "serialutil.h"
 #include "log.h"
 #include "cJSON.h"
+#include "listener.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -36,8 +37,9 @@ void checkIfStalled();
 bool receiveWriteRequest(uint8_t*);
 
 SerialDevice serialDevice = {&Serial1};
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
         ENDPOINT_SIZE, &serialDevice, true};
+Listener listener = {&usbDevice, &serialDevice};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
@@ -57,7 +59,7 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-    processInputQueue(&usbDevice);
+    processListenerQueues(&listener);
     readFromHost(&usbDevice, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {

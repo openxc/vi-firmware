@@ -5,9 +5,10 @@
 
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
+#include "canread.h"
 #include "canutil.h"
 #include "serialutil.h"
-#include "canread_chipkit.h"
+#include "listener.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
@@ -19,8 +20,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 // USB
 #define DATA_ENDPOINT 1
 SerialDevice serialDevice = {&Serial1};
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
         ENDPOINT_SIZE, &serialDevice};
+Listener listener = {&usbDevice, &serialDevice};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -79,19 +81,19 @@ void loop() {
     while(1) {
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
-                random(50) + random(100) * .1, &usbDevice);
+                random(50) + random(100) * .1, &listener);
         sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
-                random(2) == 1 ? true : false, &usbDevice);
+                random(2) == 1 ? true : false, &listener);
 
         int stateSignalIndex = random(STATE_SIGNAL_COUNT);
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][random(3)], &usbDevice);
+                SIGNAL_STATES[stateSignalIndex][random(3)], &listener);
 
         int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-                randomEvent.value, randomEvent.event, &usbDevice);
-        processInputQueue(&usbDevice);
+                randomEvent.value, randomEvent.event, &listener);
+        processListenerQueues(&listener);
     }
 }
 

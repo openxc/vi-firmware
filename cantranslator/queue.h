@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _QUEUE_H_
 #define _QUEUE_H_
 
@@ -83,3 +87,7 @@ void queue_snapshot(queue_##type* queue, type* snapshot) { \
 QUEUE_DECLARE(uint8_t, 512)
 
 #endif // _QUEUE_H_
+
+#ifdef __cplusplus
+}
+#endif

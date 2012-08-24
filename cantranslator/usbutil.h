@@ -5,7 +5,6 @@
 
 #ifdef CHIPKIT
 #include "chipKITUSBDevice.h"
-#include "serialutil.h"
 #endif // CHIPKIT
 
 #include "queue.h"
@@ -20,13 +19,8 @@
  * device - The UsbDevice attached to the host.
  * endpoint - The endpoint to use to send and receive messages.
  * endpointSize - The packet size of the endpoint.
- * serial - A serial device to use in parallel to USB. TODO Yes, this is
- *      a struct for USB devices, but this is the place where this reference
- *      makes the most sense right now. Since we're actually using the
- *      hard-coded Serial1 object instead of SoftwareSerial as I had initially
- *      planned, we could actually drop this reference altogether.
  */
-struct CanUsbDevice {
+struct UsbDevice {
 #ifdef CHIPKIT
     USBDevice device;
 #endif // CHIPKIT
@@ -40,7 +34,6 @@ struct CanUsbDevice {
     char receiveBuffer[ENDPOINT_SIZE];
     ByteQueue receiveQueue;
 #ifdef CHIPKIT
-    SerialDevice* serial;
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
 #endif // CHIPKIT
@@ -50,7 +43,7 @@ struct CanUsbDevice {
  * configuration specified in usb_descriptors.c. Must be called before
  * any other USB fuctions are used.
  */
-void initializeUsb(CanUsbDevice*);
+void initializeUsb(UsbDevice*);
 
 /* Public: Sends a message on the bulk transfer endpoint to the host.
  *
@@ -58,7 +51,7 @@ void initializeUsb(CanUsbDevice*);
  * message - a buffer containing the message to send.
  * messageSize - the length of the message.
  */
-void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize);
+void sendMessage(UsbDevice* usbDevice, uint8_t* message, int messageSize);
 
 /* Public: Arm the given endpoint for a read from the device to host.
  *
@@ -68,7 +61,7 @@ void sendMessage(CanUsbDevice* usbDevice, uint8_t* message, int messageSize);
  * usbDevice - the CAN USB device to arm the endpoint on
  * buffer - the destination buffer for the next IN transfer.
  */
-void armForRead(CanUsbDevice* usbDevice, char* buffer);
+void armForRead(UsbDevice* usbDevice, char* buffer);
 
 /* Public: Pass the next IN request message to the callback, if available.
  *
@@ -79,8 +72,8 @@ void armForRead(CanUsbDevice* usbDevice, char* buffer);
  * usbDevice - the CAN USB device to arm the endpoint on
  * callback - a function that handles USB in requests
  */
-void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*));
+void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
 
-void processInputQueue(CanUsbDevice* usbDevice);
+void processInputQueue(UsbDevice* usbDevice);
 
 #endif // _USBUTIL_H_

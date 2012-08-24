@@ -5,11 +5,28 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
-#include "chipKITCAN.h"
+#include "queue.h"
 #include "cJSON.h"
+
+#ifdef CHIPKIT
+#include "chipKITCAN.h"
+#endif
 
 #define SYS_FREQ (80000000L)
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
+
+/* Public: A CAN message, particularly for writing to CAN.
+ * state names.
+ *
+ * destination - The ID of the message.
+ * data  - The message's 64-bits of data.
+ */
+struct CanMessage {
+    uint32_t destination;
+    uint64_t* data;
+};
+
+QUEUE_DECLARE(CanMessage, 8);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *
@@ -24,10 +41,13 @@
 struct CanBus {
     unsigned int speed;
     uint64_t address;
+#ifdef CHIPKIT
     CAN* bus;
+#endif
     void (*interruptHandler)();
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;
+    QUEUE_TYPE(CanMessage) sendQueue;
 };
 
 /* Public: A CAN transceiver message filter mask.

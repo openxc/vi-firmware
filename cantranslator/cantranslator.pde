@@ -60,6 +60,9 @@ void loop() {
     processInputQueue(&usbDevice);
     readFromHost(&usbDevice, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);
+    for(int i = 0; i < getCanBusCount(); i++) {
+        processCanWriteQueue(&getCanBuses()[i]);
+    }
     checkIfStalled();
 }
 

@@ -42,10 +42,6 @@ bool queue_##type##_push(queue_##type* queue, type value) { \
 } \
 \
 type queue_##type##_pop(queue_##type* queue){ \
-	if (queue->head == queue->tail) { \
-		return 0; \
-	} \
-\
 	int next = (queue->tail + 1) % QUEUE_MAX_INTERNAL_LENGTH(type); \
 	type value = queue->elements[queue->tail]; \
 	queue->tail = next; \

@@ -3,6 +3,32 @@
 #include "queue.h"
 #include <stdio.h>
 
+typedef struct test_t {
+    int i;
+    char bytes[8];
+};
+
+QUEUE_DECLARE(test_t, 10);
+QUEUE_DEFINE(test_t);
+
+START_TEST (test_struct_element)
+{
+    QUEUE_TYPE(test_t) queue;
+    queue_init(&queue);
+    int length = queue_length(&queue);
+    fail_unless(length == 0, "expected queue length of 0 but got %d", length);
+    test_t original_value = {42, "abcdefg"};
+    bool success = QUEUE_PUSH(test_t, &queue, original_value);
+    fail_unless(success);
+    fail_unless(queue_length(&queue) == 1,
+            "expected queue length of 1 but got %d", length);
+
+    test_t value = QUEUE_POP(test_t, &queue);
+    fail_unless(value.i == original_value.i);
+    fail_unless(!strncmp(value.bytes, original_value.bytes, 8));
+}
+END_TEST
+
 START_TEST (test_push)
 {
     QUEUE_TYPE(uint8_t) queue;
@@ -121,6 +147,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_fill_er_up);
     tcase_add_test(tc_core, test_length);
     tcase_add_test(tc_core, test_snapshot);
+    tcase_add_test(tc_core, test_struct_element);
     suite_add_tcase(s, tc_core);
 
     return s;

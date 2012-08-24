@@ -24,7 +24,7 @@ void processInputQueue(CanUsbDevice* usbDevice) {
 
         int byteCount = 0;
         while(!queue_empty(&usbDevice->sendQueue) && byteCount < 64) {
-            usbDevice->sendBuffer[byteCount++] = queue_pop(&usbDevice->sendQueue);
+            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
 #ifdef BLUETOOTH
@@ -68,7 +68,7 @@ void readFromHost(CanUsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
             for(int i = 0; i < ENDPOINT_SIZE; i++) {
-                if(!queue_push(&usbDevice->receiveQueue,
+                if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
                     debug("Dropped write from host -- queue is full");
                 }

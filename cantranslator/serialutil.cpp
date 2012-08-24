@@ -7,7 +7,7 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
         for(int i = 0; i < bytesAvailable && !queue_full(&serial->receiveQueue);
 						i++) {
             char byte = serial->device->read();
-			queue_push(&serial->receiveQueue, (uint8_t) byte);
+			QUEUE_PUSH(uint8_t, &serial->receiveQueue, (uint8_t) byte);
         }
 		processQueue(&serial->receiveQueue, callback);
     }

@@ -4,7 +4,7 @@
 #include "log.h"
 
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
-    uint8_t snapshot[MAX_QUEUE_LENGTH];
+    uint8_t snapshot[QUEUE_MAX_LENGTH(uint8_t)];
     queue_snapshot(queue, snapshot);
     if(callback(snapshot)) {
         queue_init(queue);

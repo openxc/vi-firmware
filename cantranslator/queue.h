@@ -15,7 +15,7 @@ const int queue_##type##_max_internal_length = max_length + 1; \
 typedef struct queue_##type##_s { \
     int head; \
     int tail; \
-    type elements[QUEUE_MAX_INTERNAL_LENGTH(type)]; \
+    type elements[max_length]; \
 } queue_##type; \
 \
 bool queue_##type##_push(queue_##type* queue, type value); \
@@ -30,7 +30,7 @@ void queue_snapshot(queue_##type* queue, type* snapshot);
 
 #define QUEUE_DEFINE(type) \
 bool queue_##type##_push(queue_##type* queue, type value) { \
-    int next = (queue->head + 1) % (QUEUE_MAX_INTERNAL_LENGTH(type)); \
+    int next = (queue->head + 1) % (queue_##type##_max_internal_length); \
     if (next == queue->tail) { \
         return false; \
     } \
@@ -42,7 +42,7 @@ bool queue_##type##_push(queue_##type* queue, type value) { \
 } \
 \
 type queue_##type##_pop(queue_##type* queue){ \
-	int next = (queue->tail + 1) % QUEUE_MAX_INTERNAL_LENGTH(type); \
+	int next = (queue->tail + 1) % queue_##type##_max_internal_length; \
 	type value = queue->elements[queue->tail]; \
 	queue->tail = next; \
 \
@@ -54,12 +54,12 @@ void queue_init(queue_##type* queue) { \
 } \
 \
 int queue_length(queue_##type* queue) { \
-	return (QUEUE_MAX_INTERNAL_LENGTH(type) + queue->head - queue->tail) \
-            % QUEUE_MAX_INTERNAL_LENGTH(type); \
+	return (queue_##type##_max_internal_length + queue->head - queue->tail) \
+            % queue_##type##_max_internal_length; \
 } \
 \
 bool queue_full(queue_##type* queue) { \
-    return queue_length(queue) == QUEUE_MAX_LENGTH(type); \
+    return queue_length(queue) == queue_##type##_max_length; \
 } \
 \
 bool queue_empty(queue_##type* queue) { \
@@ -70,7 +70,7 @@ void queue_snapshot(queue_##type* queue, type* snapshot) { \
     int i; \
     for(i = 0; i < queue_length(queue); i++) { \
         snapshot[i] = queue->elements[ \
-            (queue->tail + i) % QUEUE_MAX_INTERNAL_LENGTH(type)]; \
+            (queue->tail + i) % queue_##type##_max_internal_length]; \
     } \
 }
 

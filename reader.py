@@ -246,8 +246,7 @@ class UsbCanTranslator(CanTranslator):
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
-            dashboard=False, elements=None):
+    def __init__(self, vendor_id, verbose, dump, dashboard, elements):
         super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
                 elements)
         self.vendor_id = vendor_id
@@ -310,7 +309,7 @@ def parse_options():
     parser.add_argument("--vendor",
             action="store",
             dest="vendor",
-            default=0x04d8)
+            default=0xffff)
     parser.add_argument("--verbose", "-v",
             action="store_true",
             dest="verbose",

@@ -32,6 +32,10 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 SerialDevice serialDevice = {&Serial1};
 #endif
 
+#ifdef LPC1768
+SerialDevice serialDevice;
+#endif
+
 UsbDevice USB_DEVICE = {
 #ifdef CHIPKIT
     USBDevice(usbCallback),
@@ -39,11 +43,7 @@ UsbDevice USB_DEVICE = {
     DATA_ENDPOINT,
     MAX_USB_PACKET_SIZE};
 
-Listener listener = {&USB_DEVICE,
-#ifdef CHIPKIT
-    &serialDevice
-#endif
-};
+Listener listener = {&USB_DEVICE, &serialDevice};
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -91,11 +91,12 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 };
 
 void setup() {
+    srand(42);
 #ifdef CHIPKIT
     Serial.begin(115200);
-    initializeSerial(&serialDevice);
 #endif
 
+    initializeSerial(&serialDevice);
     initializeUsb(&USB_DEVICE);
 }
 

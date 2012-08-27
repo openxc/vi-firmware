@@ -1,3 +1,5 @@
+#ifdef CHIPKIT
+
 #include "usbutil.h"
 #include "buffers.h"
 #include "log.h"
@@ -67,3 +69,5 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         armForRead(usbDevice, usbDevice->receiveBuffer);
     }
 }
+
+#endif // CHIPKIT

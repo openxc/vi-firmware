@@ -15,8 +15,9 @@ OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
-CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
-		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
+CC_FLAGS = -c -DLPC1768 -fno-common -fmessage-length=0 -Wall -fno-exceptions \
+		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
+		   -Wno-char-subscripts
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM -DNDEBUG

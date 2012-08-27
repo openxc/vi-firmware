@@ -23,8 +23,8 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
     return value;
 }
 
-char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+const char* stateHandler(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
     CanSignalState* signalState = lookupSignalState(value, signal, signals,
             signalCount);
     if(signalState != NULL) {
@@ -41,7 +41,7 @@ char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  * listener - The listener device to send on.
  */
 void sendJSON(cJSON* root, Listener* listener) {
-    char *message = cJSON_PrintUnformatted(root);
+    char* message = cJSON_PrintUnformatted(root);
     sendMessage(listener, (uint8_t*) message, strlen(message));
     cJSON_Delete(root);
     free(message);
@@ -56,7 +56,8 @@ void sendJSON(cJSON* root, Listener* listener) {
  * event - (Optional) The event for the event field of the OpenXC message.
  * listener - The listener device to send on.
  */
-void sendJSONMessage(char* name, cJSON* value, cJSON* event, Listener* listener) {
+void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
+        Listener* listener) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
     cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
@@ -66,26 +67,27 @@ void sendJSONMessage(char* name, cJSON* value, cJSON* event, Listener* listener)
     sendJSON(root, listener);
 }
 
-void sendNumericalMessage(char* name, float value, Listener* listener) {
+void sendNumericalMessage(const char* name, float value, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateNumber(value), NULL, listener);
 }
 
-void sendBooleanMessage(char* name, bool value, Listener* listener) {
+void sendBooleanMessage(const char* name, bool value, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateBool(value), NULL, listener);
 }
 
-void sendStringMessage(char* name, char* value, Listener* listener) {
+void sendStringMessage(const char* name, const char* value,
+        Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), NULL, listener);
 }
 
-void sendEventedBooleanMessage(char* name, char* value, bool event,
+void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
             listener);
 }
 
-void sendEventedStringMessage(char* name, char* value, char* event,
-        Listener* listener) {
+void sendEventedStringMessage(const char* name, const char* value,
+        const char* event, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
             listener);
 }
@@ -116,11 +118,12 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
-        char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
     bool send = true;
-    char* stringValue = handler(signal, signals, signalCount, value, &send);
+    const char* stringValue = handler(signal, signals, signalCount, value,
+            &send);
 
     if(signal->sendClock == signal->sendFrequency) {
         if(send && (signal->sendSame || !signal->received ||

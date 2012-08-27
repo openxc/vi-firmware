@@ -1,16 +1,19 @@
 #ifndef _USBUTIL_H_
 #define _USBUTIL_H_
 
-#include "usbutil.h"
 #include <string.h>
 #include <stdint.h>
-#include "usbapi.h"
 #include "queue.h"
-
 
 #ifdef CHIPKIT
 #include "chipKITUSBDevice.h"
 #endif // CHIPKIT
+
+#ifdef LPC1768
+extern "C" {
+#include "usbapi.h"
+}
+#endif // LPC1768
 
 #define MAX_USB_PACKET_SIZE 64
 // Don't try to send a message larger than this

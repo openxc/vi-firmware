@@ -3,28 +3,49 @@
  *  JSON messages over USB.
  */
 
-#include "chipKITUSBDevice.h"
 #include "usbutil.h"
 #include "canread.h"
 #include "canutil.h"
 #include "serialutil.h"
 #include "listener.h"
+#include <stdlib.h>
+
+#ifdef LPC1768
+extern "C" {
+#include "usbapi.h"
+}
+#endif // LPC1768
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
+#ifdef CHIPKIT
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+#endif
 
 // USB
 #define DATA_ENDPOINT 1
-SerialDevice serialDevice = {&Serial1};
-UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        ENDPOINT_SIZE, &serialDevice};
-Listener listener = {&usbDevice, &serialDevice};
 
-char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
+#ifdef CHIPKIT
+SerialDevice serialDevice = {&Serial1};
+#endif
+
+UsbDevice USB_DEVICE = {
+#ifdef CHIPKIT
+    USBDevice(usbCallback),
+#endif // CHIPKIT
+    DATA_ENDPOINT,
+    MAX_USB_PACKET_SIZE};
+
+Listener listener = {&USB_DEVICE,
+#ifdef CHIPKIT
+    &serialDevice
+#endif
+};
+
+const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
     "torque_at_transmission",
     "engine_speed",
@@ -38,7 +59,7 @@ char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "fuel_consumed_since_restart",
 };
 
-char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
+const char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
     "parking_brake_status",
     "brake_pedal_status",
     "headlamp_status",
@@ -46,22 +67,22 @@ char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
     "windshield_wiper_status",
 };
 
-char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
+const char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
     "transmission_gear_position",
     "ignition_status",
 };
 
-char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
+const char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
     { "neutral", "first", "second" },
     { "off", "run", "accessory" },
 };
 
-char* EVENT_SIGNALS[EVENT_SIGNAL_COUNT] = {
+const char* EVENT_SIGNALS[EVENT_SIGNAL_COUNT] = {
     "door_status",
 };
 
 struct Event {
-    char* value;
+    const char* value;
     bool event;
 };
 
@@ -70,27 +91,31 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 };
 
 void setup() {
+#ifdef CHIPKIT
     Serial.begin(115200);
-    randomSeed(analogRead(0));
-
     initializeSerial(&serialDevice);
-    initializeUsb(&usbDevice);
+#endif
+
+    initializeUsb(&USB_DEVICE);
 }
 
 void loop() {
     while(1) {
+#ifdef LPC1768
+        USBHwISR();
+#endif
         sendNumericalMessage(
-                NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
-                random(50) + random(100) * .1, &listener);
-        sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
-                random(2) == 1 ? true : false, &listener);
+                NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
+                rand() % 50 + rand() % 100 * .1, &listener);
+        sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
+                rand() % 2 == 1 ? true : false, &listener);
 
-        int stateSignalIndex = random(STATE_SIGNAL_COUNT);
+        int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][random(3)], &listener);
+                SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
 
-        int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
-        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
+        int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &listener);
         processListenerQueues(&listener);
@@ -98,7 +123,9 @@ void loop() {
 }
 
 int main(void) {
+#ifdef CHIPKIT
 	init();
+#endif
 	setup();
 
 	for (;;)
@@ -107,17 +134,19 @@ int main(void) {
 	return 0;
 }
 
+#ifdef CHIPKIT
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
-    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
+    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
-        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
+        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-        usbDevice.configured = true;
+        USB_DEVICE.configured = true;
         break;
 
     default:
         break;
     }
 }
+#endif // CHIPKIT

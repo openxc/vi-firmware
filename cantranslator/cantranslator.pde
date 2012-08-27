@@ -11,7 +11,9 @@
 #include "bitfield.h"
 #include "usbutil.h"
 #include "serialutil.h"
+#include "log.h"
 #include "cJSON.h"
+#include "listener.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -23,25 +25,25 @@ char* VERSION = "2.0-pre";
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
-// USB
+// This is a reference to the last packet read
+extern volatile CTRL_TRF_SETUP SetupPkt;
 
-#define DATA_ENDPOINT 1
+/* Forward declarations */
 
-USB_HANDLE USB_OUTPUT_HANDLE = 0;
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+void initializeAllCan();
+void receiveCan(CanBus*);
+void checkIfStalled();
+bool receiveWriteRequest(uint8_t*);
+
 SerialDevice serialDevice = {&Serial1};
-CanUsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        ENDPOINT_SIZE, &serialDevice, true};
+UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+        MAX_USB_PACKET_SIZE, &serialDevice, true};
+Listener listener = {&usbDevice, &serialDevice};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
-
-/* Forward declarations */
-
-void initializeAllCan();
-void receiveCan(CanBus*);
-void checkIfStalled();
-bool receiveWriteRequest(char*);
 
 void setup() {
     Serial.begin(115200);
@@ -57,9 +59,12 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-    USB_OUTPUT_HANDLE = readFromHost(
-            &usbDevice, USB_OUTPUT_HANDLE, &receiveWriteRequest);
+    processListenerQueues(&listener);
+    readFromHost(&usbDevice, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);
+    for(int i = 0; i < getCanBusCount(); i++) {
+        processCanWriteQueue(&getCanBuses()[i]);
+    }
     checkIfStalled();
 }
 
@@ -101,12 +106,12 @@ void checkIfStalled() {
     }
 }
 
-bool receiveWriteRequest(char* message) {
-    cJSON *root = cJSON_Parse(message);
+bool receiveWriteRequest(uint8_t* message) {
+    cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            Serial.println("Write request is malformed, missing name");
+            debug("Write request is malformed, missing name");
             return true;
         }
         char* name = nameObject->valuestring;
@@ -124,8 +129,7 @@ bool receiveWriteRequest(char* message) {
                         getSignalCount());
             }
         } else {
-            Serial.print("Writing not allowed for signal with name ");
-            Serial.println(name);
+            debug("Writing not allowed for signal with name %s", name);
         }
         cJSON_Delete(root);
         return true;
@@ -187,16 +191,14 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
     switch(SetupPkt.bRequest) {
     case VERSION_CONTROL_COMMAND:
         char combinedVersion[strlen(VERSION) + strlen(getMessageSet()) + 2];
-
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        Serial.print("Version: ");
-        Serial.println(combinedVersion);
+        debug("Version: %s (%s)", combinedVersion);
 
         usbDevice.device.EP0SendRAMPtr((uint8_t*)combinedVersion,
                 strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;
     case RESET_CONTROL_COMMAND:
-        Serial.print("Resetting...");
+        debug("Resetting...");
         initializeAllCan();
         return true;
     default:
@@ -211,7 +213,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     switch(event) {
     case EVENT_CONFIGURED:
-        Serial.println("Event: Configured");
+        debug("USB Configured");
         usbDevice.configured = true;
         mark();
         usbDevice.device.EnableEndpoint(DATA_ENDPOINT,

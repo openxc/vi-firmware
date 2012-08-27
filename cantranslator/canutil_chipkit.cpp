@@ -1,5 +1,6 @@
 #include "canutil.h"
 #include "signals.h"
+#include "log.h"
 
 /* Private: Initializes message filter masks and filters on the CAN controller.
  *
@@ -9,16 +10,16 @@
  */
 void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
         int filterMaskCount, CanFilter* filters, int filterCount) {
-    printf("Configuring %d filter masks...\n", filterMaskCount);
+    debug("Configuring %d filter masks...", filterMaskCount);
     for(int i = 0; i < filterMaskCount; i++) {
-        printf("Configuring filter mask %x\n", filterMasks[i].value);
+        debug("Configuring filter mask %x", filterMasks[i].value);
         bus->bus->configureFilterMask(
                 (CAN::FILTER_MASK) filterMasks[i].number,
                 filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
-    printf("Done.\n");
+    debug("Done.");
 
-    printf("Configuring %d filters...\n", filterCount);
+    debug("Configuring %d filters...", filterCount);
     for(int i = 0; i < filterCount; i++) {
         bus->bus->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
@@ -27,11 +28,13 @@ void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
                 (CAN::CHANNEL) filters[i].channel);
         bus->bus->enableFilter((CAN::FILTER) filters[i].number, true);
     }
-    printf("Done.");
+    debug("Done.");
 }
 
 void initializeCan(CanBus* bus) {
     CAN::BIT_CONFIG canBitConfig;
+
+	queue_init(&bus->sendQueue);
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
@@ -84,6 +87,6 @@ void initializeCan(CanBus* bus) {
 
     bus->bus->attachInterrupt(bus->interruptHandler);
 
-    printf("Done.");
+    debug("Done.");
 }
 

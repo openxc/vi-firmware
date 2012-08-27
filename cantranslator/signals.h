@@ -1,11 +1,10 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
-#include "canread_chipkit.h"
 #include "canread.h"
 #include "canwrite.h"
 
-extern CanUsbDevice usbDevice;
+extern Listener listener;
 extern CAN can1;
 extern CAN can2;
 extern void handleCan1Interrupt();

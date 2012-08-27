@@ -3,23 +3,28 @@
  *  JSON messages over USB.
  */
 
+#include "chipKITUSBDevice.h"
 #include "usbutil.h"
+#include "canread.h"
 #include "canutil.h"
-#include "canread_chipkit.h"
 #include "serialutil.h"
-#include <stdlib.h>
+#include "listener.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+
 // USB
 #define DATA_ENDPOINT 1
-// SerialDevice serialDevice = {&Serial1};
-CanUsbDevice USB_DEVICE = {DATA_ENDPOINT, MAX_USB_PACKET_SIZE};
+SerialDevice serialDevice = {&Serial1};
+UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+        ENDPOINT_SIZE, &serialDevice};
+Listener listener = {&usbDevice, &serialDevice};
 
-const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
+char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
     "torque_at_transmission",
     "engine_speed",
@@ -33,7 +38,7 @@ const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "fuel_consumed_since_restart",
 };
 
-const char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
+char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
     "parking_brake_status",
     "brake_pedal_status",
     "headlamp_status",
@@ -41,22 +46,22 @@ const char* BOOLEAN_SIGNALS[BOOLEAN_SIGNAL_COUNT] = {
     "windshield_wiper_status",
 };
 
-const char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
+char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
     "transmission_gear_position",
     "ignition_status",
 };
 
-const char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
+char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
     { "neutral", "first", "second" },
     { "off", "run", "accessory" },
 };
 
-const char* EVENT_SIGNALS[EVENT_SIGNAL_COUNT] = {
+char* EVENT_SIGNALS[EVENT_SIGNAL_COUNT] = {
     "door_status",
 };
 
 struct Event {
-    const char* value;
+    char* value;
     bool event;
 };
 
@@ -65,33 +70,35 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 };
 
 void setup() {
-    srand(42);
+    Serial.begin(115200);
+    randomSeed(analogRead(0));
 
-    // initializeSerial(&serialDevice);
-    initializeUsb(&USB_DEVICE);
+    initializeSerial(&serialDevice);
+    initializeUsb(&usbDevice);
 }
 
 void loop() {
     while(1) {
-		USBHwISR();
         sendNumericalMessage(
-                NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
-                rand() % 50 + rand() % 100 * .1, &USB_DEVICE);
-        sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
-                rand() % 2 == 1 ? true : false, &USB_DEVICE);
+                NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
+                random(50) + random(100) * .1, &listener);
+        sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
+                random(2) == 1 ? true : false, &listener);
 
-        int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
+        int stateSignalIndex = random(STATE_SIGNAL_COUNT);
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][rand() % 3], &USB_DEVICE);
+                SIGNAL_STATES[stateSignalIndex][random(3)], &listener);
 
-        int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
-        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
+        int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-                randomEvent.value, randomEvent.event, &USB_DEVICE);
+                randomEvent.value, randomEvent.event, &listener);
+        processListenerQueues(&listener);
     }
 }
 
 int main(void) {
+	init();
 	setup();
 
 	for (;;)
@@ -100,18 +107,17 @@ int main(void) {
 	return 0;
 }
 
-// static bool usbCallback(void* event, void *pdata, int size) {
-    // // USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
+static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
+    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
 
-    // // switch(event) {
-    // // // case EVENT_CONFIGURED:
-        // // // // USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
-                // // // // USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-        // // // USB_DEVICE.configured = true;
-        // // // break;
+    switch(event) {
+    case EVENT_CONFIGURED:
+        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
+                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        usbDevice.configured = true;
+        break;
 
-    // // default:
-        // // break;
-    // // }
-    // return false;
-// }
+    default:
+        break;
+    }
+}

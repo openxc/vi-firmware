@@ -136,4 +136,6 @@ bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
  */
 bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
 
+void processCanWriteQueue(CanBus* bus);
+
 #endif // _CANWRITE_H_

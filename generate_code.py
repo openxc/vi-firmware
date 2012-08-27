@@ -195,14 +195,14 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canread_chipkit.h\""
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""
+        print "#include \"log.h\""
         print "#include \"handlers.h\""
         print "#include \"shared_handlers.h\""
         print
-        print "extern CanUsbDevice usbDevice;"
+        print "extern Listener listener;"
         print "extern CAN can1;"
         print "extern CAN can2;"
         print "extern void handleCan1Interrupt();"
@@ -319,15 +319,15 @@ class Parser(object):
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
                     print ("        %s(id, data, SIGNALS, " % message.handler +
-                            "SIGNAL_COUNT, &usbDevice);")
+                            "SIGNAL_COUNT, &listener);")
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print ("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name))
                     else:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print ("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name)
@@ -363,38 +363,33 @@ class Parser(object):
         print
         print ("CanFilterMask* initializeFilterMasks(uint64_t address, "
                 "int* count) {")
-        print "Serial.println(\"Initializing filter arrays...\");"
+        print "debug(\"Initializing filter arrays...\");"
 
         print "    if(address == CAN_BUSES[0].address) {"
         print "        *count = %d;" % len(can1_masks)
-        print "        FILTER_MASKS = {"
         for i, mask in enumerate(can1_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
+            print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
         print "    } else if(address == CAN_BUSES[1].address) {"
         print "        *count = %d;" % len(can2_masks)
-        print "        FILTER_MASKS = {"
         for i, mask in enumerate(can2_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
+            print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
         print "    }"
         print "    return FILTER_MASKS;"
         print "}"
 
         print
         print "CanFilter* initializeFilters(uint64_t address, int* count) {"
-        print "    Serial.println(\"Initializing filters...\");"
+        print "    debug(\"Initializing filters...\");"
 
         print "    switch(address) {"
         for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address
             print "        *count = %d;" % len(bus['messages'])
-            print "        FILTERS = {"
             for i, message in enumerate(bus['messages']):
                 # TODO be super smart and figure out good mask values
                 # dynamically
-                print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
-            print "        };"
+                print "        FILTERS[%d] = {%d, 0x%x, %d, %d};" % (
+                        i, i, message.id, 1, 0)
             print "        break;"
         print "    }"
         print "    return FILTERS;"

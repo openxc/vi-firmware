@@ -20,7 +20,7 @@ CC_FLAGS = -c -DLPC1768 -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -Wno-char-subscripts
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
-CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM -DNDEBUG
+CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM
 
 
 AS = $(GCC_BIN)arm-none-eabi-as
@@ -41,9 +41,9 @@ TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
 
 ifdef DEBUG
-CC_FLAGS += -Os -g -ggdb
+CC_FLAGS += -Os -g -ggdb -DDEBUG
 else
-CC_FLAGS += -O2
+CC_FLAGS += -O2 -DNDEBUG
 endif
 
 all: $(OBJDIR) $(TARGET_BIN)

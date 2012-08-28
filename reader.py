@@ -309,7 +309,7 @@ def parse_options():
     parser.add_argument("--vendor",
             action="store",
             dest="vendor",
-            default=0xffff)
+            default=0x1bc4)
     parser.add_argument("--verbose", "-v",
             action="store_true",
             dest="verbose",

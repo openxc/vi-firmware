@@ -46,7 +46,7 @@ static const U8 USB_DESCRIPTORS[] = {
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
 	MAX_USB_PACKET_SIZE,  		// bMaxPacketSize
-	LE_WORD(0xFFFF),		// idVendor
+	LE_WORD(0x1BC4),		// idVendor
 	LE_WORD(0x0001),		// idProduct
 	LE_WORD(0x0100),		// bcdDevice
 	0x01,              		// iManufacturer

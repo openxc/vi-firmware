@@ -41,7 +41,7 @@ TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
 
 ifdef DEBUG
-CC_FLAGS += -Os -g -ggdb -DDEBUG
+CC_FLAGS += -g -ggdb -DDEBUG
 else
 CC_FLAGS += -O2 -DNDEBUG
 endif

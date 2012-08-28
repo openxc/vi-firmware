@@ -15,7 +15,7 @@ extern "C" {
 }
 #endif // LPC1768
 
-#define MAX_USB_PACKET_SIZE 64
+#define MAX_USB_PACKET_SIZE_BYTES 64
 
 #define LE_WORD(x)		((x)&0xFF),((x)>>8)
 
@@ -43,7 +43,7 @@ static const U8 USB_DESCRIPTORS[] = {
 	0x00,              		// bDeviceClass
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
-	MAX_USB_PACKET_SIZE,  		// bMaxPacketSize
+	MAX_USB_PACKET_SIZE_BYTES,  		// bMaxPacketSize
 	LE_WORD(0x1BC4),		// idVendor
 	LE_WORD(0x0001),		// idProduct
 	LE_WORD(0x0100),		// bcdDevice
@@ -79,14 +79,14 @@ static const U8 USB_DESCRIPTORS[] = {
 	DESC_ENDPOINT,
 	_EP01_OUT,				// bEndpointAddress
 	_BULK,   				// bmAttributes
-	LE_WORD(MAX_USB_PACKET_SIZE),// wMaxPacketSize
+	LE_WORD(MAX_USB_PACKET_SIZE_BYTES),// wMaxPacketSize
 	1,						// bInterval
 
 	0x07,
 	DESC_ENDPOINT,
 	_EP01_IN,				// bEndpointAddress
 	_BULK,   				// bmAttributes
-	LE_WORD(MAX_USB_PACKET_SIZE), // wMaxPacketSize
+	LE_WORD(MAX_USB_PACKET_SIZE_BYTES), // wMaxPacketSize
 	1,						// bInterval
 
     // language code string descriptors
@@ -128,10 +128,10 @@ struct UsbDevice {
     int endpointSize;
     bool configured;
     // device to host
-    char sendBuffer[MAX_USB_PACKET_SIZE];
+    char sendBuffer[MAX_USB_PACKET_SIZE_BYTES];
     ByteQueue sendQueue;
     // host to device
-    char receiveBuffer[MAX_USB_PACKET_SIZE];
+    char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
     ByteQueue receiveQueue;
 #ifdef CHIPKIT
     USB_HANDLE deviceToHostHandle;

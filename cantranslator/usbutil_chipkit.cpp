@@ -58,7 +58,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         // TODO see #569
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
-            for(int i = 0; i < MAX_USB_PACKET_SIZE; i++) {
+            for(int i = 0; i < MAX_USB_PACKET_SIZE_BYTES; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
                     debug("Dropped write from host -- queue is full");

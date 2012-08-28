@@ -73,8 +73,8 @@ void readFromHost(UsbDevice* usbDevice, void* handle,
         // if(usbDevice->receiveBuffer[0] != NULL) {
             // strncpy((char*)(usbDevice->packetBuffer +
                         // usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
-                        // MAX_USB_PACKET_SIZE);
-            // usbDevice->packetBufferIndex += MAX_USB_PACKET_SIZE;
+                        // MAX_USB_PACKET_SIZE_BYTES);
+            // usbDevice->packetBufferIndex += MAX_USB_PACKET_SIZE_BYTES;
             // processBuffer(usbDevice->packetBuffer,
                 // &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
         // }

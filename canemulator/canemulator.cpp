@@ -41,7 +41,7 @@ UsbDevice USB_DEVICE = {
     USBDevice(usbCallback),
 #endif // CHIPKIT
     DATA_ENDPOINT,
-    MAX_USB_PACKET_SIZE};
+    MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE, &serialDevice};
 

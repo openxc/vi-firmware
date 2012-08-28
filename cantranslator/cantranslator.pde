@@ -38,7 +38,7 @@ bool receiveWriteRequest(uint8_t*);
 
 SerialDevice serialDevice = {&Serial1};
 UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        MAX_USB_PACKET_SIZE, &serialDevice, true};
+        MAX_USB_PACKET_SIZE_BYTES, &serialDevice, true};
 Listener listener = {&usbDevice, &serialDevice};
 
 int receivedMessages = 0;

@@ -41,7 +41,7 @@ static const U8 USB_DESCRIPTORS[] = {
     // Device descriptor
 	0x12,              		// size of the descriptor in bytes
 	DESC_DEVICE,
-	LE_WORD(0x0110),		// bcdUSB
+	LE_WORD(0x0200),		// bcdUSB
 	0x00,              		// bDeviceClass
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol

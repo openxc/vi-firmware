@@ -16,8 +16,6 @@ extern "C" {
 #endif // LPC1768
 
 #define MAX_USB_PACKET_SIZE 64
-// Don't try to send a message larger than this
-#define PACKET_BUFFER_SIZE MAX_USB_PACKET_SIZE * 4
 
 #define LE_WORD(x)		((x)&0xFF),((x)>>8)
 

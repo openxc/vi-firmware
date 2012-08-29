@@ -19,7 +19,7 @@ CPP = $(GCC_BIN)arm-none-eabi-g++
 CC_FLAGS = -c -DLPC1768 -DUSB_DEVICE_ONLY -D__LPC17XX__ -fno-common \
 		   -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
-		   -Wno-char-subscripts
+		   -Wno-char-subscripts -Wno-unused-but-set-variable
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM

@@ -25,7 +25,7 @@ ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
 # TODO Build a BSP for the blueboard and mbed
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
-			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=1
+			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
 
 AS = $(GCC_BIN)arm-none-eabi-as

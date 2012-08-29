@@ -42,11 +42,14 @@
 #define BOARD_EAOEMBase_RevA			6
 #define BOARD_ELE14_4350				7
 #define BOARD_XPLORER					8
+#define BOARD_BLUEBOARD					9
 
 #if (BOARD == BOARD_HITEX_A4)
 	#include "HITEX/bsp_HITEX.h"
 #elif (BOARD == BOARD_LPCXpressoBase_RevB)
 	#include "LPCXpressoBase_RevB/bsp_LPCXpressoBase_RevB.h"
+#elif (BOARD == BOARD_BLUEBOARD)
+	#include "BlueboardBase/bsp_BlueboardBase.h"
 #elif (BOARD == BOARD_MCB1700)
 	#include "MCB1700/bsp_MCB1700.h"
 #elif (BOARD == BOARD_MCB1000)

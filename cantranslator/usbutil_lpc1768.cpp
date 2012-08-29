@@ -6,12 +6,24 @@
 #include <stdio.h>
 
 extern "C" {
+#include "bsp.h"
 #include "LPC17xx.h"
 #include "lpc17xx_gpio.h"
 }
 
 #define USB_CONNECT_GPIO_PORT_NUM 2
 #define USB_CONNECT_GPIO_BIT_NUM 9
+
+#define LEDMASK_USB_NOTREADY      LEDS_LED1
+
+/** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
+#define LEDMASK_USB_ENUMERATING  (LEDS_LED2 | LEDS_LED3)
+
+/** LED mask for the library LED driver, to indicate that the USB interface is ready. */
+#define LEDMASK_USB_READY        (LEDS_LED2 | LEDS_LED4)
+
+/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
+#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
 
 // TODO how can we both use USB interrupts and not rely on this global?
 extern UsbDevice USB_DEVICE;
@@ -44,12 +56,13 @@ void processInputQueue(UsbDevice* usbDevice) {
         // // handleBulkIn(_EP01_IN, 0);
     // }
 // }
-//
-void USB_Connect(void) {
-    // output
-    GPIO_SetDir(USB_CONNECT_GPIO_PORT_NUM,(1<<USB_CONNECT_GPIO_BIT_NUM),1);
-    // pull up D+
-    GPIO_ClearValue(USB_CONNECT_GPIO_PORT_NUM,(1<<USB_CONNECT_GPIO_BIT_NUM));
+
+void EVENT_USB_Device_Connect(void) {
+	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
+}
+
+void EVENT_USB_Device_Disconnect(void) {
+	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
 }
 
 void initializeUsb(UsbDevice* usbDevice) {

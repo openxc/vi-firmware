@@ -10,11 +10,11 @@
 #include "listener.h"
 #include <stdlib.h>
 
-#ifdef LPC1768
+#ifdef __LPC17XX__
 extern "C" {
 #include "USB/USB.h"
 }
-#endif // LPC1768
+#endif // __LPC17XX__
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
@@ -32,9 +32,9 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 SerialDevice serialDevice = {&Serial1};
 #endif
 
-#ifdef LPC1768
+#ifdef __LPC17XX__
 SerialDevice serialDevice;
-#endif
+#endif // __LPC17XX__
 
 UsbDevice USB_DEVICE = {
 #ifdef CHIPKIT

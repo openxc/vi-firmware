@@ -6,11 +6,12 @@ SYS_OBJECTS = ./mbed/LPC1768/GCC_ARM/startup_LPC17xx.o \
 			  ./mbed/LPC1768/GCC_ARM/system_LPC17xx.o
 INCLUDE_PATHS = -I. -I./mbed -I./mbed/LPC1768 -I./mbed/LPC1768/GCC_ARM \
 				-I./libs/cJSON -I./libs/nxpusblib/Driver \
-				-I./libs/CDL/LPC17xxLib/inc
+				-I./libs/CDL/LPC17xxLib/inc -I./libs/BSP
 LIBRARY_PATHS = -L./mbed/LPC1768/GCC_ARM
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = ./mbed/LPC1768/GCC_ARM/LPC1768.ld
 OBJDIR  	  = build
+
 
 ###############################################################################
 
@@ -22,8 +23,9 @@ CC_FLAGS = -c -fno-common \
 		   -Wno-char-subscripts -Wno-unused-but-set-variable
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
+# TODO Build a BSP for the blueboard and mbed
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
-			 -DUSB_DEVICE_ONLY -D__LPC17XX__
+			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=1
 
 
 AS = $(GCC_BIN)arm-none-eabi-as
@@ -39,7 +41,10 @@ LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
-LOCAL_C_SRCS    += libs/CDL/LPC17xxLib/src/lpc17xx_gpio.c
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/BSP/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/BSP/LPCXpressoBase_RevB/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/CDL/LPC17xxLib/src/*.c)
 LOCAL_CPP_SRCS  = $(wildcard *.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o
@@ -61,6 +66,7 @@ $(OBJDIR):
 		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX
 		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HCD
 		@mkdir -p $(OBJDIR)/libs/CDL/LPC17xxLib/src
+		@mkdir -p $(OBJDIR)/libs/BSP/LPCXpressoBase_RevB
 
 flash: all
 	@openocd -f config/flash.cfg

@@ -5,7 +5,8 @@ SYS_OBJECTS = ./mbed/LPC1768/GCC_ARM/startup_LPC17xx.o \
 			  ./mbed/LPC1768/GCC_ARM/core_cm3.o \
 			  ./mbed/LPC1768/GCC_ARM/system_LPC17xx.o
 INCLUDE_PATHS = -I. -I./mbed -I./mbed/LPC1768 -I./mbed/LPC1768/GCC_ARM \
-				-I./cJSON -I./usb
+				-I./libs/cJSON -I./libs/nxpusblib/Driver \
+				-I./libs/CDL/LPC17xxLib/inc
 LIBRARY_PATHS = -L./mbed/LPC1768/GCC_ARM
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = ./mbed/LPC1768/GCC_ARM/LPC1768.ld
@@ -15,7 +16,8 @@ OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
-CC_FLAGS = -c -DLPC1768 -fno-common -fmessage-length=0 -Wall -fno-exceptions \
+CC_FLAGS = -c -DLPC1768 -DUSB_DEVICE_ONLY -D__LPC17XX__ -fno-common \
+		   -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
 		   -Wno-char-subscripts
 ONLY_C_FLAGS = -std=gnu99
@@ -62,7 +64,7 @@ clean:
 .s.o:
 	$(AS) $(CC_FLAGS) $(CC_SYMBOLS) -o $@ $<
 
-$(OBJDIR)/libs/cJSON.o: cJSON/cJSON.c
+$(OBJDIR)/libs/cJSON.o: libs/cJSON/cJSON.c
 	mkdir -p $(dir $@)
 	$(CC) -c -lm $(CC_FLAGS) $< -o $@
 

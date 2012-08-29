@@ -7,7 +7,7 @@
 
 extern "C" {
 #include "LPC17xx.h"
-#include "usbapi.h"
+#include "USB/USB.h"
 }
 
 // TODO how can we both use USB interrupts and not rely on this global?
@@ -16,10 +16,10 @@ extern UsbDevice USB_DEVICE;
 void processInputQueue(UsbDevice* usbDevice) {
 }
 
-static void handleBulkIn(U8 endpoint, U8 endpointStatus) {
+static void handleBulkIn(uint8_t endpoint, uint8_t endpointStatus) {
     if(queue_empty(&USB_DEVICE.sendQueue)) {
         // no more data, disable further NAK interrupts until next USB frame
-        USBHwNakIntEnable(0);
+        // USBHwNakIntEnable(0);
         return;
     }
 
@@ -30,31 +30,31 @@ static void handleBulkIn(U8 endpoint, U8 endpointStatus) {
     }
 
     if(byteCount > 0) {
-        USBHwEPWrite(endpoint, (U8*)USB_DEVICE.sendBuffer, byteCount);
+        // USBHwEPWrite(endpoint, (uint8_t*)USB_DEVICE.sendBuffer, byteCount);
     }
 }
 
-static void USBFrameHandler(U16 wFrame)                                          {
-    if (!queue_empty(&USB_DEVICE.sendQueue)) {
-        // data available, enable NAK interrupt on bulk in
-        USBHwNakIntEnable(INACK_BI);
-        handleBulkIn(_EP01_IN, 0);
-    }
-}
+// static void USBFrameHandler(U16 wFrame)                                          {
+    // if (!queue_empty(&USB_DEVICE.sendQueue)) {
+        // // data available, enable NAK interrupt on bulk in
+        // // USBHwNakIntEnable(INACK_BI);
+        // // handleBulkIn(_EP01_IN, 0);
+    // }
+// }
 
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
 
-    USBInit();
-    USBRegisterDescriptors(USB_DESCRIPTORS);
-    USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);
-    USBHwNakIntEnable(INACK_BI);
-    USBHwRegisterFrameHandler(USBFrameHandler);
-    // USBHwRegisterEPIntHandler(_EP01_OUT, handleBulkOut);
-    // TODO how to do override the built-in empty loop IRQ handler?
-    // NVIC_EnableIRQ(USB_IRQn);
+    // USBInit();
+    // USBRegisterDescriptors(USB_DESCRIPTORS);
+    // USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);
+    // USBHwNakIntEnable(INACK_BI);
+    // USBHwRegisterFrameHandler(USBFrameHandler);
+    // // USBHwRegisterEPIntHandler(_EP01_OUT, handleBulkOut);
+    // // TODO how to do override the built-in empty loop IRQ handler?
+    // // NVIC_EnableIRQ(USB_IRQn);
 
-    USBHwConnect(TRUE);
+    // USBHwConnect(TRUE);
 
     debug("Done.");
 }

@@ -10,109 +10,11 @@
 #endif // CHIPKIT
 
 #ifdef __LPC17XX__
-extern "C" {
-#include "usbapi.h"
-}
+#include "usb_descriptors.h"
 #endif // __LPC17XX__
 
-#define MAX_USB_PACKET_SIZE_BYTES 64
-
-#define LE_WORD(x)		((x)&0xFF),((x)>>8)
-
-/* Configuration Attributes */
-#define _DEFAULT    (0x01<<7)       //Default Value (Bit 7 is set)
-#define _SELF       (0x01<<6)       //Self-powered (Supports if set)
-#define _RWU        (0x01<<5)       //Remote Wakeup (Supports if set)
-#define _HNP	    (0x01 << 1)     //HNP (Supports if set)
-#define _SRP	  	(0x01)		    //SRP (Supports if set)
-
-/* Endpoint Transfer Type */
-#define _CTRL       0x00            //Control Transfer
-#define _ISO        0x01            //Isochronous Transfer
-#define _BULK       0x02            //Bulk Transfer
-
-#define _EP01_OUT   0x01
-#define _EP01_IN    0x81
-
-static const U8 USB_DESCRIPTORS[] = {
-
-    // Device descriptor
-	0x12,              		// size of the descriptor in bytes
-	DESC_DEVICE,
-	LE_WORD(0x0200),		// bcdUSB
-	0x00,              		// bDeviceClass
-	0x00,              		// bDeviceSubClass
-	0x00,              		// bDeviceProtocol
-	MAX_USB_PACKET_SIZE_BYTES,  		// bMaxPacketSize
-	LE_WORD(0x1BC4),		// idVendor
-	LE_WORD(0x0001),		// idProduct
-	LE_WORD(0x0100),		// bcdDevice
-	0x01,              		// iManufacturer
-	0x02,              		// iProduct
-	0x03,              		// iSerialNumber
-	0x01,              		// bNumConfigurations
-
-    // Configuration 1 Descriptor
-    0x09,                   // Size of this descriptor in bytes
-    DESC_CONFIGURATION,                // CONFIGURATION descriptor type
-    // TODO get nicer variables from lpc17xx.cmsis.driver
-	LE_WORD(0x20),  		// wTotalLength
-	0x01,  					// bNumInterfaces
-	0x01,  					// bConfigurationValue
-	0x00,  					// iConfiguration
-	0x80,  					// bmAttributes
-	0x32,  					// bMaxPower
-
-    // Interface Descriptor
-	0x09,
-	DESC_INTERFACE,
-	0x00,  		 			// bInterfaceNumber
-	0x00,   				// bAlternateSetting
-	0x02,   				// bNumEndPoints
-	0xFF,   				// bInterfaceClass
-	0xFF,   				// bInterfaceSubClass
-	0xFF,   				// bInterfaceProtocol
-	0x00,   				// iInterface
-
-    // Endpoint descriptor
-	0x07,
-	DESC_ENDPOINT,
-	_EP01_OUT,				// bEndpointAddress
-	_BULK,   				// bmAttributes
-	LE_WORD(MAX_USB_PACKET_SIZE_BYTES),// wMaxPacketSize
-	1,						// bInterval
-
-	0x07,
-	DESC_ENDPOINT,
-	_EP01_IN,				// bEndpointAddress
-	_BULK,   				// bmAttributes
-	LE_WORD(MAX_USB_PACKET_SIZE_BYTES), // wMaxPacketSize
-	1,						// bInterval
-
-    // language code string descriptors
-	0x04,
-	DESC_STRING,
-	LE_WORD(0x0409),
-
-	// manufacturer string
-	0x0E,
-	DESC_STRING,
-    'F','o','r','d',' ','M','o','t','o','r', 'C','o','m','p','a','n','y',
-
-	// product string
-	0x12,
-	DESC_STRING,
-    'O','p','e','n','X','C',' ','C','A','N',' ',
-    'T','r','a','n','s', 'l','a','t','o','r',
-
-	// serial number string
-	0x12,
-	DESC_STRING,
-	'D', 0, 'E', 0, 'A', 0, 'D', 0, 'C', 0, '0', 0, 'D', 0, 'E', 0,
-
-	// terminator
-	0
-};
+#define USB_BUFFER_SIZE 64
+#define MAX_USB_PACKET_SIZE_BYTES USB_BUFFER_SIZE
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *

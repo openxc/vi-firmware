@@ -12,7 +12,7 @@
 
 #ifdef LPC1768
 extern "C" {
-#include "usbapi.h"
+#include "USB/USB.h"
 }
 #endif // LPC1768
 
@@ -102,9 +102,6 @@ void setup() {
 
 void loop() {
     while(1) {
-#ifdef LPC1768
-        USBHwISR();
-#endif
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
                 rand() % 50 + rand() % 100 * .1, &listener);

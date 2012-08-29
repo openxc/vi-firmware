@@ -1,4 +1,4 @@
-#ifdef LPC1768
+#ifdef __LPC17XX__
 
 #include "usbutil.h"
 #include "log.h"
@@ -83,4 +83,4 @@ void readFromHost(UsbDevice* usbDevice, void* handle,
     // return handle;
 }
 
-#endif // LPC1768
+#endif // __LPC17XX__

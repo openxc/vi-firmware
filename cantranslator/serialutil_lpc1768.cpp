@@ -1,4 +1,4 @@
-#ifdef LPC1768
+#ifdef __LPC17XX__
 
 #include "serialutil.h"
 #include "buffers.h"
@@ -17,4 +17,4 @@ void processInputQueue(SerialDevice* device) {
     // TODO
 }
 
-#endif // LPC1768
+#endif // __LPC17XX__

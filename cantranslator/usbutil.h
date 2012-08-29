@@ -9,11 +9,11 @@
 #include "chipKITUSBDevice.h"
 #endif // CHIPKIT
 
-#ifdef LPC1768
+#ifdef __LPC17XX__
 extern "C" {
 #include "usbapi.h"
 }
-#endif // LPC1768
+#endif // __LPC17XX__
 
 #define MAX_USB_PACKET_SIZE_BYTES 64
 

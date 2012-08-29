@@ -10,7 +10,9 @@
 #endif // CHIPKIT
 
 #ifdef __LPC17XX__
+extern "C" {
 #include "usb_descriptors.h"
+}
 #endif // __LPC17XX__
 
 #define USB_BUFFER_SIZE 64

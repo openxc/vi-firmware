@@ -23,7 +23,7 @@ CC_FLAGS = -c -fno-common \
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
-			 -DUSB_DEVICE_ONLY -D__LPC17XX__ 
+			 -DUSB_DEVICE_ONLY -D__LPC17XX__
 
 
 AS = $(GCC_BIN)arm-none-eabi-as
@@ -35,7 +35,11 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
 LOCAL_C_SRCS    = $(wildcard *.c)
-LOCAL_C_SRCS    += $(wildcard usb/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
+LOCAL_C_SRCS    += libs/CDL/LPC17xxLib/src/lpc17xx_gpio.c
 LOCAL_CPP_SRCS  = $(wildcard *.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o
@@ -53,7 +57,10 @@ all: $(OBJDIR) $(TARGET_BIN)
 
 $(OBJDIR):
 		@mkdir -p $(OBJDIR)
-		@mkdir -p $(OBJDIR)/usb
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HCD
+		@mkdir -p $(OBJDIR)/libs/CDL/LPC17xxLib/src
 
 flash: all
 	@openocd -f config/flash.cfg

@@ -7,8 +7,11 @@
 
 extern "C" {
 #include "LPC17xx.h"
-#include "USB/USB.h"
+#include "lpc17xx_gpio.h"
 }
+
+#define USB_CONNECT_GPIO_PORT_NUM 2
+#define USB_CONNECT_GPIO_BIT_NUM 9
 
 // TODO how can we both use USB interrupts and not rely on this global?
 extern UsbDevice USB_DEVICE;
@@ -16,23 +19,23 @@ extern UsbDevice USB_DEVICE;
 void processInputQueue(UsbDevice* usbDevice) {
 }
 
-static void handleBulkIn(uint8_t endpoint, uint8_t endpointStatus) {
-    if(queue_empty(&USB_DEVICE.sendQueue)) {
-        // no more data, disable further NAK interrupts until next USB frame
-        // USBHwNakIntEnable(0);
-        return;
-    }
+// static void handleBulkIn(uint8_t endpoint, uint8_t endpointStatus) {
+    // if(queue_empty(&USB_DEVICE.sendQueue)) {
+        // // no more data, disable further NAK interrupts until next USB frame
+        // // USBHwNakIntEnable(0);
+        // return;
+    // }
 
-    // get bytes from transmit FIFO into intermediate buffer
-    int byteCount = 0;
-    while(!queue_empty(&USB_DEVICE.sendQueue) && byteCount < 64) {
-        USB_DEVICE.sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &USB_DEVICE.sendQueue);
-    }
+    // // get bytes from transmit FIFO into intermediate buffer
+    // int byteCount = 0;
+    // while(!queue_empty(&USB_DEVICE.sendQueue) && byteCount < 64) {
+        // USB_DEVICE.sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &USB_DEVICE.sendQueue);
+    // }
 
-    if(byteCount > 0) {
-        // USBHwEPWrite(endpoint, (uint8_t*)USB_DEVICE.sendBuffer, byteCount);
-    }
-}
+    // if(byteCount > 0) {
+        // // USBHwEPWrite(endpoint, (uint8_t*)USB_DEVICE.sendBuffer, byteCount);
+    // }
+// }
 
 // static void USBFrameHandler(U16 wFrame)                                          {
     // if (!queue_empty(&USB_DEVICE.sendQueue)) {
@@ -41,10 +44,19 @@ static void handleBulkIn(uint8_t endpoint, uint8_t endpointStatus) {
         // // handleBulkIn(_EP01_IN, 0);
     // }
 // }
+//
+void USB_Connect(void) {
+    // output
+    GPIO_SetDir(USB_CONNECT_GPIO_PORT_NUM,(1<<USB_CONNECT_GPIO_BIT_NUM),1);
+    // pull up D+
+    GPIO_ClearValue(USB_CONNECT_GPIO_PORT_NUM,(1<<USB_CONNECT_GPIO_BIT_NUM));
+}
 
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
 
+    USB_Init();
+    USB_Connect();
     // USBInit();
     // USBRegisterDescriptors(USB_DESCRIPTORS);
     // USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);

@@ -2,6 +2,7 @@
 
 #include "usbutil.h"
 #include "log.h"
+#include "buffers.h"
 #include <algorithm>
 #include <stdio.h>
 
@@ -16,12 +17,10 @@ extern UsbDevice USB_DEVICE;
 void processInputQueue(UsbDevice* usbDevice) {
 }
 
-static void handleBulkIn() {
+static void sendToHost() {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
     if(!Endpoint_IsINReady() || queue_empty(&USB_DEVICE.sendQueue)) {
-        // no more data, disable further NAK interrupts until next USB frame
-        // USBHwNakIntEnable(0);
         return;
     }
 
@@ -52,13 +51,13 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
 }
 
-void USBTask() {
+void USBTask(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     USB_USBTask();
 	if (USB_DeviceState != DEVICE_STATE_Configured)
 	  return;
 
-    handleBulkIn();
-    // handleBulkOut();
+    sendToHost();
+    readFromHost(usbDevice, callback);
 }
 
 void initializeUsb(UsbDevice* usbDevice) {
@@ -70,28 +69,19 @@ void initializeUsb(UsbDevice* usbDevice) {
     debug("Done.");
 }
 
-void armForRead(UsbDevice* usbDevice, char* buffer) {
-    buffer[0] = 0;
-    // return usbDevice->device.GenRead(usbDevice->endpoint, (uint8_t*)buffer,
-            // usbDevice->endpointSize);
-}
+void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+    Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
 
-void readFromHost(UsbDevice* usbDevice, void* handle,
-        bool (*callback)(char*)) {
-    // if(!usbDevice->device.HandleBusy(handle)) {
-        // // TODO see #569
-        // delay(500);
-        // if(usbDevice->receiveBuffer[0] != NULL) {
-            // strncpy((char*)(usbDevice->packetBuffer +
-                        // usbDevice->packetBufferIndex), usbDevice->receiveBuffer,
-                        // MAX_USB_PACKET_SIZE_BYTES);
-            // usbDevice->packetBufferIndex += MAX_USB_PACKET_SIZE_BYTES;
-            // processBuffer(usbDevice->packetBuffer,
-                // &usbDevice->packetBufferIndex, PACKET_BUFFER_SIZE, callback);
-        // }
-        // return armForRead(usbDevice, usbDevice->receiveBuffer);
-    // }
-    // return handle;
+    while(Endpoint_IsOUTReceived()) {
+        for(int i = 0; i < MAX_USB_PACKET_SIZE_BYTES; i++) {
+            if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
+                        Endpoint_Read_8())) {
+                debug("Dropped write from host -- queue is full");
+            }
+        }
+        processQueue(&usbDevice->receiveQueue, callback);
+    }
 }
 
 #endif // __LPC17XX__

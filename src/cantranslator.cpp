@@ -68,7 +68,6 @@ void setup() {
 
     initializeSerial(&serialDevice);
     initializeUsb(&USB_DEVICE);
-    armForRead(&USB_DEVICE, USB_DEVICE.receiveBuffer);
     initializeAllCan();
     lastSignificantChangeTime = millis();
 }
@@ -242,7 +241,6 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);
-        armForRead(&USB_DEVICE, USB_DEVICE.receiveBuffer);
         break;
 
     case EVENT_EP0_REQUEST:

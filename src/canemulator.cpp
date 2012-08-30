@@ -71,7 +71,6 @@ void setup() {
 
 void loop() {
     while(1) {
-        USBTask(&USB_DEVICE, NULL);
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
                 rand() % 50 + rand() % 100 * .1, &listener);
@@ -87,6 +86,7 @@ void loop() {
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &listener);
         processListenerQueues(&listener);
+        readFromHost(&USB_DEVICE, NULL);
     }
 }
 

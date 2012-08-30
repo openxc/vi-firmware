@@ -12,32 +12,35 @@ extern "C" {
 #include "lpc17xx_gpio.h"
 }
 
-extern UsbDevice USB_DEVICE;
-
-void processInputQueue(UsbDevice* usbDevice) {
-}
-
-static void sendToHost() {
+static void sendToHost(UsbDevice* usbDevice) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
-    if(!Endpoint_IsINReady() || queue_empty(&USB_DEVICE.sendQueue)) {
+    if(!Endpoint_IsINReady() || queue_empty(&usbDevice->sendQueue)) {
         return;
     }
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
     // TODO try removing the 64 byte limit when using stream sending
-    while(!queue_empty(&USB_DEVICE.sendQueue) && byteCount < 64) {
-        USB_DEVICE.sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &USB_DEVICE.sendQueue);
+    while(!queue_empty(&usbDevice->sendQueue) && byteCount < 64) {
+        usbDevice->sendBuffer[byteCount++] =
+            QUEUE_POP(uint8_t, &usbDevice->sendQueue);
     }
 
     if(byteCount > 0) {
-        // TODO LE or BE?
         // TODO may need to pad the end with zeros?
-        Endpoint_Write_Stream_LE(USB_DEVICE.sendBuffer, byteCount, NULL);
+        Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
     }
     Endpoint_ClearIN();
     Endpoint_SelectEndpoint(previousEndpoint);
+}
+
+void processInputQueue(UsbDevice* usbDevice) {
+    USB_USBTask();
+	if (USB_DeviceState != DEVICE_STATE_Configured)
+	  return;
+
+    sendToHost(usbDevice);
 }
 
 void configureEndpoints() {
@@ -49,15 +52,6 @@ void configureEndpoints() {
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
-}
-
-void USBTask(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
-    USB_USBTask();
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
-
-    sendToHost();
-    readFromHost(usbDevice, callback);
 }
 
 void initializeUsb(UsbDevice* usbDevice) {

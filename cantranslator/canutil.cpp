@@ -12,10 +12,10 @@ int lookup(void* key,
 }
 
 bool signalStateNameComparator(void* name, int index, void* states) {
-    return !strcmp((char*)name, ((CanSignalState*)states)[index].name);
+    return !strcmp((const char*)name, ((CanSignalState*)states)[index].name);
 }
 
-CanSignalState* lookupSignalState(char* name, CanSignal* signal,
+CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     int index = lookup((void*)name, signalStateNameComparator,
             (void*)signal->states, signal->stateCount);
@@ -42,7 +42,7 @@ CanSignalState* lookupSignalState(int value, CanSignal* signal,
 }
 
 bool signalComparator(void* name, int index, void* signals) {
-    return !strcmp((char*)name, ((CanSignal*)signals)[index].genericName);
+    return !strcmp((const char*)name, ((CanSignal*)signals)[index].genericName);
 }
 
 bool writableSignalComparator(void* name, int index, void* signals) {
@@ -50,7 +50,7 @@ bool writableSignalComparator(void* name, int index, void* signals) {
             ((CanSignal*)signals)[index].writable;
 }
 
-CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
+CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
         bool writable) {
     bool (*comparator)(void* key, int index, void* candidates) = signalComparator;
     if(writable) {
@@ -64,15 +64,15 @@ CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
     }
 }
 
-CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount) {
+CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount) {
     return lookupSignal(name, signals, signalCount, false);
 }
 
 bool commandComparator(void* name, int index, void* commands) {
-    return !strcmp((char*)name, ((CanCommand*)commands)[index].genericName);
+    return !strcmp((const char*)name, ((CanCommand*)commands)[index].genericName);
 }
 
-CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount) {
+CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCount) {
     int index = lookup((void*)name, commandComparator, (void*)commands,
             commandCount);
     if(index != -1) {

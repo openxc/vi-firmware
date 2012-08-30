@@ -1,1 +1,0 @@
-../cantranslator/strutil.h

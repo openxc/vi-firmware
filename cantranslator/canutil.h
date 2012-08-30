@@ -83,7 +83,7 @@ struct CanFilter {
  */
 struct CanSignalState {
     int value;
-    char* name;
+    const char* name;
 };
 
 /* Public: A CAN signal to decode from the bus and output over USB.
@@ -116,7 +116,7 @@ struct CanSignalState {
 struct CanSignal {
     CanBus* bus;
     uint32_t messageId;
-    char* genericName;
+    const char* genericName;
     int bitPosition;
     int bitSize;
     float factor;
@@ -145,7 +145,7 @@ struct CanSignal {
  *
  * Returns true if the command caused something to be sent over CAN.
  */
-typedef bool (*CommandHandler)(char* name, cJSON* value, CanSignal* signals,
+typedef bool (*CommandHandler)(const char* name, cJSON* value, CanSignal* signals,
         int signalCount);
 
 /* Public: A command to read from USB and possibly write back to CAN.
@@ -162,7 +162,7 @@ typedef bool (*CommandHandler)(char* name, cJSON* value, CanSignal* signals,
  *                and write it to CAN in the proper signals.
  */
 struct CanCommand {
-    char* genericName;
+    const char* genericName;
     CommandHandler handler;
 };
 
@@ -176,7 +176,7 @@ struct CanCommand {
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
+CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name.
@@ -188,7 +188,7 @@ CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
+CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
         bool writable);
 
 /* Public: Look up the CanCommand representation of a command based on its
@@ -200,7 +200,7 @@ CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount);
+CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its textual name. Use
  * this to find the numerical value to write back to CAN when a string state is
@@ -213,7 +213,7 @@ CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount);
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(char* name, CanSignal* signal,
+CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its numerical value.

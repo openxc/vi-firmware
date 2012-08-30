@@ -1,46 +1,18 @@
-/*
- *  Emulates being plugged into a live CAN network by output randomly valued
- *  JSON messages over USB.
- */
+#ifdef CAN_EMULATOR
 
 #include "usbutil.h"
 #include "canread.h"
-#include "canutil.h"
 #include "serialutil.h"
-#include "listener.h"
 #include <stdlib.h>
-
-#ifdef __LPC17XX__
-extern "C" {
-#include "USB/USB.h"
-}
-#endif // __LPC17XX__
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-#ifdef CHIPKIT
-static boolean usbCallback(USB_EVENT event, void *pdata, word size);
-#endif
-
-// USB
-#define DATA_ENDPOINT 1
-
-#ifdef CHIPKIT
-SerialDevice serialDevice = {&Serial1};
-#endif
-
-SerialDevice serialDevice;
-UsbDevice USB_DEVICE = {
-#ifdef CHIPKIT
-    USBDevice(usbCallback),
-#endif // CHIPKIT
-    DATA_ENDPOINT,
-    MAX_USB_PACKET_SIZE_BYTES};
-
-Listener listener = {&USB_DEVICE, &serialDevice};
+extern SerialDevice serialDevice;
+extern UsbDevice USB_DEVICE;
+extern Listener listener;
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -118,31 +90,4 @@ void loop() {
     }
 }
 
-int main(void) {
-#ifdef CHIPKIT
-	init();
-#endif
-	setup();
-
-	for (;;)
-		loop();
-
-	return 0;
-}
-
-#ifdef CHIPKIT
-static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
-    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
-
-    switch(event) {
-    case EVENT_CONFIGURED:
-        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
-                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-        USB_DEVICE.configured = true;
-        break;
-
-    default:
-        break;
-    }
-}
-#endif // CHIPKIT
+#endif // CAN_EMULATOR

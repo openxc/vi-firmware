@@ -4,16 +4,14 @@
  *  chipKIT Network Shield libraries.
  */
 
-#include <stdint.h>
-#include "chipKITCAN.h"
-#include "chipKITUSBDevice.h"
-#include "signals.h"
-#include "bitfield.h"
 #include "usbutil.h"
+#include "canread.h"
 #include "serialutil.h"
+#include "signals.h"
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include <stdint.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -21,36 +19,56 @@
 // USB
 #define DATA_ENDPOINT 1
 
-char* VERSION = "2.0-pre";
+void setup();
+void loop();
+
+const char* VERSION = "2.0-pre";
+
+#ifdef __CHIPKIT__
 CAN can1(CAN::CAN1);
 CAN can2(CAN::CAN2);
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
+#endif // __CHIPKIT__
 
 /* Forward declarations */
 
+#ifdef __CHIPKIT__
 static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+#endif // __CHIPKIT__
+
 void initializeAllCan();
 void receiveCan(CanBus*);
 void checkIfStalled();
 bool receiveWriteRequest(uint8_t*);
 
+#ifdef __CHIPKIT__
 SerialDevice serialDevice = {&Serial1};
-UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
-        MAX_USB_PACKET_SIZE_BYTES, &serialDevice, true};
-Listener listener = {&usbDevice, &serialDevice};
+#else
+SerialDevice serialDevice;
+#endif // __CHIPKIT__
+
+UsbDevice USB_DEVICE = {
+#ifdef CHIPKIT
+    USBDevice(usbCallback),
+#endif // CHIPKIT
+    DATA_ENDPOINT,
+    MAX_USB_PACKET_SIZE_BYTES};
+
+Listener listener = {&USB_DEVICE, &serialDevice};
 
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
 
+#ifndef CAN_EMULATOR
 void setup() {
     Serial.begin(115200);
 
     initializeSerial(&serialDevice);
-    initializeUsb(&usbDevice);
-    armForRead(&usbDevice, usbDevice.receiveBuffer);
+    initializeUsb(&USB_DEVICE);
+    armForRead(&USB_DEVICE, USB_DEVICE.receiveBuffer);
     initializeAllCan();
     lastSignificantChangeTime = millis();
 }
@@ -60,16 +78,19 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
     processListenerQueues(&listener);
-    readFromHost(&usbDevice, &receiveWriteRequest);
+    readFromHost(&USB_DEVICE, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
     checkIfStalled();
 }
+#endif // CAN_EMULATOR
 
 int main(void) {
+#ifdef CHIPKIT
 	init();
+#endif
 	setup();
 
 	for (;;)
@@ -77,6 +98,8 @@ int main(void) {
 
 	return 0;
 }
+
+#ifdef __CHIPKIT__
 
 void initializeAllCan() {
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -194,7 +217,7 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
         debug("Version: %s (%s)", combinedVersion);
 
-        usbDevice.device.EP0SendRAMPtr((uint8_t*)combinedVersion,
+        USB_DEVICE.device.EP0SendRAMPtr((uint8_t*)combinedVersion,
                 strlen(combinedVersion), USB_EP0_INCLUDE_ZERO);
         return true;
     case RESET_CONTROL_COMMAND:
@@ -209,17 +232,17 @@ static boolean customUSBCallback(USB_EVENT event, void* pdata, word size) {
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
-    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
+    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
-        usbDevice.configured = true;
+        USB_DEVICE.configured = true;
         mark();
-        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
+        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);
-        armForRead(&usbDevice, usbDevice.receiveBuffer);
+        armForRead(&USB_DEVICE, USB_DEVICE.receiveBuffer);
         break;
 
     case EVENT_EP0_REQUEST:
@@ -230,3 +253,5 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
     }
 }
+
+#endif // CHIPKIT

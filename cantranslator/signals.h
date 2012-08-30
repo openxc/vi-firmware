@@ -4,12 +4,6 @@
 #include "canread.h"
 #include "canwrite.h"
 
-extern Listener listener;
-extern CAN can1;
-extern CAN can2;
-extern void handleCan1Interrupt();
-extern void handleCan2Interrupt();
-
 /* Public: The number of CAN buses to read. This is limited to 2, as the
  * hardware controller only has 2 CAN channels.
  */

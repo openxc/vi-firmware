@@ -1,3 +1,5 @@
+#ifdef __CHIPKIT__
+
 #include "canutil.h"
 #include "signals.h"
 #include "log.h"
@@ -90,3 +92,4 @@ void initializeCan(CanBus* bus) {
     debug("Done.");
 }
 
+#endif // __CHIPKIT__

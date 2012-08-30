@@ -58,6 +58,10 @@ else
 CC_FLAGS += -O2 -DNDEBUG
 endif
 
+ifdef EMULATOR
+CC_FLAGS += -DCAN_EMULATOR
+endif
+
 all: $(OBJDIR) $(TARGET_BIN)
 
 $(OBJDIR):

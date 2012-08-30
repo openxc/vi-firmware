@@ -1,3 +1,5 @@
+#ifdef __CHIPKIT__
+
 #include "canwrite.h"
 #include "log.h"
 
@@ -48,3 +50,5 @@ void processCanWriteQueue(CanBus* bus) {
         sendCanMessage(bus, QUEUE_POP(CanMessage, &bus->sendQueue));
     }
 }
+
+#endif // __CHIPKIT__

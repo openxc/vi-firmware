@@ -97,7 +97,7 @@ const USB_Descriptor_String_t PROGMEM LanguageString = {
  * Descriptor.
  */
 const USB_Descriptor_String_t PROGMEM ManufacturerString = {
-    .Header                 = {.Size = USB_STRING_LEN(17), .Type = DTYPE_String},
+    .Header                 = {.Size = USB_STRING_LEN(18), .Type = DTYPE_String},
     .UnicodeString          = {
             'F','o','r','d',' ',
             'M','o','t','o','r',' ',
@@ -109,7 +109,7 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString = {
  * the appropriate string ID is requested, listed in the Device Descriptor.
  */
 const USB_Descriptor_String_t PROGMEM ProductString = {
-    .Header                 = {.Size = USB_STRING_LEN(20), .Type = DTYPE_String},
+    .Header                 = {.Size = USB_STRING_LEN(21), .Type = DTYPE_String},
 
     .UnicodeString          = {
             'O','p','e','n','X','C',' ',

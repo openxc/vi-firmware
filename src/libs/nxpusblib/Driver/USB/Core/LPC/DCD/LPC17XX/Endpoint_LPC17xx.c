@@ -5,22 +5,22 @@
 * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
 * LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
+* any kind, and NXP Semiconductors and its licensor disclaim any and
+* all warranties, express or implied, including all implied warranties of
+* merchantability, fitness for a particular purpose and non-infringement of
 * intellectual property rights.  NXP Semiconductors assumes no responsibility
 * or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
+* patent, copyright, mask work right, or any other intellectual property rights in
 * or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
+* in the software without notification. NXP Semiconductors also makes no
 * representation or warranty that such application will be suitable for the
 * specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+*
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors' and its
+* licensor's relevant copyrights in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 */
 
@@ -35,8 +35,8 @@
 #define IsOutEndpoint(PhysicalEP)		(! ((PhysicalEP) & 1) )
 
 volatile bool SETUPReceived;
-bool isOutReceived;
-bool isInReady;
+volatile bool isOutReceived;
+volatile bool isInReady;
 
 uint32_t UDCA[32] __DATA(USBRAM_SECTION) ATTR_ALIGNED(128);
 DMADescriptor dmaDescriptor[USED_PHYSICAL_ENDPOINTS] __DATA(USBRAM_SECTION);
@@ -163,7 +163,7 @@ bool Endpoint_ConfigureEndpoint(const uint8_t Number, const uint8_t Type,
 
 	while ((LPC_USB->USBDevIntSt & EP_RLZED_INT) == 0);		/* TODO shouldd we wait for this */
 	LPC_USB->USBDevIntClr = EP_RLZED_INT;
-	
+
 	if (Number == ENDPOINT_CONTROLEP) /* Control endpoints have to uses slave mode */
 	{
 		LPC_USB->USBEpIntEn |= _BIT(PhyEP);
@@ -175,10 +175,10 @@ bool Endpoint_ConfigureEndpoint(const uint8_t Number, const uint8_t Type,
 		dmaDescriptor[PhyEP].Isochronous = (Type == EP_TYPE_ISOCHRONOUS ? 1 : 0 );
 		dmaDescriptor[PhyEP].MaxPacketSize = Size;
 		dmaDescriptor[PhyEP].Retired = 1; /* inactive DD */
-		
+
 		LPC_USB->USBEpDMAEn = _BIT(PhyEP);
 	}
-	
+
 	SIE_WriteCommandData(CMD_SET_EP_STAT(PhyEP), DAT_WR_BYTE(0)); /*enable endpoint*/
 	SIE_WriteCommandData(CMD_SET_EP_STAT(PhyEP), DAT_WR_BYTE(0)); /* Reset Endpoint */
 
@@ -284,7 +284,7 @@ void Endpoint_GetSetupPackage(uint8_t* pData)
 	memcpy(pData, SetupPackage, 8);
 }
 
-void SlaveEndpointISR() 
+void SlaveEndpointISR()
 {
 	uint32_t PhyEP;
 	for (PhyEP = 0; PhyEP < 2; PhyEP++)		  /* Check Control Endpoints */
@@ -296,10 +296,10 @@ void SlaveEndpointISR()
 			if (PhyEP == ENDPOINT_CONTROLEP)            /* Control OUT Endpoint */
 			{
 				uint32_t SIEEndpointStatus;
-				
+
 				while ((LPC_USB->USBDevIntSt & CDFULL_INT) == 0);
 				SIEEndpointStatus = LPC_USB->USBCmdData;
-				
+
 				if (SIEEndpointStatus & EP_SEL_STP)     /* Setup Packet */
 				{
 					SETUPReceived = true;
@@ -368,12 +368,12 @@ void DcdDataTransfer(uint8_t PhyEP, uint8_t *pData, uint32_t cnt)
 	dmaDescriptor[PhyEP].LSByteExtracted = 0;
 	dmaDescriptor[PhyEP].MSByteExtracted = 0;
 	dmaDescriptor[PhyEP].PresentCount = 0;
-	
-	
+
+
 	UDCA[PhyEP] = (uint32_t) &dmaDescriptor[PhyEP];
 	LPC_USB->USBEpDMAEn = _BIT(PhyEP);
 }
-void DMAEndTransferISR() 
+void DMAEndTransferISR()
 {
 	uint32_t PhyEP;
 	uint32_t EoTIntSt = LPC_USB->USBEoTIntSt;
@@ -401,7 +401,7 @@ void DMAEndTransferISR()
 	LPC_USB->USBEoTIntClr = EoTIntSt;
 }
 
-void DMANewTransferRequestISR() 
+void DMANewTransferRequestISR()
 {
 	uint32_t PhyEP;
 	uint32_t NDDRIntSt = LPC_USB->USBNDDRIntSt;
@@ -435,7 +435,7 @@ void DMANewTransferRequestISR()
 	LPC_USB->USBNDDRIntClr = NDDRIntSt;
 }
 
-// void DMASysErrISR() 
+// void DMASysErrISR()
 // {
 // 	uint32_t PhyEP;
 // 	uint32_t SysErrIntSt = LPC_USB->USBSysErrIntSt;
@@ -513,7 +513,7 @@ void DcdIrqHandler (uint8_t DeviceID)
 
 	/* DMA mode */
 	DMAIntSt = LPC_USB->USBDMAIntSt & LPC_USB->USBDMAIntEn;
-	
+
 	if (DMAIntSt & EOT_INT)            /* End of Transfer Interrupt */
 	{
 		DMAEndTransferISR();

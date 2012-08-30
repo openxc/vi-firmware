@@ -5,22 +5,22 @@
 * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
 * LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
+* any kind, and NXP Semiconductors and its licensor disclaim any and
+* all warranties, express or implied, including all implied warranties of
+* merchantability, fitness for a particular purpose and non-infringement of
 * intellectual property rights.  NXP Semiconductors assumes no responsibility
 * or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
+* patent, copyright, mask work right, or any other intellectual property rights in
 * or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
+* in the software without notification. NXP Semiconductors also makes no
 * representation or warranty that such application will be suitable for the
 * specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+*
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors' and its
+* licensor's relevant copyrights in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 */
 
@@ -71,7 +71,7 @@
 
 	/* Includes: */
 		#include "../EndpointCommon.h"
-	
+
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -90,12 +90,12 @@
 
 			extern volatile bool SETUPReceived;
 			extern DMADescriptor dmaDescriptor[USED_PHYSICAL_ENDPOINTS];
-			
+
 			extern void SIE_WriteCommandData (uint32_t cmd, uint32_t val);
 			extern void SIE_WriteCommamd (uint32_t cmd);
 
-			extern bool isOutReceived;
-			extern bool isInReady;
+			extern volatile bool isOutReceived;
+			extern volatile bool isInReady;
 
 			void WriteControlEndpoint(uint8_t *pData, uint32_t cnt);
 			void ReadControlEndpoint(uint8_t *pData);
@@ -299,7 +299,7 @@
 				{
 					return (dmaDescriptor[ endpointhandle[endpointselected] ].Retired) ? true : false;
 				}
-				
+
 			}
 
 			/** Determines if the selected OUT endpoint has received new packet from the host.
@@ -317,7 +317,7 @@
 					return isOutReceived;
 				}else
 				{
-					return (dmaDescriptor[ endpointhandle[endpointselected] ].Retired && 
+					return (dmaDescriptor[ endpointhandle[endpointselected] ].Retired &&
 							(dmaDescriptor[ endpointhandle[endpointselected] ].Status == 2 || dmaDescriptor[ endpointhandle[endpointselected] ].Status == 3)
 							) ? true : false;
 				}
@@ -360,13 +360,13 @@
 			static inline void Endpoint_ClearIN(void)
 			{
 				uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-				
+
 				if (endpointselected==ENDPOINT_CONTROLEP)
 				{
 					WriteControlEndpoint(usb_data_buffer, usb_data_buffer_index);
 				}else
 				{
-					DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);				
+					DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);
 					LPC_USB->USBDMARSet = _BIT(PhyEP);
 				}
 				usb_data_buffer_index = 0;
@@ -415,7 +415,7 @@
 			static inline void Endpoint_ClearStall(void)
 			{
 				uint8_t PhysicalEp = endpointhandle[endpointselected] + (endpointselected==ENDPOINT_CONTROLEP ? 1 : 0);
-				
+
 				HAL_DisableUSBInterrupt();
 				SIE_WriteCommandData(CMD_SET_EP_STAT(PhysicalEp), DAT_WR_BYTE(0));
 				HAL_EnableUSBInterrupt();
@@ -436,7 +436,7 @@
 				SIE_WriteCommamd( CMD_SEL_EP(endpointhandle[endpointselected]) );
 				isStalled = SIE_ReadCommandData( DAT_SEL_EP(endpointhandle[endpointselected]) ) & EP_SEL_ST ? true : false;
 				HAL_EnableUSBInterrupt();
-				
+
 				return isStalled;       /* Device Status */
 			}
 

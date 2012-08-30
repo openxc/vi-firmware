@@ -32,10 +32,7 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 SerialDevice serialDevice = {&Serial1};
 #endif
 
-#ifdef __LPC17XX__
 SerialDevice serialDevice;
-#endif // __LPC17XX__
-
 UsbDevice USB_DEVICE = {
 #ifdef CHIPKIT
     USBDevice(usbCallback),

@@ -11,58 +11,54 @@ extern "C" {
 #include "lpc17xx_gpio.h"
 }
 
-#define USB_CONNECT_GPIO_PORT_NUM 2
-#define USB_CONNECT_GPIO_BIT_NUM 9
-
-#define LEDMASK_USB_NOTREADY      LEDS_LED1
-
-/** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-#define LEDMASK_USB_ENUMERATING  (LEDS_LED2 | LEDS_LED3)
-
-/** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-#define LEDMASK_USB_READY        (LEDS_LED2 | LEDS_LED4)
-
-/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
-
-// TODO how can we both use USB interrupts and not rely on this global?
 extern UsbDevice USB_DEVICE;
 
 void processInputQueue(UsbDevice* usbDevice) {
 }
 
-// static void handleBulkIn(uint8_t endpoint, uint8_t endpointStatus) {
-    // if(queue_empty(&USB_DEVICE.sendQueue)) {
-        // // no more data, disable further NAK interrupts until next USB frame
-        // // USBHwNakIntEnable(0);
-        // return;
-    // }
+static void handleBulkIn() {
+    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+    Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
+    if(!Endpoint_IsINReady() || queue_empty(&USB_DEVICE.sendQueue)) {
+        // no more data, disable further NAK interrupts until next USB frame
+        // USBHwNakIntEnable(0);
+        return;
+    }
 
-    // // get bytes from transmit FIFO into intermediate buffer
-    // int byteCount = 0;
-    // while(!queue_empty(&USB_DEVICE.sendQueue) && byteCount < 64) {
-        // USB_DEVICE.sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &USB_DEVICE.sendQueue);
-    // }
+    // get bytes from transmit FIFO into intermediate buffer
+    int byteCount = 0;
+    // TODO try removing the 64 byte limit when using stream sending
+    while(!queue_empty(&USB_DEVICE.sendQueue) && byteCount < 64) {
+        USB_DEVICE.sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &USB_DEVICE.sendQueue);
+    }
 
-    // if(byteCount > 0) {
-        // // USBHwEPWrite(endpoint, (uint8_t*)USB_DEVICE.sendBuffer, byteCount);
-    // }
-// }
-
-// static void USBFrameHandler(U16 wFrame)                                          {
-    // if (!queue_empty(&USB_DEVICE.sendQueue)) {
-        // // data available, enable NAK interrupt on bulk in
-        // // USBHwNakIntEnable(INACK_BI);
-        // // handleBulkIn(_EP01_IN, 0);
-    // }
-// }
-
-void EVENT_USB_Device_Connect(void) {
-	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
+    if(byteCount > 0) {
+        // TODO LE or BE?
+        // TODO may need to pad the end with zeros?
+        Endpoint_Write_Stream_LE(USB_DEVICE.sendBuffer, byteCount, NULL);
+    }
+    Endpoint_ClearIN();
+    Endpoint_SelectEndpoint(previousEndpoint);
 }
 
-void EVENT_USB_Device_Disconnect(void) {
-	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
+void configureEndpoints() {
+    Endpoint_ConfigureEndpoint(DATA_ENDPOINT_NUMBER, EP_TYPE_BULK,
+            ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+    Endpoint_ConfigureEndpoint(DATA_ENDPOINT_NUMBER, EP_TYPE_BULK,
+            ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+}
+
+void EVENT_USB_Device_ConfigurationChanged(void) {
+    configureEndpoints();
+}
+
+void USBTask() {
+    USB_USBTask();
+	if (USB_DeviceState != DEVICE_STATE_Configured)
+	  return;
+
+    handleBulkIn();
+    // handleBulkOut();
 }
 
 void initializeUsb(UsbDevice* usbDevice) {
@@ -70,16 +66,6 @@ void initializeUsb(UsbDevice* usbDevice) {
 
     USB_Init();
     USB_Connect();
-    // USBInit();
-    // USBRegisterDescriptors(USB_DESCRIPTORS);
-    // USBHwRegisterEPIntHandler(_EP01_IN, handleBulkIn);
-    // USBHwNakIntEnable(INACK_BI);
-    // USBHwRegisterFrameHandler(USBFrameHandler);
-    // // USBHwRegisterEPIntHandler(_EP01_OUT, handleBulkOut);
-    // // TODO how to do override the built-in empty loop IRQ handler?
-    // // NVIC_EnableIRQ(USB_IRQn);
-
-    // USBHwConnect(TRUE);
 
     debug("Done.");
 }

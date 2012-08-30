@@ -80,4 +80,6 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
 
 void processInputQueue(UsbDevice* usbDevice);
 
+void USBTask();
+
 #endif // _USBUTIL_H_

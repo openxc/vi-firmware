@@ -1,12 +1,11 @@
 all:
-	cd cantranslator && $(MAKE)
+	cd src && $(MAKE)
 
 upload:
-	cd cantranslator && $(MAKE) $@
+	cd src && $(MAKE) $@
 
 emulator:
-	cd canemulator && $(MAKE)
+	cd src && EMULATOR=1 $(MAKE)
 
 clean:
-	cd cantranslator && $(MAKE) $@
-	cd canemulator && $(MAKE) $@
+	cd src && $(MAKE) $@

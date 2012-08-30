@@ -79,7 +79,7 @@ terminal that you run the commands. If you want them active in all terminals
 (and you probably do), you need to add these `export ...` lines to the file
 `~/.bashrc` and restart your terminals.
 
-Once this is set up, `cd` into the `cantranslator` subdirectory, build and
+Once this is set up, `cd` into the `src` subdirectory, build and
 upload to the device:
 
     $ make clean
@@ -155,8 +155,7 @@ to create a file that defines `decodeCanMessage`:
 
     ./generate_code.py --json signals.json > signals.cpp
 
-Drop the new `signals.cpp` file in the `cantranslator` sketch folder, and it
-should now compile.
+Drop the new `signals.cpp` file in the `src` folder, and it should now compile.
 
 If you have multiple CAN buses and want to define their signals and messages in
 separate files, just pass multiple JSON files:
@@ -451,7 +450,7 @@ C-structs, ready to be read by the translator at runtime.
 
 To generate code, we've provided the `generate_code.py` script. Use it like so:
 
-    $ generate_code.py signals.json > cantranslator/signals.pde
+    $ generate_code.py signals.json > src/signals.cpp
 
 then rebuild your sketch - everything should build properly now.
 
@@ -514,7 +513,7 @@ The non-chipKIT code in this repository includes a small test suite that uses
 the [check][] library. After installing that library, run the test suite like
 so:
 
-    cantranslator/ $ make test
+    cantranslator/src $ make test
 
 The [check][] library can be installed in Ubuntu Linux quite easily:
 

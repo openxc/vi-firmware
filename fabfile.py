@@ -65,10 +65,10 @@ def make_tag():
 
 @task
 def release():
-    with lcd("cantranslator"):
+    with lcd("src"):
         local("make clean")
         local("make")
     tag = make_tag()
     local("mkdir -p %(releases_directory)s" % env)
-    local("cp cantranslator/build-cli/cantranslator.hex "
+    local("cp src/build/cantranslator.hex "
             "%(releases_directory)s/cantranslator-%(tag)s.hex" % env)

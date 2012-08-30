@@ -82,6 +82,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         }
         processQueue(&usbDevice->receiveQueue, callback);
     }
+    Endpoint_SelectEndpoint(previousEndpoint);
 }
 
 #endif // __LPC17XX__

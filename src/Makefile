@@ -1,15 +1,14 @@
 GCC_BIN =
 PROJECT = cantranslator
-SYS_OBJECTS = ./mbed/LPC1768/GCC_ARM/startup_LPC17xx.o \
-			  ./mbed/LPC1768/GCC_ARM/cmsis_nvic.o \
-			  ./mbed/LPC1768/GCC_ARM/core_cm3.o \
-			  ./mbed/LPC1768/GCC_ARM/system_LPC17xx.o
-INCLUDE_PATHS = -I. -I./mbed -I./mbed/LPC1768 -I./mbed/LPC1768/GCC_ARM \
-				-I./libs/cJSON -I./libs/nxpusblib/Driver \
-				-I./libs/CDL/LPC17xxLib/inc -I./libs/BSP
-LIBRARY_PATHS = -L./mbed/LPC1768/GCC_ARM
-LIBRARIES = -lmbed -lcapi
-LINKER_SCRIPT = ./mbed/LPC1768/GCC_ARM/LPC1768.ld
+CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
+DRIVER_PATH = ./libs/CDL/LPC17xxLib
+SYS_OBJECTS =
+INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpusblib/Driver \
+				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc \
+				-I./libs/nxpusblib/Driver
+LIBRARY_PATHS =
+LIBRARIES =
+LINKER_SCRIPT = LPC1768.ld
 OBJDIR  	  = build
 
 
@@ -17,13 +16,14 @@ OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
+AS_FLAGS = -c -Wall -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
 CC_FLAGS = -c -fno-common \
 		   -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
 		   -Wno-char-subscripts -Wno-unused-but-set-variable
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
-# TODO Build a BSP for the blueboard and mbed
+# TODO Build a BSP for the blueboard
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
 			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
@@ -44,10 +44,14 @@ LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c
 LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/BSP/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/BSP/LPCXpressoBase_RevB/*.c)
-LOCAL_C_SRCS    += $(wildcard libs/CDL/LPC17xxLib/src/*.c)
+LOCAL_C_SRCS    += $(CMSIS_PATH)/src/core_cm3.c \
+				   $(CMSIS_PATH)/src/system_LPC17xx.c
+LOCAL_C_SRCS    += $(wildcard $(DRIVER_PATH)/src/*.c)
 LOCAL_CPP_SRCS  = $(wildcard *.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
-OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o
+OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o \
+		  startup_LPC17xx.o
+
 
 TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
 TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
@@ -70,6 +74,7 @@ $(OBJDIR):
 		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX
 		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HCD
 		@mkdir -p $(OBJDIR)/libs/CDL/LPC17xxLib/src
+		@mkdir -p $(OBJDIR)/$(CMSIS_PATH)/src
 		@mkdir -p $(OBJDIR)/libs/BSP/LPCXpressoBase_RevB
 
 flash: all
@@ -80,14 +85,14 @@ clean:
 	rm -rf $(OBJDIR)
 
 .s.o:
-	$(AS) $(CC_FLAGS) $(CC_SYMBOLS) -o $@ $<
+	$(AS) $(AS_FLAGS) -o $@ $<
 
 $(OBJDIR)/libs/cJSON.o: libs/cJSON/cJSON.c
 	mkdir -p $(dir $@)
 	$(CC) -c -lm $(CC_FLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.c
-	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS)   $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(OBJDIR)/%.o: %.cpp
 	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<

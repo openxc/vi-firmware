@@ -16,7 +16,7 @@ OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
-AS_FLAGS = -c -Wall -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
+AS_FLAGS = -c -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
 CC_FLAGS = -c -fno-common \
 		   -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \

@@ -50,7 +50,7 @@ LOCAL_C_SRCS    += $(wildcard $(DRIVER_PATH)/src/*.c)
 LOCAL_CPP_SRCS  = $(wildcard *.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o \
-		  $(OBJDIR)/startup.o
+		  $(OBJDIR)/startup.o fault_handlers.s
 
 
 TARGET_BIN = $(OBJDIR)/$(PROJECT).bin

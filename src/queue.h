@@ -1,9 +1,9 @@
+#ifndef _QUEUE_H_
+#define _QUEUE_H_
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -86,8 +86,8 @@ void queue_snapshot(queue_##type* queue, type* snapshot) { \
 
 QUEUE_DECLARE(uint8_t, 512)
 
-#endif // _QUEUE_H_
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif // _QUEUE_H_

@@ -14,6 +14,7 @@
 #endif // __LPC17XX__
 
 #define USB_BUFFER_SIZE 64
+#define USB_SEND_BUFFER_SIZE 512
 #define MAX_USB_PACKET_SIZE_BYTES USB_BUFFER_SIZE
 
 /* Public: a container for a CAN translator USB device and associated metadata.
@@ -30,7 +31,7 @@ struct UsbDevice {
     int endpointSize;
     bool configured;
     // device to host
-    char sendBuffer[MAX_USB_PACKET_SIZE_BYTES];
+    char sendBuffer[USB_SEND_BUFFER_SIZE];
     ByteQueue sendQueue;
     // host to device
     char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];

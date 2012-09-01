@@ -27,6 +27,7 @@
 
 #include "debug_frmwrk.h"
 #include "lpc17xx_pinsel.h"
+#include <stdarg.h>
 
 /* If this source file built with example, the LPC17xx FW library configuration
  * file in each example directory ("lpc17xx_libcfg.h") must be included,
@@ -235,17 +236,17 @@ void UARTPutHex32 (LPC_UART_TypeDef *UARTx, uint32_t hexnum)
 // * @param[in]	None
 // * @return		None
 // **********************************************************************/
-//void  _printf (const  char *format, ...)
-//{
-//    static  char  buffer[512 + 1];
-//            va_list     vArgs;
-//            char	*tmp;
-//    va_start(vArgs, format);
-//    vsprintf((char *)buffer, (char const *)format, vArgs);
-//    va_end(vArgs);
-//
-//    _DBG(buffer);
-//}
+void  _printf (const  char *format, ...)
+{
+   static  char  buffer[512 + 1];
+           va_list     vArgs;
+           char	*tmp;
+   va_start(vArgs, format);
+   vsprintf((char *)buffer, (char const *)format, vArgs);
+   va_end(vArgs);
+
+   _DBG(buffer);
+}
 
 /*********************************************************************//**
  * @brief		Initialize Debug frame work through initializing UART port

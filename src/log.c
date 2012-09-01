@@ -1,10 +1,6 @@
 #include "log.h"
-
-#ifdef CHIPKIT
-#include "WProgram.h"
-#endif // CHIPKIT
-
-#define MAX_LOG_LINE_LENGTH 128
+#include "debug_frmwrk.h"
+#include <stdio.h>
 
 void debug(const char* format, ...) {
     va_list args;
@@ -17,7 +13,15 @@ void debug(const char* format, ...) {
         free(buffer);
     }
 #else
-    printf(format, args);
+    _printf(format, args);
 #endif // CHIPKIT
     va_end(args);
+}
+
+void initializeLogging() {
+#ifdef CHIPKIT
+    Serial.begin(115200);
+#else
+    debug_frmwrk_init();
+#endif // CHIPKIT
 }

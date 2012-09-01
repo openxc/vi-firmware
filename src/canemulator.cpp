@@ -3,6 +3,7 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
+#include "log.h"
 #include <stdlib.h>
 
 #define NUMERICAL_SIGNAL_COUNT 11
@@ -61,10 +62,8 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 
 void setup() {
     srand(42);
-#ifdef CHIPKIT
-    Serial.begin(115200);
-#endif
 
+    initializeLogging();
     initializeSerial(&serialDevice);
     initializeUsb(&USB_DEVICE);
 }

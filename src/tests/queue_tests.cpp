@@ -119,6 +119,31 @@ START_TEST (test_length)
 }
 END_TEST
 
+START_TEST (test_available)
+{
+    QUEUE_TYPE(uint8_t) queue;
+    queue_init(&queue);
+    fail_unless(queue_available(&queue) == QUEUE_MAX_LENGTH(uint8_t));
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
+        QUEUE_PUSH(uint8_t, &queue,  (uint8_t) (i % 255));
+        if(i == QUEUE_MAX_LENGTH(uint8_t) - 1) {
+            break;
+        }
+        fail_unless(queue_available(&queue) ==
+                    QUEUE_MAX_LENGTH(uint8_t) - i - 1,
+                "expected %d available but found %d",
+                QUEUE_MAX_LENGTH(uint8_t) - i - 1,
+                queue_available(&queue));
+    }
+
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
+        QUEUE_POP(uint8_t, &queue);
+        fail_unless(queue_available(&queue) == i + 1);
+    }
+    fail_unless(queue_available(&queue) == QUEUE_MAX_LENGTH(uint8_t));
+}
+END_TEST
+
 START_TEST (test_snapshot)
 {
     QUEUE_TYPE(uint8_t) queue;
@@ -146,6 +171,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_pop);
     tcase_add_test(tc_core, test_fill_er_up);
     tcase_add_test(tc_core, test_length);
+    tcase_add_test(tc_core, test_available);
     tcase_add_test(tc_core, test_snapshot);
     tcase_add_test(tc_core, test_struct_element);
     suite_add_tcase(s, tc_core);

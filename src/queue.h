@@ -28,6 +28,7 @@ type queue_##type##_pop(queue_##type* queue); \
 \
 void queue_init(queue_##type* queue); \
 int queue_length(queue_##type* queue); \
+int queue_available(queue_##type* queue); \
 bool queue_full(queue_##type* queue); \
 bool queue_empty(queue_##type* queue); \
 void queue_snapshot(queue_##type* queue, type* snapshot);
@@ -60,6 +61,10 @@ void queue_init(queue_##type* queue) { \
 int queue_length(queue_##type* queue) { \
 	return (queue_##type##_max_internal_length + queue->head - queue->tail) \
             % queue_##type##_max_internal_length; \
+} \
+\
+int queue_available(queue_##type* queue) { \
+	return queue_##type##_max_length - queue_length(queue); \
 } \
 \
 bool queue_full(queue_##type* queue) { \

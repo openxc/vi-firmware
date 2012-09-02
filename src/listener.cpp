@@ -5,7 +5,7 @@
 void conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
     if(queue_available(queue) < messageSize + 1) {
-            debug("Dropped incoming CAN message -- send queue full for USB");
+            debug("Dropped incoming CAN message -- send queue full for USB\n");
             return;
     }
 
@@ -21,10 +21,14 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
     // share a queue or make the enqueue function faster. right now I believe it
     // enqueues byte by byte, which could obviously be improved.
     conditionalEnqueue(&listener->usb->sendQueue, message, messageSize);
+#ifdef SERIAL
     conditionalEnqueue(&listener->serial->sendQueue, message, messageSize);
+#endif
 }
 
 void processListenerQueues(Listener* listener) {
     processInputQueue(listener->usb);
+#ifdef SERIAL
     processInputQueue(listener->serial);
+#endif
 }

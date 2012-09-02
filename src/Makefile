@@ -66,6 +66,10 @@ ifdef EMULATOR
 CC_FLAGS += -DCAN_EMULATOR
 endif
 
+ifdef SERIAL
+CC_FLAGS += -DSERIAL
+endif
+
 all: $(OBJDIR) $(TARGET_BIN)
 
 $(OBJDIR):

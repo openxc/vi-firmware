@@ -44,7 +44,7 @@ void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
     queue_init(&usbDevice->sendQueue);
-    debug("Done.");
+    debug("Done.\r\n");
 }
 
 void armForRead(UsbDevice* usbDevice, char* buffer) {
@@ -61,7 +61,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
             for(int i = 0; i < MAX_USB_PACKET_SIZE_BYTES; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
-                    debug("Dropped write from host -- queue is full\n");
+                    debug("Dropped write from host -- queue is full\r\n");
                 }
             }
             processQueue(&usbDevice->receiveQueue, callback);

@@ -5,7 +5,7 @@
 void conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
     if(queue_available(queue) < messageSize + 1) {
-            debug("Dropped incoming CAN message -- send queue full for USB\n");
+            debug("Dropped incoming CAN message -- send queue full for USB\r\n");
             return;
     }
 

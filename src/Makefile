@@ -21,7 +21,7 @@ CC_FLAGS = -c -fno-common \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
 		   -Wno-char-subscripts -Wno-unused-but-set-variable
 ONLY_C_FLAGS = -std=gnu99
-ONLY_CPP_FLAGS = -std=gnu++98
+ONLY_CPP_FLAGS = -std=gnu++0x
 # TODO Build a BSP for the blueboard
 CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
 			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9

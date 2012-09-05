@@ -1,8 +1,4 @@
-/*
- *
- *  Derived from CanDemo.pde, example code that came with the
- *  chipKIT Network Shield libraries.
- */
+#ifndef CAN_EMULATOR
 
 #include "usbutil.h"
 #include "canread.h"
@@ -13,16 +9,9 @@
 #include "listener.h"
 #include <stdint.h>
 
-#define VERSION_CONTROL_COMMAND 0x80
-#define RESET_CONTROL_COMMAND 0x81
-
-// USB
-#define DATA_ENDPOINT 1
-
-void setup();
-void loop();
-
-const char* VERSION = "2.0-pre";
+extern SerialDevice serialDevice;
+extern UsbDevice USB_DEVICE;
+extern Listener listener;
 
 #ifdef __CHIPKIT__
 CAN can1(CAN::CAN1);
@@ -43,33 +32,18 @@ void receiveCan(CanBus*);
 void checkIfStalled();
 bool receiveWriteRequest(uint8_t*);
 
-#ifdef __CHIPKIT__
-SerialDevice serialDevice = {&Serial1};
-#else
-SerialDevice serialDevice;
-#endif // __CHIPKIT__
-
-UsbDevice USB_DEVICE = {
-#ifdef CHIPKIT
-    USBDevice(usbCallback),
-#endif // CHIPKIT
-    DATA_ENDPOINT,
-    MAX_USB_PACKET_SIZE_BYTES};
-
-Listener listener = {&USB_DEVICE, &serialDevice};
-
 int receivedMessages = 0;
 unsigned long lastSignificantChangeTime;
 int receivedMessagesAtLastMark = 0;
 
-#ifndef CAN_EMULATOR
 void setup() {
-    Serial.begin(115200);
-
+    initializeLogging();
     initializeSerial(&serialDevice);
     initializeUsb(&USB_DEVICE);
     initializeAllCan();
+#ifdef __CHIPKIT__
     lastSignificantChangeTime = millis();
+#endif
 }
 
 void loop() {
@@ -83,19 +57,6 @@ void loop() {
         processCanWriteQueue(&getCanBuses()[i]);
     }
     checkIfStalled();
-}
-#endif // CAN_EMULATOR
-
-int main(void) {
-#ifdef CHIPKIT
-	init();
-#endif
-	setup();
-
-	for (;;)
-		loop();
-
-	return 0;
 }
 
 #ifdef __CHIPKIT__
@@ -253,3 +214,5 @@ static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 }
 
 #endif // CHIPKIT
+
+#endif // CAN_EMULATOR

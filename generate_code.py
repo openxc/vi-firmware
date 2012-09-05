@@ -203,10 +203,12 @@ class Parser(object):
         print "#include \"shared_handlers.h\""
         print
         print "extern Listener listener;"
+        print "#ifdef __CHIPKIT__"
         print "extern CAN can1;"
         print "extern CAN can2;"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
+        print "#endif // __CHIPKIT__"
         print
 
     def validate_messages(self):
@@ -307,7 +309,7 @@ class Parser(object):
         print "}"
         print
 
-        print "char* getMessageSet() {"
+        print "const char* getMessageSet() {"
         print "    return \"%s\";" % self.name
         print "}"
         print

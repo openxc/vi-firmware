@@ -14,10 +14,10 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     if(callback(snapshot)) {
         queue_init(queue);
     } else if(queue_full(queue)) {
-        debug("Incoming write is too long");
+        debug("Incoming write is too long\r\n");
         queue_init(queue);
     } else if(strnchr((char*)snapshot, queue_length(queue), '\0') != NULL) {
-        debug("Incoming buffered write corrupted -- clearing buffer");
+        debug("Incoming buffered write corrupted -- clearing buffer\r\n");
         queue_init(queue);
     }
 }

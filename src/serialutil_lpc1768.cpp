@@ -18,13 +18,14 @@ void initializeSerial(SerialDevice* serial) {
 	UART_CFG_Type UARTConfigStruct;
 	PINSEL_CFG_Type PinCfg;
 
-	PinCfg.Funcnum = 1;
+    // use the 2nd alternative function for UART1 on these pins
+	PinCfg.Funcnum = 2;
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
-	PinCfg.Pinnum = 15;
-	PinCfg.Portnum = 0;
+	PinCfg.Portnum = 2;
+	PinCfg.Pinnum = 0;
 	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 16;
+	PinCfg.Pinnum = 1;
 	PINSEL_ConfigPin(&PinCfg);
 
 	UART_ConfigStructInit(&UARTConfigStruct);

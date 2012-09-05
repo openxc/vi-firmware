@@ -14,7 +14,7 @@ extern "C" {
 
 static void sendToHost(UsbDevice* usbDevice) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
+    Endpoint_SelectEndpoint(IN_ENDPOINT_NUMBER);
     if(!Endpoint_IsINReady() || queue_empty(&usbDevice->sendQueue)) {
         return;
     }
@@ -44,9 +44,9 @@ void processInputQueue(UsbDevice* usbDevice) {
 }
 
 void configureEndpoints() {
-    Endpoint_ConfigureEndpoint(DATA_ENDPOINT_NUMBER, EP_TYPE_BULK,
+    Endpoint_ConfigureEndpoint(OUT_ENDPOINT_NUMBER, EP_TYPE_BULK,
             ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
-    Endpoint_ConfigureEndpoint(DATA_ENDPOINT_NUMBER, EP_TYPE_BULK,
+    Endpoint_ConfigureEndpoint(IN_ENDPOINT_NUMBER, EP_TYPE_BULK,
             ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
 }
 
@@ -65,7 +65,7 @@ void initializeUsb(UsbDevice* usbDevice) {
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(DATA_ENDPOINT_NUMBER);
+    Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 
     while(Endpoint_IsOUTReceived()) {
         for(int i = 0; i < MAX_USB_PACKET_SIZE_BYTES; i++) {

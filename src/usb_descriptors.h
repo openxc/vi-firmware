@@ -7,7 +7,13 @@ extern "C" {
 
 #include "USB/USB.h"
 
-#define DATA_ENDPOINT_NUMBER 1
+// TODO There's no reason in the USB spec why these endpoints have to have
+// different numbers. Previously, we used EP1 in both the IN and OUT directions
+// for all data. There is a bug in the nxpUSBlib (referenced here:
+// http://lpcware.com/content/forum/problem-and-out-endpoints) where both
+// directions of an endpoint share a single buffer, so this is broken.
+#define IN_ENDPOINT_NUMBER 1
+#define OUT_ENDPOINT_NUMBER 2
 #define CONTROL_ENDPOINT_SIZE 64
 #define DATA_ENDPOINT_SIZE 64
 

@@ -1,3 +1,6 @@
 [submodule "src/libs/nxpUSBlib"]
 	path = src/libs/nxpUSBlib
 	url = https://github.com/openxc/nxpUSBlib.git
+[submodule "src/libs/cJSON"]
+	path = src/libs/cJSON
+	url = https://github.com/openxc/cJSON.git

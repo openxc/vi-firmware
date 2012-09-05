@@ -69,7 +69,7 @@ void setup() {
 }
 
 bool usbOutCallback(uint8_t* buffer) {
-    debug("Ignoring write request \"%s\" -- running an emulator\r\n", buffer);
+    debug("Ignoring write request -- running an emulator\r\n");
 }
 
 void loop() {

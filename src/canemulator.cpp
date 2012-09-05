@@ -68,6 +68,10 @@ void setup() {
     initializeUsb(&USB_DEVICE);
 }
 
+bool usbOutCallback(uint8_t* buffer) {
+    debug("Ignoring write request \"%s\" -- running an emulator\r\n", buffer);
+}
+
 void loop() {
     while(1) {
         sendNumericalMessage(
@@ -85,7 +89,7 @@ void loop() {
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &listener);
         processListenerQueues(&listener);
-        readFromHost(&USB_DEVICE, NULL);
+        readFromHost(&USB_DEVICE, usbOutCallback);
     }
 }
 

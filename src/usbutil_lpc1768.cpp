@@ -21,7 +21,6 @@ static void sendToHost(UsbDevice* usbDevice) {
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
-    // TODO try removing the 64 byte limit when using stream sending
     while(!queue_empty(&usbDevice->sendQueue)
             && byteCount < USB_SEND_BUFFER_SIZE) {
         usbDevice->sendBuffer[byteCount++] =

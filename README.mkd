@@ -493,6 +493,12 @@ even if USB is connected.
 
 ## Reader
 
+The `reader.py` script is useful for testing the CAN translator with a regular
+computer, to verify the data received from a vehicle before introducing an
+Android device. Documentation for this tool (and the list of required
+dependencies) is available on the OpenXC [vehicle interface
+testing](http://openxcplatform.com/vehicle-interface/testing.html) page.
+
 ## Traces
 
 You can record a trace of JSON messages from the CAN reader for use in testing.

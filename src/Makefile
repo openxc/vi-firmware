@@ -3,9 +3,8 @@ PROJECT = cantranslator
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./libs/CDL/LPC17xxLib
 SYS_OBJECTS =
-INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpusblib/Driver \
-				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc \
-				-I./libs/nxpusblib/Driver
+INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpusblib/Drivers \
+				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc
 LIBRARY_PATHS =
 LIBRARIES =
 LINKER_SCRIPT = LPC1768.ld
@@ -37,11 +36,11 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
 LOCAL_C_SRCS    = $(wildcard *.c)
-LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/*.c)
-LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/*.c)
-LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX/*.c)
-LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
-LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Drivers/USB/Core/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Drivers/USB/Core/LPC/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Drivers/USB/Core/LPC/HAL/LPC17XX/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Drivers/USB/Core/LPC/DCD/LPC17XX/*.c)
+LOCAL_C_SRCS    += $(wildcard libs/nxpusblib/Drivers/USB/Core/LPC/DCD/LPC17XX/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/BSP/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/BSP/LPCXpressoBase_RevB/*.c)
 LOCAL_C_SRCS    += $(CMSIS_PATH)/src/core_cm3.c \
@@ -74,9 +73,9 @@ all: $(OBJDIR) $(TARGET_BIN)
 
 $(OBJDIR):
 		@mkdir -p $(OBJDIR)
-		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/DCD/LPC17XX
-		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HAL/LPC17XX
-		@mkdir -p $(OBJDIR)/libs/nxpusblib/Driver/USB/Core/LPC/HCD
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Drivers/USB/Core/LPC/DCD/LPC17XX
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Drivers/USB/Core/LPC/HAL/LPC17XX
+		@mkdir -p $(OBJDIR)/libs/nxpusblib/Drivers/USB/Core/LPC/HCD
 		@mkdir -p $(OBJDIR)/libs/CDL/LPC17xxLib/src
 		@mkdir -p $(OBJDIR)/$(CMSIS_PATH)/src
 		@mkdir -p $(OBJDIR)/libs/BSP/LPCXpressoBase_RevB

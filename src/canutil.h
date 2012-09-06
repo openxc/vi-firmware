@@ -8,9 +8,20 @@
 #include "queue.h"
 #include "cJSON.h"
 
-#ifdef CHIPKIT
+#ifdef __CHIPKIT__
 #include "chipKITCAN.h"
-#endif
+typedef CAN* CANBusType;
+#endif // __CHIPKIT__
+
+#ifdef __LPC17XX__
+#include "lpc17xx_can.h"
+typedef LPC_CAN_TypeDef* CANBusType;
+#endif // __LPC17XX__
+
+#ifdef __TESTS__
+typedef void* CANBusType;
+#endif // __TESTS__
+
 
 #define SYS_FREQ (80000000L)
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
@@ -34,19 +45,19 @@ QUEUE_DECLARE(CanMessage, 8);
  * address - The address or ID of this node
  * bus - a reference to the CAN module from the CAN library
  * interruptHandler - a function to call by the Interrupt Service Routine when
- *      a previously registered CAN event occurs.
+ *      a previously registered CAN event occurs. (Only used by chipKIT, which
+ *      registers a different handler per channel. LPC1768 uses the same global
+ *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * messageReceived - used as an event flags by the interrupt service routines.
  */
 struct CanBus {
     unsigned int speed;
     uint64_t address;
-#ifdef CHIPKIT
-    CAN* bus;
-#endif
-    void (*interruptHandler)();
+    CANBusType bus;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;
+    void (*interruptHandler)();
     QUEUE_TYPE(CanMessage) sendQueue;
 };
 

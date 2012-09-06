@@ -179,4 +179,6 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
+CanMessage receiveCanMessage(CanBus* bus);
+
 #endif // _CANREAD_H_

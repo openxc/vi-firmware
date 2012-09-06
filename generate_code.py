@@ -203,9 +203,9 @@ class Parser(object):
         print "#include \"shared_handlers.h\""
         print
         print "extern Listener listener;"
+        print "extern CANBusType can1;"
+        print "extern CANBusType can2;"
         print "#ifdef __CHIPKIT__"
-        print "extern CAN can1;"
-        print "extern CAN can2;"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
         print "#endif // __CHIPKIT__"
@@ -234,8 +234,12 @@ class Parser(object):
         print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
-            print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
-                    bus[1]['speed'], bus[0], bus_number, bus_number)
+            print "    { %d, %s, can%d, {0}, false," % (
+                    bus[1]['speed'], bus[0], bus_number)
+            print "#ifdef __CHIPKIT__"
+            print "        handleCan%dInterrupt," % bus_number
+            print "#endif // __CHIPKIT__"
+            print "    },"
         print "};"
         print
 
@@ -314,7 +318,7 @@ class Parser(object):
         print "}"
         print
 
-        print "void decodeCanMessage(int id, uint8_t* data) {"
+        print "void decodeCanMessage(int id, uint64_t data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
             for message in bus['messages']:
@@ -371,10 +375,11 @@ class Parser(object):
         print "        *count = %d;" % len(can1_masks)
         for i, mask in enumerate(can1_masks):
             print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
-        print "    } else if(address == CAN_BUSES[1].address) {"
-        print "        *count = %d;" % len(can2_masks)
-        for i, mask in enumerate(can2_masks):
-            print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
+        if len(self.buses) == 2:
+            print "    } else if(address == CAN_BUSES[1].address) {"
+            print "        *count = %d;" % len(can2_masks)
+            for i, mask in enumerate(can2_masks):
+                print "        FILTER_MASKS[%d] = {%d, 0x%x};" % (i, mask[0], mask[1])
         print "    }"
         print "    return FILTER_MASKS;"
         print "}"

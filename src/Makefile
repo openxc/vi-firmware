@@ -94,10 +94,10 @@ $(OBJDIR)/libs/cJSON.o: libs/cJSON/cJSON.c
 	mkdir -p $(dir $@)
 	$(CC) -c -lm $(CC_FLAGS) $< -o $@
 
-$(OBJDIR)/%.o: %.c %.h
+$(OBJDIR)/%.o: %.c
 	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
-$(OBJDIR)/%.o: %.cpp %.h
+$(OBJDIR)/%.o: %.cpp
 	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 

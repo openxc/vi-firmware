@@ -22,7 +22,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         message->messageWord[2] = 0;
         message->messageWord[3] = 0;
 
-        message->msgSID.SID = request.destination;
+        message->msgSID.SID = request.id;
         message->msgEID.IDE = 0;
         message->msgEID.DLC = 8;
         memset(message->data, 0, 8);
@@ -33,7 +33,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         for(int i = 0; i < 8; i++) {
             debug("%x", message->data[i]);
         }
-        debug(" to 0x%X", request.destination);
+        debug(" to 0x%X", request.id);
 
         // Mark message as ready to be processed
         bus->bus->updateChannel(CAN::CHANNEL0);

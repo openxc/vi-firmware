@@ -32,16 +32,17 @@ int endingByte(int startBit, int numBits) {
     return (startBit + numBits - 1) / 8;
 }
 
-uint64_t getBitField(uint8_t* data, int startBit, int numBits) {
+uint64_t getBitField(uint64_t data, int startBit, int numBits) {
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
-    uint64_t ret = data[startByte];
+    uint8_t* bytes = (uint8_t*)&data;
+    uint64_t ret = bytes[startByte];
     if(startByte != endByte) {
         // The lowest byte address contains the most significant bit.
         for (int i = startByte + 1; i <= endByte; i++) {
             ret = ret << 8;
-            ret = ret | data[i];
+            ret = ret | bytes[i];
         }
     }
 

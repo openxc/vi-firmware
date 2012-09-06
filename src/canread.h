@@ -15,7 +15,7 @@
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(Listener* listener, CanSignal* signal, uint8_t* data,
+void translateCanSignal(Listener* listener, CanSignal* signal, uint64_t data,
         CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
@@ -30,7 +30,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal, uint8_t* data,
  * signalCount - The length of the signals array.
  */
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
@@ -46,7 +46,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * signalCount - The length of the signals array
  */
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
@@ -68,7 +68,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * signalCount - The length of the signals array>
  */
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
@@ -117,7 +117,7 @@ void sendEventedBooleanMessage(const char* name, const char* value, bool event,
  *
  * Returns the final, transformed value of the signal.
  */
-float decodeCanSignal(CanSignal* signal, uint8_t* data);
+float decodeCanSignal(CanSignal* signal, uint64_t data);
 
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.

@@ -18,12 +18,12 @@
 /* Public: A CAN message, particularly for writing to CAN.
  * state names.
  *
- * destination - The ID of the message.
+ * id - The ID of the message.
  * data  - The message's 64-bits of data.
  */
 struct CanMessage {
-    uint32_t destination;
-    uint64_t* data;
+    uint32_t id;
+    uint64_t data;
 };
 
 QUEUE_DECLARE(CanMessage, 8);

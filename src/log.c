@@ -13,22 +13,25 @@ void debug(const char* format, ...) {
         Serial.println(buffer);
         free(buffer);
     }
-#else
-#ifdef   __LPC17XX__
-    _printf(format, args);
-#else
-    printf(format, args);
-#endif // __LPC17XX__
 #endif // CHIPKIT
+
+#ifdef  __LPC17XX__
+    _printf(format, args);
+#endif // __LPC17XX__
+
+#ifdef __TESTS__
+    printf(format, args);
+#endif //_TESTS__
+
     va_end(args);
 }
 
 void initializeLogging() {
 #ifdef CHIPKIT
     Serial.begin(115200);
-#else
+#endif // CHIPKIT
+
 #ifdef   __LPC17XX__
     debug_frmwrk_init();
 #endif // __LPC17XX__
-#endif // CHIPKIT
 }

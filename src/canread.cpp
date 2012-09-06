@@ -1,7 +1,7 @@
 #include "canread.h"
 #include <stdlib.h>
 
-float decodeCanSignal(CanSignal* signal, uint8_t* data) {
+float decodeCanSignal(CanSignal* signal, uint64_t data) {
     uint64_t rawValue = getBitField(data, signal->bitPosition,
             signal->bitSize);
     return rawValue * signal->factor + signal->offset;
@@ -96,7 +96,7 @@ void sendEventedStringMessage(const char* name, const char* value,
 // obvious way to share code and still keep the different data types returned
 // by the handlers.
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -117,7 +117,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -139,7 +139,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data,
+        uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
     float value = decodeCanSignal(signal, data);
@@ -160,7 +160,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
-        uint8_t* data, CanSignal* signals, int signalCount) {
+        uint64_t data, CanSignal* signals, int signalCount) {
     translateCanSignal(listener, signal, data, passthroughHandler, signals,
             signalCount);
 }

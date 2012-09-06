@@ -28,8 +28,8 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 START_TEST (test_decode_signal)
 {
     CanSignal signal = SIGNALS[0];
-    uint8_t data = 0xEB;
-    float result = decodeCanSignal(&signal, &data);
+    uint64_t data = 0xEB;
+    float result = decodeCanSignal(&signal, data);
     float correctResult = 0xA * 1001.0 - 30000.0;
     fail_unless(result == correctResult,
             "decode is incorrect: %f but should be %f", result, correctResult);

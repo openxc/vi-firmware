@@ -48,7 +48,7 @@ const char* getMessageSet();
  * id - The node ID of the incoming CAN message.
  * data - The 64-bit data field of the CAN message.
  */
-void decodeCanMessage(int id, uint8_t* data);
+void decodeCanMessage(int id, uint64_t data);
 
 /* Public: Initialize an array of the CAN message filter masks that should be
  * set for the CAN module with the given address.

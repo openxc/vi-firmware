@@ -29,7 +29,7 @@
  *
  * Returns the value of the requested bit field.
  */
-uint64_t getBitField(uint8_t* data, int startPos, int numBits);
+uint64_t getBitField(uint64_t data, int startPos, int numBits);
 
 /* Public: Set the bit field in the given data array to the new value.
  *

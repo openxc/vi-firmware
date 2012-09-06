@@ -59,7 +59,7 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
 
 bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
     if(send) {
-        CanMessage message = {signal->messageId, &data};
+        CanMessage message = {signal->messageId, data};
         QUEUE_PUSH(CanMessage, &signal->bus->sendQueue, message);
         return true;
     }

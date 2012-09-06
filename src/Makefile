@@ -126,7 +126,7 @@ test: LD = g++
 test: CC = g++
 test: CPP = g++
 test: CC_FLAGS = -I. -c -std=gnu99 -m32 -w -Wall -g -ggdb
-test: CC_SYMBOLS =
+test: CC_SYMBOLS = -D__TESTS__
 test: LDFLAGS = -m32 -lm
 test: LDLIBS = $(TEST_LIBS)
 test: $(TEST_OBJDIR) $(TESTS)

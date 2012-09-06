@@ -5,6 +5,7 @@
 void debug(const char* format, ...) {
     va_list args;
     va_start(args, format);
+
 #ifdef CHIPKIT
     char* buffer = (char*) malloc(MAX_LOG_LINE_LENGTH);
     if(buffer != NULL) {
@@ -13,7 +14,11 @@ void debug(const char* format, ...) {
         free(buffer);
     }
 #else
+#ifdef   __LPC17XX__
     _printf(format, args);
+#else
+    printf(format, args);
+#endif // __LPC17XX__
 #endif // CHIPKIT
     va_end(args);
 }
@@ -22,6 +27,8 @@ void initializeLogging() {
 #ifdef CHIPKIT
     Serial.begin(115200);
 #else
+#ifdef   __LPC17XX__
     debug_frmwrk_init();
+#endif // __LPC17XX__
 #endif // CHIPKIT
 }

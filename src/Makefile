@@ -117,7 +117,7 @@ TESTS=$(patsubst %.cpp,$(OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o queue.o \
-					 usbutil.o log.o listener.o serialutil.o
+					 log.o listener.o
 TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
 				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o \
 				$(TEST_OBJDIR)/usbutil_mock.o $(TEST_OBJDIR)/serialutil_mock.o
@@ -126,6 +126,7 @@ test: LD = g++
 test: CC = g++
 test: CPP = g++
 test: CC_FLAGS = -I. -c -std=gnu99 -m32 -w -Wall -g -ggdb
+test: CC_SYMBOLS =
 test: LDFLAGS = -m32 -lm
 test: LDLIBS = $(TEST_LIBS)
 test: $(TEST_OBJDIR) $(TESTS)

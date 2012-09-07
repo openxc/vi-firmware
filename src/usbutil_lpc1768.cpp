@@ -50,6 +50,10 @@ void configureEndpoints() {
             ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
 }
 
+void EVENT_USB_Device_Connect() {
+    // TODO
+}
+
 void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
 }

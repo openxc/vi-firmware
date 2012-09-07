@@ -19,7 +19,7 @@ static bool usbCallback(USB_EVENT event, void *pdata, word size) {
         debug("USB Configured");
         USB_DEVICE.configured = true;
         mark();
-        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
+        USB_DEVICE.device.EnableEndpoint(USB_DEVICE.endpoint,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);
         break;
@@ -91,7 +91,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         // TODO see #569
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
-            for(int i = 0; i < MAX_USB_PACKET_SIZE_BYTES; i++) {
+            for(int i = 0; i < usbDevice->endpointSize; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
                     debug("Dropped write from host -- queue is full\r\n");

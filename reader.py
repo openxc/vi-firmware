@@ -188,8 +188,25 @@ class CanTranslator(object):
             for element in self.elements:
                 element.messages_received_mark = element.messages_received
 
+    def _massage_write_value(self, value):
+        if value == "true":
+            value = True
+        elif value == "false":
+            value = False
+        else:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+        return value
+
     def read(self):
         return ""
+
+    def write(self, name, value):
+        value = self._massage_write_value(value)
+        message = json.dumps({'name': name, 'value': value})
+        self._write(message)
 
     def run(self, window=None):
         if window is not None:
@@ -240,6 +257,10 @@ class SerialCanTranslator(CanTranslator):
     def read(self):
         return self.device.readline()
 
+    def _write(self, message):
+        bytes_written = self.device.write(message + "\x00")
+        assert bytes_written == len(message) + 1
+
 
 class UsbCanTranslator(CanTranslator):
     INTERFACE = 0
@@ -288,18 +309,7 @@ class UsbCanTranslator(CanTranslator):
     def reset(self):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
-    def write(self, name, value):
-        if value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        else:
-            try:
-                value = float(value)
-            except ValueError:
-                pass
-
-        message = json.dumps({'name': name, 'value': value})
+    def _write(self, message):
         bytes_written = self.out_endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
 

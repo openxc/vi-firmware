@@ -67,7 +67,7 @@ bool receiveWriteRequest(uint8_t* message) {
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            debug("Write request is malformed, missing name");
+            debug("Write request is malformed, missing name: %s\r\n", message);
             return true;
         }
         char* name = nameObject->valuestring;

@@ -1,5 +1,6 @@
 #ifdef __LPC17XX__
 
+#include <string.h>
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
 #include "serialutil.h"
@@ -8,8 +9,34 @@
 
 #define CAN_SERIAL_PORT (LPC_UART_TypeDef*)LPC_UART1
 
+extern bool receiveWriteRequest(uint8_t* message);
+extern SerialDevice SERIAL_DEVICE;
+
+extern "C" {
+
+int bufferIndex = 0;
+char buffer[MAX_MESSAGE_SIZE];
+
+void UART1_IRQHandler() {
+    if((UART_GetIntId((LPC_UART_TypeDef*)LPC_UART1) & UART_IIR_INTID_MASK) == UART_IIR_INTID_RDA) {
+        if(bufferIndex < MAX_MESSAGE_SIZE) {
+            buffer[bufferIndex++] = UART_ReceiveByte(CAN_SERIAL_PORT);
+        }
+    }
+}
+
+}
+
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
-    // TODO
+    if(bufferIndex > 0) {
+        for(int i = 0; i < bufferIndex && !queue_full(&SERIAL_DEVICE.sendQueue);
+                i++) {
+            QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue, buffer[i]);
+        }
+        bufferIndex = 0;
+        memset(buffer, 0, MAX_MESSAGE_SIZE);
+        processQueue(&SERIAL_DEVICE.receiveQueue, receiveWriteRequest);
+    }
 }
 
 void initializeSerial(SerialDevice* serial) {
@@ -32,6 +59,10 @@ void initializeSerial(SerialDevice* serial) {
 	UARTConfigStruct.Baud_rate = 115200;
 	UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
 	UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
+
+    UART_IntConfig((LPC_UART_TypeDef*)CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);
+    NVIC_SetPriority(UART1_IRQn, ((0x01<<3)|0x01));
+    NVIC_EnableIRQ(UART1_IRQn);
 }
 
 void processInputQueue(SerialDevice* device) {

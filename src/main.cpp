@@ -48,12 +48,12 @@ bool handleControlRequest(uint8_t request) {
     case VERSION_CONTROL_COMMAND:
         char combinedVersion[strlen(VERSION) + strlen(getMessageSet()) + 4];
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        debug("Version: %s", combinedVersion);
+        debug("Version: %s\r\n", combinedVersion);
 
         sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     case RESET_CONTROL_COMMAND:
-        debug("Resetting...");
+        debug("Resetting...\r\n");
         reset();
         return true;
     default:

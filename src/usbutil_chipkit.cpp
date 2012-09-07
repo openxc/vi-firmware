@@ -6,6 +6,9 @@
 
 extern bool handleControlRequest(uint8_t);
 
+// This is a reference to the last packet read
+extern volatile CTRL_TRF_SETUP SetupPkt;
+
 static bool usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.

@@ -4,6 +4,13 @@
 #include "signals.h"
 #include "log.h"
 
+#define SYS_FREQ (80000000L)
+
+CAN can1Actual(CAN::CAN1);
+CAN can2Actual(CAN::CAN2);
+CANController can1 = &can1Actual;
+CANController can2 = &can2Actual;
+
 /* Private: Initializes message filter masks and filters on the CAN controller.
  *
  * canMod - a pointer to an initialized CAN module class.
@@ -15,7 +22,7 @@ void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
     debug("Configuring %d filter masks...", filterMaskCount);
     for(int i = 0; i < filterMaskCount; i++) {
         debug("Configuring filter mask %x", filterMasks[i].value);
-        bus->bus->configureFilterMask(
+        bus->controller->configureFilterMask(
                 (CAN::FILTER_MASK) filterMasks[i].number,
                 filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
     }
@@ -23,12 +30,12 @@ void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
 
     debug("Configuring %d filters...", filterCount);
     for(int i = 0; i < filterCount; i++) {
-        bus->bus->configureFilter((CAN::FILTER) filters[i].number,
+        bus->controller->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
-        bus->bus->linkFilterToChannel((CAN::FILTER) filters[i].number,
+        bus->controller->linkFilterToChannel((CAN::FILTER) filters[i].number,
                 (CAN::FILTER_MASK) filters[i].maskNumber,
                 (CAN::CHANNEL) filters[i].channel);
-        bus->bus->enableFilter((CAN::FILTER) filters[i].number, true);
+        bus->controller->enableFilter((CAN::FILTER) filters[i].number, true);
     }
     debug("Done.");
 }
@@ -40,9 +47,9 @@ void initializeCan(CanBus* bus) {
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
-    bus->bus->enableModule(true);
-    bus->bus->setOperatingMode(CAN::CONFIGURATION);
-    while(bus->bus->getOperatingMode() != CAN::CONFIGURATION);
+    bus->controller->enableModule(true);
+    bus->controller->setOperatingMode(CAN::CONFIGURATION);
+    while(bus->controller->getOperatingMode() != CAN::CONFIGURATION);
 
     // Configure the CAN Module Clock. The CAN::BIT_CONFIG data structure is
     // used for this purpose. The propagation, phase segment 1 and phase segment
@@ -53,21 +60,21 @@ void initializeCan(CanBus* bus) {
     canBitConfig.phaseSeg2TimeSelect    = CAN::TRUE;
     canBitConfig.sample3Time            = CAN::TRUE;
     canBitConfig.syncJumpWidth          = CAN::BIT_2TQ;
-    bus->bus->setSpeed(&canBitConfig, SYS_FREQ, bus->speed);
+    bus->controller->setSpeed(&canBitConfig, SYS_FREQ, bus->speed);
 
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    bus->bus->assignMemoryBuffer(bus->buffer, BUS_MEMORY_BUFFER_SIZE);
+    bus->controller->assignMemoryBuffer(bus->buffer, BUS_MEMORY_BUFFER_SIZE);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit
     // Request" disabled, meaning that other nodes can't request for us to
     // transmit data.
-    bus->bus->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
+    bus->controller->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
             CAN::LOW_MEDIUM_PRIORITY);
 
     // Configure channel 1 for RX with 8 byte buffers.
-    bus->bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
+    bus->controller->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
     int filterMaskCount;
     CanFilterMask* filterMasks = initializeFilterMasks(bus->address,
@@ -80,14 +87,14 @@ void initializeCan(CanBus* bus) {
     // (channel event) and the receive channel event (module event). The
     // interrrupt peripheral library is used to enable the CAN interrupt to the
     // CPU.
-    bus->bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->controller->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
-    bus->bus->enableModuleEvent(CAN::RX_EVENT, true);
+    bus->controller->enableModuleEvent(CAN::RX_EVENT, true);
 
-    bus->bus->setOperatingMode(CAN::NORMAL_OPERATION);
-    while(bus->bus->getOperatingMode() != CAN::NORMAL_OPERATION);
+    bus->controller->setOperatingMode(CAN::NORMAL_OPERATION);
+    while(bus->controller->getOperatingMode() != CAN::NORMAL_OPERATION);
 
-    bus->bus->attachInterrupt(bus->interruptHandler);
+    bus->controller->attachInterrupt(bus->interruptHandler);
 
     debug("Done.");
 }

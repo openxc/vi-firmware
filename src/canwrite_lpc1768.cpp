@@ -34,7 +34,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
     message.type = DATA_FRAME;
     message.format = STD_ID_FORMAT;
     copyToMessageBuffer(request.data, message.dataA, message.dataB);
-    Status result = CAN_SendMsg(bus->bus, &message);
+    Status result = CAN_SendMsg(bus->controller, &message);
     return result == SUCCESS;
 }
 

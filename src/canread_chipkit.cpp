@@ -14,20 +14,20 @@ void receiveCan(CanBus* bus) {
     }
     ++receivedMessages;
 
-    CanMessage message = receiveCanMessage(bus->bus);
+    CanMessage message = receiveCanMessage(bus->controller);
     decodeCanMessage(message.id, message.data);
 }
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message;
 
-    CAN::RxMessageBuffer* message = bus->bus->getRxMessage(CAN::CHANNEL1);
+    CAN::RxMessageBuffer* message = bus->controller->getRxMessage(CAN::CHANNEL1);
 
     /* Call the CAN::updateChannel() function to let the CAN module know that
      * the message processing is done. Enable the event so that the CAN module
      * generates an interrupt when the event occurs.*/
-    bus->bus->updateChannel(CAN::CHANNEL1);
-    bus->bus->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
+    bus->controller->updateChannel(CAN::CHANNEL1);
+    bus->controller->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
 
     bus->messageReceived = false;

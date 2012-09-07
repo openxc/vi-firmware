@@ -13,25 +13,11 @@ extern SerialDevice serialDevice;
 extern UsbDevice USB_DEVICE;
 extern Listener listener;
 
-#ifdef __CHIPKIT__
-CAN can1Actual(CAN::CAN1);
-CAN can2Actual(CAN::CAN2);
-CANBusType can1 = &can1Actual;
-CANBusType can2 = &can2Actual;
-
-// This is a reference to the last packet read
-extern volatile CTRL_TRF_SETUP SetupPkt;
-#endif // __CHIPKIT__
-
-#ifdef __LPC17XX__
-CANBusType can1 = LPC_CAN1;
-CANBusType can2 = LPC_CAN2;
-#endif // __LPC17XX__
-
 /* Forward declarations */
 
-#ifdef __CHIPKIT__
 void receiveCan(CanBus*);
+
+#ifdef __CHIPKIT__
 void checkIfStalled();
 #endif // __CHIPKIT__
 
@@ -53,11 +39,9 @@ void setup() {
 }
 
 void loop() {
-#ifdef __CHIPKIT__
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-#endif // __CHIPKIT__
     processListenerQueues(&listener);
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
     readFromSerial(&serialDevice, &receiveWriteRequest);

@@ -12,7 +12,7 @@ CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
     CAN_ERROR result = CAN_OK;
     for(int i = 0; i < filterCount; i++) {
-        result = CAN_LoadFullCANEntry(bus->bus, filters[i].value);
+        result = CAN_LoadFullCANEntry(bus->controller, filters[i].value);
     }
     debug("Done.");
     return result;
@@ -36,14 +36,14 @@ void initializeCan(CanBus* bus) {
     PINSEL_ConfigPin(&PinCfg);
 
     // the bus is coming up as 0 in the struct for some reason
-    CAN_Init(bus->bus, bus->speed);
-    CAN_ModeConfig(bus->bus, CAN_OPERATING_MODE, ENABLE);
+    CAN_Init(bus->controller, bus->speed);
+    CAN_ModeConfig(bus->controller, CAN_OPERATING_MODE, ENABLE);
 
     // enable receiver interrupt
-    CAN_IRQCmd(bus->bus, CANINT_RIE, ENABLE);
+    CAN_IRQCmd(bus->controller, CANINT_RIE, ENABLE);
     // enable transmit interrupt
     // TODO handle this?
-    //CAN_IRQCmd(bus->bus, CANINT_TIE1, ENABLE);
+    //CAN_IRQCmd(bus->controller, CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
     // configure acceptance filter in bypass mode

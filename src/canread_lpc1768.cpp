@@ -4,7 +4,7 @@
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
-    CAN_ReceiveMsg(bus->bus, &message);
+    CAN_ReceiveMsg(bus->controller, &message);
 
     CanMessage result = {message.id, 0};
     result.data = message.dataA[0];

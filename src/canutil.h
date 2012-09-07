@@ -10,20 +10,19 @@
 
 #ifdef __CHIPKIT__
 #include "chipKITCAN.h"
-typedef CAN* CANBusType;
+typedef CAN* CANController;
 #endif // __CHIPKIT__
 
 #ifdef __LPC17XX__
 #include "lpc17xx_can.h"
-typedef LPC_CAN_TypeDef* CANBusType;
+typedef LPC_CAN_TypeDef* CANController;
 #endif // __LPC17XX__
 
 #ifdef __TESTS__
-typedef void* CANBusType;
+typedef void* CANController;
 #endif // __TESTS__
 
 
-#define SYS_FREQ (80000000L)
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 /* Public: A CAN message, particularly for writing to CAN.
@@ -43,7 +42,8 @@ QUEUE_DECLARE(CanMessage, 8);
  *
  * speed - The bus speed in bits per second (e.g. 500000)
  * address - The address or ID of this node
- * bus - a reference to the CAN module from the CAN library
+ * controller - a reference to the CAN controller in the MCU
+ *      (platform dependent).
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC1768 uses the same global
@@ -54,7 +54,7 @@ QUEUE_DECLARE(CanMessage, 8);
 struct CanBus {
     unsigned int speed;
     uint64_t address;
-    CANBusType bus;
+    CANController controller;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     volatile bool messageReceived;
     void (*interruptHandler)();

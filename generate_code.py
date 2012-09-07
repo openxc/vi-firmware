@@ -204,9 +204,15 @@ class Parser(object):
         print "#include \"shared_handlers.h\""
         print
         print "extern Listener listener;"
+        print
+        print "#ifdef __LPC17XX__"
+        print "#define can1 LPC_CAN1"
+        print "#define can2 LPC_CAN2"
+        print "#endif // __LPC17XX__"
+        print
+        print "#ifdef __CHIPKIT__"
         print "extern CANBusType can1;"
         print "extern CANBusType can2;"
-        print "#ifdef __CHIPKIT__"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
         print "#endif // __CHIPKIT__"

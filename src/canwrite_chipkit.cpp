@@ -15,7 +15,7 @@
  * Returns true if the message was sent successfully.
  */
 bool sendCanMessage(CanBus* bus, CanMessage request) {
-    CAN::TxMessageBuffer* message = bus->bus->getTxMessageBuffer(CAN::CHANNEL0);
+    CAN::TxMessageBuffer* message = bus->controller->getTxMessageBuffer(CAN::CHANNEL0);
     if (message != NULL) {
         message->messageWord[0] = 0;
         message->messageWord[1] = 0;
@@ -36,8 +36,8 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         debug(" to 0x%X", request.id);
 
         // Mark message as ready to be processed
-        bus->bus->updateChannel(CAN::CHANNEL0);
-        bus->bus->flushTxChannel(CAN::CHANNEL0);
+        bus->controller->updateChannel(CAN::CHANNEL0);
+        bus->controller->flushTxChannel(CAN::CHANNEL0);
         return true;
     } else {
         debug("Unable to get TX message area");

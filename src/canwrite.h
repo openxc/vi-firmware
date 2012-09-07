@@ -138,4 +138,6 @@ bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
 
 void processCanWriteQueue(CanBus* bus);
 
+bool sendCanMessage(CanBus* bus, CanMessage request);
+
 #endif // _CANWRITE_H_

@@ -29,11 +29,6 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         for(int i = 0; i < 8; i++) {
             memcpy(&message->data[i], &((uint8_t*)request.data)[7 - i], 8);
         }
-        debug("Sending message 0x");
-        for(int i = 0; i < 8; i++) {
-            debug("%x", message->data[i]);
-        }
-        debug(" to 0x%X", request.id);
 
         // Mark message as ready to be processed
         bus->controller->updateChannel(CAN::CHANNEL0);
@@ -43,12 +38,6 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         debug("Unable to get TX message area");
     }
     return false;
-}
-
-void processCanWriteQueue(CanBus* bus) {
-    while(!queue_empty(&bus->sendQueue)) {
-        sendCanMessage(bus, QUEUE_POP(CanMessage, &bus->sendQueue));
-    }
 }
 
 #endif // __CHIPKIT__

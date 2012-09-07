@@ -30,18 +30,12 @@ void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
 bool sendCanMessage(CanBus* bus, CanMessage request) {
     CAN_MSG_Type message;
     message.id =  request.id;
-    message.len = 64;
+    message.len = 8;
     message.type = DATA_FRAME;
     message.format = STD_ID_FORMAT;
     copyToMessageBuffer(request.data, message.dataA, message.dataB);
-    Status result = CAN_SendMsg(bus->controller, &message);
-    return result == SUCCESS;
-}
 
-void processCanWriteQueue(CanBus* bus) {
-    while(!queue_empty(&bus->sendQueue)) {
-        sendCanMessage(bus, QUEUE_POP(CanMessage, &bus->sendQueue));
-    }
+    return CAN_SendMsg(bus->controller, &message) == SUCCESS;
 }
 
 #endif // __LPC17XX__

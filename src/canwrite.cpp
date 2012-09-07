@@ -89,3 +89,17 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     return sendCanSignal(signal, data, &send);
 }
+
+void processCanWriteQueue(CanBus* bus) {
+    while(!queue_empty(&bus->sendQueue)) {
+        CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
+        debug("Sending CAN message id = 0x%02x, data = 0x", message.id);
+        for(int i = 0; i < 8; i++) {
+            debug("%02x", ((uint8_t*)&message.data)[i]);
+        }
+        debug("\r\n");
+        if(!sendCanMessage(bus, message)) {
+            debug("Unable to send CAN message with id = 0x%x\r\n", message.id);
+        }
+    }
+}

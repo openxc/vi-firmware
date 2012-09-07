@@ -1,6 +1,8 @@
 #include "serialutil.h"
 #include "usbutil.h"
 #include "listener.h"
+#include "signals.h"
+#include "log.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -8,6 +10,7 @@
 // USB
 #define DATA_ENDPOINT 1
 
+extern void reset();
 void setup();
 void loop();
 
@@ -39,3 +42,22 @@ int main(void) {
 
 	return 0;
 }
+
+bool handleControlRequest(uint8_t request) {
+    switch(request) {
+    case VERSION_CONTROL_COMMAND:
+        char combinedVersion[strlen(VERSION) + strlen(getMessageSet()) + 4];
+        sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
+        debug("Version: %s", combinedVersion);
+
+        sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
+        return true;
+    case RESET_CONTROL_COMMAND:
+        debug("Resetting...");
+        reset();
+        return true;
+    default:
+        return false;
+    }
+}
+

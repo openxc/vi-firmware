@@ -4,6 +4,36 @@
 #include "buffers.h"
 #include "log.h"
 
+extern bool handleControlRequest(uint8_t);
+
+static bool usbCallback(USB_EVENT event, void *pdata, word size) {
+    // initial connection up to configure will be handled by the default
+    // callback routine.
+    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
+
+    switch(event) {
+    case EVENT_CONFIGURED:
+        debug("USB Configured");
+        USB_DEVICE.configured = true;
+        mark();
+        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
+                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
+                USB_DISALLOW_SETUP);
+        break;
+
+    case EVENT_EP0_REQUEST:
+        handleControlRequest(SetupPkt.bRequest);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void sendControlMessage(uint8_t* data, uint8_t length) {
+    USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
+}
+
 void processInputQueue(UsbDevice* usbDevice) {
     while(!queue_empty(&usbDevice->sendQueue)) {
 

@@ -81,4 +81,6 @@ void processInputQueue(UsbDevice* usbDevice);
 
 void USBTask(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
 
+void sendControlMessage(uint8_t* data, uint8_t length);
+
 #endif // _USBUTIL_H_

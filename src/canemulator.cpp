@@ -68,8 +68,9 @@ void setup() {
     initializeUsb(&USB_DEVICE);
 }
 
-bool usbOutCallback(uint8_t* buffer) {
+bool usbWriteStub(uint8_t* buffer) {
     debug("Ignoring write request -- running an emulator\r\n");
+    return true;
 }
 
 void loop() {
@@ -88,9 +89,17 @@ void loop() {
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &listener);
+
         processListenerQueues(&listener);
-        readFromHost(&USB_DEVICE, usbOutCallback);
+        readFromHost(&USB_DEVICE, usbWriteStub);
+        readFromSerial(&serialDevice, usbWriteStub);
     }
+}
+
+void reset() { }
+
+const char* getMessageSet() {
+    return "emulator";
 }
 
 #endif // CAN_EMULATOR

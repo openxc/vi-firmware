@@ -31,7 +31,6 @@ CANBusType can2 = LPC_CAN2;
 /* Forward declarations */
 
 #ifdef __CHIPKIT__
-static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 void receiveCan(CanBus*);
 void checkIfStalled();
 #endif // __CHIPKIT__
@@ -119,36 +118,18 @@ void receiveCan(CanBus* bus) {
     }
     ++receivedMessages;
 
+    // TODO we might do this differently: read and queue the message from CAN in
+    // the interrupt handler, then try to process the queue in each loop
+    // iteration
     CanMessage message = receiveCanMessage(bus);
     decodeCanMessage(message.id, message.data);
 }
 
-#ifdef __CHIPKIT__
-
-static bool usbCallback(USB_EVENT event, void *pdata, word size) {
-    // initial connection up to configure will be handled by the default
-    // callback routine.
-    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
-
-    switch(event) {
-    case EVENT_CONFIGURED:
-        debug("USB Configured");
-        USB_DEVICE.configured = true;
-        mark();
-        USB_DEVICE.device.EnableEndpoint(DATA_ENDPOINT,
-                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
-                USB_DISALLOW_SETUP);
-        break;
-
-    case EVENT_EP0_REQUEST:
-        customUSBCallback(event, pdata, size);
-        break;
-
-    default:
-        break;
-    }
+void reset() {
+    initializeAllCan();
 }
 
+#ifdef __CHIPKIT__
 
 void mark() {
     lastSignificantChangeTime = millis();
@@ -169,31 +150,6 @@ void checkIfStalled() {
         initializeAllCan();
         delay(1000);
         mark();
-    }
-}
-
-
-/* Called by the Interrupt Service Routine whenever an event we registered for
- * occurs - this is where we wake up and decide to process a message. */
-void handleCan1Interrupt() {
-    if((can1.getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(can1.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
-            // Clear the event so we give up control of the CPU
-            can1.enableChannelEvent(CAN::CHANNEL1,
-                    CAN::RX_CHANNEL_NOT_EMPTY, false);
-            getCanBuses()[0].messageReceived = true;
-        }
-    }
-}
-
-void handleCan2Interrupt() {
-    if((can2.getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(can2.getPendingEventCode() == CAN::CHANNEL1_EVENT) {
-            // Clear the event so we give up control of the CPU
-            can2.enableChannelEvent(CAN::CHANNEL1,
-                    CAN::RX_CHANNEL_NOT_EMPTY, false);
-            getCanBuses()[1].messageReceived = true;
-        }
     }
 }
 

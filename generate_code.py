@@ -195,6 +195,7 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
+        print "#ifndef CAN_EMULATOR"
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""
@@ -343,6 +344,8 @@ class Parser(object):
 
         # Create a set of filters.
         self.print_filters()
+        print
+        print "#endif // CAN_EMULATOR"
 
     def print_filters(self):
         # TODO These cast a really wide net and should also be defined at the

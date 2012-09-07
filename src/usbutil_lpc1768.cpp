@@ -12,6 +12,16 @@ extern "C" {
 #include "lpc17xx_gpio.h"
 }
 
+extern bool handleControlRequest(uint8_t);
+
+void EVENT_USB_Device_ControlRequest() {
+    if(!(Endpoint_IsSETUPReceived())) {
+        return;
+    }
+
+    handleControlRequest(USB_ControlRequest.bRequest);
+}
+
 static void sendToHost(UsbDevice* usbDevice) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(IN_ENDPOINT_NUMBER);
@@ -32,6 +42,17 @@ static void sendToHost(UsbDevice* usbDevice) {
         Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
     }
     Endpoint_ClearIN();
+    Endpoint_SelectEndpoint(previousEndpoint);
+}
+
+void sendControlMessage(uint8_t* data, uint8_t length) {
+    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+    Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+
+    Endpoint_ClearSETUP();
+    Endpoint_Write_Control_Stream_LE(data, length);
+    Endpoint_ClearOUT();
+
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

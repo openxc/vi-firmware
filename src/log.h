@@ -8,6 +8,8 @@ extern "C" {
 #include <stdarg.h>
 #include <stdio.h>
 
+#define MAX_LOG_LINE_LENGTH 120
+
 void initializeLogging();
 
 void debug(const char* format, ...);

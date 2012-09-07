@@ -14,7 +14,7 @@ CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     for(int i = 0; i < filterCount; i++) {
         result = CAN_LoadFullCANEntry(bus->controller, filters[i].value);
     }
-    debug("Done.");
+    debug("Done.\r\n");
     return result;
 }
 

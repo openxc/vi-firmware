@@ -378,8 +378,6 @@ class Parser(object):
         print
         print ("CanFilterMask* initializeFilterMasks(uint64_t address, "
                 "int* count) {")
-        print "debug(\"Initializing filter arrays...\");"
-
         print "    if(address == CAN_BUSES[0].address) {"
         print "        *count = %d;" % len(can1_masks)
         for i, mask in enumerate(can1_masks):
@@ -395,8 +393,6 @@ class Parser(object):
 
         print
         print "CanFilter* initializeFilters(uint64_t address, int* count) {"
-        print "    debug(\"Initializing filters...\");"
-
         print "    switch(address) {"
         for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address

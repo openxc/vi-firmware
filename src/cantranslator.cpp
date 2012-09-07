@@ -9,7 +9,7 @@
 #include "listener.h"
 #include <stdint.h>
 
-extern SerialDevice serialDevice;
+extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;
 extern Listener listener;
 
@@ -30,7 +30,7 @@ int receivedMessagesAtLastMark = 0;
 
 void setup() {
     initializeLogging();
-    initializeSerial(&serialDevice);
+    initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
     initializeAllCan();
 #ifdef __CHIPKIT__
@@ -44,7 +44,7 @@ void loop() {
     }
     processListenerQueues(&listener);
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
-    readFromSerial(&serialDevice, &receiveWriteRequest);
+    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }

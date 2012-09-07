@@ -11,7 +11,7 @@
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-extern SerialDevice serialDevice;
+extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;
 extern Listener listener;
 
@@ -64,7 +64,7 @@ void setup() {
     srand(42);
 
     initializeLogging();
-    initializeSerial(&serialDevice);
+    initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
 }
 
@@ -92,7 +92,7 @@ void loop() {
 
         processListenerQueues(&listener);
         readFromHost(&USB_DEVICE, usbWriteStub);
-        readFromSerial(&serialDevice, usbWriteStub);
+        readFromSerial(&SERIAL_DEVICE, usbWriteStub);
     }
 }
 

@@ -17,9 +17,9 @@ void loop();
 const char* VERSION = "2.0-pre";
 
 #ifdef __CHIPKIT__
-SerialDevice serialDevice = {&Serial1};
+SerialDevice SERIAL_DEVICE = {&Serial1};
 #else
-SerialDevice serialDevice;
+SerialDevice SERIAL_DEVICE;
 #endif // __CHIPKIT__
 
 UsbDevice USB_DEVICE = {
@@ -29,7 +29,7 @@ UsbDevice USB_DEVICE = {
     DATA_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
-Listener listener = {&USB_DEVICE, &serialDevice};
+Listener listener = {&USB_DEVICE, &SERIAL_DEVICE};
 
 int main(void) {
 #ifdef CHIPKIT

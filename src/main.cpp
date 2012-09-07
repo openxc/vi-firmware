@@ -11,8 +11,8 @@
 #define DATA_ENDPOINT 1
 
 extern void reset();
-void setup();
-void loop();
+extern void setup();
+extern void loop();
 
 const char* VERSION = "2.0-pre";
 

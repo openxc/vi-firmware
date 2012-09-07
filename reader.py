@@ -226,10 +226,10 @@ class CanTranslator(object):
                 window.refresh()
 
 
-class SerialCanTransaltor(CanTranslator):
+class SerialCanTranslator(CanTranslator):
     def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
             dump=False, dashboard=False, elements=None):
-        super(SerialCanTransaltor, self).__init__(verbose, dump, dashboard,
+        super(SerialCanTranslator, self).__init__(verbose, dump, dashboard,
                 elements)
         self.port = port
         self.baud_rate = baud_rate
@@ -390,7 +390,7 @@ def main():
     arguments = parse_options()
 
     if arguments.serial:
-        device_class = SerialCanTransaltor
+        device_class = SerialCanTranslator
         kwargs = dict()
         if arguments.serial_device:
             kwargs['port'] = arguments.serial_device

@@ -12,7 +12,15 @@ extern "C" {
 #include "lpc17xx_gpio.h"
 }
 
+extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
+
+void configureEndpoints() {
+    Endpoint_ConfigureEndpoint(OUT_ENDPOINT_NUMBER, EP_TYPE_BULK,
+            ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+    Endpoint_ConfigureEndpoint(IN_ENDPOINT_NUMBER, EP_TYPE_BULK,
+            ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+}
 
 void EVENT_USB_Device_ControlRequest() {
     if(!(Endpoint_IsSETUPReceived())) {
@@ -20,6 +28,10 @@ void EVENT_USB_Device_ControlRequest() {
     }
 
     handleControlRequest(USB_ControlRequest.bRequest);
+}
+
+void EVENT_USB_Device_ConfigurationChanged(void) {
+    configureEndpoints();
 }
 
 static void sendToHost(UsbDevice* usbDevice) {
@@ -57,26 +69,15 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 
 void processInputQueue(UsbDevice* usbDevice) {
     USB_USBTask();
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
+	if(USB_DeviceState != DEVICE_STATE_Configured) {
+        usbDevice->configured = false;
+          return;
+    }
+    usbDevice->configured = true;
 
     sendToHost(usbDevice);
 }
 
-void configureEndpoints() {
-    Endpoint_ConfigureEndpoint(OUT_ENDPOINT_NUMBER, EP_TYPE_BULK,
-            ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
-    Endpoint_ConfigureEndpoint(IN_ENDPOINT_NUMBER, EP_TYPE_BULK,
-            ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
-}
-
-void EVENT_USB_Device_Connect() {
-    // TODO
-}
-
-void EVENT_USB_Device_ConfigurationChanged(void) {
-    configureEndpoints();
-}
 
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");

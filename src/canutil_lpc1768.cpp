@@ -35,6 +35,7 @@ void initializeCan(CanBus* bus) {
     PinCfg.Pinnum = 1;
     PINSEL_ConfigPin(&PinCfg);
 
+    // the bus is coming up as 0 in the struct for some reason
     CAN_Init(bus->bus, bus->speed);
     CAN_ModeConfig(bus->bus, CAN_OPERATING_MODE, ENABLE);
 

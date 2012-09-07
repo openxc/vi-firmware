@@ -2,6 +2,7 @@
 #include "debug_frmwrk.h"
 #include <stdio.h>
 
+// TODO this isn't working with parmaeters, see the combined version string
 void debug(const char* format, ...) {
     va_list args;
     va_start(args, format);

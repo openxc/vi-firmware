@@ -81,11 +81,12 @@ bool receiveWriteRequest(uint8_t* message) {
                 command->handler(name, value, getSignals(),
                         getSignalCount());
             } else {
+                debug("Valid request: %s\r\n", message);
                 sendCanSignal(signal, value, getSignals(),
                         getSignalCount());
             }
         } else {
-            debug("Writing not allowed for signal with name %s", name);
+            debug("Writing not allowed for signal with name %s\r\n", name);
         }
         cJSON_Delete(root);
         return true;

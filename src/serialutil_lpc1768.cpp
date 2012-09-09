@@ -93,6 +93,9 @@ void initializeSerial(SerialDevice* serial) {
     UART_ConfigStructInit(&UARTConfigStruct);
     UARTConfigStruct.Baud_rate = 115200;
     UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
+    UART_FIFO_CFG_Type fifoConfig;
+    UART_FIFOConfigStructInit(&fifoConfig);
+    UART_FIFOConfig((LPC_UART_TypeDef*)CAN_SERIAL_PORT, &fifoConfig);
     UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
 
     UART_IntConfig(CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);

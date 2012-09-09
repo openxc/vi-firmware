@@ -29,6 +29,8 @@ void processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     processInputQueue(listener->usb);
+    // TODO now that we're using interrupts on the LPC platform, sending over
+    // serial might be fast enough to just do it all of the time.
     if(!listener->usb->configured) {
         processInputQueue(listener->serial);
     }

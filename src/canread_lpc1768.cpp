@@ -25,8 +25,6 @@ extern "C" {
 #ifndef CAN_EMULATOR
 
 void CAN_IRQHandler() {
-    CanMessage message;
-    bool received = false;
     for(int i = 0; i < getCanBusCount(); i++) {
         CanBus* bus = &getCanBuses()[i];
         if((CAN_IntGetStatus(bus->controller) & 0x01) == 1) {

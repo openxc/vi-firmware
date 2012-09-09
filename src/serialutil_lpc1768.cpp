@@ -65,7 +65,6 @@ void initializeSerial(SerialDevice* serial) {
 }
 
 void processInputQueue(SerialDevice* device) {
-    int byteCount = 0;
     uint8_t sendBuffer[queue_length(&device->sendQueue)];
     NVIC_DisableIRQ(UART1_IRQn);
     queue_snapshot(&device->sendQueue, sendBuffer);

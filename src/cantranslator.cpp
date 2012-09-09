@@ -97,18 +97,11 @@ bool receiveWriteRequest(uint8_t* message) {
  * the packet payload to the serial monitor.
  */
 void receiveCan(CanBus* bus) {
-    if(bus->messageReceived == false) {
-        // The flag is updated by the CAN ISR.
-        return;
+    if(queue_length(&bus->receiveQueue) > 0) {
+        CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
+        ++receivedMessages;
+        decodeCanMessage(message.id, message.data);
     }
-    ++receivedMessages;
-
-    // TODO we might do this differently: read and queue the message from CAN in
-    // the interrupt handler, then try to process the queue in each loop
-    // iteration
-    CanMessage message = receiveCanMessage(bus);
-    decodeCanMessage(message.id, message.data);
-    bus->messageReceived = false;
 }
 
 void reset() {

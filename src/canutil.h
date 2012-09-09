@@ -56,9 +56,9 @@ struct CanBus {
     uint64_t address;
     CANController controller;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
-    volatile bool messageReceived;
     void (*interruptHandler)();
     QUEUE_TYPE(CanMessage) sendQueue;
+    QUEUE_TYPE(CanMessage) receiveQueue;
 };
 
 /* Public: A CAN transceiver message filter mask.

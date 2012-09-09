@@ -57,8 +57,6 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * (e.g. because no state was found associated with the float value), bad things
  * may happen.
  *
- * TODO do error checking, durr.
- *
  * listener - The listener device to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
@@ -178,7 +176,5 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  */
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
-
-CanMessage receiveCanMessage(CanBus* bus);
 
 #endif // _CANREAD_H_

@@ -3,18 +3,6 @@
 #include "canread.h"
 #include "signals.h"
 
-extern "C" {
-
-void CAN_IRQHandler() {
-    if((CAN_IntGetStatus(LPC_CAN1) & 0x01) == 1) {
-        getCanBuses()[0].messageReceived = true;
-    } else if((CAN_IntGetStatus(LPC_CAN2) & 0x01) == 1) {
-        getCanBuses()[1].messageReceived = true;
-    }
-}
-
-}
-
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
     CAN_ReceiveMsg(bus->controller, &message);
@@ -30,6 +18,26 @@ CanMessage receiveCanMessage(CanBus* bus) {
     result.data |= (((uint64_t)message.dataB[3]) << 56);
 
     return result;
+}
+
+extern "C" {
+
+#ifndef CAN_EMULATOR
+
+void CAN_IRQHandler() {
+    CanMessage message;
+    bool received = false;
+    for(int i = 0; i < getCanBusCount(); i++) {
+        CanBus* bus = &getCanBuses()[i];
+        if((CAN_IntGetStatus(bus->controller) & 0x01) == 1) {
+            CanMessage message = receiveCanMessage(bus);
+            QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
+        }
+    }
+}
+
+#endif // CAN_EMULATOR
+
 }
 
 #endif // __LPC17XX__

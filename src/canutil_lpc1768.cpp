@@ -64,12 +64,4 @@ void initializeCan(CanBus* bus) {
     }
 }
 
-void CAN_IRQHandler() {
-    if((CAN_IntGetStatus(LPC_CAN1) >> 0) & 0x1) {
-        getCanBuses()[0].messageReceived = true;
-    } else if((CAN_IntGetStatus(LPC_CAN2) >> 0) & 0x1) {
-        getCanBuses()[1].messageReceived = true;
-    }
-}
-
 #endif // __LPC17XX__

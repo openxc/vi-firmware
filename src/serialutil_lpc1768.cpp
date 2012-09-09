@@ -9,7 +9,6 @@
 
 #define CAN_SERIAL_PORT (LPC_UART_TypeDef*)LPC_UART1
 
-extern bool receiveWriteRequest(uint8_t* message);
 extern SerialDevice SERIAL_DEVICE;
 
 extern "C" {
@@ -35,7 +34,7 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
         }
         bufferIndex = 0;
         memset(buffer, 0, MAX_MESSAGE_SIZE);
-        processQueue(&SERIAL_DEVICE.receiveQueue, receiveWriteRequest);
+        processQueue(&SERIAL_DEVICE.receiveQueue, callback);
     }
 }
 

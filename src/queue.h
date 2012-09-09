@@ -26,6 +26,8 @@ bool queue_##type##_push(queue_##type* queue, type value); \
 \
 type queue_##type##_pop(queue_##type* queue); \
 \
+type queue_##type##_peek(queue_##type* queue); \
+\
 void queue_init(queue_##type* queue); \
 int queue_length(queue_##type* queue); \
 int queue_available(queue_##type* queue); \
@@ -46,12 +48,16 @@ bool queue_##type##_push(queue_##type* queue, type value) { \
     return true; \
 } \
 \
-type queue_##type##_pop(queue_##type* queue){ \
+type queue_##type##_pop(queue_##type* queue) { \
 	int next = (queue->tail + 1) % queue_##type##_max_internal_length; \
 	type value = queue->elements[queue->tail]; \
 	queue->tail = next; \
 \
     return value; \
+} \
+\
+type queue_##type##_peek(queue_##type* queue) { \
+	return queue->elements[queue->tail]; \
 } \
 \
 void queue_init(queue_##type* queue) { \
@@ -88,6 +94,8 @@ void queue_snapshot(queue_##type* queue, type* snapshot) { \
 #define QUEUE_PUSH(type, queue, value) queue_##type##_push(queue, value)
 
 #define QUEUE_POP(type, queue) queue_##type##_pop(queue)
+
+#define QUEUE_PEEK(type, queue) queue_##type##_peek(queue)
 
 QUEUE_DECLARE(uint8_t, 512)
 

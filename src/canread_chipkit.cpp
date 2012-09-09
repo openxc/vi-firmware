@@ -2,22 +2,6 @@
 
 #include "canread.h"
 
-/*
- * Check to see if a packet has been received. If so, read the packet and print
- * the packet payload to the serial monitor.
- */
-void receiveCan(CanBus* bus) {
-
-    if(bus->messageReceived == false) {
-        // The flag is updated by the CAN ISR.
-        return;
-    }
-    ++receivedMessages;
-
-    CanMessage message = receiveCanMessage(bus->controller);
-    decodeCanMessage(message.id, message.data);
-}
-
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message;
 

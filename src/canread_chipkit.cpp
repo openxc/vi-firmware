@@ -14,8 +14,6 @@ CanMessage receiveCanMessage(CanBus* bus) {
     bus->controller->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
             true);
 
-    bus->messageReceived = false;
-
     return {message->msgSID.SID, message->data};
 }
 

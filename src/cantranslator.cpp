@@ -108,6 +108,7 @@ void receiveCan(CanBus* bus) {
     // iteration
     CanMessage message = receiveCanMessage(bus);
     decodeCanMessage(message.id, message.data);
+    bus->messageReceived = false;
 }
 
 void reset() {

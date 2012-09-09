@@ -4,7 +4,7 @@
 
 void conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
-    if(queue_available(queue) < messageSize + 1) {
+    if(queue_available(queue) < messageSize + 2) {
             debug("Dropped incoming CAN message -- send queue full\r\n");
             return;
     }
@@ -12,6 +12,7 @@ void conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
     for(int i = 0; i < messageSize; i++) {
         QUEUE_PUSH(uint8_t, queue, (uint8_t)message[i]);
     }
+    QUEUE_PUSH(uint8_t, queue, (uint8_t)'\r');
     QUEUE_PUSH(uint8_t, queue, (uint8_t)'\n');
 }
 

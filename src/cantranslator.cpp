@@ -44,9 +44,7 @@ void loop() {
     }
     processListenerQueues(&listener);
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
-    if(!USB_DEVICE.configured) {
-        readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
-    }
+    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }

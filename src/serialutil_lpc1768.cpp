@@ -13,28 +13,33 @@ extern SerialDevice SERIAL_DEVICE;
 
 extern "C" {
 
-int bufferIndex = 0;
-char buffer[MAX_MESSAGE_SIZE];
+void handleReceiveInterrupt() {
+    if(!queue_full(&SERIAL_DEVICE.receiveQueue)) {
+        QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue,
+                UART_ReceiveByte(CAN_SERIAL_PORT));
+    }
+}
 
 void UART1_IRQHandler() {
-    if((UART_GetIntId((LPC_UART_TypeDef*)LPC_UART1) & UART_IIR_INTID_MASK) == UART_IIR_INTID_RDA) {
-        if(bufferIndex < MAX_MESSAGE_SIZE) {
-            buffer[bufferIndex++] = UART_ReceiveByte(CAN_SERIAL_PORT);
-        }
+    uint32_t interruptSource = UART_GetIntId(CAN_SERIAL_PORT) & UART_IIR_INTID_MASK;
+
+    switch(interruptSource) {
+        case UART_IIR_INTID_RLS:
+            break;
+        case UART_IIR_INTID_RDA:
+        case UART_IIR_INTID_CTI:
+            handleReceiveInterrupt();
+            break;
+        case UART_IIR_INTID_THRE:
+            break;
     }
 }
 
 }
 
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
-    if(bufferIndex > 0) {
-        for(int i = 0; i < bufferIndex && !queue_full(&SERIAL_DEVICE.sendQueue);
-                i++) {
-            QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue, buffer[i]);
-        }
-        bufferIndex = 0;
-        memset(buffer, 0, MAX_MESSAGE_SIZE);
-        processQueue(&SERIAL_DEVICE.receiveQueue, callback);
+    if(!queue_empty(&serial->receiveQueue)) {
+        processQueue(&serial->receiveQueue, callback);
     }
 }
 
@@ -59,7 +64,7 @@ void initializeSerial(SerialDevice* serial) {
     UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
     UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
 
-    UART_IntConfig((LPC_UART_TypeDef*)CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);
+    UART_IntConfig(CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);
     NVIC_SetPriority(UART1_IRQn, ((0x01<<3)|0x01));
     NVIC_EnableIRQ(UART1_IRQn);
 }

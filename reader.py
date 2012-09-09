@@ -14,6 +14,13 @@ def total_seconds(delta):
     return (delta.microseconds + (delta.seconds
         + delta.days * 24 * 3600) * 10**6) / 10**6
 
+# Thanks, SO: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+def sizeof_fmt(num):
+    for x in ['bytes','KB','MB','GB','TB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+
 class DataPoint(object):
     def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
             events=False, messages_received=0):
@@ -68,7 +75,7 @@ class DataPoint(object):
                 elif self.current_data > self.max_value:
                     self.bad_data = True
 
-    def print_to_window(self, window, row, average_time_mark):
+    def print_to_window(self, window, row, started_time):
         width = window.getmaxyx()[1]
         window.addstr(row, 0, self.name)
         if self.current_data is not None:
@@ -132,11 +139,9 @@ class DataPoint(object):
                     message_count_color)
 
         if width >= 115:
-            window.addstr(row, 110, "Frequency (Hz): " +
-                    str(int((self.messages_received -
-                        self.messages_received_mark) /
-                        (total_seconds(datetime.now() - average_time_mark) +
-                            0.1))))
+            window.addstr(row, 110, "Frequency (Hz): %d" %
+                    (self.messages_received - self.messages_received_mark) /
+                        (total_seconds(datetime.now() - started_time) + 0.1))
 
 
 class CanTranslator(object):
@@ -150,8 +155,7 @@ class CanTranslator(object):
         self.good_messages = 0
         self.elements = elements or []
         self.total_bytes_received = 0
-        self.bytes_received_mark = 0
-        self.average_time_mark = datetime.now()
+        self.started_time = datetime.now()
 
     def parse_message(self):
         if "\n" in self.message_buffer:
@@ -178,15 +182,6 @@ class CanTranslator(object):
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
-
-    # Every 10 seconds, mark what the current message and bytes received counts
-    # are so we can do a rolling average.
-    def date_rate_management(self):
-        if (total_seconds(datetime.now() - self.average_time_mark) > 10):
-            self.average_time_mark = datetime.now()
-            self.bytes_received_mark = self.total_bytes_received
-            for element in self.elements:
-                element.messages_received_mark = element.messages_received
 
     def _massage_write_value(self, value):
         if value == "true":
@@ -218,27 +213,27 @@ class CanTranslator(object):
         while True:
             self.message_buffer += self.read()
             self.parse_message()
-            self.date_rate_management()
 
             if self.dashboard and window is not None:
                 window.erase()
                 for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row, self.average_time_mark)
+                    element.print_to_window(window, row, self.started_time)
                 percentage_good = 0
                 if self.messages_received != 0:
                     percentage_good = (float(self.good_messages) /
                             self.messages_received)
                 window.addstr(len(self.elements), 0,
-                        "Received %d messages so far (%d%% valid)..." % (
+                        "Message count: %d (%d%% valid)" % (
                         self.messages_received, percentage_good * 100),
                         curses.A_REVERSE)
                 window.addstr(len(self.elements) + 1, 0,
-                        "Total Bytes Received: " +
-                        str(self.total_bytes_received), curses.A_REVERSE)
-                window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
-                    str((self.total_bytes_received - self.bytes_received_mark)
-                        / (total_seconds(datetime.now() -
-                            self.average_time_mark) + 0.1)) + " Bps",
+                        "Total received: %s" %
+                        sizeof_fmt(self.total_bytes_received),
+                        curses.A_REVERSE)
+                window.addstr(len(self.elements) + 2, 0, "Data Rate: %s" %
+                    sizeof_fmt(self.total_bytes_received /
+                        (total_seconds(datetime.now() - self.started_time)
+                            + 0.1)),
                      curses.A_REVERSE)
                 window.refresh()
 

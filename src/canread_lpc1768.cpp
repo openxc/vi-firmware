@@ -1,6 +1,19 @@
 #ifdef __LPC17XX__
 
 #include "canread.h"
+#include "signals.h"
+
+extern "C" {
+
+void CAN_IRQHandler() {
+    if((CAN_IntGetStatus(LPC_CAN1) & 0x01) == 1) {
+        getCanBuses()[0].messageReceived = true;
+    } else if((CAN_IntGetStatus(LPC_CAN2) & 0x01) == 1) {
+        getCanBuses()[1].messageReceived = true;
+    }
+}
+
+}
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;

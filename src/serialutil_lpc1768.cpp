@@ -66,13 +66,15 @@ void initializeSerial(SerialDevice* serial) {
 
 void processInputQueue(SerialDevice* device) {
     int byteCount = 0;
-    char sendBuffer[MAX_MESSAGE_SIZE];
-    while(!queue_empty(&device->sendQueue) && byteCount < MAX_MESSAGE_SIZE) {
-        sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
+    uint8_t sendBuffer[queue_length(&device->sendQueue)];
+    NVIC_DisableIRQ(UART1_IRQn);
+    queue_snapshot(&device->sendQueue, sendBuffer);
+    int bytesSent = UART_Send(CAN_SERIAL_PORT, sendBuffer, sizeof(sendBuffer),
+            BLOCKING);
+    for(int i = 0; i < bytesSent; i++) {
+        QUEUE_POP(uint8_t, &device->sendQueue);
     }
-
-    // TODO does NON_BLOCKING help here or cause corruption issues?
-    UART_Send(CAN_SERIAL_PORT, (uint8_t*)sendBuffer, byteCount, BLOCKING);
+    NVIC_EnableIRQ(UART1_IRQn);
 }
 
 #endif // __LPC17XX__

@@ -69,7 +69,7 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 
 void processInputQueue(UsbDevice* usbDevice) {
     USB_USBTask();
-	if(USB_DeviceState != DEVICE_STATE_Configured) {
+    if(USB_DeviceState != DEVICE_STATE_Configured) {
         usbDevice->configured = false;
           return;
     }

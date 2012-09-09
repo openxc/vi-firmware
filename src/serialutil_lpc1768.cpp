@@ -39,25 +39,25 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
 }
 
 void initializeSerial(SerialDevice* serial) {
-	queue_init(&serial->receiveQueue);
+    queue_init(&serial->receiveQueue);
 
-	UART_CFG_Type UARTConfigStruct;
-	PINSEL_CFG_Type PinCfg;
+    UART_CFG_Type UARTConfigStruct;
+    PINSEL_CFG_Type PinCfg;
 
     // use the 2nd alternative function for UART1 on these pins
-	PinCfg.Funcnum = 2;
-	PinCfg.OpenDrain = 0;
-	PinCfg.Pinmode = 0;
-	PinCfg.Portnum = 2;
-	PinCfg.Pinnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 1;
-	PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Funcnum = 2;
+    PinCfg.OpenDrain = 0;
+    PinCfg.Pinmode = 0;
+    PinCfg.Portnum = 2;
+    PinCfg.Pinnum = 0;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = 1;
+    PINSEL_ConfigPin(&PinCfg);
 
-	UART_ConfigStructInit(&UARTConfigStruct);
-	UARTConfigStruct.Baud_rate = 115200;
-	UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
-	UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
+    UART_ConfigStructInit(&UARTConfigStruct);
+    UARTConfigStruct.Baud_rate = 115200;
+    UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
+    UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
 
     UART_IntConfig((LPC_UART_TypeDef*)CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);
     NVIC_SetPriority(UART1_IRQn, ((0x01<<3)|0x01));

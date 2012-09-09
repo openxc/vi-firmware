@@ -33,14 +33,14 @@ Listener listener = {&USB_DEVICE, &SERIAL_DEVICE};
 
 int main(void) {
 #ifdef CHIPKIT
-	init();
+    init();
 #endif
-	setup();
+    setup();
 
-	for (;;)
-		loop();
+    for (;;)
+        loop();
 
-	return 0;
+    return 0;
 }
 
 bool handleControlRequest(uint8_t request) {

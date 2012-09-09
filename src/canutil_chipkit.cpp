@@ -43,7 +43,7 @@ void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
 void initializeCan(CanBus* bus) {
     CAN::BIT_CONFIG canBitConfig;
 
-	queue_init(&bus->sendQueue);
+    queue_init(&bus->sendQueue);
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete

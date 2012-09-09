@@ -18,7 +18,7 @@ START_TEST (test_full_message)
     uint64_t expectedValue = 19955;
     fail_unless(result == expectedValue,
             "Field retrieved in 0x%X was %d instead of %d", data,
-			result, expectedValue);
+            result, expectedValue);
 }
 END_TEST
 
@@ -43,19 +43,19 @@ START_TEST (test_multi_byte)
     uint64_t result = getBitField(data, 0, 4);
     fail_unless(result == 0xF,
             "First 4 bits in 0x%X was %d instead of 0xF", (data >> 60) & 0xF,
-			result);
+            result);
     result = getBitField(data, 4, 4);
     fail_unless(result == 0xA,
             "Second 4 bits in 0x%X was %d instead of 0xA", (data >> 56) & 0xF,
-			result);
+            result);
     result = getBitField(data, 8, 4);
     fail_unless(result == 0x1,
             "First 4 bits in 0x%X was %d instead of 0x1", (data >> 52) & 0xF,
-			result);
+            result);
     result = getBitField(data, 12, 4);
     fail_unless(result == 0x2,
             "Second 4 bits in 0x%X was %d instead of 0x2", (data >> 48) % 0xF,
-			result);
+            result);
 }
 END_TEST
 
@@ -65,7 +65,7 @@ START_TEST (test_get_multi_byte)
     uint64_t result = getBitField(data, 0, 9);
     fail_unless(result == 0x1F4,
             "First 4 bits in 0x%X was 0x%X instead of 0x1F4",
-			(data >> 60) & 0xF, result);
+            (data >> 60) & 0xF, result);
 }
 END_TEST
 
@@ -85,8 +85,7 @@ START_TEST (test_set_field)
     // retrieval in the set tests may look a little funky
     uint64_t result = getBitField(data, 56, 1);
     fail_unless(result == 0x1);
-
-	data = 0;
+    data = 0;
     setBitField(&data, 1, 1, 1);
     result = getBitField(data, 57, 1);
     fail_unless(result == 0x1);

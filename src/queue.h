@@ -49,15 +49,15 @@ bool queue_##type##_push(queue_##type* queue, type value) { \
 } \
 \
 type queue_##type##_pop(queue_##type* queue) { \
-	int next = (queue->tail + 1) % queue_##type##_max_internal_length; \
-	type value = queue->elements[queue->tail]; \
-	queue->tail = next; \
+    int next = (queue->tail + 1) % queue_##type##_max_internal_length; \
+    type value = queue->elements[queue->tail]; \
+    queue->tail = next; \
 \
     return value; \
 } \
 \
 type queue_##type##_peek(queue_##type* queue) { \
-	return queue->elements[queue->tail]; \
+    return queue->elements[queue->tail]; \
 } \
 \
 void queue_init(queue_##type* queue) { \
@@ -65,12 +65,12 @@ void queue_init(queue_##type* queue) { \
 } \
 \
 int queue_length(queue_##type* queue) { \
-	return (queue_##type##_max_internal_length + queue->head - queue->tail) \
+    return (queue_##type##_max_internal_length + queue->head - queue->tail) \
             % queue_##type##_max_internal_length; \
 } \
 \
 int queue_available(queue_##type* queue) { \
-	return queue_##type##_max_length - queue_length(queue); \
+    return queue_##type##_max_length - queue_length(queue); \
 } \
 \
 bool queue_full(queue_##type* queue) { \

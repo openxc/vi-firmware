@@ -11,7 +11,7 @@
  *
  * queue - The queue of bytes to check for a message.
  * callback - A function that will return true if an OpenXC message is found in
- * 			the queue.
+ *          the queue.
  */
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*));
 

@@ -168,12 +168,14 @@ class CanTranslator(object):
                 pass
             else:
                 self.good_messages += 1
+                if self.total_bytes_received == 0:
+                    self.started_time = datetime.now()
+                self.total_bytes_received += sys.getsizeof(parsed_message)
+
                 if self.dump:
                     print "%f: %s" % (time.time(), message)
                 if self.verbose:
                     print parsed_message
-                if self.dashboard:
-                    self.total_bytes_received += sys.getsizeof(parsed_message)
                 for element in self.elements:
                     if element.name == parsed_message.get('name', None):
                         element.update(parsed_message)

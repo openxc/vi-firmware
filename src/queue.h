@@ -19,7 +19,7 @@ const int queue_##type##_max_internal_length = max_length + 1; \
 typedef struct queue_##type##_s { \
     int head; \
     int tail; \
-    type elements[max_length]; \
+    type elements[max_length + 1]; \
 } queue_##type; \
 \
 bool queue_##type##_push(queue_##type* queue, type value); \

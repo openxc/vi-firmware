@@ -38,7 +38,6 @@ class DataPoint(object):
         self.events_active = events
         self.events = []
         self.messages_received = messages_received
-        self.messages_received_mark = messages_received
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -140,7 +139,7 @@ class DataPoint(object):
 
         if width >= 115:
             window.addstr(row, 110, "Frequency (Hz): %d" %
-                    ((self.messages_received - self.messages_received_mark) /
+                    (self.messages_received /
                         (total_seconds(datetime.now() - started_time) + 0.1)))
 
 
@@ -168,6 +167,10 @@ class CanTranslator(object):
             except ValueError:
                 if self.show_corrupted:
                     print message
+                if self.messages_received == 0:
+                    # assume the first message will be caught mid-stream and
+                    # thus will be corrupted
+                    self.messages_received -= 1
             else:
                 self.good_messages += 1
                 if self.total_bytes_received == 0:

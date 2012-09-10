@@ -146,8 +146,9 @@ class DataPoint(object):
 
 class CanTranslator(object):
     def __init__(self, verbose=False, dump=False, dashboard=False,
-            elements=None):
+            elements=None, show_corrupted=False):
         self.verbose = verbose
+        self.show_corrupted = show_corrupted
         self.dump = dump
         self.dashboard = dashboard
         self.message_buffer = ""
@@ -165,7 +166,8 @@ class CanTranslator(object):
                 if not isinstance(parsed_message, dict):
                     raise ValueError()
             except ValueError:
-                pass
+                if self.show_corrupted:
+                    print message
             else:
                 self.good_messages += 1
                 if self.total_bytes_received == 0:
@@ -203,7 +205,8 @@ class CanTranslator(object):
     def write(self, name, value):
         value = self._massage_write_value(value)
         message = json.dumps({'name': name, 'value': value})
-        self._write(message)
+        bytes_written = self._write(message + "\x00")
+        assert bytes_written == len(message) + 1
 
     def run(self, window=None):
         if window is not None:
@@ -242,9 +245,9 @@ class CanTranslator(object):
 
 class SerialCanTranslator(CanTranslator):
     def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
-            dump=False, dashboard=False, elements=None):
+            dump=False, dashboard=False, elements=None, show_corrupted=False):
         super(SerialCanTranslator, self).__init__(verbose, dump, dashboard,
-                elements)
+                elements, show_corrupted)
         self.port = port
         self.baud_rate = baud_rate
         import serial
@@ -255,8 +258,7 @@ class SerialCanTranslator(CanTranslator):
         return self.device.readline()
 
     def _write(self, message):
-        bytes_written = self.device.write(message + "\x00")
-        assert bytes_written == len(message) + 1
+        return self.device.write(message )
 
 
 class UsbCanTranslator(CanTranslator):
@@ -264,9 +266,10 @@ class UsbCanTranslator(CanTranslator):
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendor_id, verbose, dump, dashboard, elements):
+    def __init__(self, vendor_id, verbose, dump, dashboard, elements,
+            show_corrupted):
         super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
-                elements)
+                elements, show_corrupted)
         self.vendor_id = vendor_id
 
         self.device = usb.core.find(idVendor=vendor_id)
@@ -307,8 +310,7 @@ class UsbCanTranslator(CanTranslator):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
     def _write(self, message):
-        bytes_written = self.out_endpoint.write(message + "\x00")
-        assert bytes_written == len(message) + 1
+        return self.out_endpoint.write(message)
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
@@ -320,6 +322,10 @@ def parse_options():
     parser.add_argument("--verbose", "-v",
             action="store_true",
             dest="verbose",
+            default=False)
+    parser.add_argument("--corrupted",
+            action="store_true",
+            dest="show_corrupted",
             default=False)
     parser.add_argument("--serial", "-s",
             action="store_true",
@@ -407,7 +413,8 @@ def main():
 
     device = device_class(verbose=arguments.verbose, dump=arguments.dump,
             dashboard=arguments.dashboard,
-            elements=initialize_elements(), **kwargs)
+            elements=initialize_elements(),
+            show_corrupted=arguments.show_corrupted, **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

@@ -166,7 +166,7 @@ class CanTranslator(object):
                     raise ValueError()
             except ValueError:
                 if self.show_corrupted:
-                    print message
+                    print "Corrupted: %s" % message
                 if self.messages_received == 0:
                     # assume the first message will be caught mid-stream and
                     # thus will be corrupted

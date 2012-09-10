@@ -80,6 +80,7 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
 
 void initializeSerial(SerialDevice* serial) {
     queue_init(&serial->receiveQueue);
+    queue_init(&serial->sendQueue);
 
     UART_CFG_Type UARTConfigStruct;
     PINSEL_CFG_Type PinCfg;

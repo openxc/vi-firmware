@@ -16,9 +16,15 @@ extern "C" {
 __IO FlagStatus TRANSMIT_INTERRUPT_STATUS;
 
 void handleReceiveInterrupt() {
-    if(!queue_full(&SERIAL_DEVICE.receiveQueue)) {
-        QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue,
-                UART_ReceiveByte(CAN_SERIAL_PORT));
+    while(!queue_full(&SERIAL_DEVICE.receiveQueue)) {
+        uint8_t byte;
+        uint32_t bytesReceived = UART_Receive(CAN_SERIAL_PORT,
+                &byte, 1, NONE_BLOCKING);
+        if(bytesReceived > 0) {
+            QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue, byte);
+        } else {
+            break;
+        }
     }
 }
 

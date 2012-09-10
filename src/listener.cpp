@@ -18,20 +18,13 @@ void conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
 }
 
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
-    if(listener->usb->configured) {
-        conditionalEnqueue(&listener->usb->sendQueue, message, messageSize);
-    } else {
-        conditionalEnqueue(&listener->serial->sendQueue, message, messageSize);
-    }
+    conditionalEnqueue(&listener->usb->sendQueue, message, messageSize);
+    conditionalEnqueue(&listener->serial->sendQueue, message, messageSize);
 }
 
 void processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     processInputQueue(listener->usb);
-    // TODO now that we're using interrupts on the LPC platform, sending over
-    // serial might be fast enough to just do it all of the time.
-    if(!listener->usb->configured) {
-        processInputQueue(listener->serial);
-    }
+    processInputQueue(listener->serial);
 }

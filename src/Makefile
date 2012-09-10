@@ -58,7 +58,10 @@ TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
 ifdef DEBUG
 CC_FLAGS += -g -ggdb -DDEBUG
 else
-CC_FLAGS += -O2 -DNDEBUG
+# TODO re-enable -O2 when we figure out why IsINReady() returns true
+# when the stream isn't completely read by the host, and thus leading to
+# corruption
+CC_FLAGS += -DNDEBUG
 endif
 
 ifdef EMULATOR

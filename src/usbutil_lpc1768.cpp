@@ -53,7 +53,6 @@ static void sendToHost(UsbDevice* usbDevice) {
         Endpoint_Write_Stream_LE(sendBuffer, byteCount, NULL);
     }
     Endpoint_ClearIN();
-    Delay_MS(12);
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

@@ -140,8 +140,8 @@ class DataPoint(object):
 
         if width >= 115:
             window.addstr(row, 110, "Frequency (Hz): %d" %
-                    (self.messages_received - self.messages_received_mark) /
-                        (total_seconds(datetime.now() - started_time) + 0.1))
+                    ((self.messages_received - self.messages_received_mark) /
+                        (total_seconds(datetime.now() - started_time) + 0.1)))
 
 
 class CanTranslator(object):

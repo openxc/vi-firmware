@@ -30,8 +30,6 @@ struct UsbDevice {
     int endpoint;
     int endpointSize;
     bool configured;
-    // device to host
-    char sendBuffer[USB_SEND_BUFFER_SIZE];
     ByteQueue sendQueue;
     // host to device
     char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];

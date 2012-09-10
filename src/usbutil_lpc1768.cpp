@@ -43,16 +43,17 @@ static void sendToHost(UsbDevice* usbDevice) {
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
+    char sendBuffer[USB_SEND_BUFFER_SIZE];
     while(!queue_empty(&usbDevice->sendQueue)
             && byteCount < USB_SEND_BUFFER_SIZE) {
-        usbDevice->sendBuffer[byteCount++] =
-            QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+        sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
     }
 
     if(byteCount > 0) {
-        Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
+        Endpoint_Write_Stream_LE(sendBuffer, byteCount, NULL);
     }
     Endpoint_ClearIN();
+    Delay_MS(12);
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

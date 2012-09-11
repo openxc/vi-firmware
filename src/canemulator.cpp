@@ -89,7 +89,6 @@ void loop() {
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
                 randomEvent.value, randomEvent.event, &listener);
-        Delay_MS(25);
 
         processListenerQueues(&listener);
         readFromHost(&USB_DEVICE, usbWriteStub);

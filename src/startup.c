@@ -25,7 +25,7 @@
 #include "LPC17xx.h"
 
 // Defined in linker script
-extern void __stack;
+extern void __stack(void);
 extern uint32_t __etext;
 extern uint32_t __data_start__;
 extern uint32_t __data_end__;

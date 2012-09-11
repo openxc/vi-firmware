@@ -4,3 +4,6 @@
 [submodule "src/libs/cJSON"]
 	path = src/libs/cJSON
 	url = https://github.com/openxc/cJSON.git
+[submodule "src/libs/CDL"]
+	path = src/libs/CDL
+	url = https://github.com/openxc/nxp-cdl

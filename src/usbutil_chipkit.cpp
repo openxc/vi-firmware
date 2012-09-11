@@ -43,6 +43,8 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
+// The chipKIT version of this function is blocking. It will entirely flush the
+// send queue before returning.
 void processInputQueue(UsbDevice* usbDevice) {
     while(!queue_empty(&usbDevice->sendQueue)) {
 

@@ -10,7 +10,7 @@
 #endif
 
 void debug(const char* format, ...) {
-#ifdef DEBUG
+#ifdef __DEBUG__
     va_list args;
     va_start(args, format);
 
@@ -31,7 +31,7 @@ void debug(const char* format, ...) {
 #endif //_TESTS__
 
     va_end(args);
-#endif
+#endif // __DEBUG__
 }
 
 void initializeLogging() {

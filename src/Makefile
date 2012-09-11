@@ -1,10 +1,17 @@
 SYMBOLS =
+
 ifdef EMULATOR
 SYMBOLS += CAN_EMULATOR
 endif
 
 ifdef SERIAL
 SYMBOLS += SERIAL
+endif
+
+ifdef DEBUG
+SYMBOLS += __DEBUG__
+else
+SYMBOLS += NDEBUG
 endif
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))

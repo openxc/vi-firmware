@@ -44,6 +44,8 @@ def compile_trip(trace_file, tripNum):
     lastTimeStamp = 0.0
     currentTimeStamp = 0
     destFileGen = DestFileCreator(tripNum)
+    errorCount = 0
+    lineCount = 0
 
     destinationFile = destFileGen.next_dest(trace_file)
 
@@ -60,11 +62,13 @@ def compile_trip(trace_file, tripNum):
 
             for line in currentTraceFile:
                 try:
+                    lineCount = lineCount + 1
                     timestamp, data = line.split(':', 1)
                     record = json.loads(data)
                 except ValueError:
                     sys.stderr.write("Skipping line: %s" % data)
                     print " "
+                    errorCount = errorCount + 1
                     continue
                 
                 if lastTimeStamp is not 0.0:
@@ -85,6 +89,18 @@ def compile_trip(trace_file, tripNum):
             if dataFileValid is True:
                 currentTraceFile.close()
                 trace_file = get_next_file(trace_file)
+
+    percentBad = 100.0 * errorCount / lineCount
+    print "Parsed",
+    print lineCount,
+    print "lines."
+
+    print "Detected",
+    print errorCount,
+    print "errors."
+
+    print percentBad,
+    print "% bad data."
 
 if __name__ == '__main__':
     if len(sys.argv) is not 3:

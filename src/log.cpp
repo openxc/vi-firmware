@@ -2,7 +2,9 @@
 #include <stdio.h>
 
 #ifdef __LPC17XX__
+extern "C" {
 #include "debug_frmwrk.h"
+}
 #endif
 
 #ifdef __PIC32__

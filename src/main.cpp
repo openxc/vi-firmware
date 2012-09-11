@@ -15,27 +15,31 @@ extern void reset();
 extern void setup();
 extern void loop();
 
+#ifdef __PIC32__
+extern boolean usbCallback(USB_EVENT, void*, word);
+#endif // __PIC32__
+
 const char* VERSION = "2.0-pre";
 
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 SerialDevice SERIAL_DEVICE = {&Serial1};
 #else
 SerialDevice SERIAL_DEVICE;
-#endif // __CHIPKIT__
+#endif // __PIC32__
 
 UsbDevice USB_DEVICE = {
-#ifdef CHIPKIT
+#ifdef __PIC32__
     USBDevice(usbCallback),
-#endif // CHIPKIT
+#endif // __PIC32__
     DATA_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE, &SERIAL_DEVICE};
 
 int main(void) {
-#ifdef CHIPKIT
+#ifdef __PIC32__
     init();
-#endif
+#endif // __PIC32__
     setup();
 
     for (;;)

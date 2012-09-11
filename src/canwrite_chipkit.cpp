@@ -1,4 +1,4 @@
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 
 #include "canwrite.h"
 #include "log.h"
@@ -40,4 +40,4 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
     return false;
 }
 
-#endif // __CHIPKIT__
+#endif // __PIC32__

@@ -10,3 +10,6 @@
 [submodule "src/libs/BSP"]
 	path = src/libs/BSP
 	url = https://github.com/openxc/nxp-bsp
+[submodule "src/libs/arduino.mk"]
+	path = src/libs/arduino.mk
+	url = https://github.com/peplin/arduino.mk

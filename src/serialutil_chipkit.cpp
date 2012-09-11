@@ -1,4 +1,4 @@
-#ifdef CHIPKIT
+#ifdef __PIC32__
 
 #include "serialutil.h"
 #include "buffers.h"
@@ -33,4 +33,4 @@ void processInputQueue(SerialDevice* device) {
     device->device->write((const uint8_t*)sendBuffer, byteCount);
 }
 
-#endif // CHIPKIT
+#endif // __PIC32__

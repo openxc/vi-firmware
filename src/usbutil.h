@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include "queue.h"
 
-#ifdef CHIPKIT
+#ifdef __PIC32__
 #include "chipKITUSBDevice.h"
-#endif // CHIPKIT
+#endif // __PIC32__
 
 #ifdef __LPC17XX__
 #include "usb_descriptors.h"
@@ -24,9 +24,9 @@
  * endpointSize - The packet size of the endpoint.
  */
 struct UsbDevice {
-#ifdef CHIPKIT
+#ifdef __PIC32__
     USBDevice device;
-#endif // CHIPKIT
+#endif // __PIC32__
     int endpoint;
     int endpointSize;
     bool configured;
@@ -34,10 +34,10 @@ struct UsbDevice {
     // host to device
     char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
     ByteQueue receiveQueue;
-#ifdef CHIPKIT
+#ifdef __PIC32__
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
-#endif // CHIPKIT
+#endif // __PIC32__
 };
 
 /* Public: Initializes the USB controller as a full-speed device with the

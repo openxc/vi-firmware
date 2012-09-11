@@ -1,9 +1,9 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-#ifdef CHIPKIT
+#ifdef __PIC32__
 #include "WProgram.h"
-#endif // CHIPKIT
+#endif // __PIC32__
 
 #include "queue.h"
 
@@ -15,9 +15,9 @@
  * device - A pointer to the hardware serial device to use for OpenXC messages.
  */
 struct SerialDevice {
-#ifdef CHIPKIT
+#ifdef __PIC32__
     HardwareSerial* device;
-#endif // CHIPKIT
+#endif // __PIC32__
     // device to host
     ByteQueue sendQueue;
     // host to device

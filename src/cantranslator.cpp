@@ -17,9 +17,9 @@ extern Listener listener;
 
 void receiveCan(CanBus*);
 
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 void checkIfStalled();
-#endif // __CHIPKIT__
+#endif // __PIC32__
 
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
@@ -33,7 +33,7 @@ void setup() {
     initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
     initializeAllCan();
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
     lastSignificantChangeTime = millis();
 #endif
 }
@@ -48,9 +48,9 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
     checkIfStalled();
-#endif // __CHIPKIT__
+#endif // __PIC32__
 }
 
 
@@ -108,7 +108,7 @@ void reset() {
     initializeAllCan();
 }
 
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 
 void mark() {
     lastSignificantChangeTime = millis();
@@ -132,6 +132,6 @@ void checkIfStalled() {
     }
 }
 
-#endif // __CHIPKIT__
+#endif // __PIC32__
 
 #endif // CAN_EMULATOR

@@ -210,12 +210,12 @@ class Parser(object):
         print "#define can2 LPC_CAN2"
         print "#endif // __LPC17XX__"
         print
-        print "#ifdef __CHIPKIT__"
-        print "extern CANBusType can1;"
-        print "extern CANBusType can2;"
+        print "#ifdef __PIC32__"
+        print "extern CANController can1;"
+        print "extern CANController can2;"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
-        print "#endif // __CHIPKIT__"
+        print "#endif // __PIC32__"
         print
 
     def validate_messages(self):
@@ -241,11 +241,11 @@ class Parser(object):
         print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
-            print "    { %d, %s, can%d, {0}, false," % (
+            print "    { %d, %s, can%d, {0}," % (
                     bus[1]['speed'], bus[0], bus_number)
-            print "#ifdef __CHIPKIT__"
+            print "#ifdef __PIC32__"
             print "        handleCan%dInterrupt," % bus_number
-            print "#endif // __CHIPKIT__"
+            print "#endif // __PIC32__"
             print "    },"
         print "};"
         print

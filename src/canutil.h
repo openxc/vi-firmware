@@ -8,10 +8,10 @@
 #include "queue.h"
 #include "cJSON.h"
 
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 #include "chipKITCAN.h"
 typedef CAN* CANController;
-#endif // __CHIPKIT__
+#endif // __PIC32__
 
 #ifdef __LPC17XX__
 #include "lpc17xx_can.h"
@@ -49,7 +49,6 @@ QUEUE_DECLARE(CanMessage, 8);
  *      registers a different handler per channel. LPC1768 uses the same global
  *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
- * messageReceived - used as an event flags by the interrupt service routines.
  */
 struct CanBus {
     unsigned int speed;

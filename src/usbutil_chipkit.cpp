@@ -1,15 +1,19 @@
-#ifdef CHIPKIT
+#ifdef __PIC32__
 
 #include "usbutil.h"
 #include "buffers.h"
 #include "log.h"
 
+#define USB_PACKET_SIZE 64
+
 extern bool handleControlRequest(uint8_t);
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
+extern UsbDevice USB_DEVICE;
+extern void mark();
 
-static bool usbCallback(USB_EVENT event, void *pdata, word size) {
+boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
     USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
@@ -56,18 +60,17 @@ void processInputQueue(UsbDevice* usbDevice) {
         }
 
         int byteCount = 0;
+		uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
         while(!queue_empty(&usbDevice->sendQueue) && byteCount < 64) {
-            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+            sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
             while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
             int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
-            uint8_t* currentByte = (uint8_t*)(usbDevice->sendBuffer
-                    + nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
-                    usbDevice->endpoint, currentByte, bytesToTransfer);
+                    usbDevice->endpoint, &sendBuffer[nextByteIndex], bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
     }
@@ -103,4 +106,4 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     }
 }
 
-#endif // CHIPKIT
+#endif // __PIC32__

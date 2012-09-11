@@ -1,6 +1,13 @@
 #include "log.h"
-#include "debug_frmwrk.h"
 #include <stdio.h>
+
+#ifdef __LPC17XX__
+#include "debug_frmwrk.h"
+#endif
+
+#ifdef __PIC32__
+#include "WProgram.h"
+#endif
 
 void debug(const char* format, ...) {
 #ifdef DEBUG
@@ -13,9 +20,9 @@ void debug(const char* format, ...) {
     char buffer[MAX_LOG_LINE_LENGTH];
     vsnprintf(buffer, MAX_LOG_LINE_LENGTH, format, args);
 
-#ifdef CHIPKIT
+#ifdef __PIC32__
     Serial.println(buffer);
-#endif // CHIPKIT
+#endif // __PIC32__
 
 #ifdef  __LPC17XX__
     _printf(buffer);
@@ -28,9 +35,9 @@ void debug(const char* format, ...) {
 }
 
 void initializeLogging() {
-#ifdef CHIPKIT
+#ifdef __PIC32__
     Serial.begin(115200);
-#endif // CHIPKIT
+#endif // __PIC32__
 
 #ifdef   __LPC17XX__
     debug_frmwrk_init();

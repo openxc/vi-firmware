@@ -1,10 +1,9 @@
-#ifdef __CHIPKIT__
+#ifdef __PIC32__
 
 #include "canutil.h"
 #include "signals.h"
 #include "log.h"
 
-<<<<<<< HEAD:src/canutil_chipkit.cpp
 #define SYS_FREQ (80000000L)
 
 CAN can1Actual(CAN::CAN1);
@@ -86,4 +85,4 @@ void initializeCan(CanBus* bus) {
     debug("Done.");
 }
 
-#endif // __CHIPKIT__
+#endif // __PIC32__

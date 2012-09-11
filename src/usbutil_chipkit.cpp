@@ -11,7 +11,6 @@ extern bool handleControlRequest(uint8_t);
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 extern UsbDevice USB_DEVICE;
-extern void mark();
 
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
@@ -22,9 +21,6 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
         USB_DEVICE.configured = true;
-#ifndef CAN_EMULATOR
-        mark();
-#endif
         USB_DEVICE.device.EnableEndpoint(USB_DEVICE.endpoint,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);

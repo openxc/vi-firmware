@@ -17,25 +17,14 @@ extern Listener listener;
 
 void receiveCan(CanBus*);
 
-#ifdef __PIC32__
-void checkIfStalled();
-#endif // __PIC32__
-
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
-
-int receivedMessages = 0;
-unsigned long lastSignificantChangeTime;
-int receivedMessagesAtLastMark = 0;
 
 void setup() {
     initializeLogging();
     initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
     initializeAllCan();
-#ifdef __PIC32__
-    lastSignificantChangeTime = millis();
-#endif
 }
 
 void loop() {
@@ -48,9 +37,6 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
-#ifdef __PIC32__
-    checkIfStalled();
-#endif // __PIC32__
 }
 
 
@@ -99,7 +85,6 @@ bool receiveWriteRequest(uint8_t* message) {
 void receiveCan(CanBus* bus) {
     if(queue_length(&bus->receiveQueue) > 0) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        ++receivedMessages;
         decodeCanMessage(message.id, message.data);
     }
 }
@@ -107,31 +92,5 @@ void receiveCan(CanBus* bus) {
 void reset() {
     initializeAllCan();
 }
-
-#ifdef __PIC32__
-
-void mark() {
-    lastSignificantChangeTime = millis();
-    receivedMessagesAtLastMark = receivedMessages;
-}
-
-void checkIfStalled() {
-    // a workaround to stop CAN from crashing indefinitely
-    // See these tickets in Redmine:
-    // https://fiesta.eecs.umich.edu/issues/298
-    // https://fiesta.eecs.umich.edu/issues/244
-    if(receivedMessagesAtLastMark + 10 < receivedMessages) {
-        mark();
-    }
-
-    if(receivedMessages > 0 && receivedMessagesAtLastMark > 0
-            && millis() > lastSignificantChangeTime + 500) {
-        initializeAllCan();
-        delay(1000);
-        mark();
-    }
-}
-
-#endif // __PIC32__
 
 #endif // CAN_EMULATOR

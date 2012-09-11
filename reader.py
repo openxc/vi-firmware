@@ -189,6 +189,8 @@ class CanTranslator(object):
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
+            return True
+        return False
 
     def _massage_write_value(self, value):
         if value == "true":
@@ -220,7 +222,8 @@ class CanTranslator(object):
 
         while True:
             self.message_buffer += self.read()
-            self.parse_message()
+            while self.parse_message():
+                continue
 
             if self.dashboard and window is not None:
                 window.erase()
@@ -301,7 +304,7 @@ class UsbCanTranslator(CanTranslator):
             sys.exit()
 
     def read(self):
-        return self.in_endpoint.read(64, 1000000).tostring()
+        return self.in_endpoint.read(512, 1000000).tostring()
 
     @property
     def version(self):

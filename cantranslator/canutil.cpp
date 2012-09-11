@@ -1,23 +1,9 @@
 #include "canutil.h"
 #include "usbutil.h"
 
-extern CanFilterMask* initializeFilterMasks(uint32_t, int*);
 extern CanFilter* initializeFilters(uint32_t, int*);
 
-void configureFilters(CAN *can_module, CanFilterMask* filterMasks,
-        int filterMaskCount, CanFilter* filters, int filterCount) {
-    Serial.print("Configuring ");
-    Serial.print(filterMaskCount, DEC);
-    Serial.print(" filter masks...  ");
-    for(int i = 0; i < filterMaskCount; i++) {
-        Serial.print("Configuring filter mask ");
-        Serial.println(filterMasks[i].value, HEX);
-        can_module->configureFilterMask(
-                (CAN::FILTER_MASK) filterMasks[i].number,
-                filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
-    }
-    Serial.println("Done.");
-
+void configureFilters(CAN *can_module, CanFilter* filters, int filterCount) {
     Serial.print("Configuring ");
     Serial.print(filterCount, DEC);
     Serial.print(" filters...  ");
@@ -66,12 +52,9 @@ void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea) {
      */
     bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    int filterMaskCount;
-    CanFilterMask* filterMasks = initializeFilterMasks(address,
-            &filterMaskCount);
     int filterCount;
     CanFilter* filters = initializeFilters(address, &filterCount);
-    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
+    configureFilters(bus, filters, filterCount);
 
     /* Enable interrupt and events. Enable the receive channel not empty
      * event (channel event) and the receive channel event (module event). The

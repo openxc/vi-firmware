@@ -12,17 +12,6 @@
 #define CAN_1_ADDRESS 0x101
 #define CAN_2_ADDRESS 0x102
 
-/* Public: A CAN transceiver message filter mask.
- *
- * number - the ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
- *     filters with the masks they match.
- * value - the value of the mask, e.g. 0x7ff.
- */
-struct CanFilterMask {
-    int number;
-    int value;
-};
-
 /* Public: A CAN transceiver message filter.
  *
  * number - the ID of this filter, e.g. 0, 1, 2.
@@ -71,14 +60,12 @@ struct CanSignal {
     float lastValue;
 };
 
-/* Public: Initializes message filter masks and filters on the CAN controller.
+/* Public: Initializes message filters on the CAN controller.
  *
  * canMod - a pointer to an initialized CAN module class.
- * filterMasks - an array of the filter masks to initialize.
  * filters - an array of filters to initialize.
  */
-void configureFilters(CAN *canMod, CanFilterMask* filterMasks,
-        int filterMaskCount, CanFilter* filters, int filterCount);
+void configureFilters(CAN *canMod, CanFilter* filters, int filterCount);
 
 /* Public: Parses a CAN signal from a CAN message, applies required
  *         transforations and sends the result over USB.

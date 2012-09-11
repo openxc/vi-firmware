@@ -213,45 +213,12 @@ class Parser(object):
         self.print_filters()
 
     def print_filters(self):
-        # TODO These cast a really wide net and should also be defined at the
-        # top level of the JSON
-        can1_masks = [(0, 0x7ff),
-                (1, 0x7ff),
-                (2, 0x7ff),
-                (3, 0x7ff)]
-        can2_masks = list(can1_masks)
-
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        print "CanFilterMask FILTER_MASKS[%d];" % (
-                max(len(can1_masks), len(can2_masks)))
-
         message_count = sum((len(messages) for messages in self.buses.values()))
         print "CanFilter FILTERS[%d];" % message_count
-
-        # TODO when the masks are defined in JSON we can do this more
-        # dynamically like the filters
-        print
-        print "CanFilterMask* initializeFilterMasks(uint32_t address, int* count) {"
-        print "Serial.println(\"Initializing filter arrays...\");"
-
-        print "    if(address == CAN_1_ADDRESS) {"
-        print "        *count = %d;" % len(can1_masks)
-        print "        FILTER_MASKS = {"
-        for i, mask in enumerate(can1_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
-        print "    } else if(address == CAN_2_ADDRESS) {"
-        print "        *count = %d;" % len(can2_masks)
-        print "        FILTER_MASKS = {"
-        for i, mask in enumerate(can2_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
-        print "    }"
-        print "    return FILTER_MASKS;"
-        print "}"
 
         print
         print "CanFilter* initializeFilters(uint32_t address, int* count) {"
@@ -263,7 +230,6 @@ class Parser(object):
             print "        *count = %d;" % len(messages)
             print "        FILTERS = {"
             for i, message in enumerate(messages):
-                # TODO be super smart and figure out good mask values dynamically
                 print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
             print "        };"
             print "        break;"

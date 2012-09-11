@@ -8,13 +8,13 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {message->msgSID.SID, 0};
     result.data = message->data[0];
-    result.data |= (message->data[1] << 8);
-    result.data |= (message->data[2] << 16);
-    result.data |= (message->data[3] << 24);
-    result.data |= (message->data[4] << 32);
-    result.data |= (message->data[5] << 40);
-    result.data |= (message->data[6] << 48);
-    result.data |= (message->data[7] << 56);
+    result.data |= (((uint64_t)message->data[1]) << 8);
+    result.data |= (((uint64_t)message->data[2]) << 16);
+    result.data |= (((uint64_t)message->data[3]) << 24);
+    result.data |= (((uint64_t)message->data[4]) << 32);
+    result.data |= (((uint64_t)message->data[5]) << 40);
+    result.data |= (((uint64_t)message->data[6]) << 48);
+    result.data |= (((uint64_t)message->data[7]) << 56);
     return result;
 }
 

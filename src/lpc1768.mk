@@ -22,7 +22,7 @@ CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
 # TODO Build a BSP for the blueboard
-CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
+CC_SYMBOLS += -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM \
 			 -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
 
@@ -61,14 +61,6 @@ else
 # when the stream isn't completely read by the host, and thus leading to
 # corruption
 CC_FLAGS += -DNDEBUG
-endif
-
-ifdef EMULATOR
-CC_FLAGS += -DCAN_EMULATOR
-endif
-
-ifdef SERIAL
-CC_FLAGS += -DSERIAL
 endif
 
 all: $(OBJDIR) $(TARGET_BIN)

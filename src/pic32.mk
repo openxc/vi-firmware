@@ -18,7 +18,7 @@ ifndef ARDUINO_PORT
 	endif
 endif
 
-EXTRA_CXXFLAGS += -G0 -D__PIC32__
+EXTRA_CXXFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS)
 
 ARDUINO_MAKEFILE_HOME = libs/arduino.mk
 include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk

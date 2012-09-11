@@ -24,6 +24,8 @@ void initializeSerial(SerialDevice* serial) {
     queue_init(&serial->sendQueue);
 }
 
+// The chipKIT version of this function is blocking. It will entirely flush the
+// send queue before returning.
 void processInputQueue(SerialDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];

@@ -7,3 +7,6 @@
 [submodule "src/libs/CDL"]
 	path = src/libs/CDL
 	url = https://github.com/openxc/nxp-cdl
+[submodule "src/libs/BSP"]
+	path = src/libs/BSP
+	url = https://github.com/openxc/nxp-bsp

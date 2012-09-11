@@ -1,23 +1,61 @@
 #ifndef _CANUTIL_H_
 #define _CANUTIL_H_
 
-#include "WProgram.h"
-#include "chipKITCAN.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include "bitfield.h"
-#include "usbutil.h"
+#include "queue.h"
+#include "cJSON.h"
+
+#ifdef CHIPKIT
+#include "chipKITCAN.h"
+#endif
 
 #define SYS_FREQ (80000000L)
+#define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
-/* Network Node Addresses */
-#define CAN_1_ADDRESS 0x101
-#define CAN_2_ADDRESS 0x102
+/* Public: A CAN message, particularly for writing to CAN.
+ * state names.
+ *
+ * destination - The ID of the message.
+ * data  - The message's 64-bits of data.
+ */
+struct CanMessage {
+    uint32_t destination;
+    uint64_t* data;
+};
+
+QUEUE_DECLARE(CanMessage, 8);
+
+/* Public: A container for a CAN module paried with a certain bus.
+ *
+ * speed - The bus speed in bits per second (e.g. 500000)
+ * address - The address or ID of this node
+ * bus - a reference to the CAN module from the CAN library
+ * interruptHandler - a function to call by the Interrupt Service Routine when
+ *      a previously registered CAN event occurs.
+ * buffer - message area for 2 channels to store 8 16 byte messages.
+ * messageReceived - used as an event flags by the interrupt service routines.
+ */
+struct CanBus {
+    unsigned int speed;
+    uint64_t address;
+#ifdef CHIPKIT
+    CAN* bus;
+#endif
+    void (*interruptHandler)();
+    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
+    volatile bool messageReceived;
+    QUEUE_TYPE(CanMessage) sendQueue;
+};
 
 /* Public: A CAN transceiver message filter.
  *
- * number - the ID of this filter, e.g. 0, 1, 2.
- * value - the filter's value.
- * channel - the CAN channel this filter should be applied to.
- * maskNumber - the ID of the mask this filter should be paired with.
+ * number - The ID of this filter, e.g. 0, 1, 2.
+ * value - The filter's value.
+ * channel - The CAN channel this filter should be applied to.
+ * maskNumber - The ID of the mask this filter should be paired with.
  */
 struct CanFilter {
     int number;
@@ -29,8 +67,8 @@ struct CanFilter {
 /* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
  * state names.
  *
- * value - the integer value of the state on the CAN bus.
- * name  - the corresponding string name for the state in OpenXC>
+ * value - The integer value of the state on the CAN bus.
+ * name  - The corresponding string name for the state in OpenXC>
  */
 struct CanSignalState {
     int value;
@@ -39,15 +77,34 @@ struct CanSignalState {
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
- * id          - the ID of the signal on the bus.
- * genericName - the name of the signal to be output over USB.
- * bitPosition - the starting bit of the signal in its CAN message.
- * bitSize     - the width of the bit field in the CAN message.
- * factor      - the final value will be multiplied by this factor.
- * offset      - the final value will be added to this offset.
+ * bus         - The CAN bus this signal belongs on.
+ * messageId   - The ID of the message this signal is a part of signal.
+ * genericName - The name of the signal to be output over USB.
+ * bitPosition - The starting bit of the signal in its CAN message.
+ * bitSize     - The width of the bit field in the CAN message.
+ * factor      - The final value will be multiplied by this factor. Use 1 if you
+ *               don't need a factor.
+ * offset      - The final value will be added to this offset. Use 0 if you
+ *               don't need an offset.
+ * minValue    - The minimum value for the processed signal.
+ * maxValue    - The maximum value for the processed signal.
+ * sendFrequency - How often to pass along this message when received. To
+ *              process every value, set this to 0.
+ * sendSame    - If true, will re-send even if the value hasn't changed.
+ * received    - mark true if this signal has ever been received.
+ * states      - An array of CanSignalState describing the mapping
+ *               between numerical and string values for valid states.
+ * stateCount  - The length of the states array.
+ * writable    - True if the signal is allowed to be written from the USB host
+ *               back to CAN. Defaults to false.
+ * writeHandler - An optional function to encode a signal value to be written to
+ *                CAN into a uint64_t. If null, the default encoder is used.
+ * lastValue   - The last received value of the signal. Defaults to undefined.
+ * sendClock   - An internal counter value, don't use this.
  */
 struct CanSignal {
-    int id;
+    CanBus* bus;
+    uint32_t messageId;
     char* genericName;
     int bitPosition;
     int bitSize;
@@ -55,112 +112,119 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
+    int sendFrequency;
+    bool sendSame;
+    bool received;
     CanSignalState* states;
     int stateCount;
+    bool writable;
+    uint64_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
     float lastValue;
+    int sendClock;
 };
 
-/* Public: Initializes message filters on the CAN controller.
+/* Public: The function definition for completely custom OpenXC command
+ * handlers.
  *
- * canMod - a pointer to an initialized CAN module class.
- * filters - an array of filters to initialize.
+ * name - the name field in the message received over USB.
+ * value - the value of the message, parsed by the cJSON library and able to be
+ *         read as a string, boolean, float or int.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ *
+ * Returns true if the command caused something to be sent over CAN.
  */
-void configureFilters(CAN *canMod, CanFilter* filters, int filterCount);
+typedef bool (*CommandHandler)(char* name, cJSON* value, CanSignal* signals,
+        int signalCount);
 
-/* Public: Parses a CAN signal from a CAN message, applies required
- *         transforations and sends the result over USB.
+/* Public: A command to read from USB and possibly write back to CAN.
  *
- * usbDevice - the USB device to send the final formatted message on.
- * signal - the details of the signal to decode and forward.
- * data   - the raw bytes of the CAN message that contains the signal.
+ * For completely customized CAN commands without a 1-1 mapping between an
+ * OpenXC message from the host and a CAN signal, you can define the name of the
+ * command and a custom function to handle it in the translator. An example is
+ * the "turn_signal_status" command in OpenXC, which has a value of "left" or
+ * "right". The vehicle may have separate CAN signals for the left and right
+ * turn signals, so you will need to implement a custom command handler to
+ *
+ * genericName - The name of message received over USB.
+ * handler - An function to actually process the recieved command's value
+ *                and write it to CAN in the proper signals.
  */
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal, uint8_t* data,
-        CanSignal* signals, int signalCount);
-
-/* Public: Parses a CAN signal from a CAN message, applies required
- *         transforations and also runs the final float value through the
- *         handler function before sending the result out over USB.
- *
- * usbDevice - the USB device to send the final formatted message on.
- * signal        - the details of the signal to decode and forward.
- * data          - the raw bytes of the CAN message that contains the signal.
- * handler - a function pointer that performs extra processing on the
- *                 float value.
- * signals       - an array of all active signals.
- * signalCount   - the length of the signals array
- */
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
-        uint8_t* data,
-        char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
-
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
-        uint8_t* data,
-        float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
-
-void translateCanSignal(USBDevice* usbDevice, CanSignal* signal,
-        uint8_t* data,
-        bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
-
-/* Public: Parses a CAN signal from a message and applies required
- *           transformation.
- *
- * signal - the details of the signal to decode and forward.
- * data   - the raw bytes of the CAN message that contains the signal.
- *
- * Returns the final, transformed value of the signal.
- */
-float decodeCanSignal(CanSignal* signal, uint8_t* data);
-
-void sendNumericalMessage(char* name, float value, USBDevice* usbDevice);
-
-/* Public: Finds and returns the corresponding string state for an integer
- *         value.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that maps to a state
- */
-char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-/* Public: Coerces a numerical value to a boolean.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that will be converted to a boolean.
- */
-bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
-
-/* Public: Store the value of a signal, but flip the send flag to false.
- *
- * signal  - the details of the signal that contains the state mapping.
- * signals - the list of all signals
- * signalCount - the length of the signals array
- * value   - the numerical value that will be converted to a boolean.
- */
-float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+struct CanCommand {
+    char* genericName;
+    CommandHandler handler;
+};
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
- *         name.
+ * name. The signal may or may not be writable - the first result will be
+ * returned.
  *
- * name - the generic, OpenXC name of the signal
- * signals - the list of all signals
- * signalCount - the length of the signals array
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
  *
- * Returns a pointer to the CanSignal if found, otherwise null;
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
 CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount);
 
-/* Initialize the CAN controller. See inline comments for description of the
- * process.
+/* Public: Look up the CanSignal representation of a signal based on its generic
+ * name.
+ *
+ * name - The generic, OpenXC name of the signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * writable - If true, only consider signals that are writable as candidates.
+ *
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-void initializeCan(CAN* bus, int address, int speed, uint8_t* messageArea);
+CanSignal* lookupSignal(char* name, CanSignal* signals, int signalCount,
+        bool writable);
+
+/* Public: Look up the CanCommand representation of a command based on its
+ * generic name.
+ *
+ * name - The generic, OpenXC name of the command.
+ * commands - The list of all commands.
+ * commandCount - The length of the commands array.
+ *
+ * Returns a pointer to the CanSignal if found, otherwise NULL.
+ */
+CanCommand* lookupCommand(char* name, CanCommand* commands, int commandCount);
+
+/* Public: Look up a CanSignalState for a CanSignal by its textual name. Use
+ * this to find the numerical value to write back to CAN when a string state is
+ * received from the user.
+ *
+ * name - The string name of the desired signal state.
+ * signal - The CanSignal that should include this state.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ *
+ * Returns a pointer to the CanSignalState if found, otherwise NULL.
+ */
+CanSignalState* lookupSignalState(char* name, CanSignal* signal,
+        CanSignal* signals, int signalCount);
+
+/* Public: Look up a CanSignalState for a CanSignal by its numerical value.
+ * Use this to find the string equivalent value to write over USB when a float
+ * value is received from CAN.
+ *
+ * value - the numerical value equivalent for the state.
+ * name - The string name of the desired signal state.
+ * signal - The CanSignal that should include this state.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ *
+ * Returns a pointer to the CanSignalState if found, otherwise NULL.
+ */
+CanSignalState* lookupSignalState(int value, CanSignal* signal,
+        CanSignal* signals, int signalCount);
+
+/* Public: Initialize the CAN controller. See inline comments for description of
+ * the process.
+ *
+ * bus - A CanBus struct defining the bus's metadata for initialization.
+ */
+void initializeCan(CanBus* bus);
 
 #endif // _CANUTIL_H_

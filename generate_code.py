@@ -6,6 +6,7 @@ from collections import defaultdict
 import sys
 import argparse
 
+
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C source code from "
             "CAN signal descriptions in JSON")
@@ -16,6 +17,9 @@ def parse_options():
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
+    message_set = parser.add_argument("-m", "--message-set",
+            action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
+            help="name of the vehicle or platform")
 
     arguments = parser.parse_args()
 
@@ -25,9 +29,11 @@ def parse_options():
 
     return arguments
 
+
 def quacks_like_dict(object):
     """Check if object is dict-like"""
     return isinstance(object, collections.Mapping)
+
 
 def merge(a, b):
     """Merge two deep dicts non-destructively
@@ -50,25 +56,40 @@ def merge(a, b):
             if key not in current_dst:
                 current_dst[key] = current_src[key]
             else:
-                if quacks_like_dict(current_src[key]) and quacks_like_dict(current_dst[key]) :
+                if (quacks_like_dict(current_src[key]) and
+                        quacks_like_dict(current_dst[key])):
                     stack.append((current_dst[key], current_src[key]))
                 else:
                     current_dst[key] = current_src[key]
     return dst
 
+
+class Command(object):
+    def __init__(self, generic_name, handler=None):
+        self.generic_name = generic_name
+        self.handler = handler
+
+    def __str__(self):
+        return "{ \"%s\", %s }," % (self.generic_name, self.handler)
+
+
 class Message(object):
     def __init__(self, id, name, handler=None):
-        self.id = id
+        self.id = int(id)
         self.name = name
         self.handler = handler
         self.signals = []
 
 
 class Signal(object):
-    def __init__(self, id=None, name=None, generic_name=None, position=None,
-            length=None, factor=1, offset=0, min_value=0, max_value=0,
-            handler=None, ignore=False, states=None):
-        self.id = id
+    def __init__(self, bus_address=None, buses=None, message_id=None, name=None,
+            generic_name=None, position=None, length=None, factor=1, offset=0,
+            min_value=0.0, max_value=0.0, handler=None, ignore=False,
+            states=None, send_frequency=0, send_same=True,
+            writable=False, write_handler=None):
+        self.bus_address = bus_address
+        self.buses = buses
+        self.message_id = message_id
         self.name = name
         self.generic_name = generic_name
         self.position = position
@@ -78,11 +99,20 @@ class Signal(object):
         self.min_value = min_value
         self.max_value = max_value
         self.handler = handler
+        self.writable = writable
+        self.write_handler = write_handler
         self.ignore = ignore
         self.array_index = 0
+        # the frequency determines how often the message should be propagated. a
+        # frequency of 1 means that every time the signal it is received we will
+        # try to handle it. a frequency of 2 means that every other signal
+        # will be handled (and the other half is ignored). This is useful for
+        # trimming down the data rate of the stream over USB.
+        self.send_frequency = send_frequency
+        self.send_same = send_same
         self.states = states or []
         if len(self.states) > 0 and self.handler is None:
-            self.handler = "char* stateHandler"
+            self.handler = "stateHandler"
 
     # Construct a Signal instance from an XML node exported from a Vector CANoe
     # .dbc file.
@@ -110,19 +140,37 @@ class Signal(object):
                 "min_value": self.min_value,
                 "max_value": self.max_value}
 
+    def validate(self):
+        if self.position == None:
+            sys.stderr.write("ERROR: %s is incomplete\n" % self.generic_name)
+            return False
+        return True
+
     @classmethod
     def _invert_bit_index(cls, i, l):
         (b, r) = divmod(i, 8)
         end = (8 * b) + (7 - r)
         return(end - l + 1)
 
+    def _lookupBusIndex(self):
+        for i, bus in enumerate(self.buses.iteritems()):
+            if bus[0] == self.bus_address:
+                return i
+
     def __str__(self):
-        result =  "{%d, \"%s\", %s, %d, %f, %f, %f, %f" % (
-                self.id, self.generic_name, self.position, self.length,
-                self.factor, self.offset, self.min_value, self.max_value)
+        result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
+                    "%d, %s, false, " % (
+                self._lookupBusIndex(), self.message_id,
+                self.generic_name, self.position, self.length, self.factor,
+                self.offset, self.min_value, self.max_value,
+                self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += ", SIGNAL_STATES[%d], %d" % (self.states_index,
+            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
                     len(self.states))
+        else:
+            result += "NULL, 0"
+        result += ", %s, %s" % (str(self.writable).lower(),
+                self.write_handler or "NULL")
         result += "}, // %s" % self.name
         return result
 
@@ -137,26 +185,65 @@ class SignalState(object):
 
 
 class Parser(object):
-    def __init__(self):
-        self.buses = defaultdict(list)
+    def __init__(self, name=None):
+        self.name = name
+        self.buses = defaultdict(dict)
         self.signal_count = 0
+        self.command_count = 0
 
     def parse(self):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canutil.h\"\n"
-        print "extern USBDevice usbDevice;\n"
+        print "#include \"canread.h\""
+        print "#include \"canwrite.h\""
+        print "#include \"signals.h\""
+        print "#include \"log.h\""
+        print "#include \"handlers.h\""
+        print "#include \"shared_handlers.h\""
+        print
+        print "extern Listener listener;"
+        print "extern CAN can1;"
+        print "extern CAN can2;"
+        print "extern void handleCan1Interrupt();"
+        print "extern void handleCan2Interrupt();"
+        print
+
+    def validate_messages(self):
+        valid = True
+        for bus in self.buses.values():
+            for message in bus['messages']:
+                for signal in message.signals:
+                    valid = valid and signal.validate()
+        return valid
+
+    def validate_name(self):
+        if self.name is None:
+            sys.stderr.write("ERROR: missing message set (%s)" % self.name)
+            return False
+        return True
 
     def print_source(self):
+        if not self.validate_messages() or not self.validate_name():
+            sys.exit(1)
         self.print_header()
-        # TODO need to handle signals with more than 10 states
-        print "CanSignalState SIGNAL_STATES[%d][%d] = {" % (
-                self.signal_count, 10)
+
+        print "const int CAN_BUS_COUNT = %d;" % len(self.buses)
+        print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
+        for i, bus in enumerate(self.buses.iteritems()):
+            bus_number = i + 1
+            print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
+                    bus[1]['speed'], bus[0], bus_number, bus_number)
+        print "};"
+        print
+
+        print "const int SIGNAL_COUNT = %d;" % self.signal_count
+        # TODO need to handle signals with more than 12 states
+        print "CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12
 
         states_index = 0
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 for signal in message.signals:
                     if len(signal.states) > 0:
                         print "    {",
@@ -168,12 +255,11 @@ class Parser(object):
         print "};"
         print
 
-        print "int SIGNAL_COUNT = %d;" % self.signal_count
-        print "CanSignal SIGNALS[%d] = {" % self.signal_count
+        print "CanSignal SIGNALS[SIGNAL_COUNT] = {"
 
         i = 1
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 for signal in message.signals:
                     signal.array_index = i - 1
                     print "    %s" % signal
@@ -181,30 +267,70 @@ class Parser(object):
         print "};"
         print
 
+        print "const int COMMAND_COUNT = %d;" % self.command_count
+        print "CanCommand COMMANDS[COMMAND_COUNT] = {"
+
+        for command in self.commands:
+            print "    ", command
+
+        print "};"
+        print
+
+        # TODO store all of this in a separate, committed .cpp file
+        print "CanCommand* getCommands() {"
+        print "    return COMMANDS;"
+        print "}"
+        print
+
+        print "int getCommandCount() {"
+        print "    return COMMAND_COUNT;"
+        print "}"
+        print
+
+        print "CanSignal* getSignals() {"
+        print "    return SIGNALS;"
+        print "}"
+        print
+
+        print "int getSignalCount() {"
+        print "    return SIGNAL_COUNT;"
+        print "}"
+        print
+
+        print "CanBus* getCanBuses() {"
+        print "    return CAN_BUSES;"
+        print "}"
+        print
+
+        print "int getCanBusCount() {"
+        print "    return CAN_BUS_COUNT;"
+        print "}"
+        print
+
+        print "char* getMessageSet() {"
+        print "    return \"%s\";" % self.name
+        print "}"
+        print
+
         print "void decodeCanMessage(int id, uint8_t* data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
-            for message in bus:
+            for message in bus['messages']:
                 print "    case 0x%x: // %s" % (message.id, message.name)
                 if message.handler is not None:
-                    print ("        extern void %s(int, uint8_t*, CanSignal*, int, USBDevice* usbDevice);"
-                            % message.handler)
-                    print ("        %s(id, data, SIGNALS, SIGNAL_COUNT, &usbDevice);"
-                            % message.handler)
+                    print ("        %s(id, data, SIGNALS, " % message.handler +
+                            "SIGNAL_COUNT, &listener);")
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
-                        print ("        extern %s("
-                            "CanSignal*, CanSignal*, int, float, bool*);" %
-                            signal.handler)
-                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                            "data, &%s, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                signal.array_index,
-                                signal.handler.split()[1],
-                                signal.name))
+                        print ("        translateCanSignal(&listener, "
+                                "&SIGNALS[%d], data, " % signal.array_index +
+                                "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
+                                signal.handler, signal.name))
                     else:
-                        print ("        translateCanSignal(&usbDevice, &SIGNALS[%d], "
-                                "data, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                    signal.array_index, signal.name))
+                        print ("        translateCanSignal(&listener, "
+                                "&SIGNALS[%d], " % signal.array_index +
+                                "data, SIGNALS, SIGNAL_COUNT); // %s"
+                                    % signal.name)
                 print "        break;"
         print "    }"
         print "}\n"
@@ -217,21 +343,21 @@ class Parser(object):
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        message_count = sum((len(messages) for messages in self.buses.values()))
+        message_count = sum((len(bus['messages'])
+                for bus in self.buses.values()))
         print "CanFilter FILTERS[%d];" % message_count
 
         print
-        print "CanFilter* initializeFilters(uint32_t address, int* count) {"
-        print "Serial.println(\"Initializing filters...\");"
+        print "CanFilter* initializeFilters(uint64_t address, int* count) {"
+        print "    debug(\"Initializing filters...\");"
 
         print "    switch(address) {"
-        for bus_address, messages in self.buses.iteritems():
+        for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address
-            print "        *count = %d;" % len(messages)
-            print "        FILTERS = {"
-            for i, message in enumerate(messages):
-                print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
-            print "        };"
+            print "        *count = %d;" % len(bus['messages'])
+            for i, message in enumerate(bus['messages']):
+                print "        FILTERS[%d] = {%d, 0x%x, %d, %d};" % (
+                        i, i, message.id, 1, 0)
             print "        break;"
         print "    }"
         print "    return FILTERS;"
@@ -239,8 +365,8 @@ class Parser(object):
 
 
 class JsonParser(Parser):
-    def __init__(self, filenames):
-        super(JsonParser, self).__init__()
+    def __init__(self, filenames, name=None):
+        super(JsonParser, self).__init__(name)
         if not hasattr(filenames, "__iter__"):
             filenames = [filenames]
         else:
@@ -257,36 +383,50 @@ class JsonParser(Parser):
                 merged_dict = merge(merged_dict, data)
 
         for bus_address, bus_data in merged_dict.iteritems():
-            for message_name, message_data in bus_data['messages'].iteritems():
+            self.buses[bus_address]['speed'] = bus_data['speed']
+            self.buses[bus_address].setdefault('messages', [])
+            self.commands = []
+            for command_id, command_data in bus_data.get(
+                    'commands', {}).iteritems():
+                self.command_count += 1
+                command = Command(command_id, command_data.get('handler', None))
+                self.commands.append(command)
+
+            for message_id, message_data in bus_data['messages'].iteritems():
                 self.signal_count += len(message_data['signals'])
-                message = Message(message_data.get('id', None), message_name,
+                message = Message(message_id, message_data.get('name', None),
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].iteritems():
-                    states = [SignalState(value, name)
-                            for name, value in signal.get('states',
-                                {}).iteritems()]
-                    # TODO we're keeping the numerical ID here even though
-                    # we're not using it now because it will make switching
-                    # to it in the future easier
+                    states = []
+                    for name, raw_matches in signal.get('states',
+                            {}).iteritems():
+                        for raw_match in raw_matches:
+                            states.append(SignalState(raw_match, name))
                     message.signals.append(
-                            Signal(signal.get('id', 0),
+                            Signal(bus_address,
+                            self.buses,
+                            int(message_id),
                             signal_name,
                             signal['generic_name'],
                             signal.get('bit_position', None),
                             signal.get('bit_size', None),
-                            signal.get('factor', None),
-                            signal.get('offset', None),
-                            signal.get('min_value', None),
-                            signal.get('max_value', None),
+                            signal.get('factor', 1.0),
+                            signal.get('offset', 0.0),
+                            signal.get('min_value', 0.0),
+                            signal.get('max_value', 0.0),
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
-                            states))
-                self.buses[bus_address].append(message)
+                            states,
+                            signal.get('send_frequency', 0),
+                            signal.get('send_same', True),
+                            signal.get('writable', False),
+                            signal.get('write_handler', None)))
+                self.buses[bus_address]['messages'].append(message)
 
 def main():
     arguments = parse_options()
 
-    parser = JsonParser(arguments.json_files)
+    parser = JsonParser(arguments.json_files, arguments.message_set)
 
     parser.parse()
     parser.print_source()

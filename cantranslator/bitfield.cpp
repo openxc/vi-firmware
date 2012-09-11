@@ -1,45 +1,62 @@
 #include "bitfield.h"
 
-unsigned long getBitField(uint8_t* data, int startPos, int numBits) {
-  unsigned long ret = 0;
-
-  // Calculate the starting byte.
-  int startByte = startPos / 8;
-  int shift = 0;
-  
-  // Mask out any other bits besides those in the bitfield.
-  unsigned long bitmask = (unsigned long)((0x1 << numBits) - 1);
-
-
-  if (numBits <= 8 ) {
-    //Calculate the starting bit position
-
-    int startBit = startPos % 8;
-    ret = data[startByte];
-
-    // New method: bit fields are positioned according to big-endian
-    // bit layout, but inside the bit field, values are represented
-    // as little-endian.
-    // Therefore, to get the bit field, we just need to convert to big-endian
-    // bit ordering to find the field, and directly use the value we find in
-    // the field.
-    // Calculate the end bit address of the field
-    int endBit = startBit + numBits;
-    shift = (8 - endBit);
-    ret = ret >> shift;
-    ret = (ret & bitmask);
-  } else {
-    int endByte = (startPos + numBits) / 8;
-
-    // The lowest byte address contains the most significant bit.
-    for (int i = startByte; i <= endByte; i++) {
-	ret = ret << 8;
-	ret = ret | data[i];
-      }
-      
-    shift = (8-((startPos +numBits) % 8)); //Calculates value to shift bitfield of interest to LSB
-    ret = ret >> shift;
-    ret = ret & bitmask;
-  }
-  return ret;
+/**
+ * Find the ending bit of a bitfield within the final byte.
+ *
+ * Returns: a bit position from 0 to 7.
+ */
+int findEndBit(int startBit, int numBits) {
+    int endBit = (startBit + numBits) % 8;
+    return endBit == 0 ? 8 : endBit;
 }
+
+uint64_t bitmask(int numBits) {
+    return (0x1 << numBits) - 1;
+}
+
+uint64_t reverseBitmaskVariableLength(int numBits, int totalLength) {
+    uint64_t mask = bitmask(numBits);
+    return mask << (totalLength - numBits);
+}
+
+uint64_t reverseBitmask(int numBits) {
+    return reverseBitmaskVariableLength(numBits, 64);
+}
+
+
+int startingByte(int startBit) {
+    return startBit / 8;
+}
+
+int endingByte(int startBit, int numBits) {
+    return (startBit + numBits - 1) / 8;
+}
+
+uint64_t getBitField(uint8_t* data, int startBit, int numBits) {
+    int startByte = startingByte(startBit);
+    int endByte = endingByte(startBit, numBits);
+
+    uint64_t ret = data[startByte];
+    if(startByte != endByte) {
+        // The lowest byte address contains the most significant bit.
+        for (int i = startByte + 1; i <= endByte; i++) {
+            ret = ret << 8;
+            ret = ret | data[i];
+        }
+    }
+
+    ret >>= 8 - findEndBit(startBit, numBits);
+    return ret & bitmask(numBits);
+}
+
+/**
+ * TODO it would be nice to have a warning if you call with this a value that
+ * won't fit in the number of bits you've specified it should use.
+ */
+void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
+    int shiftDistance = 64 - startBit - numBits;
+    value <<= shiftDistance;
+    *data &= ~(bitmask(numBits) << shiftDistance);
+    *data |= value;
+}
+

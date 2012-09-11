@@ -3,27 +3,30 @@
  *  JSON messages over USB.
  */
 
-#include "WProgram.h"
 #include "chipKITUSBDevice.h"
 #include "usbutil.h"
+#include "canread.h"
 #include "canutil.h"
+#include "serialutil.h"
+#include "listener.h"
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-#define BOOLEAN_EVENT_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\",\"event\":%s}\r\n"
-#define BOOLEAN_EVENT_MESSAGE_VALUE_MAX_LENGTH 11
+static boolean usbCallback(USB_EVENT event, void *pdata, word size);
 
-const int BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH = strlen(
-        BOOLEAN_EVENT_MESSAGE_FORMAT);
-
-USBDevice usbDevice(usbCallback);
+// USB
+#define DATA_ENDPOINT 1
+SerialDevice serialDevice = {&Serial1};
+UsbDevice usbDevice = {USBDevice(usbCallback), DATA_ENDPOINT,
+        ENDPOINT_SIZE, &serialDevice};
+Listener listener = {&usbDevice, &serialDevice};
 
 char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
-    "powertrain_torque",
+    "torque_at_transmission",
     "engine_speed",
     "vehicle_speed",
     "accelerator_pedal_position",
@@ -66,76 +69,52 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
     { {"driver", false}, {"passenger", true}, {"rear_right", true}},
 };
 
-void writeNumericalMeasurement(char* measurementName, float value) {
-    int messageLength = NUMERICAL_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + NUMERICAL_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, NUMERICAL_MESSAGE_FORMAT, measurementName, value);
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeBooleanMeasurement(char* measurementName, bool value) {
-    int messageLength = BOOLEAN_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + BOOLEAN_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, BOOLEAN_MESSAGE_FORMAT, measurementName,
-            value ? "true" : "false");
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeStateMeasurement(char* measurementName, char* value) {
-    int messageLength = STRING_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + STRING_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, STRING_MESSAGE_FORMAT, measurementName, value);
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
-void writeEventMeasurement(char* measurementName, Event event) {
-    int messageLength = BOOLEAN_EVENT_MESSAGE_FORMAT_LENGTH +
-        strlen(measurementName) + BOOLEAN_EVENT_MESSAGE_VALUE_MAX_LENGTH;
-    char message[messageLength];
-    sprintf(message, BOOLEAN_EVENT_MESSAGE_FORMAT, measurementName, event.value,
-            event.event ? "true" : "false");
-
-    sendMessage(&usbDevice, (uint8_t*) message, strlen(message));
-}
-
 void setup() {
     Serial.begin(115200);
     randomSeed(analogRead(0));
 
+    initializeSerial(&serialDevice);
     initializeUsb(&usbDevice);
 }
 
 void loop() {
     while(1) {
-        writeNumericalMeasurement(
+        sendNumericalMessage(
                 NUMERICAL_SIGNALS[random(NUMERICAL_SIGNAL_COUNT)],
-                random(101) + random(100) * .1);
-        writeBooleanMeasurement(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
-                random(2) == 1 ? true : false);
+                random(50) + random(100) * .1, &listener);
+        sendBooleanMessage(BOOLEAN_SIGNALS[random(BOOLEAN_SIGNAL_COUNT)],
+                random(2) == 1 ? true : false, &listener);
 
         int stateSignalIndex = random(STATE_SIGNAL_COUNT);
-        writeStateMeasurement(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][random(3)]);
+        sendStringMessage(STATE_SIGNALS[stateSignalIndex],
+                SIGNAL_STATES[stateSignalIndex][random(3)], &listener);
 
         int eventSignalIndex = random(EVENT_SIGNAL_COUNT);
-        writeEventMeasurement(EVENT_SIGNALS[eventSignalIndex],
-                EVENT_SIGNAL_STATES[eventSignalIndex][random(3)]);
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][random(3)];
+        sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
+                randomEvent.value, randomEvent.event, &listener);
+        processListenerQueues(&listener);
     }
 }
 
+int main(void) {
+	init();
+	setup();
+
+	for (;;)
+		loop();
+
+	return 0;
+}
+
 static boolean usbCallback(USB_EVENT event, void *pdata, word size) {
-    usbDevice.DefaultCBEventHandler(event, pdata, size);
+    usbDevice.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
-        usbDevice.EnableEndpoint(DATA_ENDPOINT,
+        usbDevice.device.EnableEndpoint(DATA_ENDPOINT,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        usbDevice.configured = true;
         break;
 
     default:

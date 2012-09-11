@@ -21,9 +21,9 @@ class Network(object):
             self._parse_node(node, all_messages)
 
     def to_dict(self):
-        return {self.address: {"messages": {message.name: message.to_dict()
+        return {self.address: {"messages": dict((message.id, message.to_dict())
                 for message in self.messages.values()
-                if len(message.signals) > 0}}}
+                if len(message.signals) > 0)}}
 
     def _parse_node(self, node, all_messages):
         # Looks like RxMessage elements are redundant.
@@ -51,9 +51,9 @@ class Message(object):
                         self.signals.append(signal)
 
     def to_dict(self):
-        return {"id": self.id,
-                "signals": {signal.name: signal.to_dict()
-                    for signal in self.signals}}
+        return {"name": self.name,
+                "signals": dict((signal.name, signal.to_dict())
+                    for signal in self.signals)}
 
 
 def parse_options(argv):
@@ -74,14 +74,16 @@ def main(argv=None):
 
     parser = JsonParser(arguments.mapping_filename)
     parser.parse()
-    if len(parser.buses) != 1:
-        raise RuntimeError("Exactly one CAN bus must be defined")
+    if len(parser.buses) > 1:
+        raise RuntimeError("No more than one CAN bus can be defined")
+    elif len(parser.buses) == 0:
+        data = {}
+    else:
+        tree = parse(arguments.xml)
+        bus_address, bus = parser.buses.items()[0]
+        n = Network(tree, bus_address, bus['messages'])
+        data = n.to_dict()
 
-    tree = parse(arguments.xml)
-    bus_address, bus = parser.buses.items()[0]
-    n = Network(tree, bus_address, bus)
-
-    data = n.to_dict()
     with open(arguments.out, 'w') as output_file:
         json.dump(data, output_file, indent=4)
     print "Wrote results to %s" % arguments.out

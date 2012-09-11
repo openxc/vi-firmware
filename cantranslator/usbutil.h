@@ -2,48 +2,78 @@
 #define _USBUTIL_H_
 
 #include <string.h>
+
+#ifdef CHIPKIT
 #include "chipKITUSBDevice.h"
+#endif // CHIPKIT
 
-#define USB_PACKET_SIZE 64
-#define NUMERICAL_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%f}\r\n"
-#define BOOLEAN_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":%s}\r\n"
-#define STRING_MESSAGE_FORMAT "{\"name\":\"%s\",\"value\":\"%s\"}\r\n"
-#define NUMERICAL_MESSAGE_VALUE_MAX_LENGTH 6
-#define BOOLEAN_MESSAGE_VALUE_MAX_LENGTH 4
-#define STRING_MESSAGE_VALUE_MAX_LENGTH 24
-
-#define DATA_ENDPOINT 1
-#define DATA_ENDPOINT_BUFFER_SIZE 65
+#include "queue.h"
 
 // Don't try to send a message larger than this
-#define SEND_BUFFER_SIZE 128
+#define ENDPOINT_SIZE 64
+#define USB_PACKET_SIZE 64
+#define PACKET_BUFFER_SIZE ENDPOINT_SIZE * 4
 
-const int NUMERICAL_MESSAGE_FORMAT_LENGTH = strlen(NUMERICAL_MESSAGE_FORMAT);
-const int BOOLEAN_MESSAGE_FORMAT_LENGTH = strlen(BOOLEAN_MESSAGE_FORMAT);
-const int STRING_MESSAGE_FORMAT_LENGTH = strlen(STRING_MESSAGE_FORMAT);
-
-// This is a reference to the last packet read
-extern volatile CTRL_TRF_SETUP SetupPkt;
+/* Public: a container for a CAN translator USB device and associated metadata.
+ *
+ * device - The UsbDevice attached to the host.
+ * endpoint - The endpoint to use to send and receive messages.
+ * endpointSize - The packet size of the endpoint.
+ */
+struct UsbDevice {
+#ifdef CHIPKIT
+    USBDevice device;
+#endif // CHIPKIT
+    int endpoint;
+    int endpointSize;
+    bool configured;
+    // device to host
+    char sendBuffer[ENDPOINT_SIZE];
+    ByteQueue sendQueue;
+    // host to device
+    char receiveBuffer[ENDPOINT_SIZE];
+    ByteQueue receiveQueue;
+#ifdef CHIPKIT
+    USB_HANDLE deviceToHostHandle;
+    USB_HANDLE hostToDeviceHandle;
+#endif // CHIPKIT
+};
 
 /* Public: Initializes the USB controller as a full-speed device with the
- *         configuration specified in usb_descriptors.c. Must be called before
- *         any other USB fuctions are used.
+ * configuration specified in usb_descriptors.c. Must be called before
+ * any other USB fuctions are used.
  */
-void initializeUsb(USBDevice*);
+void initializeUsb(UsbDevice*);
 
 /* Public: Sends a message on the bulk transfer endpoint to the host.
  *
- * usbDevice - the USB device to send this message on.
+ * usbDevice - the CAN USB device to send this message on.
  * message - a buffer containing the message to send.
  * messageSize - the length of the message.
  */
-void sendMessage(USBDevice* usbDevice, uint8_t* message, int messageSize);
+void sendMessage(UsbDevice* usbDevice, uint8_t* message, int messageSize);
 
-/* Internal: Handle asynchronous events from the USB controller.
+/* Public: Arm the given endpoint for a read from the device to host.
+ *
+ * This also puts a NUL char in the beginning of the buffer so you don't get
+ * confused that it's still a valid message.
+ *
+ * usbDevice - the CAN USB device to arm the endpoint on
+ * buffer - the destination buffer for the next IN transfer.
  */
-static boolean usbCallback(USB_EVENT event, void *pdata, word size);
+void armForRead(UsbDevice* usbDevice, char* buffer);
 
-extern USBDevice USB_DEVICE;
-extern USB_HANDLE USB_INPUT_HANDLE;
+/* Public: Pass the next IN request message to the callback, if available.
+ *
+ * Checks if the input handle is not busy, indicating the presence of a new IN
+ * request from the host. If a message is available, the callback is notified
+ * and the endpoint is re-armed for the next USB transfer.
+ *
+ * usbDevice - the CAN USB device to arm the endpoint on
+ * callback - a function that handles USB in requests
+ */
+void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
+
+void processInputQueue(UsbDevice* usbDevice);
 
 #endif // _USBUTIL_H_

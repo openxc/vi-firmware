@@ -1,0 +1,1 @@
+../cantranslator/serialutil.h

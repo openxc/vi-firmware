@@ -5,7 +5,7 @@ include lpc1768.mk
 endif
 
 clean:
-	rm -rf $(OBJDIR)
+	rm -rf $(OBJDIR) build-cli
 
 # For running test cases on the development computer, don't compile with
 # embedded libraries
@@ -40,3 +40,5 @@ $(TEST_OBJDIR)/%.o: tests/%.cpp
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TESTABLE_OBJS)
 	$(LD) $(LDFLAGS) $(LDLIBS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^
+
+flash: upload

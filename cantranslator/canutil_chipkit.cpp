@@ -56,7 +56,7 @@ void initializeCan(CanBus* bus) {
     // Configure channel 1 for RX with 8 byte buffers.
     bus->bus->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    int filterMaskCount;
+    int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);
     configureFilters(bus, filters, filterCount);
 

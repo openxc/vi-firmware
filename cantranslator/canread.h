@@ -69,7 +69,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  */
 void translateCanSignal(Listener* listener, CanSignal* signal,
         uint8_t* data,
-        char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
+        const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
 /* Public: Send the given name and value out to the listener in an OpenXC JSON
@@ -79,7 +79,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * value - The numerical value for the value field of the OpenXC message.
  * listener - The listener device to send on.
  */
-void sendNumericalMessage(char* name, float value, Listener* listener);
+void sendNumericalMessage(const char* name, float value, Listener* listener);
 
 /* Public: Send the given name and value out to the listener in an OpenXC JSON
  * message followed by a newline.
@@ -88,7 +88,7 @@ void sendNumericalMessage(char* name, float value, Listener* listener);
  * value - The string value for the value field of the OpenXC message.
  * listener - The listener device to send on.
  */
-void sendStringMessage(char* name, char* value, Listener* listener);
+void sendStringMessage(const char* name, const char* value, Listener* listener);
 
 /* Public: Send the given name and value out to the listener in an OpenXC JSON
  * message followed by a newline.
@@ -97,7 +97,7 @@ void sendStringMessage(char* name, char* value, Listener* listener);
  * value - The boolean value for the value field of the OpenXC message.
  * listener - The listener device to send on.
  */
-void sendBooleanMessage(char* name, bool value, Listener* listener);
+void sendBooleanMessage(const char* name, bool value, Listener* listener);
 
 /* Public: Send the given name and value out to the listener in an OpenXC JSON
  * message followed by a newline.
@@ -107,7 +107,7 @@ void sendBooleanMessage(char* name, bool value, Listener* listener);
  * event - The boolean event for the event field of the OpenXC message.
  * listener - The listener device to send on.
  */
-void sendEventedBooleanMessage(char* name, char* value, bool event,
+void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         Listener* listener);
 
 /* Public: Parse a CAN signal from a message and apply required transformation.
@@ -133,7 +133,7 @@ float decodeCanSignal(CanSignal* signal, uint8_t* data);
  * possible states, otherwise NULL. If an equivalent isn't found, send is sent
  * to false.
  */
-char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+const char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
 /* Public: Coerces a numerical value to a boolean.

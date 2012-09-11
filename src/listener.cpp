@@ -17,7 +17,8 @@ bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
 }
 
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
-    if(!conditionalEnqueue(&listener->usb->sendQueue, message, messageSize)) {
+    if(listener->usb->configured && !conditionalEnqueue(
+                &listener->usb->sendQueue, message, messageSize)) {
         debug("USB send queue full, dropping CAN message: %s\r\n", message);
     }
 

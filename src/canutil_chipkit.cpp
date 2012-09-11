@@ -26,7 +26,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
                 (CAN::CHANNEL) filters[i].channel);
         bus->controller->enableFilter((CAN::FILTER) filters[i].number, true);
     }
-    debug("Done.");
+    debug("Done.\r\n");
 }
 
 void initializeCan(CanBus* bus) {
@@ -82,7 +82,7 @@ void initializeCan(CanBus* bus) {
 
     bus->controller->attachInterrupt(bus->interruptHandler);
 
-    debug("Done.");
+    debug("Done.\r\n");
 }
 
 #endif // __PIC32__

@@ -22,7 +22,9 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
         USB_DEVICE.configured = true;
+#ifndef CAN_EMULATOR
         mark();
+#endif
         USB_DEVICE.device.EnableEndpoint(USB_DEVICE.endpoint,
                 USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
                 USB_DISALLOW_SETUP);

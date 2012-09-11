@@ -4,14 +4,12 @@
 #include <string.h>
 #include <stdint.h>
 #include "queue.h"
+#include "usb_config.h"
 
 #ifdef __PIC32__
 #include "chipKITUSBDevice.h"
 #endif // __PIC32__
 
-#ifdef __LPC17XX__
-#include "usb_descriptors.h"
-#endif // __LPC17XX__
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512

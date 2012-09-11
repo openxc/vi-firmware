@@ -1,6 +1,6 @@
 #ifdef __LPC17XX__
 
-#include "usb_descriptors.h"
+#include "usb_config.h"
 
 /** Device descriptor structure. This descriptor, located in FLASH memory,
  * describes the overall device characteristics, including the supported USB
@@ -10,22 +10,22 @@
 const USB_Descriptor_Device_t PROGMEM DeviceDescriptor = {
     .Header                 = {.Size = sizeof(USB_Descriptor_Device_t),
                                     .Type = DTYPE_Device},
-    .USBSpecification       = VERSION_BCD(02.00),
+    .USBSpecification       = USB_VERSION,
     .Class                  = 0,
     .SubClass               = 0,
     .Protocol               = 0,
 
     .Endpoint0Size          = CONTROL_ENDPOINT_SIZE,
 
-    .VendorID               = 0x1bc4, // Ford Motor Company
-    .ProductID              = 0x0001,
-    .ReleaseNumber          = VERSION_BCD(01.00),
+    .VendorID               = VENDOR_ID,
+    .ProductID              = PRODUCT_ID,
+    .ReleaseNumber          = DEVICE_VERSION,
 
     .ManufacturerStrIndex   = 0x01,
     .ProductStrIndex        = 0x02,
     .SerialNumStrIndex      = NO_DESCRIPTOR,
 
-    .NumberOfConfigurations = 0x01
+    .NumberOfConfigurations = NUM_CONFIGURATIONS
 };
 
 /** Configuration descriptor structure. This descriptor, located in FLASH
@@ -40,7 +40,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
             .Header = {.Size = sizeof(USB_Descriptor_Configuration_Header_t),
                     .Type = DTYPE_Configuration},
             .TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
-            .TotalInterfaces = 1,
+            .TotalInterfaces = INTERFACE_COUNT,
             .ConfigurationNumber = 1,
             .ConfigurationStrIndex = NO_DESCRIPTOR,
             .ConfigAttributes = USB_CONFIG_ATTR_BUSPOWERED,
@@ -53,7 +53,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
                     .Type = DTYPE_Interface},
             .InterfaceNumber        = 0,
             .AlternateSetting       = 0,
-            .TotalEndpoints         = 2,
+            .TotalEndpoints         = ENDPOINT_COUNT,
             .Class                  = 0xff,
             .SubClass               = 0xff,
             .Protocol               = 0xff,

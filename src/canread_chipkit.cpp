@@ -6,13 +6,6 @@
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = bus->controller->getRxMessage(CAN::CHANNEL1);
 
-    /* Call the CAN::updateChannel() function to let the CAN module know that
-     * the message processing is done. Enable the event so that the CAN module
-     * generates an interrupt when the event occurs.*/
-    bus->controller->updateChannel(CAN::CHANNEL1);
-    bus->controller->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
-            true);
-
     CanMessage result = {message->msgSID.SID, 0};
     result.data = message->data[0];
     result.data |= (message->data[1] << 8);
@@ -32,8 +25,14 @@ void handleCanInterrupt(CanBus* bus) {
             bus->controller->enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
 
-            CanMessage message = receiveCanMessage(bus);
-            QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
+            QUEUE_PUSH(CanMessage, &bus->receiveQueue, receiveCanMessage(bus));
+
+            /* Call the CAN::updateChannel() function to let the CAN module know that
+             * the message processing is done. Enable the event so that the CAN module
+             * generates an interrupt when the event occurs.*/
+            bus->controller->updateChannel(CAN::CHANNEL1);
+            bus->controller->enableChannelEvent(CAN::CHANNEL1,
+                    CAN::RX_CHANNEL_NOT_EMPTY, true);
         }
     }
 }
@@ -45,7 +44,7 @@ void handleCan1Interrupt() {
 }
 
 void handleCan2Interrupt() {
-    handleCanInterrupt(&getCanBuses()[0]);
+    handleCanInterrupt(&getCanBuses()[1]);
 }
 
 #endif // __PIC32__

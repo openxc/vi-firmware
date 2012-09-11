@@ -175,7 +175,7 @@ class CanTranslator(object):
                 self.good_messages += 1
                 if self.total_bytes_received == 0:
                     self.started_time = datetime.now()
-                self.total_bytes_received += sys.getsizeof(parsed_message)
+                self.total_bytes_received += len(message)
 
                 if self.dump:
                     print "%f: %s" % (time.time(), message)

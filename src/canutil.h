@@ -61,17 +61,6 @@ struct CanBus {
     QUEUE_TYPE(CanMessage) receiveQueue;
 };
 
-/* Public: A CAN transceiver message filter mask.
- *
- * number - The ID of this mask, e.g. 0, 1, 2, 3. This is neccessary to link
- *     filters with the masks they match.
- * value - The value of the mask, e.g. 0x7ff.
- */
-struct CanFilterMask {
-    int number;
-    int value;
-};
-
 /* Public: A CAN transceiver message filter.
  *
  * number - The ID of this filter, e.g. 0, 1, 2.

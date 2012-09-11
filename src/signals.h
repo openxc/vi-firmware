@@ -50,21 +50,6 @@ const char* getMessageSet();
  */
 void decodeCanMessage(int id, uint64_t data);
 
-/* Public: Initialize an array of the CAN message filter masks that should be
- * set for the CAN module with the given address.
- *
- * address - The address of the CAN module to retreive the filter masks for.
- * count - An OUT variable that will be set to the length of the returned filter
- *         mask array.
- * TODO now that we have the CanBus struct, we can probably combine the filter
- * and filter mask initialization with that. We could have them defined
- * statically instead of requiring these functions to be called.
- *
- * Returns an array of CanFilterMasks that should be initialized on the CAN
- * module with the given address.
- */
-CanFilterMask* initializeFilterMasks(uint64_t address, int* count);
-
 /* Public: Initialize an array of the CAN message filters that should be set for
  * the CAN module with the given address.
  *

@@ -4,6 +4,7 @@
 #include "signals.h"
 #include "log.h"
 
+<<<<<<< HEAD:src/canutil_chipkit.cpp
 #define SYS_FREQ (80000000L)
 
 CAN can1Actual(CAN::CAN1);
@@ -11,23 +12,12 @@ CAN can2Actual(CAN::CAN2);
 CANController can1 = &can1Actual;
 CANController can2 = &can2Actual;
 
-/* Private: Initializes message filter masks and filters on the CAN controller.
+/* Private: Initializes message filters on the CAN controller.
  *
  * canMod - a pointer to an initialized CAN module class.
- * filterMasks - an array of the filter masks to initialize.
  * filters - an array of filters to initialize.
  */
-void configureFilters(CanBus* bus, CanFilterMask* filterMasks,
-        int filterMaskCount, CanFilter* filters, int filterCount) {
-    debug("Configuring %d filter masks...", filterMaskCount);
-    for(int i = 0; i < filterMaskCount; i++) {
-        debug("Configuring filter mask %x", filterMasks[i].value);
-        bus->controller->configureFilterMask(
-                (CAN::FILTER_MASK) filterMasks[i].number,
-                filterMasks[i].value, CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
-    }
-    debug("Done.");
-
+void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
     for(int i = 0; i < filterCount; i++) {
         bus->controller->configureFilter((CAN::FILTER) filters[i].number,
@@ -76,12 +66,9 @@ void initializeCan(CanBus* bus) {
     // Configure channel 1 for RX with 8 byte buffers.
     bus->controller->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
-    int filterMaskCount;
-    CanFilterMask* filterMasks = initializeFilterMasks(bus->address,
-            &filterMaskCount);
     int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);
-    configureFilters(bus, filterMasks, filterMaskCount, filters, filterCount);
+    configureFilters(bus, filters, filterCount);
 
     // Enable interrupt and events. Enable the receive channel not empty event
     // (channel event) and the receive channel event (module event). The

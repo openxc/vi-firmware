@@ -30,8 +30,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
 }
 
 void initializeCan(CanBus* bus) {
-    CAN::BIT_CONFIG canBitConfig;
-
+    queue_init(&bus->receiveQueue);
     queue_init(&bus->sendQueue);
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
@@ -43,6 +42,7 @@ void initializeCan(CanBus* bus) {
     // Configure the CAN Module Clock. The CAN::BIT_CONFIG data structure is
     // used for this purpose. The propagation, phase segment 1 and phase segment
     // 2 are configured to have 3TQ. The CANSetSpeed() function sets the baud.
+    CAN::BIT_CONFIG canBitConfig;
     canBitConfig.phaseSeg2Tq            = CAN::BIT_3TQ;
     canBitConfig.phaseSeg1Tq            = CAN::BIT_3TQ;
     canBitConfig.propagationSegTq       = CAN::BIT_3TQ;

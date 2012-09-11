@@ -21,6 +21,7 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
 void initializeSerial(SerialDevice* serial) {
     serial->device->begin(115200);
     queue_init(&serial->receiveQueue);
+    queue_init(&serial->sendQueue);
 }
 
 void processInputQueue(SerialDevice* device) {

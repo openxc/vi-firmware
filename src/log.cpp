@@ -21,7 +21,7 @@ void debug(const char* format, ...) {
     vsnprintf(buffer, MAX_LOG_LINE_LENGTH, format, args);
 
 #ifdef __PIC32__
-    Serial.println(buffer);
+    Serial.print(buffer);
 #endif // __PIC32__
 
 #ifdef  __LPC17XX__

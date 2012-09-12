@@ -39,4 +39,6 @@ uint64_t getBitField(uint64_t data, int startPos, int numBits);
  */
 void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
 
+uint8_t nthByte(uint64_t source, int byteNum);
+
 #endif // _BITFIELD_H_

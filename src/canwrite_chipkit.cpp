@@ -1,9 +1,16 @@
 #ifdef __PIC32__
 
+#include "bitfield.h"
 #include "canwrite.h"
 #include "log.h"
 
-/* Private: Write a CAN message with the given data and node ID to the bus.
+void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
+    for(int i = 0; i < 8; i++) {
+        destination[i] = nthByte(source, i);
+    }
+}
+
+/* Public: Write a CAN message with the given data and node ID to the bus.
  *
  * The CAN module has an 8 message buffer and sends messages in FIFO order. If
  * the buffer is full, this function will return false and the message will not
@@ -27,9 +34,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         message->msgEID.IDE = 0;
         message->msgEID.DLC = 8;
         memset(message->data, 0, 8);
-        for(int i = 0; i < 8; i++) {
-            memcpy(&(message->data[i]), &(((uint8_t*)&request.data)[7 - i]), 8);
-        }
+        copyToMessageBuffer(request.data, message->data);
 
         // Mark message as ready to be processed
         bus->controller->updateChannel(CAN::CHANNEL0);

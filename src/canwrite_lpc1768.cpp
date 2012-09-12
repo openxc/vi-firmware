@@ -1,13 +1,9 @@
 #ifdef __LPC17XX__
 
+#include "bitfield.h"
 #include "canwrite.h"
 #include "lpc17xx_can.h"
 #include "log.h"
-
-uint8_t nthByte(uint64_t source, int byteNum) {
-    return (source >> (sizeof(uint64_t) -
-                ((byteNum + 1) * sizeof(uint8_t)))) & 0xFF;
-}
 
 void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
     for(int i = 0, j = 4; i < 3 && j < 8; i++, j++) {
@@ -16,7 +12,7 @@ void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
     }
 }
 
-/* Private: Write a CAN message with the given data and node ID to the bus.
+/* Public: Write a CAN message with the given data and node ID to the bus.
  *
  * The CAN module has an 8 message buffer and sends messages in FIFO order. If
  * the buffer is full, this function will return false and the message will not

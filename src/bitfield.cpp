@@ -61,3 +61,7 @@ void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
     *data |= value;
 }
 
+uint8_t nthByte(uint64_t source, int byteNum) {
+    return (source >> (sizeof(uint64_t) -
+                ((byteNum + 1) * sizeof(uint8_t)))) & 0xFF;
+}

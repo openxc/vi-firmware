@@ -15,7 +15,8 @@
  * Returns true if the message was sent successfully.
  */
 bool sendCanMessage(CanBus* bus, CanMessage request) {
-    CAN::TxMessageBuffer* message = bus->controller->getTxMessageBuffer(CAN::CHANNEL0);
+    CAN::TxMessageBuffer* message = bus->controller->getTxMessageBuffer(
+            CAN::CHANNEL0);
     if (message != NULL) {
         message->messageWord[0] = 0;
         message->messageWord[1] = 0;
@@ -27,7 +28,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         message->msgEID.DLC = 8;
         memset(message->data, 0, 8);
         for(int i = 0; i < 8; i++) {
-            memcpy(&message->data[i], &((uint8_t*)request.data)[7 - i], 8);
+            memcpy(&(message->data[i]), &(((uint8_t*)&request.data)[7 - i]), 8);
         }
 
         // Mark message as ready to be processed

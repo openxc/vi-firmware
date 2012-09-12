@@ -252,7 +252,7 @@ class UsbCanTranslator(CanTranslator):
                 elements)
         self.vendor_id = vendor_id
 
-        self.device = usb.core.find(idVendor=vendor_id)
+        self.device = usb.core.find(idVendor=int(vendor_id))   #TODO:  This currently only works with base 10 vendor IDs, not hex.
         if not self.device:
             print "Couldn't find a USB device from vendor %s" % self.vendor_id
             sys.exit()

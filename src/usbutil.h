@@ -25,8 +25,10 @@ struct UsbDevice {
 #ifdef __PIC32__
     USBDevice device;
 #endif // __PIC32__
-    int endpoint;
-    int endpointSize;
+    int inEndpoint;
+    int inEndpointSize;
+    int outEndpoint;
+    int outEndpointSize;
     bool configured;
     ByteQueue sendQueue;
     // host to device

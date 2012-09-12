@@ -19,11 +19,12 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     switch(event) {
     case EVENT_CONFIGURED:
-        debug("USB Configured");
+        debug("USB Configured\r\n");
         USB_DEVICE.configured = true;
-        USB_DEVICE.device.EnableEndpoint(USB_DEVICE.endpoint,
-                USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|
-                USB_DISALLOW_SETUP);
+        USB_DEVICE.device.EnableEndpoint(USB_DEVICE.inEndpoint,
+                USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+        USB_DEVICE.device.EnableEndpoint(USB_DEVICE.outEndpoint,
+                USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
         break;
 
     case EVENT_EP0_REQUEST:
@@ -68,7 +69,7 @@ void processInputQueue(UsbDevice* usbDevice) {
             while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
             int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
-                    usbDevice->endpoint, &sendBuffer[nextByteIndex], bytesToTransfer);
+                    usbDevice->inEndpoint, &sendBuffer[nextByteIndex], bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
     }
@@ -78,13 +79,14 @@ void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
     queue_init(&usbDevice->sendQueue);
+    queue_init(&usbDevice->receiveQueue);
     debug("Done.\r\n");
 }
 
 void armForRead(UsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
     usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(
-            usbDevice->endpoint, (uint8_t*)buffer, usbDevice->endpointSize);
+            usbDevice->outEndpoint, (uint8_t*)buffer, usbDevice->outEndpointSize);
 }
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
@@ -92,7 +94,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         // TODO see #569
         delay(500);
         if(usbDevice->receiveBuffer[0] != NULL) {
-            for(int i = 0; i < usbDevice->endpointSize; i++) {
+            for(int i = 0; i < usbDevice->outEndpointSize; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
                     debug("Dropped write from host -- queue is full\r\n");

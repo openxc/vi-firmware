@@ -9,7 +9,8 @@
 #define RESET_CONTROL_COMMAND 0x81
 
 // USB
-#define DATA_ENDPOINT 1
+#define DATA_IN_ENDPOINT 1
+#define DATA_OUT_ENDPOINT 2
 
 extern void reset();
 extern void setup();
@@ -31,7 +32,9 @@ UsbDevice USB_DEVICE = {
 #ifdef __PIC32__
     USBDevice(usbCallback),
 #endif // __PIC32__
-    DATA_ENDPOINT,
+    DATA_IN_ENDPOINT,
+    MAX_USB_PACKET_SIZE_BYTES,
+    DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE, &SERIAL_DEVICE};

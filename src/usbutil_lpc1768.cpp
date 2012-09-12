@@ -93,7 +93,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 
     while(Endpoint_IsOUTReceived()) {
-        for(int i = 0; i < usbDevice->endpointSize; i++) {
+        for(int i = 0; i < usbDevice->outEndpointSize; i++) {
             if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                         Endpoint_Read_8())) {
                 debug("Dropped write from host -- queue is full\r\n");

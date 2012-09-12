@@ -1,5 +1,5 @@
 GCC_BIN =
-PROJECT = cantranslator
+TARGET = cantranslator-lpc1768
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./libs/CDL/LPC17xxLib
 SYS_OBJECTS =
@@ -51,8 +51,8 @@ OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o \
 		  $(OBJDIR)/lpc1768/startup.o $(OBJDIR)/lpc1768/fault_handlers.o
 
 
-TARGET_BIN = $(OBJDIR)/$(PROJECT).bin
-TARGET_ELF = $(OBJDIR)/$(PROJECT).elf
+TARGET_BIN = $(OBJDIR)/$(TARGET).bin
+TARGET_ELF = $(OBJDIR)/$(TARGET).elf
 
 ifdef DEBUG
 CC_FLAGS += -g -ggdb

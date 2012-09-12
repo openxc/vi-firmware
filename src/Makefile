@@ -34,11 +34,11 @@ TESTS=$(patsubst %.cpp,$(OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 TESTABLE_OBJ_FILES = canutil.o canwrite.o canread.o bitfield.o queue.o \
-					 log.o listener.o
+					 listener.o
 TESTABLE_OBJS = $(addprefix $(OBJDIR)/,$(TESTABLE_OBJ_FILES)) \
 				$(OBJDIR)/libs/cJSON.o $(TEST_OBJDIR)/helpers.o \
 				$(TEST_OBJDIR)/usbutil_mock.o $(TEST_OBJDIR)/serialutil_mock.o \
-				$(TEST_OBJDIR)/canwrite_mock.o
+				$(TEST_OBJDIR)/canwrite_mock.o $(TEST_OBJDIR)/log_mock.o
 
 test: LD = g++
 test: CC = g++

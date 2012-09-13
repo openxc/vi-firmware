@@ -250,8 +250,8 @@ class CanTranslator(object):
 
 
 class SerialCanTranslator(CanTranslator):
-    def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
-            dump=False, dashboard=False, elements=None, show_corrupted=False):
+    def __init__(self, verbose, dump, dashboard, elements, show_corrupted, port,
+            baud_rate):
         super(SerialCanTranslator, self).__init__(verbose, dump, dashboard,
                 elements, show_corrupted)
         self.port = port
@@ -272,8 +272,8 @@ class UsbCanTranslator(CanTranslator):
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendor_id, verbose, dump, dashboard, elements,
-            show_corrupted):
+    def __init__(self, verbose, dump, dashboard, elements,
+            show_corrupted, vendor_id=None):
         super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
                 elements, show_corrupted)
         self.vendor_id = vendor_id
@@ -324,7 +324,7 @@ def parse_options():
     parser.add_argument("--vendor",
             action="store",
             dest="vendor",
-            default=0x1bc4)
+            default="0x1bc4")
     parser.add_argument("--verbose", "-v",
             action="store_true",
             dest="verbose",
@@ -360,7 +360,11 @@ def parse_options():
     parser.add_argument("--serial-device",
             action="store",
             dest="serial_device",
-            default=None)
+            default="/dev/ttyUSB1")
+    parser.add_argument("--serial-baudrate",
+            action="store",
+            dest="baud_rate",
+            default="115200")
 
     arguments = parser.parse_args()
     return arguments
@@ -410,19 +414,16 @@ def main():
 
     if arguments.serial:
         device_class = SerialCanTranslator
-        kwargs = dict()
-        args = []
-        if arguments.serial_device:
-            kwargs['port'] = arguments.serial_device
+        kwargs = dict(port=arguments.serial_device,
+                baud_rate=arguments.baud_rate)
     else:
         device_class = UsbCanTranslator
-        kwargs = dict()
-        args = [int(arguments.vendor, 0)]
+        kwargs = dict(vendor_id=int(arguments.vendor, 0))
 
-    device = device_class(verbose=arguments.verbose, dump=arguments.dump,
-            dashboard=arguments.dashboard,
-            elements=initialize_elements(),
-            show_corrupted=arguments.show_corrupted, **kwargs)
+    device = device_class(arguments.verbose, arguments.dump,
+            arguments.dashboard,
+            initialize_elements(),
+            arguments.show_corrupted, **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

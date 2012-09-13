@@ -3,14 +3,11 @@
 #include "usbutil.h"
 #include "log.h"
 #include "buffers.h"
-#include <algorithm>
 #include <stdio.h>
 
-extern "C" {
 #include "bsp.h"
 #include "LPC17xx.h"
 #include "lpc17xx_gpio.h"
-}
 
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);

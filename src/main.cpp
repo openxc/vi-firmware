@@ -51,6 +51,10 @@ int main(void) {
     return 0;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool handleControlRequest(uint8_t request) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:
@@ -73,3 +77,6 @@ bool handleControlRequest(uint8_t request) {
     }
 }
 
+#ifdef __cplusplus
+}
+#endif

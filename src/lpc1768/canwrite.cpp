@@ -1,9 +1,11 @@
 #ifdef __LPC17XX__
 
 #include "bitfield.h"
+#include "canutil.h"
 #include "canwrite.h"
 #include "lpc17xx_can.h"
 #include "log.h"
+#include <stdbool.h>
 
 void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
     for(int i = 0, j = 4; i < 3 && j < 8; i++, j++) {

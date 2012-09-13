@@ -27,7 +27,6 @@ bool queue_##type##_push(queue_##type* queue, type value); \
 type queue_##type##_pop(queue_##type* queue); \
 \
 type queue_##type##_peek(queue_##type* queue); \
-\
 void queue_##type##_init(queue_##type* queue); \
 int queue_##type##_length(queue_##type* queue); \
 int queue_##type##_available(queue_##type* queue); \

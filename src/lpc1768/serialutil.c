@@ -11,11 +11,7 @@
 
 extern SerialDevice SERIAL_DEVICE;
 
-extern "C" {
-
 __IO FlagStatus TRANSMIT_INTERRUPT_STATUS;
-
-}
 
 void handleReceiveInterrupt() {
     while(!QUEUE_FULL(uint8_t, &SERIAL_DEVICE.receiveQueue)) {

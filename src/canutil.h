@@ -165,6 +165,13 @@ typedef struct {
     CommandHandler handler;
 } CanCommand;
 
+/* Public: Initialize the CAN controller. See inline comments for description of
+ * the process.
+ *
+ * bus - A CanBus struct defining the bus's metadata for initialization.
+ */
+void initializeCan(CanBus* bus);
+
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be
  * returned.
@@ -229,12 +236,5 @@ CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  */
 CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
-
-/* Public: Initialize the CAN controller. See inline comments for description of
- * the process.
- *
- * bus - A CanBus struct defining the bus's metadata for initialization.
- */
-void initializeCan(CanBus* bus);
 
 #endif // _CANUTIL_H_

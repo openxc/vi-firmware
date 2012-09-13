@@ -20,7 +20,6 @@ CanMessage receiveCanMessage(CanBus* bus) {
     return result;
 }
 
-extern "C" {
 
 #ifndef CAN_EMULATOR
 
@@ -35,7 +34,5 @@ void CAN_IRQHandler() {
 }
 
 #endif // CAN_EMULATOR
-
-}
 
 #endif // __LPC17XX__

@@ -2,7 +2,7 @@
 #include "buffers.h"
 #include "log.h"
 
-void processInputQueue(UsbDevice* usbDevice) { }
+void processUsbSendQueue(UsbDevice* usbDevice) { }
 
 void initializeUsb(UsbDevice* usbDevice) { }
 

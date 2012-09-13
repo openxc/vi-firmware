@@ -75,9 +75,7 @@ void armForRead(UsbDevice* usbDevice, char* buffer);
  */
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
 
-void processInputQueue(UsbDevice* usbDevice);
-
-void USBTask(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
+void processUsbSendQueue(UsbDevice* usbDevice);
 
 void sendControlMessage(uint8_t* data, uint8_t length);
 

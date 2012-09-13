@@ -31,6 +31,6 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
 void processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
-    processInputQueue(listener->usb);
-    processInputQueue(listener->serial);
+    processUsbSendQueue(listener->usb);
+    processSerialSendQueue(listener->serial);
 }

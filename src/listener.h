@@ -8,10 +8,10 @@
  * usb -
  * serial -
  */
-struct Listener {
+typedef struct {
     UsbDevice* usb;
     SerialDevice* serial;
-};
+} Listener;
 
 void sendMessage(Listener* listener, uint8_t* message, int messageSize);
 

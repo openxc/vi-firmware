@@ -21,7 +21,7 @@
  * endpoint - The endpoint to use to send and receive messages.
  * endpointSize - The packet size of the endpoint.
  */
-struct UsbDevice {
+typedef struct {
 #ifdef __PIC32__
     USBDevice device;
 #endif // __PIC32__
@@ -38,7 +38,7 @@ struct UsbDevice {
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
 #endif // __PIC32__
-};
+} UsbDevice;
 
 /* Public: Initializes the USB controller as a full-speed device with the
  * configuration specified in usb_descriptors.c. Must be called before

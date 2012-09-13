@@ -14,7 +14,7 @@
  *
  * device - A pointer to the hardware serial device to use for OpenXC messages.
  */
-struct SerialDevice {
+typedef struct {
 #ifdef __PIC32__
     HardwareSerial* device;
 #endif // __PIC32__
@@ -22,7 +22,7 @@ struct SerialDevice {
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
-};
+} SerialDevice;
 
 /* Public: Try to read a message from the serial device and process it using the
  * callback.

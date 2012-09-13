@@ -49,7 +49,7 @@ QUEUE_DECLARE(CanMessage, 8);
  *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
  */
-struct CanBus {
+typedef struct {
     unsigned int speed;
     uint64_t address;
     CANController controller;
@@ -57,7 +57,7 @@ struct CanBus {
     void (*interruptHandler)();
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
-};
+} CanBus;
 
 /* Public: A CAN transceiver message filter.
  *
@@ -66,12 +66,12 @@ struct CanBus {
  * channel - The CAN channel this filter should be applied to.
  * maskNumber - The ID of the mask this filter should be paired with.
  */
-struct CanFilter {
+typedef struct {
     int number;
     int value;
     int channel;
     int maskNumber;
-};
+} CanFilter;
 
 /* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
  * state names.
@@ -79,10 +79,10 @@ struct CanFilter {
  * value - The integer value of the state on the CAN bus.
  * name  - The corresponding string name for the state in OpenXC>
  */
-struct CanSignalState {
+typedef struct {
     int value;
     const char* name;
-};
+} CanSignalState;
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
@@ -127,10 +127,11 @@ struct CanSignal {
     CanSignalState* states;
     int stateCount;
     bool writable;
-    uint64_t (*writeHandler)(CanSignal*, CanSignal*, int, cJSON*, bool*);
+    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
     float lastValue;
     int sendClock;
 };
+typedef struct CanSignal CanSignal;
 
 /* Public: The function definition for completely custom OpenXC command
  * handlers.
@@ -159,10 +160,10 @@ typedef bool (*CommandHandler)(const char* name, cJSON* value, CanSignal* signal
  * handler - An function to actually process the recieved command's value
  *                and write it to CAN in the proper signals.
  */
-struct CanCommand {
+typedef struct {
     const char* genericName;
     CommandHandler handler;
-};
+} CanCommand;
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

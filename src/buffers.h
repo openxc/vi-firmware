@@ -1,6 +1,10 @@
 #ifndef _BUFFERS_H_
 #define _BUFFERS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "queue.h"
 
 /* Public: Pass the buffer in the queue to the callback, which should return
@@ -14,5 +18,9 @@
  *          the queue.
  */
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _BUFFERS_H_

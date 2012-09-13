@@ -3,8 +3,8 @@
 #include "log.h"
 
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
-    uint8_t snapshot[queue_length(queue)];
-    queue_snapshot(queue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, queue)];
+    QUEUE_SNAPSHOT(uint8_t, queue, snapshot);
     if(callback == NULL) {
         debug("Callback is NULL (%p) -- unable to handle queue at %p\r\n",
                 callback, queue);
@@ -12,13 +12,13 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     }
 
     if(callback(snapshot)) {
-        queue_init(queue);
-    } else if(queue_full(queue)) {
+        QUEUE_INIT(uint8_t, queue);
+    } else if(QUEUE_FULL(uint8_t, queue)) {
         debug("Incoming write is too long\r\n");
-        queue_init(queue);
+        QUEUE_INIT(uint8_t, queue);
     } else if(strnchr((char*)snapshot, sizeof(snapshot) - 1, '\0') != NULL) {
         debug("Incoming buffered write corrupted (%s) -- clearing buffer\r\n",
                 snapshot);
-        queue_init(queue);
+        QUEUE_INIT(uint8_t, queue);
     }
 }

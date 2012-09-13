@@ -1,6 +1,10 @@
 #ifndef _BITFIELD_H_
 #define _BITFIELD_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /* Public: Reads a subset of bits from a byte array.
@@ -40,5 +44,9 @@ uint64_t getBitField(uint64_t data, int startPos, int numBits);
 void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
 
 uint8_t nthByte(uint64_t source, int byteNum);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _BITFIELD_H_

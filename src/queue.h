@@ -14,8 +14,8 @@ extern "C" {
 #define QUEUE_MAX_INTERNAL_LENGTH(type) queue_##type##_max_internal_length
 
 #define QUEUE_DECLARE(type, max_length) \
-const int queue_##type##_max_length = max_length; \
-const int queue_##type##_max_internal_length = max_length + 1; \
+static const int queue_##type##_max_length = max_length; \
+static const int queue_##type##_max_internal_length = max_length + 1; \
 typedef struct queue_##type##_s { \
     int head; \
     int tail; \

@@ -9,7 +9,7 @@
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
     int bytesAvailable = serial->device->available();
     if(bytesAvailable > 0) {
-        for(int i = 0; i < bytesAvailable && !queue_full(&serial->receiveQueue);
+        for(int i = 0; i < bytesAvailable && !QUEUE_FULL(&serial->receiveQueue);
                         i++) {
             char byte = serial->device->read();
             QUEUE_PUSH(uint8_t, &serial->receiveQueue, (uint8_t) byte);
@@ -20,8 +20,8 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
 
 void initializeSerial(SerialDevice* serial) {
     serial->device->begin(115200);
-    queue_init(&serial->receiveQueue);
-    queue_init(&serial->sendQueue);
+    QUEUE_INIT(&serial->receiveQueue);
+    QUEUE_INIT(&serial->sendQueue);
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
@@ -29,7 +29,7 @@ void initializeSerial(SerialDevice* serial) {
 void processInputQueue(SerialDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
-    while(!queue_empty(&device->sendQueue) && byteCount < MAX_MESSAGE_SIZE) {
+    while(!QUEUE_EMPTY(&device->sendQueue) && byteCount < MAX_MESSAGE_SIZE) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 

@@ -30,8 +30,8 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
 }
 
 void initializeCan(CanBus* bus) {
-    queue_init(&bus->receiveQueue);
-    queue_init(&bus->sendQueue);
+    QUEUE_INIT(&bus->receiveQueue);
+    QUEUE_INIT(&bus->sendQueue);
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete

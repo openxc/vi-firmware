@@ -1,10 +1,11 @@
+#include "queue.h"
 #include "listener.h"
 #include "log.h"
 #include "buffers.h"
 
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
-    if(queue_available(queue) < messageSize + 2) {
+    if(QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
         return false;
     }
 

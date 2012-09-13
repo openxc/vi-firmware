@@ -41,7 +41,7 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 }
 
 void processInputQueue(UsbDevice* usbDevice) {
-    while(!queue_empty(&usbDevice->sendQueue)) {
+    while(!QUEUE_EMPTY(&usbDevice->sendQueue)) {
 
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
@@ -60,7 +60,7 @@ void processInputQueue(UsbDevice* usbDevice) {
 
         int byteCount = 0;
 		uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
-        while(!queue_empty(&usbDevice->sendQueue) && byteCount < 64) {
+        while(!QUEUE_EMPTY(&usbDevice->sendQueue) && byteCount < 64) {
             sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
@@ -78,8 +78,8 @@ void processInputQueue(UsbDevice* usbDevice) {
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
-    queue_init(&usbDevice->sendQueue);
-    queue_init(&usbDevice->receiveQueue);
+    QUEUE_INIT(&usbDevice->sendQueue);
+    QUEUE_INIT(&usbDevice->receiveQueue);
     debug("Done.\r\n");
 }
 

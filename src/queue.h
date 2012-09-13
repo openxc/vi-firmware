@@ -28,12 +28,12 @@ type queue_##type##_pop(queue_##type* queue); \
 \
 type queue_##type##_peek(queue_##type* queue); \
 \
-void queue_init(queue_##type* queue); \
-int queue_length(queue_##type* queue); \
-int queue_available(queue_##type* queue); \
-bool queue_full(queue_##type* queue); \
-bool queue_empty(queue_##type* queue); \
-void queue_snapshot(queue_##type* queue, type* snapshot);
+void queue_##type##_init(queue_##type* queue); \
+int queue_##type##_length(queue_##type* queue); \
+int queue_##type##_available(queue_##type* queue); \
+bool queue_##type##_full(queue_##type* queue); \
+bool queue_##type##_empty(queue_##type* queue); \
+void queue_##type##_snapshot(queue_##type* queue, type* snapshot);
 
 #define QUEUE_DEFINE(type) \
 bool queue_##type##_push(queue_##type* queue, type value) { \
@@ -60,42 +60,46 @@ type queue_##type##_peek(queue_##type* queue) { \
     return queue->elements[queue->tail]; \
 } \
 \
-void queue_init(queue_##type* queue) { \
+void queue_##type##_init(queue_##type* queue) { \
     queue->head = queue->tail = 0; \
 } \
 \
-int queue_length(queue_##type* queue) { \
+int queue_##type##_length(queue_##type* queue) { \
     return (queue_##type##_max_internal_length + queue->head - queue->tail) \
             % queue_##type##_max_internal_length; \
 } \
 \
-int queue_available(queue_##type* queue) { \
-    return queue_##type##_max_length - queue_length(queue); \
+int queue_##type##_available(queue_##type* queue) { \
+    return queue_##type##_max_length - queue_##type##_length(queue); \
 } \
 \
-bool queue_full(queue_##type* queue) { \
-    return queue_length(queue) == queue_##type##_max_length; \
+bool queue_##type##_full(queue_##type* queue) { \
+    return queue_##type##_length(queue) == queue_##type##_max_length; \
 } \
 \
-bool queue_empty(queue_##type* queue) { \
-    return queue_length(queue) == 0; \
+bool queue_##type##_empty(queue_##type* queue) { \
+    return queue_##type##_length(queue) == 0; \
 } \
 \
-void queue_snapshot(queue_##type* queue, type* snapshot) { \
+void queue_##type##_snapshot(queue_##type* queue, type* snapshot) { \
     int i; \
-    for(i = 0; i < queue_length(queue); i++) { \
+    for(i = 0; i < queue_##type##_length(queue); i++) { \
         snapshot[i] = queue->elements[ \
             (queue->tail + i) % queue_##type##_max_internal_length]; \
     } \
 }
 
 #define QUEUE_TYPE(type) queue_##type
-
 #define QUEUE_PUSH(type, queue, value) queue_##type##_push(queue, value)
-
 #define QUEUE_POP(type, queue) queue_##type##_pop(queue)
-
 #define QUEUE_PEEK(type, queue) queue_##type##_peek(queue)
+#define QUEUE_INIT(type, queue) queue_##type##_init(queue)
+#define QUEUE_LENGTH(type, queue) queue_##type##_length(queue)
+#define QUEUE_AVAILABLE(type, queue) queue_##type##_available(queue)
+#define QUEUE_FULL(type, queue) queue_##type##_full(queue)
+#define QUEUE_EMPTY(type, queue) queue_##type##_empty(queue)
+#define QUEUE_SNAPSHOT(type, queue, snapshot) queue_##type##_snapshot(queue, \
+        snapshot)
 
 QUEUE_DECLARE(uint8_t, 512)
 

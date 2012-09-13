@@ -280,7 +280,7 @@ class UsbCanTranslator(CanTranslator):
 
         self.device = usb.core.find(idVendor=vendor_id)
         if not self.device:
-            print "Couldn't find a USB device from vendor %s" % self.vendor_id
+            print "Couldn't find a USB device from vendor 0x%x" % self.vendor_id
             sys.exit()
         self.device.set_configuration()
         config = self.device.get_active_configuration()
@@ -411,11 +411,13 @@ def main():
     if arguments.serial:
         device_class = SerialCanTranslator
         kwargs = dict()
+        args = []
         if arguments.serial_device:
             kwargs['port'] = arguments.serial_device
     else:
         device_class = UsbCanTranslator
-        kwargs = dict(vendor_id=arguments.vendor)
+        kwargs = dict()
+        args = [int(arguments.vendor, 0)]
 
     device = device_class(verbose=arguments.verbose, dump=arguments.dump,
             dashboard=arguments.dashboard,

@@ -40,14 +40,7 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*));
  */
 void initializeSerial(SerialDevice* serial);
 
-/* Public: Sends a message on the bulk transfer endpoint to the host.
- *
- * device - the serial device to send this message on.
- * message - a buffer containing the message to send.
- * messageSize - the length of the message.
- */
-void sendMessage(SerialDevice* device, uint8_t* message, int messageSize);
+void processSerialSendQueue(SerialDevice* device);
 
-void processInputQueue(SerialDevice* device);
 
 #endif // _SERIALUTIL_H_

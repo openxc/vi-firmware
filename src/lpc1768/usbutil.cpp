@@ -37,14 +37,14 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 static void sendToHost(UsbDevice* usbDevice) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(IN_ENDPOINT_NUMBER);
-    if(!Endpoint_IsINReady() || queue_empty(&usbDevice->sendQueue)) {
+    if(!Endpoint_IsINReady() || QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
         return;
     }
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
     uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
-    while(!queue_empty(&usbDevice->sendQueue)
+    while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)
             && byteCount < USB_SEND_BUFFER_SIZE) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
     }
@@ -67,7 +67,7 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 
-void processInputQueue(UsbDevice* usbDevice) {
+void processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
     if(USB_DeviceState != DEVICE_STATE_Configured) {
         usbDevice->configured = false;

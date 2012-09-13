@@ -15,8 +15,10 @@ extern "C" {
 
 __IO FlagStatus TRANSMIT_INTERRUPT_STATUS;
 
+}
+
 void handleReceiveInterrupt() {
-    while(!queue_full(&SERIAL_DEVICE.receiveQueue)) {
+    while(!QUEUE_FULL(uint8_t, &SERIAL_DEVICE.receiveQueue)) {
         uint8_t byte;
         uint32_t bytesReceived = UART_Receive(CAN_SERIAL_PORT,
                 &byte, 1, NONE_BLOCKING);
@@ -36,7 +38,7 @@ void handleTransmitInterrupt() {
     /* Wait until THR empty */
     while(UART_CheckBusy(CAN_SERIAL_PORT) == SET);
 
-    while(!queue_empty(&SERIAL_DEVICE.sendQueue)) {
+    while(!QUEUE_EMPTY(uint8_t, &SERIAL_DEVICE.sendQueue)) {
         uint8_t byte = QUEUE_PEEK(uint8_t, &SERIAL_DEVICE.sendQueue);
         if(UART_Send(CAN_SERIAL_PORT, &byte, 1, NONE_BLOCKING)) {
             QUEUE_POP(uint8_t, &SERIAL_DEVICE.sendQueue);
@@ -45,7 +47,7 @@ void handleTransmitInterrupt() {
         }
     }
 
-    if(queue_empty(&SERIAL_DEVICE.sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &SERIAL_DEVICE.sendQueue)) {
         UART_IntConfig(CAN_SERIAL_PORT, UART_INTCFG_THRE, DISABLE);
         TRANSMIT_INTERRUPT_STATUS = RESET;
     } else {
@@ -55,7 +57,8 @@ void handleTransmitInterrupt() {
 }
 
 void UART1_IRQHandler() {
-    uint32_t interruptSource = UART_GetIntId(CAN_SERIAL_PORT) & UART_IIR_INTID_MASK;
+    uint32_t interruptSource = UART_GetIntId(CAN_SERIAL_PORT)
+        & UART_IIR_INTID_MASK;
 
     switch(interruptSource) {
         case UART_IIR_INTID_RLS:
@@ -70,17 +73,15 @@ void UART1_IRQHandler() {
     }
 }
 
-}
-
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
-    if(!queue_empty(&serial->receiveQueue)) {
+    if(!QUEUE_EMPTY(uint8_t, &serial->receiveQueue)) {
         processQueue(&serial->receiveQueue, callback);
     }
 }
 
 void initializeSerial(SerialDevice* serial) {
-    queue_init(&serial->receiveQueue);
-    queue_init(&serial->sendQueue);
+    QUEUE_INIT(uint8_t, &serial->receiveQueue);
+    QUEUE_INIT(uint8_t, &serial->sendQueue);
 
     UART_CFG_Type UARTConfigStruct;
     PINSEL_CFG_Type PinCfg;
@@ -110,8 +111,8 @@ void initializeSerial(SerialDevice* serial) {
     NVIC_EnableIRQ(UART1_IRQn);
 }
 
-void processInputQueue(SerialDevice* device) {
-    if(!queue_empty(&device->sendQueue)) {
+void processSerialSendQueue(SerialDevice* device) {
+    if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
         handleTransmitInterrupt();
         if(TRANSMIT_INTERRUPT_STATUS == RESET) {
             handleTransmitInterrupt();

@@ -246,15 +246,15 @@ class UsbCanTranslator(CanTranslator):
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
+    def __init__(self, vendor_id, verbose=False, dump=False,
             dashboard=False, elements=None):
         super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
                 elements)
         self.vendor_id = vendor_id
 
-        self.device = usb.core.find(idVendor=int(vendor_id))   #TODO:  This currently only works with base 10 vendor IDs, not hex.
+        self.device = usb.core.find(idVendor=vendor_id)
         if not self.device:
-            print "Couldn't find a USB device from vendor %s" % self.vendor_id
+            print "Couldn't find a USB device from vendor 0x%x" % self.vendor_id
             sys.exit()
         self.device.set_configuration()
         config = self.device.get_active_configuration()
@@ -393,15 +393,17 @@ def main():
     if arguments.serial:
         device_class = SerialCanTransaltor
         kwargs = dict()
+        args = []
         if arguments.serial_device:
             kwargs['port'] = arguments.serial_device
     else:
         device_class = UsbCanTranslator
-        kwargs = dict(vendor_id=arguments.vendor)
+        kwargs = dict()
+        args = [int(arguments.vendor, 0)]
 
     device = device_class(verbose=arguments.verbose, dump=arguments.dump,
             dashboard=arguments.dashboard,
-            elements=initialize_elements(), **kwargs)
+            elements=initialize_elements(), *args, **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

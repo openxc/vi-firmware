@@ -40,7 +40,8 @@ uint64_t getBitField(uint64_t data, int startBit, int numBits) {
     uint64_t ret = bytes[startByte];
     if(startByte != endByte) {
         // The lowest byte address contains the most significant bit.
-        for (int i = startByte + 1; i <= endByte; i++) {
+        int i;
+        for(i = startByte + 1; i <= endByte; i++) {
             ret = ret << 8;
             ret = ret | bytes[i];
         }

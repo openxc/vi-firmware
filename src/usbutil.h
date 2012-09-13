@@ -1,6 +1,10 @@
 #ifndef _USBUTIL_H_
 #define _USBUTIL_H_
 
+#ifdef __PIC32__
+#include "chipKITUSBDevice.h"
+#endif // __PIC32__
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -9,10 +13,6 @@ extern "C" {
 #include <stdint.h>
 #include "queue.h"
 #include "usb_config.h"
-
-#ifdef __PIC32__
-#include "chipKITUSBDevice.h"
-#endif // __PIC32__
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512

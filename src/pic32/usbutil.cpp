@@ -6,7 +6,9 @@
 
 #define USB_PACKET_SIZE 64
 
+extern "C" {
 extern bool handleControlRequest(uint8_t);
+}
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
@@ -40,8 +42,8 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
-void processInputQueue(UsbDevice* usbDevice) {
-    while(!QUEUE_EMPTY(&usbDevice->sendQueue)) {
+void processUsbSendQueue(UsbDevice* usbDevice) {
+    while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
 
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
@@ -60,7 +62,7 @@ void processInputQueue(UsbDevice* usbDevice) {
 
         int byteCount = 0;
 		uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
-        while(!QUEUE_EMPTY(&usbDevice->sendQueue) && byteCount < 64) {
+        while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) && byteCount < 64) {
             sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
@@ -78,8 +80,8 @@ void processInputQueue(UsbDevice* usbDevice) {
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     usbDevice->device.InitializeSystem(false);
-    QUEUE_INIT(&usbDevice->sendQueue);
-    QUEUE_INIT(&usbDevice->receiveQueue);
+    QUEUE_INIT(uint8_t, &usbDevice->sendQueue);
+    QUEUE_INIT(uint8_t, &usbDevice->receiveQueue);
     debug("Done.\r\n");
 }
 

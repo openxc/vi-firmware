@@ -1,13 +1,13 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef __PIC32__
 #include "WProgram.h"
 #endif // __PIC32__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "queue.h"
 

@@ -9,7 +9,7 @@
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
     int bytesAvailable = serial->device->available();
     if(bytesAvailable > 0) {
-        for(int i = 0; i < bytesAvailable && !QUEUE_FULL(&serial->receiveQueue);
+        for(int i = 0; i < bytesAvailable && !QUEUE_FULL(uint8_t, &serial->receiveQueue);
                         i++) {
             char byte = serial->device->read();
             QUEUE_PUSH(uint8_t, &serial->receiveQueue, (uint8_t) byte);
@@ -20,16 +20,16 @@ void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
 
 void initializeSerial(SerialDevice* serial) {
     serial->device->begin(115200);
-    QUEUE_INIT(&serial->receiveQueue);
-    QUEUE_INIT(&serial->sendQueue);
+    QUEUE_INIT(uint8_t, &serial->receiveQueue);
+    QUEUE_INIT(uint8_t, &serial->sendQueue);
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
-void processInputQueue(SerialDevice* device) {
+void processSerialSendQueue(SerialDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
-    while(!QUEUE_EMPTY(&device->sendQueue) && byteCount < MAX_MESSAGE_SIZE) {
+    while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) && byteCount < MAX_MESSAGE_SIZE) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 

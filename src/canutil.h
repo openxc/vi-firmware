@@ -22,7 +22,6 @@ typedef LPC_CAN_TypeDef* CANController;
 typedef void* CANController;
 #endif // __TESTS__
 
-
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 /* Public: A CAN message, particularly for writing to CAN.
@@ -31,10 +30,10 @@ typedef void* CANController;
  * id - The ID of the message.
  * data  - The message's 64-bits of data.
  */
-struct CanMessage {
+typedef struct {
     uint32_t id;
     uint64_t data;
-};
+} CanMessage;
 
 QUEUE_DECLARE(CanMessage, 8);
 

@@ -35,6 +35,7 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
 LOCAL_C_SRCS    = $(wildcard *.c)
+LOCAL_C_SRCS    += $(wildcard lpc1768/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpUSBlib/Drivers/USB/Core/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpUSBlib/Drivers/USB/Core/LPC/*.c)
 LOCAL_C_SRCS    += $(wildcard libs/nxpUSBlib/Drivers/USB/Core/LPC/HAL/LPC17XX/*.c)
@@ -46,6 +47,7 @@ LOCAL_C_SRCS    += $(CMSIS_PATH)/src/core_cm3.c \
 				   $(CMSIS_PATH)/src/system_LPC17xx.c
 LOCAL_C_SRCS    += $(wildcard $(DRIVER_PATH)/src/*.c)
 LOCAL_CPP_SRCS  = $(wildcard *.cpp)
+LOCAL_CPP_SRCS  += $(wildcard lpc1768/*.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES)) $(OBJDIR)/libs/cJSON.o \
 		  $(OBJDIR)/lpc1768/startup.o $(OBJDIR)/lpc1768/fault_handlers.o

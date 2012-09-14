@@ -16,10 +16,10 @@ endif
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
-ifdef PIC32
-include pic32/pic32.mk
-else
+ifdef LPC1768
 include lpc1768/lpc1768.mk
+else
+include pic32/pic32.mk
 endif
 
 include tests/tests.mk

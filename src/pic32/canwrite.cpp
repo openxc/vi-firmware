@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "bitfield.h"
 #include "canwrite.h"
 #include "log.h"
@@ -45,5 +43,3 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
     }
     return false;
 }
-
-#endif // __PIC32__

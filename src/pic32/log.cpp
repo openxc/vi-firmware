@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "log.h"
 #include "WProgram.h"
 #include <stdio.h>
@@ -21,5 +19,3 @@ void debug(const char* format, ...) {
 void initializeLogging() {
     Serial.begin(115200);
 }
-
-#endif // __PIC32__

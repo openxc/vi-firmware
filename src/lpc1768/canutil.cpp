@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "canutil.h"
 #include "signals.h"
 #include "log.h"
@@ -64,5 +62,3 @@ void initializeCan(CanBus* bus) {
         debug("Unable to initialize CAN acceptance filters");
     }
 }
-
-#endif // __LPC17XX__

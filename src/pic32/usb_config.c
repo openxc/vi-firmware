@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "usb_config.h"
 #include "USB/usb.h"
 
@@ -88,5 +86,3 @@ ROM BYTE *ROM USB_SD_Ptr[]=
     (ROM BYTE *ROM)&sd001,
     (ROM BYTE *ROM)&sd002
 };
-
-#endif // __PIC32__

@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "canutil.h"
 #include "signals.h"
 #include "log.h"
@@ -84,5 +82,3 @@ void initializeCan(CanBus* bus) {
 
     debug("Done.\r\n");
 }
-
-#endif // __PIC32__

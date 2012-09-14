@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "bitfield.h"
 #include "canutil.h"
 #include "canwrite.h"
@@ -35,5 +33,3 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
 
     return CAN_SendMsg(bus->controller, &message) == SUCCESS;
 }
-
-#endif // __LPC17XX__

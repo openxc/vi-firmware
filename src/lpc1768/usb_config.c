@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "usb_config.h"
 
 /** Device descriptor structure. This descriptor, located in FLASH memory,
@@ -160,5 +158,3 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
     *DescriptorAddress = Address;
     return Size;
 }
-
-#endif // __LPC17XX__

@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "canread.h"
 #include "signals.h"
 
@@ -34,5 +32,3 @@ void CAN_IRQHandler() {
 }
 
 #endif // CAN_EMULATOR
-
-#endif // __LPC17XX__

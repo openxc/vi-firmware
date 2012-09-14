@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "serialutil.h"
 #include "buffers.h"
 #include "log.h"
@@ -35,5 +33,3 @@ void processSerialSendQueue(SerialDevice* device) {
 
     device->device->write((const uint8_t*)sendBuffer, byteCount);
 }
-
-#endif // __PIC32__

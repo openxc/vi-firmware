@@ -1,5 +1,3 @@
-#ifdef __PIC32__
-
 #include "canread.h"
 #include "signals.h"
 
@@ -46,5 +44,3 @@ void handleCan1Interrupt() {
 void handleCan2Interrupt() {
     handleCanInterrupt(&getCanBuses()[1]);
 }
-
-#endif // __PIC32__

@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "usbutil.h"
 #include "log.h"
 #include "buffers.h"
@@ -101,5 +99,3 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     }
     Endpoint_SelectEndpoint(previousEndpoint);
 }
-
-#endif // __LPC17XX__

@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include "log.h"
 #include "debug_frmwrk.h"
 #include <stdio.h>
@@ -22,6 +20,3 @@ void debug(const char* format, ...) {
 void initializeLogging() {
     debug_frmwrk_init();
 }
-
-
-#endif // __LPC17XX__

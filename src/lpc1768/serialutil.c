@@ -1,5 +1,3 @@
-#ifdef __LPC17XX__
-
 #include <string.h>
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
@@ -117,5 +115,3 @@ void processSerialSendQueue(SerialDevice* device) {
         }
     }
 }
-
-#endif // __LPC17XX__

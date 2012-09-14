@@ -26,5 +26,3 @@ include tests/tests.mk
 
 clean:
 	rm -rf $(OBJDIR) build-cli
-
-flash: upload

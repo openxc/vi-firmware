@@ -195,6 +195,7 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
+        print "#ifndef CAN_EMULATOR"
         print "#include \"canread.h\""
         print "#include \"canwrite.h\""
         print "#include \"signals.h\""
@@ -203,10 +204,18 @@ class Parser(object):
         print "#include \"shared_handlers.h\""
         print
         print "extern Listener listener;"
-        print "extern CAN can1;"
-        print "extern CAN can2;"
+        print
+        print "#ifdef __LPC17XX__"
+        print "#define can1 LPC_CAN1"
+        print "#define can2 LPC_CAN2"
+        print "#endif // __LPC17XX__"
+        print
+        print "#ifdef __PIC32__"
+        print "extern void* can1;"
+        print "extern void* can2;"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
+        print "#endif // __PIC32__"
         print
 
     def validate_messages(self):
@@ -232,8 +241,12 @@ class Parser(object):
         print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
-            print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
-                    bus[1]['speed'], bus[0], bus_number, bus_number)
+            print "    { %d, %s, can%d, " % (
+                    bus[1]['speed'], bus[0], bus_number)
+            print "#ifdef __PIC32__"
+            print "        handleCan%dInterrupt," % bus_number
+            print "#endif // __PIC32__"
+            print "    },"
         print "};"
         print
 
@@ -307,12 +320,12 @@ class Parser(object):
         print "}"
         print
 
-        print "char* getMessageSet() {"
+        print "const char* getMessageSet() {"
         print "    return \"%s\";" % self.name
         print "}"
         print
 
-        print "void decodeCanMessage(int id, uint8_t* data) {"
+        print "void decodeCanMessage(int id, uint64_t data) {"
         print "    switch (id) {"
         for bus in self.buses.values():
             for message in bus['messages']:
@@ -337,6 +350,8 @@ class Parser(object):
 
         # Create a set of filters.
         self.print_filters()
+        print
+        print "#endif // CAN_EMULATOR"
 
     def print_filters(self):
         # These arrays can't be initialized when we create the variables or else
@@ -349,15 +364,13 @@ class Parser(object):
 
         print
         print "CanFilter* initializeFilters(uint64_t address, int* count) {"
-        print "    debug(\"Initializing filters...\");"
-
         print "    switch(address) {"
         for bus_address, bus in self.buses.iteritems():
             print "    case %s:" % bus_address
             print "        *count = %d;" % len(bus['messages'])
             for i, message in enumerate(bus['messages']):
-                print "        FILTERS[%d] = {%d, 0x%x, %d, %d};" % (
-                        i, i, message.id, 1, 0)
+                print "        FILTERS[%d] = {%d, 0x%x, %d};" % (
+                        i, i, message.id, 1)
             print "        break;"
         print "    }"
         print "    return FILTERS;"

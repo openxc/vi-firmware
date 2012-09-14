@@ -14,6 +14,13 @@ def total_seconds(delta):
     return (delta.microseconds + (delta.seconds
         + delta.days * 24 * 3600) * 10**6) / 10**6
 
+# Thanks, SO: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+def sizeof_fmt(num):
+    for x in ['bytes','KB','MB','GB','TB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+
 class DataPoint(object):
     def __init__(self, name, value_type, min_value=0, max_value=0, vocab=None,
             events=False, messages_received=0):
@@ -31,7 +38,6 @@ class DataPoint(object):
         self.events_active = events
         self.events = []
         self.messages_received = messages_received
-        self.messages_received_mark = messages_received
 
         # Vocab is a list of acceptable strings for CurrentValue
         self.vocab = vocab or []
@@ -68,7 +74,7 @@ class DataPoint(object):
                 elif self.current_data > self.max_value:
                     self.bad_data = True
 
-    def print_to_window(self, window, row, average_time_mark):
+    def print_to_window(self, window, row, started_time):
         width = window.getmaxyx()[1]
         window.addstr(row, 0, self.name)
         if self.current_data is not None:
@@ -132,17 +138,16 @@ class DataPoint(object):
                     message_count_color)
 
         if width >= 115:
-            window.addstr(row, 110, "Frequency (Hz): " +
-                    str(int((self.messages_received -
-                        self.messages_received_mark) /
-                        (total_seconds(datetime.now() - average_time_mark) +
-                            0.1))))
+            window.addstr(row, 110, "Frequency (Hz): %d" %
+                    (self.messages_received /
+                        (total_seconds(datetime.now() - started_time) + 0.1)))
 
 
 class CanTranslator(object):
     def __init__(self, verbose=False, dump=False, dashboard=False,
-            elements=None):
+            elements=None, show_corrupted=False):
         self.verbose = verbose
+        self.show_corrupted = show_corrupted
         self.dump = dump
         self.dashboard = dashboard
         self.message_buffer = ""
@@ -150,8 +155,7 @@ class CanTranslator(object):
         self.good_messages = 0
         self.elements = elements or []
         self.total_bytes_received = 0
-        self.bytes_received_mark = 0
-        self.average_time_mark = datetime.now()
+        self.started_time = datetime.now()
 
     def parse_message(self):
         if "\n" in self.message_buffer:
@@ -161,15 +165,22 @@ class CanTranslator(object):
                 if not isinstance(parsed_message, dict):
                     raise ValueError()
             except ValueError:
-                pass
+                if self.show_corrupted:
+                    print "Corrupted: %s" % message
+                if self.messages_received == 0:
+                    # assume the first message will be caught mid-stream and
+                    # thus will be corrupted
+                    self.messages_received -= 1
             else:
                 self.good_messages += 1
+                if self.total_bytes_received == 0:
+                    self.started_time = datetime.now()
+                self.total_bytes_received += len(message)
+
                 if self.dump:
                     print "%f: %s" % (time.time(), message)
                 if self.verbose:
                     print parsed_message
-                if self.dashboard:
-                    self.total_bytes_received += sys.getsizeof(parsed_message)
                 for element in self.elements:
                     if element.name == parsed_message.get('name', None):
                         element.update(parsed_message)
@@ -178,18 +189,29 @@ class CanTranslator(object):
             finally:
                 self.message_buffer = remainder
                 self.messages_received += 1
+            return True
+        return False
 
-    # Every 10 seconds, mark what the current message and bytes received counts
-    # are so we can do a rolling average.
-    def date_rate_management(self):
-        if (total_seconds(datetime.now() - self.average_time_mark) > 10):
-            self.average_time_mark = datetime.now()
-            self.bytes_received_mark = self.total_bytes_received
-            for element in self.elements:
-                element.messages_received_mark = element.messages_received
+    def _massage_write_value(self, value):
+        if value == "true":
+            value = True
+        elif value == "false":
+            value = False
+        else:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+        return value
 
     def read(self):
         return ""
+
+    def write(self, name, value):
+        value = self._massage_write_value(value)
+        message = json.dumps({'name': name, 'value': value})
+        bytes_written = self._write(message + "\x00")
+        assert bytes_written == len(message) + 1
 
     def run(self, window=None):
         if window is not None:
@@ -200,37 +222,41 @@ class CanTranslator(object):
 
         while True:
             self.message_buffer += self.read()
-            self.parse_message()
-            self.date_rate_management()
+            while self.parse_message():
+                continue
 
             if self.dashboard and window is not None:
                 window.erase()
+                max_rows = window.getmaxyx()[0] - 4
                 for row, element in enumerate(self.elements):
-                    element.print_to_window(window, row, self.average_time_mark)
+                    if row > max_rows:
+                        break
+                    element.print_to_window(window, row, self.started_time)
                 percentage_good = 0
                 if self.messages_received != 0:
                     percentage_good = (float(self.good_messages) /
                             self.messages_received)
-                window.addstr(len(self.elements), 0,
-                        "Received %d messages so far (%d%% valid)..." % (
+                window.addstr(max_rows, 0,
+                        "Message count: %d (%d%% valid)" % (
                         self.messages_received, percentage_good * 100),
                         curses.A_REVERSE)
-                window.addstr(len(self.elements) + 1, 0,
-                        "Total Bytes Received: " +
-                        str(self.total_bytes_received), curses.A_REVERSE)
-                window.addstr(len(self.elements) + 2, 0, "Overall Data Rate: " +
-                    str((self.total_bytes_received - self.bytes_received_mark)
-                        / (total_seconds(datetime.now() -
-                            self.average_time_mark) + 0.1)) + " Bps",
+                window.addstr(max_rows + 1, 0,
+                        "Total received: %s" %
+                        sizeof_fmt(self.total_bytes_received),
+                        curses.A_REVERSE)
+                window.addstr(max_rows + 2, 0, "Data Rate: %s" %
+                    sizeof_fmt(self.total_bytes_received /
+                        (total_seconds(datetime.now() - self.started_time)
+                            + 0.1)),
                      curses.A_REVERSE)
                 window.refresh()
 
 
-class SerialCanTransaltor(CanTranslator):
-    def __init__(self, port="/dev/ttyUSB1", baud_rate=115200, verbose=False,
-            dump=False, dashboard=False, elements=None):
-        super(SerialCanTransaltor, self).__init__(verbose, dump, dashboard,
-                elements)
+class SerialCanTranslator(CanTranslator):
+    def __init__(self, verbose, dump, dashboard, elements, show_corrupted, port,
+            baud_rate):
+        super(SerialCanTranslator, self).__init__(verbose, dump, dashboard,
+                elements, show_corrupted)
         self.port = port
         self.baud_rate = baud_rate
         import serial
@@ -240,21 +266,24 @@ class SerialCanTransaltor(CanTranslator):
     def read(self):
         return self.device.readline()
 
+    def _write(self, message):
+        return self.device.write(message )
+
 
 class UsbCanTranslator(CanTranslator):
     INTERFACE = 0
     VERSION_CONTROL_COMMAND = 0x80
     RESET_CONTROL_COMMAND = 0x81
 
-    def __init__(self, vendor_id=0x04d8, verbose=False, dump=False,
-            dashboard=False, elements=None):
+    def __init__(self, verbose, dump, dashboard, elements,
+            show_corrupted, vendor_id=None):
         super(UsbCanTranslator, self).__init__(verbose, dump, dashboard,
-                elements)
+                elements, show_corrupted)
         self.vendor_id = vendor_id
 
-        self.device = usb.core.find(idVendor=int(vendor_id))   #TODO:  This currently only works with base 10 vendor IDs, not hex.
+        self.device = usb.core.find(idVendor=vendor_id)
         if not self.device:
-            print "Couldn't find a USB device from vendor %s" % self.vendor_id
+            print "Couldn't find a USB device from vendor 0x%x" % self.vendor_id
             sys.exit()
         self.device.set_configuration()
         config = self.device.get_active_configuration()
@@ -278,7 +307,7 @@ class UsbCanTranslator(CanTranslator):
             sys.exit()
 
     def read(self):
-        return self.in_endpoint.read(64, 1000000).tostring()
+        return self.in_endpoint.read(512, 1000000).tostring()
 
     @property
     def version(self):
@@ -289,20 +318,8 @@ class UsbCanTranslator(CanTranslator):
     def reset(self):
         self.device.ctrl_transfer(0x40, self.RESET_CONTROL_COMMAND, 0, 0)
 
-    def write(self, name, value):
-        if value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        else:
-            try:
-                value = float(value)
-            except ValueError:
-                pass
-
-        message = json.dumps({'name': name, 'value': value})
-        bytes_written = self.out_endpoint.write(message + "\x00")
-        assert bytes_written == len(message) + 1
+    def _write(self, message):
+        return self.out_endpoint.write(message)
 
     def writefile(self, fileName):
         try:
@@ -333,10 +350,14 @@ def parse_options():
     parser.add_argument("--vendor",
             action="store",
             dest="vendor",
-            default=0x04d8)
+            default="0x1bc4")
     parser.add_argument("--verbose", "-v",
             action="store_true",
             dest="verbose",
+            default=False)
+    parser.add_argument("--corrupted",
+            action="store_true",
+            dest="show_corrupted",
             default=False)
     parser.add_argument("--serial", "-s",
             action="store_true",
@@ -369,7 +390,11 @@ def parse_options():
     parser.add_argument("--serial-device",
             action="store",
             dest="serial_device",
-            default=None)
+            default="/dev/ttyUSB1")
+    parser.add_argument("--serial-baudrate",
+            action="store",
+            dest="baud_rate",
+            default="115200")
 
     arguments = parser.parse_args()
     return arguments
@@ -418,17 +443,17 @@ def main():
     arguments = parse_options()
 
     if arguments.serial:
-        device_class = SerialCanTransaltor
-        kwargs = dict()
-        if arguments.serial_device:
-            kwargs['port'] = arguments.serial_device
+        device_class = SerialCanTranslator
+        kwargs = dict(port=arguments.serial_device,
+                baud_rate=arguments.baud_rate)
     else:
         device_class = UsbCanTranslator
-        kwargs = dict(vendor_id=arguments.vendor)
+        kwargs = dict(vendor_id=int(arguments.vendor, 0))
 
-    device = device_class(verbose=arguments.verbose, dump=arguments.dump,
-            dashboard=arguments.dashboard,
-            elements=initialize_elements(), **kwargs)
+    device = device_class(arguments.verbose, arguments.dump,
+            arguments.dashboard,
+            initialize_elements(),
+            arguments.show_corrupted, **kwargs)
     if arguments.version:
         print "Device is running version %s" % device.version
     elif arguments.reset:

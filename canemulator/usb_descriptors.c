@@ -1,1 +1,0 @@
-../cantranslator/usb_descriptors.c

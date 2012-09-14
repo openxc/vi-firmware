@@ -1,7 +1,7 @@
 #include "bitfield.h"
+#include "canutil_lpc1768.h"
 #include "canutil.h"
 #include "canwrite.h"
-#include "lpc17xx_can.h"
 #include "log.h"
 #include <stdbool.h>
 
@@ -31,5 +31,5 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
     message.format = STD_ID_FORMAT;
     copyToMessageBuffer(request.data, message.dataA, message.dataB);
 
-    return CAN_SendMsg(bus->controller, &message) == SUCCESS;
+    return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
 }

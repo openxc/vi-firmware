@@ -1,5 +1,6 @@
-#include "bitfield.h"
 #include "canwrite.h"
+#include "canutil_pic32.h"
+#include "bitfield.h"
 #include "log.h"
 
 void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
@@ -20,7 +21,7 @@ void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
  * Returns true if the message was sent successfully.
  */
 bool sendCanMessage(CanBus* bus, CanMessage request) {
-    CAN::TxMessageBuffer* message = bus->controller->getTxMessageBuffer(
+    CAN::TxMessageBuffer* message = CAN_CONTROLLER(bus)->getTxMessageBuffer(
             CAN::CHANNEL0);
     if (message != NULL) {
         message->messageWord[0] = 0;
@@ -35,8 +36,8 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         copyToMessageBuffer(request.data, message->data);
 
         // Mark message as ready to be processed
-        bus->controller->updateChannel(CAN::CHANNEL0);
-        bus->controller->flushTxChannel(CAN::CHANNEL0);
+        CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL0);
+        CAN_CONTROLLER(bus)->flushTxChannel(CAN::CHANNEL0);
         return true;
     } else {
         debug("Unable to get TX message area");

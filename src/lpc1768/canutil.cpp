@@ -1,7 +1,7 @@
 #include "canutil.h"
+#include "canutil_lpc1768.h"
 #include "signals.h"
 #include "log.h"
-#include "lpc17xx_can.h"
 #include "lpc17xx_pinsel.h"
 
 #define CAN_CTRL(BUS) (BUS == LPC_CAN1 ? 0 : 1)
@@ -16,7 +16,7 @@ CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
     CAN_ERROR result = CAN_OK;
     for(int i = 0; i < filterCount; i++) {
-        result = CAN_LoadFullCANEntry(bus->controller, filters[i].value);
+        result = CAN_LoadFullCANEntry(CAN_CONTROLLER(bus), filters[i].value);
     }
     debug("Done.\r\n");
     return result;
@@ -39,17 +39,17 @@ void initializeCan(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
 
-    configureCanControllerPins(bus->controller);
+    configureCanControllerPins(CAN_CONTROLLER(bus));
 
     // the bus is coming up as 0 in the struct for some reason
-    CAN_Init(bus->controller, bus->speed);
-    CAN_ModeConfig(bus->controller, CAN_OPERATING_MODE, ENABLE);
+    CAN_Init(CAN_CONTROLLER(bus), bus->speed);
+    CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);
 
     // enable receiver interrupt
-    CAN_IRQCmd(bus->controller, CANINT_RIE, ENABLE);
+    CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_RIE, ENABLE);
     // enable transmit interrupt
     // TODO handle this?
-    //CAN_IRQCmd(bus->controller, CANINT_TIE1, ENABLE);
+    //CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
     // configure acceptance filter in bypass mode

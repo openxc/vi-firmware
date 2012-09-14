@@ -8,20 +8,6 @@
 #include "queue.h"
 #include "cJSON.h"
 
-#ifdef __PIC32__
-#include "chipKITCAN.h"
-typedef CAN* CANController;
-#endif // __PIC32__
-
-#ifdef __LPC17XX__
-#include "lpc17xx_can.h"
-typedef LPC_CAN_TypeDef* CANController;
-#endif // __LPC17XX__
-
-#ifdef __TESTS__
-typedef void* CANController;
-#endif // __TESTS__
-
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 /* Public: A CAN message, particularly for writing to CAN.
@@ -52,7 +38,7 @@ QUEUE_DECLARE(CanMessage, 8);
 typedef struct {
     unsigned int speed;
     uint64_t address;
-    CANController controller;
+    void* controller;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     void (*interruptHandler)();
     QUEUE_TYPE(CanMessage) sendQueue;

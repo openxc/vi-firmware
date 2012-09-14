@@ -1,9 +1,6 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-#ifdef __PIC32__
-#include "WProgram.h"
-#endif // __PIC32__
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,13 +16,11 @@ extern "C" {
  * device - A pointer to the hardware serial device to use for OpenXC messages.
  */
 typedef struct {
-#ifdef __PIC32__
-    HardwareSerial* device;
-#endif // __PIC32__
     // device to host
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
+    void* device;
 } SerialDevice;
 
 /* Public: Try to read a message from the serial device and process it using the

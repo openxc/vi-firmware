@@ -1,9 +1,10 @@
 #include "canread.h"
+#include "canutil_lpc1768.h"
 #include "signals.h"
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
-    CAN_ReceiveMsg(bus->controller, &message);
+    CAN_ReceiveMsg(CAN_CONTROLLER(bus), &message);
 
     CanMessage result = {message.id, 0};
     result.data = message.dataA[0];
@@ -24,7 +25,7 @@ CanMessage receiveCanMessage(CanBus* bus) {
 void CAN_IRQHandler() {
     for(int i = 0; i < getCanBusCount(); i++) {
         CanBus* bus = &getCanBuses()[i];
-        if((CAN_IntGetStatus(bus->controller) & 0x01) == 1) {
+        if((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) {
             CanMessage message = receiveCanMessage(bus);
             QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
         }

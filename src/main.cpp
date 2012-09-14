@@ -16,22 +16,11 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-#ifdef __PIC32__
-extern boolean usbCallback(USB_EVENT, void*, word);
-#endif // __PIC32__
-
 const char* VERSION = "2.0-pre";
 
-#ifdef __PIC32__
-SerialDevice SERIAL_DEVICE = {&Serial1};
-#else
 SerialDevice SERIAL_DEVICE;
-#endif // __PIC32__
 
 UsbDevice USB_DEVICE = {
-#ifdef __PIC32__
-    USBDevice(usbCallback),
-#endif // __PIC32__
     DATA_IN_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES,
     DATA_OUT_ENDPOINT,

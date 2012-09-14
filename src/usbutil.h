@@ -25,13 +25,13 @@ extern "C" {
  * endpointSize - The packet size of the endpoint.
  */
 typedef struct {
-#ifdef __PIC32__
-    USBDevice device;
-#endif // __PIC32__
     int inEndpoint;
     int inEndpointSize;
     int outEndpoint;
     int outEndpointSize;
+#ifdef __PIC32__
+    USBDevice device;
+#endif // __PIC32__
     bool configured;
     ByteQueue sendQueue;
     // host to device

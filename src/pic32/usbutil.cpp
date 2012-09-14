@@ -77,6 +77,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
 
 void initializeUsb(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
+	usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
     QUEUE_INIT(uint8_t, &usbDevice->sendQueue);
     QUEUE_INIT(uint8_t, &usbDevice->receiveQueue);

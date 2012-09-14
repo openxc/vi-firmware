@@ -304,6 +304,29 @@ class UsbCanTranslator(CanTranslator):
         bytes_written = self.out_endpoint.write(message + "\x00")
         assert bytes_written == len(message) + 1
 
+    def writefile(self, fileName):
+        try:
+            data = open(fileName, "r")
+        except IOError as e:
+            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        else:
+            badLines = 0
+            for line in data:
+                try:
+                    parsed_message = json.loads(line)
+                    if not isinstance(parsed_message, dict):
+                        raise ValueError()
+                except ValueError:
+                    badLines += 1
+                    pass
+                else:
+                    name = parsed_message.get('name', None)
+                    value = parsed_message.get('value', None)
+                    self.write(name, value)
+            data.close()
+            if badLines > 0:
+                print "{!s} non-JSON lines in the data file were not transmitted.".format(badLines)
+
 def parse_options():
     parser = argparse.ArgumentParser(description="Receive and print OpenXC "
         "messages over USB")
@@ -339,6 +362,10 @@ def parse_options():
             nargs=2,
             action="store",
             dest="write")
+    parser.add_argument("--writefile",
+            action="store",
+            dest="writefile",
+            default="")
     parser.add_argument("--serial-device",
             action="store",
             dest="serial_device",
@@ -411,6 +438,8 @@ def main():
         curses.wrapper(device.run)
     elif arguments.write:
         device.write(arguments.write[0], arguments.write[1])
+    elif arguments.writefile is not "":
+        device.writefile(arguments.writefile)
     else:
         device.run()
 

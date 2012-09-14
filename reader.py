@@ -227,21 +227,24 @@ class CanTranslator(object):
 
             if self.dashboard and window is not None:
                 window.erase()
+                max_rows = window.getmaxyx()[0] - 4
                 for row, element in enumerate(self.elements):
+                    if row > max_rows:
+                        break
                     element.print_to_window(window, row, self.started_time)
                 percentage_good = 0
                 if self.messages_received != 0:
                     percentage_good = (float(self.good_messages) /
                             self.messages_received)
-                window.addstr(len(self.elements), 0,
+                window.addstr(max_rows, 0,
                         "Message count: %d (%d%% valid)" % (
                         self.messages_received, percentage_good * 100),
                         curses.A_REVERSE)
-                window.addstr(len(self.elements) + 1, 0,
+                window.addstr(max_rows + 1, 0,
                         "Total received: %s" %
                         sizeof_fmt(self.total_bytes_received),
                         curses.A_REVERSE)
-                window.addstr(len(self.elements) + 2, 0, "Data Rate: %s" %
+                window.addstr(max_rows + 2, 0, "Data Rate: %s" %
                     sizeof_fmt(self.total_bytes_received /
                         (total_seconds(datetime.now() - self.started_time)
                             + 0.1)),

@@ -65,7 +65,6 @@ bool receiveWriteRequest(uint8_t* message) {
                 command->handler(name, value, getSignals(),
                         getSignalCount());
             } else {
-                debug("Valid request: %s\r\n", message);
                 sendCanSignal(signal, value, getSignals(),
                         getSignalCount());
             }

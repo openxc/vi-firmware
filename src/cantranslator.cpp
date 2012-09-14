@@ -55,19 +55,17 @@ bool receiveWriteRequest(uint8_t* message) {
             return true;
         }
         char* name = nameObject->valuestring;
+        cJSON* value = cJSON_GetObjectItem(root, "value");
         CanSignal* signal = lookupSignal(name, getSignals(),
                 getSignalCount(), true);
-        if(signal != NULL) {
-            cJSON* value = cJSON_GetObjectItem(root, "value");
             CanCommand* command = lookupCommand(name, getCommands(),
                     getCommandCount());
-            if(command != NULL) {
-                command->handler(name, value, getSignals(),
-                        getSignalCount());
-            } else {
-                sendCanSignal(signal, value, getSignals(),
-                        getSignalCount());
-            }
+        if(signal != NULL) {
+            sendCanSignal(signal, value, getSignals(),
+                    getSignalCount());
+        } else if(command != NULL) {
+            command->handler(name, value, getSignals(),
+                    getSignalCount());
         } else {
             debug("Writing not allowed for signal with name %s\r\n", name);
         }

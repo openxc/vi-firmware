@@ -22,6 +22,8 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
 #ifndef CAN_EMULATOR
 
+extern "C" {
+
 void CAN_IRQHandler() {
     for(int i = 0; i < getCanBusCount(); i++) {
         CanBus* bus = &getCanBuses()[i];
@@ -30,6 +32,8 @@ void CAN_IRQHandler() {
             QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
         }
     }
+}
+
 }
 
 #endif // CAN_EMULATOR

@@ -43,6 +43,13 @@ uint64_t getBitField(uint64_t data, int startPos, int numBits);
  */
 void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
 
+/* Public: Retreive the nth byte out of 8 bytes in a uint64_t.
+ *
+ * source - the source data to retreive the byte from.
+ * byteNum - the index of the byte, starting at 0 and assuming big-endian order.
+ *
+ * Returns the requested byte from the source bytes.
+ */
 uint8_t nthByte(uint64_t source, int byteNum);
 
 #ifdef __cplusplus

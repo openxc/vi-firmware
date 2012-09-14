@@ -211,8 +211,8 @@ class Parser(object):
         print "#endif // __LPC17XX__"
         print
         print "#ifdef __PIC32__"
-        print "extern CANController can1;"
-        print "extern CANController can2;"
+        print "extern void* can1;"
+        print "extern void* can2;"
         print "extern void handleCan1Interrupt();"
         print "extern void handleCan2Interrupt();"
         print "#endif // __PIC32__"
@@ -241,7 +241,7 @@ class Parser(object):
         print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
         for i, bus in enumerate(self.buses.iteritems()):
             bus_number = i + 1
-            print "    { %d, %s, can%d, {0}," % (
+            print "    { %d, %s, can%d, " % (
                     bus[1]['speed'], bus[0], bus_number)
             print "#ifdef __PIC32__"
             print "        handleCan%dInterrupt," % bus_number
@@ -369,8 +369,8 @@ class Parser(object):
             print "    case %s:" % bus_address
             print "        *count = %d;" % len(bus['messages'])
             for i, message in enumerate(bus['messages']):
-                print "        FILTERS[%d] = {%d, 0x%x, %d, %d};" % (
-                        i, i, message.id, 1, 0)
+                print "        FILTERS[%d] = {%d, 0x%x, %d};" % (
+                        i, i, message.id, 1)
             print "        break;"
         print "    }"
         print "    return FILTERS;"

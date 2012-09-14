@@ -10,8 +10,9 @@ CAN* can2 = &can2Actual;
 
 /* Private: Initializes message filters on the CAN controller.
  *
- * canMod - a pointer to an initialized CAN module class.
- * filters - an array of filters to initialize.
+ * bus - The CanBus instance to configure the filters for.
+ * filters - An array of filters to initialize.
+ * filterCount - The length of the filters array.
  */
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
@@ -19,8 +20,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
         CAN_CONTROLLER(bus)->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
         CAN_CONTROLLER(bus)->linkFilterToChannel((CAN::FILTER) filters[i].number,
-                (CAN::FILTER_MASK) filters[i].maskNumber,
-                (CAN::CHANNEL) filters[i].channel);
+                (CAN::FILTER_MASK)0, (CAN::CHANNEL) filters[i].channel);
         CAN_CONTROLLER(bus)->enableFilter((CAN::FILTER) filters[i].number, true);
     }
     debug("Done.\r\n");

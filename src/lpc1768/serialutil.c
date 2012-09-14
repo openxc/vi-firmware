@@ -67,15 +67,15 @@ void UART1_IRQHandler() {
     }
 }
 
-void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
-    if(!QUEUE_EMPTY(uint8_t, &serial->receiveQueue)) {
-        processQueue(&serial->receiveQueue, callback);
+void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+    if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
+        processQueue(&device->receiveQueue, callback);
     }
 }
 
-void initializeSerial(SerialDevice* serial) {
-    QUEUE_INIT(uint8_t, &serial->receiveQueue);
-    QUEUE_INIT(uint8_t, &serial->sendQueue);
+void initializeSerial(SerialDevice* device) {
+    QUEUE_INIT(uint8_t, &device->receiveQueue);
+    QUEUE_INIT(uint8_t, &device->sendQueue);
 
     UART_CFG_Type UARTConfigStruct;
     PINSEL_CFG_Type PinCfg;

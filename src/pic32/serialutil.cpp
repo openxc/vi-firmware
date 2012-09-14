@@ -5,23 +5,23 @@
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
-void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) {
-    int bytesAvailable = ((HardwareSerial*)serial->device)->available();
+void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+    int bytesAvailable = ((HardwareSerial*)device->controller)->available();
     if(bytesAvailable > 0) {
         for(int i = 0; i < bytesAvailable && !QUEUE_FULL(uint8_t,
-								&serial->receiveQueue); i++) {
-            char byte = ((HardwareSerial*)serial->device)->read();
-            QUEUE_PUSH(uint8_t, &serial->receiveQueue, (uint8_t) byte);
+								&device->receiveQueue); i++) {
+            char byte = ((HardwareSerial*)device->controller)->read();
+            QUEUE_PUSH(uint8_t, &device->receiveQueue, (uint8_t) byte);
         }
-        processQueue(&serial->receiveQueue, callback);
+        processQueue(&device->receiveQueue, callback);
     }
 }
 
-void initializeSerial(SerialDevice* serial) {
-	serial->device = &Serial1;
-    ((HardwareSerial*)serial->device)->begin(115200);
-    QUEUE_INIT(uint8_t, &serial->receiveQueue);
-    QUEUE_INIT(uint8_t, &serial->sendQueue);
+void initializeSerial(SerialDevice* device) {
+	device->controller = &Serial1;
+    ((HardwareSerial*)device->controller)->begin(115200);
+    QUEUE_INIT(uint8_t, &device->receiveQueue);
+    QUEUE_INIT(uint8_t, &device->sendQueue);
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
@@ -34,6 +34,6 @@ void processSerialSendQueue(SerialDevice* device) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
-    ((HardwareSerial*)device->device)->write((const uint8_t*)sendBuffer,
+    ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
 			byteCount);
 }

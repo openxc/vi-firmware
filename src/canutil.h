@@ -14,7 +14,7 @@
  * state names.
  *
  * id - The ID of the message.
- * data  - The message's 64-bits of data.
+ * data  - The message's data field.
  */
 typedef struct {
     uint32_t id;
@@ -28,19 +28,22 @@ QUEUE_DECLARE(CanMessage, 8);
  * speed - The bus speed in bits per second (e.g. 500000)
  * address - The address or ID of this node
  * controller - a reference to the CAN controller in the MCU
- *      (platform dependent).
+ *      (platform dependent, needs to be casted to actual type before use).
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC1768 uses the same global
  *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
+ * sendQueue - a queue of CanMessage instances that need to be written to CAN.
+ * receiveQueue - a queue of messages received from CAN that have yet to be
+ *      translated.
  */
 typedef struct {
     unsigned int speed;
     uint64_t address;
     void* controller;
-    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     void (*interruptHandler)();
+    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
 } CanBus;
@@ -50,20 +53,18 @@ typedef struct {
  * number - The ID of this filter, e.g. 0, 1, 2.
  * value - The filter's value.
  * channel - The CAN channel this filter should be applied to.
- * maskNumber - The ID of the mask this filter should be paired with.
  */
 typedef struct {
     int number;
     int value;
     int channel;
-    int maskNumber;
 } CanFilter;
 
 /* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
  * state names.
  *
  * value - The integer value of the state on the CAN bus.
- * name  - The corresponding string name for the state in OpenXC>
+ * name  - The corresponding string name for the state in OpenXC.
  */
 typedef struct {
     int value;

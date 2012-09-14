@@ -20,24 +20,30 @@ extern "C" {
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
- * device - The UsbDevice attached to the host.
- * endpoint - The endpoint to use to send and receive messages.
- * endpointSize - The packet size of the endpoint.
+ * inEndpoint - The address of the endpoint to use for IN transfers, i.e. device
+ * 		to host.
+ * inEndpointSize - The packet size of the IN endpoint.
+ * outEndpoint - The address of the endpoint to use for out transfers, i.e. host
+ * 		to device.
+ * outEndpointSize - The packet size of the IN endpoint.
+ * configured - A flag that indicates if the USB interface has been configured
+ * 		by a host. Once true, this will not be set to false until the board is
+ * 		reset.
+ * sendQueue - A queue of bytes to send over the IN endpoint.
+ * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
+ * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
     int inEndpoint;
     int inEndpointSize;
     int outEndpoint;
     int outEndpointSize;
-#ifdef __PIC32__
-    USBDevice device;
-#endif // __PIC32__
     bool configured;
     ByteQueue sendQueue;
-    // host to device
-    char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
     ByteQueue receiveQueue;
 #ifdef __PIC32__
+    char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
+    USBDevice device;
     USB_HANDLE deviceToHostHandle;
     USB_HANDLE hostToDeviceHandle;
 #endif // __PIC32__
@@ -54,10 +60,10 @@ void initializeUsb(UsbDevice*);
  * This also puts a NUL char in the beginning of the buffer so you don't get
  * confused that it's still a valid message.
  *
- * usbDevice - the CAN USB device to arm the endpoint on
+ * device - the CAN USB device to arm the endpoint on
  * buffer - the destination buffer for the next IN transfer.
  */
-void armForRead(UsbDevice* usbDevice, char* buffer);
+void armForRead(UsbDevice* device, char* buffer);
 
 /* Public: Pass the next IN request message to the callback, if available.
  *
@@ -65,13 +71,25 @@ void armForRead(UsbDevice* usbDevice, char* buffer);
  * request from the host. If a message is available, the callback is notified
  * and the endpoint is re-armed for the next USB transfer.
  *
- * usbDevice - the CAN USB device to arm the endpoint on
+ * device - the CAN USB device to arm the endpoint on
  * callback - a function that handles USB in requests
  */
-void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*));
+void readFromHost(UsbDevice* device, bool (*callback)(uint8_t*));
 
-void processUsbSendQueue(UsbDevice* usbDevice);
+/* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
+ * host.
+ *
+ * This function may or may not be blocking - it's implementation dependent.
+ */
+void processUsbSendQueue(UsbDevice* device);
 
+/* Public: Send a USB control message on EP0 (the endponit used only for control
+ * transfers).
+ *
+ * data - An array of up bytes up to the total size of the endpoint (64 bytes
+ * 		for USB 2.0)
+ * length - The length of the data array.
+ */
 void sendControlMessage(uint8_t* data, uint8_t length);
 
 #ifdef __cplusplus

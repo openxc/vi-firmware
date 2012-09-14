@@ -10,35 +10,41 @@ extern "C" {
 
 #define MAX_MESSAGE_SIZE 128
 
-/* Public: a container for a CAN translator Serial device and associated
- * metadata.
+/* Public: A container for a UART connection with queues for both input and
+ * output.
  *
- * device - A pointer to the hardware serial device to use for OpenXC messages.
+ * sendQueue - A queue of bytes that need to be sent out over UART.
+ * receiveQueue - A queue of bytes that have been received via UART but not yet
+ * 		processed.
+ * device - A pointer to the hardware UART device to use for OpenXC messages.
  */
 typedef struct {
     // device to host
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
-    void* device;
+    void* controller;
 } SerialDevice;
 
-/* Public: Try to read a message from the serial device and process it using the
- * callback.
+/* Public: Try to read a message from the UART device (or grab data that's
+ * already been received and queued in the receiveQueue) and process it using
+ * the given callback.
  *
- * Read as many bytes as are available on the serial device and add them to a
- * running buffer.
- *
- * serial - The serial device to read from.
- * callback - a function that handles incoming messages.
+ * device - The UART device to check for incoming data.
+ * callback - A function to call with any received data.
  */
-void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*));
+void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*));
 
-/* Public: Initializes the serial device at at 115200 baud rate and initializes
+/* Public: Initializes the UART device at at 115200 baud rate and initializes
  * the receive buffer.
  */
-void initializeSerial(SerialDevice* serial);
+void initializeSerial(SerialDevice* device);
 
+/* Public: Send any bytes in the outgoing data queue out over the UART
+ * connection.
+ *
+ * This function may or may not be blocking - it's implementation dependent.
+ */
 void processSerialSendQueue(SerialDevice* device);
 
 #ifdef __cplusplus

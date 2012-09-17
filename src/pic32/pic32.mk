@@ -1,5 +1,5 @@
 BOARD_TAG = mega_pic32
-TARGET = cantranslator-pic32
+TARGET = $(BASE_TARGET)-pic32
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
 NO_CORE_MAIN_FUNCTION = 1

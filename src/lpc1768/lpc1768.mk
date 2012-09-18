@@ -1,5 +1,5 @@
 GCC_BIN =
-TARGET = cantranslator-lpc1768
+TARGET = $(BASE_TARGET)-lpc1768
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./libs/CDL/LPC17xxLib
 INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpUSBlib/Drivers \

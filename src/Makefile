@@ -1,7 +1,10 @@
 SYMBOLS =
 
+BASE_TARGET = cantranslator
+
 ifdef EMULATOR
 SYMBOLS += CAN_EMULATOR
+BASE_TARGET = canemulator
 endif
 
 ifdef SERIAL

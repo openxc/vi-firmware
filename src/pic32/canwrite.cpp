@@ -5,7 +5,7 @@
 
 void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
     for(int i = 0; i < 8; i++) {
-        destination[i] = nthByte(source, i);
+        destination[i] = ((uint8_t*)&source)[i];
     }
 }
 

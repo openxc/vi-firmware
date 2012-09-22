@@ -1,6 +1,7 @@
 SYMBOLS =
 
 BASE_TARGET = cantranslator
+OBJDIR = build
 
 ifdef EMULATOR
 SYMBOLS += CAN_EMULATOR
@@ -19,13 +20,17 @@ endif
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
-ifdef LPC1768
-include lpc1768/lpc1768.mk
-else
+ifndef BOARD
+BOARD = PIC32
+endif
+
+ifeq ($(BOARD), PIC32)
 include pic32/pic32.mk
+else
+include lpc1768/lpc1768.mk
 endif
 
 include tests/tests.mk
 
 clean:
-	rm -rf $(OBJDIR) build-cli
+	rm -rf $(OBJDIR)/*

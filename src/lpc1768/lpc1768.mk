@@ -1,4 +1,5 @@
 GCC_BIN =
+OBJDIR = build/lpc1768
 TARGET = $(BASE_TARGET)-lpc1768
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./libs/CDL/LPC17xxLib
@@ -6,7 +7,6 @@ INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc
 LINKER_SCRIPT = lpc1768/LPC1768.ld
 LIBS_PATH = libs
-OBJDIR  	  = build
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++

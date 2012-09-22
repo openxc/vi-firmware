@@ -119,7 +119,7 @@ and remove the Olimex sections, then reload the module:
 Once the dependencies are installed, compile and flash the LPC1768 like so:
 
     $ make clean
-    $ LPC1768=1 make -j4
+    $ BOARD=LPC1768 make -j4
     $ make flash
 
 ## Compiling and Uploading

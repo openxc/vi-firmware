@@ -6,7 +6,7 @@ from prettyprint import pp
 import re
 
 VERSION_PATTERN = r'^v\d+(\.\d+)+?$'
-env.releases_directory = "releases"
+env.releases_directory = "release"
 
 def latest_git_tag():
     description = local('git describe master', capture=True).rstrip('\n')
@@ -65,10 +65,15 @@ def make_tag():
 
 @task
 def release():
-    with lcd("src"):
-        local("make clean")
-        local("make")
     tag = make_tag()
     local("mkdir -p %(releases_directory)s" % env)
-    local("cp src/build/cantranslator.hex "
-            "%(releases_directory)s/cantranslator-%(tag)s.hex" % env)
+    with lcd("src"):
+        local("make clean")
+        for board in ["LPC1768", "PIC32"]:
+            local("BOARD=%s make -j4" % board)
+        # TODO hard coding this for now because each board has a different file
+        # format
+    local("cp src/build/lpc1768/cantranslator*.bin "
+            "%(releases_directory)s/cantranslator_lpc1768-%(tag)s.bin" % env)
+    local("cp src/build/pic32/cantranslator*.hex "
+            "%(releases_directory)s/cantranslator_pic32-%(tag)s.hex" % env)

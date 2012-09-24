@@ -1,7 +1,8 @@
 SYMBOLS =
 
 BASE_TARGET = cantranslator
-OBJDIR = build
+OBJDIR_ROOT = build
+OBJDIR = $(OBJDIR_ROOT)
 
 ifdef EMULATOR
 SYMBOLS += CAN_EMULATOR
@@ -32,5 +33,6 @@ endif
 
 include tests/tests.mk
 
-clean:
-	rm -rf $(OBJDIR)/*
+clean::
+	rm -rf $(OBJDIR_ROOT)/*
+

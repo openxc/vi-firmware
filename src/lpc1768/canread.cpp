@@ -1,6 +1,7 @@
 #include "canread.h"
 #include "canutil_lpc1768.h"
 #include "signals.h"
+#include "log.h"
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
@@ -29,7 +30,10 @@ void CAN_IRQHandler() {
         CanBus* bus = &getCanBuses()[i];
         if((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) {
             CanMessage message = receiveCanMessage(bus);
-            QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
+            if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
+                debug("Dropped CAN message with ID 0x%02x -- queue is full",
+                        message.id);
+            }
         }
     }
 }

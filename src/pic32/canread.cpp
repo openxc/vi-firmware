@@ -1,9 +1,11 @@
 #include "canread.h"
 #include "canutil_pic32.h"
 #include "signals.h"
+#include "log.h"
 
 CanMessage receiveCanMessage(CanBus* bus) {
-    CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(CAN::CHANNEL1);
+    CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
+            CAN::CHANNEL1);
 
     CanMessage result = {message->msgSID.SID, 0};
     result.data = message->data[0];
@@ -24,13 +26,15 @@ void handleCanInterrupt(CanBus* bus) {
             CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
 
-            // TODO check if there is actually room in the queue!
-            // TODO log if we drop a CAN message here as a result
-            QUEUE_PUSH(CanMessage, &bus->receiveQueue, receiveCanMessage(bus));
+            CanMessage message = receiveCanMessage(bus);
+            if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
+                debug("Dropped CAN message with ID 0x%02x -- queue is full",
+                        message.id);
+            }
 
-            /* Call the CAN::updateChannel() function to let the CAN module know that
-             * the message processing is done. Enable the event so that the CAN module
-             * generates an interrupt when the event occurs.*/
+            /* Call the CAN::updateChannel() function to let the CAN module know
+             * that the message processing is done. Enable the event so that the
+             * CAN module generates an interrupt when the event occurs.*/
             CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL1);
             CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, true);

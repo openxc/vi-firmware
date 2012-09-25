@@ -78,6 +78,7 @@ bool receiveWriteRequest(uint8_t* message) {
  * the packet payload to the serial monitor.
  */
 void receiveCan(CanBus* bus) {
+    // TODO what happens if we process until the queue is empty?
     if(QUEUE_LENGTH(CanMessage, &bus->receiveQueue) > 0) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(message.id, message.data);

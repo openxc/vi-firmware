@@ -24,6 +24,8 @@ void handleCanInterrupt(CanBus* bus) {
             CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
                     CAN::RX_CHANNEL_NOT_EMPTY, false);
 
+            // TODO check if there is actually room in the queue!
+            // TODO log if we drop a CAN message here as a result
             QUEUE_PUSH(CanMessage, &bus->receiveQueue, receiveCanMessage(bus));
 
             /* Call the CAN::updateChannel() function to let the CAN module know that

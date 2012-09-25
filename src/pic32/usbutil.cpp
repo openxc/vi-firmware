@@ -48,6 +48,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
         // the data to its own internal buffer. See #171 for background on this
         // issue.
         int i = 0;
+        // TODO try just returning if the host isn't ready
         while(usbDevice->configured &&
                 usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
             ++i;

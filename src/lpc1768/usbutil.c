@@ -66,7 +66,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
     if(USB_DeviceState != DEVICE_STATE_Configured) {
         usbDevice->configured = false;
-          return;
+        return;
     }
     usbDevice->configured = true;
 

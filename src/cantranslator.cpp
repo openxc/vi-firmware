@@ -58,8 +58,8 @@ bool receiveWriteRequest(uint8_t* message) {
         cJSON* value = cJSON_GetObjectItem(root, "value");
         CanSignal* signal = lookupSignal(name, getSignals(),
                 getSignalCount(), true);
-            CanCommand* command = lookupCommand(name, getCommands(),
-                    getCommandCount());
+        CanCommand* command = lookupCommand(name, getCommands(),
+                getCommandCount());
         if(signal != NULL) {
             sendCanSignal(signal, value, getSignals(),
                     getSignalCount());

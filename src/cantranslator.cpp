@@ -61,11 +61,9 @@ bool receiveWriteRequest(uint8_t* message) {
         CanCommand* command = lookupCommand(name, getCommands(),
                 getCommandCount());
         if(signal != NULL) {
-            sendCanSignal(signal, value, getSignals(),
-                    getSignalCount());
+            sendCanSignal(signal, value, getSignals(), getSignalCount());
         } else if(command != NULL) {
-            command->handler(name, value, getSignals(),
-                    getSignalCount());
+            command->handler(name, value, getSignals(), getSignalCount());
         } else {
             debug("Writing not allowed for signal with name %s\r\n", name);
         }

@@ -17,7 +17,13 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data) {
     checkWritePermission(signal, send);
-    return encodeCanSignal(signal, value->valueint, data);
+    int intValue = 0;
+    if(value->type == cJSON_False) {
+        intValue = 0;
+    } else if(value->type == cJSON_True) {
+        intValue = 1;
+    }
+    return encodeCanSignal(signal, intValue, data);
 }
 
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,

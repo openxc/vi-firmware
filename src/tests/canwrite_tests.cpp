@@ -46,7 +46,7 @@ START_TEST (test_boolean_writer)
 {
     bool send = true;
     uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateNumber(true), &send);
+            cJSON_CreateBool(true), &send);
     check_equal_unit64(value, 0x8000000000000000LLU);
     fail_unless(send);
 }

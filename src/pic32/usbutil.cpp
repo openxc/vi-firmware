@@ -48,13 +48,12 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
         // the data to its own internal buffer. See #171 for background on this
         // issue.
         int i = 0;
-        // TODO try just returning if the host isn't ready
         while(usbDevice->configured &&
                 usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
             ++i;
             if(i > 50000) {
-                // USB most likely not connected or at least not requesting reads,
-                // so we bail as to not block the main loop.
+                debug("USB most likely not connected or at least not requesting IN transfers"
+                        "- bailing out of handle waiting");
                 return;
             }
         }

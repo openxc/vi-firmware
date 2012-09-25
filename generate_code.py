@@ -395,10 +395,10 @@ class JsonParser(Parser):
                 data = json.load(json_file)
                 merged_dict = merge(merged_dict, data)
 
+        self.commands = []
         for bus_address, bus_data in merged_dict.iteritems():
             self.buses[bus_address]['speed'] = bus_data['speed']
             self.buses[bus_address].setdefault('messages', [])
-            self.commands = []
             for command_id, command_data in bus_data.get(
                     'commands', {}).iteritems():
                 self.command_count += 1

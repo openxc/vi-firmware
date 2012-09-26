@@ -16,11 +16,13 @@ CAN* can2 = &can2Actual;
  */
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
+    CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF, CAN::SID,
+            CAN::FILTER_MASK_IDE_TYPE);
     for(int i = 0; i < filterCount; i++) {
         CAN_CONTROLLER(bus)->configureFilter((CAN::FILTER) filters[i].number,
                 filters[i].value, CAN::SID);
         CAN_CONTROLLER(bus)->linkFilterToChannel((CAN::FILTER) filters[i].number,
-                (CAN::FILTER_MASK)0, (CAN::CHANNEL) filters[i].channel);
+                CAN::FILTER_MASK0, (CAN::CHANNEL) filters[i].channel);
         CAN_CONTROLLER(bus)->enableFilter((CAN::FILTER) filters[i].number, true);
     }
     debug("Done.\r\n");

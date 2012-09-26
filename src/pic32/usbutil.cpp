@@ -53,7 +53,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
             ++i;
             if(i > 50000) {
                 debug("USB most likely not connected or at least not requesting IN transfers"
-                        "- bailing out of handle waiting");
+                        "- bailing out of handle waiting\r\n");
                 return;
             }
         }

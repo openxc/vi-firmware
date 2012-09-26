@@ -31,7 +31,7 @@ void CAN_IRQHandler() {
         if((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) {
             CanMessage message = receiveCanMessage(bus);
             if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
-                debug("Dropped CAN message with ID 0x%02x -- queue is full",
+                debug("Dropped CAN message with ID 0x%02x -- queue is full\r\n",
                         message.id);
             }
         }

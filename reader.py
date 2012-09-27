@@ -416,6 +416,8 @@ def initialize_elements():
     elements.append(DataPoint('accelerator_pedal_position', float, 0, 100))
     elements.append(DataPoint('torque_at_transmission', float, -800, 1500))
     elements.append(DataPoint('vehicle_speed', float, 0, 120))
+    elements.append(DataPoint('lateral_acceleration', float, -100, 100))
+    elements.append(DataPoint('longitudinal_acceleration', float, -100, 100))
     elements.append(DataPoint('fuel_consumed_since_restart', float, 0, 300))
     elements.append(DataPoint('fine_odometer_since_restart', float, 0, 300))
     elements.append(DataPoint('door_status', unicode,

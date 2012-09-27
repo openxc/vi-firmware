@@ -28,8 +28,14 @@ void handleCanInterrupt(CanBus* bus) {
 
             CanMessage message = receiveCanMessage(bus);
             if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
-                debug("Dropped CAN message with ID 0x%02x -- queue is full\r\n",
-                        message.id);
+                // An exception to the "don't leave commented out code" rule,
+                // this log statement is useful for debugging performance issues
+                // but if left enabled all of the time, it can can slown down
+                // the interrupt handler so much that it locks up the device in
+                // permanent interrupt handling land.
+                //
+                // debug("Dropped CAN message with ID 0x%02x -- queue is full with %d\r\n",
+                        // message.id, QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
             }
 
             /* Call the CAN::updateChannel() function to let the CAN module know

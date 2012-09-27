@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "queue.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct test_t {
     int i;
@@ -10,6 +11,8 @@ typedef struct test_t {
 
 QUEUE_DECLARE(test_t, 10);
 QUEUE_DEFINE(test_t);
+QUEUE_DECLARE(int, 256);
+QUEUE_DEFINE(int);
 
 START_TEST (test_struct_element)
 {
@@ -73,6 +76,30 @@ START_TEST (test_fill_er_up)
                 "expected %d but got %d out of the queue", expected, value);
     }
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_sliding_window)
+{
+    srand(42);
+    QUEUE_TYPE(int) queue;
+    QUEUE_INIT(int, &queue);
+    for(int i = 0; i < 100; i++) {
+        int elementsToAdd = 64 + rand() % 32;
+        for(int i = 0; i < elementsToAdd; i++) {
+            bool success = QUEUE_PUSH(int, &queue, i);
+            fail_unless(success, "wasn't able to add the %dth element", i + 1);
+        }
+        printf("Length: %d\n", QUEUE_LENGTH(int, &queue));
+
+        int expectedValue = 0;
+        while(!QUEUE_EMPTY(int, &queue)) {
+            int value = QUEUE_POP(int, &queue);
+            fail_unless(value == expectedValue);
+            ++expectedValue;
+        }
+    }
+    fail_unless(QUEUE_EMPTY(int, &queue));
 }
 END_TEST
 
@@ -170,6 +197,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_push);
     tcase_add_test(tc_core, test_pop);
     tcase_add_test(tc_core, test_fill_er_up);
+    tcase_add_test(tc_core, test_sliding_window);
     tcase_add_test(tc_core, test_length);
     tcase_add_test(tc_core, test_available);
     tcase_add_test(tc_core, test_snapshot);

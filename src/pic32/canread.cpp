@@ -20,25 +20,25 @@ CanMessage receiveCanMessage(CanBus* bus) {
 }
 
 void handleCanInterrupt(CanBus* bus) {
-    if((CAN_CONTROLLER(bus)->getModuleEvent() & CAN::RX_EVENT) != 0) {
-        if(CAN_CONTROLLER(bus)->getPendingEventCode() == CAN::CHANNEL1_EVENT) {
-            // Clear the event so we give up control of the CPU
-            CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
-                    CAN::RX_CHANNEL_NOT_EMPTY, false);
+    if((CAN_CONTROLLER(bus)->getModuleEvent() & CAN::RX_EVENT) != 0
+            && CAN_CONTROLLER(bus)->getPendingEventCode()
+            == CAN::CHANNEL1_EVENT) {
+        // Clear the event so we give up control of the CPU
+        CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
+                CAN::RX_CHANNEL_NOT_EMPTY, false);
 
-            CanMessage message = receiveCanMessage(bus);
-            if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
-                debug("Dropped CAN message with ID 0x%02x -- queue is full\r\n",
-                        message.id);
-            }
-
-            /* Call the CAN::updateChannel() function to let the CAN module know
-             * that the message processing is done. Enable the event so that the
-             * CAN module generates an interrupt when the event occurs.*/
-            CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL1);
-            CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
-                    CAN::RX_CHANNEL_NOT_EMPTY, true);
+        CanMessage message = receiveCanMessage(bus);
+        if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
+            debug("Dropped CAN message with ID 0x%02x -- queue is full\r\n",
+                    message.id);
         }
+
+        /* Call the CAN::updateChannel() function to let the CAN module know
+         * that the message processing is done. Enable the event so that the
+         * CAN module generates an interrupt when the event occurs.*/
+        CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL1);
+        CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
+                CAN::RX_CHANNEL_NOT_EMPTY, true);
     }
 }
 

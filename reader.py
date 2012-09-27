@@ -137,7 +137,7 @@ class DataPoint(object):
             window.addstr(row, 95, "Messages: " + str(self.messages_received),
                     message_count_color)
 
-        if width >= 115:
+        if width >= 125:
             window.addstr(row, 110, "Frequency (Hz): %d" %
                     (self.messages_received /
                         (total_seconds(datetime.now() - started_time) + 0.1)))

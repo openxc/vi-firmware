@@ -42,7 +42,6 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
     while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
-
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
         // the data to its own internal buffer. See #171 for background on this
@@ -59,9 +58,8 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
         }
 
         int byteCount = 0;
-		uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
         while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) && byteCount < 64) {
-            sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
         }
 
         int nextByteIndex = 0;
@@ -69,7 +67,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
             while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
             int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
-                    usbDevice->inEndpoint, &sendBuffer[nextByteIndex], bytesToTransfer);
+                    usbDevice->inEndpoint, &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
     }

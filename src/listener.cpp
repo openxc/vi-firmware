@@ -23,14 +23,18 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
         debug("USB send queue full, dropping CAN message: %s\r\n", message);
     }
 
+#ifndef NO_UART
     if(!conditionalEnqueue(&listener->serial->sendQueue, message, messageSize)) {
         debug("UART send queue full, dropping CAN message: %s\r\n", message);
     }
+#endif // NO_UART
 }
 
 void processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     processUsbSendQueue(listener->usb);
+#ifndef NO_UART
     processSerialSendQueue(listener->serial);
+#endif // NO_UART
 }

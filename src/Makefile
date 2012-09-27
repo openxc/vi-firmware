@@ -19,6 +19,10 @@ else
 SYMBOLS += NDEBUG
 endif
 
+ifdef NO_UART
+SYMBOLS += NO_UART
+endif
+
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
 ifndef BOARD

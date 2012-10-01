@@ -16,7 +16,6 @@ extern Listener listener;
 /* Forward declarations */
 
 void receiveCan(CanBus*);
-
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 
@@ -38,7 +37,6 @@ void loop() {
         processCanWriteQueue(&getCanBuses()[i]);
     }
 }
-
 
 void initializeAllCan() {
     for(int i = 0; i < getCanBusCount(); i++) {

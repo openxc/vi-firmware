@@ -41,7 +41,6 @@ void initializeCan(CanBus* bus) {
 
     configureCanControllerPins(CAN_CONTROLLER(bus));
 
-    // the bus is coming up as 0 in the struct for some reason
     CAN_Init(CAN_CONTROLLER(bus), bus->speed);
     CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);
 

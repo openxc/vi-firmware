@@ -41,10 +41,10 @@ typedef struct {
     bool configured;
     ByteQueue sendQueue;
     ByteQueue receiveQueue;
-#ifdef __PIC32__
     // This buffer MUST be non-local, so it doesn't get invalidated when it
     // falls off the stack
     uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
+#ifdef __PIC32__
     char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
     USBDevice device;
     USB_HANDLE deviceToHostHandle;

@@ -102,7 +102,6 @@ void armForRead(UsbDevice* usbDevice, char* buffer) {
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     if(!usbDevice->device.HandleBusy(usbDevice->hostToDeviceHandle)) {
-        // TODO see #569
         if(usbDevice->receiveBuffer[0] != NULL) {
             for(int i = 0; i < usbDevice->outEndpointSize; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,

@@ -3,8 +3,8 @@
 
 ROM USB_DEVICE_DESCRIPTOR device_dsc=
 {
-    0x12,                   // Size of this descriptor in bytes
-    USB_DESCRIPTOR_DEVICE,  // DEVICE descriptor type
+    sizeof(USB_DEVICE_DESCRIPTOR),
+    USB_DESCRIPTOR_DEVICE,
     USB_VERSION,
     0x00,                   // Class Code
     0x00,                   // Subclass code
@@ -21,8 +21,7 @@ ROM USB_DEVICE_DESCRIPTOR device_dsc=
 
 /* Configuration 1 Descriptor */
 ROM BYTE configDescriptor1[]={
-    /* Configuration Descriptor */
-    0x09,//sizeof(USB_CFG_DSC),    // Size of this descriptor in bytes
+    sizeof(USB_CONFIGURATION_DESCRIPTOR),
     USB_DESCRIPTOR_CONFIGURATION,                // CONFIGURATION descriptor type
     0x20,0x00,            // Total length of data for this cfg
     INTERFACE_COUNT,                      // Number of interfaces in this cfg
@@ -32,8 +31,8 @@ ROM BYTE configDescriptor1[]={
     50,                     // Max power consumption (2X mA)
 
     /* Interface Descriptor */
-    0x09,//sizeof(USB_INTF_DSC),   // Size of this descriptor in bytes
-    USB_DESCRIPTOR_INTERFACE,               // INTERFACE descriptor type
+    sizeof(USB_INTERFACE_DESCRIPTOR),
+    USB_DESCRIPTOR_INTERFACE,
     0,                      // Interface Number
     0,                      // Alternate Setting Number
     ENDPOINT_COUNT,         // Number of endpoints in this intf
@@ -43,14 +42,14 @@ ROM BYTE configDescriptor1[]={
     0,                      // Interface string index
 
     /* Endpoint Descriptor */
-    0x07,                       /*sizeof(USB_EP_DSC)*/
+    sizeof(USB_ENDPOINT_DESCRIPTOR),
     USB_DESCRIPTOR_ENDPOINT,    // Endpoint Descriptor
     (ENDPOINT_DIR_OUT | OUT_ENDPOINT_NUMBER), // EndpointAddress
     _BULK,                       // Attributes
     DATA_ENDPOINT_SIZE,0x00,
     1,                         // Interval, unused by bulk endpoint
 
-    0x07,                       /*sizeof(USB_EP_DSC)*/
+    sizeof(USB_ENDPOINT_DESCRIPTOR),
     USB_DESCRIPTOR_ENDPOINT, //Endpoint Descriptor
     (ENDPOINT_DIR_IN | IN_ENDPOINT_NUMBER),                   // EndpointAddress
     _BULK,                       // Attributes

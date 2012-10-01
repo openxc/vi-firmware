@@ -77,7 +77,7 @@ bool receiveWriteRequest(uint8_t* message) {
  */
 void receiveCan(CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
-    if(QUEUE_LENGTH(CanMessage, &bus->receiveQueue) > 0) {
+    if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(message.id, message.data);
     }

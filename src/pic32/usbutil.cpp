@@ -40,21 +40,31 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
+bool waitForHandle(UsbDevice* usbDevice) {
+    int i = 0;
+    while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
+        ++i;
+        if(i > 400) {
+            debug("USB most likely not connected or at least not requesting "
+                    "IN transfers - bailing out of handle waiting\r\n");
+            return false;
+        }
+    }
+    return true;
+}
+
 void processUsbSendQueue(UsbDevice* usbDevice) {
+    if(!usbDevice->configured) {
+        return;
+    }
+
     while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
         // the data to its own internal buffer. See #171 for background on this
         // issue.
-        int i = 0;
-        while(usbDevice->configured &&
-                usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
-            ++i;
-            if(i > 50000) {
-                debug("USB most likely not connected or at least not requesting IN transfers"
-                        "- bailing out of handle waiting\r\n");
-                return;
-            }
+        if(!waitForHandle(usbDevice)) {
+            return;
         }
 
         int byteCount = 0;
@@ -64,7 +74,9 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
 
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
-            while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle));
+            if(!waitForHandle(usbDevice)) {
+                return;
+            }
             int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
                     usbDevice->inEndpoint, &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);

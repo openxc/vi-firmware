@@ -45,14 +45,6 @@ void handleCanInterrupt(CanBus* bus) {
         CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL1);
         CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
                 CAN::RX_CHANNEL_NOT_EMPTY, true);
-        }
-
-        /* Call the CAN::updateChannel() function to let the CAN module know
-         * that the message processing is done. Enable the event so that the
-         * CAN module generates an interrupt when the event occurs.*/
-        CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL1);
-        CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
-                CAN::RX_CHANNEL_NOT_EMPTY, true);
     }
 }
 

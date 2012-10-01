@@ -105,7 +105,7 @@ Once the dependencies are installed, compile and flash the LPC1768 like so:
 
     $ make clean
     $ BOARD=LPC1768 make -j4
-    $ make flash
+    $ BOARD=LPC1768 make flash
 
 ## Compiling and Uploading
 

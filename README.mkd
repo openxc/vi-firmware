@@ -347,9 +347,10 @@ section](http://openxcplatform.com/vehicle-interface/firmware.html) of the
 your CAN translator. Most users do not need to set up the full development
 described in these docs.
 
-## Reader
+## Testing
 
-The `reader.py` script is useful for testing the CAN translator with a regular
+The [OpenXC Python library](https://github.com/openxc/openxc-python), in
+particular the `openxc-dashboard` tool, is useful for testing the CAN translator with a regular
 computer, to verify the data received from a vehicle before introducing an
 Android device. Documentation for this tool (and the list of required
 dependencies) is available on the OpenXC [vehicle interface
@@ -358,12 +359,14 @@ testing](http://openxcplatform.com/vehicle-interface/testing.html) page.
 ## Traces
 
 You can record a trace of JSON messages from the CAN reader for use in testing.
-Plug the CAN translator's micro-USB port into a computer and run the `reader.py`
-program with the `--dump` flag to print all raw JSON messages to stdout.
-Redirect this to a file, and you've got your trace. This can be used directly
-by the openxc-android library, for example.
+First, install the [OpenXC Python library](python-lib). Then attach the CAN
+translator to your computer via USB and use the `openxc-dump` program to print
+all raw JSON messages to stdout. Redirect this to a file, and you've got your
+trace. This can be used directly by the openxc-android library, for example.
 
-    $ ./reader.py -d > vehicle-data.trace
+    $ openxc-dump > vehicle-data.trace
+
+[python-lib]: https://github.com/openxc/openxc-python
 
 ## Output Specification
 

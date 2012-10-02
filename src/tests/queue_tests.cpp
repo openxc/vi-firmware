@@ -90,7 +90,6 @@ START_TEST (test_sliding_window)
             bool success = QUEUE_PUSH(int, &queue, i);
             fail_unless(success, "wasn't able to add the %dth element", i + 1);
         }
-        printf("Length: %d\n", QUEUE_LENGTH(int, &queue));
 
         int expectedValue = 0;
         while(!QUEUE_EMPTY(int, &queue)) {

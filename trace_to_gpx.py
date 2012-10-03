@@ -11,9 +11,6 @@ def generate_gpx(trace_file):
     number = ET.SubElement(track, "number")
     number.text = "1"
 
-    latitude = None
-    longitude = None
-
     segment = ET.SubElement(track, "trkseg")
     for line in open(trace_file):
         timestamp, data = line.split(':', 1)
@@ -23,6 +20,8 @@ def generate_gpx(trace_file):
             sys.stderr.write("Skipping line: %s" % data)
             continue
 
+        latitude = None
+        longitude = None
         if record['name'] == 'latitude':
             latitude = record['value']
         elif record['name'] == 'longitude':

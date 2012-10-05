@@ -45,6 +45,35 @@ void initializeAllCan() {
 }
 
 bool receiveWriteRequest(uint8_t* message) {
+
+    if((message[0] != '{') || (message[5] != '|') || (message[14] != '}'))
+    {
+      debug("Received a corrupted CAN message.\r\n");
+      for(int i = 0; i < 16; i++) {
+	debug("%02x ", message[i] );
+      }
+      debug("\r\n");
+      return false;
+    }
+
+    CanMessage outGoing = {0, 0};
+    for(int i = 1; i < 5; i++) {
+	outGoing.id << 8;
+	outGoing.id += message[i];
+      }
+    for(int i = 0; i < 8; i++) {
+      ((uint8_t*)&(outGoing.data))[i] = message[i+6];
+    }
+
+    /*    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
+    for(int i = 0; i < 8; i++) {
+      debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
+    }
+    debug("\r\n");
+    */
+    sendCanMessage(&(getCanBuses()[0]), outGoing);
+      return true;
+
     cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
@@ -79,6 +108,7 @@ void receiveCan(CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
+	debug("%X\n\r", message.id);
         decodeCanMessage(message.id, message.data);
     }
 }

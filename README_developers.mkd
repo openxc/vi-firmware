@@ -1,4 +1,3 @@
-
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
@@ -6,6 +5,12 @@ requires [MPIDE][] (the development environment and compiler toolchain for
 chipKIT provided by Digilent). Installing MPIDE can be a bit quirky on some
 platforms, so if you're having trouble take a look at the [installation guide
 for MPIDE](http://chipkit.org/wiki/index.php?title=MPIDE_Installation).
+
+Some of the library dependencies are included in this repository as git
+submodules, so before you go further run:
+
+    $ git submodule init
+    $ git submodule update
 
 It also requires some libraries from Microchip that we are unfortunately unable
 to include or link to as a submodule from the source because of licensing

@@ -9,10 +9,6 @@ SYMBOLS += CAN_EMULATOR
 BASE_TARGET = canemulator
 endif
 
-ifdef SERIAL
-SYMBOLS += SERIAL
-endif
-
 ifdef DEBUG
 SYMBOLS += __DEBUG__
 else

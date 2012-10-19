@@ -3,15 +3,25 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
+#include "ethernetutil.h"
 #include "signals.h"
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include "chipKITEthernet.h"
 #include <stdint.h>
 
 extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;
+extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
+
+// Ethernet
+uint8_t MACAddr[6] = {0, 0, 0, 0, 0, 0};
+uint8_t IPAddr[4] = {192, 168, 1, 6};
+
+Server server = Server(10001);
+Client client;
 
 /* Forward declarations */
 
@@ -23,6 +33,7 @@ void setup() {
     initializeLogging();
     initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
+    initializeEthernet(MACAddr, IPAddr, server);
     initializeAllCan();
 }
 

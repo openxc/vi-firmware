@@ -1,7 +1,8 @@
 BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
-ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility \
+			   chipKITEthernet chipKITEthernet/utility cJSON
 NO_CORE_MAIN_FUNCTION = 1
 SKIP_SUFFIX_CHECK = 1
 OBJDIR = build/pic32

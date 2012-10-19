@@ -3,6 +3,7 @@
 
 #include "usbutil.h"
 #include "serialutil.h"
+#include "ethernetutil.h"
 
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
@@ -18,6 +19,7 @@
 typedef struct {
     UsbDevice* usb;
     SerialDevice* serial;
+    EthernetDevice* ethernet;
 } Listener;
 
 /* Public: Queue the message to send on all of the interfaces registered with

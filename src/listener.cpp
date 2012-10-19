@@ -28,6 +28,12 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
         debug("UART send queue full, dropping CAN message: %s\r\n", message);
     }
 #endif // NO_UART
+
+#ifndef NO_ETHERNET
+    if(!conditionalEnqueue(&listener->ethernet->sendQueue, message, messageSize)) {
+           debug("Ethernet send queue full, dropping CAN message: %s\r\n", message);
+       }
+#endif // NO_ETHERNET
 }
 
 void processListenerQueues(Listener* listener) {

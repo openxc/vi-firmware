@@ -1,3 +1,9 @@
+// Microchip Ethernet library comprises a function with
+// the same name and the same functionality "strnchr".
+// Therefore this section should not be compiled when
+// the Ethernet library is included.
+#ifdef NO_ETHER
+
 #include "strutil.h"
 
 const char *strnchr(const char *str, size_t len, char character) {
@@ -9,3 +15,5 @@ const char *strnchr(const char *str, size_t len, char character) {
     } while (++str <= end);
     return NULL;
 }
+
+#endif

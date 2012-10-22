@@ -18,6 +18,7 @@ extern Listener listener;
 void receiveCan(CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
+bool receiveCANWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
@@ -31,8 +32,8 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
     processListenerQueues(&listener);
-    readFromHost(&USB_DEVICE, &receiveWriteRequest);
-    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
+    readFromHost(&USB_DEVICE, &receiveCANWriteRequest);
+    readFromSerial(&SERIAL_DEVICE, &receiveCANWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
@@ -44,35 +45,52 @@ void initializeAllCan() {
     }
 }
 
+bool receiveCANWriteRequest(uint8_t* message) {
+    int index=0;
+    int packetLength = 15;
+
+    //    while((message[index] != '!') && (index + packetLength < 64)) {
+    while(true){
+      if(message[index] == '!') {
+	return true;
+      }
+      if  (index + packetLength >= 64)
+	{
+	  debug("!");
+	}
+        if((message[index] != '{') || (message[index+5] != '|') || (message[index+14] != '}'))
+	{
+	    debug("Received a corrupted CAN message.\r\n");
+	    for(int i = 0; i < 16; i++) {
+	        debug("%02x ", message[index+i] );
+	    }
+	    debug("\r\n");
+	    return false;
+	}
+
+	CanMessage outGoing = {0, 0};
+
+	memcpy((uint8_t*)&outGoing.id, &message[index+1], 4);
+
+	for(int i = 0; i < 8; i++) {
+	    ((uint8_t*)&(outGoing.data))[i] = message[index+i+6];
+	}
+
+	//    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
+	//for(int i = 0; i < 8; i++) {
+	//    debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
+	//}
+	//debug("\r\n");
+
+	sendCanMessage(&(getCanBuses()[0]), outGoing);
+
+	index += packetLength;
+    }
+
+    return true;
+}
+
 bool receiveWriteRequest(uint8_t* message) {
-
-    if((message[0] != '{') || (message[5] != '|') || (message[14] != '}'))
-    {
-      debug("Received a corrupted CAN message.\r\n");
-      for(int i = 0; i < 16; i++) {
-	debug("%02x ", message[i] );
-      }
-      debug("\r\n");
-      return false;
-    }
-
-    CanMessage outGoing = {0, 0};
-    for(int i = 1; i < 5; i++) {
-	outGoing.id << 8;
-	outGoing.id += message[i];
-      }
-    for(int i = 0; i < 8; i++) {
-      ((uint8_t*)&(outGoing.data))[i] = message[i+6];
-    }
-
-    /*    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
-    for(int i = 0; i < 8; i++) {
-      debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
-    }
-    debug("\r\n");
-    */
-    sendCanMessage(&(getCanBuses()[0]), outGoing);
-      return true;
 
     cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {

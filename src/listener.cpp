@@ -43,4 +43,8 @@ void processListenerQueues(Listener* listener) {
 #ifndef NO_UART
     processSerialSendQueue(listener->serial);
 #endif // NO_UART
+
+#ifndef NO_ETHERNET
+   processEthernetSendQueue(listener->ethernet);
+#endif
 }

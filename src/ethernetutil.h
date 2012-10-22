@@ -11,15 +11,19 @@ extern "C" {
 
 #include "queue.h"
 
+#define MAX_MESSAGE_SIZE 128
 
 typedef struct {
+	Server* ptrServer;
+
     // device to host
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
 } EthernetDevice;
 
-void initializeEthernet(uint8_t MACAddr[], uint8_t IPAddr[], Server& server);
+void initializeEthernet(EthernetDevice* device, Server* server,
+		uint8_t MACAddr[], uint8_t IPAddr[]);
 void processEthernetSendQueue(EthernetDevice* device);
 
 

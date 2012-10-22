@@ -17,6 +17,7 @@ extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
 
 // Ethernet
+
 uint8_t MACAddr[6] = {0, 0, 0, 0, 0, 0};
 uint8_t IPAddr[4] = {192, 168, 1, 6};
 
@@ -33,11 +34,13 @@ void setup() {
     initializeLogging();
     initializeSerial(&SERIAL_DEVICE);
     initializeUsb(&USB_DEVICE);
-    initializeEthernet(MACAddr, IPAddr, server);
+    initializeEthernet(&ETHERNET_DEVICE, &server,
+    		MACAddr, IPAddr);
     initializeAllCan();
 }
 
 void loop() {
+	client = server.available();
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }

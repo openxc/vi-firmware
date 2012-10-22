@@ -1,13 +1,22 @@
 #include "log.h"
 #include "ethernetutil.h"
 
-void initializeEthernet(uint8_t MACAddr[], uint8_t IPAddr[], Server& server)
+void initializeEthernet(EthernetDevice* device, Server* server,
+		uint8_t MACAddr[], uint8_t IPAddr[])
 {
 	debug("initializing Ethernet...");
+	device->ptrServer = server;
 	Ethernet.begin(MACAddr, IPAddr);
-	server.begin();
+	device->ptrServer->begin();
 }
 void processEthernetSendQueue(EthernetDevice* device)
 {
+	unsigned int byteCount = 0;
+	char sendBuffer[MAX_MESSAGE_SIZE];
+	while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
+			byteCount < MAX_MESSAGE_SIZE) {
+		sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
+	}
 
+	device->ptrServer->write((uint8_t*) sendBuffer, byteCount);
 }

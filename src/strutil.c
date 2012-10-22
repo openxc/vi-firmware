@@ -2,7 +2,7 @@
 // the same name and the same functionality "strnchr".
 // Therefore this section should not be compiled when
 // the Ethernet library is included.
-#ifdef NO_ETHER
+#ifdef NO_ETHERNET
 
 #include "strutil.h"
 

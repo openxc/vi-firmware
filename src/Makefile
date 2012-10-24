@@ -35,4 +35,3 @@ include tests/tests.mk
 
 clean::
 	rm -rf $(OBJDIR_ROOT)/*
-

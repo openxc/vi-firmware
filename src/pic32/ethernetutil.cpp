@@ -9,6 +9,11 @@ void initializeEthernet(EthernetDevice* device, Server* server,
 	Ethernet.begin(MACAddr, IPAddr);
 	device->ptrServer->begin();
 }
+
+// The message bytes are sequentially popped from the
+// send queue to the send buffer. After the buffer is full
+// or the queue is emtpy, the contents of the buffer are
+// sent over the ethernet to listening clients.
 void processEthernetSendQueue(EthernetDevice* device)
 {
 	unsigned int byteCount = 0;

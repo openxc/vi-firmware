@@ -32,10 +32,14 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
+#ifndef NO_UART
     initializeSerial(&SERIAL_DEVICE);
+#endif
     initializeUsb(&USB_DEVICE);
+#ifndef NO_ETHERNET
     initializeEthernet(&ETHERNET_DEVICE, &server,
     		MACAddr, IPAddr);
+#endif
     initializeAllCan();
 }
 

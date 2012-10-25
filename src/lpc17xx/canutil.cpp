@@ -1,5 +1,5 @@
 #include "canutil.h"
-#include "canutil_lpc1768.h"
+#include "canutil_lpc17xx.h"
 #include "signals.h"
 #include "log.h"
 #include "lpc17xx_pinsel.h"

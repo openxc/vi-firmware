@@ -1,5 +1,5 @@
 #include "bitfield.h"
-#include "canutil_lpc1768.h"
+#include "canutil_lpc17xx.h"
 #include "canutil.h"
 #include "canwrite.h"
 #include "log.h"

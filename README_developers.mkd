@@ -66,9 +66,9 @@ If the flash command can't find your chipKIT, you may need to set the
 `ARDUINO_PORT` variable (if the serial emulator doesn't show up as `/dev/ttyUSB*`
 (in Linux) or `/dev/tty.usbserial*` (in Mac OS X)).
 
-### LPC1768/69
+### LPC17xx
 
-Support for the NXP LPC1768, an ARM Cortex M3 microcontroller, is experimental
+Support for the NXP LPC17xx, an ARM Cortex M3 microcontroller, is experimental
 at the moment and the documentation is incomplete. We are building successfully
 on the NGX Blueboard 1768-H using the Olimex ARM-OCD-USB JTAG programmer.
 
@@ -106,11 +106,11 @@ and remove the Olimex sections, then reload the module:
 
 ### Compiling
 
-Once the dependencies are installed, compile and flash the LPC1768 like so:
+Once the dependencies are installed, compile and flash an LPC17xx like so:
 
     $ make clean
-    $ BOARD=LPC1768 make -j4
-    $ BOARD=LPC1768 make flash
+    $ BOARD=LPC17xx make -j4
+    $ BOARD=LPC17xx make flash
 
 ## Compiling and Uploading
 

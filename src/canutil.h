@@ -31,7 +31,7 @@ QUEUE_DECLARE(CanMessage, 16);
  *      (platform dependent, needs to be casted to actual type before use).
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
- *      registers a different handler per channel. LPC1768 uses the same global
+ *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.

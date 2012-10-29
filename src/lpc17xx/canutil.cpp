@@ -14,13 +14,22 @@
 #define CAN_FUNCNUM 2
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
-    debug("Configuring %d filters...", filterCount);
-    CAN_ERROR result = CAN_OK;
-    for(int i = 0; i < filterCount; i++) {
-        result = CAN_LoadFullCANEntry(CAN_CONTROLLER(bus), filters[i].value);
+    if(filterCount > 0) {
+        debug("Configuring %d filters...", filterCount);
+        // configure acceptance filter in bypass mode
+        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
+        CAN_ERROR result = CAN_OK;
+        for(int i = 0; i < filterCount; i++) {
+            result = CAN_LoadFullCANEntry(CAN_CONTROLLER(bus), filters[i].value);
+        }
+        debug("Done.\r\n");
+        return result;
+    } else {
+        debug("No filters configured, turning off acceptance filter\r\n");
+        // disable acceptable filter so we get all messages
+        CAN_SetAFMode(LPC_CANAF, CAN_AccOff);
+        return CAN_OK;
     }
-    debug("Done.\r\n");
-    return result;
 }
 
 void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
@@ -52,8 +61,6 @@ void initializeCan(CanBus* bus) {
     //CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
-    // configure acceptance filter in bypass mode
-    CAN_SetAFMode(LPC_CANAF, CAN_Normal);
 
     int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);

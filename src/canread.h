@@ -4,9 +4,26 @@
 #include "canutil.h"
 #include "listener.h"
 
+#define ID_FIELD_NAME "id"
+#define DATA_FIELD_NAME "data"
 #define NAME_FIELD_NAME "name"
 #define VALUE_FIELD_NAME "value"
 #define EVENT_FIELD_NAME "event"
+
+/* Public: Perform no parsing or processing of the CAN message, just encapsulate
+ * it in a JSON message with "id" and "data" attributes and send it out to the
+ * listeners.
+ *
+ * This is useful for debugging when CAN acceptance filters are disabled. Call
+ * this function every time decodeCanMessage is called and you will get a full
+ * CAN message stream.
+ *
+ * listener - The listener device to send the raw message over as an integer ID
+ *      and hex data as an ASCII encoded string.
+ * id - the ID of the CAN message.
+ * data - 64 bits of data from the message.
+ */
+void passthroughCanMessage(Listener* listener, int id, uint64_t data);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the listener;

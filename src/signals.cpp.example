@@ -11,20 +11,44 @@
  * The signals defined in this file are for demonstration purposes only - the
  * message formats are not real, and won't work on any car.
  */
-#include "canread_chipkit.h"
-#include "canread.h"
-#include "signals.h"
 
-extern CanUsbDevice usbDevice;
-extern CAN can1;
-extern CAN can2;
+// Skip this file when building the emulator
+#ifndef CAN_EMULATOR
+
+#include "canread.h"
+#include "canwrite.h"
+#include "signals.h"
+#include "log.h"
+#include "handlers.h"
+#include "shared_handlers.h"
+
+extern Listener listener;
+
+#ifdef __LPC17XX__
+#define can1 LPC_CAN1
+#define can2 LPC_CAN2
+#endif // __LPC17XX__
+
+#ifdef __PIC32__
+extern void* can1;
+extern void* can2;
 extern void handleCan1Interrupt();
 extern void handleCan2Interrupt();
+#endif // __PIC32__
 
 // Define the speed of your CAN buses here (these are both 500Kbps buses).
+const int CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { 500000, 0x101, &can1, handleCan1Interrupt, 0, false },
-    { 500000, 0x102, &can2, handleCan2Interrupt, 0, false },
+    { 500000, 0x102, can1,
+#ifdef __PIC32__
+        handleCan1Interrupt,
+#endif // __PIC32__
+    },
+    { 500000, 0x101, can2,
+#ifdef __PIC32__
+        handleCan2Interrupt,
+#endif // __PIC32__
+    },
 };
 
 // CAN signals with states for values are typically represented as integers on
@@ -32,7 +56,8 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
 // messages, we convert those to human readable strings. Use this array to
 // define the mapping between numbers and strings for any signals that require
 // it.
-CanSignalState SIGNAL_STATES[19][12] = {
+const int SIGNAL_COUNT = 3;
+CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
     { {1, "first"}, {2, "second"}, {3, "third"}, {4, "fourth"}, {5, "reverse"}, {6, "park"}, {7, "neutral"}, },
 };
 
@@ -47,7 +72,6 @@ CanSignalState SIGNAL_STATES[19][12] = {
 // look a little terse. There are a bunch of extra comments on the first item to
 // give you a point of reference, but check the documentation in canutil.h for a
 // complete explanation of each field.
-const int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&CAN_BUSES[0], // the bus to look for this signal on (effects filter setup)
         0x29, // the message ID
@@ -59,7 +83,6 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
         0, // minimum value after applying factor, offset and any handlers
         100, // maximum value after apply factor, offset and any handlers
         0, // send frequency, set to 0 to process every message
-        0, // private internal value
         true,  // send the value even if it hasn't changed (sendSame)
         false, // this is marked true if the signal has ever been received
         NULL, // an optional list of signal states. this doesn't use states.
@@ -67,10 +90,22 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
         false,  // this signal is NOT writable
         NULL // signal is NOT writable, so no custom writer necessary
         },
-    {&CAN_BUSES[0], 0x29, "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, 0, 0, true, false, NULL, 0, false, NULL},
-    {&CAN_BUSES[0], 0x52, "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, 0, 0, false, false, SIGNAL_STATES[0], 7, false, NULL},
-    {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, 0, true, false, NULL, 0, false, NULL},
+    {&CAN_BUSES[0], 0x29, "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, 0, true, false, NULL, 0, false, NULL},
+    {&CAN_BUSES[0], 0x52, "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, 0, false, false, SIGNAL_STATES[0], 7, false, NULL},
+    {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, true, false, NULL, 0, false, NULL},
 };
+
+const int COMMAND_COUNT = 0;
+CanCommand COMMANDS[COMMAND_COUNT] = {
+};
+
+CanCommand* getCommands() {
+    return COMMANDS;
+}
+
+int getCommandCount() {
+    return COMMAND_COUNT;
+}
 
 CanSignal* getSignals() {
     return SIGNALS;
@@ -84,6 +119,14 @@ CanBus* getCanBuses() {
     return CAN_BUSES;
 }
 
+int getCanBusCount() {
+    return CAN_BUS_COUNT;
+}
+
+const char* getMessageSet() {
+    return "example-2012";
+}
+
 /* See signals.h for full documentation on this method.
  *
  * This approach to processing CAN messages switches on the ID of the message
@@ -93,47 +136,22 @@ CanBus* getCanBuses() {
  * translateCanSignal function that matches your desired output format (float,
  * bool or string).
  */
-void decodeCanMessage(int id, uint8_t* data) {
+void decodeCanMessage(int id, uint64_t data) {
     switch (id) {
     case 0x29:
-        translateCanSignal(&usbDevice, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
-        extern float handleInvertedSteeringWheelAngle(CanSignal*, CanSignal*, int, float, bool*);
-        translateCanSignal(&usbDevice, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(&listener, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x52:
-        extern char* stateHandler(CanSignal*, CanSignal*, int, float, bool*);
-        translateCanSignal(&usbDevice, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x65:
-        translateCanSignal(&usbDevice, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(&listener, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
         break;
     }
 }
 
-CanFilterMask FILTER_MASKS[4];
-CanFilter FILTERS[2];
-
-CanFilterMask* initializeFilterMasks(uint64_t address, int* count) {
-Serial.println("Initializing filter arrays...");
-    if(address == CAN_BUSES[0].address) {
-        *count = 4;
-        FILTER_MASKS = {
-            {0, 0x7ff},
-            {1, 0x7ff},
-            {2, 0x7ff},
-            {3, 0x7ff},
-        };
-    } else if(address == CAN_BUSES[1].address) {
-        *count = 4;
-        FILTER_MASKS = {
-            {0, 0x7ff},
-            {1, 0x7ff},
-            {2, 0x7ff},
-            {3, 0x7ff},
-        };
-    }
-    return FILTER_MASKS;
-}
+CanFilter FILTERS[15];
 
 /* See signals.h for full documentation. Depending on the address of the bus in
  * parameter, we either create an array of filters for the 0x29 and 0x52
@@ -159,3 +177,5 @@ CanFilter* initializeFilters(uint64_t address, int* count) {
     }
     return FILTERS;
 }
+
+#endif // CAN_EMULATOR

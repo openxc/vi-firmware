@@ -1,0 +1,31 @@
+# OpenXC CAN Translator Changelog
+
+## v2.0
+
+* Further refactoring to support an additional platform, the ARM Cortex M3
+  (specifically the LPC1768/69), with the same code base.
+* Fix CAN bus freeze up issue and remove workaround.
+* Re-organize build process to improve performance when compiling.
+* Remove reader.py testing script, which was extracted into the openxc-python
+  library.
+
+## v1.3
+
+* Major refactoring of library internals for better portability.
+* Support sending OpenXC messages over UART in addition to USB.
+* Add experimental CAN message writing support.
+
+## v1.2
+
+* Add a unit test suite, compiled and run on the development computer.
+* Many, many bug fixes.
+* Workaround a CAN bus freeze up on the chipKIT by detecting the freeze and
+  restarting the CAN connection.
+
+## v1.1
+
+* Add custom handler infrastructure for messages and signals
+* Refactor CAN internals
+
+## v0.9
+* Pre-release version for testing, supports chipKIT

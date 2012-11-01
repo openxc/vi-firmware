@@ -6,7 +6,7 @@ from prettyprint import pp
 import re
 
 VERSION_PATTERN = r'^v\d+(\.\d+)+?$'
-env.releases_directory = "releases"
+env.releases_directory = "release"
 
 def latest_git_tag():
     description = local('git describe master', capture=True).rstrip('\n')
@@ -65,10 +65,4 @@ def make_tag():
 
 @task
 def release():
-    with lcd("cantranslator"):
-        local("make clean")
-        local("make")
     tag = make_tag()
-    local("mkdir -p %(releases_directory)s" % env)
-    local("cp cantranslator/build-cli/cantranslator.hex "
-            "%(releases_directory)s/cantranslator-%(tag)s.hex" % env)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import collections
 import itertools
 from collections import defaultdict
@@ -153,7 +154,7 @@ class Signal(object):
         return(end - l + 1)
 
     def _lookupBusIndex(self):
-        for i, bus in enumerate(self.buses.iteritems()):
+        for i, bus in enumerate(iter(self.buses.items())):
             if bus[0] == self.bus_address:
                 return i
 
@@ -195,23 +196,32 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print "#include \"canread_chipkit.h\""
-        print "#include \"canread.h\""
-        print "#include \"canwrite.h\""
-        print "#include \"signals.h\""
-        print "#include \"handlers.h\""
-        print "#include \"shared_handlers.h\""
-        print
-        print "extern CanUsbDevice usbDevice;"
-        print "extern CAN can1;"
-        print "extern CAN can2;"
-        print "extern void handleCan1Interrupt();"
-        print "extern void handleCan2Interrupt();"
-        print
+        print("#ifndef CAN_EMULATOR")
+        print("#include \"canread.h\"")
+        print("#include \"canwrite.h\"")
+        print("#include \"signals.h\"")
+        print("#include \"log.h\"")
+        print("#include \"handlers.h\"")
+        print("#include \"shared_handlers.h\"")
+        print()
+        print("extern Listener listener;")
+        print()
+        print("#ifdef __LPC17XX__")
+        print("#define can1 LPC_CAN1")
+        print("#define can2 LPC_CAN2")
+        print("#endif // __LPC17XX__")
+        print()
+        print("#ifdef __PIC32__")
+        print("extern void* can1;")
+        print("extern void* can2;")
+        print("extern void handleCan1Interrupt();")
+        print("extern void handleCan2Interrupt();")
+        print("#endif // __PIC32__")
+        print()
 
     def validate_messages(self):
         valid = True
-        for bus in self.buses.values():
+        for bus in list(self.buses.values()):
             for message in bus['messages']:
                 for signal in message.signals:
                     valid = valid and signal.validate()
@@ -228,183 +238,150 @@ class Parser(object):
             sys.exit(1)
         self.print_header()
 
-        print "const int CAN_BUS_COUNT = %d;" % len(self.buses)
-        print "CanBus CAN_BUSES[CAN_BUS_COUNT] = {"
-        for i, bus in enumerate(self.buses.iteritems()):
+        print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
+        print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
+        for i, bus in enumerate(iter(self.buses.items())):
             bus_number = i + 1
-            print "    { %d, %s, &can%d, handleCan%dInterrupt, 0, false }," % (
-                    bus[1]['speed'], bus[0], bus_number, bus_number)
-        print "};"
-        print
+            print("    { %d, %s, can%d, " % (
+                    bus[1]['speed'], bus[0], bus_number))
+            print("#ifdef __PIC32__")
+            print("        handleCan%dInterrupt," % bus_number)
+            print("#endif // __PIC32__")
+            print("    },")
+        print("};")
+        print()
 
-        print "const int SIGNAL_COUNT = %d;" % self.signal_count
+        print("const int SIGNAL_COUNT = %d;" % self.signal_count)
         # TODO need to handle signals with more than 12 states
-        print "CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12
+        print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12)
 
         states_index = 0
-        for bus in self.buses.values():
+        for bus in list(self.buses.values()):
             for message in bus['messages']:
                 for signal in message.signals:
                     if len(signal.states) > 0:
-                        print "    {",
+                        print("    {", end=' ')
                         for state in signal.states:
-                            print "%s," % state,
-                        print "},"
+                            print("%s," % state, end=' ')
+                        print("},")
                         signal.states_index = states_index
                         states_index += 1
-        print "};"
-        print
+        print("};")
+        print()
 
-        print "CanSignal SIGNALS[SIGNAL_COUNT] = {"
+        print("CanSignal SIGNALS[SIGNAL_COUNT] = {")
 
         i = 1
-        for bus in self.buses.values():
+        for bus in list(self.buses.values()):
             for message in bus['messages']:
                 for signal in message.signals:
                     signal.array_index = i - 1
-                    print "    %s" % signal
+                    print("    %s" % signal)
                     i += 1
-        print "};"
-        print
+        print("};")
+        print()
 
-        print "const int COMMAND_COUNT = %d;" % self.command_count
-        print "CanCommand COMMANDS[COMMAND_COUNT] = {"
+        print("const int COMMAND_COUNT = %d;" % self.command_count)
+        print("CanCommand COMMANDS[COMMAND_COUNT] = {")
 
         for command in self.commands:
-            print "    ", command
+            print("    ", command)
 
-        print "};"
-        print
+        print("};")
+        print()
 
         # TODO store all of this in a separate, committed .cpp file
-        print "CanCommand* getCommands() {"
-        print "    return COMMANDS;"
-        print "}"
-        print
+        print("CanCommand* getCommands() {")
+        print("    return COMMANDS;")
+        print("}")
+        print()
 
-        print "int getCommandCount() {"
-        print "    return COMMAND_COUNT;"
-        print "}"
-        print
+        print("int getCommandCount() {")
+        print("    return COMMAND_COUNT;")
+        print("}")
+        print()
 
-        print "CanSignal* getSignals() {"
-        print "    return SIGNALS;"
-        print "}"
-        print
+        print("CanSignal* getSignals() {")
+        print("    return SIGNALS;")
+        print("}")
+        print()
 
-        print "int getSignalCount() {"
-        print "    return SIGNAL_COUNT;"
-        print "}"
-        print
+        print("int getSignalCount() {")
+        print("    return SIGNAL_COUNT;")
+        print("}")
+        print()
 
-        print "CanBus* getCanBuses() {"
-        print "    return CAN_BUSES;"
-        print "}"
-        print
+        print("CanBus* getCanBuses() {")
+        print("    return CAN_BUSES;")
+        print("}")
+        print()
 
-        print "int getCanBusCount() {"
-        print "    return CAN_BUS_COUNT;"
-        print "}"
-        print
+        print("int getCanBusCount() {")
+        print("    return CAN_BUS_COUNT;")
+        print("}")
+        print()
 
-        print "char* getMessageSet() {"
-        print "    return \"%s\";" % self.name
-        print "}"
-        print
+        print("const char* getMessageSet() {")
+        print("    return \"%s\";" % self.name)
+        print("}")
+        print()
 
-        print "void decodeCanMessage(int id, uint8_t* data) {"
-        print "    switch (id) {"
-        for bus in self.buses.values():
+        print("void decodeCanMessage(int id, uint64_t data) {")
+        print("    switch (id) {")
+        for bus in list(self.buses.values()):
             for message in bus['messages']:
-                print "    case 0x%x: // %s" % (message.id, message.name)
+                print("    case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
-                    print ("        %s(id, data, SIGNALS, " % message.handler +
-                            "SIGNAL_COUNT, &usbDevice);")
+                    print(("        %s(id, data, SIGNALS, " % message.handler +
+                            "SIGNAL_COUNT, &listener);"))
                 for signal in (s for s in message.signals if not s.ignore):
                     if signal.handler:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print(("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                signal.handler, signal.name))
+                                signal.handler, signal.name)))
                     else:
-                        print ("        translateCanSignal(&usbDevice, "
+                        print(("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
-                                    % signal.name)
-                print "        break;"
-        print "    }"
-        print "}\n"
+                                    % signal.name))
+                print("        break;")
+        print("    }")
+        print("}\n")
 
         # Create a set of filters.
         self.print_filters()
+        print()
+        print("#endif // CAN_EMULATOR")
 
     def print_filters(self):
-        # TODO These cast a really wide net and should also be defined at the
-        # top level of the JSON
-        can1_masks = [(0, 0x7ff),
-                (1, 0x7ff),
-                (2, 0x7ff),
-                (3, 0x7ff)]
-        can2_masks = list(can1_masks)
-
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        print "CanFilterMask FILTER_MASKS[%d];" % (
-                max(len(can1_masks), len(can2_masks)))
-
         message_count = sum((len(bus['messages'])
-                for bus in self.buses.values()))
-        print "CanFilter FILTERS[%d];" % message_count
+                for bus in list(self.buses.values())))
+        print("CanFilter FILTERS[%d];" % message_count)
 
-        # TODO when the masks are defined in JSON we can do this more
-        # dynamically like the filters
-        print
-        print ("CanFilterMask* initializeFilterMasks(uint64_t address, "
-                "int* count) {")
-        print "Serial.println(\"Initializing filter arrays...\");"
-
-        print "    if(address == CAN_BUSES[0].address) {"
-        print "        *count = %d;" % len(can1_masks)
-        print "        FILTER_MASKS = {"
-        for i, mask in enumerate(can1_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
-        print "    } else if(address == CAN_BUSES[1].address) {"
-        print "        *count = %d;" % len(can2_masks)
-        print "        FILTER_MASKS = {"
-        for i, mask in enumerate(can2_masks):
-            print "            {%d, 0x%x}," % mask
-        print "        };"
-        print "    }"
-        print "    return FILTER_MASKS;"
-        print "}"
-
-        print
-        print "CanFilter* initializeFilters(uint64_t address, int* count) {"
-        print "    Serial.println(\"Initializing filters...\");"
-
-        print "    switch(address) {"
-        for bus_address, bus in self.buses.iteritems():
-            print "    case %s:" % bus_address
-            print "        *count = %d;" % len(bus['messages'])
-            print "        FILTERS = {"
+        print()
+        print("CanFilter* initializeFilters(uint64_t address, int* count) {")
+        print("    switch(address) {")
+        for bus_address, bus in self.buses.items():
+            print("    case %s:" % bus_address)
+            print("        *count = %d;" % len(bus['messages']))
             for i, message in enumerate(bus['messages']):
-                # TODO be super smart and figure out good mask values
-                # dynamically
-                print "            {%d, 0x%x, %d, %d}," % (i, message.id, 1, 0)
-            print "        };"
-            print "        break;"
-        print "    }"
-        print "    return FILTERS;"
-        print "}"
+                print("        FILTERS[%d] = {%d, 0x%x, %d};" % (
+                        i, i, message.id, 1))
+            print("        break;")
+        print("    }")
+        print("    return FILTERS;")
+        print("}")
 
 
 class JsonParser(Parser):
     def __init__(self, filenames, name=None):
         super(JsonParser, self).__init__(name)
-        if not hasattr(filenames, "__iter__"):
+        if not isinstance(filenames, list):
             filenames = [filenames]
         else:
             filenames = itertools.chain(*filenames)
@@ -414,29 +391,29 @@ class JsonParser(Parser):
     def parse(self):
         import json
         merged_dict = {}
-        for filename in itertools.chain(self.json_files):
+        for filename in self.json_files:
             with open(filename) as json_file:
                 data = json.load(json_file)
                 merged_dict = merge(merged_dict, data)
 
-        for bus_address, bus_data in merged_dict.iteritems():
+        self.commands = []
+        for bus_address, bus_data in merged_dict.items():
             self.buses[bus_address]['speed'] = bus_data['speed']
             self.buses[bus_address].setdefault('messages', [])
-            self.commands = []
             for command_id, command_data in bus_data.get(
-                    'commands', {}).iteritems():
+                    'commands', {}).items():
                 self.command_count += 1
                 command = Command(command_id, command_data.get('handler', None))
                 self.commands.append(command)
 
-            for message_id, message_data in bus_data['messages'].iteritems():
+            for message_id, message_data in bus_data['messages'].items():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_id, message_data.get('name', None),
                         message_data.get('handler', None))
-                for signal_name, signal in message_data['signals'].iteritems():
+                for signal_name, signal in message_data['signals'].items():
                     states = []
                     for name, raw_matches in signal.get('states',
-                            {}).iteritems():
+                            {}).items():
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
                     message.signals.append(

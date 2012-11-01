@@ -1,28 +1,33 @@
-
 ## Installation
 
 Building the source for the CAN translator for the chipKIT microcontroller
 requires [MPIDE][] (the development environment and compiler toolchain for
-chipKIT provided by Digilent) and a few library dependencies:
+chipKIT provided by Digilent). Installing MPIDE can be a bit quirky on some
+platforms, so if you're having trouble take a look at the [installation guide
+for MPIDE](http://chipkit.org/wiki/index.php?title=MPIDE_Installation).
+
+Some of the library dependencies are included in this repository as git
+submodules, so before you go further run:
+
+    $ git submodule init
+    $ git submodule update
+
+It also requires some libraries from Microchip that we are unfortunately unable
+to include or link to as a submodule from the source because of licensing
+issues:
 
 * Microchip USB device library (download DSD-0000318 from
     the bottom of the [Network Shield page][])
 * Microchip CAN library (included in the same DSD-0000318 package as the USB
   device library)
-* [cJSON](http://sourceforge.net/projects/cjson/)
 
-Installing MPIDE can be a bit quirky on some platforms, so if you're having
-trouble take a look at the [installation guide for
-MPIDE](http://chipkit.org/wiki/index.php?title=MPIDE_Installation).
+Download the zip file that contains these two libraries and extract the folders
+into the `libs` directory in this project. It should look like this:
 
-Download these libraries and extract them to your MPIDE sketchbook directory in
-a subdirectory named `libraries`. It should look like this:
-
-    - /Users/me/sketchbook/
-    ---- libraries/
+    - /Users/me/projects/cantranslator/
+    ---- libs/
     -------- chipKITUSBDevice/
              chipKitCAN/
-             cJSON/
             ... other libraries
 
 If you're using Mac OS X or Windows, make sure to install the FTDI driver that
@@ -33,47 +38,79 @@ if you've used the Arduino before, you still need to install this driver.
 [Max32 page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,895&Prod=CHIPKIT-MAX32
 [Network Shield page]: http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,943&Prod=CHIPKIT-NETWORK-SHIELD
 
-### GUI Building
-
-Although we just installed MPIDE, building via the GUI is **not supported**.
-
-### Command Line Building
-
-We use GNU Make to compile and upload code to the device. You still need to
+Although we just installed MPIDE, building via the GUI is **not supported**. We
+use GNU Make to compile and upload code to the device. You still need to
 download and extract the MPIDE someplace, as it contains the PIC32 compilation
 toolchain.
 
-This requires that you clone the [arduino.mk][] repository someone on your
-computer. This contains Makefile definitions common to Arduino and chipKIT
-platforms.
-
-    $ git clone https://github.com/peplin/arduino.mk.git
-
-You also need to set a few environment variables (e.g. in your `.bashrc`) for
-this method (make sure to change these defaults if your system is different!):
+You need to set an environment variable (e.g. in your `.bashrc`) to let the
+project know where you installed MPIDE (make sure to change these defaults if
+your system is different!):
 
     # Path to the extracted MPIDE folder (this is correct for OS X)
     export MPIDE_DIR=/Applications/Mpide.app/Contents/Resources/Java
 
-    # Path to the `arduino.mk` repository you just cloned
-    export ARDUINO_MAKEFILE_HOME=$HOME/projects/arduino.mk
-
-Optionally, set the `ARDUINO_PORT` variable if the serial emulator doesn't
-show up as `/dev/ttyUSB*` (in Linux) or `/dev/tty.usbserial*` (in Mac OS X).
-
 Remember that if you use `export`, the environment variables are only set in the
 terminal that you run the commands. If you want them active in all terminals
 (and you probably do), you need to add these `export ...` lines to the file
-`~/.bashrc` and restart your terminals.
+`~/.bashrc` (in Linux) or `~/.bash_profile` (in OS X) and start a new terminal.
 
-Once this is set up, `cd` into the `cantranslator` subdirectory, build and
+Once this is set up, `cd` into the `src` subdirectory, build and
 upload to the device:
 
     $ make clean
     $ make
-    $ make upload
+    $ make flash
 
-[arduino.mk]: https://github.com/peplin/arduino.mk
+If the flash command can't find your chipKIT, you may need to set the
+`ARDUINO_PORT` variable (if the serial emulator doesn't show up as `/dev/ttyUSB*`
+(in Linux) or `/dev/tty.usbserial*` (in Mac OS X)).
+
+### LPC17xx
+
+Support for the NXP LPC17xx, an ARM Cortex M3 microcontroller, is experimental
+at the moment and the documentation is incomplete. We are building successfully
+on the NGX Blueboard 1768-H using the Olimex ARM-OCD-USB JTAG programmer.
+
+### Ubuntu
+
+### Arch Linux
+
+    $ pacman -S openocd
+
+Download and install from the AUR:
+
+* gcc-arm-none-eabi
+
+### OS X
+
+Install Homebrew. Then:
+
+    $ brew install libftdi libusb
+    $ brew tap PX4/homebrew-px4
+    $ brew install gcc-arm-none-eabi
+
+Wait a looooong time.
+
+Download the OpenOCD source distribution and build manually:
+
+    $ ./configure --enable-ft2232_libftdi
+    $ make
+    $ sudo make install
+
+Edit `/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist`
+and remove the Olimex sections, then reload the module:
+
+    $ sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
+    $ sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
+
+### Compiling
+
+Once the dependencies are installed, compile and flash an LPC17xx like so:
+
+    $ make clean
+    $ BOARD=LPC17xx make -j4
+    $ BOARD=LPC17xx make flash
 
 ## Compiling and Uploading
 

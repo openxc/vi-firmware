@@ -1,1 +1,0 @@
-../cantranslator/canwrite.h

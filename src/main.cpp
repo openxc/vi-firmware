@@ -16,7 +16,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "2.0-pre";
+const char* VERSION = "2.0";
 
 SerialDevice SERIAL_DEVICE;
 

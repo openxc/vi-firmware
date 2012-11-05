@@ -106,11 +106,16 @@ and remove the Olimex sections, then reload the module:
 
 ### Compiling
 
-Once the dependencies are installed, compile and flash an LPC17xx like so:
+Once the dependencies are installed, attach a JTAG adapter to your computer and
+the CAN translator, then compile and flash an LPC17xx like so:
 
     $ make clean
     $ BOARD=LPC17xx make -j4
     $ BOARD=LPC17xx make flash
+
+The config files in this repository assume your JTAG adapter is the Olimex
+ARM-USB-OCD unit. If you have a different unit, change the first line in
+`conf/flash.cfg` to the correct value.
 
 ## Compiling and Uploading
 

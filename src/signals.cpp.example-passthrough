@@ -1,0 +1,94 @@
+/* This is an example implementation of the functions defined in signals.h that
+* are required to compile and deploy to the OpenXC CAN translator. This file is
+* different from signals.cpp.example in that it does not define any CAN messages
+* to be translated, and instead uses the passthroughCanMessage function to spit
+* out raw CAN data from the bus over USB and UART.
+*/
+
+#ifndef CAN_EMULATOR
+#include "canread.h"
+#include "canwrite.h"
+#include "signals.h"
+#include "log.h"
+#include "handlers.h"
+#include "shared_handlers.h"
+
+extern Listener listener;
+
+#ifdef __LPC17XX__
+#define can1 LPC_CAN1
+#define can2 LPC_CAN2
+#endif // __LPC17XX__
+
+#ifdef __PIC32__
+extern void* can1;
+extern void* can2;
+extern void handleCan1Interrupt();
+extern void handleCan2Interrupt();
+#endif // __PIC32__
+
+const int CAN_BUS_COUNT = 2;
+CanBus CAN_BUSES[CAN_BUS_COUNT] = {
+    { 500000, 0x101, can1,
+#ifdef __PIC32__
+        handleCan1Interrupt,
+#endif // __PIC32__
+    },
+    { 125000, 0x102, can2,
+#ifdef __PIC32__
+        handleCan2Interrupt,
+#endif // __PIC32__
+    },
+};
+
+const int SIGNAL_COUNT = 0;
+CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
+};
+
+CanSignal SIGNALS[SIGNAL_COUNT] = {
+};
+
+const int COMMAND_COUNT = 0;
+CanCommand COMMANDS[COMMAND_COUNT] = {
+};
+
+CanCommand* getCommands() {
+    return COMMANDS;
+}
+
+int getCommandCount() {
+    return COMMAND_COUNT;
+}
+
+CanSignal* getSignals() {
+    return SIGNALS;
+}
+
+int getSignalCount() {
+    return SIGNAL_COUNT;
+}
+
+CanBus* getCanBuses() {
+    return CAN_BUSES;
+}
+
+int getCanBusCount() {
+    return CAN_BUS_COUNT;
+}
+
+const char* getMessageSet() {
+    return "passthrough-2012";
+}
+
+void decodeCanMessage(int id, uint64_t data) {
+    passthroughCanMessage(&listener, id, data);
+}
+
+CanFilter FILTERS[0];
+
+CanFilter* initializeFilters(uint64_t address, int* count) {
+    *count = 0;
+    return FILTERS;
+}
+
+#endif // CAN_EMULATOR

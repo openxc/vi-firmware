@@ -327,9 +327,11 @@ class Parser(object):
         print()
 
         print("void decodeCanMessage(int id, uint64_t data) {")
+        has_messages = False
         print("    switch (id) {")
         for bus in list(self.buses.values()):
             for message in bus['messages']:
+                has_messages = True
                 print("    case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
                     print(("        %s(id, data, SIGNALS, " % message.handler +
@@ -347,6 +349,10 @@ class Parser(object):
                                     % signal.name))
                 print("        break;")
         print("    }")
+
+        if not has_messages:
+            print("    passthroughCanMessage(&listener, id, data);")
+
         print("}\n")
 
         # Create a set of filters.

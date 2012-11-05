@@ -327,11 +327,9 @@ class Parser(object):
         print()
 
         print("void decodeCanMessage(int id, uint64_t data) {")
-        has_messages = False
         print("    switch (id) {")
         for bus in list(self.buses.values()):
             for message in bus['messages']:
-                has_messages = True
                 print("    case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
                     print(("        %s(id, data, SIGNALS, " % message.handler +
@@ -350,7 +348,7 @@ class Parser(object):
                 print("        break;")
         print("    }")
 
-        if not has_messages:
+        if self._message_count() == 0:
             print("    passthroughCanMessage(&listener, id, data);")
 
         print("}\n")
@@ -360,14 +358,15 @@ class Parser(object):
         print()
         print("#endif // CAN_EMULATOR")
 
+    def _message_count(self):
+        return sum((len(bus['messages']) for bus in list(self.buses.values())))
+
     def print_filters(self):
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        message_count = sum((len(bus['messages'])
-                for bus in list(self.buses.values())))
-        print("CanFilter FILTERS[%d];" % message_count)
+        print("CanFilter FILTERS[%d];" % self._message_count())
 
         print()
         print("CanFilter* initializeFilters(uint64_t address, int* count) {")
@@ -412,7 +411,7 @@ class JsonParser(Parser):
                 command = Command(command_id, command_data.get('handler', None))
                 self.commands.append(command)
 
-            for message_id, message_data in bus_data['messages'].items():
+            for message_id, message_data in bus_data.get('messages', {}).items():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_id, message_data.get('name', None),
                         message_data.get('handler', None))

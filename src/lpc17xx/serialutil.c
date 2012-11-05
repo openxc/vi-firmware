@@ -6,6 +6,10 @@
 #include "log.h"
 
 #define CAN_SERIAL_PORT (LPC_UART_TypeDef*)LPC_UART1
+#define UART1_FUNCNUM 1
+#define UART1_PORTNUM 0
+#define UART1_TX_PINNUM 15
+#define UART1_RX_PINNUM 16
 
 extern SerialDevice SERIAL_DEVICE;
 
@@ -80,14 +84,13 @@ void initializeSerial(SerialDevice* device) {
     UART_CFG_Type UARTConfigStruct;
     PINSEL_CFG_Type PinCfg;
 
-    // use the 2nd alternative function for UART1 on these pins
-    PinCfg.Funcnum = 2;
+    PinCfg.Funcnum = UART1_FUNCNUM;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 0;
-    PinCfg.Portnum = 2;
-    PinCfg.Pinnum = 0;
+    PinCfg.Portnum = UART1_PORTNUM;
+    PinCfg.Pinnum = UART1_TX_PINNUM;
     PINSEL_ConfigPin(&PinCfg);
-    PinCfg.Pinnum = 1;
+    PinCfg.Pinnum = UART1_RX_PINNUM;
     PINSEL_ConfigPin(&PinCfg);
 
     TRANSMIT_INTERRUPT_STATUS = RESET;

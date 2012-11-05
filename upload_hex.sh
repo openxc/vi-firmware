@@ -18,9 +18,19 @@ die() {
     exit 1
 }
 
+if [ ${KERNEL:0:7} == "MINGW32" ]; then
+    OS="windows"
+elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
+    OS="cygwin"
+elif [ $KERNEL == "Darwin" ]; then
+    OS="mac"
+else
+    OS="linux"
+fi
+
 if [ -z $PORT ]; then
-    if [ ${KERNEL:0:7} == "MINGW32" ]; then
-        PORT="com3"
+    if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
+        PORT="com4"
     else
         PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
         if [ -z $PORT ]; then
@@ -33,14 +43,19 @@ if [ -z $PORT ]; then
 fi
 
 if [ -z $MPIDE_DIR ]; then
-    echo "The environment variable MPIDE_DIR doesn't point to an MPIDE \
-installation."
+    echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
     if [ -z $AVRDUDE ]; then
         AVRDUDE=`which avrdude`
     fi
 
     if [ -z $AVRDUDE_CONF ]; then
-        AVRDUDE_CONF="$DIR/conf/avrdude.conf"
+        if [ $OS == "cygwin" ]; then
+            # avrdude in cygwin expects windows style paths, so the absolute
+            # path throws a "file not found" error
+            AVRDUDE_CONF="conf/avrdude.conf"
+        else
+            AVRDUDE_CONF="$DIR/conf/avrdude.conf"
+        fi
     fi
 
     if [ -z $AVRDUDE ]; then
@@ -68,7 +83,9 @@ AVRDUDE_ARD_BAUDRATE=115200
 AVRDUDE_COM_OPTS="-q -V -p $MCU -C $AVRDUDE_CONF"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
 
-[ "$#" -eq 1 ] || die "path to hex file is required as a parameter"
+if [ -z $HEX_FILE ]; then
+    die "path to hex file is required as a parameter"
+fi
 
 upload() {
     $AVRDUDE $AVRDUDE_COM_OPTS $AVRDUDE_ARD_OPTS -U flash:w:$HEX_FILE:i
@@ -83,10 +100,12 @@ reset() {
     $STTYF $PORT -hupcl
 }
 
-if [ ${KERNEL:0:6} != "MINGW32" ]; then
-    # no stty in windows, so we just skip it - you need to run this script right
-    # after you plug in the board so it's still in programmable mode.
+if [ $OS != "windows" ] && [ $OS != "cygwin" ]; then
+    # no stty in windows and it doesn't work in cygwin, so we just skip it - you
+    # need to run this script right after you plug in the board so it's still in
+    # programmable mode.
     reset
 fi
 
+echo "Flashing $HEX_FILE to device at port $PORT in $OS"
 upload

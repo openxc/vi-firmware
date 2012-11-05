@@ -9,10 +9,6 @@ SYMBOLS += CAN_EMULATOR
 BASE_TARGET = canemulator
 endif
 
-ifdef SERIAL
-SYMBOLS += SERIAL
-endif
-
 ifdef DEBUG
 SYMBOLS += __DEBUG__
 else
@@ -32,11 +28,10 @@ endif
 ifeq ($(BOARD), PIC32)
 include pic32/pic32.mk
 else
-include lpc1768/lpc1768.mk
+include lpc17xx/lpc17xx.mk
 endif
 
 include tests/tests.mk
 
 clean::
 	rm -rf $(OBJDIR_ROOT)/*
-

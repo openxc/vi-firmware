@@ -1,16 +1,17 @@
 #include "canutil.h"
-#include "canutil_lpc1768.h"
+#include "canutil_lpc17xx.h"
 #include "signals.h"
 #include "log.h"
 #include "lpc17xx_pinsel.h"
 
 #define CAN_CTRL(BUS) (BUS == LPC_CAN1 ? 0 : 1)
 
-// CAN1: select P0.0 as RD1. P0.1 as TD1
-// CAN2: select P2.7 as RD2, P2.8 as RD2
-#define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 0 : 7)
-#define CAN_TX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 1 : 8)
-#define CAN_PORT_NUM(BUS) (BUS == LPC_CAN1 ? 0 : 2)
+// CAN1: select P0.21 as RD1. P0.22 as TD1
+// CAN2: select P0.4 as RD2, P0.5 as RD2
+#define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 21 : 4)
+#define CAN_TX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 22 : 5)
+#define CAN_PORT_NUM(BUS) 0
+#define CAN_FUNCNUM 2
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     debug("Configuring %d filters...", filterCount);
@@ -24,9 +25,9 @@ CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
 
 void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_CFG_Type PinCfg;
-    PinCfg.Funcnum = 1;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 0;
+    PinCfg.Funcnum = CAN_FUNCNUM;
     PinCfg.Pinnum = CAN_RX_PIN_NUM(controller);
     PinCfg.Portnum = CAN_PORT_NUM(controller);
     PINSEL_ConfigPin(&PinCfg);

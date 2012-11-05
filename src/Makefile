@@ -19,6 +19,10 @@ ifdef NO_UART
 SYMBOLS += NO_UART
 endif
 
+ifdef TRANSMITTER
+SYMBOLS += TRANSMITTER
+endif
+
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
 ifndef BOARD

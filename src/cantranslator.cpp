@@ -32,11 +32,16 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
     processListenerQueues(&listener);
+#ifdef TRANSMITTER
     readFromHost(&USB_DEVICE, &receiveCANWriteRequest);
     readFromSerial(&SERIAL_DEVICE, &receiveCANWriteRequest);
+#else
+    readFromHost(&USB_DEVICE, &receiveWriteRequest);
+    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
+#endif
 }
 
 void initializeAllCan() {
@@ -44,7 +49,7 @@ void initializeAllCan() {
         initializeCan(&(getCanBuses()[i]));
     }
 }
-
+#ifdef TRANSMITTER
 bool receiveCANWriteRequest(uint8_t* message) {
     int index=0;
     int packetLength = 15;
@@ -90,6 +95,8 @@ bool receiveCANWriteRequest(uint8_t* message) {
     return true;
 }
 
+#else    //ifdef TRANSMITTER
+
 bool receiveWriteRequest(uint8_t* message) {
 
     cJSON *root = cJSON_Parse((char*)message);
@@ -117,7 +124,7 @@ bool receiveWriteRequest(uint8_t* message) {
     }
     return false;
 }
-
+#endif
 /*
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
@@ -126,7 +133,6 @@ void receiveCan(CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-	debug("%X\n\r", message.id);
         decodeCanMessage(message.id, message.data);
     }
 }

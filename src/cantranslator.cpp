@@ -97,17 +97,45 @@ bool receiveCANWriteRequest(uint8_t* message) {
 
 #else    //ifdef TRANSMITTER
 
+bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
+    int id = idObject->valueint;
+    cJSON* dataObject = cJSON_GetObjectItem(root, "data");
+    if(dataObject == NULL) {
+        debug("Raw write request with id 0x%x missing data\r\n", id);
+        return true;
+    }
+    int data = dataObject->valueint;
+    CanMessage message = {id, data};
+    debug("Writing raw CAN message 0x%x: 0x%x\r\n", id, data);
+    // TODO specify bus by address in JSON
+    sendCanMessage(&getCanBuses()[0], message);
+
+    return true;
+}
+
 bool receiveWriteRequest(uint8_t* message) {
 
     cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            debug("Write request is malformed, missing name: %s\r\n", message);
-            return true;
+            cJSON* idObject = cJSON_GetObjectItem(root, "id");
+            if(idObject == NULL) {
+                debug("Write request is malformed, "
+                        "missing name or id: %s\r\n", message);
+                return true;
+            } else {
+                return receiveRawWriteRequest(idObject, root);
+            }
         }
+
         char* name = nameObject->valuestring;
         cJSON* value = cJSON_GetObjectItem(root, "value");
+        if(value == NULL) {
+            debug("Write request for %s missing value\r\n", name);
+            return true;
+        }
+
         CanSignal* signal = lookupSignal(name, getSignals(),
                 getSignalCount(), true);
         CanCommand* command = lookupCommand(name, getCommands(),

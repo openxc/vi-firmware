@@ -97,7 +97,13 @@ void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
     cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
 
     char encodedData[67];
-    sprintf(encodedData, "0x%x", data);
+    union {
+        uint64_t whole;
+        uint32_t halves[2];
+    } combined;
+    combined.whole = data;
+
+    sprintf(encodedData, "0x%8lx%8lx", combined.halves[0], combined.halves[1]);
     cJSON_AddStringToObject(root, NAME_FIELD_NAME, encodedData);
 
     sendJSON(root, listener);

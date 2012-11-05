@@ -52,7 +52,8 @@ typedef struct {
  *
  * number - The ID of this filter, e.g. 0, 1, 2.
  * value - The filter's value.
- * channel - The CAN channel this filter should be applied to.
+ * channel - The CAN channel this filter should be applied to - on the PIC32,
+ *           channel 1 is for RX.
  */
 typedef struct {
     int number;

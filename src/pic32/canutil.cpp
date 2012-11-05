@@ -17,22 +17,34 @@ CAN* can2 = &can2Actual;
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
         debug("Configuring %d filters...", filterCount);
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF, CAN::SID,
-                CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
+                CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
         for(int i = 0; i < filterCount; i++) {
-            CAN_CONTROLLER(bus)->configureFilter((CAN::FILTER) filters[i].number,
-                    filters[i].value, CAN::SID);
-            CAN_CONTROLLER(bus)->linkFilterToChannel((CAN::FILTER) filters[i].number,
-                    CAN::FILTER_MASK0, (CAN::CHANNEL) filters[i].channel);
-            CAN_CONTROLLER(bus)->enableFilter((CAN::FILTER) filters[i].number, true);
+            CAN_CONTROLLER(bus)->configureFilter(
+                    (CAN::FILTER) filters[i].number, filters[i].value,
+                    CAN::SID);
+            CAN_CONTROLLER(bus)->linkFilterToChannel(
+                    (CAN::FILTER) filters[i].number, CAN::FILTER_MASK0,
+                    (CAN::CHANNEL) filters[i].channel);
+            CAN_CONTROLLER(bus)->enableFilter((CAN::FILTER) filters[i].number,
+                    true);
         }
         debug("Done.\r\n");
     } else {
         debug("No filters configured, turning off acceptance filter\r\n");
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
+            CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilter(
+                CAN::FILTER0, 0, CAN::SID);
+        CAN_CONTROLLER(bus)->linkFilterToChannel(
+                CAN::FILTER0, CAN::FILTER_MASK0, CAN::CHANNEL1);
+        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0,
+                true);
     }
 }
 
 void initializeCan(CanBus* bus) {
+    debug("Initializing CAN...");
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
 
@@ -66,6 +78,8 @@ void initializeCan(CanBus* bus) {
             CAN::LOW_MEDIUM_PRIORITY);
 
     // Configure channel 1 for RX with 8 byte buffers.
+    // TODO either both channels should be TX_RTR_DISABLE or both
+    // RX_FULL_RECEIVE
     CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
 
     int filterCount;

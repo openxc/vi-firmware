@@ -56,10 +56,10 @@ endif
 all: $(TARGET_BIN)
 
 flash: all
-	@openocd -f config/flash.cfg
+	@openocd -f ../conf/flash.cfg
 
 gdb: all
-	@openocd -f config/gdb.cfg
+	@openocd -f ../conf/gdb.cfg
 
 .s.o:
 	$(AS) $(AS_FLAGS) -o $@ $<

@@ -74,9 +74,11 @@ def main(argv=None):
 
     parser = JsonParser(arguments.mapping_filename)
     parser.parse()
+    message_count = sum((len(bus.get('messages', {}))
+            for bus in list(parser.buses.values())))
     if len(parser.buses) > 1:
         raise RuntimeError("No more than one CAN bus can be defined")
-    elif len(parser.buses) == 0:
+    elif len(parser.buses) == 0 or message_count == 0:
         data = {}
     else:
         tree = parse(arguments.xml)

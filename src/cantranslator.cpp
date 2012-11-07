@@ -45,13 +45,15 @@ void initializeAllCan() {
 }
 
 bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
-    int id = idObject->valueint;
+    uint32_t id = idObject->valueint;
     cJSON* dataObject = cJSON_GetObjectItem(root, "data");
     if(dataObject == NULL) {
         debug("Raw write request missing data\r\n", id);
         return true;
     }
-    int data = dataObject->valueint;
+    char* dataString = dataObject->valuestring;
+    char* end;
+    unsigned long long data = __builtin_bswap64(strtoull(dataString, &end, 16));
     CanMessage message = {id, data};
     QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
     return true;

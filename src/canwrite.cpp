@@ -101,7 +101,7 @@ void processCanWriteQueue(CanBus* bus) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
         debug("Sending CAN message id = 0x%03x, data = 0x", message.id);
         for(int i = 0; i < 8; i++) {
-            debug("%02x", ((uint8_t*)&message.data)[i]);
+            debug("%02x ", ((uint8_t*)&message.data)[i]);
         }
         debug("\r\n");
         if(!sendCanMessage(bus, message)) {

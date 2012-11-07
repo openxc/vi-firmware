@@ -103,7 +103,7 @@ void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
     } combined;
     combined.whole = data;
 
-    sprintf(encodedData, "0x%02x %02x %02x %02x %02x %02x %02x %02x",
+    sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
             combined.bytes[0],
             combined.bytes[1],
             combined.bytes[2],

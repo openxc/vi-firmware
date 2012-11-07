@@ -44,22 +44,22 @@ void initializeAllCan() {
     }
 }
 
-bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
+void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     uint32_t id = idObject->valueint;
     cJSON* dataObject = cJSON_GetObjectItem(root, "data");
     if(dataObject == NULL) {
         debug("Raw write request missing data\r\n", id);
-        return true;
+        return;
     }
+
     char* dataString = dataObject->valuestring;
     char* end;
     unsigned long long data = __builtin_bswap64(strtoull(dataString, &end, 16));
     CanMessage message = {id, data};
     QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
-    return true;
 }
 
-bool receiveBinaryWriteRequest(uint8_t* message) {
+void receiveBinaryWriteRequest(uint8_t* message) {
     int index = 0;
     const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
 
@@ -75,7 +75,6 @@ bool receiveBinaryWriteRequest(uint8_t* message) {
                 debug("%02x ", message[index+i] );
             }
             debug("\r\n");
-            return false;
         }
 
         CanMessage outgoing = {0, 0};
@@ -85,53 +84,56 @@ bool receiveBinaryWriteRequest(uint8_t* message) {
         }
         QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
     }
-    return true;
 }
 
-bool receiveTranslatedWriteRequest(uint8_t* message) {
+void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
+    char* name = nameObject->valuestring;
+    cJSON* value = cJSON_GetObjectItem(root, "value");
+    if(value == NULL) {
+        debug("Write request for %s missing value\r\n", name);
+        return;
+    }
+
+    CanSignal* signal = lookupSignal(name, getSignals(),
+            getSignalCount(), true);
+    CanCommand* command = lookupCommand(name, getCommands(),
+            getCommandCount());
+    if(signal != NULL) {
+        sendCanSignal(signal, value, getSignals(), getSignalCount());
+    } else if(command != NULL) {
+        command->handler(name, value, getSignals(), getSignalCount());
+    } else {
+        debug("Writing not allowed for signal with name %s\r\n", name);
+    }
+}
+
+bool receiveJsonWriteRequest(uint8_t* message) {
     cJSON *root = cJSON_Parse((char*)message);
+    bool foundMessage = false;
     if(root != NULL) {
+        foundMessage = true;
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
             cJSON* idObject = cJSON_GetObjectItem(root, "id");
             if(idObject == NULL) {
                 debug("Write request is malformed, "
                         "missing name or id: %s\r\n", message);
-                return true;
             } else {
-                return receiveRawWriteRequest(idObject, root);
+                receiveRawWriteRequest(idObject, root);
             }
-        }
-
-        char* name = nameObject->valuestring;
-        cJSON* value = cJSON_GetObjectItem(root, "value");
-        if(value == NULL) {
-            debug("Write request for %s missing value\r\n", name);
-            return true;
-        }
-
-        CanSignal* signal = lookupSignal(name, getSignals(),
-                getSignalCount(), true);
-        CanCommand* command = lookupCommand(name, getCommands(),
-                getCommandCount());
-        if(signal != NULL) {
-            sendCanSignal(signal, value, getSignals(), getSignalCount());
-        } else if(command != NULL) {
-            command->handler(name, value, getSignals(), getSignalCount());
         } else {
-            debug("Writing not allowed for signal with name %s\r\n", name);
+            receiveTranslatedWriteRequest(nameObject, root);
         }
         cJSON_Delete(root);
-        return true;
     }
-    return false;
+    return foundMessage;
 }
 
 bool receiveWriteRequest(uint8_t* message) {
 #ifdef TRANSMITTER
     receiveBinaryWriteRequest(message);
 #else
-    receiveTranslatedWriteRequest(message);
+    receiveJsonWriteRequest(message);
 #endif
 }
 

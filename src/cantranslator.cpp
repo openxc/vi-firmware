@@ -18,7 +18,6 @@ extern Listener listener;
 void receiveCan(CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
-bool receiveCANWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
@@ -32,16 +31,11 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
     processListenerQueues(&listener);
-#ifdef TRANSMITTER
-    readFromHost(&USB_DEVICE, &receiveCANWriteRequest);
-    readFromSerial(&SERIAL_DEVICE, &receiveCANWriteRequest);
-#else
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
-#endif
 }
 
 void initializeAllCan() {
@@ -49,52 +43,6 @@ void initializeAllCan() {
         initializeCan(&(getCanBuses()[i]));
     }
 }
-#ifdef TRANSMITTER
-bool receiveCANWriteRequest(uint8_t* message) {
-    int index=0;
-    int packetLength = 15;
-
-    while(true) {
-      if(message[index] == '!') {
-        return true;
-      }
-
-      if (index + packetLength >= 64) {
-          debug("!");
-      }
-
-      if(message[index] != '{' || message[index+5] != '|'
-              || message[index+14] != '}') {
-          debug("Received a corrupted CAN message.\r\n");
-          for(int i = 0; i < 16; i++) {
-              debug("%02x ", message[index+i] );
-          }
-          debug("\r\n");
-          return false;
-      }
-
-      CanMessage outGoing = {0, 0};
-
-      memcpy((uint8_t*)&outGoing.id, &message[index+1], 4);
-
-      for(int i = 0; i < 8; i++) {
-          ((uint8_t*)&(outGoing.data))[i] = message[index+i+6];
-      }
-
-      //    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
-      //for(int i = 0; i < 8; i++) {
-      //    debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
-      //}
-      //debug("\r\n");
-
-      sendCanMessage(&(getCanBuses()[0]), outGoing);
-      index += packetLength;
-    }
-
-    return true;
-}
-
-#else    //ifdef TRANSMITTER
 
 bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     int id = idObject->valueint;
@@ -110,7 +58,34 @@ bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 }
 
 bool receiveWriteRequest(uint8_t* message) {
+#ifdef TRANSMITTER
+    int index = 0;
+    const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
 
+    while(message[index] != '!') {
+        if (index + BINARY_CAN_WRITE_PACKET_LENGTH >= 64) {
+            debug("!");
+        }
+
+        if(message[index] != '{' || message[index+5] != '|'
+                || message[index+14] != '}') {
+            debug("Received a corrupted CAN message.\r\n");
+            for(int i = 0; i < 16; i++) {
+                debug("%02x ", message[index+i] );
+            }
+            debug("\r\n");
+            return false;
+        }
+
+        CanMessage outgoing = {0, 0};
+        memcpy((uint8_t*)&outgoing.id, &message[index+1], 4);
+        for(int i = 0; i < 8; i++) {
+            ((uint8_t*)&(outgoing.data))[i] = message[index+i+6];
+        }
+        QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
+    }
+    return true;
+#else
     cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
@@ -147,8 +122,9 @@ bool receiveWriteRequest(uint8_t* message) {
         return true;
     }
     return false;
-}
 #endif
+}
+
 /*
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.

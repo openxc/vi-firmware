@@ -54,42 +54,41 @@ bool receiveCANWriteRequest(uint8_t* message) {
     int index=0;
     int packetLength = 15;
 
-    //    while((message[index] != '!') && (index + packetLength < 64)) {
-    while(true){
+    while(true) {
       if(message[index] == '!') {
-	return true;
+        return true;
       }
-      if  (index + packetLength >= 64)
-	{
-	  debug("!");
-	}
-        if((message[index] != '{') || (message[index+5] != '|') || (message[index+14] != '}'))
-	{
-	    debug("Received a corrupted CAN message.\r\n");
-	    for(int i = 0; i < 16; i++) {
-	        debug("%02x ", message[index+i] );
-	    }
-	    debug("\r\n");
-	    return false;
-	}
 
-	CanMessage outGoing = {0, 0};
+      if (index + packetLength >= 64) {
+          debug("!");
+      }
 
-	memcpy((uint8_t*)&outGoing.id, &message[index+1], 4);
+      if(message[index] != '{' || message[index+5] != '|'
+              || message[index+14] != '}') {
+          debug("Received a corrupted CAN message.\r\n");
+          for(int i = 0; i < 16; i++) {
+              debug("%02x ", message[index+i] );
+          }
+          debug("\r\n");
+          return false;
+      }
 
-	for(int i = 0; i < 8; i++) {
-	    ((uint8_t*)&(outGoing.data))[i] = message[index+i+6];
-	}
+      CanMessage outGoing = {0, 0};
 
-	//    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
-	//for(int i = 0; i < 8; i++) {
-	//    debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
-	//}
-	//debug("\r\n");
+      memcpy((uint8_t*)&outGoing.id, &message[index+1], 4);
 
-	sendCanMessage(&(getCanBuses()[0]), outGoing);
+      for(int i = 0; i < 8; i++) {
+          ((uint8_t*)&(outGoing.data))[i] = message[index+i+6];
+      }
 
-	index += packetLength;
+      //    debug("Sending CAN message id = 0x%02x, data = 0x", outGoing.id);
+      //for(int i = 0; i < 8; i++) {
+      //    debug("%02x ", ((uint8_t*)&(outGoing.data))[i] );
+      //}
+      //debug("\r\n");
+
+      sendCanMessage(&(getCanBuses()[0]), outGoing);
+      index += packetLength;
     }
 
     return true;

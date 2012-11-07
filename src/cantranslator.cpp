@@ -101,15 +101,12 @@ bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     int id = idObject->valueint;
     cJSON* dataObject = cJSON_GetObjectItem(root, "data");
     if(dataObject == NULL) {
-        debug("Raw write request with id 0x%x missing data\r\n", id);
+        debug("Raw write request missing data\r\n", id);
         return true;
     }
     int data = dataObject->valueint;
     CanMessage message = {id, data};
-    debug("Writing raw CAN message 0x%x: 0x%x\r\n", id, data);
-    // TODO specify bus by address in JSON
-    sendCanMessage(&getCanBuses()[0], message);
-
+    QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
     return true;
 }
 

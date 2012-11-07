@@ -57,8 +57,7 @@ bool receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     return true;
 }
 
-bool receiveWriteRequest(uint8_t* message) {
-#ifdef TRANSMITTER
+bool receiveBinaryWriteRequest(uint8_t* message) {
     int index = 0;
     const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
 
@@ -85,7 +84,9 @@ bool receiveWriteRequest(uint8_t* message) {
         QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
     }
     return true;
-#else
+}
+
+bool receiveTranslatedWriteRequest(uint8_t* message) {
     cJSON *root = cJSON_Parse((char*)message);
     if(root != NULL) {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
@@ -122,6 +123,13 @@ bool receiveWriteRequest(uint8_t* message) {
         return true;
     }
     return false;
+}
+
+bool receiveWriteRequest(uint8_t* message) {
+#ifdef TRANSMITTER
+    receiveBinaryWriteRequest(message);
+#else
+    receiveTranslatedWriteRequest(message);
 #endif
 }
 

@@ -125,6 +125,9 @@ bool receiveJsonWriteRequest(uint8_t* message) {
             receiveTranslatedWriteRequest(nameObject, root);
         }
         cJSON_Delete(root);
+    } else {
+        debug("Unable to parse JSON from \"%s\" -- if it's valid, "
+                "may be out of memory\r\n", message);
     }
     return foundMessage;
 }

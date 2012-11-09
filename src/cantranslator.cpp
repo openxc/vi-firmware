@@ -21,7 +21,9 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
+#ifndef NO_UART
     initializeSerial(&SERIAL_DEVICE);
+#endif
     initializeUsb(&USB_DEVICE);
     initializeAllCan();
 }

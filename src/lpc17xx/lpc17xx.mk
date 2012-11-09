@@ -56,7 +56,7 @@ endif
 all: $(TARGET_BIN)
 
 flash: all
-	@openocd -f ../conf/flash.cfg
+	@openocd -f ../conf/$(BASE_TARGET).cfg -f ../conf/flash.cfg
 
 gdb: all
 	@openocd -f ../conf/gdb.cfg

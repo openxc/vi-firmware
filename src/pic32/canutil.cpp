@@ -74,13 +74,12 @@ void initializeCan(CanBus* bus) {
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit
     // Request" disabled, meaning that other nodes can't request for us to
     // transmit data.
-    CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
-            CAN::LOW_MEDIUM_PRIORITY);
+    CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL0, 8,
+            CAN::TX_RTR_DISABLED, CAN::LOW_MEDIUM_PRIORITY);
 
-    // Configure channel 1 for RX with 8 byte buffers.
-    // TODO either both channels should be TX_RTR_DISABLE or both
-    // RX_FULL_RECEIVE
-    CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
+    // Configure channel 1 for TX with 8 byte buffers.
+    CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL1, 8,
+            CAN::TX_RTR_DISABLED, CAN::LOW_MEDIUM_PRIORITY);
 
     int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);

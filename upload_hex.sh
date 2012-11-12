@@ -10,7 +10,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KERNEL=`uname`
-HEX_FILE=$1
+HEX_FILE="$1"
 PORT=$2
 
 die() {
@@ -42,53 +42,55 @@ if [ -z $PORT ]; then
     fi
 fi
 
-if [ -z $MPIDE_DIR ]; then
+if [ -z "$MPIDE_DIR" ]; then
     echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
-    if [ -z $AVRDUDE ]; then
-        AVRDUDE=`which avrdude`
+    if [ -z "$AVRDUDE" ]; then
+        AVRDUDE="`which avrdude`"
     fi
 
-    if [ -z $AVRDUDE_CONF ]; then
-        if [ $OS == "cygwin" ]; then
-            # avrdude in cygwin expects windows style paths, so the absolute
-            # path throws a "file not found" error
-            AVRDUDE_CONF="conf/avrdude.conf"
-        else
-            AVRDUDE_CONF="$DIR/conf/avrdude.conf"
-        fi
-    fi
 
-    if [ -z $AVRDUDE ]; then
+    if [ -z "$AVRDUDE" ]; then
         die "ERROR: No avrdude binary found in your path"
     else
-        echo "Using $AVRDUDE with config $AVRDUDE_CONF..."
+        echo "Using $AVRDUDE..."
     fi
 else
-    echo "Using avrdude from MPIDE installation..."
-    AVRDUDE_TOOLS_PATH=$MPIDE_DIR/hardware/tools
-    if [ "`uname`" = "Darwin" ]; then
-        AVRDUDE=$AVRDUDE_TOOLS_PATH/avr/bin/avrdude
-        AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avr/etc/avrdude.conf
-    else
-        AVRDUDE=$AVRDUDE_TOOLS_PATH/avrdude
-        AVRDUDE_CONF=$AVRDUDE_TOOLS_PATH/avrdude.conf
-    fi
+    echo "Using avrdude from MPIDE installation at $MPIDE_DIR..."
+    AVRDUDE_TOOLS_PATH="$MPIDE_DIR/hardware/tools"
+    AVRDUDE="$AVRDUDE_TOOLS_PATH/avrdude"
 
+    if [ ! -e "$AVRDUDE" ]; then
+        # OS X and Windows MPIDE have different directory structure
+        AVRDUDE="$AVRDUDE_TOOLS_PATH/avr/bin/avrdude"
+    fi
 fi
+
+if [ -z $AVRDUDE_CONF ]; then
+    if [ $OS == "cygwin" ]; then
+        # avrdude in cygwin expects windows style paths, so the absolute
+        # path throws a "file not found" error
+        AVRDUDE_CONF="conf/avrdude.conf"
+    else
+        AVRDUDE_CONF="$DIR/conf/avrdude.conf"
+    fi
+fi
+
 
 MCU=32MX795F512L # chipKIT Max32
 AVRDUDE_ARD_PROGRAMMER=stk500v2
 AVRDUDE_ARD_BAUDRATE=115200
 
-AVRDUDE_COM_OPTS="-q -V -p $MCU -C $AVRDUDE_CONF"
+AVRDUDE_COM_OPTS="-q -V -p $MCU"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
+echo "$AVRDUDE_COM_OPTS"
 
-if [ -z $HEX_FILE ]; then
+if [ -z "$HEX_FILE" ]; then
     die "path to hex file is required as a parameter"
 fi
 
 upload() {
-    $AVRDUDE $AVRDUDE_COM_OPTS $AVRDUDE_ARD_OPTS -U flash:w:$HEX_FILE:i
+    "$AVRDUDE" -C "$AVRDUDE_CONF" $AVRDUDE_COM_OPTS $AVRDUDE_ARD_OPTS -U \
+            flash:w:"$HEX_FILE":i
 }
 
 reset() {

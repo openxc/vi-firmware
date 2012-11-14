@@ -18,7 +18,7 @@ ifndef ARDUINO_PORT
 	endif
 endif
 
-EXTRA_CXXFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS)
+EXTRA_CPPFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS)
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d libs/chipKITCAN; echo $$?)

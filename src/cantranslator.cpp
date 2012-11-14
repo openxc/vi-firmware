@@ -139,8 +139,9 @@ bool receiveJsonWriteRequest(uint8_t* message) {
 bool receiveWriteRequest(uint8_t* message) {
 #ifdef TRANSMITTER
     receiveBinaryWriteRequest(message);
+    return true;
 #else
-    receiveJsonWriteRequest(message);
+    return receiveJsonWriteRequest(message);
 #endif
 }
 

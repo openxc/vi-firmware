@@ -34,7 +34,9 @@ void loop() {
     }
     processListenerQueues(&listener);
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
+#ifndef NO_UART
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
+#endif
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }

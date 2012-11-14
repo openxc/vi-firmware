@@ -63,24 +63,27 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
 }
 
+/* The binary format handled by this function is as follows:
+ *
+ * A leading '{' followed by a 4 byte message ID, then a '|' separator and
+ * finally 8 bytes of data and a trailing '}'. E.g.:
+ *
+ * {<4 byte ID>|<8 bytes of data>}
+ */
 void receiveBinaryWriteRequest(uint8_t* message) {
-
-  //Expecting a leading '{' followed by a 4 byte message ID, 
-  // followed by a seperator '|', followed by 8 bytes of data,
-  // then a trailing '}'
     int index = 0;
     const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
     debug(".");
     while((message[index] != '!')  && (index + BINARY_CAN_WRITE_PACKET_LENGTH < 64)) {
-        
-	if(message[index] != '{' || message[index+5] != '|'
+
+        if(message[index] != '{' || message[index+5] != '|'
                 || message[index+14] != '}') {
             debug("Received a corrupted CAN message.\r\n");
             for(int i = 0; i < 16; i++) {
                 debug("%02x ", message[index+i] );
             }
             debug("\r\n");
-	    continue;
+            continue;
         }
 
         CanMessage outgoing = {0, 0};
@@ -89,7 +92,7 @@ void receiveBinaryWriteRequest(uint8_t* message) {
             ((uint8_t*)&(outgoing.data))[i] = message[index+i+6];
         }
         QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
-	index += BINARY_CAN_WRITE_PACKET_LENGTH;
+        index += BINARY_CAN_WRITE_PACKET_LENGTH;
     }
 }
 

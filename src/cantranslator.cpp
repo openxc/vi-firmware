@@ -8,6 +8,7 @@
 #include "cJSON.h"
 #include "listener.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;

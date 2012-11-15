@@ -44,7 +44,7 @@ bool waitForHandle(UsbDevice* usbDevice) {
     int i = 0;
     while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
-        if(i > 400) {
+        if(i > 800) {
             debug("USB most likely not connected or at least not requesting "
                     "IN transfers - bailing out of handle waiting\r\n");
             return false;

@@ -233,6 +233,13 @@ class Parser(object):
             return False
         return True
 
+    def _print_bus_struct(self, bus_address, bus, bus_number):
+        print("    { %d, %s, can%d, " % (bus['speed'], bus_address, bus_number))
+        print("#ifdef __PIC32__")
+        print("        handleCan%dInterrupt," % bus_number)
+        print("#endif // __PIC32__")
+        print("    },")
+
     def print_source(self):
         if not self.validate_messages() or not self.validate_name():
             sys.exit(1)
@@ -240,14 +247,14 @@ class Parser(object):
 
         print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        for i, bus in enumerate(iter(self.buses.items())):
-            bus_number = i + 1
-            print("    { %d, %s, can%d, " % (
-                    bus[1]['speed'], bus[0], bus_number))
-            print("#ifdef __PIC32__")
-            print("        handleCan%dInterrupt," % bus_number)
-            print("#endif // __PIC32__")
-            print("    },")
+        # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
+        # and we want to be a little careful that we always expect 0x101 to be
+        # plugged into the CAN1 controller and 0x102 into CAN2.
+        for bus_number, bus_address in enumerate(("0x101", "0x102")):
+            bus = self.buses.get(bus_address, None)
+            if bus is not None:
+                self._print_bus_struct(bus_address, bus, bus_number + 1)
+
         print("};")
         print()
 

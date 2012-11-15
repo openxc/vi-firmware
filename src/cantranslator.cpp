@@ -72,29 +72,22 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
  * {<4 byte ID>|<8 bytes of data>}
  */
 void receiveBinaryWriteRequest(uint8_t* message) {
-    int index = 0;
     const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
-    debug(".");
-    while((message[index] != '!')  && (index + BINARY_CAN_WRITE_PACKET_LENGTH < 64)) {
-
-        if(message[index] != '{' || message[index+5] != '|'
-                || message[index+14] != '}') {
-            debug("Received a corrupted CAN message.\r\n");
-            for(int i = 0; i < 16; i++) {
-                debug("%02x ", message[index+i] );
-            }
-            debug("\r\n");
-            continue;
+    if(message[0] != '{' || message[5] != '|' || message[14] != '}') {
+        debug("Received a corrupted CAN message: ");
+        for(int i = 0; i <= BINARY_CAN_WRITE_PACKET_LENGTH; i++) {
+            debug("%02x ", message[i] );
         }
-
-        CanMessage outgoing = {0, 0};
-        memcpy((uint8_t*)&outgoing.id, &message[index+1], 4);
-        for(int i = 0; i < 8; i++) {
-            ((uint8_t*)&(outgoing.data))[i] = message[index+i+6];
-        }
-        QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
-        index += BINARY_CAN_WRITE_PACKET_LENGTH;
+        debug("\r\n");
+        return;
     }
+
+    CanMessage outgoing = {0, 0};
+    memcpy((uint8_t*)&outgoing.id, &message[1], 4);
+    for(int i = 0; i < 8; i++) {
+        ((uint8_t*)&(outgoing.data))[i] = message[i + 6];
+    }
+    QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
 }
 
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {

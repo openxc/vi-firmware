@@ -235,6 +235,7 @@ class Parser(object):
 
     def print_source(self):
         if not self.validate_messages() or not self.validate_name():
+            sys.stderr.write("ERROR: unable to generate code")
             sys.exit(1)
         self.print_header()
 
@@ -393,7 +394,12 @@ class JsonParser(Parser):
         merged_dict = {}
         for filename in self.json_files:
             with open(filename) as json_file:
-                data = json.load(json_file)
+                try:
+                    data = json.load(json_file)
+                except ValueError:
+                    sys.stderr.write("ERROR: %s does not contain valid JSON"
+                            % filename)
+                    sys.exit(1)
                 merged_dict = merge(merged_dict, data)
 
         self.commands = []

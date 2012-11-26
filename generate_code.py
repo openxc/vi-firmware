@@ -244,7 +244,7 @@ class Parser(object):
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
         for i, bus in enumerate(iter(self.buses.items())):
             bus_number = i + 1
-            print("    { %d, %s, can%d, " % (
+            print("    { %d, %s, can%d," % (
                     bus[1]['speed'], bus[0], bus_number))
             print("#ifdef __PIC32__")
             print("        handleCan%dInterrupt," % bus_number)

@@ -1,0 +1,14 @@
+#include "handlers.h"
+
+void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+}
+
+bool handleTurnSignalCommand(char* name, cJSON* value, CanSignal* signals,
+        int signalCount) {
+}
+
+float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    return value * -1;
+}

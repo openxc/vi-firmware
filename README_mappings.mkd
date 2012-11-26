@@ -198,4 +198,4 @@ The `signal_mapping.txt` file is a simple mapping of the signal names that we
 are looking for in the XML and a unique numerical ID to associate it
 with.
 
-[sample.json]: https://github.com/openxc/cantranslator/blob/master/sample.json
+[sample.json]: https://github.com/openxc/cantranslator/blob/master/src/signals.json.example

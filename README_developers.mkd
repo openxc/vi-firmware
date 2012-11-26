@@ -172,7 +172,7 @@ CAN translator, as you cannot implement these functions without that knowledge.
 
 ### Auto-generation
 
-The code auto-generation script accepts a [JSON input file](input-specs) that
+The code auto-generation script accepts a [JSON input file][input-specs] that
 defines the CAN messages and signals of interest and rewrites it as C data
 structures, ready to be downloaded to the device. Check the "Input
 Specification" section for the details of the input format. You must know the

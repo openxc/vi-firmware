@@ -104,7 +104,7 @@ is a JSON object like this:
         },
         "commands": {
             "turn_signal_status": {
-                "handler": handleTurnSignalCommand
+                "handler": "handleTurnSignalCommand"
             }
         }
     }}

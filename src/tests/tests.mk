@@ -26,8 +26,11 @@ test: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb
 test: CC_SYMBOLS = -D__TESTS__
 test: LDFLAGS = -m32 -lm
 test: LDLIBS = $(TEST_LIBS)
-test: $(TESTS)
+test: $(TESTS) code_generation_test
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
+
+code_generation_test:
+	../generate_code.py --json ../sample.json > /dev/null
 
 $(TEST_OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

@@ -20,7 +20,7 @@ def parse_options():
             help="generate source from this JSON file")
     message_set = parser.add_argument("-m", "--message-set",
             action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
-            help="name of the vehicle or platform")
+            default="generic", help="name of the vehicle or platform")
 
     arguments = parser.parse_args()
 
@@ -143,7 +143,8 @@ class Signal(object):
 
     def validate(self):
         if self.position == None:
-            sys.stderr.write("ERROR: %s is incomplete\n" % self.generic_name)
+            sys.stderr.write("ERROR: %s (generic name: %s) is incomplete\n" % (
+                self.name, self.generic_name))
             return False
         return True
 
@@ -412,7 +413,8 @@ class JsonParser(Parser):
                 command = Command(command_id, command_data.get('handler', None))
                 self.commands.append(command)
 
-            for message_id, message_data in bus_data['messages'].items():
+            for message_id, message_data in bus_data.get('messages', {}
+                    ).items():
                 self.signal_count += len(message_data['signals'])
                 message = Message(message_id, message_data.get('name', None),
                         message_data.get('handler', None))
@@ -427,7 +429,7 @@ class JsonParser(Parser):
                             self.buses,
                             int(message_id),
                             signal_name,
-                            signal['generic_name'],
+                            signal.get('generic_name', None),
                             signal.get('bit_position', None),
                             signal.get('bit_size', None),
                             signal.get('factor', 1.0),

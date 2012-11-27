@@ -6,10 +6,24 @@
 #include "log.h"
 
 #define CAN_SERIAL_PORT (LPC_UART_TypeDef*)LPC_UART1
+
+
+#ifdef BLUEBOARD
+
+#define UART1_FUNCNUM 2
+#define UART1_PORTNUM 2
+#define UART1_TX_PINNUM 0
+#define UART1_RX_PINNUM 1
+
+#else
+
+// Ford OpenXC CAN Translator Prototype
 #define UART1_FUNCNUM 1
 #define UART1_PORTNUM 0
 #define UART1_TX_PINNUM 15
 #define UART1_RX_PINNUM 16
+
+#endif
 
 extern SerialDevice SERIAL_DEVICE;
 

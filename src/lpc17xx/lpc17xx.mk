@@ -18,6 +18,12 @@ ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
 CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
+ifeq ($(BOARD), BLUEBOARD)
+CC_SYMBOLS += -DBLUEBOARD
+else
+CC_SYMBOLS += -DFORDBOARD
+endif
+
 AS = $(GCC_BIN)arm-none-eabi-as
 LD = $(GCC_BIN)arm-none-eabi-g++
 LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections

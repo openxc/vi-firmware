@@ -108,11 +108,11 @@ and remove the Olimex sections, then reload the module:
 ### Compiling
 
 Once the dependencies are installed, attach a JTAG adapter to your computer and
-the CAN translator, then compile and flash an LPC17xx like so:
+the CAN translator, then compile and flash an LPC1768 Blueboard like so:
 
     $ make clean
-    $ BOARD=LPC17xx make -j4
-    $ BOARD=LPC17xx make flash
+    $ BOARD=BLUEBOARD make -j4
+    $ BOARD=BLUEBOARD make flash
 
 The config files in this repository assume your JTAG adapter is the Olimex
 ARM-USB-OCD unit. If you have a different unit, change the first line in

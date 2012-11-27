@@ -185,9 +185,9 @@ to create a file that defines `decodeCanMessage`:
 
     ./generate_code.py --json signals.json > signals.cpp
 
-Drop the new `signals.cpp` file in the `cantranslator` sketch folder, and it
-should now compile. Don't add anything else to this file - it's derivative of
-the master JSON, and should be able to be wiped and recreated at any time.
+Drop the new `signals.cpp` file in the `src` folder, and it should now compile.
+Don't add anything else to this file - it's derivative of the master JSON, and
+should be able to be wiped and recreated at any time.
 
 If you have multiple CAN buses and want to define their signals and messages in
 separate files, just pass multiple JSON files:

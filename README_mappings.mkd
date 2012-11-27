@@ -121,7 +121,18 @@ For this example, we want to modify the value of `SteeringWheelAngle` by setting
 the sign positive or negative based on the value of the other signal
 (`StrAnglSign`). Every time a CAN signal is received, the new value is stored in
 memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
-the raw steering wheel angle value.
+the raw steering wheel angle value. Modify the input JSON file to set the
+`value_handler` attribute for the steering wheel angle signal to
+`handleSteeringWheelAngle`. If you're using `generate_code.py`, the
+handlers shouhld be saved in `src/handlers.h` and `src/handlers.cpp`:
+
+`src/handlers.h`:
+
+    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
+            int signalCount, float value, bool* send);
+
+
+`src/handlers.cpp`:
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send) {
@@ -163,8 +174,8 @@ If you need greater precision, you can provide a custom handler for the entire
 message to guarantee they arrived together. You can generate 0, 1 or many
 translated messages from one call to your handler function.
 
-    void handleSteeringWheelMessage(int messageId, uint8_t* data,
-            CanSignal* signals, int signalCount, USBDevice* usbDevice) {
+    void handleSteeringWheelMessage(int messageId, uint64_t data,
+            CanSignal* signals, int signalCount, Listener* listener);
         float steeringWheelAngle = decodeCanSignal(&signals[1], data);
         float steeringWheelSign = decodeCanSignal(&signals[2], data);
 
@@ -175,7 +186,7 @@ translated messages from one call to your handler function.
         }
 
         char* message = generateJson(signals[1], finalValue);
-        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
     }
 
 Using a custom message handler will not stop individual messages for each signal

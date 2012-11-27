@@ -203,7 +203,6 @@ class Parser(object):
         print("#include \"signals.h\"")
         print("#include \"log.h\"")
         print("#include \"handlers.h\"")
-        print("#include \"shared_handlers.h\"")
         print()
         print("extern Listener listener;")
         print()

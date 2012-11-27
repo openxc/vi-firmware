@@ -9,7 +9,7 @@ float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener);
 
-bool handleTurnSignalCommand(char* name, cJSON* value, CanSignal* signals,
+bool handleTurnSignalCommand(const char* name, cJSON* value, CanSignal* signals,
         int signalCount);
 
 #endif // _HANDLERS_H_

@@ -202,7 +202,8 @@ class Parser(object):
         print("#include \"canwrite.h\"")
         print("#include \"signals.h\"")
         print("#include \"log.h\"")
-        print("#include \"handlers.h\"")
+        if getattr(self, 'uses_custom_handlers', None):
+            print("#include \"handlers.h\"")
         print()
         print("extern Listener listener;")
         print()
@@ -223,8 +224,12 @@ class Parser(object):
         valid = True
         for bus in list(self.buses.values()):
             for message in bus['messages']:
+                if message.handler is not None:
+                    self.uses_custom_handlers = True
                 for signal in message.signals:
                     valid = valid and signal.validate()
+                    if signal.handler is not None:
+                        self.uses_custom_handlers = True
         return valid
 
     def validate_name(self):

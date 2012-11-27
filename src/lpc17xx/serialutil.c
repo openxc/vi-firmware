@@ -14,6 +14,8 @@
 #define UART1_PORTNUM 2
 #define UART1_TX_PINNUM 0
 #define UART1_RX_PINNUM 1
+#define UART1_CTS1_PINNUM 2
+#define UART1_RTS1_PINNUM 7
 
 #else
 
@@ -22,6 +24,9 @@
 #define UART1_PORTNUM 0
 #define UART1_TX_PINNUM 15
 #define UART1_RX_PINNUM 16
+// TODO these are incorrect because the layout doesn't connect the pins yet
+#define UART1_CTS1_PINNUM 2
+#define UART1_RTS1_PINNUM 7
 
 #endif
 
@@ -106,15 +111,25 @@ void initializeSerial(SerialDevice* device) {
     PINSEL_ConfigPin(&PinCfg);
     PinCfg.Pinnum = UART1_RX_PINNUM;
     PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = UART1_CTS1_PINNUM;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = UART1_RTS1_PINNUM;
+    PINSEL_ConfigPin(&PinCfg);
 
     TRANSMIT_INTERRUPT_STATUS = RESET;
 
     UART_ConfigStructInit(&UARTConfigStruct);
-    UARTConfigStruct.Baud_rate = 115200;
+    UARTConfigStruct.Baud_rate = 921600;
     UART_Init(CAN_SERIAL_PORT, &UARTConfigStruct);
+
     UART_FIFO_CFG_Type fifoConfig;
     UART_FIFOConfigStructInit(&fifoConfig);
-    UART_FIFOConfig((LPC_UART_TypeDef*)CAN_SERIAL_PORT, &fifoConfig);
+    UART_FIFOConfig(CAN_SERIAL_PORT, &fifoConfig);
+
+    // Configure hardware flow control
+    UART_FullModemForcePinState((LPC_UART1_TypeDef*)CAN_SERIAL_PORT,
+            UART1_MODEM_PIN_RTS, ACTIVE);
+
     UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
 
     UART_IntConfig(CAN_SERIAL_PORT, UART_INTCFG_RBR, ENABLE);

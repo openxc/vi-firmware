@@ -12,6 +12,10 @@ submodules, so before you go further run:
     $ git submodule init
     $ git submodule update
 
+If this doesn't print out anything or gives you an error, make sure you cloned
+this repository from GitHub with git and that you didn't download a zip file.
+The zip file is missing all of the git metadata, so submodules will not work.
+
 It also requires some libraries from Microchip that we are unfortunately unable
 to include or link to as a submodule from the source because of licensing
 issues:
@@ -56,7 +60,7 @@ terminal that you run the commands. If you want them active in all terminals
 `~/.bashrc` (in Linux) or `~/.bash_profile` (in OS X) and start a new terminal.
 
 Once this is set up, `cd` into the `src` subdirectory, build and
-upload to the device:
+upload to the device.
 
     $ git submodule init && git submodule update
     $ make clean
@@ -66,6 +70,14 @@ upload to the device:
 If the flash command can't find your chipKIT, you may need to set the
 `ARDUINO_PORT` variable (if the serial emulator doesn't show up as `/dev/ttyUSB*`
 (in Linux) or `/dev/tty.usbserial*` (in Mac OS X)).
+
+**Troubleshooting**
+
+If the compilation didn't work:
+
+* Did you download the .zip file of the `cantranslator` project from GitHub? Try
+  using git to clone the repository instead - the library dependencies are
+  stored as git submodules and do not work when using the zip file.
 
 ### LPC17xx
 

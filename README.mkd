@@ -12,6 +12,8 @@ For more documentation, see the [vehicle
 interface](http://openxcplatform.com/vehicle-interface/index.html) section on
 the [OpenXC website](http://openxcplatform.com).
 
+**Hey, developers!**
+
 Most OpenXC users do not need this, but [additional documentation][dev-docs] is
 available for developers.
 

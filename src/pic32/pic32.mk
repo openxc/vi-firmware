@@ -31,6 +31,11 @@ ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at ./libs/chipKITUSBDevice)
 endif
 
+ARDUINO_MK_EXISTS = $(shell test -e libs/arduino.mk/chipKIT.mk; echo $$?)
+ifneq ($(ARDUINO_MK_EXISTS),0)
+$(error arduino.mk library missing - did you run "git submodule init && git submodule update"?)
+endif
+
 USER_LIB_PATH = ./libs
 ARDUINO_MAKEFILE_HOME = libs/arduino.mk
 

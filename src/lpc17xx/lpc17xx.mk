@@ -50,7 +50,22 @@ CC_FLAGS += -g -ggdb
 else
 # TODO re-enable -O2 when we figure out why IsINReady() returns true
 # when the stream isn't completely read by the host, and thus leading to
-# corruption
+# corruption. See #770.
+endif
+
+BSP_EXISTS = $(shell test -e libs/BSP/bsp.h; echo $$?)
+CDL_EXISTS = $(shell test -e libs/CDL/README.mkd; echo $$?)
+USBLIB_EXISTS = $(shell test -e libs/nxpUSBlib/README.mkd; echo $$?)
+ifneq ($(BSP_EXISTS),0)
+$(error BSP dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(CDL_EXISTS),0)
+$(error CDL dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(USBLIB_EXISTS),0)
+$(error nxpUSBlib dependency is missing - did you run "git submodule init && git submodule update"?)
 endif
 
 all: $(TARGET_BIN)

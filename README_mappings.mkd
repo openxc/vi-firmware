@@ -4,9 +4,11 @@ The code in this repository requires a list of CAN messages with details of the
 signals of interest, and their corresponding generic versions. The input format
 is a JSON object like the one found in [sample.json][].
 
-This is a list of CAN buses (the `0x102` is the unique bus address), messages in
-each bus and a list of signals within each message. The `speed` attribute on the
-bus is the CAN bus speed in Kbps. The attributes of a signal are:
+This is a list of CAN buses (the `0x102` is a unique bus address and means it
+will use the "CAN2" module in the microcontroller, and whatever associated pins
+on the board), messages in each bus and a list of signals within each message.
+The `speed` attribute on the bus is the CAN bus speed in Kbps. The attributes of
+a signal are:
 
 `name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation

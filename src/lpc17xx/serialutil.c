@@ -127,8 +127,10 @@ void initializeSerial(SerialDevice* device) {
     UART_FIFOConfig(CAN_SERIAL_PORT, &fifoConfig);
 
     // Configure hardware flow control
-    UART_FullModemForcePinState((LPC_UART1_TypeDef*)CAN_SERIAL_PORT,
-            UART1_MODEM_PIN_RTS, ACTIVE);
+    UART_FullModemConfigMode((LPC_UART1_TypeDef*)CAN_SERIAL_PORT,
+            UART1_MODEM_MODE_AUTO_CTS, ENABLE);
+    UART_FullModemConfigMode((LPC_UART1_TypeDef*)CAN_SERIAL_PORT,
+            UART1_MODEM_MODE_AUTO_RTS, ENABLE);
 
     UART_TxCmd(CAN_SERIAL_PORT, ENABLE);
 

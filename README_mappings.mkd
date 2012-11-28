@@ -12,9 +12,6 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
     Optional - just used to be able to reference back to original documentation
     from this list.
 
-`human_signal_name` - A more friendly, human readable version of the signal's
-    name. Optional - just used in comments so the generated source is clearer.
-
 `generic_name` - The name of the associated generic signal name (from the OpenXC
     specification) that this should be translated to. Optional - if not
     specified, the signal is read and stored in memory, but not sent to the

@@ -5,7 +5,6 @@
             "name": "ECM_z_5D2",
             "signals": {
                 "StrAnglAct": {
-                    "human_signal_name": "Steering wheel angle",
                     "generic_name": "SteeringWheelAngle",
                     "bit_position": 52,
                     "bit_size": 12,
@@ -13,7 +12,6 @@
                     "offset": 0,
                     "value_handler": "handleInvertedSteeringWheel"},
                 "StrAnglSign": {
-                    "human_signal_name": "Steering wheel angle sign",
                     "generic_name": "steering_angle_sign",
                     "value_handler": "ignoreHandler",
                     "bit_position": 52,
@@ -24,7 +22,6 @@
                     "bit_position": 12,
                     "bit_size": 8},
                 "GrshftPos": {
-                    "human_signal_name": "Gearshift Position",
                     "generic_name": "GearshiftPosition",
                     "bit_position": 41,
                     "bit_size": 3,

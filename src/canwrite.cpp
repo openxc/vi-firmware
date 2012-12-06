@@ -38,15 +38,20 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 }
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(value->valuestring, signal,
-            signals, signalCount);
+        int signalCount, const char* value, bool* send) {
+    CanSignalState* signalState = lookupSignalState(value, signal, signals,
+            signalCount);
     if(signalState != NULL) {
         checkWritePermission(signal, send);
         return encodeCanSignal(signal, signalState->value);
     }
     *send = false;
     return 0;
+}
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send) {
+    return stateWriter(signal, signals, signalCount, value->valuestring, send);
 }
 
 uint64_t encodeCanSignal(CanSignal* signal, float value) {

@@ -80,6 +80,12 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send, uint64_t data);
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, bool* send, uint64_t data);
+
 /* Public: Interpret the JSON value as a boolean and write it to the correct
  * bitfield for the given signal. This will write either a 0 or 1.
  *

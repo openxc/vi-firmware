@@ -38,20 +38,37 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 }
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(value, signal, signals,
-            signalCount);
-    if(signalState != NULL) {
-        checkWritePermission(signal, send);
-        return encodeCanSignal(signal, signalState->value);
+        int signalCount, const char* value, bool* send, uint64_t data) {
+    if(value == NULL) {
+        debug("Can't write state of NULL -- not sending\r\n");
+    } else {
+        CanSignalState* signalState = lookupSignalState(value, signal, signals,
+                signalCount);
+        if(signalState != NULL) {
+            checkWritePermission(signal, send);
+            return encodeCanSignal(signal, signalState->value, data);
+        } else {
+            debug("Couldn't find a valid signal state for \"%s\"", value);
+        }
     }
     *send = false;
     return 0;
 }
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, bool* send) {
+    return stateWriter(signal, signals, signalCount, value, send, 0);
+}
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send, uint64_t data) {
+    return stateWriter(signal, signals, signalCount, value->valuestring, send,
+            data);
+}
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
-    return stateWriter(signal, signals, signalCount, value->valuestring, send);
+    return stateWriter(signal, signals, signalCount, value, send, 0);
 }
 
 uint64_t encodeCanSignal(CanSignal* signal, float value) {
@@ -74,7 +91,7 @@ bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
         QUEUE_PUSH(CanMessage, &signal->bus->sendQueue, message);
         return true;
     }
-    debug("Not sending requested message %x", signal->messageId);
+    debug("Not sending requested message %x\r\n", signal->messageId);
     return false;
 }
 

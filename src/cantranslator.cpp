@@ -132,8 +132,8 @@ bool receiveJsonWriteRequest(uint8_t* message) {
         }
         cJSON_Delete(root);
     } else {
-        debug("Unable to parse JSON from \"%s\" -- if it's valid, "
-                "may be out of memory\r\n", message);
+        debug("No valid JSON in incoming buffer yet -- "
+                "if it's valid, may be out of memory\r\n");
     }
     return foundMessage;
 }

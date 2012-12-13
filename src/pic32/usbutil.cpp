@@ -45,8 +45,10 @@ bool waitForHandle(UsbDevice* usbDevice) {
     while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
         if(i > 800) {
-            debug("USB most likely not connected or at least not requesting "
-                    "IN transfers - bailing out of handle waiting\r\n");
+            // This can get really noisy when running but I want to leave it in
+            // because it' useful to enable when debugging.
+            // debug("USB most likely not connected or at least not requesting "
+                    // "IN transfers - bailing out of handle waiting\r\n");
             return false;
         }
     }

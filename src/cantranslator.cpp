@@ -59,9 +59,10 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
-    unsigned long long data = __builtin_bswap64(strtoull(dataString, &end, 16));
-    CanMessage message = {id, data};
-    QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
+    bool send = true;
+    // TODO hard coding bus 0 right now, but it should support sending on either
+    enqueueCanMessage(&getCanBuses()[0], id, strtoull(dataString, &end, 16),
+            &send);
 }
 
 /* The binary format handled by this function is as follows:

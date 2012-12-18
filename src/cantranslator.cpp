@@ -35,19 +35,19 @@ void setup() {
     initializeLogging();
 #ifndef NO_UART
     initializeSerial(&SERIAL_DEVICE);
-#endif
+#endif // NO_UART
     initializeUsb(&USB_DEVICE);
 #ifndef NO_ETHERNET
     initializeEthernet(&ETHERNET_DEVICE, &server,
             MACAddr, IPAddr);
-#endif
+#endif // NO_ETHERNET
     initializeAllCan();
 }
 
 void loop() {
 #ifndef NO_ETHERNET
     client = server.available();
-#endif
+#endif // NO_ETHERNET
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
@@ -55,7 +55,7 @@ void loop() {
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
 #ifndef NO_UART
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
-#endif
+#endif // NO_UART
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }

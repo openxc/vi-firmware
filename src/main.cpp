@@ -19,14 +19,12 @@ extern void loop();
 const char* VERSION = "2.0";
 
 SerialDevice SERIAL_DEVICE;
-
+EthernetDevice ETHERNET_DEVICE;
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES,
     DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
-
-EthernetDevice ETHERNET_DEVICE;
 
 Listener listener = {&USB_DEVICE, &SERIAL_DEVICE, &ETHERNET_DEVICE};
 

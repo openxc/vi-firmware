@@ -43,8 +43,6 @@ void initializeEthernet(EthernetDevice* device, Server* server,
 // connected ethernet clients.
 void processEthernetSendQueue(EthernetDevice* device);
 
-
-
 #ifdef __cplusplus
 }
 #endif

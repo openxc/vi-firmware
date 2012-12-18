@@ -15,7 +15,7 @@ extern "C" {
  *
  * sendQueue - A queue of bytes that need to be sent out over UART.
  * receiveQueue - A queue of bytes that have been received via UART but not yet
- * 		processed.
+ *      processed.
  * device - A pointer to the hardware UART device to use for OpenXC messages.
  */
 typedef struct {

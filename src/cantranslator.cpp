@@ -39,13 +39,13 @@ void setup() {
     initializeUsb(&USB_DEVICE);
 #ifndef NO_ETHERNET
     initializeEthernet(&ETHERNET_DEVICE, &server,
-    		MACAddr, IPAddr);
+            MACAddr, IPAddr);
 #endif
     initializeAllCan();
 }
 
 void loop() {
-	client = server.available();
+    client = server.available();
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }

@@ -45,7 +45,9 @@ void setup() {
 }
 
 void loop() {
+#ifndef NO_ETHERNET
     client = server.available();
+#endif
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }

@@ -45,13 +45,16 @@ const char* getMessageSet();
  * by getSignals(), this function is called with the message ID and 64-bit data
  * field.
  *
- * id - The node ID of the incoming CAN message.
+ * id - The 11-bit ID of the incoming CAN message.
  * data - The 64-bit data field of the CAN message.
  */
 void decodeCanMessage(int id, uint64_t data);
 
 /* Public: Initialize an array of the CAN message filters that should be set for
  * the CAN module with the given address.
+ *
+ * If an array is of length 0, the CAN acceptance filter will be disabled and
+ * all CAN messages will be passed through the translation stack.
  *
  * address - The address of the CAN module to retreive the filters for.
  * count - An OUT variable that will be set to the length of the returned

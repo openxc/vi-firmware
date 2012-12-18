@@ -1,0 +1,15 @@
+#ifndef _HANDLERS_H_
+#define _HANDLERS_H_
+
+#include "canread.h"
+
+float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send);
+
+void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener);
+
+bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
+        CanSignal* signals, int signalCount);
+
+#endif // _HANDLERS_H_

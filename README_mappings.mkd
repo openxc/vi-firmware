@@ -2,100 +2,17 @@
 
 The code in this repository requires a list of CAN messages with details of the
 signals of interest, and their corresponding generic versions. The input format
-is a JSON object like this:
+is a JSON object like the one found in [sample.json][].
 
-    {"0x102": {
-        "speed": 500000,
-        "messages": {
-            "ECM_z_5D2": {
-                "signals": {
-                    "StrAnglAct": {
-                        "human_signal_name": "Steering wheel angle",
-                        "generic_name": "SteeringWheelAngle",
-                        "bit_position": 52,
-                        "bit_size": 12,
-                        "factor": 0.15392,
-                        "offset": 0,
-                        "value_handler": "handleSteeringWheelAngle"},
-                    "StrAnglSign": {
-                        "human_signal_name": "Steering wheel angle sign",
-                        "generic_name": "steering_angle_sign",
-                        "value_handler": "ignoreHandler",
-                        "bit_position": 52,
-                        "bit_size": 12},
-                    "EngSpd": {
-                        "generic_name": "engine_speed",
-                        "send_frequency": 15,
-                        "bit_position": 12,
-                        "bit_size": 8},
-                    "GrshftPos": {
-                        "human_signal_name": "Gearshift Position",
-                        "generic_name": "GearshiftPosition",
-                        "bit_position": 41,
-                        "bit_size": 0,
-                        "states": {
-                            "FIRST": [1],
-                            "SECOND": [2],
-                            "THIRD": [3],
-                            "FOURTH": [4],
-                            "REVERSE": [5],
-                            "NEUTRAL": [6]}
-                        },
-                    "StrAnglErr": {
-                        "value_handler": "ignoreHandler"
-                    }
-                },
-                "handler": "handleSteeringWheelMessage"
-            },
-            "BrkSt": {
-                "signals": {
-                    "BrakePedalPosition": {
-                        "generic_name": "brake_pedal_status",
-                        "send_same": false,
-                        "value_handler": "booleanHandler",
-                        "bit_position": 0,
-                        "bit_size": 0
-                    }
-                }
-            },
-            "Cluster": {
-                "signals": {
-                    "TurnSignalLeft": {
-                        "generic_name": "turn_signal_left",
-                        "value_handler": "booleanHandler",
-                        "bit_position": 0,
-                        "bit_size": 0,
-                        "writable": true,
-                        "write_handler": "booleanWriter"
-                    },
-                    "TurnSignalRight": {
-                        "generic_name": "turn_signal_right",
-                        "value_handler": "booleanHandler",
-                        "bit_position": 1,
-                        "bit_size": 0,
-                        "writable": true,
-                        "write_handler": "booleanWriter"
-                    }
-                }
-            }
-        },
-        "commands": {
-            "turn_signal_status": {
-                "handler": handleTurnSignalCommand
-            }
-        }
-    }}
-
-This is a list of CAN buses (the `0x102` is the unique bus address), messages in
-each bus and a list of signals within each message. The `speed` attribute on the
-bus is the CAN bus speed in Kbps. The attributes of a signal are:
+This is a list of CAN buses (the `0x102` is a unique bus address and means it
+will use the "CAN2" module in the microcontroller, and whatever associated pins
+on the board), messages in each bus and a list of signals within each message.
+The `speed` attribute on the bus is the CAN bus speed in Kbps. The attributes of
+a signal are:
 
 `name` - The official name of the signal - often a terse spelling.
     Optional - just used to be able to reference back to original documentation
     from this list.
-
-`human_signal_name` - A more friendly, human readable version of the signal's
-    name. Optional - just used in comments so the generated source is clearer.
 
 `generic_name` - The name of the associated generic signal name (from the OpenXC
     specification) that this should be translated to. Optional - if not
@@ -164,8 +81,13 @@ bus is the CAN bus speed in Kbps. The attributes of a signal are:
 Optionally, you can specify completely custom handler functions to process
 incoming OpenXC messages from the USB host. In the `commands` section of the
 JSON object, you can specify the generic name of the OpenXC command and an
-associated function that matches the `WriteHandler` function prototype (from
-`canutil.h`). Any message received from the USB host with that name will be
+associated function that matches the `CommandHandler` function prototype (from
+`canutil.h`):
+
+    bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
+            CanSignal* signals, int signalCount);
+
+Any message received from the USB host with that name will be
 passed to your handler - this is useful for situations where there isn't a 1 to
 1 mapping between OpenXC command and CAN signal, e.g. if the left and right turn
 signal are split into two signals instead of the 1 state-based signal used by
@@ -203,7 +125,18 @@ For this example, we want to modify the value of `SteeringWheelAngle` by setting
 the sign positive or negative based on the value of the other signal
 (`StrAnglSign`). Every time a CAN signal is received, the new value is stored in
 memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
-the raw steering wheel angle value.
+the raw steering wheel angle value. Modify the input JSON file to set the
+`value_handler` attribute for the steering wheel angle signal to
+`handleSteeringWheelAngle`. If you're using `generate_code.py`, the
+handlers shouhld be saved in `src/handlers.h` and `src/handlers.cpp`:
+
+`src/handlers.h`:
+
+    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
+            int signalCount, float value, bool* send);
+
+
+`src/handlers.cpp`:
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send) {
@@ -245,8 +178,8 @@ If you need greater precision, you can provide a custom handler for the entire
 message to guarantee they arrived together. You can generate 0, 1 or many
 translated messages from one call to your handler function.
 
-    void handleSteeringWheelMessage(int messageId, uint8_t* data,
-            CanSignal* signals, int signalCount, USBDevice* usbDevice) {
+    void handleSteeringWheelMessage(int messageId, uint64_t data,
+            CanSignal* signals, int signalCount, Listener* listener);
         float steeringWheelAngle = decodeCanSignal(&signals[1], data);
         float steeringWheelSign = decodeCanSignal(&signals[2], data);
 
@@ -257,7 +190,7 @@ translated messages from one call to your handler function.
         }
 
         char* message = generateJson(signals[1], finalValue);
-        sendMessage(usbDevice, (uint8_t*) message, strlen(message));
+        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
     }
 
 Using a custom message handler will not stop individual messages for each signal
@@ -280,3 +213,4 @@ The `signal_mapping.txt` file is a simple mapping of the signal names that we
 are looking for in the XML and a unique numerical ID to associate it
 with.
 
+[sample.json]: https://github.com/openxc/cantranslator/blob/master/src/signals.json.example

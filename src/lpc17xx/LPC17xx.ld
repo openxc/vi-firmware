@@ -1,4 +1,4 @@
-/* Linker script for mbed LPC1768 */
+/* Linker script for mbed LPC17xx */
 GROUP(-lstdc++ -lsupc++ -lm -lc -lnosys -lgcc)
 
 /* Linker script to configure memory regions. */

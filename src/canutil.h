@@ -31,7 +31,7 @@ QUEUE_DECLARE(CanMessage, 16);
  *      (platform dependent, needs to be casted to actual type before use).
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
- *      registers a different handler per channel. LPC1768 uses the same global
+ *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
@@ -52,7 +52,8 @@ typedef struct {
  *
  * number - The ID of this filter, e.g. 0, 1, 2.
  * value - The filter's value.
- * channel - The CAN channel this filter should be applied to.
+ * channel - The CAN channel this filter should be applied to - on the PIC32,
+ *           channel 1 is for RX.
  */
 typedef struct {
     int number;
@@ -126,13 +127,15 @@ typedef struct CanSignal CanSignal;
  * name - the name field in the message received over USB.
  * value - the value of the message, parsed by the cJSON library and able to be
  *         read as a string, boolean, float or int.
+ * event - an optional event, may be null if the OpenXC message didn't include
+ *          it.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  *
  * Returns true if the command caused something to be sent over CAN.
  */
-typedef bool (*CommandHandler)(const char* name, cJSON* value, CanSignal* signals,
-        int signalCount);
+typedef bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
+        CanSignal* signals, int signalCount);
 
 /* Public: A command to read from USB and possibly write back to CAN.
  *

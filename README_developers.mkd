@@ -12,6 +12,10 @@ submodules, so before you go further run:
     $ git submodule init
     $ git submodule update
 
+If this doesn't print out anything or gives you an error, make sure you cloned
+this repository from GitHub with git and that you didn't download a zip file.
+The zip file is missing all of the git metadata, so submodules will not work.
+
 It also requires some libraries from Microchip that we are unfortunately unable
 to include or link to as a submodule from the source because of licensing
 issues:
@@ -56,8 +60,9 @@ terminal that you run the commands. If you want them active in all terminals
 `~/.bashrc` (in Linux) or `~/.bash_profile` (in OS X) and start a new terminal.
 
 Once this is set up, `cd` into the `src` subdirectory, build and
-upload to the device:
+upload to the device.
 
+    $ git submodule init && git submodule update
     $ make clean
     $ make
     $ make flash
@@ -66,9 +71,17 @@ If the flash command can't find your chipKIT, you may need to set the
 `ARDUINO_PORT` variable (if the serial emulator doesn't show up as `/dev/ttyUSB*`
 (in Linux) or `/dev/tty.usbserial*` (in Mac OS X)).
 
-### LPC1768/69
+**Troubleshooting**
 
-Support for the NXP LPC1768, an ARM Cortex M3 microcontroller, is experimental
+If the compilation didn't work:
+
+* Did you download the .zip file of the `cantranslator` project from GitHub? Try
+  using git to clone the repository instead - the library dependencies are
+  stored as git submodules and do not work when using the zip file.
+
+### LPC17xx
+
+Support for the NXP LPC17xx, an ARM Cortex M3 microcontroller, is experimental
 at the moment and the documentation is incomplete. We are building successfully
 on the NGX Blueboard 1768-H using the Olimex ARM-OCD-USB JTAG programmer.
 
@@ -106,11 +119,16 @@ and remove the Olimex sections, then reload the module:
 
 ### Compiling
 
-Once the dependencies are installed, compile and flash the LPC1768 like so:
+Once the dependencies are installed, attach a JTAG adapter to your computer and
+the CAN translator, then compile and flash an LPC1768 Blueboard like so:
 
     $ make clean
-    $ BOARD=LPC1768 make -j4
-    $ BOARD=LPC1768 make flash
+    $ BOARD=BLUEBOARD make -j4
+    $ BOARD=BLUEBOARD make flash
+
+The config files in this repository assume your JTAG adapter is the Olimex
+ARM-USB-OCD unit. If you have a different unit, change the first line in
+`conf/flash.cfg` to the correct value.
 
 ## Compiling and Uploading
 
@@ -167,7 +185,7 @@ CAN translator, as you cannot implement these functions without that knowledge.
 
 ### Auto-generation
 
-The code auto-generation script accepts a [JSON input file](input-specs) that
+The code auto-generation script accepts a [JSON input file][input-specs] that
 defines the CAN messages and signals of interest and rewrites it as C data
 structures, ready to be downloaded to the device. Check the "Input
 Specification" section for the details of the input format. You must know the
@@ -179,9 +197,9 @@ to create a file that defines `decodeCanMessage`:
 
     ./generate_code.py --json signals.json > signals.cpp
 
-Drop the new `signals.cpp` file in the `cantranslator` sketch folder, and it
-should now compile. Don't add anything else to this file - it's derivative of
-the master JSON, and should be able to be wiped and recreated at any time.
+Drop the new `signals.cpp` file in the `src` folder, and it should now compile.
+Don't add anything else to this file - it's derivative of the master JSON, and
+should be able to be wiped and recreated at any time.
 
 If you have multiple CAN buses and want to define their signals and messages in
 separate files, just pass multiple JSON files:
@@ -231,10 +249,10 @@ readme](https://github.com/openxc/cantranslator/blob/master/README_usb.mkd).
 ## Serial Output
 
 You can optionally receive the output data over a serial connection in
-addition to USB. The messages are automatically sent over a UART connection on
-pins 18 and 19 of the chipKIT Max32 at a baud rate of 115200 when not being sent
-over USB. To be absolutely clear, OpenXC messages are only sent over serial if
-an active USB connection is **not** already receiving the messages.
+addition to USB. The same JSON messages are also sent over UART on
+pins 18 and 19 of the chipKIT Max32 at a baud rate of 115200. On LPC17XX boards
+like the Blueboard, the baud rate is 921600 and requires that the CTS1 and RTS1
+pins are also connected to enabled hardware flow control.
 
 In the same way that you can send OpenXC writes over USB using the OUT direction
 of the USB endpoint, you can send identically formatted messages in the opposite

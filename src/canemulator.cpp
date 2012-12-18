@@ -64,7 +64,9 @@ void setup() {
     srand(42);
 
     initializeLogging();
+#ifndef NO_UART
     initializeSerial(&SERIAL_DEVICE);
+#endif
     initializeUsb(&USB_DEVICE);
 }
 
@@ -92,7 +94,9 @@ void loop() {
 
         processListenerQueues(&listener);
         readFromHost(&USB_DEVICE, usbWriteStub);
+#ifndef NO_UART
         readFromSerial(&SERIAL_DEVICE, usbWriteStub);
+#endif
     }
 }
 

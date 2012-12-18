@@ -92,6 +92,31 @@ void sendEventedStringMessage(const char* name, const char* value,
             listener);
 }
 
+void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
+
+    char encodedData[67];
+    union {
+        uint64_t whole;
+        uint8_t bytes[8];
+    } combined;
+    combined.whole = data;
+
+    sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
+            combined.bytes[0],
+            combined.bytes[1],
+            combined.bytes[2],
+            combined.bytes[3],
+            combined.bytes[4],
+            combined.bytes[5],
+            combined.bytes[6],
+            combined.bytes[7]);
+    cJSON_AddStringToObject(root, NAME_FIELD_NAME, encodedData);
+
+    sendJSON(root, listener);
+}
+
 // TODO there is lots of duplicated code in these functions, but I don't see an
 // obvious way to share code and still keep the different data types returned
 // by the handlers.

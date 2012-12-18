@@ -22,7 +22,7 @@ class Network(object):
 
     def to_dict(self):
         return {self.address: {"messages": dict((message.id, message.to_dict())
-                for message in self.messages.values()
+                for message in list(self.messages.values())
                 if len(message.signals) > 0)}}
 
     def _parse_node(self, node, all_messages):
@@ -74,19 +74,21 @@ def main(argv=None):
 
     parser = JsonParser(arguments.mapping_filename)
     parser.parse()
+    message_count = sum((len(bus.get('messages', {}))
+            for bus in list(parser.buses.values())))
     if len(parser.buses) > 1:
         raise RuntimeError("No more than one CAN bus can be defined")
-    elif len(parser.buses) == 0:
+    elif len(parser.buses) == 0 or message_count == 0:
         data = {}
     else:
         tree = parse(arguments.xml)
-        bus_address, bus = parser.buses.items()[0]
+        bus_address, bus = list(parser.buses.items())[0]
         n = Network(tree, bus_address, bus['messages'])
         data = n.to_dict()
 
     with open(arguments.out, 'w') as output_file:
         json.dump(data, output_file, indent=4)
-    print "Wrote results to %s" % arguments.out
+    print("Wrote results to %s" % arguments.out)
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,11 +1,11 @@
 GCC_BIN =
-OBJDIR = build/lpc1768
-TARGET = $(BASE_TARGET)-lpc1768
+OBJDIR = build/lpc17xx
+TARGET = $(BASE_TARGET)-lpc17xx
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./libs/CDL/LPC17xxLib
 INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc
-LINKER_SCRIPT = lpc1768/LPC1768.ld
+LINKER_SCRIPT = lpc17xx/LPC17xx.ld
 LIBS_PATH = libs
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
@@ -16,8 +16,13 @@ CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -Wno-char-subscripts -Wno-unused-but-set-variable -Werror
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
-CC_SYMBOLS += -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY \
-			  -D__LPC17XX__ -DBOARD=9
+CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
+
+ifeq ($(BOARD), BLUEBOARD)
+CC_SYMBOLS += -DBLUEBOARD
+else
+CC_SYMBOLS += -DFORDBOARD
+endif
 
 AS = $(GCC_BIN)arm-none-eabi-as
 LD = $(GCC_BIN)arm-none-eabi-g++
@@ -27,7 +32,7 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
 LOCAL_C_SRCS = $(wildcard *.c)
-LOCAL_C_SRCS += $(wildcard lpc1768/*.c)
+LOCAL_C_SRCS += $(wildcard lpc17xx/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HAL/LPC17XX/*.c)
@@ -39,7 +44,7 @@ LIB_C_SRCS += $(CMSIS_PATH)/src/core_cm3.c
 LIB_C_SRCS += $(CMSIS_PATH)/src/system_LPC17xx.c
 LIB_C_SRCS += $(wildcard $(DRIVER_PATH)/src/*.c)
 LIB_C_SRCS += $(LIBS_PATH)/cJSON/cJSON.o
-LOCAL_CPP_SRCS = $(wildcard *.cpp) $(wildcard lpc1768/*.cpp)
+LOCAL_CPP_SRCS = $(wildcard *.cpp) $(wildcard lpc17xx/*.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o) $(LIB_C_SRCS:.c=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
 
@@ -51,16 +56,31 @@ CC_FLAGS += -g -ggdb
 else
 # TODO re-enable -O2 when we figure out why IsINReady() returns true
 # when the stream isn't completely read by the host, and thus leading to
-# corruption
+# corruption. See #770.
+endif
+
+BSP_EXISTS = $(shell test -e libs/BSP/bsp.h; echo $$?)
+CDL_EXISTS = $(shell test -e libs/CDL/README.mkd; echo $$?)
+USBLIB_EXISTS = $(shell test -e libs/nxpUSBlib/README.mkd; echo $$?)
+ifneq ($(BSP_EXISTS),0)
+$(error BSP dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(CDL_EXISTS),0)
+$(error CDL dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(USBLIB_EXISTS),0)
+$(error nxpUSBlib dependency is missing - did you run "git submodule init && git submodule update"?)
 endif
 
 all: $(TARGET_BIN)
 
 flash: all
-	@openocd -f config/flash.cfg
+	@openocd -f ../conf/$(BASE_TARGET).cfg -f ../conf/flash.cfg
 
 gdb: all
-	@openocd -f config/gdb.cfg
+	@openocd -f ../conf/gdb.cfg
 
 .s.o:
 	$(AS) $(AS_FLAGS) -o $@ $<

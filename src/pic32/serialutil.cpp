@@ -36,6 +36,8 @@ void processSerialSendQueue(SerialDevice* device) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
-    ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
-            byteCount);
+    if(byteCount > 0) {
+        ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
+                byteCount);
+    }
 }

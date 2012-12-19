@@ -123,8 +123,8 @@ Once the dependencies are installed, attach a JTAG adapter to your computer and
 the CAN translator, then compile and flash an LPC1768 Blueboard like so:
 
     $ make clean
-    $ BOARD=BLUEBOARD make -j4
-    $ BOARD=BLUEBOARD make flash
+    $ PLATFORM=BLUEBOARD make -j4
+    $ PLATFORM=BLUEBOARD make flash
 
 The config files in this repository assume your JTAG adapter is the Olimex
 ARM-USB-OCD unit. If you have a different unit, change the first line in

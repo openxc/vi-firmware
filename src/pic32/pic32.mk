@@ -19,7 +19,7 @@ ifndef ARDUINO_PORT
 	endif
 endif
 
-EXTRA_CPPFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS) -D_BOARD_MEGA_
+EXTRA_CPPFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS)
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 

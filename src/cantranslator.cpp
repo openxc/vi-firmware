@@ -3,15 +3,18 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
+#include "ethernetutil.h"
 #include "signals.h"
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include "chipKITEthernet.h"
 #include <stdint.h>
 #include <stdlib.h>
 
 extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;
+extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
 
 /* Forward declarations */
@@ -24,8 +27,11 @@ void setup() {
     initializeLogging();
 #ifndef NO_UART
     initializeSerial(&SERIAL_DEVICE);
-#endif
+#endif // NO_UART
     initializeUsb(&USB_DEVICE);
+#ifndef NO_ETHERNET
+    initializeEthernet(&ETHERNET_DEVICE);
+#endif // NO_ETHERNET
     initializeAllCan();
 }
 
@@ -33,11 +39,12 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-    processListenerQueues(&listener);
+
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
 #ifndef NO_UART
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
-#endif
+#endif // NO_UART
+
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
@@ -59,9 +66,10 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
-    unsigned long long data = __builtin_bswap64(strtoull(dataString, &end, 16));
-    CanMessage message = {id, data};
-    QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, message);
+    bool send = true;
+    // TODO hard coding bus 0 right now, but it should support sending on either
+    enqueueCanMessage(&getCanBuses()[0], id, strtoull(dataString, &end, 16),
+            &send);
 }
 
 /* The binary format handled by this function is as follows:
@@ -93,19 +101,21 @@ void receiveBinaryWriteRequest(uint8_t* message) {
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
     char* name = nameObject->valuestring;
     cJSON* value = cJSON_GetObjectItem(root, "value");
-    if(value == NULL) {
-        debug("Write request for %s missing value\r\n", name);
-        return;
-    }
 
-    CanSignal* signal = lookupSignal(name, getSignals(),
-            getSignalCount(), true);
-    CanCommand* command = lookupCommand(name, getCommands(),
-            getCommandCount());
+    // Optional, may be null
+    cJSON* event = cJSON_GetObjectItem(root, "event");
+
+    CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),
+            true);
+    CanCommand* command = lookupCommand(name, getCommands(), getCommandCount());
     if(signal != NULL) {
+        if(value == NULL) {
+            debug("Write request for %s missing value\r\n", name);
+            return;
+        }
         sendCanSignal(signal, value, getSignals(), getSignalCount());
     } else if(command != NULL) {
-        command->handler(name, value, getSignals(), getSignalCount());
+        command->handler(name, value, event, getSignals(), getSignalCount());
     } else {
         debug("Writing not allowed for signal with name %s\r\n", name);
     }
@@ -130,8 +140,8 @@ bool receiveJsonWriteRequest(uint8_t* message) {
         }
         cJSON_Delete(root);
     } else {
-        debug("Unable to parse JSON from \"%s\" -- if it's valid, "
-                "may be out of memory\r\n", message);
+        debug("No valid JSON in incoming buffer yet -- "
+                "if it's valid, may be out of memory\r\n");
     }
     return foundMessage;
 }

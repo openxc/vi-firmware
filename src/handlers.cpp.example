@@ -6,8 +6,8 @@ void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals
     sendNumericalMessage("latitude", 42.0, listener);
 }
 
-bool handleTurnSignalCommand(const char* name, cJSON* value, CanSignal* signals,
-        int signalCount) {
+bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
+        CanSignal* signals, int signalCount) {
     const char* direction = value->valuestring;
     CanSignal* signal = NULL;
     if(!strcmp("left", direction)) {

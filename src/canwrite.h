@@ -57,14 +57,14 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data);
 
-/* Public: Interpret the JSON value as a string, convert it to the correct
- * integer value for the given CAN signal and write it to the signal's bitfield.
+/* Public: Convert the string value to the correct integer value for the given
+ * CAN signal and write it to the signal's bitfield.
  *
  * signal - The signal associated with the value.
  * signals - An array of all CAN signals.
  * signalCount - The size of the CAN signals array.
- * value - The JSON object to write. The value will be interpreted as a string
- *      that corresponds to a signal state.
+ * value - The string object to write. The value should correspond to a signal
+ *         state integer value.
  * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
@@ -72,7 +72,19 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
  * encoded value.
  */
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, bool* send);
+
+/* Public: Interpret the JSON value as a string, then do the same as
+ * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
+ */
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send, uint64_t data);
+
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, bool* send, uint64_t data);
 
 /* Public: Interpret the JSON value as a boolean and write it to the correct
  * bitfield for the given signal. This will write either a 0 or 1.
@@ -135,6 +147,20 @@ bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
  * Returns true if the message was sent on CAN.
  */
 bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
+
+/* Public: The lowest-level API available to send a CAN message. The byte order
+ * of the data is swapped, but otherwise this function queues the data to write
+ * out to CAN without any additional processing.
+ *
+ * bus - the bus to send the message on.
+ * messageId - the ID of the CAN message.
+ * data - the data for the CAN message, byte order will be reversed.
+ * send - true if the message should actually be sent.
+ *
+ * Returns true if the message was sent on CAN.
+ */
+bool enqueueCanMessage(CanBus* bus, uint32_t messageId, uint64_t data,
+        bool* send);
 
 /* Public: Write any queued outgoing messages to the CAN bus.
  *

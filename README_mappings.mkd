@@ -81,8 +81,13 @@ a signal are:
 Optionally, you can specify completely custom handler functions to process
 incoming OpenXC messages from the USB host. In the `commands` section of the
 JSON object, you can specify the generic name of the OpenXC command and an
-associated function that matches the `WriteHandler` function prototype (from
-`canutil.h`). Any message received from the USB host with that name will be
+associated function that matches the `CommandHandler` function prototype (from
+`canutil.h`):
+
+    bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
+            CanSignal* signals, int signalCount);
+
+Any message received from the USB host with that name will be
 passed to your handler - this is useful for situations where there isn't a 1 to
 1 mapping between OpenXC command and CAN signal, e.g. if the left and right turn
 signal are split into two signals instead of the 1 state-based signal used by

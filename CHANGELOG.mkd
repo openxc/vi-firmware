@@ -1,5 +1,9 @@
 # OpenXC CAN Translator Changelog
 
+## v2.1-dev
+
+* Add Ethernet support on the chipKIT (thanks Ewgenij!)
+
 ## v2.0
 
 * Further refactoring to support an additional platform, the ARM Cortex M3

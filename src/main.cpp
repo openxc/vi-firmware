@@ -1,5 +1,6 @@
 #include "serialutil.h"
 #include "usbutil.h"
+#include "ethernetutil.h"
 #include "listener.h"
 #include "signals.h"
 #include "log.h"
@@ -19,6 +20,7 @@ extern void loop();
 const char* VERSION = "2.0";
 
 SerialDevice SERIAL_DEVICE;
+EthernetDevice ETHERNET_DEVICE;
 
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
@@ -26,7 +28,7 @@ UsbDevice USB_DEVICE = {
     DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
-Listener listener = {&USB_DEVICE, &SERIAL_DEVICE};
+Listener listener = {&USB_DEVICE, &SERIAL_DEVICE, &ETHERNET_DEVICE};
 
 int main(void) {
 #ifdef __PIC32__
@@ -34,8 +36,10 @@ int main(void) {
 #endif // __PIC32__
     setup();
 
-    for (;;)
+    for (;;) {
         loop();
+        processListenerQueues(&listener);
+    }
 
     return 0;
 }

@@ -21,14 +21,14 @@ extern "C" {
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
  * inEndpoint - The address of the endpoint to use for IN transfers, i.e. device
- * 		to host.
+ *      to host.
  * inEndpointSize - The packet size of the IN endpoint.
  * outEndpoint - The address of the endpoint to use for out transfers, i.e. host
- * 		to device.
+ *      to device.
  * outEndpointSize - The packet size of the IN endpoint.
  * configured - A flag that indicates if the USB interface has been configured
- * 		by a host. Once true, this will not be set to false until the board is
- * 		reset.
+ *      by a host. Once true, this will not be set to false until the board is
+ *      reset.
  * sendQueue - A queue of bytes to send over the IN endpoint.
  * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
  * device - The UsbDevice attached to the host - only used on PIC32.
@@ -90,7 +90,7 @@ void processUsbSendQueue(UsbDevice* device);
  * transfers).
  *
  * data - An array of up bytes up to the total size of the endpoint (64 bytes
- * 		for USB 2.0)
+ *      for USB 2.0)
  * length - The length of the data array.
  */
 void sendControlMessage(uint8_t* data, uint8_t length);

@@ -1,7 +1,8 @@
 BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
-ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility \
+			   chipKITEthernet chipKITEthernet/utility cJSON
 NO_CORE_MAIN_FUNCTION = 1
 SKIP_SUFFIX_CHECK = 1
 OBJDIR = build/pic32
@@ -21,14 +22,23 @@ endif
 EXTRA_CPPFLAGS += -G0 -D__PIC32__ $(CC_SYMBOLS)
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
-MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d libs/chipKITCAN; echo $$?)
+
+EXPECTED_CAN_LIBRARY_PATH = ./libs/chipKITCAN
+MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_CAN_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_CAN_LIBRARY_EXISTS),0)
-$(error chipKIT CAN library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at ./libs/chipKITCAN)
+$(error chipKIT CAN library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_CAN_LIBRARY_PATH))
 endif
 
-MICROCHIP_USB_LIBRARY_EXISTS = $(shell test -d libs/chipKITUSBDevice; echo $$?)
+EXPECTED_USB_LIBRARY_PATH = ./libs/chipKITUSBDevice
+MICROCHIP_USB_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_USB_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
-$(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at ./libs/chipKITUSBDevice)
+$(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_USB_LIBRARY_PATH))
+endif
+
+EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITEthernet
+MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
+ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
+$(error chipKIT Ethernet library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_ETHERNET_LIBRARY_PATH))
 endif
 
 ARDUINO_MK_EXISTS = $(shell test -e libs/arduino.mk/chipKIT.mk; echo $$?)

@@ -31,7 +31,9 @@ extern "C" {
  *      processed.
  */
 typedef struct {
+#ifdef __PIC32__
     Server server;
+#endif // __PIC32__
     uint8_t ipAddress[4];
     uint8_t macAddress[6];
 

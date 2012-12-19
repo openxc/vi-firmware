@@ -6,7 +6,6 @@
 // buffer.
 #define MAX_MESSAGE_SIZE 128
 
-
 void initializeEthernet(EthernetDevice* device) {
     debug("Initializing Ethernet...");
 #ifdef USE_DHCP

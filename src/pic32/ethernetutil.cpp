@@ -31,5 +31,12 @@ void processEthernetSendQueue(EthernetDevice* device) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
-    device->server.write((uint8_t*) sendBuffer, byteCount);
+    // must call at least one Ethernet method to keep the TCP/IP stack alive,
+    // because it's implemented all in software - a quirk of the chipKIT
+    // library. Ethernet.PeriodicTasks() is supposed to be specifically for this
+    // purpose, but it doesn't seem to have any effect while this does.
+    device->server.available();
+    if(byteCount > 0) {
+        device->server.write((uint8_t*) sendBuffer, byteCount);
+    }
 }

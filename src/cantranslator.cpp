@@ -48,13 +48,6 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
-
-#ifndef NO_ETHERNET
-    // must call at least one Ethernet method to keep the TCP/IP stack alive,
-    // because it's implemented all in software - a quirk of the chipKIT
-    // library.
-    Ethernet.PeriodicTasks();
-#endif // NO_ETHERNET
 }
 
 void initializeAllCan() {

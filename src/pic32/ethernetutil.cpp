@@ -1,17 +1,27 @@
 #include "log.h"
 #include "ethernetutil.h"
 
-void initializeEthernet(EthernetDevice* device, Server* server,
-        uint8_t MACAddr[], uint8_t IPAddr[]) {
-    debug("initializing Ethernet...");
-    device->ptrServer = server;
-    Ethernet.begin(MACAddr, IPAddr);
-    device->ptrServer->begin();
+// This size can be set to any arbitrary value. Its
+// function is just to define the size of the send
+// buffer.
+#define MAX_MESSAGE_SIZE 128
+
+
+void initializeEthernet(EthernetDevice* device) {
+    debug("Initializing Ethernet...");
+#ifdef USE_DHCP
+    Ethernet.begin();
+#else
+    Ethernet.begin(device->macAddress, device->ipAddress);
+#endif
+    QUEUE_INIT(uint8_t, &device->receiveQueue);
+    QUEUE_INIT(uint8_t, &device->sendQueue);
+    device->server.begin();
 }
 
 // The message bytes are sequentially popped from the
 // send queue to the send buffer. After the buffer is full
-// or the queue is emtpy, the contents of the buffer are
+// or the queue is empty, the contents of the buffer are
 // sent over the ethernet to listening clients.
 void processEthernetSendQueue(EthernetDevice* device) {
     unsigned int byteCount = 0;
@@ -21,5 +31,5 @@ void processEthernetSendQueue(EthernetDevice* device) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
-    device->ptrServer->write((uint8_t*) sendBuffer, byteCount);
+    device->server.write((uint8_t*) sendBuffer, byteCount);
 }

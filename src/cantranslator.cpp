@@ -17,14 +17,6 @@ extern UsbDevice USB_DEVICE;
 extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
 
-// Ethernet
-
-uint8_t MACAddr[6] = {0, 0, 0, 0, 0, 0};
-uint8_t IPAddr[4] = {192, 168, 1, 6};
-
-Server server = Server(10001);
-Client client;
-
 /* Forward declarations */
 
 void receiveCan(CanBus*);
@@ -38,27 +30,31 @@ void setup() {
 #endif // NO_UART
     initializeUsb(&USB_DEVICE);
 #ifndef NO_ETHERNET
-    initializeEthernet(&ETHERNET_DEVICE, &server,
-            MACAddr, IPAddr);
+    initializeEthernet(&ETHERNET_DEVICE);
 #endif // NO_ETHERNET
     initializeAllCan();
 }
 
 void loop() {
-#ifndef NO_ETHERNET
-    client = server.available();
-#endif // NO_ETHERNET
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-    processListenerQueues(&listener);
+
     readFromHost(&USB_DEVICE, &receiveWriteRequest);
 #ifndef NO_UART
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
 #endif // NO_UART
+
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
+
+#ifndef NO_ETHERNET
+    // must call at least one Ethernet method to keep the TCP/IP stack alive,
+    // because it's implemented all in software - a quirk of the chipKIT
+    // library.
+    Ethernet.PeriodicTasks();
+#endif // NO_ETHERNET
 }
 
 void initializeAllCan() {

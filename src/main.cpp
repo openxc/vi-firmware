@@ -1,5 +1,6 @@
 #include "serialutil.h"
 #include "usbutil.h"
+#include "ethernetutil.h"
 #include "listener.h"
 #include "signals.h"
 #include "log.h"
@@ -19,7 +20,12 @@ extern void loop();
 const char* VERSION = "2.0";
 
 SerialDevice SERIAL_DEVICE;
-EthernetDevice ETHERNET_DEVICE;
+EthernetDevice ETHERNET_DEVICE = {
+    Server(DEFAULT_NETWORK_PORT),
+    DEFAULT_IP_ADDRESS,
+    DEFAULT_MAC_ADDRESS
+};
+
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES,
@@ -34,8 +40,10 @@ int main(void) {
 #endif // __PIC32__
     setup();
 
-    for (;;)
+    for (;;) {
         loop();
+        processListenerQueues(&listener);
+    }
 
     return 0;
 }

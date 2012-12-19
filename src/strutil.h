@@ -11,7 +11,7 @@ extern "C" {
 // the same name and the same functionality "strnchr".
 // Therefore this section should not be compiled when
 // the Ethernet library is included.
-#ifdef NO_ETHERNET
+#if defined(NO_ETHERNET) || !defined(__PIC32__)
 /*
  * Thanks to https://gist.github.com/855214.
  */

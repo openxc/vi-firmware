@@ -9,9 +9,6 @@
 extern "C" {
 #endif
 
-#define DEFAULT_NETWORK_PORT 1776
-#define DEFAULT_MAC_ADDRESS {0, 0, 0, 0, 0, 0}
-#define DEFAULT_IP_ADDRESS {192, 168, 1, 100}
 #define USE_DHCP
 
 #include "queue.h"
@@ -31,9 +28,6 @@ extern "C" {
  *      processed.
  */
 typedef struct {
-#ifdef __PIC32__
-    Server server;
-#endif // __PIC32__
     uint8_t ipAddress[4];
     uint8_t macAddress[6];
 
@@ -41,6 +35,9 @@ typedef struct {
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
+#ifdef __PIC32__
+    Server* server;
+#endif // __PIC32__
 } EthernetDevice;
 
 /* Initializes the ethernet interface with MAC and IP addresses, starts

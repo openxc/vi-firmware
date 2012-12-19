@@ -5,9 +5,17 @@
 // function is just to define the size of the send
 // buffer.
 #define MAX_MESSAGE_SIZE 128
+#define DEFAULT_NETWORK_PORT 1776
+#define DEFAULT_MAC_ADDRESS {0, 0, 0, 0, 0, 0}
+#define DEFAULT_IP_ADDRESS {192, 168, 1, 100}
+
+Server server = Server(DEFAULT_NETWORK_PORT);
 
 void initializeEthernet(EthernetDevice* device) {
     debug("Initializing Ethernet...");
+    device->macAddress = DEFAULT_MAC_ADDRESS;
+    device->ipAddress = DEFAULT_IP_ADDRESS;
+    device->server = &server;
 #ifdef USE_DHCP
     Ethernet.begin();
 #else
@@ -15,7 +23,7 @@ void initializeEthernet(EthernetDevice* device) {
 #endif
     QUEUE_INIT(uint8_t, &device->receiveQueue);
     QUEUE_INIT(uint8_t, &device->sendQueue);
-    device->server.begin();
+    device->server->begin();
 }
 
 // The message bytes are sequentially popped from the
@@ -34,8 +42,8 @@ void processEthernetSendQueue(EthernetDevice* device) {
     // because it's implemented all in software - a quirk of the chipKIT
     // library. Ethernet.PeriodicTasks() is supposed to be specifically for this
     // purpose, but it doesn't seem to have any effect while this does.
-    device->server.available();
+    device->server->available();
     if(byteCount > 0) {
-        device->server.write((uint8_t*) sendBuffer, byteCount);
+        device->server->write((uint8_t*) sendBuffer, byteCount);
     }
 }

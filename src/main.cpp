@@ -20,11 +20,7 @@ extern void loop();
 const char* VERSION = "2.0";
 
 SerialDevice SERIAL_DEVICE;
-EthernetDevice ETHERNET_DEVICE = {
-    Server(DEFAULT_NETWORK_PORT),
-    DEFAULT_IP_ADDRESS,
-    DEFAULT_MAC_ADDRESS
-};
+EthernetDevice ETHERNET_DEVICE;
 
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,

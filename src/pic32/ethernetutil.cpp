@@ -24,6 +24,7 @@ void initializeEthernet(EthernetDevice* device) {
     QUEUE_INIT(uint8_t, &device->receiveQueue);
     QUEUE_INIT(uint8_t, &device->sendQueue);
     device->server->begin();
+    debug("Done.\r\n");
 }
 
 // The message bytes are sequentially popped from the

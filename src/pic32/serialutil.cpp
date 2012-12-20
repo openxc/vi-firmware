@@ -10,8 +10,8 @@
 void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
     int bytesAvailable = ((HardwareSerial*)device->controller)->available();
     if(bytesAvailable > 0) {
-        for(int i = 0; i < bytesAvailable && !QUEUE_FULL(uint8_t,
-                                &device->receiveQueue); i++) {
+        for(int i = 0; i < bytesAvailable &&
+                !QUEUE_FULL(uint8_t, &device->receiveQueue); i++) {
             char byte = ((HardwareSerial*)device->controller)->read();
             QUEUE_PUSH(uint8_t, &device->receiveQueue, (uint8_t) byte);
         }

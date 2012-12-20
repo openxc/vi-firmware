@@ -50,6 +50,8 @@ void initializeEthernet(EthernetDevice* device);
  */
 void processEthernetSendQueue(EthernetDevice* device);
 
+void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*));
+
 #ifdef __cplusplus
 }
 #endif

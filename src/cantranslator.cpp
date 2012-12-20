@@ -44,6 +44,9 @@ void loop() {
 #ifndef NO_UART
     readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
 #endif // NO_UART
+#ifndef NO_ETHERNET
+    readFromSocket(&ETHERNET_DEVICE, &receiveWriteRequest);
+#endif // NO_ETHERNET
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);

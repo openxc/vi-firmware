@@ -11,12 +11,13 @@
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 /* Public: A CAN message, particularly for writing to CAN.
- * state names.
  *
+ * bus - A pointer to the bus this message is on.
  * id - The ID of the message.
  * data  - The message's data field.
  */
 typedef struct {
+    struct CanBus* bus;
     uint32_t id;
     uint64_t data;
 } CanMessage;
@@ -38,7 +39,7 @@ QUEUE_DECLARE(CanMessage, 16);
  * receiveQueue - a queue of messages received from CAN that have yet to be
  *      translated.
  */
-typedef struct {
+typedef struct CanBus {
     unsigned int speed;
     uint64_t address;
     void* controller;
@@ -46,7 +47,8 @@ typedef struct {
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
-} CanBus;
+};
+typedef struct CanBus CanBus;
 
 /* Public: A CAN transceiver message filter.
  *
@@ -61,8 +63,8 @@ typedef struct {
     int channel;
 } CanFilter;
 
-/* Public: A state-based (SED) signal's mapping from numerical values to OpenXC
- * state names.
+/* Public: A state encoded (SED) signal's mapping from numerical values to
+ * OpenXC state names.
  *
  * value - The integer value of the state on the CAN bus.
  * name  - The corresponding string name for the state in OpenXC.
@@ -74,8 +76,7 @@ typedef struct {
 
 /* Public: A CAN signal to decode from the bus and output over USB.
  *
- * bus         - The CAN bus this signal belongs on.
- * messageId   - The ID of the message this signal is a part of signal.
+ * message     - The message this signal is a part of.
  * genericName - The name of the signal to be output over USB.
  * bitPosition - The starting bit of the signal in its CAN message.
  * bitSize     - The width of the bit field in the CAN message.
@@ -100,8 +101,7 @@ typedef struct {
  * sendClock   - An internal counter value, don't use this.
  */
 struct CanSignal {
-    CanBus* bus;
-    uint32_t messageId;
+    CanMessage* message;
     const char* genericName;
     int bitPosition;
     int bitSize;

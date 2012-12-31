@@ -75,21 +75,34 @@ class Command(object):
 
 
 class Message(object):
-    def __init__(self, id, name, handler=None):
+    def __init__(self, buses, bus_address, id, name, handler=None):
+        self.bus_address = bus_address
+        self.buses = buses
         self.id = int(id, 0)
         self.name = name
         self.handler = handler
         self.signals = []
 
+    def __str__(self):
+        return "{&CAN_BUSES[%d], %d}, // %s" % (
+                self._lookupBusIndex(self.buses, self.bus_address),
+                self.id, self.name)
+        return result
+
+    @staticmethod
+    def _lookupBusIndex(buses, bus_address):
+        for i, bus in enumerate(iter(buses.items())):
+            if bus[0] == bus_address:
+                return i
+
 
 class Signal(object):
-    def __init__(self, bus_address=None, buses=None, message=None, name=None,
+    def __init__(self, messages=None, message=None, name=None,
             generic_name=None, position=None, length=None, factor=1, offset=0,
             min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=0, send_same=True,
             writable=False, write_handler=None):
-        self.bus_address = bus_address
-        self.buses = buses
+        self.messages = messages
         self.message = message
         self.name = name
         self.generic_name = generic_name
@@ -154,15 +167,16 @@ class Signal(object):
         end = (8 * b) + (7 - r)
         return(end - l + 1)
 
-    def _lookupBusIndex(self):
-        for i, bus in enumerate(iter(self.buses.items())):
-            if bus[0] == self.bus_address:
+    @staticmethod
+    def _lookupMessageIndex(messages, message):
+        for i, candidate in enumerate(messages):
+            if candidate.id == message.id:
                 return i
 
     def __str__(self):
-        result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
+        result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self._lookupBusIndex(), self.message.id,
+                self._lookupMessageIndex(self.messages, self.message),
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
@@ -191,6 +205,7 @@ class Parser(object):
         self.name = name
         self.buses = defaultdict(dict)
         self.signal_count = 0
+        self.message_count = 0
         self.command_count = 0
 
     def parse(self):
@@ -262,6 +277,18 @@ class Parser(object):
             if bus is not None:
                 self._print_bus_struct(bus_address, bus, bus_number + 1)
 
+        print("};")
+        print()
+
+        print("const int MESSAGE_COUNT = %d;" % self.message_count)
+        print("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
+
+        i = 1
+        for bus in list(self.buses.values()):
+            for message in bus['messages']:
+                message.array_index = i - 1
+                print("    %s" % message)
+                i += 1
         print("};")
         print()
 
@@ -433,17 +460,17 @@ class JsonParser(Parser):
             for message_id, message_data in bus_data.get('messages', {}
                     ).items():
                 self.signal_count += len(message_data['signals'])
-                message = Message(message_id, message_data.get('name', None),
+                self.message_count += 1
+                message = Message(self.buses, bus_address, message_id,
+                        message_data.get('name', None),
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].items():
                     states = []
-                    for name, raw_matches in signal.get('states',
-                            {}).items():
+                    for name, raw_matches in signal.get('states', {}).items():
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
-                    message.signals.append(
-                            Signal(bus_address,
-                            self.buses,
+                    message.signals.append(Signal(
+                            self.buses[bus_address]['messages'],
                             message,
                             signal_name,
                             signal.get('generic_name', None),

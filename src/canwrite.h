@@ -152,15 +152,13 @@ bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
  * of the data is swapped, but otherwise this function queues the data to write
  * out to CAN without any additional processing.
  *
- * bus - the bus to send the message on.
- * messageId - the ID of the CAN message.
+ * message - the CAN message this data should be sent in.
  * data - the data for the CAN message, byte order will be reversed.
  * send - true if the message should actually be sent.
  *
  * Returns true if the message was sent on CAN.
  */
-bool enqueueCanMessage(CanBus* bus, uint32_t messageId, uint64_t data,
-        bool* send);
+bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send);
 
 /* Public: Write any queued outgoing messages to the CAN bus.
  *

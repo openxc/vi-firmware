@@ -39,7 +39,7 @@ QUEUE_DECLARE(CanMessage, 16);
  * receiveQueue - a queue of messages received from CAN that have yet to be
  *      translated.
  */
-typedef struct CanBus {
+struct CanBus {
     unsigned int speed;
     uint64_t address;
     void* controller;

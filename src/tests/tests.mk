@@ -28,7 +28,19 @@ test: LDFLAGS = -m32 -lm
 test: LDLIBS = $(TEST_LIBS)
 test: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
-	@make code_generation_test
+	@make pic32_compile_test
+	@make lpc17xx_compile_test
+	@mv signals.cpp.bak signals.cpp
+	@mv handlers.cpp.bak handlers.cpp
+	@mv handlers.h.bak handlers.h
+
+pic32_compile_test: code_generation_test
+	make -j4
+	@make clean
+
+lpc17xx_compile_test: code_generation_test
+	PLATFORM=LPC17XX make -j4
+	@make clean
 
 code_generation_test:
 	@make clean
@@ -40,10 +52,6 @@ code_generation_test:
 	@ln -s $(TEST_OBJDIR)/signals.cpp
 	@ln -s handlers.cpp.example handlers.cpp
 	@ln -s handlers.h.example handlers.h
-	make -j4 && make clean
-	@mv signals.cpp.bak signals.cpp
-	@mv handlers.cpp.bak handlers.cpp
-	@mv handlers.h.bak handlers.h
 
 $(TEST_OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

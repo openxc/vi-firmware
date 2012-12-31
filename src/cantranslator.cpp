@@ -8,9 +8,12 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
-#include "chipKITEthernet.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+#ifdef __PIC32__
+#include "chipKITEthernet.h"
+#endif // NO_ETHERNET
 
 extern SerialDevice SERIAL_DEVICE;
 extern UsbDevice USB_DEVICE;

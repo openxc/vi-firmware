@@ -1,9 +1,11 @@
 #include "serialutil.h"
 #include "buffers.h"
 #include "log.h"
-#include "WProgram.h"
+#include "HardwareSerial.h"
 
 #define UART_BAUDRATE 115200
+
+extern HardwareSerial Serial1;
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088

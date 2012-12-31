@@ -2,3 +2,6 @@ handlers.cpp
 handlers.h
 signals.h
 signals.cpp
+.project
+.cproject
+.settings

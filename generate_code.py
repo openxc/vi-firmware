@@ -203,6 +203,7 @@ class Parser(object):
         print("#include \"signals.h\"")
         print("#include \"log.h\"")
         if getattr(self, 'uses_custom_handlers', None):
+            print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
         print()
         print("extern Listener listener;")

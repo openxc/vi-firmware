@@ -161,3 +161,19 @@ void handleButtonEventMessage(int messageId, uint64_t data,
     }
 }
 
+bool handleTurnSignalCommand(const char* name, cJSON* value, CanSignal* signals,
+        int signalCount) {
+    const char* direction = value->valuestring;
+    CanSignal* signal = NULL;
+    if(!strcmp("left", direction)) {
+        signal = lookupSignal("turn_signal_left", signals, signalCount);
+    } else if(!strcmp("right", direction)) {
+        signal = lookupSignal("turn_signal_right", signals, signalCount);
+    }
+
+    if(signal != NULL) {
+        return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
+                signals, signalCount);
+    }
+    return false;
+}

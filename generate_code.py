@@ -441,9 +441,10 @@ class JsonParser(Parser):
             with open(filename) as json_file:
                 try:
                     data = json.load(json_file)
-                except ValueError:
-                    sys.stderr.write("ERROR: %s does not contain valid JSON"
-                            % filename)
+                except ValueError as e:
+                    sys.stderr.write(
+                            "ERROR: %s does not contain valid JSON: \n%s\n"
+                            % (filename, e))
                     sys.exit(1)
                 merged_dict = merge(merged_dict, data)
 

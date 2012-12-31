@@ -168,7 +168,7 @@ bool enqueueCanMessage(CanBus* bus, uint32_t messageId, uint64_t data,
  */
 void processCanWriteQueue(CanBus* bus);
 
-/* Public: Write a CAN message with the given data and node ID to the bus.
+/* Private: Write a CAN message with the given data and node ID to the bus.
  *
  * The CAN module has an 8 message buffer and sends messages in FIFO order. If
  * the buffer is full, this function will return false and the message will not

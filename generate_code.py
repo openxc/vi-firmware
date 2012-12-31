@@ -76,21 +76,21 @@ class Command(object):
 
 class Message(object):
     def __init__(self, id, name, handler=None):
-        self.id = int(id)
+        self.id = int(id, 0)
         self.name = name
         self.handler = handler
         self.signals = []
 
 
 class Signal(object):
-    def __init__(self, bus_address=None, buses=None, message_id=None, name=None,
+    def __init__(self, bus_address=None, buses=None, message=None, name=None,
             generic_name=None, position=None, length=None, factor=1, offset=0,
             min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=0, send_same=True,
             writable=False, write_handler=None):
         self.bus_address = bus_address
         self.buses = buses
-        self.message_id = message_id
+        self.message = message
         self.name = name
         self.generic_name = generic_name
         self.position = position
@@ -162,7 +162,7 @@ class Signal(object):
     def __str__(self):
         result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self._lookupBusIndex(), self.message_id,
+                self._lookupBusIndex(), self.message.id,
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
@@ -443,7 +443,7 @@ class JsonParser(Parser):
                     message.signals.append(
                             Signal(bus_address,
                             self.buses,
-                            int(message_id),
+                            message,
                             signal_name,
                             signal.get('generic_name', None),
                             signal.get('bit_position', None),

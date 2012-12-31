@@ -1,4 +1,4 @@
-## Input Specification
+# Input Specification
 
 The code in this repository requires a list of CAN messages with details of the
 signals of interest, and their corresponding generic versions. The input format
@@ -7,12 +7,49 @@ is a JSON object like the one found in [sample.json][].
 This is a list of CAN buses (the `0x102` is a unique bus address and means it
 will use the "CAN2" module in the microcontroller, and whatever associated pins
 on the board), messages in each bus and a list of signals within each message.
-The `speed` attribute on the bus is the CAN bus speed in Kbps. The attributes of
-a signal are:
 
-`name` - The official name of the signal - often a terse spelling.
-    Optional - just used to be able to reference back to original documentation
-    from this list.
+**CAN Bus**
+
+The attributes of the CAN bus object (identified with the bus address in hex,
+e.g. `0x102`):
+
+`speed` - The CAN bus speed in Kbps.
+
+`messages` - A mapping of CAN message objects that are on this bus, the key
+    being either a hex ID (must begin with `0x`) or decimal (must *not* begin
+    with `0x`).
+
+`commands` - A mapping of CAN command objects that should be sent on this bus
+    that should be sent on this bus. The key is the name that will be used over
+    the OpenXC interface.
+
+**Command**
+
+The attributes of a `command` object are:
+
+`handler` - The name of a custom command handler function that should be called
+    with the data when the named command arrives over USB/Bluetooth/etc.
+
+**Message**
+
+The attributes of a `message` object are:
+
+`name` - The name of the CAN message. Optional - just used to be able to
+    reference the original documentation from the mappings file.
+
+`handler` - The name of a function that will be compiled with the sketch
+    and should be applied to the entire raw message value. No other operations
+    are performed on the data if this type of handler is used. Optional - see
+    the "Custom Handlers" section for more.
+
+`signals` - A list of CAN signal objects that are in this message, with the
+    official name of the signal as the key. If merging with automatically
+    generated JSON from another database, this value must match exactly -
+    otherwise, it's an arbitrary name.
+
+**Signal**
+
+The attributes of a `signal` object within a `message` are:
 
 `generic_name` - The name of the associated generic signal name (from the OpenXC
     specification) that this should be translated to. Optional - if not
@@ -32,18 +69,13 @@ a signal are:
     with the sketch and should be applied to the signal's value after the normal
     translation. Optional - see the "Custom Handlers" section for more.
 
-`handler` - The name of a function that will be compiled with the sketch
-    and should be applied to the entire raw message value. No other operations
-    are performed on the data if this type of handler is used. Optional - see
-    the "Custom Handlers" section for more.
-
 `ignore` - Setting this to `true` on a signal will silence output of that
     signal. The translator will not monitor the signal nor store any of its
     values. This is useful if you are using a custom handler for an entire
     message, want to silence the normal output of the signals it handles, and
     you don't need the translator to keep track of the values of any of the
     signals separately. If you need to use the previously stored values of any
-    of ths signals, you can use the `ignoreHandler` as a value handler for the
+    of the signals, you can use the `ignoreHandler` as a value handler for the
     signal.
 
 `states` - For state values, this is a mapping between the desired descriptive
@@ -77,6 +109,8 @@ a signal are:
     for boolean types at the moment - if your signal has states defined, we
     assume you need to encode a string state value back to its original
     numerical value.
+
+## Arbitrary Commands
 
 Optionally, you can specify completely custom handler functions to process
 incoming OpenXC messages from the USB host. In the `commands` section of the
@@ -128,7 +162,7 @@ memory. Our custom handler `handleSteeringWheelAngle` will use that to adjust
 the raw steering wheel angle value. Modify the input JSON file to set the
 `value_handler` attribute for the steering wheel angle signal to
 `handleSteeringWheelAngle`. If you're using `generate_code.py`, the
-handlers shouhld be saved in `src/handlers.h` and `src/handlers.cpp`:
+handlers should be saved in `src/handlers.h` and `src/handlers.cpp`:
 
 `src/handlers.h`:
 

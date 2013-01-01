@@ -19,20 +19,22 @@ TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
 
 .PRECIOUS: $(TESTABLE_OBJS) $(TESTS:.bin=.o)
 
-test: LD = g++
-test: CC = gcc
-test: CPP = g++
-test: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb
-test: CC_SYMBOLS = -D__TESTS__
-test: LDFLAGS = -m32 -lm
-test: LDLIBS = $(TEST_LIBS)
-test: $(TESTS)
-	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
+test: unit_tests
 	@make pic32_compile_test
 	@make lpc17xx_compile_test
 	@mv signals.cpp.bak signals.cpp
 	@mv handlers.cpp.bak handlers.cpp
 	@mv handlers.h.bak handlers.h
+
+unit_tests: LD = g++
+unit_tests: CC = gcc
+unit_tests: CPP = g++
+unit_tests: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb
+unit_tests: CC_SYMBOLS = -D__TESTS__
+unit_tests: LDFLAGS = -m32 -lm
+unit_tests: LDLIBS = $(TEST_LIBS)
+unit_tests: $(TESTS)
+	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
 pic32_compile_test: code_generation_test
 	make -j4

@@ -4,10 +4,12 @@
 
 ByteQueue queue;
 bool called;
+bool callbackStatus;
 
 void setup() {
     QUEUE_INIT(uint8_t, &queue);
     called = false;
+    callbackStatus = false;
 }
 
 void teardown() {
@@ -15,6 +17,7 @@ void teardown() {
 
 bool callback(uint8_t* message) {
     called = true;
+    return callbackStatus;
 }
 
 START_TEST (test_empty_doesnt_call)
@@ -24,11 +27,70 @@ START_TEST (test_empty_doesnt_call)
 }
 END_TEST
 
+START_TEST (test_missing_callback)
+{
+    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    processQueue(&queue, NULL);
+    fail_if(called);
+    fail_if(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_success_clears)
+{
+    callbackStatus = true;
+    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    processQueue(&queue, callback);
+    fail_unless(called);
+    fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_failure_preserves)
+{
+    callbackStatus = false;
+    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    processQueue(&queue, callback);
+    fail_unless(called);
+    fail_if(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_clear_corrupted)
+{
+    callbackStatus = false;
+    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    QUEUE_PUSH(uint8_t, &queue, (uint8_t) '\0');
+    processQueue(&queue, callback);
+    fail_unless(called);
+    fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_full_clears)
+{
+    for(int i = 0; i < 512; i++) {
+        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    }
+    fail_unless(QUEUE_FULL(uint8_t, &queue));
+
+    callbackStatus = false;
+    processQueue(&queue, callback);
+    fail_unless(called);
+    fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
 Suite* buffersSuite(void) {
     Suite* s = suite_create("buffers");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture (tc_core, setup, teardown);
     tcase_add_test(tc_core, test_empty_doesnt_call);
+    tcase_add_test(tc_core, test_success_clears);
+    tcase_add_test(tc_core, test_failure_preserves);
+    tcase_add_test(tc_core, test_clear_corrupted);
+    tcase_add_test(tc_core, test_full_clears);
+    tcase_add_test(tc_core, test_missing_callback);
     suite_add_tcase(s, tc_core);
 
     return s;

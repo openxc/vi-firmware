@@ -3,7 +3,12 @@
 #include "log.h"
 
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, queue)];
+    int length = QUEUE_LENGTH(uint8_t, queue);
+    if(length == 0) {
+        return;
+    }
+
+    uint8_t snapshot[length];
     QUEUE_SNAPSHOT(uint8_t, queue, snapshot);
     if(callback == NULL) {
         debug("Callback is NULL (%p) -- unable to handle queue at %p\r\n",

@@ -10,7 +10,7 @@ TEST_LIBS = -lcheck
 INCLUDE_PATHS += -I. -I./libs/cJSON
 
 TESTABLE_OBJ_FILES = bitfield.o queue.o canutil.o canwrite.o canread.o \
-				listener.o libs/cJSON/cJSON.o
+				listener.o libs/cJSON/cJSON.o buffers.o strutil.o
 TESTABLE_LIB_SRCS = helpers.c usbutil_mock.c serialutil_mock.c \
 				canwrite_mock.c log_mock.c ethernetutil_mock.c
 TESTABLE_LIB_OBJ_FILES = $(addprefix $(TEST_OBJDIR)/$(TEST_DIR)/, $(TESTABLE_LIB_SRCS:.c=.o))
@@ -29,9 +29,9 @@ test: unit_tests
 unit_tests: LD = g++
 unit_tests: CC = gcc
 unit_tests: CPP = g++
-unit_tests: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb
+unit_tests: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb -coverage
 unit_tests: CC_SYMBOLS = -D__TESTS__
-unit_tests: LDFLAGS = -m32 -lm
+unit_tests: LDFLAGS = -m32 -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
@@ -54,6 +54,16 @@ code_generation_test:
 	@ln -s $(TEST_OBJDIR)/signals.cpp
 	@ln -s handlers.cpp.example handlers.cpp
 	@ln -s handlers.h.example handlers.h
+
+COVERAGE_INFO_FILENAME = coverage.info
+COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)
+coverage:
+	@lcov --base-directory . --directory . --zerocounters -q
+	@make unit_tests
+	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
+	@lcov --remove $(COVERAGE_INFO_PATH) "libs/*" -o $(COVERAGE_INFO_PATH)
+	@genhtml -o $(TEST_OBJDIR)/coverage -t "cantranslator test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
+	@google-chrome $(TEST_OBJDIR)/coverage/index.html
 
 $(TEST_OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

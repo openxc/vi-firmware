@@ -3,6 +3,7 @@
 #include "signals.h"
 #include "log.h"
 #include "lpc17xx_pinsel.h"
+#include "canwrite_lpc17xx.h"
 
 #define CAN_CTRL(BUS) (BUS == LPC_CAN1 ? 0 : 1)
 
@@ -48,6 +49,7 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
 void initializeCan(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
+    bus->writeHandler = sendCanMessage;
 
     configureCanControllerPins(CAN_CONTROLLER(bus));
 

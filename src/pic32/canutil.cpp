@@ -1,5 +1,6 @@
 #include "canutil.h"
 #include "canutil_pic32.h"
+#include "canwrite_pic32.h"
 #include "signals.h"
 #include "log.h"
 
@@ -47,6 +48,7 @@ void initializeCan(CanBus* bus) {
     debug("Initializing CAN...");
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
+    bus->writeHandler = sendCanMessage;
 
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete

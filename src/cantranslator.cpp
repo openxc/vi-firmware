@@ -13,11 +13,8 @@
 
 #ifdef __PIC32__
 #include "chipKITEthernet.h"
-#endif // NO_ETHERNET
+#endif // __PIC32__
 
-extern SerialDevice SERIAL_DEVICE;
-extern UsbDevice USB_DEVICE;
-extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
 
 /* Forward declarations */
@@ -28,13 +25,13 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
-#ifndef NO_UART
-    initializeSerial(&SERIAL_DEVICE);
-#endif // NO_UART
-    initializeUsb(&USB_DEVICE);
-#ifndef NO_ETHERNET
-    initializeEthernet(&ETHERNET_DEVICE);
-#endif // NO_ETHERNET
+    initializeUsb(listener.usb);
+    if(listener.serial != NULL) {
+        initializeSerial(listener.serial);
+    }
+    if(listener.ethernet != NULL) {
+        initializeEthernet(listener.ethernet);
+    }
     initializeAllCan();
 }
 
@@ -43,13 +40,13 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
 
-    readFromHost(&USB_DEVICE, &receiveWriteRequest);
-#ifndef NO_UART
-    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
-#endif // NO_UART
-#ifndef NO_ETHERNET
-    readFromSocket(&ETHERNET_DEVICE, &receiveWriteRequest);
-#endif // NO_ETHERNET
+    readFromHost(listener.usb, &receiveWriteRequest);
+    if(listener.serial != NULL) {
+        readFromSerial(listener.serial, receiveWriteRequest);
+    }
+    if(listener.ethernet != NULL) {
+        readFromSocket(listener.ethernet, &receiveWriteRequest);
+    }
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
@@ -108,7 +105,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
     char* name = nameObject->valuestring;
     cJSON* value = cJSON_GetObjectItem(root, "value");
 
-    // Optional, may be null
+    // Optional, may be NULL
     cJSON* event = cJSON_GetObjectItem(root, "event");
 
     CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),

@@ -12,9 +12,6 @@
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-extern SerialDevice SERIAL_DEVICE;
-extern UsbDevice USB_DEVICE;
-extern EthernetDevice ETHERNET_DEVICE;
 extern Listener listener;
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
@@ -66,13 +63,13 @@ void setup() {
     srand(42);
 
     initializeLogging();
-#ifndef NO_UART
-    initializeSerial(&SERIAL_DEVICE);
-#endif // NO_UART
-#ifndef NO_ETHERNET
-    initializeEthernet(&ETHERNET_DEVICE);
-#endif // NO_ETHERNET
-    initializeUsb(&USB_DEVICE);
+    initializeUsb(listener->usb);
+    if(listener->serial != null) {
+        initializeSerial(listener->serial);
+    }
+    if(listener->ethernet != null) {
+        initializeEthernet(listener->ethernet);
+    }
 }
 
 bool usbWriteStub(uint8_t* buffer) {
@@ -96,10 +93,10 @@ void loop() {
     sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
             randomEvent.value, randomEvent.event, &listener);
 
-    readFromHost(&USB_DEVICE, usbWriteStub);
-#ifndef NO_UART
-    readFromSerial(&SERIAL_DEVICE, usbWriteStub);
-#endif
+    readFromHost(listener->usb, usbWriteStub);
+    if(listener->serial != null) {
+        readFromSerial(listener->serial, usbWriteStub);
+    }
 }
 
 void reset() { }

@@ -2,6 +2,7 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
 #include "serialutil.h"
+#include "listener.h"
 #include "buffers.h"
 #include "log.h"
 
@@ -31,7 +32,7 @@
 
 #endif
 
-extern SerialDevice SERIAL_DEVICE;
+extern Listener listener;
 
 __IO int32_t RTS_STATE;
 __IO int32_t CTS_STATE;
@@ -70,12 +71,12 @@ void enableTransmitInterrupt() {
 }
 
 void handleReceiveInterrupt() {
-    while(!QUEUE_FULL(uint8_t, &SERIAL_DEVICE.receiveQueue)) {
+    while(!QUEUE_FULL(uint8_t, &listener.serial->receiveQueue)) {
         uint8_t byte;
         uint32_t received = UART_Receive(UART1_DEVICE, &byte, 1, NONE_BLOCKING);
         if(received > 0) {
-            QUEUE_PUSH(uint8_t, &SERIAL_DEVICE.receiveQueue, byte);
-            if(QUEUE_FULL(uint8_t, &SERIAL_DEVICE.receiveQueue)) {
+            QUEUE_PUSH(uint8_t, &listener.serial->receiveQueue, byte);
+            if(QUEUE_FULL(uint8_t, &listener.serial->receiveQueue)) {
                 pauseReceive();
             }
         } else {
@@ -93,16 +94,16 @@ void handleTransmitInterrupt() {
 
     while(UART_CheckBusy(UART1_DEVICE) == SET);
 
-    while(!QUEUE_EMPTY(uint8_t, &SERIAL_DEVICE.sendQueue)) {
-        uint8_t byte = QUEUE_PEEK(uint8_t, &SERIAL_DEVICE.sendQueue);
+    while(!QUEUE_EMPTY(uint8_t, &listener.serial->sendQueue)) {
+        uint8_t byte = QUEUE_PEEK(uint8_t, &listener.serial->sendQueue);
         if(UART_Send(UART1_DEVICE, &byte, 1, NONE_BLOCKING)) {
-            QUEUE_POP(uint8_t, &SERIAL_DEVICE.sendQueue);
+            QUEUE_POP(uint8_t, &listener.serial->sendQueue);
         } else {
             break;
         }
     }
 
-    if(QUEUE_EMPTY(uint8_t, &SERIAL_DEVICE.sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &listener.serial->sendQueue)) {
         disableTransmitInterrupt();
     } else {
         enableTransmitInterrupt();

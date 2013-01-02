@@ -28,7 +28,14 @@ UsbDevice USB_DEVICE = {
     DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
-Listener listener = {&USB_DEVICE, &SERIAL_DEVICE, &ETHERNET_DEVICE};
+Listener listener = {&USB_DEVICE,
+#ifndef NO_UART
+    &SERIAL_DEVICE,
+#endif // NO_UART
+#ifndef NO_ETHERNET
+    &ETHERNET_DEVICE
+#endif // NO_ETHERNET
+};
 
 int main(void) {
 #ifdef __PIC32__

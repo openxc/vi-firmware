@@ -36,7 +36,8 @@ bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         return false;
     }
 
-    for(int i = 0; i < messageSize; i++) {
+    int i;
+    for(i = 0; i < messageSize; i++) {
         QUEUE_PUSH(uint8_t, queue, (uint8_t)message[i]);
     }
     QUEUE_PUSH(uint8_t, queue, (uint8_t)'\r');

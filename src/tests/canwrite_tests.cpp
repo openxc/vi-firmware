@@ -33,6 +33,19 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
     {"turn_signal_status", NULL},
 };
 
+void setup() {
+    for(int i = 0; i < SIGNAL_COUNT; i++) {
+        SIGNALS[i].writable = true;
+        SIGNALS[i].received = false;
+        SIGNALS[i].sendSame = true;
+        SIGNALS[i].sendFrequency = 1;
+        SIGNALS[i].sendClock = 0;
+    }
+}
+
+void teardown() {
+}
+
 START_TEST (test_number_writer)
 {
     bool send = true;
@@ -68,6 +81,16 @@ START_TEST (test_state_writer)
 }
 END_TEST
 
+START_TEST (test_write_not_allowed)
+{
+    bool send = true;
+    SIGNALS[1].writable = false;
+    numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, cJSON_CreateNumber(0x6),
+            &send);
+    fail_if(send);
+}
+END_TEST
+
 START_TEST (test_write_unknown_state)
 {
     bool send = true;
@@ -94,9 +117,11 @@ END_TEST
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
+    tcase_add_checked_fixture(tc_core, setup, teardown);
     tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
+    tcase_add_test(tc_core, test_write_not_allowed);
     tcase_add_test(tc_core, test_write_unknown_state);
     tcase_add_test(tc_core, test_encode_can_signal);
     tcase_add_test(tc_core, test_encode_can_signal_rounding_precision);

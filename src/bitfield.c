@@ -14,16 +14,6 @@ uint64_t bitmask(int numBits) {
     return (0x1 << numBits) - 1;
 }
 
-uint64_t reverseBitmaskVariableLength(int numBits, int totalLength) {
-    uint64_t mask = bitmask(numBits);
-    return mask << (totalLength - numBits);
-}
-
-uint64_t reverseBitmask(int numBits) {
-    return reverseBitmaskVariableLength(numBits, 64);
-}
-
-
 int startingByte(int startBit) {
     return startBit / 8;
 }

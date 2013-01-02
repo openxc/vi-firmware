@@ -5,10 +5,12 @@
 #include "canwrite.h"
 #include "cJSON.h"
 
+CanBus bus = {115200, 0x101};
+
 CanMessage MESSAGES[3] = {
-    {NULL, 0},
-    {NULL, 1},
-    {NULL, 2},
+    {&bus, 0},
+    {&bus, 1},
+    {&bus, 2},
 };
 
 CanSignalState SIGNAL_STATES[1][10] = {
@@ -41,6 +43,7 @@ void setup() {
         SIGNALS[i].sendFrequency = 1;
         SIGNALS[i].sendClock = 0;
     }
+    QUEUE_INIT(CanMessage, &bus.sendQueue);
 }
 
 void teardown() {
@@ -133,6 +136,25 @@ START_TEST (test_encode_can_signal_rounding_precision)
 }
 END_TEST
 
+START_TEST (test_enqueue)
+{
+    CanMessage message = {&bus, 42};
+    enqueueCanMessage(&message, 0x123456);
+
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &message.bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_swaps_byte_order)
+{
+    CanMessage message = {&bus, 42};
+    enqueueCanMessage(&message, 0x123456);
+
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &message.bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x5634120000000000);
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
@@ -146,6 +168,12 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_core, test_encode_can_signal);
     tcase_add_test(tc_core, test_encode_can_signal_rounding_precision);
     suite_add_tcase(s, tc_core);
+
+    TCase *tc_enqueue = tcase_create("enqueue");
+    tcase_add_checked_fixture(tc_enqueue, setup, teardown);
+    tcase_add_test(tc_enqueue, test_enqueue);
+    tcase_add_test(tc_enqueue, test_swaps_byte_order);
+    suite_add_tcase(s, tc_enqueue);
 
     return s;
 }

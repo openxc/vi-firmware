@@ -91,19 +91,10 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
     return data;
 }
 
-bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send) {
-    if(*send) {
-        CanMessage outgoingMessage = {message->bus, message->id,
-            __builtin_bswap64(data)};
-        QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
-        return true;
-    }
-    debug("Not sending requested message %x\r\n", message->id);
-    return false;
-}
-
-bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
-    return enqueueCanMessage(signal->message, data, send);
+void enqueueCanMessage(CanMessage* message, uint64_t data) {
+    CanMessage outgoingMessage = {message->bus, message->id,
+        __builtin_bswap64(data)};
+    QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
 }
 
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
@@ -116,7 +107,6 @@ bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
 bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
-    bool send = true;
     if(writer == NULL) {
         if(signal->stateCount > 0) {
             writer = stateWriter;
@@ -125,8 +115,12 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
         }
     }
 
+    bool send = true;
     uint64_t data = writer(signal, signals, signalCount, value, &send);
-    return sendCanSignal(signal, data, &send);
+    if(send) {
+        enqueueCanMessage(signal->message, data);
+    }
+    return send;
 }
 
 void processCanWriteQueue(CanBus* bus) {

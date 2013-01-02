@@ -47,10 +47,12 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
 float preTranslate(CanSignal* signal, uint64_t data, bool* send) {
     float value = decodeCanSignal(signal, data);
 
-    if(signal->sendClock == signal->sendFrequency) {
-        if(send && (signal->sendSame || !signal->received ||
-                value != signal->lastValue)) {
+    if(!signal->received || signal->sendClock == signal->sendFrequency - 1) {
+        if(send && (!signal->received || signal->sendSame ||
+                    value != signal->lastValue)) {
             signal->received = true;
+        } else {
+            *send = false;
         }
         signal->sendClock = 0;
     } else {

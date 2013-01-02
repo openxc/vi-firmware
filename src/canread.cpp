@@ -1,39 +1,6 @@
 #include "canread.h"
 #include <stdlib.h>
 
-float decodeCanSignal(CanSignal* signal, uint64_t data) {
-    uint64_t rawValue = getBitField(data, signal->bitPosition,
-            signal->bitSize);
-    return rawValue * signal->factor + signal->offset;
-}
-
-float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
-    return value;
-}
-
-bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
-    return value == 0.0 ? false : true;
-}
-
-float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
-    *send = false;
-    return value;
-}
-
-const char* stateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(value, signal, signals,
-            signalCount);
-    if(signalState != NULL) {
-        return signalState->name;
-    }
-    *send = false;
-    return NULL;
-}
-
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it to the listener.
  *
@@ -65,6 +32,39 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
         cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
     }
     sendJSON(root, listener);
+}
+
+float decodeCanSignal(CanSignal* signal, uint64_t data) {
+    uint64_t rawValue = getBitField(data, signal->bitPosition,
+            signal->bitSize);
+    return rawValue * signal->factor + signal->offset;
+}
+
+float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
+    return value;
+}
+
+bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
+    return value == 0.0 ? false : true;
+}
+
+float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
+    *send = false;
+    return value;
+}
+
+const char* stateHandler(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    CanSignalState* signalState = lookupSignalState(value, signal, signals,
+            signalCount);
+    if(signalState != NULL) {
+        return signalState->name;
+    }
+    *send = false;
+    return NULL;
 }
 
 void sendNumericalMessage(const char* name, float value, Listener* listener) {
@@ -112,7 +112,7 @@ void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
             combined.bytes[5],
             combined.bytes[6],
             combined.bytes[7]);
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, encodedData);
+    cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
 
     sendJSON(root, listener);
 }

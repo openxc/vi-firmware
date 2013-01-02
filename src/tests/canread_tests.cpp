@@ -81,6 +81,99 @@ START_TEST (test_state_handler)
 }
 END_TEST
 
+Listener listener;
+UsbDevice usb;
+
+void setup() {
+    listener.usb = &usb;
+    QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
+    QUEUE_INIT(uint8_t, &listener.usb->receiveQueue);
+    listener.usb->configured = true;
+}
+
+void teardown() {
+}
+
+// TODO test 42.1, it is losing precision
+START_TEST (test_send_numerical)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendNumericalMessage("test", 42, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
+}
+END_TEST
+
+START_TEST (test_send_boolean)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendBooleanMessage("test", false, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":false}\r\n");
+}
+END_TEST
+
+START_TEST (test_send_string)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendStringMessage("test", "string", &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"string\"}\r\n");
+}
+END_TEST
+
+START_TEST (test_send_evented_boolean)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendEventedBooleanMessage("test", "value", false, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
+}
+END_TEST
+
+START_TEST (test_send_evented_string)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendEventedStringMessage("test", "value", "event", &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
+}
+END_TEST
+
+START_TEST (test_passthrough_message)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    passthroughCanMessage(&listener, 42, 0x123456789ABCDEF1);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    // TODO check the byte order on this
+    // ck_assert_str_eq((char*)snapshot, "{\"id\":\"42\",\"data\":\"0x123456789abcdef1\"}\r\n");
+}
+END_TEST
+
 Suite* canreadSuite(void) {
     Suite* s = suite_create("canread");
     TCase *tc_core = tcase_create("core");
@@ -90,6 +183,16 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_core, test_ignore_handler);
     tcase_add_test(tc_core, test_state_handler);
     suite_add_tcase(s, tc_core);
+
+    TCase *tc_sending = tcase_create("sending");
+    tcase_add_checked_fixture(tc_sending, setup, teardown);
+    tcase_add_test(tc_sending, test_send_numerical);
+    tcase_add_test(tc_sending, test_send_boolean);
+    tcase_add_test(tc_sending, test_send_string);
+    tcase_add_test(tc_sending, test_send_evented_boolean);
+    tcase_add_test(tc_sending, test_send_evented_string);
+    tcase_add_test(tc_sending, test_passthrough_message);
+    suite_add_tcase(s, tc_sending);
 
     return s;
 }

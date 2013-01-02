@@ -99,8 +99,8 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in uL) to obtain a
  * total since the vehicle started, and convert the result from uL to

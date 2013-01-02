@@ -63,7 +63,7 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
     return fuelConsumedSinceRestartLiters;
 }
 
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);

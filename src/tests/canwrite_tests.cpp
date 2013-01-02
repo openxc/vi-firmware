@@ -86,6 +86,20 @@ START_TEST (test_state_writer)
 }
 END_TEST
 
+START_TEST (test_state_writer_null_string)
+{
+    bool send = true;
+    uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            (const char*)NULL, &send);
+    fail_if(send);
+
+    send = true;
+    value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            (cJSON*)NULL, &send);
+    fail_if(send);
+}
+END_TEST
+
 START_TEST (test_write_not_allowed)
 {
     bool send = true;
@@ -101,7 +115,7 @@ START_TEST (test_write_unknown_state)
     bool send = true;
     stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString("not_a_state"), &send);
-    fail_unless(!send);
+    fail_if(send);
 }
 END_TEST
 
@@ -126,6 +140,7 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
+    tcase_add_test(tc_core, test_state_writer_null_string);
     tcase_add_test(tc_core, test_write_not_allowed);
     tcase_add_test(tc_core, test_write_unknown_state);
     tcase_add_test(tc_core, test_encode_can_signal);

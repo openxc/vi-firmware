@@ -62,8 +62,14 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data) {
-    return stateWriter(signal, signals, signalCount, value->valuestring, send,
-            data);
+    if(value == NULL) {
+        debug("Can't write state of NULL -- not sending\r\n");
+    } else {
+        return stateWriter(signal, signals, signalCount, value->valuestring, send,
+                data);
+    }
+    *send = false;
+    return 0;
 }
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,

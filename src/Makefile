@@ -34,15 +34,15 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - did you run "git submodule init && git submodule update"?)
 endif
 
-# Valid BOARD options:
+# Valid PLATFORM options:
 # 	CHIPKIT
 # 	BLUEBOARD
 # 	FORD
-ifndef BOARD
-BOARD = CHIPKIT
+ifndef PLATFORM
+PLATFORM = CHIPKIT
 endif
 
-ifeq ($(BOARD), CHIPKIT)
+ifeq ($(PLATFORM), CHIPKIT)
 include pic32/pic32.mk
 else
 include lpc17xx/lpc17xx.mk

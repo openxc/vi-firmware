@@ -150,6 +150,36 @@ START_TEST (test_set_odd_number_of_bits)
 }
 END_TEST
 
+START_TEST(test_nth_byte)
+{
+    uint64_t data = 0x00000000F34DFCFF;
+    uint8_t result = nthByte(data, 0);
+    uint8_t expected = 0x0;
+    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
+            result);
+
+    result = nthByte(data, 4);
+    expected = 0xF3;
+    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
+            result);
+
+    result = nthByte(data, 5);
+    expected = 0x4D;
+    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
+            result);
+
+    result = nthByte(data, 6);
+    expected = 0xFC;
+    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
+            result);
+
+    result = nthByte(data, 7);
+    expected = 0xFF;
+    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
+            result);
+}
+END_TEST
+
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
@@ -163,6 +193,7 @@ Suite* bitfieldSuite(void) {
     tcase_add_test(tc_core, test_set_doesnt_clobber_existing_data);
     tcase_add_test(tc_core, test_set_off_byte_boundary);
     tcase_add_test(tc_core, test_set_odd_number_of_bits);
+    tcase_add_test(tc_core, test_nth_byte);
     suite_add_tcase(s, tc_core);
 
     return s;

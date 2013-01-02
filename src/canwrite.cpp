@@ -85,19 +85,19 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
     return data;
 }
 
-bool enqueueCanMessage(CanBus* bus, uint32_t messageId, uint64_t data,
-        bool* send) {
+bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send) {
     if(*send) {
-        CanMessage message = {messageId, __builtin_bswap64(data)};
-        QUEUE_PUSH(CanMessage, &bus->sendQueue, message);
+        CanMessage outgoingMessage = {message->bus, message->id,
+            __builtin_bswap64(data)};
+        QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
         return true;
     }
-    debug("Not sending requested message %x\r\n", messageId);
+    debug("Not sending requested message %x\r\n", message->id);
     return false;
 }
 
 bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
-    return enqueueCanMessage(signal->bus, signal->messageId, data, send);
+    return enqueueCanMessage(signal->message, data, send);
 }
 
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,

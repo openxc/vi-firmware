@@ -8,13 +8,13 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
-#include "chipKITEthernet.h"
 #include <stdint.h>
 #include <stdlib.h>
 
-extern SerialDevice SERIAL_DEVICE;
-extern UsbDevice USB_DEVICE;
-extern EthernetDevice ETHERNET_DEVICE;
+#ifdef __PIC32__
+#include "chipKITEthernet.h"
+#endif // __PIC32__
+
 extern Listener listener;
 
 /* Forward declarations */
@@ -25,13 +25,13 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
-#ifndef NO_UART
-    initializeSerial(&SERIAL_DEVICE);
-#endif // NO_UART
-    initializeUsb(&USB_DEVICE);
-#ifndef NO_ETHERNET
-    initializeEthernet(&ETHERNET_DEVICE);
-#endif // NO_ETHERNET
+    initializeUsb(listener.usb);
+    if(listener.serial != NULL) {
+        initializeSerial(listener.serial);
+    }
+    if(listener.ethernet != NULL) {
+        initializeEthernet(listener.ethernet);
+    }
     initializeAllCan();
 }
 
@@ -40,10 +40,13 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
 
-    readFromHost(&USB_DEVICE, &receiveWriteRequest);
-#ifndef NO_UART
-    readFromSerial(&SERIAL_DEVICE, &receiveWriteRequest);
-#endif // NO_UART
+    readFromHost(listener.usb, &receiveWriteRequest);
+    if(listener.serial != NULL) {
+        readFromSerial(listener.serial, receiveWriteRequest);
+    }
+    if(listener.ethernet != NULL) {
+        readFromSocket(listener.ethernet, &receiveWriteRequest);
+    }
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
@@ -68,8 +71,8 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     char* end;
     bool send = true;
     // TODO hard coding bus 0 right now, but it should support sending on either
-    enqueueCanMessage(&getCanBuses()[0], id, strtoull(dataString, &end, 16),
-            &send);
+    CanMessage message = {&getCanBuses()[0], id};
+    enqueueCanMessage(&message, strtoull(dataString, &end, 16), &send);
 }
 
 /* The binary format handled by this function is as follows:
@@ -102,7 +105,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
     char* name = nameObject->valuestring;
     cJSON* value = cJSON_GetObjectItem(root, "value");
 
-    // Optional, may be null
+    // Optional, may be NULL
     cJSON* event = cJSON_GetObjectItem(root, "event");
 
     CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),

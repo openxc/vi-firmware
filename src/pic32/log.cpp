@@ -1,7 +1,9 @@
 #include "log.h"
-#include "WProgram.h"
+#include "HardwareSerial.h"
 #include <stdio.h>
 #include <stdarg.h>
+
+extern HardwareSerial Serial;
 
 void debug(const char* format, ...) {
 #ifdef __DEBUG__

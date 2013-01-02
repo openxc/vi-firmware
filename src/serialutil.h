@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include "queue.h"
+#include "buffers.h"
 
 #define MAX_MESSAGE_SIZE 128
 

@@ -1,5 +1,6 @@
-#include "log.h"
 #include "ethernetutil.h"
+#include "log.h"
+#include "buffers.h"
 
 // This size can be set to any arbitrary value. Its
 // function is just to define the size of the send
@@ -24,6 +25,7 @@ void initializeEthernet(EthernetDevice* device) {
     QUEUE_INIT(uint8_t, &device->receiveQueue);
     QUEUE_INIT(uint8_t, &device->sendQueue);
     device->server->begin();
+    debug("Done.\r\n");
 }
 
 // The message bytes are sequentially popped from the
@@ -45,5 +47,17 @@ void processEthernetSendQueue(EthernetDevice* device) {
     device->server->available();
     if(byteCount > 0) {
         device->server->write((uint8_t*) sendBuffer, byteCount);
+    }
+}
+
+void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) {
+    Client client = device->server->available();
+    if(client) {
+        uint8_t byte;
+        while((byte = client.read()) != -1 &&
+                !QUEUE_FULL(uint8_t, &device->receiveQueue)) {
+            QUEUE_PUSH(uint8_t, &device->receiveQueue, byte);
+        }
+        processQueue(&device->receiveQueue, callback);
     }
 }

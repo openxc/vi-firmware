@@ -2,5 +2,6 @@ handlers.cpp
 handlers.h
 signals.h
 signals.cpp
-shared_handlers.cpp
-shared_handlers.h
+.project
+.cproject
+.settings

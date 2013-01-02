@@ -14,7 +14,8 @@
  *
  * TODO This file could most likely be refactored and improved. Ideally these
  * output interfaces would all have the same type, so this could just be a list
- * of "receiver" functions.
+ * of "receiver" functions. maybe instead of the devices, this is a list of the
+ * sendQueues?
  */
 typedef struct {
     UsbDevice* usb;

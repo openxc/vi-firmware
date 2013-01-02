@@ -155,6 +155,50 @@ START_TEST (test_swaps_byte_order)
 }
 END_TEST
 
+START_TEST (test_send_with_null_writer)
+{
+    fail_unless(sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
+                NULL, SIGNALS, SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x1e);
+}
+END_TEST
+
+START_TEST (test_send_using_default)
+{
+    fail_unless(sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+                SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x1e);
+}
+END_TEST
+
+START_TEST (test_send_with_custom_with_states)
+{
+    fail_unless(sendCanSignal(&SIGNALS[1],
+                cJSON_CreateString(SIGNAL_STATES[0][1].name), SIGNALS,
+                SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[1].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x20);
+}
+END_TEST
+
+
+uint64_t customStateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send) {
+    *send = false;
+    return 0;
+}
+
+START_TEST (test_send_with_custom_says_no_send)
+{
+    fail_if(sendCanSignal(&SIGNALS[1],
+                cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
+                SIGNALS, SIGNAL_COUNT));
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
@@ -173,6 +217,10 @@ Suite* canwriteSuite(void) {
     tcase_add_checked_fixture(tc_enqueue, setup, teardown);
     tcase_add_test(tc_enqueue, test_enqueue);
     tcase_add_test(tc_enqueue, test_swaps_byte_order);
+    tcase_add_test(tc_enqueue, test_send_using_default);
+    tcase_add_test(tc_enqueue, test_send_with_null_writer);
+    tcase_add_test(tc_enqueue, test_send_with_custom_with_states);
+    tcase_add_test(tc_enqueue, test_send_with_custom_says_no_send);
     suite_add_tcase(s, tc_enqueue);
 
     return s;

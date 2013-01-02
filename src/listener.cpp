@@ -3,20 +3,6 @@
 #include "log.h"
 #include "buffers.h"
 
-bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
-        int messageSize) {
-    if(QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
-        return false;
-    }
-
-    for(int i = 0; i < messageSize; i++) {
-        QUEUE_PUSH(uint8_t, queue, (uint8_t)message[i]);
-    }
-    QUEUE_PUSH(uint8_t, queue, (uint8_t)'\r');
-    QUEUE_PUSH(uint8_t, queue, (uint8_t)'\n');
-    return true;
-}
-
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
     if(listener->usb->configured && !conditionalEnqueue(
                 &listener->usb->sendQueue, message, messageSize)) {

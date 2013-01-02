@@ -9,6 +9,8 @@ typedef struct test_t {
     char bytes[8];
 };
 
+QUEUE_DECLARE(uint8_t, 512);
+QUEUE_DEFINE(uint8_t);
 QUEUE_DECLARE(test_t, 10);
 QUEUE_DEFINE(test_t);
 QUEUE_DECLARE(int, 256);

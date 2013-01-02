@@ -11,7 +11,7 @@ extern "C" {
 
 #define USE_DHCP
 
-#include "queue.h"
+#include "buffers.h"
 
 /* Public: A container for an ethernet connection with queues for both input and
  * output.

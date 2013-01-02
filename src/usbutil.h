@@ -11,7 +11,7 @@ extern "C" {
 
 #include <string.h>
 #include <stdint.h>
-#include "queue.h"
+#include "buffers.h"
 #include "usb_config.h"
 
 #define USB_BUFFER_SIZE 64

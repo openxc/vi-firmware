@@ -81,6 +81,64 @@ START_TEST (test_full_clears)
 }
 END_TEST
 
+START_TEST (test_enqueue_empty)
+{
+    char* message = "a message";
+    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 10);
+    fail_unless(result);
+}
+END_TEST
+
+START_TEST (test_enqueue_full)
+{
+    for(int i = 0; i < 512; i++) {
+        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    }
+    fail_unless(QUEUE_FULL(uint8_t, &queue));
+
+    char* message = "a message";
+    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 10);
+    fail_if(result);
+}
+END_TEST
+
+START_TEST (test_enqueue_just_enough_room)
+{
+    for(int i = 0; i < 501; i++) {
+        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    }
+
+    char* message = "a message";
+    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
+    fail_unless(result);
+}
+END_TEST
+
+START_TEST (test_enqueue_no_room_for_crlf)
+{
+    for(int i = 0; i < 503; i++) {
+        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    }
+
+    char* message = "a message";
+    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
+    fail_if(result);
+}
+END_TEST
+
+START_TEST (test_enqueue_adds_crlf)
+{
+    char* message = "a message";
+    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
+    fail_unless(result);
+    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 11);
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &queue)];
+    QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
+    ck_assert_str_eq((char*)snapshot, "a message\r\n");
+}
+END_TEST
+
 Suite* buffersSuite(void) {
     Suite* s = suite_create("buffers");
     TCase *tc_core = tcase_create("core");
@@ -92,6 +150,15 @@ Suite* buffersSuite(void) {
     tcase_add_test(tc_core, test_full_clears);
     tcase_add_test(tc_core, test_missing_callback);
     suite_add_tcase(s, tc_core);
+
+    TCase *tc_conditional = tcase_create("conditional");
+    tcase_add_checked_fixture (tc_conditional, setup, teardown);
+    tcase_add_test(tc_conditional, test_enqueue_empty);
+    tcase_add_test(tc_conditional, test_enqueue_full);
+    tcase_add_test(tc_conditional, test_enqueue_no_room_for_crlf);
+    tcase_add_test(tc_conditional, test_enqueue_adds_crlf);
+    tcase_add_test(tc_conditional, test_enqueue_just_enough_room);
+    suite_add_tcase(s, tc_conditional);
 
     return s;
 }

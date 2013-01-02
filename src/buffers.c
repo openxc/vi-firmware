@@ -2,6 +2,8 @@
 #include "strutil.h"
 #include "log.h"
 
+QUEUE_DEFINE(uint8_t)
+
 void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     int length = QUEUE_LENGTH(uint8_t, queue);
     if(length == 0) {
@@ -26,4 +28,18 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
                 snapshot);
         QUEUE_INIT(uint8_t, queue);
     }
+}
+
+bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
+        int messageSize) {
+    if(QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
+        return false;
+    }
+
+    for(int i = 0; i < messageSize; i++) {
+        QUEUE_PUSH(uint8_t, queue, (uint8_t)message[i]);
+    }
+    QUEUE_PUSH(uint8_t, queue, (uint8_t)'\r');
+    QUEUE_PUSH(uint8_t, queue, (uint8_t)'\n');
+    return true;
 }

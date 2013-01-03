@@ -184,8 +184,7 @@ START_TEST (test_passthrough_message)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    // TODO check the byte order on this
-    // ck_assert_str_eq((char*)snapshot, "{\"id\":\"42\",\"data\":\"0x123456789abcdef1\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
 }
 END_TEST
 

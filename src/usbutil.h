@@ -78,8 +78,9 @@ void armForRead(UsbDevice* device, char* buffer);
  * request from the host. If a message is available, the callback is notified
  * and the endpoint is re-armed for the next USB transfer.
  *
- * device - the CAN USB device to arm the endpoint on
- * callback - a function that handles USB in requests
+ * device - The CAN USB device to arm the endpoint on.
+ * callback - A function that handles USB in requests. The callback should
+ *      return true if a message was properly received and parsed.
  */
 void readFromHost(UsbDevice* device, bool (*callback)(uint8_t*));
 

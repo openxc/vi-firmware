@@ -122,9 +122,17 @@ START_TEST (test_lookup_command)
 }
 END_TEST
 
+START_TEST (test_initialize)
+{
+    CanBus bus = {500, 0x101};
+    initializeCanCommon(&bus);
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
+    tcase_add_test(tc_core, test_initialize);
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
     tcase_add_test(tc_core, test_lookup_signal);

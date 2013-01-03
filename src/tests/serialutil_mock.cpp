@@ -10,5 +10,6 @@ void processSerialSendQueue(SerialDevice* device) {
 
 void readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) { }
 
-void initializeSerial(SerialDevice* serial) { }
-
+void initializeSerial(SerialDevice* serial) {
+    initializeSerialCommon(serial);
+}

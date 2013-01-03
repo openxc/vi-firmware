@@ -208,8 +208,7 @@ void configureInterrupts() {
 }
 
 void initializeSerial(SerialDevice* device) {
-    QUEUE_INIT(uint8_t, &device->receiveQueue);
-    QUEUE_INIT(uint8_t, &device->sendQueue);
+    initializeSerialCommon(device);
 
     configurePins();
     configureUart();

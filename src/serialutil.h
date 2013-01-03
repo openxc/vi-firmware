@@ -35,6 +35,10 @@ typedef struct {
  */
 void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*));
 
+/* Public: Perform platform-agnostic UART initialization.
+ */
+void initializeSerialCommon(SerialDevice* device);
+
 /* Public: Initializes the UART device at at 115200 baud rate and initializes
  * the receive buffer.
  */

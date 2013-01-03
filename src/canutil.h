@@ -165,6 +165,10 @@ typedef struct {
  */
 void initializeCan(CanBus* bus);
 
+/* Public: Perform platform-agnostic CAN initialization.
+ */
+void initializeCanCommon(CanBus* bus);
+
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be
  * returned.

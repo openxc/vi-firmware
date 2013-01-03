@@ -22,10 +22,9 @@ void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
 }
 
 void initializeSerial(SerialDevice* device) {
+    initializeSerialCommon(device);
     device->controller = &Serial1;
     ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
-    QUEUE_INIT(uint8_t, &device->receiveQueue);
-    QUEUE_INIT(uint8_t, &device->sendQueue);
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the

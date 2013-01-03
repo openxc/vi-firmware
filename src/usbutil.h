@@ -52,6 +52,10 @@ typedef struct {
 #endif // __PIC32__
 } UsbDevice;
 
+/* Public: Perform platform-agnostic USB initialization.
+ */
+void initializeUsbCommon(UsbDevice*);
+
 /* Public: Initializes the USB controller as a full-speed device with the
  * configuration specified in usb_descriptors.c. Must be called before
  * any other USB fuctions are used.

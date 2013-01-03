@@ -10,7 +10,8 @@ TEST_LIBS = -lcheck
 INCLUDE_PATHS += -I. -I./libs/cJSON
 
 TESTABLE_OBJ_FILES = bitfield.o queue.o canutil.o canwrite.o canread.o \
-				listener.o libs/cJSON/cJSON.o buffers.o strutil.o
+				listener.o libs/cJSON/cJSON.o buffers.o strutil.o usbutil.o \
+				serialutil.o ethernetutil.o
 TESTABLE_LIB_SRCS = helpers.c usbutil_mock.c serialutil_mock.c \
 				canwrite_mock.c log_mock.c ethernetutil_mock.c
 TESTABLE_LIB_OBJ_FILES = $(addprefix $(TEST_OBJDIR)/$(TEST_DIR)/, $(TESTABLE_LIB_SRCS:.c=.o))

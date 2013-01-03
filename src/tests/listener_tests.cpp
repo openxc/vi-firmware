@@ -17,12 +17,9 @@ void setup() {
     listener.usb = &usb;
     listener.serial = NULL;
     listener.ethernet = NULL;
-    QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
-    QUEUE_INIT(uint8_t, &listener.usb->receiveQueue);
-    QUEUE_INIT(uint8_t, &serial.sendQueue);
-    QUEUE_INIT(uint8_t, &serial.receiveQueue);
-    QUEUE_INIT(uint8_t, &ethernet.sendQueue);
-    QUEUE_INIT(uint8_t, &ethernet.receiveQueue);
+    initializeUsb(&usb);
+    initializeSerial(&serial);
+    initializeEthernet(&ethernet);
     listener.usb->configured = true;
     USB_PROCESSED = false;
     SERIAL_PROCESSED = false;

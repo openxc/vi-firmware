@@ -13,7 +13,7 @@
 Server server = Server(DEFAULT_NETWORK_PORT);
 
 void initializeEthernet(EthernetDevice* device) {
-    debug("Initializing Ethernet...");
+    initializeEthernetCommon(device);
     device->macAddress = DEFAULT_MAC_ADDRESS;
     device->ipAddress = DEFAULT_IP_ADDRESS;
     device->server = &server;
@@ -22,8 +22,6 @@ void initializeEthernet(EthernetDevice* device) {
 #else
     Ethernet.begin(device->macAddress, device->ipAddress);
 #endif
-    QUEUE_INIT(uint8_t, &device->receiveQueue);
-    QUEUE_INIT(uint8_t, &device->sendQueue);
     device->server->begin();
     debug("Done.\r\n");
 }

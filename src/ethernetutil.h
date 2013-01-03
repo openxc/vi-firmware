@@ -40,6 +40,10 @@ typedef struct {
 #endif // __PIC32__
 } EthernetDevice;
 
+/* Public: Perform platform-agnostic Ethernet initialization.
+ */
+void initializeEthernetCommon(EthernetDevice* device);
+
 /* Initializes the ethernet interface with MAC and IP addresses, starts
  * listening for connections.
  */

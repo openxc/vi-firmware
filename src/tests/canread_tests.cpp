@@ -36,8 +36,7 @@ UsbDevice usb;
 
 void setup() {
     listener.usb = &usb;
-    QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
-    QUEUE_INIT(uint8_t, &listener.usb->receiveQueue);
+    initializeUsb(&usb);
     listener.usb->configured = true;
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;
@@ -45,9 +44,6 @@ void setup() {
         SIGNALS[i].sendFrequency = 1;
         SIGNALS[i].sendClock = 0;
     }
-}
-
-void teardown() {
 }
 
 START_TEST (test_decode_signal)
@@ -314,7 +310,7 @@ END_TEST
 Suite* canreadSuite(void) {
     Suite* s = suite_create("canread");
     TCase *tc_core = tcase_create("core");
-    tcase_add_checked_fixture(tc_core, setup, teardown);
+    tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_decode_signal);
     tcase_add_test(tc_core, test_passthrough_handler);
     tcase_add_test(tc_core, test_boolean_handler);
@@ -323,7 +319,7 @@ Suite* canreadSuite(void) {
     suite_add_tcase(s, tc_core);
 
     TCase *tc_sending = tcase_create("sending");
-    tcase_add_checked_fixture(tc_sending, setup, teardown);
+    tcase_add_checked_fixture(tc_sending, setup, NULL);
     tcase_add_test(tc_sending, test_send_numerical);
     tcase_add_test(tc_sending, test_send_boolean);
     tcase_add_test(tc_sending, test_send_string);
@@ -333,7 +329,7 @@ Suite* canreadSuite(void) {
     suite_add_tcase(s, tc_sending);
 
     TCase *tc_translate = tcase_create("translate");
-    tcase_add_checked_fixture(tc_translate, setup, teardown);
+    tcase_add_checked_fixture(tc_translate, setup, NULL);
     tcase_add_test(tc_translate, test_translate_float);
     tcase_add_test(tc_translate, test_translate_string);
     tcase_add_test(tc_translate, test_translate_bool);

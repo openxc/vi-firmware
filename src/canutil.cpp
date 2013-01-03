@@ -1,4 +1,13 @@
 #include "canutil.h"
+#include "canwrite.h"
+#include "log.h"
+
+void initializeCanCommon(CanBus* bus) {
+    debug("Initializing CAN...");
+    QUEUE_INIT(CanMessage, &bus->receiveQueue);
+    QUEUE_INIT(CanMessage, &bus->sendQueue);
+    bus->writeHandler = sendCanMessage;
+}
 
 int lookup(void* key,
         bool (*comparator)(void* key, int index, void* candidates),

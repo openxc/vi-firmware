@@ -152,4 +152,15 @@ void enqueueCanMessage(CanMessage* message, uint64_t data);
  */
 void processCanWriteQueue(CanBus* bus);
 
+/* Public: Write a CAN message with the given data and node ID to the bus.
+ *
+ * Defined per-platform.
+ *
+ * bus - The CAN bus to send the message on.
+ * request - the CanMessage requested to send.
+ *
+ * Returns true if the message was sent successfully.
+ */
+bool sendCanMessage(CanBus* bus, CanMessage request);
+
 #endif // _CANWRITE_H_

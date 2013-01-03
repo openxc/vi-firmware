@@ -96,7 +96,6 @@ START_TEST (test_state_handler)
 }
 END_TEST
 
-// TODO test 42.1, it is losing precision
 START_TEST (test_send_numerical)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
@@ -107,6 +106,20 @@ START_TEST (test_send_numerical)
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
+}
+END_TEST
+
+START_TEST (test_preserve_float_precision)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    float value = 42.5;
+    sendNumericalMessage("test", value, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42.500000}\r\n");
 }
 END_TEST
 
@@ -321,6 +334,7 @@ Suite* canreadSuite(void) {
     TCase *tc_sending = tcase_create("sending");
     tcase_add_checked_fixture(tc_sending, setup, NULL);
     tcase_add_test(tc_sending, test_send_numerical);
+    tcase_add_test(tc_sending, test_preserve_float_precision);
     tcase_add_test(tc_sending, test_send_boolean);
     tcase_add_test(tc_sending, test_send_string);
     tcase_add_test(tc_sending, test_send_evented_boolean);

@@ -56,11 +56,8 @@ bool waitForHandle(UsbDevice* usbDevice) {
 }
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
-    if(!usbDevice->configured) {
-        return;
-    }
-
-    while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
+    while(usbDevice->configured &&
+            !QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
         // the data to its own internal buffer. See #171 for background on this

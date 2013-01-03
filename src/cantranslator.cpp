@@ -11,10 +11,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef __PIC32__
-#include "chipKITEthernet.h"
-#endif // __PIC32__
-
 extern Listener listener;
 
 /* Forward declarations */

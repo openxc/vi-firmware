@@ -1,5 +1,6 @@
 #include "ethernetutil.h"
 #include "log.h"
+#include <stddef.h>
 
 void initializeEthernetCommon(EthernetDevice* device) {
     if(device != NULL) {

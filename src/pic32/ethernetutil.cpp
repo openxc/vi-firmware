@@ -1,6 +1,9 @@
 #include "ethernetutil.h"
 #include "log.h"
 #include "buffers.h"
+#include <stddef.h>
+
+#ifndef NO_ETHERNET
 
 // This size can be set to any arbitrary value. Its
 // function is just to define the size of the send
@@ -61,3 +64,11 @@ void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) {
         processQueue(&device->receiveQueue, callback);
     }
 }
+
+#else
+
+void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) { }
+void initializeEthernet(EthernetDevice* device) { }
+void processEthernetSendQueue(EthernetDevice* device) { }
+
+#endif

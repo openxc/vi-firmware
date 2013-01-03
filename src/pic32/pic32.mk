@@ -1,8 +1,11 @@
 BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
-ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility \
-			   chipKITEthernet chipKITEthernet/utility cJSON
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
+ifndef NO_ETHERNET
+ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
+endif
+
 NO_CORE_MAIN_FUNCTION = 1
 SKIP_SUFFIX_CHECK = 1
 OBJDIR = build/pic32
@@ -35,10 +38,12 @@ ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_USB_LIBRARY_PATH))
 endif
 
+ifndef NO_ETHERNET
 EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITEthernet
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
 $(error chipKIT Ethernet library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_ETHERNET_LIBRARY_PATH))
+endif
 endif
 
 ARDUINO_MK_EXISTS = $(shell test -e libs/arduino.mk/chipKIT.mk; echo $$?)

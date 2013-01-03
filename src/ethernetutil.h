@@ -2,7 +2,9 @@
 #define _ETHERNETUTIL_H_
 
 #ifdef __PIC32__
+#ifndef NO_ETHERNET
 #include "chipKITEthernet.h"
+#endif
 #endif // __PIC32__
 
 #ifdef __cplusplus
@@ -36,7 +38,9 @@ typedef struct {
     // host to device
     ByteQueue receiveQueue;
 #ifdef __PIC32__
+#ifndef NO_ETHERNET
     Server* server;
+#endif // NO_ETHERNET
 #endif // __PIC32__
 } EthernetDevice;
 

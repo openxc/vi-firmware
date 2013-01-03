@@ -43,7 +43,7 @@ QUEUE_DECLARE(CanMessage, 16);
  */
 struct CanBus {
     unsigned int speed;
-    uint64_t address;
+    int address;
     void* controller;
     void (*interruptHandler)();
     bool (*writeHandler)(CanBus*, CanMessage);

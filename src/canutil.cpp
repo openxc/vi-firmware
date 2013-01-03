@@ -3,7 +3,7 @@
 #include "log.h"
 
 void initializeCanCommon(CanBus* bus) {
-    debug("Initializing CAN...");
+    debug("Initializing CAN node 0x%2x...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = sendCanMessage;

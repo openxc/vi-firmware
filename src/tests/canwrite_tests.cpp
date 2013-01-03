@@ -5,10 +5,12 @@
 #include "canwrite.h"
 #include "cJSON.h"
 
+CanBus bus = {115200, 0x101};
+
 CanMessage MESSAGES[3] = {
-    {NULL, 0},
-    {NULL, 1},
-    {NULL, 2},
+    {&bus, 0},
+    {&bus, 1},
+    {&bus, 2},
 };
 
 CanSignalState SIGNAL_STATES[1][10] = {
@@ -33,6 +35,20 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
     {"turn_signal_status", NULL},
 };
 
+void setup() {
+    for(int i = 0; i < SIGNAL_COUNT; i++) {
+        SIGNALS[i].writable = true;
+        SIGNALS[i].received = false;
+        SIGNALS[i].sendSame = true;
+        SIGNALS[i].sendFrequency = 1;
+        SIGNALS[i].sendClock = 0;
+    }
+    QUEUE_INIT(CanMessage, &bus.sendQueue);
+}
+
+void teardown() {
+}
+
 START_TEST (test_number_writer)
 {
     bool send = true;
@@ -55,6 +71,11 @@ START_TEST (test_boolean_writer)
             cJSON_CreateBool(true), &send);
     check_equal_unit64(value, 0x8000000000000000LLU);
     fail_unless(send);
+
+    value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
+            cJSON_CreateBool(false), &send);
+    check_equal_unit64(value, 0x0000000000000000LLU);
+    fail_unless(send);
 }
 END_TEST
 
@@ -68,12 +89,36 @@ START_TEST (test_state_writer)
 }
 END_TEST
 
+START_TEST (test_state_writer_null_string)
+{
+    bool send = true;
+    uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            (const char*)NULL, &send);
+    fail_if(send);
+
+    send = true;
+    value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
+            (cJSON*)NULL, &send);
+    fail_if(send);
+}
+END_TEST
+
+START_TEST (test_write_not_allowed)
+{
+    bool send = true;
+    SIGNALS[1].writable = false;
+    numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, cJSON_CreateNumber(0x6),
+            &send);
+    fail_if(send);
+}
+END_TEST
+
 START_TEST (test_write_unknown_state)
 {
     bool send = true;
     stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
             cJSON_CreateString("not_a_state"), &send);
-    fail_unless(!send);
+    fail_if(send);
 }
 END_TEST
 
@@ -91,16 +136,92 @@ START_TEST (test_encode_can_signal_rounding_precision)
 }
 END_TEST
 
+START_TEST (test_enqueue)
+{
+    CanMessage message = {&bus, 42};
+    enqueueCanMessage(&message, 0x123456);
+
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &message.bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_swaps_byte_order)
+{
+    CanMessage message = {&bus, 42};
+    enqueueCanMessage(&message, 0x123456);
+
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &message.bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x5634120000000000);
+}
+END_TEST
+
+START_TEST (test_send_with_null_writer)
+{
+    fail_unless(sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
+                NULL, SIGNALS, SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x1e);
+}
+END_TEST
+
+START_TEST (test_send_using_default)
+{
+    fail_unless(sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+                SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x1e);
+}
+END_TEST
+
+START_TEST (test_send_with_custom_with_states)
+{
+    fail_unless(sendCanSignal(&SIGNALS[1],
+                cJSON_CreateString(SIGNAL_STATES[0][1].name), SIGNALS,
+                SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[1].message->bus->sendQueue);
+    ck_assert_int_eq(queuedMessage.data, 0x20);
+}
+END_TEST
+
+
+uint64_t customStateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, bool* send) {
+    *send = false;
+    return 0;
+}
+
+START_TEST (test_send_with_custom_says_no_send)
+{
+    fail_if(sendCanSignal(&SIGNALS[1],
+                cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
+                SIGNALS, SIGNAL_COUNT));
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
+    tcase_add_checked_fixture(tc_core, setup, teardown);
     tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
+    tcase_add_test(tc_core, test_state_writer_null_string);
+    tcase_add_test(tc_core, test_write_not_allowed);
     tcase_add_test(tc_core, test_write_unknown_state);
     tcase_add_test(tc_core, test_encode_can_signal);
     tcase_add_test(tc_core, test_encode_can_signal_rounding_precision);
     suite_add_tcase(s, tc_core);
+
+    TCase *tc_enqueue = tcase_create("enqueue");
+    tcase_add_checked_fixture(tc_enqueue, setup, teardown);
+    tcase_add_test(tc_enqueue, test_enqueue);
+    tcase_add_test(tc_enqueue, test_swaps_byte_order);
+    tcase_add_test(tc_enqueue, test_send_using_default);
+    tcase_add_test(tc_enqueue, test_send_with_null_writer);
+    tcase_add_test(tc_enqueue, test_send_with_custom_with_states);
+    tcase_add_test(tc_enqueue, test_send_with_custom_says_no_send);
+    suite_add_tcase(s, tc_enqueue);
 
     return s;
 }

@@ -2,7 +2,11 @@
 #include "buffers.h"
 #include "log.h"
 
-void processUsbSendQueue(UsbDevice* usbDevice) { }
+bool USB_PROCESSED = false;
+
+void processUsbSendQueue(UsbDevice* usbDevice) {
+    USB_PROCESSED = true;
+}
 
 void initializeUsb(UsbDevice* usbDevice) { }
 

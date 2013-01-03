@@ -31,6 +31,7 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*));
  * messageSize - The length of the message.
  *
  * Returns true if the message was able to fit in the queue and was added.
+ * Returns false otherwise, or if queue is NULL.
  */
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize);

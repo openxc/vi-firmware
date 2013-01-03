@@ -69,10 +69,9 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
-    bool send = true;
     // TODO hard coding bus 0 right now, but it should support sending on either
     CanMessage message = {&getCanBuses()[0], id};
-    enqueueCanMessage(&message, strtoull(dataString, &end, 16), &send);
+    enqueueCanMessage(&message, strtoull(dataString, &end, 16));
 }
 
 /* The binary format handled by this function is as follows:

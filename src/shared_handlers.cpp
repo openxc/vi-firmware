@@ -53,7 +53,6 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
 
 float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send, float multiplier) {
-    // TODO store in a single fuelConsumedSinceRestartLiters
     if(value < signal->lastValue) {
         value += signal->maxValue - signal->lastValue + value;
     } else {
@@ -63,7 +62,7 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
     return fuelConsumedSinceRestartLiters;
 }
 
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);

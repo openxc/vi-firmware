@@ -484,7 +484,7 @@ class JsonParser(Parser):
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
                             states,
-                            signal.get('send_frequency', 0),
+                            signal.get('send_frequency', 1),
                             signal.get('send_same', True),
                             signal.get('writable', False),
                             signal.get('write_handler', None)))

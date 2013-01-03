@@ -25,6 +25,14 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeLogging();
+
+    debug("Initializing as a CAN ");
+#ifdef TRANSMITTER
+    debug("transmitter\r\n");
+#else
+    debug("translator\r\n");
+#endif // TRANSMITTER
+
     initializeUsb(listener.usb);
     if(listener.serial != NULL) {
         initializeSerial(listener.serial);

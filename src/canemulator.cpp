@@ -63,13 +63,9 @@ void setup() {
     srand(42);
 
     initializeLogging();
-    initializeUsb(listener->usb);
-    if(listener->serial != null) {
-        initializeSerial(listener->serial);
-    }
-    if(listener->ethernet != null) {
-        initializeEthernet(listener->ethernet);
-    }
+    initializeUsb(listener.usb);
+    initializeSerial(listener.serial);
+    initializeEthernet(listener.ethernet);
 }
 
 bool usbWriteStub(uint8_t* buffer) {
@@ -93,10 +89,8 @@ void loop() {
     sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
             randomEvent.value, randomEvent.event, &listener);
 
-    readFromHost(listener->usb, usbWriteStub);
-    if(listener->serial != null) {
-        readFromSerial(listener->serial, usbWriteStub);
-    }
+    readFromHost(listener.usb, usbWriteStub);
+    readFromSerial(listener.serial, usbWriteStub);
 }
 
 void reset() { }

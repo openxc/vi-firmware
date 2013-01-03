@@ -13,17 +13,19 @@
 Server server = Server(DEFAULT_NETWORK_PORT);
 
 void initializeEthernet(EthernetDevice* device) {
-    initializeEthernetCommon(device);
-    device->macAddress = DEFAULT_MAC_ADDRESS;
-    device->ipAddress = DEFAULT_IP_ADDRESS;
-    device->server = &server;
+    if(device != NULL) {
+        initializeEthernetCommon(device);
+        device->macAddress = DEFAULT_MAC_ADDRESS;
+        device->ipAddress = DEFAULT_IP_ADDRESS;
+        device->server = &server;
 #ifdef USE_DHCP
-    Ethernet.begin();
+        Ethernet.begin();
 #else
-    Ethernet.begin(device->macAddress, device->ipAddress);
+        Ethernet.begin(device->macAddress, device->ipAddress);
 #endif
-    device->server->begin();
-    debug("Done.\r\n");
+        device->server->begin();
+        debug("Done.\r\n");
+    }
 }
 
 // The message bytes are sequentially popped from the

@@ -10,21 +10,25 @@ extern HardwareSerial Serial1;
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
 void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
-    int bytesAvailable = ((HardwareSerial*)device->controller)->available();
-    if(bytesAvailable > 0) {
-        for(int i = 0; i < bytesAvailable &&
-                !QUEUE_FULL(uint8_t, &device->receiveQueue); i++) {
-            char byte = ((HardwareSerial*)device->controller)->read();
-            QUEUE_PUSH(uint8_t, &device->receiveQueue, (uint8_t) byte);
+    if(device != NULL) {
+        int bytesAvailable = ((HardwareSerial*)device->controller)->available();
+        if(bytesAvailable > 0) {
+            for(int i = 0; i < bytesAvailable &&
+                    !QUEUE_FULL(uint8_t, &device->receiveQueue); i++) {
+                char byte = ((HardwareSerial*)device->controller)->read();
+                QUEUE_PUSH(uint8_t, &device->receiveQueue, (uint8_t) byte);
+            }
+            processQueue(&device->receiveQueue, callback);
         }
-        processQueue(&device->receiveQueue, callback);
     }
 }
 
 void initializeSerial(SerialDevice* device) {
-    initializeSerialCommon(device);
-    device->controller = &Serial1;
-    ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
+    if(device != NULL) {
+        initializeSerialCommon(device);
+        device->controller = &Serial1;
+        ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
+    }
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the

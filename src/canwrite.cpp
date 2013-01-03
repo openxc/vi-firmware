@@ -132,7 +132,7 @@ void processCanWriteQueue(CanBus* bus) {
         }
         debug("\r\n");
         if(bus->writeHandler == NULL) {
-            debug("No function available for writing to CAN");
+            debug("No function available for writing to CAN -- dropped");
         } else if(!bus->writeHandler(bus, message)) {
             debug("Unable to send CAN message with id = 0x%x\r\n", message.id);
         }

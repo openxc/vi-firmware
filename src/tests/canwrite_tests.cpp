@@ -46,9 +46,6 @@ void setup() {
     QUEUE_INIT(CanMessage, &bus.sendQueue);
 }
 
-void teardown() {
-}
-
 START_TEST (test_number_writer)
 {
     bool send = true;
@@ -199,10 +196,55 @@ START_TEST (test_send_with_custom_says_no_send)
 }
 END_TEST
 
+START_TEST (test_write_empty)
+{
+    processCanWriteQueue(&bus);
+}
+END_TEST
+
+START_TEST (test_no_write_handler)
+{
+    sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    bus.writeHandler = NULL;
+    processCanWriteQueue(&bus);
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
+bool writeHandler(CanBus* bus, CanMessage message) {
+    return false;
+}
+
+START_TEST (test_failed_write_handler)
+{
+    sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    bus.writeHandler = writeHandler;
+    processCanWriteQueue(&bus);
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_successful_write)
+{
+    sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    processCanWriteQueue(&bus);
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_write_multiples)
+{
+    sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    sendCanSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    processCanWriteQueue(&bus);
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
     TCase *tc_core = tcase_create("core");
-    tcase_add_checked_fixture(tc_core, setup, teardown);
+    tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_number_writer);
     tcase_add_test(tc_core, test_boolean_writer);
     tcase_add_test(tc_core, test_state_writer);
@@ -214,7 +256,7 @@ Suite* canwriteSuite(void) {
     suite_add_tcase(s, tc_core);
 
     TCase *tc_enqueue = tcase_create("enqueue");
-    tcase_add_checked_fixture(tc_enqueue, setup, teardown);
+    tcase_add_checked_fixture(tc_enqueue, setup, NULL);
     tcase_add_test(tc_enqueue, test_enqueue);
     tcase_add_test(tc_enqueue, test_swaps_byte_order);
     tcase_add_test(tc_enqueue, test_send_using_default);
@@ -222,6 +264,15 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_enqueue, test_send_with_custom_with_states);
     tcase_add_test(tc_enqueue, test_send_with_custom_says_no_send);
     suite_add_tcase(s, tc_enqueue);
+
+    TCase *tc_write = tcase_create("write");
+    tcase_add_checked_fixture(tc_write, setup, NULL);
+    tcase_add_test(tc_write, test_write_empty);
+    tcase_add_test(tc_write, test_no_write_handler);
+    tcase_add_test(tc_write, test_failed_write_handler);
+    tcase_add_test(tc_write, test_successful_write);
+    tcase_add_test(tc_write, test_write_multiples);
+    suite_add_tcase(s, tc_write);
 
     return s;
 }

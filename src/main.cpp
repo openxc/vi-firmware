@@ -31,6 +31,8 @@ UsbDevice USB_DEVICE = {
 Listener listener = {&USB_DEVICE,
 #ifndef NO_UART
     &SERIAL_DEVICE,
+#else
+    NULL,
 #endif // NO_UART
 #ifndef NO_ETHERNET
     &ETHERNET_DEVICE

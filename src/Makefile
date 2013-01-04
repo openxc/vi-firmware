@@ -4,27 +4,18 @@ BASE_TARGET = cantranslator
 OBJDIR_ROOT = build
 OBJDIR = $(OBJDIR_ROOT)
 
-ifdef EMULATOR
-SYMBOLS += CAN_EMULATOR
-BASE_TARGET = canemulator
-endif
-
 ifdef DEBUG
 SYMBOLS += __DEBUG__
 else
 SYMBOLS += NDEBUG
 endif
 
-ifdef NO_UART
-SYMBOLS += NO_UART
+ifdef UART
+SYMBOLS += __USE_UART__
 endif
 
-ifdef NO_ETHERNET
-SYMBOLS += NO_ETHERNET
-endif
-
-ifdef TRANSMITTER
-SYMBOLS += TRANSMITTER
+ifdef ETHERNET
+SYMBOLS += __USE_ETHERNET__
 endif
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
@@ -49,6 +40,13 @@ include lpc17xx/lpc17xx.mk
 endif
 
 include tests/tests.mk
+
+emulator: SYMBOLS += CAN_EMULATOR
+emulator: BASE_TARGET = canemulator
+emulator: all
+
+transmitter: SYMBOLS += TRANSMITTER
+transmitter: all
 
 clean::
 	rm -rf $(OBJDIR_ROOT)/*

@@ -2,7 +2,7 @@ BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON
-ifndef NO_ETHERNET
+ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
@@ -38,7 +38,7 @@ ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_USB_LIBRARY_PATH))
 endif
 
-ifndef NO_ETHERNET
+ifdef ETHERNET
 EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITEthernet
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)

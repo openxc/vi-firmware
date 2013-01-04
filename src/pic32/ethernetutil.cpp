@@ -3,7 +3,7 @@
 #include "buffers.h"
 #include <stddef.h>
 
-#ifndef NO_ETHERNET
+#ifdef __USE_ETHERNET__
 
 // This size can be set to any arbitrary value. Its
 // function is just to define the size of the send

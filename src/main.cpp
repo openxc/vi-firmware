@@ -29,14 +29,14 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-#ifndef NO_UART
+#ifdef __USE_UART__
     &SERIAL_DEVICE,
 #else
     NULL,
-#endif // NO_UART
-#ifndef NO_ETHERNET
+#endif // __USE_UART__
+#ifdef __USE_ETHERNET__
     &ETHERNET_DEVICE
-#endif // NO_ETHERNET
+#endif // __USE_ETHERNET__
 };
 
 int main(void) {

@@ -49,17 +49,7 @@ int main(void) {
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
 
-    debug("Initializing as a CAN ");
-#ifdef TRANSMITTER
-    debug("transmitter\r\n");
-#else
-#ifdef CAN_EMULATOR
-    debug("emulator\r\n");
-#else
-    debug("translator\r\n");
-#endif // TRANSMITTER
-#endif
-
+    debug("Initializing as %s\r\n", getMessageSet());
     setup();
 
     for (;;) {

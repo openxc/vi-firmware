@@ -61,11 +61,6 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 
 void setup() {
     srand(42);
-
-    initializeLogging();
-    initializeUsb(listener.usb);
-    initializeSerial(listener.serial);
-    initializeEthernet(listener.ethernet);
 }
 
 bool usbWriteStub(uint8_t* buffer) {

@@ -43,6 +43,23 @@ int main(void) {
 #ifdef __PIC32__
     init();
 #endif // __PIC32__
+
+    initializeLogging();
+    initializeUsb(listener.usb);
+    initializeSerial(listener.serial);
+    initializeEthernet(listener.ethernet);
+
+    debug("Initializing as a CAN ");
+#ifdef TRANSMITTER
+    debug("transmitter\r\n");
+#else
+#ifdef CAN_EMULATOR
+    debug("emulator\r\n");
+#else
+    debug("translator\r\n");
+#endif // TRANSMITTER
+#endif
+
     setup();
 
     for (;;) {

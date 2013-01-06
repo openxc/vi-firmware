@@ -26,7 +26,7 @@
 #include "HardwareSerial.h"
 #include "WProgram.h"
 
-#define UART_BAUDRATE 115200
+#define UART_BAUDRATE 460800
 
 // bit 8 in the uxMode register controls hardware flow control
 #define _UARTMODE_FLOWCONTROL 8

@@ -93,17 +93,21 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
 
     CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),
             true);
-    CanCommand* command = lookupCommand(name, getCommands(), getCommandCount());
     if(signal != NULL) {
         if(value == NULL) {
             debug("Write request for %s missing value\r\n", name);
             return;
         }
         sendCanSignal(signal, value, getSignals(), getSignalCount());
-    } else if(command != NULL) {
-        command->handler(name, value, event, getSignals(), getSignalCount());
     } else {
-        debug("Writing not allowed for signal with name %s\r\n", name);
+        CanCommand* command = lookupCommand(name, getCommands(),
+                getCommandCount());
+        if(command != NULL) {
+            command->handler(name, value, event, getSignals(),
+                    getSignalCount());
+        } else {
+            debug("Writing not allowed for signal with name %s\r\n", name);
+        }
     }
 }
 

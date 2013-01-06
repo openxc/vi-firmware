@@ -1,5 +1,6 @@
 #include "shared_handlers.h"
 #include "canwrite.h"
+#include "log.h"
 
 float rotationsSinceRestart = 0;
 float odometerSinceRestart = 0;

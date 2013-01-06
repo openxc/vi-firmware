@@ -84,16 +84,16 @@ START_TEST (test_set_field)
     // unit32_t is stored in little endian but we read it in big endian, so the
     // retrieval in the set tests may look a little funky
     uint64_t result = getBitField(data, 56, 1);
-    fail_unless(result == 0x1);
+    ck_assert_int_eq(result, 0x1);
     data = 0;
     setBitField(&data, 1, 1, 1);
     result = getBitField(data, 57, 1);
-    fail_unless(result == 0x1);
+    ck_assert_int_eq(result, 0x1);
 
     data = 0;
     setBitField(&data, 0xf, 3, 4);
     result = getBitField(data, 59, 4);
-    fail_unless(result == 0xf);
+    ck_assert_int_eq(result, 0xf);
 }
 END_TEST
 
@@ -155,28 +155,23 @@ START_TEST(test_nth_byte)
     uint64_t data = 0x00000000F34DFCFF;
     uint8_t result = nthByte(data, 0);
     uint8_t expected = 0x0;
-    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
-            result);
+    ck_assert_int_eq(result, expected);
 
     result = nthByte(data, 4);
     expected = 0xF3;
-    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
-            result);
+    ck_assert_int_eq(result, expected);
 
     result = nthByte(data, 5);
     expected = 0x4D;
-    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
-            result);
+    ck_assert_int_eq(result, expected);
 
     result = nthByte(data, 6);
     expected = 0xFC;
-    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
-            result);
+    ck_assert_int_eq(result, expected);
 
     result = nthByte(data, 7);
     expected = 0xFF;
-    fail_unless(result == expected, "Expected 0x%X, but got 0x%X", expected,
-            result);
+    ck_assert_int_eq(result, expected);
 }
 END_TEST
 

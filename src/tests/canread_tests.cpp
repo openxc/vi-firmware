@@ -60,7 +60,7 @@ END_TEST
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
-    fail_unless(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 42.0, &send) == 42.0);
+    ck_assert_int_eq(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 42.0, &send), 42.0);
     fail_unless(send);
 }
 END_TEST
@@ -72,7 +72,7 @@ START_TEST (test_boolean_handler)
     fail_unless(send);
     fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0.5, &send));
     fail_unless(send);
-    fail_unless(!booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0, &send));
+    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0, &send));
     fail_unless(send);
 }
 END_TEST
@@ -81,18 +81,18 @@ START_TEST (test_ignore_handler)
 {
     bool send = true;
     ignoreHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send);
-    fail_unless(!send);
+    fail_if(send);
 }
 END_TEST
 
 START_TEST (test_state_handler)
 {
     bool send = true;
-    fail_unless(strcmp(stateHandler(&SIGNALS[1], SIGNALS, 2, 2, &send),
-            SIGNAL_STATES[0][1].name) == 0);
+    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, 2, 2, &send),
+            SIGNAL_STATES[0][1].name);
     fail_unless(send);
     stateHandler(&SIGNALS[1], SIGNALS, 2, 42, &send);
-    fail_unless(!send);
+    fail_if(send);
 }
 END_TEST
 

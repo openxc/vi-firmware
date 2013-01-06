@@ -20,17 +20,14 @@ START_TEST (test_struct_element)
 {
     QUEUE_TYPE(test_t) queue;
     QUEUE_INIT(test_t, &queue);
-    int length = QUEUE_LENGTH(test_t, &queue);
-    fail_unless(length == 0, "expected queue length of 0 but got %d", length);
+    fail_unless(QUEUE_EMPTY(test_t, &queue));
     test_t original_value = {42, "abcdefg"};
-    bool success = QUEUE_PUSH(test_t, &queue, original_value);
-    fail_unless(success);
-    fail_unless(QUEUE_LENGTH(test_t, &queue) == 1,
-            "expected queue length of 1 but got %d", length);
+    fail_unless(QUEUE_PUSH(test_t, &queue, original_value));
+    ck_assert_int_eq(QUEUE_LENGTH(test_t, &queue), 1);
 
     test_t value = QUEUE_POP(test_t, &queue);
-    fail_unless(value.i == original_value.i);
-    fail_unless(!strncmp(value.bytes, original_value.bytes, 8));
+    ck_assert_int_eq(value.i, original_value.i);
+    ck_assert_str_eq(value.bytes, original_value.bytes);
 }
 END_TEST
 
@@ -39,11 +36,9 @@ START_TEST (test_push)
     QUEUE_TYPE(uint8_t) queue;
     QUEUE_INIT(uint8_t, &queue);
     int length = QUEUE_LENGTH(uint8_t, &queue);
-    fail_unless(length == 0, "expected queue length of 0 but got %d", length);
-    bool success = QUEUE_PUSH(uint8_t, &queue, 0xEF);
-    fail_unless(success);
-    fail_unless(QUEUE_LENGTH(uint8_t, &queue) == 1,
-            "expected queue length of 1 but got %d", length);
+    fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+    fail_unless(QUEUE_PUSH(uint8_t, &queue, 0xEF));
+    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 1);
 }
 END_TEST
 
@@ -54,7 +49,7 @@ START_TEST (test_pop)
     uint8_t original_value = 0xEF;
     QUEUE_PUSH(uint8_t, &queue, original_value);
     uint8_t value = QUEUE_POP(uint8_t, &queue);
-    fail_unless(value == original_value);
+    ck_assert_int_eq(value, original_value);
 }
 END_TEST
 
@@ -74,8 +69,7 @@ START_TEST (test_fill_er_up)
                     "didn't expect queue to be empty on %dth iteration", i + 1);
         }
         uint8_t expected = i % 255;
-        fail_unless(value == expected,
-                "expected %d but got %d out of the queue", expected, value);
+        ck_assert_int_eq(value, expected);
     }
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
 }
@@ -96,7 +90,7 @@ START_TEST (test_sliding_window)
         int expectedValue = 0;
         while(!QUEUE_EMPTY(int, &queue)) {
             int value = QUEUE_POP(int, &queue);
-            fail_unless(value == expectedValue);
+            ck_assert_int_eq(value, expectedValue);
             ++expectedValue;
         }
     }
@@ -108,41 +102,35 @@ START_TEST (test_length)
 {
     QUEUE_TYPE(uint8_t) queue;
     QUEUE_INIT(uint8_t, &queue);
-    fail_unless(QUEUE_LENGTH(uint8_t, &queue) == 0);
+    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 0);
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         QUEUE_PUSH(uint8_t, &queue,  (uint8_t) (i % 255));
         if(i == QUEUE_MAX_LENGTH(uint8_t) - 1) {
             break;
         }
-        fail_unless(QUEUE_LENGTH(uint8_t, &queue) == i + 1,
-                "expected length of %d but found %d", i + 1,
-                QUEUE_LENGTH(uint8_t, &queue));
+        ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), i + 1);
     }
 
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         QUEUE_POP(uint8_t, &queue);
-        fail_unless(QUEUE_LENGTH(uint8_t, &queue) == QUEUE_MAX_LENGTH(uint8_t) - i - 1);
+        ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), QUEUE_MAX_LENGTH(uint8_t) - i - 1);
     }
-    fail_unless(QUEUE_LENGTH(uint8_t, &queue) == 0);
+    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 0);
 
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) (i % 255));
-        fail_unless(QUEUE_LENGTH(uint8_t, &queue) == i + 1,
-                "expected length of %d but found %d", i + 1,
-                QUEUE_LENGTH(uint8_t, &queue));
+        ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), i + 1);
     }
 
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) / 2; i++) {
         QUEUE_POP(uint8_t, &queue);
-        fail_unless(QUEUE_LENGTH(uint8_t, &queue) == QUEUE_MAX_LENGTH(uint8_t) - i - 1);
+        ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), QUEUE_MAX_LENGTH(uint8_t) - i - 1);
     }
 
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) / 2; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) (i % 255));
         int expectedLength =  i + (QUEUE_MAX_LENGTH(uint8_t) / 2) + 1;
-        fail_unless(QUEUE_LENGTH(uint8_t, &queue) == expectedLength,
-                "expected length of %d but found %d", expectedLength,
-                QUEUE_LENGTH(uint8_t, &queue));
+        ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), expectedLength);
     }
 }
 END_TEST
@@ -151,24 +139,21 @@ START_TEST (test_available)
 {
     QUEUE_TYPE(uint8_t) queue;
     QUEUE_INIT(uint8_t, &queue);
-    fail_unless(QUEUE_AVAILABLE(uint8_t, &queue) == QUEUE_MAX_LENGTH(uint8_t));
+    ck_assert_int_eq(QUEUE_AVAILABLE(uint8_t, &queue), QUEUE_MAX_LENGTH(uint8_t));
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         QUEUE_PUSH(uint8_t, &queue,  (uint8_t) (i % 255));
         if(i == QUEUE_MAX_LENGTH(uint8_t) - 1) {
             break;
         }
-        fail_unless(QUEUE_AVAILABLE(uint8_t, &queue) ==
-                    QUEUE_MAX_LENGTH(uint8_t) - i - 1,
-                "expected %d available but found %d",
-                QUEUE_MAX_LENGTH(uint8_t) - i - 1,
-                QUEUE_AVAILABLE(uint8_t, &queue));
+        ck_assert_int_eq(QUEUE_AVAILABLE(uint8_t, &queue),
+                QUEUE_MAX_LENGTH(uint8_t) - i - 1);
     }
 
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         QUEUE_POP(uint8_t, &queue);
-        fail_unless(QUEUE_AVAILABLE(uint8_t, &queue) == i + 1);
+        ck_assert_int_eq(QUEUE_AVAILABLE(uint8_t, &queue), i + 1);
     }
-    fail_unless(QUEUE_AVAILABLE(uint8_t, &queue) == QUEUE_MAX_LENGTH(uint8_t));
+    ck_assert_int_eq(QUEUE_AVAILABLE(uint8_t, &queue), QUEUE_MAX_LENGTH(uint8_t));
 }
 END_TEST
 
@@ -186,8 +171,7 @@ START_TEST (test_snapshot)
     uint8_t snapshot[QUEUE_MAX_LENGTH(uint8_t)];
     QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
-        fail_unless(snapshot[i] == expected[i],
-                "expected %d but found %d", expected[i], snapshot[i]);
+        ck_assert_int_eq(snapshot[i], expected[i]);
     }
 }
 END_TEST

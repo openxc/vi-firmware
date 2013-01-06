@@ -38,41 +38,33 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 START_TEST (test_can_signal_struct)
 {
     CanSignal signal = SIGNALS[0];
-    fail_unless(signal.message->id == 0, "ID didn't match: %f", signal.message->id);
-    fail_unless(strcmp(signal.genericName, "torque_at_transmission") == 0,
-            "generic name didn't match: %s", signal.genericName);
-    fail_unless(signal.bitPosition == 2,
-            "bit position didn't match: %f", signal.bitPosition);
-    fail_unless(signal.bitSize == 4,
-            "bit size didn't match: %f", signal.bitSize);
-    fail_unless(signal.factor == 1001.0,
-            "factor didn't match: %f", signal.factor);
-    fail_unless(signal.offset == -30000.0,
-            "offset didn't match: %f", signal.offset);
-    fail_unless(signal.minValue == -5000.0,
-            "min value didn't match: %f", signal.minValue);
-    fail_unless(signal.maxValue == 33522.0,
-            "max value didn't match: %f", signal.maxValue);
+    ck_assert_int_eq(signal.message->id, 0);
+    ck_assert_str_eq(signal.genericName, "torque_at_transmission");
+    ck_assert_int_eq(signal.bitPosition, 2);
+    ck_assert_int_eq(signal.bitSize, 4);
+    ck_assert_int_eq(signal.factor, 1001.0);
+    ck_assert_int_eq(signal.offset, -30000.0);
+    ck_assert_int_eq(signal.minValue, -5000.0);
+    ck_assert_int_eq(signal.maxValue, 33522.0);
 
     signal = SIGNALS[1];
-    fail_unless(signal.lastValue == 4.0, "last value didn't match");
+    ck_assert_int_eq(signal.lastValue, 4.0);
 }
 END_TEST
 
 START_TEST (test_can_signal_states)
 {
     CanSignal signal = SIGNALS[1];
-    fail_unless(signal.message->id == 1, "ID didn't match");
-    fail_unless(signal.stateCount == 6, "state count didn't match");
-    CanSignalState state = signal.states[0];
-    fail_unless(state.value == 1, "state value didn't match");
-    fail_unless(strcmp(state.name, "reverse") == 0, "state name didn't match");
+    ck_assert_int_eq(signal.message->id, 1);
+    ck_assert_int_eq(signal.stateCount, 6);
+    ck_assert_int_eq(signal.states[0].value, 1);
+    ck_assert_str_eq(signal.states[0].name, "reverse");
 }
 END_TEST
 
 START_TEST (test_lookup_signal)
 {
-    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT) == 0);
+    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT) == NULL);
     fail_unless(lookupSignal("torque_at_transmission", SIGNALS, SIGNAL_COUNT)
             == &SIGNALS[0]);
     fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
@@ -82,7 +74,7 @@ END_TEST
 
 START_TEST (test_lookup_writable_signal)
 {
-    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT, true) == 0);
+    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT, true) == NULL);
     fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
             SIGNAL_COUNT, false) == &SIGNALS[1]);
     fail_unless(lookupSignal("command", SIGNALS,
@@ -116,7 +108,7 @@ END_TEST
 
 START_TEST (test_lookup_command)
 {
-    fail_unless(lookupCommand("does_not_exist", COMMANDS, COMMAND_COUNT) == 0);
+    fail_unless(lookupCommand("does_not_exist", COMMANDS, COMMAND_COUNT) == NULL);
     fail_unless(lookupCommand("turn_signal_status", COMMANDS, COMMAND_COUNT)
             == &COMMANDS[0]);
 }

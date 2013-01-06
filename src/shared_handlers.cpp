@@ -123,9 +123,14 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
     CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
             signals, signalCount);
 
-    if(steeringAngleSign->lastValue == 0) {
-        // left turn
-        value *= -1;
+    if(steeringAngleSign == NULL) {
+        debug("Unable to find stering wheel angle sign signal");
+        *send = false;
+    } else {
+        if(steeringAngleSign->lastValue == 0) {
+            // left turn
+            value *= -1;
+        }
     }
     return value;
 }
@@ -146,6 +151,11 @@ void handleButtonEventMessage(int messageId, uint64_t data,
             signalCount);
     CanSignal* buttonStateSignal = lookupSignal("button_state", signals,
             signalCount);
+
+    if(buttonTypeSignal == NULL || buttonStateSignal == NULL) {
+        debug("Unable to find button type and state signals");
+        return;
+    }
 
     float rawButtonType = decodeCanSignal(buttonTypeSignal, data);
     float rawButtonState = decodeCanSignal(buttonStateSignal, data);

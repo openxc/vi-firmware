@@ -174,6 +174,8 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, CanSignal* signals,
     if(signal != NULL) {
         return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
                 signals, signalCount);
+    } else {
+        debug("Unable to find signal for %s turn signal", direction);
     }
     return false;
 }

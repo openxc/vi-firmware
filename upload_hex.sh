@@ -8,6 +8,10 @@
 # don't need to have that installed.
 #
 
+# If this was cloned in Windows and CRLF was added, need to set this so bash
+# will run the script.
+set -o igncr
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KERNEL=`uname`
 HEX_FILE="$1"

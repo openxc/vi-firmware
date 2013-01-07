@@ -42,7 +42,7 @@ pic32_compile_test: code_generation_test
 	@make clean
 
 lpc17xx_compile_test: code_generation_test
-	PLATFORM=LPC17XX make -j4
+	PLATFORM=FORD make -j4
 	@make clean
 
 code_generation_test:

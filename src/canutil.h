@@ -34,6 +34,8 @@ QUEUE_DECLARE(CanMessage, 16);
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
+ * writeHandler - a function that actually writes out a CanMessage object to the
+ *      network interface (implementation is platform specific);
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be
@@ -41,9 +43,10 @@ QUEUE_DECLARE(CanMessage, 16);
  */
 struct CanBus {
     unsigned int speed;
-    uint64_t address;
+    int address;
     void* controller;
     void (*interruptHandler)();
+    bool (*writeHandler)(CanBus*, CanMessage);
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
@@ -161,6 +164,10 @@ typedef struct {
  * bus - A CanBus struct defining the bus's metadata for initialization.
  */
 void initializeCan(CanBus* bus);
+
+/* Public: Perform platform-agnostic CAN initialization.
+ */
+void initializeCanCommon(CanBus* bus);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

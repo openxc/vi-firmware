@@ -1,9 +1,9 @@
 #ifndef _ETHERNETUTIL_H_
 #define _ETHERNETUTIL_H_
 
-#ifdef __PIC32__
+#ifdef __USE_ETHERNET__
 #include "chipKITEthernet.h"
-#endif // __PIC32__
+#endif // __USE_ETHERNET__
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,10 +35,14 @@ typedef struct {
     ByteQueue sendQueue;
     // host to device
     ByteQueue receiveQueue;
-#ifdef __PIC32__
+#ifdef __USE_ETHERNET__
     Server* server;
-#endif // __PIC32__
+#endif // __USE_ETHERNET__
 } EthernetDevice;
+
+/* Public: Perform platform-agnostic Ethernet initialization.
+ */
+void initializeEthernetCommon(EthernetDevice* device);
 
 /* Initializes the ethernet interface with MAC and IP addresses, starts
  * listening for connections.

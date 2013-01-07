@@ -137,28 +137,14 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount);
 
-/* Public: Send the given data on CAN using the signal's message ID and bus. The
- * data is assumed to be 64-bits and is used unmodified as the message's value.
- *
- * signal - the signal whose message we should write to CAN.
- * data - the data for the CAN message.
- * send - true if the message should actually be sent.
- *
- * Returns true if the message was sent on CAN.
- */
-bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send);
-
 /* Public: The lowest-level API available to send a CAN message. The byte order
  * of the data is swapped, but otherwise this function queues the data to write
  * out to CAN without any additional processing.
  *
  * message - the CAN message this data should be sent in.
  * data - the data for the CAN message, byte order will be reversed.
- * send - true if the message should actually be sent.
- *
- * Returns true if the message was sent on CAN.
  */
-bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send);
+void enqueueCanMessage(CanMessage* message, uint64_t data);
 
 /* Public: Write any queued outgoing messages to the CAN bus.
  *
@@ -166,11 +152,9 @@ bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send);
  */
 void processCanWriteQueue(CanBus* bus);
 
-/* Private: Write a CAN message with the given data and node ID to the bus.
+/* Public: Write a CAN message with the given data and node ID to the bus.
  *
- * The CAN module has an 8 message buffer and sends messages in FIFO order. If
- * the buffer is full, this function will return false and the message will not
- * be sent.
+ * Defined per-platform.
  *
  * bus - The CAN bus to send the message on.
  * request - the CanMessage requested to send.

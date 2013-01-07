@@ -143,10 +143,12 @@ void UART1_IRQHandler() {
 }
 
 void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
-    if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
-        processQueue(&device->receiveQueue, callback);
-        if(!QUEUE_FULL(uint8_t, &device->receiveQueue)) {
-            resumeReceive();
+    if(device != NULL) {
+        if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
+            processQueue(&device->receiveQueue, callback);
+            if(!QUEUE_FULL(uint8_t, &device->receiveQueue)) {
+                resumeReceive();
+            }
         }
     }
 }
@@ -208,15 +210,16 @@ void configureInterrupts() {
 }
 
 void initializeSerial(SerialDevice* device) {
-    QUEUE_INIT(uint8_t, &device->receiveQueue);
-    QUEUE_INIT(uint8_t, &device->sendQueue);
+    if(device != NULL) {
+        initializeSerialCommon(device);
 
-    configurePins();
-    configureUart();
-    configureFifo();
-    configureFlowControl();
-    configureInterrupts();
-    CTS_STATE = ACTIVE;
+        configurePins();
+        configureUart();
+        configureFifo();
+        configureFlowControl();
+        configureInterrupts();
+        CTS_STATE = ACTIVE;
+    }
 }
 
 void processSerialSendQueue(SerialDevice* device) {

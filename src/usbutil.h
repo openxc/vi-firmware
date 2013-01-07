@@ -52,6 +52,10 @@ typedef struct {
 #endif // __PIC32__
 } UsbDevice;
 
+/* Public: Perform platform-agnostic USB initialization.
+ */
+void initializeUsbCommon(UsbDevice*);
+
 /* Public: Initializes the USB controller as a full-speed device with the
  * configuration specified in usb_descriptors.c. Must be called before
  * any other USB fuctions are used.
@@ -74,8 +78,9 @@ void armForRead(UsbDevice* device, char* buffer);
  * request from the host. If a message is available, the callback is notified
  * and the endpoint is re-armed for the next USB transfer.
  *
- * device - the CAN USB device to arm the endpoint on
- * callback - a function that handles USB in requests
+ * device - The CAN USB device to arm the endpoint on.
+ * callback - A function that handles USB in requests. The callback should
+ *      return true if a message was properly received and parsed.
  */
 void readFromHost(UsbDevice* device, bool (*callback)(uint8_t*));
 

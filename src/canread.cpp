@@ -34,6 +34,44 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     sendJSON(root, listener);
 }
 
+/* Private: Determine if the received signal should be sent out and update
+ * signal metadata.
+ *
+ * signal - The signal to look for in the CAN message data.
+ * data - The data of the CAN message.
+ * send - Will be flipped to false if the signal should not be sent (e.g. the
+ *      signal is on a limited send frequency and the timer is not up yet).
+ *
+ * Returns the float value of the signal decoded from the data.
+ */
+float preTranslate(CanSignal* signal, uint64_t data, bool* send) {
+    float value = decodeCanSignal(signal, data);
+
+    if(!signal->received || signal->sendClock == signal->sendFrequency - 1) {
+        if(send && (!signal->received || signal->sendSame ||
+                    value != signal->lastValue)) {
+            signal->received = true;
+        } else {
+            *send = false;
+        }
+        signal->sendClock = 0;
+    } else {
+        *send = false;
+        ++signal->sendClock;
+    }
+    return value;
+}
+
+/* Private: Update signal metadata after translating and sending.
+ *
+ * We keep track of the last value of each CAN signal (in its raw float form),
+ * but we can't update the value until after all translation has happened,
+ * in case a custom handler needs to use the value.
+ */
+void postTranslate(CanSignal* signal, float value) {
+    signal->lastValue = value;
+}
+
 float decodeCanSignal(CanSignal* signal, uint64_t data) {
     uint64_t rawValue = getBitField(data, signal->bitPosition,
             signal->bitSize);
@@ -63,6 +101,7 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals,
     if(signalState != NULL) {
         return signalState->name;
     }
+    // TODO these send values aren't using anywhere when reading!
     *send = false;
     return NULL;
 }
@@ -117,71 +156,45 @@ void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
     sendJSON(root, listener);
 }
 
-// TODO there is lots of duplicated code in these functions, but I don't see an
-// obvious way to share code and still keep the different data types returned
-// by the handlers.
 void translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
-    float value = decodeCanSignal(signal, data);
     bool send = true;
-    float processedValue = handler(signal, signals, signalCount, value, &send);
-
-    if(signal->sendClock == signal->sendFrequency) {
-        if(send && (signal->sendSame || !signal->received ||
-                    value != signal->lastValue)) {
-            signal->received = true;
-            sendNumericalMessage(signal->genericName, processedValue, listener);
-        }
-        signal->sendClock = 0;
-    } else {
-        ++signal->sendClock;
+    float value = preTranslate(signal, data, &send);
+    if(send) {
+        float processedValue = handler(signal, signals, signalCount, value,
+                &send);
+        sendNumericalMessage(signal->genericName, processedValue, listener);
     }
-    signal->lastValue = value;
+    postTranslate(signal, value);
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
-    float value = decodeCanSignal(signal, data);
     bool send = true;
-    const char* stringValue = handler(signal, signals, signalCount, value,
-            &send);
-
-    if(signal->sendClock == signal->sendFrequency) {
-        if(send && (signal->sendSame || !signal->received ||
-                    value != signal->lastValue)) {
-            signal->received = true;
-            sendStringMessage(signal->genericName, stringValue, listener);
-        }
-        signal->sendClock = 0;
-    } else {
-        ++signal->sendClock;
+    float value = preTranslate(signal, data, &send);
+    if(send) {
+        const char* stringValue = handler(signal, signals, signalCount, value,
+                &send);
+        sendStringMessage(signal->genericName, stringValue, listener);
     }
-    signal->lastValue = value;
+    postTranslate(signal, value);
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
-    float value = decodeCanSignal(signal, data);
     bool send = true;
-    bool booleanValue = handler(signal, signals, signalCount, value, &send);
-
-    if(signal->sendClock == signal->sendFrequency) {
-        if(send && (signal->sendSame || !signal->received ||
-                    value != signal->lastValue)) {
-            signal->received = true;
-            sendBooleanMessage(signal->genericName, booleanValue, listener);
-        }
-        signal->sendClock = 0;
-    } else {
-        ++signal->sendClock;
+    float value = preTranslate(signal, data, &send);
+    if(send) {
+        bool booleanValue = handler(signal, signals, signalCount, value, &send);
+        sendBooleanMessage(signal->genericName, booleanValue, listener);
     }
-    signal->lastValue = value;
+    postTranslate(signal, value);
 }
 
 void translateCanSignal(Listener* listener, CanSignal* signal,

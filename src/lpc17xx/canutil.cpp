@@ -46,9 +46,6 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
 }
 
 void initializeCan(CanBus* bus) {
-    QUEUE_INIT(CanMessage, &bus->receiveQueue);
-    QUEUE_INIT(CanMessage, &bus->sendQueue);
-
     configureCanControllerPins(CAN_CONTROLLER(bus));
 
     CAN_Init(CAN_CONTROLLER(bus), bus->speed);

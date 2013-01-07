@@ -11,7 +11,7 @@ extern "C" {
 // the same name and the same functionality "strnchr".
 // Therefore this section should not be compiled when
 // the Ethernet library is included.
-#ifndef __PIC32__
+#ifndef __USER_ETHERNET__
 
 /*
  * Thanks to https://gist.github.com/855214.
@@ -22,6 +22,6 @@ const char *strnchr(const char *str, size_t len, char character);
 }
 #endif
 
-#endif
+#endif // __USER_ETHERNET__
 
 #endif // _STRUTIL_H_

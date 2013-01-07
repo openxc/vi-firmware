@@ -32,7 +32,7 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
 
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
-    if(QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
+    if(queue == NULL || QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
         return false;
     }
 

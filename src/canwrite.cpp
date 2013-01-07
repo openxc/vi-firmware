@@ -62,8 +62,14 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data) {
-    return stateWriter(signal, signals, signalCount, value->valuestring, send,
-            data);
+    if(value == NULL) {
+        debug("Can't write state of NULL -- not sending\r\n");
+    } else {
+        return stateWriter(signal, signals, signalCount, value->valuestring, send,
+                data);
+    }
+    *send = false;
+    return 0;
 }
 
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
@@ -85,19 +91,10 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
     return data;
 }
 
-bool enqueueCanMessage(CanMessage* message, uint64_t data, bool* send) {
-    if(*send) {
-        CanMessage outgoingMessage = {message->bus, message->id,
-            __builtin_bswap64(data)};
-        QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
-        return true;
-    }
-    debug("Not sending requested message %x\r\n", message->id);
-    return false;
-}
-
-bool sendCanSignal(CanSignal* signal, uint64_t data, bool* send) {
-    return enqueueCanMessage(signal->message, data, send);
+void enqueueCanMessage(CanMessage* message, uint64_t data) {
+    CanMessage outgoingMessage = {message->bus, message->id,
+        __builtin_bswap64(data)};
+    QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
 }
 
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
@@ -110,7 +107,6 @@ bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
 bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
-    bool send = true;
     if(writer == NULL) {
         if(signal->stateCount > 0) {
             writer = stateWriter;
@@ -119,8 +115,12 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
         }
     }
 
+    bool send = true;
     uint64_t data = writer(signal, signals, signalCount, value, &send);
-    return sendCanSignal(signal, data, &send);
+    if(send) {
+        enqueueCanMessage(signal->message, data);
+    }
+    return send;
 }
 
 void processCanWriteQueue(CanBus* bus) {
@@ -131,7 +131,9 @@ void processCanWriteQueue(CanBus* bus) {
             debug("%02x ", ((uint8_t*)&message.data)[i]);
         }
         debug("\r\n");
-        if(!sendCanMessage(bus, message)) {
+        if(bus->writeHandler == NULL) {
+            debug("No function available for writing to CAN -- dropped");
+        } else if(!bus->writeHandler(bus, message)) {
             debug("Unable to send CAN message with id = 0x%x\r\n", message.id);
         }
     }

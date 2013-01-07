@@ -74,8 +74,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
 
 
 void initializeUsb(UsbDevice* usbDevice) {
-    debug("Initializing USB.....");
-
+    initializeUsbCommon(usbDevice);
     USB_Init();
     USB_Connect();
 

@@ -81,6 +81,14 @@ START_TEST (test_full_clears)
 }
 END_TEST
 
+START_TEST (test_null_queue)
+{
+    char* message = "a message";
+    bool result = conditionalEnqueue(NULL, (uint8_t*)message, 10);
+    fail_if(result);
+}
+END_TEST
+
 START_TEST (test_enqueue_empty)
 {
     char* message = "a message";
@@ -153,6 +161,7 @@ Suite* buffersSuite(void) {
 
     TCase *tc_conditional = tcase_create("conditional");
     tcase_add_checked_fixture (tc_conditional, setup, teardown);
+    tcase_add_test(tc_conditional, test_null_queue);
     tcase_add_test(tc_conditional, test_enqueue_empty);
     tcase_add_test(tc_conditional, test_enqueue_full);
     tcase_add_test(tc_conditional, test_enqueue_no_room_for_crlf);

@@ -1,5 +1,6 @@
 #include "shared_handlers.h"
 #include "canwrite.h"
+#include "log.h"
 
 float rotationsSinceRestart = 0;
 float odometerSinceRestart = 0;
@@ -122,9 +123,14 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
     CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
             signals, signalCount);
 
-    if(steeringAngleSign->lastValue == 0) {
-        // left turn
-        value *= -1;
+    if(steeringAngleSign == NULL) {
+        debug("Unable to find stering wheel angle sign signal");
+        *send = false;
+    } else {
+        if(steeringAngleSign->lastValue == 0) {
+            // left turn
+            value *= -1;
+        }
     }
     return value;
 }
@@ -145,6 +151,11 @@ void handleButtonEventMessage(int messageId, uint64_t data,
             signalCount);
     CanSignal* buttonStateSignal = lookupSignal("button_state", signals,
             signalCount);
+
+    if(buttonTypeSignal == NULL || buttonStateSignal == NULL) {
+        debug("Unable to find button type and state signals");
+        return;
+    }
 
     float rawButtonType = decodeCanSignal(buttonTypeSignal, data);
     float rawButtonState = decodeCanSignal(buttonStateSignal, data);
@@ -174,6 +185,8 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, CanSignal* signals,
     if(signal != NULL) {
         return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
                 signals, signalCount);
+    } else {
+        debug("Unable to find signal for %s turn signal", direction);
     }
     return false;
 }

@@ -29,18 +29,27 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-#ifndef NO_UART
+#ifdef __USE_UART__
     &SERIAL_DEVICE,
-#endif // NO_UART
-#ifndef NO_ETHERNET
+#else
+    NULL,
+#endif // __USE_UART__
+#ifdef __USE_ETHERNET__
     &ETHERNET_DEVICE
-#endif // NO_ETHERNET
+#endif // __USE_ETHERNET__
 };
 
 int main(void) {
 #ifdef __PIC32__
     init();
 #endif // __PIC32__
+
+    initializeLogging();
+    initializeUsb(listener.usb);
+    initializeSerial(listener.serial);
+    initializeEthernet(listener.ethernet);
+
+    debug("Initializing as %s\r\n", getMessageSet());
     setup();
 
     for (;;) {
@@ -59,13 +68,12 @@ bool handleControlRequest(uint8_t request) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:
     {
-        char* combinedVersion = (char*)malloc(strlen(VERSION) +
-                strlen(getMessageSet()) + 4);
+        char combinedVersion[strlen(VERSION) +
+                strlen(getMessageSet()) + 4];
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
         debug("Version: %s\r\n", combinedVersion);
 
         sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
-        free(combinedVersion);
         return true;
     }
     case RESET_CONTROL_COMMAND:

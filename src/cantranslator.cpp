@@ -11,10 +11,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef __PIC32__
-#include "chipKITEthernet.h"
-#endif // __PIC32__
-
 extern Listener listener;
 
 /* Forward declarations */
@@ -24,14 +20,6 @@ void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 
 void setup() {
-    initializeLogging();
-    initializeUsb(listener.usb);
-    if(listener.serial != NULL) {
-        initializeSerial(listener.serial);
-    }
-    if(listener.ethernet != NULL) {
-        initializeEthernet(listener.ethernet);
-    }
     initializeAllCan();
 }
 
@@ -41,12 +29,8 @@ void loop() {
     }
 
     readFromHost(listener.usb, &receiveWriteRequest);
-    if(listener.serial != NULL) {
-        readFromSerial(listener.serial, receiveWriteRequest);
-    }
-    if(listener.ethernet != NULL) {
-        readFromSocket(listener.ethernet, &receiveWriteRequest);
-    }
+    readFromSerial(listener.serial, receiveWriteRequest);
+    readFromSocket(listener.ethernet, &receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
@@ -69,10 +53,9 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
-    bool send = true;
     // TODO hard coding bus 0 right now, but it should support sending on either
     CanMessage message = {&getCanBuses()[0], id};
-    enqueueCanMessage(&message, strtoull(dataString, &end, 16), &send);
+    enqueueCanMessage(&message, strtoull(dataString, &end, 16));
 }
 
 /* The binary format handled by this function is as follows:
@@ -110,17 +93,21 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
 
     CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),
             true);
-    CanCommand* command = lookupCommand(name, getCommands(), getCommandCount());
     if(signal != NULL) {
         if(value == NULL) {
             debug("Write request for %s missing value\r\n", name);
             return;
         }
         sendCanSignal(signal, value, getSignals(), getSignalCount());
-    } else if(command != NULL) {
-        command->handler(name, value, event, getSignals(), getSignalCount());
     } else {
-        debug("Writing not allowed for signal with name %s\r\n", name);
+        CanCommand* command = lookupCommand(name, getCommands(),
+                getCommandCount());
+        if(command != NULL) {
+            command->handler(name, value, event, getSignals(),
+                    getSignalCount());
+        } else {
+            debug("Writing not allowed for signal with name %s\r\n", name);
+        }
     }
 }
 

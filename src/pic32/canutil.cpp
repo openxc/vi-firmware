@@ -44,10 +44,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
 }
 
 void initializeCan(CanBus* bus) {
-    debug("Initializing CAN...");
-    QUEUE_INIT(CanMessage, &bus->receiveQueue);
-    QUEUE_INIT(CanMessage, &bus->sendQueue);
-
+    initializeCanCommon(bus);
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
     CAN_CONTROLLER(bus)->enableModule(true);
@@ -77,10 +74,10 @@ void initializeCan(CanBus* bus) {
     CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
             CAN::LOW_MEDIUM_PRIORITY);
 
-    // Configure channel 1 for RX with 8 byte buffers.
-    // TODO either both channels should be TX_RTR_DISABLE or both
-    // RX_FULL_RECEIVE
-    CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8, CAN::RX_FULL_RECEIVE);
+    // Configure channel 1 for RX with 8 byte buffers - remember this is channel
+    // 1 on the given bus, it doesn't mean CAN1 or CAN2 on the chipKIT board.
+    CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8,
+            CAN::RX_FULL_RECEIVE);
 
     int filterCount;
     CanFilter* filters = initializeFilters(bus->address, &filterCount);

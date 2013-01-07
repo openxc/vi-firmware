@@ -1,6 +1,6 @@
 #include "strutil.h"
 
-#ifndef __PIC32__
+#ifndef __USE_ETHERNET__
 
 const char *strnchr(const char *str, size_t len, char character) {
     const char *end = str + len;
@@ -12,4 +12,4 @@ const char *strnchr(const char *str, size_t len, char character) {
     return NULL;
 }
 
-#endif // __PIC32__
+#endif // __USE_ETHERNET__

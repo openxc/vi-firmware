@@ -1,3 +1,9 @@
+## USB Device Driver
+
+For details on the USB device, particularly useful if you are trying to connect
+to it from a new programming language or environment, see the [USB
+readme](https://github.com/openxc/cantranslator/blob/master/README_usb.mkd).
+
 # USB Device Details
 
 Most users do not need to know the details of the device driver, but for

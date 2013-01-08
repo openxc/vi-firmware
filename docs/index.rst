@@ -1,43 +1,56 @@
-.. include:: ../README.rst
+=================================
+OpenXC CAN Translator
+=================================
+
+.. image:: /_static/logo.png
+
+:Version: 2.0-pre (DEVEL)
+:Web: http://openxcplatform.com
+:Documentation: http://openxcplatform.com/cantranslator
+:Source: http://github.com/openxc/cantranslator
+
+.. toctree::
+    :hidden:
+    :glob:
+
+    installation/index
+    installation/compiling
+    installation/binary
+    installation/ide
+
+    output/*
+
+About
+=====
+
+The CAN translation module code runs on an Arduino-compatible microcontroller
+connected to one or more CAN buses. It receives either all CAN messages or a
+filtered subset, performs any unit conversion or factoring required and outputs
+a generic version to a USB interface.
 
 Pre-built Binary
 ================
 
 If you've downloaded a pre-built binary for a specific vehicle, see the
-`firmware section`_ of the `OpenXC website`_ for instructions on how to flash
-your CAN translator. Most users do not need to set up the full development
-described in these docs.
+:doc:`/installation/binary` section for instructions on how to flash your CAN
+translator. Most users do not need to set up the full development described in
+these docs.
 
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`firmware section`: http://openxcplatform.com/vehicle-interface/firmware.html
 
-Output Specification
-====================
-
-See the `output format`_ section of the `OpenXC website`_ for details.
-
-Testing
-=======
-
-The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
-useful for testing the CAN translator with a regular computer, to verify the
-data received from a vehicle before introducing an Android device. Documentation
-for this tool (and the list of required dependencies) is available on the OpenXC
-`vehicle interface testing`_ page.
-
-.. _`vehicle interface testing`: http://openxcplatform.com/vehicle-interface/testing.html
-
 Installation
--------------
+============
 
 .. toctree::
     :maxdepth: 2
     :glob:
 
+    installation/index
     installation/*
 
 CAN Message Definition
-----------------------
+======================
 
 .. toctree::
     :maxdepth: 2
@@ -46,7 +59,9 @@ CAN Message Definition
     definitions/*
 
 Output Interfaces & Format
---------------------------
+===========================
+
+See the `output format`_ section of the `OpenXC website`_ for details.
 
 .. toctree::
     :maxdepth: 2
@@ -55,19 +70,13 @@ Output Interfaces & Format
     output/*
 
 Testing
---------
+=======
 
 .. toctree::
     :maxdepth: 2
     :glob:
 
     testing/*
-
-
-.. toctree::
-    :maxdepth: 2
-    :glob:
-
 
 Contributing
 ==============
@@ -92,3 +101,35 @@ to our issue tracker at http://github.com/openxc/cantranslator/issues/
 
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 .. _`output format`: http://openxcplatform.com/vehicle-interface/output-format.html
+
+Related Projects
+================
+
+Python Library
+----------------------
+
+The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
+useful for testing the CAN translator with a regular computer, to verify the
+data received from a vehicle before introducing an Android device. Documentation
+for this tool (and the list of required dependencies) is available on the OpenXC
+`vehicle interface testing`_ page.
+
+.. _`vehicle interface testing`: http://openxcplatform.com/vehicle-interface/testing.html
+.. _`OpenXC Python library`: https://github.com/openxc/openxc-python
+
+Android Library
+----------------------
+
+The `OpenXC Android library`_ is the primary entry point for new OpenXC
+developers. More information on this library is available at in the
+`applications`_ section of the `OpenXC website`_.
+
+.. _`applications`: http://openxcplatform.com/android/index.html
+.. _`OpenXC Android library`: https://github.com/openxc/openxc-android
+
+License
+=======
+
+Copyright (c) 2012-2013 Ford Motor Company
+
+Licensed under the BSD license.

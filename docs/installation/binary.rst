@@ -1,4 +1,5 @@
-Pre-compiled Binary Firmware
+============================
+Flashing a Pre-compiled Binary
 ============================
 
 Updates to the CAN translator firmware may be distributed as
@@ -8,69 +9,102 @@ vehicle, you will have a ``.hex`` file and can use the
 `upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/upload_hex.sh>`_
 script to update your device.
 
-You need to have the **mini-USB** port connected to your computer to
-upload a new firmware. This is different than the USB port that you use
-to read vehicle data - see the device connections section to make sure
-you have the correct cable attached.
+Prerequisites
+=============
 
-The script requires that ``avrdude`` is installed. There are two
-possible ways to get that dependency.
+In order to flash a CAN translator, you need:
 
-.. raw:: html
+* AVR programmer
+* FTDI Driver
+* Mini-USB cable
 
-   <div class="alert alert-info">
+FTDI Driver
+-----------
 
-If you are using Windows or OS X, you also need to install the FTDI
-driver - get the setup executable version from that page.
+If you are using Windows or OS X, you need to install the FTDI
+driver. If you didn't need to install MPIDE, you can download the driver
+separately from `FTDI <http://www.ftdichip.com/Drivers/VCP.htm>`_.
 
-.. raw:: html
+AVR Programmer
+--------------
 
-   </div>
-
-*Without MPIDE*
-
-If you do not already have
-`MPIDE <https://github.com/chipKIT32/chipKIT32-MAX/downloads>`_
-installed (and that's fine, you don't really need it), you can find
-``avrdude`` in your Linux distribution's package manager, through
-Homebrew in Mac OS X, or as `WinAVR <http://winavr.sourceforge.net/>`_
-in Windows.
+In order to program the CAN translator, you need an AVR programmer tool. There
+are a number of options that will work.
 
 *With MPIDE*
 
-If you have
-`MPIDE <https://github.com/chipKIT32/chipKIT32-MAX/downloads>`_
-installed, that already includes a version of avrdude. You need to set
-the ``MPIDE_DIR`` environment variable in your terminal to point to the
-folder where you installed MPIDE. Once set, you should be able to use
+If you have `MPIDE`_ installed, that already includes a version of avrdude. You
+need to set the ``MPIDE_DIR`` environment variable in your terminal to point to
+the folder where you installed MPIDE. Once set, you should be able to use
 `upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/upload_hex.sh>`_.
 
-**Flashing**
+*Without MPIDE*
 
-Once you have ``avrdude`` installed, run the script with the ``.hex``
-file you downloaded (Windows users see below, this script will *not*
+If you do not already have `MPIDE`_ installed (and that's fine, you don't really
+need it), you can install a programmer seprately:
+
+- Linux - Look for ``avrdude`` in your distribution's package manager.
+- OS X - Install ``avrdude`` with `Homebrew`_.
+- Windows
+   - If you prefer a GUI, install `WinAVR <http://winavr.sourceforge.net/>`_
+   - If you prefer command line, install `Cygwin <http://cygwin.com>`_ and
+     `MPIDE`_, and follow the :doc:`index` documentation to configure the MPIDE
+     environment variables.
+
+.. _`Homebrew`: http://mxcl.github.com/homebrew/
+
+USB Cable
+---------
+
+You need to have the **mini-USB** port on the chipKIT connected to your computer
+to upload a new firmware. This is different than the micro-USB port that you use
+to read vehicle data - see the `device connections
+<http://openxcplatform.com/vehicle-interface/index.html#connections>`_ section
+of the `OpenXC website`_ to make sure you have the correct cable attached.
+
+Flashing
+========
+
+Command Line
+------------
+
+When using the command line in Cygwin in Windows, you will need to figure out
+which COM port the device shows up as - by default we will assume ``com4`` but
+it may be different on your computer.
+
+Once you have ``avrdude`` installed, run the ``upload_hex.sh`` script with the
+``.hex`` file you downloaded (Windows users see below, this script will *not*
 work with the standard Windows command line or Powershell):
 
-{% highlight sh %} $ sh ./upload\_hex.sh {% endhighlight %}
+.. code-block:: sh
 
-Windows users can use the GUI provided by
-`WinAVR <http://winavr.sourceforge.net/>`_ or run the ``upload_hex.sh``
-script with Cygwin. When using the script, you will need to figure out
-which COM port the device shows up as - the script default is ``com4``
-but it may be different on your computer.
+   $ sh ./upload_hex.sh <the firmware file you downloaded>.hex
+
 
 To specify use ``com3`` for example:
 
-{% highlight sh %} $ sh ./upload\_hex.sh com3 {% endhighlight %}
+.. code-block:: sh
+
+   $ sh ./upload_hex.sh <the firmware file you downloaded>.hex com3
 
 In Windows, this command will only work in Cygwin, not the standard
 cmd.exe or Powershell. If you have the ``sh.exe`` program installed by
 some other means (e.g. you have Git installed in Windows) then it will
 actually work in Powershell.
 
-If you get errors about ``$'\r': command not found`` then you Git
+If you get errors about ``$'\r': command not found`` then your Git
 configuration added ``CRLF`` line endings and so you must run the script
 like this:
 
-{% highlight sh %} $ set -o igncr && export SHELLOPTS && sh
-./upload\_hex.sh {% endhighlight %}
+.. code-block:: sh
+
+   $ set -o igncr && export SHELLOPTS && sh ./upload_hex.sh <firmware you downloaded>.hex
+
+WinAVR GUI
+----------
+
+The GUI should be straightforward, but additional documentation here would be a
+wonderful contribution!
+
+.. _`MPIDE`: https://github.com/chipKIT32/chipKIT32-MAX/downloads
+.. _`OpenXC website`: http://openxcplatform.com

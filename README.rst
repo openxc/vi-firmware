@@ -1,5 +1,5 @@
 =================================
-OpenXC CAN Translator Firmware
+OpenXC CAN Translator
 =================================
 
 .. image:: /_static/logo.png

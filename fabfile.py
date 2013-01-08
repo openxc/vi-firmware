@@ -1,3 +1,5 @@
+import os
+
 from fabric.api import local, task, prompt, env, lcd
 from fabric.colors import green, yellow
 from fabric.contrib.console import confirm
@@ -61,6 +63,25 @@ def make_tag():
         env.tag = latest_git_tag()
         print(green("Using latest tag %(tag)s" % env))
     return env.tag
+
+
+@task(default=True)
+def docs(clean='no', browse_='no'):
+    with lcd('docs'):
+        local('make clean html')
+    temp_path = "/tmp/docs"
+    docs_path = "%s/docs/_build/html" % local("pwd", capture=True)
+    local('rm -rf %s' % temp_path)
+    os.makedirs(temp_path)
+    with lcd(temp_path):
+        local('cp -R %s %s' % (docs_path, temp_path))
+    local('git checkout gh-pages')
+    local('cp -R %s/html/* .' % temp_path)
+    local('touch .nojekyll')
+    local('git add -A')
+    local('git commit -m "Update Sphinx docs."')
+    local('git push')
+    local('git checkout master')
 
 
 @task

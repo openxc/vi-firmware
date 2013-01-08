@@ -17,9 +17,11 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
-For more documentation, see the [vehicle
-interface](http://openxcplatform.com/vehicle-interface/index.html) section on
-the [OpenXC website](http://openxcplatform.com).
+For more documentation, see the `vehicle interface`_ section on the `OpenXC
+website`_.
+
+.. _`OpenXC website`: http://openxcplatform.com
+.. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
 
 License
 =======

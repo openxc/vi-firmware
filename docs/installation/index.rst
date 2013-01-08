@@ -1,4 +1,5 @@
-## Installation
+Installation
+====================
 
 Building the source for the CAN translator for the chipKIT microcontroller
 requires [MPIDE][] (the development environment and compiler toolchain for

@@ -18,10 +18,11 @@ filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
 For more documentation, see the `vehicle interface`_ section on the `OpenXC
-website`_.
+website`_ or the `CAN translator documentation`_.
 
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
+.. _`CAN translator documentation`: http://openxcplatform.com/cantranslator
 
 License
 =======

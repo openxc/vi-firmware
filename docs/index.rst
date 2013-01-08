@@ -64,7 +64,7 @@ Output Interfaces & Format
 See the `output format`_ section of the `OpenXC website`_ for details.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :glob:
 
     output/*

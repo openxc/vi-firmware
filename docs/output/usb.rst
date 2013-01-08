@@ -1,31 +1,22 @@
+=================
 USB Device Driver
------------------
-
-For details on the USB device, particularly useful if you are trying to
-connect to it from a new programming language or environment, see the
-`USB
-readme <https://github.com/openxc/cantranslator/blob/master/README_usb.mkd>`_.
-
-USB Device Details
-==================
+=================
 
 Most users do not need to know the details of the device driver, but for
 reference it is documented here.
 
-The CAN translator initializes its USB 2.0 controller as a USB device.
-The Android tablet or computer you connect to the translator acts as the
-USB host, and must initiate all transfers.
-
-There are three endpoints:
+The CAN translator initializes its USB 2.0 controller as a USB device with three
+endpoints. The Android tablet or computer you connect to the translator acts as
+the USB host, and must initiate all transfers.
 
 Endpoint 0
-----------
+===========
 
 This is the standard USB control transfer endpoint. The CAN transalator
 has a few control commands:
 
 Version
-~~~~~~~
+-------
 
 Version control command: ``0x80``
 
@@ -42,7 +33,7 @@ where ``1.0`` is the software version and ``c346`` is the configured
 vehicle.
 
 Reset
-~~~~~
+-----
 
 Reset control command: ``0x81``
 
@@ -53,7 +44,7 @@ exists, but there are now workarounds in the code to automatically
 re-initialize the transceivers if they stop receiving messages.
 
 Endpoint 1 IN
--------------
+=============
 
 Endpoint 1 is configured as a bulk transfer endpoint with the ``IN``
 direction (device to host). OpenXC JSON messages read from the vehicle
@@ -64,7 +55,7 @@ into one USB request and give high overall throughput (with the downside
 of introducing delay depending on the size of the request).
 
 Endpoint 2 OUT
---------------
+==============
 
 OpenXC JSON messages created by the host to send to the vehicle (i.e. to
 write to the CAN bus) are sent via ``OUT`` transactions. The CAN

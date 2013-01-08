@@ -2,7 +2,7 @@
  *
  * On the PIC32, the CAN translator uses Serial from the chipKIT library's
  * HardwareSerial interface for vehicle data. This is equivalent to UART1A or
- * U3A. Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low
+ * U1A. Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low
  * by the receiving device before data will be sent.
  *
  * UART1 is also used by the USB-Serial connection, so in order to flash the
@@ -15,10 +15,10 @@
  * minimize additional programming. U3A's CTS/RTS lines conflict with CAN1, so
  * that's out; that leaves U1A.
  *
- * Pin 0 - U3ARX, connect this to the TX line of the receiver.
- * Pin 1 - U3ATX, connect this to the RX line of the receiver.
- * Pin 18 - U3ARTS, connect this to the CTS line of the receiver.
- * Pin 19 - U3ACTS, connect this to the RTS line of the receiver.
+ * Pin 0 - U1ARX, connect this to the TX line of the receiver.
+ * Pin 1 - U1ATX, connect this to the RX line of the receiver.
+ * Pin 18 - U1ARTS, connect this to the CTS line of the receiver.
+ * Pin 19 - U1ACTS, connect this to the RTS line of the receiver.
  */
 #include "serialutil.h"
 #include "buffers.h"

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include "queue.h"
+#include "buffers.h"
 
 #define MAX_MESSAGE_SIZE 128
 
@@ -15,7 +15,7 @@ extern "C" {
  *
  * sendQueue - A queue of bytes that need to be sent out over UART.
  * receiveQueue - A queue of bytes that have been received via UART but not yet
- * 		processed.
+ *      processed.
  * device - A pointer to the hardware UART device to use for OpenXC messages.
  */
 typedef struct {
@@ -34,6 +34,10 @@ typedef struct {
  * callback - A function to call with any received data.
  */
 void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*));
+
+/* Public: Perform platform-agnostic UART initialization.
+ */
+void initializeSerialCommon(SerialDevice* device);
 
 /* Public: Initializes the UART device at at 115200 baud rate and initializes
  * the receive buffer.

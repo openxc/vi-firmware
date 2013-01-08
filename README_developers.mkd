@@ -9,8 +9,11 @@ for MPIDE](http://chipkit.org/wiki/index.php?title=MPIDE_Installation).
 Some of the library dependencies are included in this repository as git
 submodules, so before you go further run:
 
-    $ git submodule init
-    $ git submodule update
+    $ git submodule init && git submodule update
+
+If this doesn't print out anything or gives you an error, make sure you cloned
+this repository from GitHub with git and that you didn't download a zip file.
+The zip file is missing all of the git metadata, so submodules will not work.
 
 It also requires some libraries from Microchip that we are unfortunately unable
 to include or link to as a submodule from the source because of licensing
@@ -56,8 +59,9 @@ terminal that you run the commands. If you want them active in all terminals
 `~/.bashrc` (in Linux) or `~/.bash_profile` (in OS X) and start a new terminal.
 
 Once this is set up, `cd` into the `src` subdirectory, build and
-upload to the device:
+upload to the device.
 
+    $ git submodule init && git submodule update
     $ make clean
     $ make
     $ make flash
@@ -65,6 +69,17 @@ upload to the device:
 If the flash command can't find your chipKIT, you may need to set the
 `ARDUINO_PORT` variable (if the serial emulator doesn't show up as `/dev/ttyUSB*`
 (in Linux) or `/dev/tty.usbserial*` (in Mac OS X)).
+
+**Troubleshooting**
+
+If the compilation didn't work:
+
+* Make sure the submodules are up to date - run `git submodule update --init`
+  and then `git status` and make sure there are no modified files in the working
+  directory.
+* Did you download the .zip file of the `cantranslator` project from GitHub? Try
+  using git to clone the repository instead - the library dependencies are
+  stored as git submodules and do not work when using the zip file.
 
 ### LPC17xx
 
@@ -107,11 +122,11 @@ and remove the Olimex sections, then reload the module:
 ### Compiling
 
 Once the dependencies are installed, attach a JTAG adapter to your computer and
-the CAN translator, then compile and flash an LPC17xx like so:
+the CAN translator, then compile and flash an LPC1768 Blueboard like so:
 
     $ make clean
-    $ BOARD=LPC17xx make -j4
-    $ BOARD=LPC17xx make flash
+    $ PLATFORM=LPC17XX make -j4
+    $ PLATFORM=LPC17XX make flash
 
 The config files in this repository assume your JTAG adapter is the Olimex
 ARM-USB-OCD unit. If you have a different unit, change the first line in
@@ -172,7 +187,7 @@ CAN translator, as you cannot implement these functions without that knowledge.
 
 ### Auto-generation
 
-The code auto-generation script accepts a [JSON input file](input-specs) that
+The code auto-generation script accepts a [JSON input file][input-specs] that
 defines the CAN messages and signals of interest and rewrites it as C data
 structures, ready to be downloaded to the device. Check the "Input
 Specification" section for the details of the input format. You must know the
@@ -184,9 +199,9 @@ to create a file that defines `decodeCanMessage`:
 
     ./generate_code.py --json signals.json > signals.cpp
 
-Drop the new `signals.cpp` file in the `cantranslator` sketch folder, and it
-should now compile. Don't add anything else to this file - it's derivative of
-the master JSON, and should be able to be wiped and recreated at any time.
+Drop the new `signals.cpp` file in the `src` folder, and it should now compile.
+Don't add anything else to this file - it's derivative of the master JSON, and
+should be able to be wiped and recreated at any time.
 
 If you have multiple CAN buses and want to define their signals and messages in
 separate files, just pass multiple JSON files:
@@ -196,6 +211,41 @@ separate files, just pass multiple JSON files:
 Note that the JSON files are parsed and merged, so if you want to define custom
 handlers and states separately from the signal definition itself, you can store
 them in separate files and they will be merged on import.
+
+## IDE Support
+
+It is possible to use an IDE like Eclipse to edit and compile the project.
+
+* Follow the directions in the above "Installation" section.
+* Install Eclipse with the [CDT project](http://www.eclipse.org/cdt/)
+* In Eclipse, go to `File -> Import -> C/C++ -> Existing Code as Makefile Project`
+  and then select the `cantranslator/src` folder.
+* In the project's properties, under `C/C++ General -> Paths and Symbols`, add
+  these to the include paths for C and C++:
+    * `${MPIDE_DIR}/hardware/pic32/compiler/pic32-tools/pic32mx/include`
+    * `${MPIDE_DIR}/hardware/pic32/cores/pic32`
+    * `/cantranslator/libs/CDL/LPC17xxLib/inc` (add as a "workspace path")
+    * `/cantranslator/libs/chipKITCAN` (add as a "workspace path")
+    * `/cantranslator/libs/chipKITUSBDevice` (add as a "workspace path")
+    * `/cantranslator/libs/chipKITUSBDevice/utility` (add as a "workspace path")
+    * `/cantranslator/libs/chipKITEthernet` (add as a "workspace path")
+    * `/usr/include` (only if you want to use the test suite, which requires the
+      `check` C library)
+* In the same section under Symbols, if you are building for the chipKIT define
+  a symbol with the name `__PIC32__`
+* In the project folder listing, select `Resource Configurations -> Exclude from
+  Build` for these folders:
+    * `libs`
+    * `build`
+
+If you didn't set up the environment variables from the `Installation` section
+(e.g. `MPIDE_HOME`), you can also do that from within Eclipse in `C/C++` project
+settings.
+
+There will still be some errors in the Eclipse problem detection, e.g. it
+doesn't seem to pick up on the GCC `__builtin_*` functions, and some of the
+chipKIT libraries are finicky. This won't have an effect on the actual build
+process, just the error reporting.
 
 ## Test Suite
 
@@ -218,11 +268,10 @@ and in Mac OS X, it's available through [homebrew][]:
 
 ## Emulator
 
-The repository includes a rudimentary CAN bus emulator. Use the `EMULATOR` flag
-to build this:
+The repository includes a rudimentary CAN bus emulator:
 
     $ make clean
-    $ EMULATOR=1 make -j4
+    $ make emulator -j4
 
 The emulator generates fakes values for many OpenXC signals and sends them over
 USB as if it were plugged into a live CAN bus.
@@ -236,10 +285,10 @@ readme](https://github.com/openxc/cantranslator/blob/master/README_usb.mkd).
 ## Serial Output
 
 You can optionally receive the output data over a serial connection in
-addition to USB. The messages are automatically sent over a UART connection on
-pins 18 and 19 of the chipKIT Max32 at a baud rate of 115200 when not being sent
-over USB. To be absolutely clear, OpenXC messages are only sent over serial if
-an active USB connection is **not** already receiving the messages.
+addition to USB. The same JSON messages are also sent over UART on
+pins 18 and 19 of the chipKIT Max32 at a baud rate of 115200. On LPC17XX boards
+like the Blueboard, the baud rate is 921600 and requires that the CTS1 and RTS1
+pins are also connected to enabled hardware flow control.
 
 In the same way that you can send OpenXC writes over USB using the OUT direction
 of the USB endpoint, you can send identically formatted messages in the opposite

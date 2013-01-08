@@ -20,7 +20,7 @@ def parse_options():
             help="generate source from this JSON file")
     message_set = parser.add_argument("-m", "--message-set",
             action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
-            help="name of the vehicle or platform")
+            default="generic", help="name of the vehicle or platform")
 
     arguments = parser.parse_args()
 
@@ -75,22 +75,35 @@ class Command(object):
 
 
 class Message(object):
-    def __init__(self, id, name, handler=None):
-        self.id = int(id)
+    def __init__(self, buses, bus_address, id, name, handler=None):
+        self.bus_address = bus_address
+        self.buses = buses
+        self.id = int(id, 0)
         self.name = name
         self.handler = handler
         self.signals = []
 
+    def __str__(self):
+        return "{&CAN_BUSES[%d], %d}, // %s" % (
+                self._lookupBusIndex(self.buses, self.bus_address),
+                self.id, self.name)
+        return result
+
+    @staticmethod
+    def _lookupBusIndex(buses, bus_address):
+        for i, bus in enumerate(iter(buses.items())):
+            if bus[0] == bus_address:
+                return i
+
 
 class Signal(object):
-    def __init__(self, bus_address=None, buses=None, message_id=None, name=None,
+    def __init__(self, messages=None, message=None, name=None,
             generic_name=None, position=None, length=None, factor=1, offset=0,
             min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=0, send_same=True,
             writable=False, write_handler=None):
-        self.bus_address = bus_address
-        self.buses = buses
-        self.message_id = message_id
+        self.messages = messages
+        self.message = message
         self.name = name
         self.generic_name = generic_name
         self.position = position
@@ -143,7 +156,8 @@ class Signal(object):
 
     def validate(self):
         if self.position == None:
-            sys.stderr.write("ERROR: %s is incomplete\n" % self.generic_name)
+            sys.stderr.write("ERROR: %s (generic name: %s) is incomplete\n" % (
+                self.name, self.generic_name))
             return False
         return True
 
@@ -153,15 +167,16 @@ class Signal(object):
         end = (8 * b) + (7 - r)
         return(end - l + 1)
 
-    def _lookupBusIndex(self):
-        for i, bus in enumerate(iter(self.buses.items())):
-            if bus[0] == self.bus_address:
+    @staticmethod
+    def _lookupMessageIndex(messages, message):
+        for i, candidate in enumerate(messages):
+            if candidate.id == message.id:
                 return i
 
     def __str__(self):
-        result =  ("{&CAN_BUSES[%d], %d, \"%s\", %s, %d, %f, %f, %f, %f, "
+        result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self._lookupBusIndex(), self.message_id,
+                self._lookupMessageIndex(self.messages, self.message),
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
@@ -190,6 +205,7 @@ class Parser(object):
         self.name = name
         self.buses = defaultdict(dict)
         self.signal_count = 0
+        self.message_count = 0
         self.command_count = 0
 
     def parse(self):
@@ -201,8 +217,9 @@ class Parser(object):
         print("#include \"canwrite.h\"")
         print("#include \"signals.h\"")
         print("#include \"log.h\"")
-        print("#include \"handlers.h\"")
-        print("#include \"shared_handlers.h\"")
+        if getattr(self, 'uses_custom_handlers', None):
+            print("#include \"shared_handlers.h\"")
+            print("#include \"handlers.h\"")
         print()
         print("extern Listener listener;")
         print()
@@ -223,8 +240,12 @@ class Parser(object):
         valid = True
         for bus in list(self.buses.values()):
             for message in bus['messages']:
+                if message.handler is not None:
+                    self.uses_custom_handlers = True
                 for signal in message.signals:
                     valid = valid and signal.validate()
+                    if signal.handler is not None:
+                        self.uses_custom_handlers = True
         return valid
 
     def validate_name(self):
@@ -233,21 +254,41 @@ class Parser(object):
             return False
         return True
 
+    def _print_bus_struct(self, bus_address, bus, bus_number):
+        print("    { %d, %s, can%d, " % (bus['speed'], bus_address, bus_number))
+        print("#ifdef __PIC32__")
+        print("        handleCan%dInterrupt," % bus_number)
+        print("#endif // __PIC32__")
+        print("    },")
+
     def print_source(self):
         if not self.validate_messages() or not self.validate_name():
+            sys.stderr.write("ERROR: unable to generate code")
             sys.exit(1)
         self.print_header()
 
         print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        for i, bus in enumerate(iter(self.buses.items())):
-            bus_number = i + 1
-            print("    { %d, %s, can%d, " % (
-                    bus[1]['speed'], bus[0], bus_number))
-            print("#ifdef __PIC32__")
-            print("        handleCan%dInterrupt," % bus_number)
-            print("#endif // __PIC32__")
-            print("    },")
+        # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
+        # and we want to be a little careful that we always expect 0x101 to be
+        # plugged into the CAN1 controller and 0x102 into CAN2.
+        for bus_number, bus_address in enumerate(("0x101", "0x102")):
+            bus = self.buses.get(bus_address, None)
+            if bus is not None:
+                self._print_bus_struct(bus_address, bus, bus_number + 1)
+
+        print("};")
+        print()
+
+        print("const int MESSAGE_COUNT = %d;" % self.message_count)
+        print("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
+
+        i = 1
+        for bus in list(self.buses.values()):
+            for message in bus['messages']:
+                message.array_index = i - 1
+                print("    %s" % message)
+                i += 1
         print("};")
         print()
 
@@ -398,7 +439,13 @@ class JsonParser(Parser):
         merged_dict = {}
         for filename in self.json_files:
             with open(filename) as json_file:
-                data = json.load(json_file)
+                try:
+                    data = json.load(json_file)
+                except ValueError as e:
+                    sys.stderr.write(
+                            "ERROR: %s does not contain valid JSON: \n%s\n"
+                            % (filename, e))
+                    sys.exit(1)
                 merged_dict = merge(merged_dict, data)
 
         self.commands = []
@@ -411,22 +458,23 @@ class JsonParser(Parser):
                 command = Command(command_id, command_data.get('handler', None))
                 self.commands.append(command)
 
-            for message_id, message_data in bus_data.get('messages', {}).items():
+            for message_id, message_data in bus_data.get('messages', {}
+                    ).items():
                 self.signal_count += len(message_data['signals'])
-                message = Message(message_id, message_data.get('name', None),
+                self.message_count += 1
+                message = Message(self.buses, bus_address, message_id,
+                        message_data.get('name', None),
                         message_data.get('handler', None))
                 for signal_name, signal in message_data['signals'].items():
                     states = []
-                    for name, raw_matches in signal.get('states',
-                            {}).items():
+                    for name, raw_matches in signal.get('states', {}).items():
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
-                    message.signals.append(
-                            Signal(bus_address,
-                            self.buses,
-                            int(message_id),
+                    message.signals.append(Signal(
+                            self.buses[bus_address]['messages'],
+                            message,
                             signal_name,
-                            signal['generic_name'],
+                            signal.get('generic_name', None),
                             signal.get('bit_position', None),
                             signal.get('bit_size', None),
                             signal.get('factor', 1.0),
@@ -436,7 +484,7 @@ class JsonParser(Parser):
                             signal.get('value_handler', None),
                             signal.get('ignore', False),
                             states,
-                            signal.get('send_frequency', 0),
+                            signal.get('send_frequency', 1),
                             signal.get('send_same', True),
                             signal.get('writable', False),
                             signal.get('write_handler', None)))

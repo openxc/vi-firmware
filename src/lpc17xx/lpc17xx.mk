@@ -18,6 +18,12 @@ ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
 CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
+ifeq ($(PLATFORM), BLUEBOARD)
+CC_SYMBOLS += -DBLUEBOARD
+else
+CC_SYMBOLS += -DFORDBOARD
+endif
+
 AS = $(GCC_BIN)arm-none-eabi-as
 LD = $(GCC_BIN)arm-none-eabi-g++
 LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
@@ -50,7 +56,22 @@ CC_FLAGS += -g -ggdb
 else
 # TODO re-enable -O2 when we figure out why IsINReady() returns true
 # when the stream isn't completely read by the host, and thus leading to
-# corruption
+# corruption. See #770.
+endif
+
+BSP_EXISTS = $(shell test -e libs/BSP/bsp.h; echo $$?)
+CDL_EXISTS = $(shell test -e libs/CDL/README.mkd; echo $$?)
+USBLIB_EXISTS = $(shell test -e libs/nxpUSBlib/README.mkd; echo $$?)
+ifneq ($(BSP_EXISTS),0)
+$(error BSP dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(CDL_EXISTS),0)
+$(error CDL dependency is missing - did you run "git submodule init && git submodule update"?)
+endif
+
+ifneq ($(USBLIB_EXISTS),0)
+$(error nxpUSBlib dependency is missing - did you run "git submodule init && git submodule update"?)
 endif
 
 all: $(TARGET_BIN)

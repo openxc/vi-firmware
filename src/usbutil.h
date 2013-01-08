@@ -11,7 +11,7 @@ extern "C" {
 
 #include <string.h>
 #include <stdint.h>
-#include "queue.h"
+#include "buffers.h"
 #include "usb_config.h"
 
 #define USB_BUFFER_SIZE 64
@@ -21,14 +21,14 @@ extern "C" {
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
  * inEndpoint - The address of the endpoint to use for IN transfers, i.e. device
- * 		to host.
+ *      to host.
  * inEndpointSize - The packet size of the IN endpoint.
  * outEndpoint - The address of the endpoint to use for out transfers, i.e. host
- * 		to device.
+ *      to device.
  * outEndpointSize - The packet size of the IN endpoint.
  * configured - A flag that indicates if the USB interface has been configured
- * 		by a host. Once true, this will not be set to false until the board is
- * 		reset.
+ *      by a host. Once true, this will not be set to false until the board is
+ *      reset.
  * sendQueue - A queue of bytes to send over the IN endpoint.
  * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
  * device - The UsbDevice attached to the host - only used on PIC32.
@@ -52,6 +52,10 @@ typedef struct {
 #endif // __PIC32__
 } UsbDevice;
 
+/* Public: Perform platform-agnostic USB initialization.
+ */
+void initializeUsbCommon(UsbDevice*);
+
 /* Public: Initializes the USB controller as a full-speed device with the
  * configuration specified in usb_descriptors.c. Must be called before
  * any other USB fuctions are used.
@@ -74,8 +78,9 @@ void armForRead(UsbDevice* device, char* buffer);
  * request from the host. If a message is available, the callback is notified
  * and the endpoint is re-armed for the next USB transfer.
  *
- * device - the CAN USB device to arm the endpoint on
- * callback - a function that handles USB in requests
+ * device - The CAN USB device to arm the endpoint on.
+ * callback - A function that handles USB in requests. The callback should
+ *      return true if a message was properly received and parsed.
  */
 void readFromHost(UsbDevice* device, bool (*callback)(uint8_t*));
 
@@ -90,7 +95,7 @@ void processUsbSendQueue(UsbDevice* device);
  * transfers).
  *
  * data - An array of up bytes up to the total size of the endpoint (64 bytes
- * 		for USB 2.0)
+ *      for USB 2.0)
  * length - The length of the data array.
  */
 void sendControlMessage(uint8_t* data, uint8_t length);

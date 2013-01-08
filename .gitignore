@@ -1,12 +1,13 @@
 B299
 can_decoder_c346_*.pde
 *.hex
-build/
-benchmarking/
+build
+benchmarking
 build-cli
-release/
+release
 .DS_Store
 *.pyc
 *.gpx
 *~
 *.o
+*.bak

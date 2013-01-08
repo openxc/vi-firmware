@@ -3,6 +3,7 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
+#include "ethernetutil.h"
 #include "log.h"
 #include <stdlib.h>
 
@@ -11,8 +12,6 @@
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 
-extern SerialDevice SERIAL_DEVICE;
-extern UsbDevice USB_DEVICE;
 extern Listener listener;
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
@@ -62,12 +61,6 @@ Event EVENT_SIGNAL_STATES[EVENT_SIGNAL_COUNT][3] = {
 
 void setup() {
     srand(42);
-
-    initializeLogging();
-#ifndef NO_UART
-    initializeSerial(&SERIAL_DEVICE);
-#endif
-    initializeUsb(&USB_DEVICE);
 }
 
 bool usbWriteStub(uint8_t* buffer) {
@@ -76,28 +69,23 @@ bool usbWriteStub(uint8_t* buffer) {
 }
 
 void loop() {
-    while(1) {
-        sendNumericalMessage(
-                NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
-                rand() % 50 + rand() % 100 * .1, &listener);
-        sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
-                rand() % 2 == 1 ? true : false, &listener);
+    sendNumericalMessage(
+            NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
+            rand() % 50 + rand() % 100 * .1, &listener);
+    sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
+            rand() % 2 == 1 ? true : false, &listener);
 
-        int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
-        sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
+    int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
+    sendStringMessage(STATE_SIGNALS[stateSignalIndex],
+            SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
 
-        int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
-        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
-        sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-                randomEvent.value, randomEvent.event, &listener);
+    int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
+    Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
+    sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
+            randomEvent.value, randomEvent.event, &listener);
 
-        processListenerQueues(&listener);
-        readFromHost(&USB_DEVICE, usbWriteStub);
-#ifndef NO_UART
-        readFromSerial(&SERIAL_DEVICE, usbWriteStub);
-#endif
-    }
+    readFromHost(listener.usb, usbWriteStub);
+    readFromSerial(listener.serial, usbWriteStub);
 }
 
 void reset() { }

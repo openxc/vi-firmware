@@ -1,5 +1,7 @@
 #include "strutil.h"
 
+#ifndef __USE_ETHERNET__
+
 const char *strnchr(const char *str, size_t len, char character) {
     const char *end = str + len;
     do {
@@ -9,3 +11,5 @@ const char *strnchr(const char *str, size_t len, char character) {
     } while (++str <= end);
     return NULL;
 }
+
+#endif // __USE_ETHERNET__

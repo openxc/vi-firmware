@@ -2,9 +2,15 @@
 #include "buffers.h"
 #include "log.h"
 
-void processUsbSendQueue(UsbDevice* usbDevice) { }
+bool USB_PROCESSED = false;
 
-void initializeUsb(UsbDevice* usbDevice) { }
+void processUsbSendQueue(UsbDevice* usbDevice) {
+    USB_PROCESSED = true;
+}
+
+void initializeUsb(UsbDevice* usbDevice) {
+    initializeUsbCommon(usbDevice);
+}
 
 void armForRead(UsbDevice* usbDevice, char* buffer) { }
 

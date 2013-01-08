@@ -3,6 +3,7 @@
 
 #include "usbutil.h"
 #include "serialutil.h"
+#include "ethernetutil.h"
 
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
@@ -13,11 +14,13 @@
  *
  * TODO This file could most likely be refactored and improved. Ideally these
  * output interfaces would all have the same type, so this could just be a list
- * of "receiver" functions.
+ * of "receiver" functions. maybe instead of the devices, this is a list of the
+ * sendQueues?
  */
 typedef struct {
     UsbDevice* usb;
     SerialDevice* serial;
+    EthernetDevice* ethernet;
 } Listener;
 
 /* Public: Queue the message to send on all of the interfaces registered with

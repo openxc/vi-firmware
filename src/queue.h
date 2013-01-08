@@ -8,8 +8,6 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#define ByteQueue QUEUE_TYPE(uint8_t)
-
 #define QUEUE_MAX_LENGTH(type) queue_##type##_max_length
 #define QUEUE_MAX_INTERNAL_LENGTH(type) queue_##type##_max_internal_length
 
@@ -99,8 +97,6 @@ void queue_##type##_snapshot(queue_##type* queue, type* snapshot) { \
 #define QUEUE_EMPTY(type, queue) queue_##type##_empty(queue)
 #define QUEUE_SNAPSHOT(type, queue, snapshot) queue_##type##_snapshot(queue, \
         snapshot)
-
-QUEUE_DECLARE(uint8_t, 512)
 
 #ifdef __cplusplus
 }

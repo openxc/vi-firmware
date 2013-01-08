@@ -14,16 +14,6 @@ uint64_t bitmask(int numBits) {
     return (0x1 << numBits) - 1;
 }
 
-uint64_t reverseBitmaskVariableLength(int numBits, int totalLength) {
-    uint64_t mask = bitmask(numBits);
-    return mask << (totalLength - numBits);
-}
-
-uint64_t reverseBitmask(int numBits) {
-    return reverseBitmaskVariableLength(numBits, 64);
-}
-
-
 int startingByte(int startBit) {
     return startBit / 8;
 }
@@ -63,6 +53,5 @@ void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
 }
 
 uint8_t nthByte(uint64_t source, int byteNum) {
-    return (source >> (sizeof(uint64_t) -
-                ((byteNum + 1) * sizeof(uint8_t)))) & 0xFF;
+    return (source >> (64 - ((byteNum + 1) * 8))) & 0xFF;
 }

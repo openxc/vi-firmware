@@ -44,9 +44,11 @@ bool waitForHandle(UsbDevice* usbDevice) {
     int i = 0;
     while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
-        if(i > 400) {
-            debug("USB most likely not connected or at least not requesting "
-                    "IN transfers - bailing out of handle waiting\r\n");
+        if(i > 800) {
+            // This can get really noisy when running but I want to leave it in
+            // because it' useful to enable when debugging.
+            // debug("USB most likely not connected or at least not requesting "
+                    // "IN transfers - bailing out of handle waiting\r\n");
             return false;
         }
     }
@@ -54,11 +56,8 @@ bool waitForHandle(UsbDevice* usbDevice) {
 }
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
-    if(!usbDevice->configured) {
-        return;
-    }
-
-    while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
+    while(usbDevice->configured &&
+            !QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
         // Make sure the USB write is 100% complete before messing with this buffer
         // after we copy the message into it - the Microchip library doesn't copy
         // the data to its own internal buffer. See #171 for background on this
@@ -86,11 +85,9 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
 }
 
 void initializeUsb(UsbDevice* usbDevice) {
-    debug("Initializing USB.....");
-	usbDevice->device = USBDevice(usbCallback);
+    initializeUsbCommon(usbDevice);
+    usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-    QUEUE_INIT(uint8_t, &usbDevice->sendQueue);
-    QUEUE_INIT(uint8_t, &usbDevice->receiveQueue);
     debug("Done.\r\n");
 }
 

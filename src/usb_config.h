@@ -21,13 +21,13 @@ extern "C" {
 #define DATA_ENDPOINT_SIZE 64
 
 // Ford Motor Company USB Vendor ID
-#ifdef TRANSMITTER
-#define VENDOR_ID 0x0001
-#else
 #define VENDOR_ID 0x1bc4
-#endif
 
+#ifdef TRANSMITTER
+#define PRODUCT_ID 0x0002
+#else
 #define PRODUCT_ID 0x0001
+#endif
 
 #define NUM_CONFIGURATIONS 0x01
 #define USB_VERSION 0x0200

@@ -14,7 +14,7 @@ can compile, you will need to :doc:`define your CAN messages </definitions/defin
 chipKIT Max32
 =============
 
-Once the :doc:`dependencies <index>` are installed, attach the chipKIT to
+Once the :doc:`dependencies <installation>` are installed, attach the chipKIT to
 your computer with a mini-USB cable, ``cd`` into the ``src`` subdirectory, build
 and upload to the device.
 
@@ -107,7 +107,7 @@ experimental at the moment and the documentation is incomplete. We are
 building successfully on the NGX Blueboard 1768-H using the Olimex
 ARM-OCD-USB JTAG programmer.
 
-Once the :doc:`dependencies <index>` are installed, attach a JTAG adapter to
+Once the :doc:`dependencies <installation>` are installed, attach a JTAG adapter to
 your computer and the CAN translator, then compile and flash:
 
 .. code-block:: sh

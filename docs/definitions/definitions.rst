@@ -79,7 +79,7 @@ For example, if your mappings are in ``signals.json``:
     $ ./generate_code.py --json signals.json > signals.cpp
 
 Drop the new ``signals.cpp`` file in the ``src`` folder, and it should now
-:doc:`compile <installation/compile>`. Don't add anything else to this file -
+:doc:`compile </installation/compiling>`. Don't add anything else to this file -
 it's derivative of the master JSON, and should be able to be wiped and recreated
 at any time.
 

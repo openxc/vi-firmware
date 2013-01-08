@@ -1,6 +1,6 @@
-============================
+==============================
 Flashing a Pre-compiled Binary
-============================
+==============================
 
 Updates to the CAN translator firmware may be distributed as
 pre-compiled binaries, e.g. if they are distributed by an OEM who does
@@ -48,7 +48,7 @@ need it), you can install a programmer seprately:
 - Windows
    - If you prefer a GUI, install `WinAVR <http://winavr.sourceforge.net/>`_
    - If you prefer command line, install `Cygwin <http://cygwin.com>`_ and
-     `MPIDE`_, and follow the :doc:`index` documentation to configure the MPIDE
+     `MPIDE`_, and follow the :doc:`installation` documentation to configure the MPIDE
      environment variables.
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/

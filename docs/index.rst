@@ -13,10 +13,9 @@ OpenXC CAN Translator
     :hidden:
     :glob:
 
-    installation/index
+    installation/installation
     installation/compiling
     installation/binary
-    installation/ide
 
     output/*
 
@@ -46,7 +45,7 @@ Installation
     :maxdepth: 2
     :glob:
 
-    installation/index
+    installation/installation
     installation/*
 
 CAN Message Definition
@@ -76,7 +75,7 @@ Testing
     :maxdepth: 2
     :glob:
 
-    testing/*
+    testing
 
 Contributing
 ==============

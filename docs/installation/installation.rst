@@ -13,17 +13,17 @@ Dependencies
 In order to build the CAN translator firmware from source, you need a few
 dependencies:
 
-* ``cantranslator`` :ref:`source` cloned with Git - not from a .zip file
-* MPIDE
-* Digilent's USB and CAN libraries for the chipKIT
-* FTDI driver
+* ``cantranslator`` :ref:`source code <source>` cloned with Git - not from a .zip file
+* :ref:`MPIDE <mpidedep>`
+* Digilent's USB and CAN :ref:`libraries for the chipKIT <chipkit-libs>`
+* :ref:`FTDI driver <ftdi>`
 * Mini-USB cable
 
 If instead of the chipKIT, you are compiling for the Blueboard (based on the
 NXP LPC1768/69), instead of MPIDE you will need:
 
-* ``gcc-arm-none-eabi`` toolchain
-* ``openocd``
+* :ref:`GCC for ARM <gcc-arm>` toolchain
+* :ref:`OpenOCD <openocddep>`
 * JTAG programmer compatible with ``openocd`` - we've tested the Olimex
   ARM-OCD-USB programmer.
 
@@ -48,6 +48,8 @@ submodules, so before you go further run:
 If this doesn't print out anything or gives you an error, make sure you cloned
 this repository from GitHub with git and that you didn't download a zip file.
 The zip file is missing all of the git metadata, so submodules will not work.
+
+.. _mpidedep:
 
 MPIDE
 -----
@@ -78,6 +80,8 @@ in all terminals (and you probably do), you need to add these
 ``export ...`` lines to the file ``~/.bashrc`` (in Linux) or
 ``~/.bash_profile`` (in OS X) and start a new terminal.
 
+.. _chipkit-libs:
+
 Digilent / Microchip Libraries
 ------------------------------
 
@@ -106,6 +110,8 @@ directory in this project. It should look like this:
              chipKitCAN/
             ... other libraries
 
+.. _ftdi:
+
 FTDI Driver
 -----------
 
@@ -113,6 +119,8 @@ If you're using Mac OS X or Windows, make sure to install the FTDI driver that
 comes with the MPIDE download. The chipKIT uses a different FTDI chip than the
 Arduino, so even if you've used the Arduino before, you still need to install
 this driver.
+
+.. _openocddep:
 
 OpenOCD
 --------
@@ -149,6 +157,8 @@ and remove the Olimex sections, then reload the module:
 
     $ sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
     $ sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
+
+.. _gcc-arm:
 
 GCC for ARM Toolchain
 ---------------------

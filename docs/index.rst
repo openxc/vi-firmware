@@ -16,6 +16,7 @@ OpenXC CAN Translator
     installation/installation
     installation/compiling
     installation/binary
+    installation/testing
 
     output/*
 
@@ -67,15 +68,6 @@ See the `output format`_ section of the `OpenXC website`_ for details.
     :glob:
 
     output/*
-
-Testing
-=======
-
-.. toctree::
-    :maxdepth: 2
-    :glob:
-
-    testing
 
 Contributing
 ==============

@@ -1,17 +1,22 @@
-Input Specification
-===================
+==========================
+JSON Mapping Format
+==========================
 
-The code in this repository requires a list of CAN messages with details
-of the signals of interest, and their corresponding generic versions.
-The input format is a JSON object like the one found in
-`sample.json <https://github.com/openxc/cantranslator/blob/master/src/signals.json.example>`_.
+The code generation script (to generate ``signals.cpp``) requires a JSON file of
+a specific format as input. The input format is a JSON object like the one found
+in `sample.json
+<https://github.com/openxc/cantranslator/blob/master/src/signals.json.example>`_.
 
-This is a list of CAN buses (the ``0x102`` is a unique bus address and
-means it will use the "CAN2" module in the microcontroller, and whatever
-associated pins on the board), messages in each bus and a list of
-signals within each message.
+JSON Format
+============
 
-**CAN Bus**
+The JSON object is a list of CAN buses (the ``0x102`` is a unique bus address
+and means it will use the "CAN2" module in the microcontroller, and whatever
+associated pins on the board), messages in each bus and a list of signals within
+each message.
+
+CAN Bus
+-------
 
 The attributes of the CAN bus object (identified with the bus address in
 hex, e.g. ``0x102``):
@@ -26,7 +31,8 @@ the key being either a hex ID (must begin with ``0x``) or decimal (must
 this bus that should be sent on this bus. The key is the name that will
 be used over the OpenXC interface.
 
-**Command**
+Command
+-------
 
 The attributes of a ``command`` object are:
 
@@ -34,7 +40,8 @@ The attributes of a ``command`` object are:
 be called with the data when the named command arrives over
 USB/Bluetooth/etc.
 
-**Message**
+Message
+-------
 
 The attributes of a ``message`` object are:
 
@@ -51,7 +58,8 @@ with the official name of the signal as the key. If merging with
 automatically generated JSON from another database, this value must
 match exactly - otherwise, it's an arbitrary name.
 
-**Signal**
+Signal
+-------
 
 The attributes of a ``signal`` object within a ``message`` are:
 
@@ -120,8 +128,8 @@ This is only necessary for boolean types at the moment - if your signal
 has states defined, we assume you need to encode a string state value
 back to its original numerical value.
 
-Arbitrary Commands
-------------------
+Device to Vehicle Commands
+===========================
 
 Optionally, you can specify completely custom handler functions to
 process incoming OpenXC messages from the USB host. In the ``commands``
@@ -129,7 +137,7 @@ section of the JSON object, you can specify the generic name of the
 OpenXC command and an associated function that matches the
 ``CommandHandler`` function prototype (from ``canutil.h``):
 
-::
+.. code-block:: c
 
     bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
             CanSignal* signals, int signalCount);
@@ -141,8 +149,8 @@ right turn signal are split into two signals instead of the 1
 state-based signal used by OpenXC. You can use the ``sendCanSignal``
 function in ``canwrite.h`` to do the actual data sending on the CAN bus.
 
-Custom Handlers
----------------
+Message Handlers
+=======================
 
 The default handler for each signal is a simple passthrough, translating
 the signal's ID to an abstracted name (e.g. ``SteeringWheelAngle``) and
@@ -184,14 +192,14 @@ handlers should be saved in ``src/handlers.h`` and ``src/handlers.cpp``:
 
 ``src/handlers.h``:
 
-::
+.. code-block:: c
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send);
 
 ``src/handlers.cpp``:
 
-::
+.. code-block:: c
 
     float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send) {
@@ -205,7 +213,7 @@ handlers should be saved in ``src/handlers.h`` and ``src/handlers.cpp``:
 The valid return types for value handlers are ``bool``, ``float`` and
 ``char*`` - the function prototype must match one of:
 
-::
+.. code-block:: c
 
     char* customHandler(CanSignal* signal, CanSignal* signals, int signalCount,
             float value, bool* send);
@@ -237,7 +245,7 @@ If you need greater precision, you can provide a custom handler for the
 entire message to guarantee they arrived together. You can generate 0, 1
 or many translated messages from one call to your handler function.
 
-::
+.. code-block:: c
 
     void handleSteeringWheelMessage(int messageId, uint64_t data,
             CanSignal* signals, int signalCount, Listener* listener);
@@ -261,18 +269,27 @@ values in ``signal->lastvalue`` as they come in, specify the special
 double send. The reason we don't do this automatically is that not all
 signals in a message are always handled by the same message handler.
 
-Vector DBC files
-----------------
+Generating JSON from Vector CANoe Database
+============================================
 
 If you use Canoe to store your "gold standard" CAN signal definitions,
 you may be able to use the included ``xml_to_json.py`` script to make
 your JSON for you. First, export the Canoe .dbc file as XML - you can do
-this with Vector CANdb++. Run the conversion script like this:
+this with Vector CANdb++. Next, create a JSON file according to the format
+defined above, but only define:
 
-::
+* CAN bus
+* CAN messages
+* Name of CAN signals within messages and their ``generic_name``
+* Any custom handlers or commands
 
-    $ xml_to_json.py signals.xml signal_mapping.txt build/signals.json
+Assuming the data exported from Vector is in ``signals.xml`` and your minimal
+mapping file is ``mapping.json``, run the script:
 
-The ``signal_mapping.txt`` file is a simple mapping of the signal names
-that we are looking for in the XML and a unique numerical ID to
-associate it with.
+.. code-block:: sh
+
+    $ ./xml_to_json.py signals.xml mapping.json signals.json
+
+The script merges the two files, filling in the details of the CAN messages (bit
+position, bit size, offset, etc) in the JSON. The script creates the file
+``signals.json`` which will work as input to the code generation script.

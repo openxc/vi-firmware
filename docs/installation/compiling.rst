@@ -3,7 +3,8 @@ Building from Source
 ====================
 
 The code base currently supports two embeddedd platforms - the chipKIT (based on
-the Microchip PIC32) and the Blueboard (based on the NXP LPC1768/69).
+the Microchip PIC32) and the Blueboard (based on the NXP LPC1768/69). Before you
+can compile, you will need to :doc:`define your CAN messages </definitions/definitions>`.
 
 .. note::
 
@@ -13,7 +14,7 @@ the Microchip PIC32) and the Blueboard (based on the NXP LPC1768/69).
 chipKIT Max32
 =============
 
-Once the dependencies are installed (see :doc:`index`), attach the chipKIT to
+Once the :doc:`dependencies <index>` are installed, attach the chipKIT to
 your computer with a mini-USB cable, ``cd`` into the ``src`` subdirectory, build
 and upload to the device.
 
@@ -46,6 +47,10 @@ If the compilation didn't work:
    GitHub? Try using git to clone the repository instead - the library
    dependencies are stored as git submodules and do not work when using
    the zip file.
+
+If you get a lot of errors about ``undefined refernece to getSignals()'`` and
+other functions, you need to make sure you defined your CAN messages - read
+through :doc:`/definitions/definitions` before trying to compile.
 
 IDE Support
 -----------
@@ -102,7 +107,7 @@ experimental at the moment and the documentation is incomplete. We are
 building successfully on the NGX Blueboard 1768-H using the Olimex
 ARM-OCD-USB JTAG programmer.
 
-Once the dependencies are installed (see :doc:`index`), attach a JTAG adapter to
+Once the :doc:`dependencies <index>` are installed, attach a JTAG adapter to
 your computer and the CAN translator, then compile and flash:
 
 .. code-block:: sh

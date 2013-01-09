@@ -2,14 +2,40 @@
 
 set -e
 
+die() {
+    echo >&2 "$@"
+    exit 1
+}
+
+KERNEL=`uname`
+if [ ${KERNEL:0:7} == "MINGW32" ]; then
+    die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
+elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
+    OS="cygwin"
+elif [ $KERNEL == "Darwin" ]; then
+    OS="mac"
+else
+    OS="linux"
+fi
+
 CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"
 CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs.zip"
+
+if [ $OS == "cgywin" ]; then
+    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/mpide-0023-windows-20120903.zip
+elif [ $OS == "mac" ]; then
+    # TODO how can we install this locally to the mpide directory? alternatively,
+    # what if we just used the linux version in OS X?
+    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/mpide-0023-macosx-20120903.dmg
+else
+    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/mpide-0023-linux-20120903.tgz
+fi
 
 git submodule update --init
 
 if ! test -e mpide-0023-linux-20120903.tgz
 then
-    wget https://github.com/downloads/chipKIT32/chipKIT32-MAX/mpide-0023-linux-20120903.tgz
+    wget $MPIDE_URL
 fi
 
 if ! test -d mpide

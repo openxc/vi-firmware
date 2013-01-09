@@ -78,14 +78,14 @@ work with the standard Windows command line or Powershell):
 
 .. code-block:: sh
 
-   $ sh ./upload_hex.sh <the firmware file you downloaded>.hex
+   $ bash ./upload_hex.sh <the firmware file you downloaded>.hex
 
 
 To specify use ``com3`` for example:
 
 .. code-block:: sh
 
-   $ sh ./upload_hex.sh <the firmware file you downloaded>.hex com3
+   $ bash ./upload_hex.sh <the firmware file you downloaded>.hex com3
 
 In Windows, this command will only work in Cygwin, not the standard
 cmd.exe or Powershell. If you have the ``sh.exe`` program installed by

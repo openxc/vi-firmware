@@ -98,7 +98,7 @@ like this:
 
 .. code-block:: sh
 
-   $ set -o igncr && export SHELLOPTS && sh ./upload_hex.sh <firmware you downloaded>.hex
+   $ set -o igncr && export SHELLOPTS && bash ./upload_hex.sh <firmware you downloaded>.hex
 
 WinAVR GUI
 ----------

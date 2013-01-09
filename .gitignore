@@ -11,3 +11,4 @@ release
 *~
 *.o
 *.bak
+mpide*

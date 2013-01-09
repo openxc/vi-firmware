@@ -1,0 +1,70 @@
+diff -bcr /tmp/chipKITUSBDevice/USB/usb.h chipKITUSBDevice/USB/usb.h
+*** /tmp/chipKITUSBDevice/USB/usb.h	2013-01-09 17:29:20.453855162 -0500
+--- chipKITUSBDevice/USB/usb.h	2013-01-09 17:33:02.504576875 -0500
+***************
+*** 112,133 ****
+  
+  #include "usb_config.h"             // Must be defined by the application
+  
+! #include "usb/usb_common.h"         // Common USB library definitions
+! #include "usb/usb_ch9.h"            // USB device framework definitions
+  
+  #if defined( USB_SUPPORT_DEVICE )
+!     #include "usb/usb_device.h"     // USB Device abstraction layer interface
+  #endif
+  
+  #if defined( USB_SUPPORT_HOST )
+!     #include "usb/usb_host.h"       // USB Host abstraction layer interface
+  #endif
+  
+  #if defined ( USB_SUPPORT_OTG )
+!     #include "usb/usb_otg.h" 
+  #endif
+  
+! #include "usb/usb_hal.h"            // Hardware Abstraction Layer interface
+  
+  // *****************************************************************************
+  // *****************************************************************************
+--- 112,133 ----
+  
+  #include "usb_config.h"             // Must be defined by the application
+  
+! #include "usb_common.h"         // Common USB library definitions
+! #include "usb_ch9.h"            // USB device framework definitions
+  
+  #if defined( USB_SUPPORT_DEVICE )
+!     #include "usb_device.h"     // USB Device abstraction layer interface
+  #endif
+  
+  #if defined( USB_SUPPORT_HOST )
+!     #include "usb_host.h"       // USB Host abstraction layer interface
+  #endif
+  
+  #if defined ( USB_SUPPORT_OTG )
+!     #include "usb_otg.h"
+  #endif
+  
+! #include "usb_hal.h"            // Hardware Abstraction Layer interface
+  
+  // *****************************************************************************
+  // *****************************************************************************
+diff -bcr /tmp/chipKITUSBDevice/utility/usb_device.c chipKITUSBDevice/utility/usb_device.c
+*** /tmp/chipKITUSBDevice/utility/usb_device.c	2013-01-09 17:29:20.453855162 -0500
+--- chipKITUSBDevice/utility/usb_device.c	2013-01-09 17:30:33.942989030 -0500
+***************
+*** 231,237 ****
+  //----------------------------------------------------------------------------------*/
+  
+  /** INCLUDES *******************************************************/
+! #include "./USB/USB.h"
+  #include "HardwareProfile.h"
+  
+  #include "usb_device_local.h"
+--- 231,237 ----
+  //----------------------------------------------------------------------------------*/
+  
+  /** INCLUDES *******************************************************/
+! #include "./USB/usb.h"
+  #include "HardwareProfile.h"
+  
+  #include "usb_device_local.h"

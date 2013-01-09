@@ -22,7 +22,7 @@ CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
 CJSON_EXISTS = $(shell test -e libs/cJSON/cJSON.h; echo $$?)
 ifneq ($(CJSON_EXISTS),0)
-$(error cJSON dependency is missing - did you run "git submodule init && git submodule update"?)
+$(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
 # Valid PLATFORM options:

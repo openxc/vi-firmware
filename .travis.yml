@@ -1,8 +1,9 @@
 language: c
 compiler:
   - gcc
-script: cd src && make test
+script: make test
 before_install:
-    - wget http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs.zip -O chipkit.zip && unzip chipkit.zip -d src/libs
+    - script/bootstrap.sh
     - sudo apt-get update -qq
     - sudo apt-get install check
+    - cd src

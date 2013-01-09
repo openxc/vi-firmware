@@ -6,6 +6,8 @@ ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
+MPIDE_DIR = ../mpide
+
 ifndef CAN_EMULATOR
 ARDUINO_LIBS += chipKITCAN
 endif
@@ -33,14 +35,14 @@ CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=D
 EXPECTED_USB_LIBRARY_PATH = ./libs/chipKITUSBDevice
 MICROCHIP_USB_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_USB_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
-$(error chipKIT USB device library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_USB_LIBRARY_PATH))
+$(error chipKIT USB device library missing - run "script/bootstrap.sh" to download)
 endif
 
 ifndef CAN_EMULATOR
 EXPECTED_CAN_LIBRARY_PATH = ./libs/chipKITCAN
 MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_CAN_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_CAN_LIBRARY_EXISTS),0)
-$(error chipKIT CAN library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_CAN_LIBRARY_PATH))
+$(error chipKIT CAN library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
@@ -48,13 +50,13 @@ ifdef ETHERNET
 EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITEthernet
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
-$(error chipKIT Ethernet library missing - download separately from $(CHIPKIT_LIBRARY_AGREEMENT_URL) and place at $(EXPECTED_ETHERNET_LIBRARY_PATH))
+$(error chipKIT Ethernet library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
 ARDUINO_MK_EXISTS = $(shell test -e libs/arduino.mk/chipKIT.mk; echo $$?)
 ifneq ($(ARDUINO_MK_EXISTS),0)
-$(error arduino.mk library missing - did you run "git submodule init && git submodule update"?)
+$(error arduino.mk library missing - run "script/bootstrap.sh")
 endif
 
 USER_LIB_PATH = ./libs

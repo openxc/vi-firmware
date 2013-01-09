@@ -12,3 +12,4 @@ release
 *.o
 *.bak
 mpide*
+gcc-*

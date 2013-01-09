@@ -70,3 +70,27 @@ popd
 set -e
 
 popd
+
+GCC_ARM_ZIP="gcc-arm-none-eabi-4_6-2012q2-20120614.tar.bz2"
+GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.6/4.6-2012-q2-update/+download/$GCC_ARM_ZIP"
+GCC_ARM_DIR="gcc-arm-embedded"
+if ! test -e $GCC_ARM_ZIP
+then
+    wget $GCC_ARM_URL
+fi
+
+mkdir -p $GCC_ARM_DIR
+pushd $GCC_ARM_DIR
+
+GCC_INNER_DIR="gcc-arm-none-eabi-4_6-2012q2"
+if ! test -d $GCC_INNER_DIR
+then
+    tar -xjf ../$GCC_ARM_ZIP
+fi
+
+if ! test -d arm-none-eabi
+then
+    cp -R $GCC_INNER_DIR/* .
+fi
+
+popd

@@ -78,19 +78,20 @@ work with the standard Windows command line or Powershell):
 
 .. code-block:: sh
 
-   $ bash ./upload_hex.sh <the firmware file you downloaded>.hex
+   $ ./upload_hex.sh <the firmware file you downloaded>.hex
 
 
 To specify use ``com3`` for example:
 
 .. code-block:: sh
 
-   $ bash ./upload_hex.sh <the firmware file you downloaded>.hex com3
+   $ ./upload_hex.sh <the firmware file you downloaded>.hex com3
 
 In Windows, this command will only work in Cygwin, not the standard
-cmd.exe or Powershell. If you have the ``sh.exe`` program installed by
-some other means (e.g. you have Git installed in Windows) then it will
-actually work in Powershell.
+``cmd.exe`` or Powershell. If you have the ``sh.exe`` program installed by
+some other means (e.g. you have Git Shell) then it will
+actually work in Powershell, but you need to preface the command with ``sh``
+(i.e. ``sh ./upload_hex.sh ...``).
 
 If you get errors about ``$'\r': command not found`` then your Git
 configuration added ``CRLF`` line endings and so you must run the script
@@ -98,7 +99,7 @@ like this:
 
 .. code-block:: sh
 
-   $ set -o igncr && export SHELLOPTS && bash ./upload_hex.sh <firmware you downloaded>.hex
+   $ set -o igncr && export SHELLOPTS && ./upload_hex.sh <firmware you downloaded>.hex
 
 WinAVR GUI
 ----------

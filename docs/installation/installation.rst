@@ -27,6 +27,19 @@ NXP LPC1768/69), instead of MPIDE you will need:
 * JTAG programmer compatible with ``openocd`` - we've tested the Olimex
   ARM-OCD-USB programmer.
 
+The easiest way to install these dependencies is to use the
+`script/bootstrap.sh
+<https://github.com/openxc/cantranslator/blob/master/script/bootstrap.sh>`_
+script in the ``cantranslator`` repository. Run the script in Linux, Cygwin in
+Windows or OS X and if there are no errors you should be ready to go:
+
+.. code-block:: sh
+
+  $ script/bootstrap.sh
+
+If there are errors, continue reading in this section to install whatever piece
+failed manually.
+
 .. _source:
 
 Source Code
@@ -163,21 +176,13 @@ and remove the Olimex sections, then reload the module:
 GCC for ARM Toolchain
 ---------------------
 
+Download the binary version of the toolchain for your platform (Linux, OS X or
+Windows) from this [Launchpad site](https://launchpad.net/gcc-arm-embedded).
+
 Arch Linux
 ~~~~~~~~~~
 
-Download and install the ``gcc-arm-none-eabi`` package from AUR.
-
-OS X
-~~~~
-
-Install `Homebrew`_. Then:
-
-.. code-block:: sh
-
-    $ brew tap PX4/homebrew-px4
-    $ brew install gcc-arm-none-eabi
-
-Wait a looooong time.
+In Arch Linux you can alternatively install the ``gcc-arm-none-eabi`` package
+from the AUR.
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/

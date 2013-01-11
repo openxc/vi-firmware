@@ -1,4 +1,4 @@
-GCC_BIN = ../gcc-arm-embedded/bin/
+GCC_BIN = ../dependencies/gcc-arm-embedded/bin/
 OBJDIR = build/lpc17xx
 TARGET = $(BASE_TARGET)-lpc17xx
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx

@@ -1,3 +1,5 @@
+import os
+
 from fabric.api import local, task, prompt, env, lcd
 from fabric.colors import green, yellow
 from fabric.contrib.console import confirm
@@ -51,9 +53,9 @@ def make_tag():
     if confirm(yellow("Tag this release?"), default=True):
         print(green("The last 5 tags were: "))
         tags = local('git tag | tail -n 20', capture=True)
-        pp(sorted(tags.split('\n'), utils.compare_versions, reverse=True))
+        pp(sorted(tags.split('\n'), compare_versions, reverse=True))
         prompt("New release tag in the format vX.Y[.Z]?", 'tag',
-                validate=env.version_pattern)
+                validate=VERSION_PATTERN)
         local('git tag -as %(tag)s' % env)
         local('git push --tags origin', capture=True)
         local('git fetch --tags origin', capture=True)
@@ -61,6 +63,25 @@ def make_tag():
         env.tag = latest_git_tag()
         print(green("Using latest tag %(tag)s" % env))
     return env.tag
+
+
+@task(default=True)
+def docs(clean='no', browse_='no'):
+    with lcd('docs'):
+        local('make clean html')
+    temp_path = "/tmp/docs"
+    docs_path = "%s/docs/_build/html" % local("pwd", capture=True)
+    local('rm -rf %s' % temp_path)
+    os.makedirs(temp_path)
+    with lcd(temp_path):
+        local('cp -R %s %s' % (docs_path, temp_path))
+    local('git checkout gh-pages')
+    local('cp -R %s/html/* .' % temp_path)
+    local('touch .nojekyll')
+    local('git add -A')
+    local('git commit -m "Update Sphinx docs."')
+    local('git push')
+    local('git checkout master')
 
 
 @task

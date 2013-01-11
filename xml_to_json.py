@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-import logging
 import argparse
-import struct
 import json
 from xml.etree.ElementTree import parse
 
@@ -21,7 +19,8 @@ class Network(object):
             self._parse_node(node, all_messages)
 
     def to_dict(self):
-        return {self.address: {"messages": dict((message.id, message.to_dict())
+        return {self.address: {"messages": dict(("0x%x" % message.id,
+                    message.to_dict())
                 for message in list(self.messages.values())
                 if len(message.signals) > 0)}}
 

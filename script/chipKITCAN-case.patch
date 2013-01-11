@@ -1,0 +1,20 @@
+diff -bcr /tmp/chipKITCAN/chipKITCAN.cpp chipKITCAN/chipKITCAN.cpp
+*** /tmp/chipKITCAN/chipKITCAN.cpp	2013-01-09 17:36:54.541871638 -0500
+--- chipKITCAN/chipKITCAN.cpp	2013-01-09 17:38:52.727169231 -0500
+***************
+*** 46,52 ****
+  #include    <plib.h>
+  #include    <stdint.h>
+  
+! #include    "chipKITCan.h"
+  
+  /* ------------------------------------------------------------ */
+  /*              Local Type and Constant Definitions             */
+--- 46,52 ----
+  #include    <plib.h>
+  #include    <stdint.h>
+  
+! #include    "chipKITCAN.h"
+  
+  /* ------------------------------------------------------------ */
+  /*              Local Type and Constant Definitions             */

@@ -24,8 +24,7 @@ hex, e.g. ``0x102``):
 ``speed`` - The CAN bus speed in Kbps.
 
 ``messages`` - A mapping of CAN message objects that are on this bus,
-the key being either a hex ID (must begin with ``0x``) or decimal (must
-*not* begin with ``0x``).
+the key being the message ID in hex as a string (e.g. ``0x90``).
 
 ``commands`` - A mapping of CAN command objects that should be sent on
 this bus that should be sent on this bus. The key is the name that will

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-import logging
 import argparse
-import struct
 import json
 from xml.etree.ElementTree import parse
 

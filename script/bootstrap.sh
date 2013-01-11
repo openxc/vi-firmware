@@ -226,7 +226,7 @@ if ! command -v openocd >/dev/null 2>&1; then
 
 fi
 
-CHECK_EXISTS=`ld -lcheck`
+CHECK_EXISTS=`ld -lcheck -o /tmp/checkcheck`
 if [ $? -ne 0 ]; then
 
     if [ $OS == "cygwin" ]; then

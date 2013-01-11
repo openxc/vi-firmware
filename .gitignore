@@ -11,5 +11,4 @@ release
 *~
 *.o
 *.bak
-mpide*
-gcc-*
+dependencies

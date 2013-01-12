@@ -236,9 +236,8 @@ reliable way to detect if it is installed, so we are going to try and \
 re-install just in case"
 
 if [ $OS == "cygwin" ]; then
-    echo "Missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
+    echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
     echo "Press Enter when done"
-    read
 elif [ $OS == "linux" ]; then
     DISTRO=`lsb_release -si`
 

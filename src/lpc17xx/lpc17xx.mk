@@ -1,6 +1,6 @@
-GCC_ARM_ON_PATH = $(shell command -v arm-none-eabi-gcc; echo $$?)
+GCC_ARM_ON_PATH = $(shell command -v arm-none-eabi-gcc >/dev/null; echo $$?)
 
-ifeq ($(GCC_ARM_ON_PATH),)
+ifneq ($(GCC_ARM_ON_PATH),0)
 GCC_BIN = ../dependencies/gcc-arm-embedded/bin/
 endif
 

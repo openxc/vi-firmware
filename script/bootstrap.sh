@@ -29,11 +29,11 @@ fi
 download() {
     url=$1
     filename=$2
-	if [ $OS == "cygwin" ]; then
+    if [ $OS == "cygwin" ]; then
         curl $url -L --O $filename
-	else
+    else
         wget $url -O $filename
-	fi
+    fi
 }
 
 echo "Updating Git submodules..."
@@ -47,7 +47,7 @@ mkdir -p $DEPENDENCIES_FOLDER
 
 echo "Installing dependencies for building for chipKIT Max32 platform"
 
-if [ -z "$MPIDE_DIR"] || ! test -e $MPIDE_DIR; then
+if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
 
     if [ $OS == "cygwin" ]; then
         MPIDE_BASENAME="mpide-0023-windows-20120903"
@@ -80,13 +80,13 @@ if [ -z "$MPIDE_DIR"] || ! test -e $MPIDE_DIR; then
         mv $MPIDE_BASENAME mpide
         echo "MPIDE installed"
     fi
-    
+
     if [ $OS == "cygwin" ]; then
         chmod a+x mpide/hardware/pic32/compiler/pic32-tools/bin/*
         chmod a+x -R mpide/hardware/pic32/compiler/pic32-tools/pic32mx/
     fi
     _popd
-    
+
 fi
 
 ## chipKIT libraries for USB, CAN and Ethernet
@@ -142,7 +142,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
     ## Download GCC compiler for ARM Embedded
 
-    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_7-2012q4-20121208"    
+    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_7-2012q4-20121208"
     if [ $OS == "linux" ]; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-linux.tar.bz2"
     elif [ $OS == "mac" ]; then
@@ -150,7 +150,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     elif [ $OS == "cygwin" ]; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-win32.exe"
     fi
-    
+
     GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.7/4.7-2012-q4-major/+download/$GCC_ARM_FILE"
     GCC_ARM_DIR="gcc-arm-embedded"
 
@@ -169,7 +169,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"
     fi
-    
+
     if ! test -d "$GCC_INNER_DIR"
     then
         $INSTALL_COMMAND
@@ -189,7 +189,7 @@ if ! command -v openocd >/dev/null 2>&1; then
 
     ## Download OpenOCD for flashing ARM via JTAG
     _pushd $DEPENDENCIES_FOLDER
-    
+
     OPENOCD_BASENAME="openocd-0.6.1"
     if [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
@@ -199,10 +199,12 @@ if ! command -v openocd >/dev/null 2>&1; then
         elif [ $DISTROj == "Ubuntu" ]; then
             sudo apt-get install openocd
         else
-            die "Missing OpenOCD - install it using your distro's package manager or build from source"
+            echo "Missing OpenOCD - install it using your distro's package manager or build from source"
+            echo "Press Enter when done"
+            read
         fi
     elif [ $OS == "osx" ]; then
-       
+
         OPENOCD_FILE="$OPENOCD_BASENAME.tar.bz2"
         OPENOCD_DOWNLOAD_URL="http://downloads.sourceforge.net/project/openocd/openocd/0.6.1/$OPENOCD_FILE"
 
@@ -226,29 +228,42 @@ if ! command -v openocd >/dev/null 2>&1; then
 
 fi
 
-CHECK_EXISTS=`ld -lcheck -o /tmp/checkcheck`
-if [ $? -ne 0 ]; then
+# TODO how can we check if it's installed. "ld -lcheck" doesn't work on all
+# platforms and what if you're on a 64-bit box and have the 32-bit version of
+# 'check' installed?
+echo "The 'check' library is required for the test suite. There's no \
+reliable way to detect if it is installed, so we are going to try and \
+re-install just in case"
 
-    if [ $OS == "cygwin" ]; then
-        die "Missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
-    elif [ $OS == "linux" ]; then
-        DISTRO=`lsb_release -si`
+if [ $OS == "cygwin" ]; then
+    echo "Missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
+    echo "Press Enter when done"
+    read
+elif [ $OS == "linux" ]; then
+    DISTRO=`lsb_release -si`
 
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S openocd
-        elif [ $DISTROj == "Ubuntu" ]; then
-            sudo apt-get install openocd
+    if [ $DISTRO == "arch" ]; then
+        if [ "x86_64" == `uname -m` ]; then
+            CHECK_PACKAGE="check"
+            echo "The 32-bit version of the 'check' library is available from the AUR if you don't already have it installed."
         else
-            die "Missing the 'check' library - install it using your distro's package manager or build from source"
+            CHECK_PACKAGE="check"
+            sudo pacman --needed -S check
         fi
-     elif [ $OS == "osx" ]; then
-        brew install check
-     fi
+    elif [ $DISTROj == "Ubuntu" ]; then
+        sudo apt-get install check
+    else
+        echo "May be missing the 'check' library - install it using your distro's package manager or build from source"
+    fi
+elif [ $OS == "osx" ]; then
+    brew install check
 fi
 
 if ! command -v python >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
-        die "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
+        echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
+        echo "Press Enter when done"
+        read
     elif [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
 
@@ -257,7 +272,9 @@ if ! command -v python >/dev/null 2>&1; then
         elif [ $DISTROj == "Ubuntu" ]; then
             sudo apt-get install python
         else
-            die "Missing Python - install it using your distro's package manager or build from source"
+            echo "Missing Python - install it using your distro's package manager or build from source"
+            echo "Press Enter when done"
+            read
         fi
      fi
 fi

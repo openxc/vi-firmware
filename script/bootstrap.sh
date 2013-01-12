@@ -15,6 +15,13 @@ _popd() {
     popd > /dev/null
 }
 
+_wait() {
+    if [ -z $CI ]; then
+        echo "Press Enter when done"
+        read
+    fi
+}
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
@@ -200,8 +207,7 @@ if ! command -v openocd >/dev/null 2>&1; then
             sudo apt-get install openocd
         else
             echo "Missing OpenOCD - install it using your distro's package manager or build from source"
-            echo "Press Enter when done"
-            read
+            _wait
         fi
     elif [ $OS == "osx" ]; then
 
@@ -237,7 +243,7 @@ re-install just in case"
 
 if [ $OS == "cygwin" ]; then
     echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
-    echo "Press Enter when done"
+    _wait
 elif [ $OS == "linux" ]; then
     DISTRO=`lsb_release -si`
 
@@ -261,8 +267,7 @@ fi
 if ! command -v python >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
-        echo "Press Enter when done"
-        read
+        _wait
     elif [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
 
@@ -272,8 +277,7 @@ if ! command -v python >/dev/null 2>&1; then
             sudo apt-get install python
         else
             echo "Missing Python - install it using your distro's package manager or build from source"
-            echo "Press Enter when done"
-            read
+            _wait
         fi
      fi
 fi

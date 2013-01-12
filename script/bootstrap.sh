@@ -192,7 +192,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
 fi
 
-if ! command -v openocd >/dev/null 2>&1; then
+if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
     ## Download OpenOCD for flashing ARM via JTAG
     _pushd $DEPENDENCIES_FOLDER
@@ -204,6 +204,7 @@ if ! command -v openocd >/dev/null 2>&1; then
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S openocd
         elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
             sudo apt-get install openocd
         else
             echo "Missing OpenOCD - install it using your distro's package manager or build from source"

@@ -4,8 +4,6 @@ compiler:
 script: make test
 before_install:
     - script/bootstrap.sh
-    - sudo apt-get update -qq
-    - sudo apt-get install check
     - cd src
 env:
   global:

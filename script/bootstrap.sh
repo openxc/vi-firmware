@@ -203,7 +203,7 @@ if ! command -v openocd >/dev/null 2>&1; then
 
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S openocd
-        elif [ $DISTROj == "Ubuntu" ]; then
+        elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get install openocd
         else
             echo "Missing OpenOCD - install it using your distro's package manager or build from source"
@@ -255,7 +255,8 @@ elif [ $OS == "linux" ]; then
             CHECK_PACKAGE="check"
             sudo pacman --needed -S check
         fi
-    elif [ $DISTROj == "Ubuntu" ]; then
+    elif [ $DISTRO == "Ubuntu" ]; then
+        sudo apt-get update -qq
         sudo apt-get install check
     else
         echo "May be missing the 'check' library - install it using your distro's package manager or build from source"
@@ -273,7 +274,7 @@ if ! command -v python >/dev/null 2>&1; then
 
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S python
-        elif [ $DISTROj == "Ubuntu" ]; then
+        elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get install python
         else
             echo "Missing Python - install it using your distro's package manager or build from source"

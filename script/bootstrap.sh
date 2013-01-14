@@ -43,6 +43,24 @@ download() {
     fi
 }
 
+if ! command -v git >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        echo "Missing 'git' - run the Cygwin installer again and select the 'git' package (http://cygwin.com/install.html)"
+        _wait
+    elif [ $OS == "mac" ]; then
+        brew install git
+    else
+        DISTRO=`lsb_release -si`
+
+        if [ $DISTRO == "arch" ]; then
+            sudo pacman -S openocd
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install git
+        fi
+    fi
+fi
+
 echo "Updating Git submodules..."
 
 git submodule update --init --quiet
@@ -60,6 +78,10 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
         MPIDE_BASENAME="mpide-0023-windows-20120903"
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
+        if ! command -v unzip >/dev/null 2>&1; then
+            echo "Missing 'unzip' - run the Cygwin installer again and select the 'unzip' package (http://cygwin.com/install.html)"
+            _wait
+        fi
     elif [ $OS == "mac" ]; then
         MPIDE_BASENAME=mpide-0023-macosx-20120903
         MPIDE_FILE="$MPIDE_BASENAME".dmg

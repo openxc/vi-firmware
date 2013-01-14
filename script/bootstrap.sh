@@ -43,7 +43,7 @@ download() {
     url=$1
     filename=$2
     if [ $OS == "cygwin" ]; then
-        wget $url -O $filename
+        wget --no-check-certificate $url -O $filename
     else
         curl $url -L --O $filename
     fi

@@ -36,11 +36,7 @@ fi
 download() {
     url=$1
     filename=$2
-    if [ $OS == "cygwin" ]; then
-        curl $url -L --O $filename
-    else
-        wget $url -O $filename
-    fi
+    curl $url -L --O $filename
 }
 
 echo "Updating Git submodules..."
@@ -125,6 +121,7 @@ _pushd src/libs
 for LIBRARY in chipKITUSBDevice chipKITCAN chipKITEthernet; do
     if ! test -d $LIBRARY
     then
+        echo "Installing chipKIT library $LIBRARY..."
         unzip ../../dependencies/$CHIPKIT_ZIP_FILE "$LIBRARY/*"
     fi
 done
@@ -133,6 +130,8 @@ _popd
 ### Patch libraries to avoid problems in case sensitive operating systems
 ### See https://github.com/chipKIT32/chipKIT32-MAX/issues/146
 ### and https://github.com/chipKIT32/chipKIT32-MAX/issues/199
+
+echo "Patching case-sensitivity bugs in chipKIT libraries..."
 
 # If the patch is already applied, patch will error out, so disable quit on
 # error temporarily
@@ -153,7 +152,7 @@ set -e
 
 if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
-    ## Download GCC compiler for ARM Embedded
+    echo "Installing GCC for ARM Embedded..."
 
     GCC_ARM_BASENAME="gcc-arm-none-eabi-4_7-2012q4-20121208"
     if [ $OS == "linux" ]; then
@@ -203,7 +202,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
     ## Download OpenOCD for flashing ARM via JTAG
     _pushd $DEPENDENCIES_FOLDER
 
-    OPENOCD_BASENAME="openocd-0.6.1"
+    echo "Installing OpenOCD..."
     if [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
 
@@ -217,7 +216,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
             _wait
         fi
     elif [ $OS == "osx" ]; then
-
+        OPENOCD_BASENAME="openocd-0.6.1"
         OPENOCD_FILE="$OPENOCD_BASENAME.tar.bz2"
         OPENOCD_DOWNLOAD_URL="http://downloads.sourceforge.net/project/openocd/openocd/0.6.1/$OPENOCD_FILE"
 
@@ -256,10 +255,9 @@ elif [ $OS == "linux" ]; then
 
     if [ $DISTRO == "arch" ]; then
         if [ "x86_64" == `uname -m` ]; then
-            CHECK_PACKAGE="check"
-            echo "The 32-bit version of the 'check' library is available from the AUR if you don't already have it installed."
+            echo
+            echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR if you don't already have it installed."
         else
-            CHECK_PACKAGE="check"
             sudo pacman --needed -S check
         fi
     elif [ $DISTRO == "Ubuntu" ]; then
@@ -273,6 +271,7 @@ elif [ $OS == "osx" ]; then
 fi
 
 if ! command -v python >/dev/null 2>&1; then
+    echo "Installing Python..."
     if [ $OS == "cygwin" ]; then
         echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
         _wait

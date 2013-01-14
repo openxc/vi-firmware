@@ -1,4 +1,9 @@
+GCC_ARM_ON_PATH = $(shell command -v arm-none-eabi-gcc >/dev/null; echo $$?)
+
+ifneq ($(GCC_ARM_ON_PATH),0)
 GCC_BIN = ../dependencies/gcc-arm-embedded/bin/
+endif
+
 OBJDIR = build/lpc17xx
 TARGET = $(BASE_TARGET)-lpc17xx
 CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx

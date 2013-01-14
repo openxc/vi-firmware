@@ -23,9 +23,6 @@ TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
 test: unit_tests
 	@make pic32_compile_test
 	@make lpc17xx_compile_test
-	@mv signals.cpp.bak signals.cpp
-	@mv handlers.cpp.bak handlers.cpp
-	@mv handlers.h.bak handlers.h
 
 unit_tests: LD = g++
 unit_tests: CC = gcc
@@ -49,12 +46,10 @@ code_generation_test:
 	@make clean
 	@mkdir -p $(TEST_OBJDIR)
 	../generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
-	@if [ -h signals.cpp ]; then mv -f signals.cpp signals.cpp.bak; fi
-	@if [ -h handlers.cpp ]; then mv -f handlers.cpp handlers.cpp.bak; fi
-	@if [ -h handlers.h ]; then mv -f handlers.h handlers.h.bak; fi
-	@ln -s $(TEST_OBJDIR)/signals.cpp
-	@ln -s handlers.cpp.example handlers.cpp
-	@ln -s handlers.h.example handlers.h
+    # Ideally we would symlink these files, but symlinks don't work well in Cygwin
+	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
+	@cp handlers.cpp.example handlers.cpp
+	@cp handlers.h.example handlers.h
 
 COVERAGE_INFO_FILENAME = coverage.info
 COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)
@@ -76,4 +71,4 @@ $(TEST_OBJDIR)/%.o: %.c
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TESTABLE_OBJS)
 	@mkdir -p $(dir $@)
-	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS) 
+	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)

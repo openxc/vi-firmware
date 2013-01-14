@@ -37,9 +37,9 @@ download() {
     url=$1
     filename=$2
     if [ $OS == "cygwin" ]; then
-        curl $url -L --O $filename
-    else
         wget $url -O $filename
+    else
+        curl $url -L --O $filename
     fi
 }
 

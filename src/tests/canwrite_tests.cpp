@@ -148,7 +148,7 @@ START_TEST (test_swaps_byte_order)
     enqueueCanMessage(&message, 0x123456);
 
     CanMessage queuedMessage = QUEUE_POP(CanMessage, &message.bus->sendQueue);
-    ck_assert_int_eq(queuedMessage.data, 0x5634120000000000);
+    ck_assert_int_eq(queuedMessage.data, 0x5634120000000000LLU);
 }
 END_TEST
 

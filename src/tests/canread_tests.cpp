@@ -178,7 +178,7 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
-    passthroughCanMessage(&listener, 42, 0x123456789ABCDEF1);
+    passthroughCanMessage(&listener, 42, 0x123456789ABCDEF1LLU);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];

@@ -22,6 +22,12 @@ _wait() {
     fi
 }
 
+_cygwin_error() {
+    echo "Missing $1 - run the Cygwin installer again and select the base package set:"
+    echo "git, unzip, python,  check"
+    die "ERROR"
+}
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
@@ -45,8 +51,7 @@ download() {
 
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
-        echo "Missing 'git' - run the Cygwin installer again and select the 'git' package (http://cygwin.com/install.html)"
-        _wait
+        _cygwin_error "Missing 'git' - run the Cygwin installer again and select the 'git' package (http://cygwin.com/install.html)"
     elif [ $OS == "mac" ]; then
         brew install git
     else
@@ -79,8 +84,7 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
         if ! command -v unzip >/dev/null 2>&1; then
-            echo "Missing 'unzip' - run the Cygwin installer again and select the 'unzip' package (http://cygwin.com/install.html)"
-            _wait
+            _cygwin_error "Missing 'unzip' - run the Cygwin installer again and select the 'unzip' package (http://cygwin.com/install.html)"
         fi
     elif [ $OS == "mac" ]; then
         MPIDE_BASENAME=mpide-0023-macosx-20120903
@@ -273,7 +277,6 @@ re-install just in case"
 
 if [ $OS == "cygwin" ]; then
     echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
-    _wait
 elif [ $OS == "linux" ]; then
     DISTRO=`lsb_release -si`
 
@@ -300,8 +303,7 @@ fi
 if ! command -v python >/dev/null 2>&1; then
     echo "Installing Python..."
     if [ $OS == "cygwin" ]; then
-        echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
-        _wait
+        _cygwin_error "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
     elif [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
 

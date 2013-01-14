@@ -51,7 +51,7 @@ download() {
 
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
-        _cygwin_error "Missing 'git' - run the Cygwin installer again and select the 'git' package (http://cygwin.com/install.html)"
+        _cygwin_error "git"
     elif [ $OS == "mac" ]; then
         brew install git
     else
@@ -84,7 +84,7 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
         if ! command -v unzip >/dev/null 2>&1; then
-            _cygwin_error "Missing 'unzip' - run the Cygwin installer again and select the 'unzip' package (http://cygwin.com/install.html)"
+            _cygwin_error "unzip"
         fi
     elif [ $OS == "mac" ]; then
         MPIDE_BASENAME=mpide-0023-macosx-20120903
@@ -303,7 +303,7 @@ fi
 if ! command -v python >/dev/null 2>&1; then
     echo "Installing Python..."
     if [ $OS == "cygwin" ]; then
-        _cygwin_error "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
+        _cygwin_error "python"
     elif [ $OS == "linux" ]; then
         DISTRO=`lsb_release -si`
 

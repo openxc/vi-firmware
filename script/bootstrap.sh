@@ -57,8 +57,6 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
     elif [ $OS == "mac" ]; then
-        # TODO how can we install this locally to the mpide directory? alternatively,
-        # what if we just used the linux version in OS X?
         MPIDE_BASENAME=mpide-0023-macosx-20120903
         MPIDE_FILE="$MPIDE_BASENAME".dmg
     else

@@ -46,9 +46,9 @@ Install `Homebrew`_, then ``check``:
 Arch Linux
 ~~~~~~~~~~
 
-The ``check`` library is available in the AUR in both 64- and 32-bit versions.
-Because we run on a 32-bit embedded platform, we depend on the 32-bit version of
-``check``. In the AUR this package is named ``lib32-check``.
+.. code-block:: sh
+
+    $ sudo pacman -S check
 
 Running the Suite
 -----------------

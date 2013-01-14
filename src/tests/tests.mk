@@ -27,9 +27,9 @@ test: unit_tests
 unit_tests: LD = g++
 unit_tests: CC = gcc
 unit_tests: CPP = g++
-unit_tests: CC_FLAGS = -I. -c -m32 -w -Wall -Werror -g -ggdb -coverage
+unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage
 unit_tests: CC_SYMBOLS = -D__TESTS__
-unit_tests: LDFLAGS = -m32 -lm -coverage
+unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)

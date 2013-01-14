@@ -36,11 +36,7 @@ fi
 download() {
     url=$1
     filename=$2
-    if [ $OS == "cygwin" ]; then
-        curl $url -L --O $filename
-    else
-        wget $url -O $filename
-    fi
+    curl $url -L --O $filename
 }
 
 echo "Updating Git submodules..."

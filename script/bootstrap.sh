@@ -83,7 +83,13 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
     if ! test -d mpide
     then
         echo "Installing MPIDE to local folder..."
-        $EXTRACT_COMMAND $MPIDE_FILE
+        if [ $OS == "mac" ]; then
+            hdiutil attach $MPIDE_FILE
+            cp -R /Volumes/Mpide/Mpide.app/Contents/Resources/Java $MPIDE_BASENAME
+            hdiutil detach /Volumes/Mpide
+        else
+            $EXTRACT_COMMAND $MPIDE_FILE
+        fi
         mv $MPIDE_BASENAME mpide
         echo "MPIDE installed"
     fi

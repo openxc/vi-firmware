@@ -161,6 +161,10 @@ _popd
 
 echo "Patching case-sensitivity bugs in chipKIT libraries..."
 
+if [ $OS == "cygwin" ] && [ -d /cygdrive/c/WinAVR-20100110 ]; then
+    chmod a+x /cygdrive/c/WinAVR*/utils/bin/patch
+fi
+
 # If the patch is already applied, patch will error out, so disable quit on
 # error temporarily
 set +e
@@ -204,6 +208,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     _pushd $GCC_ARM_DIR
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="/cygdrive/c/Program Files/GNU Tools ARM Embedded/4.7 2012q4/"
+        chmod a+x ../$GCC_ARM_FILE
         INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE; echo -n \"Press Enter when the GCC for ARM Embedded installer is finished\"; read"
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"

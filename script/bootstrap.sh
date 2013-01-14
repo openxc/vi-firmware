@@ -267,7 +267,10 @@ elif [ $OS == "linux" ]; then
         echo "May be missing the 'check' library - install it using your distro's package manager or build from source"
     fi
 elif [ $OS == "osx" ]; then
+    # brew exists with 1 if it's already installed
+    set +e
     brew install check
+    set -e
 fi
 
 if ! command -v python >/dev/null 2>&1; then

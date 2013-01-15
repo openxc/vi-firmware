@@ -52,6 +52,21 @@ if ! command -v make >/dev/null 2>&1; then
     fi
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "git"
+    elif [ $OS == "mac" ]; then
+        brew install git
+    else
+        if [ $DISTRO == "arch" ]; then
+            sudo pacman -S git
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install git
+        fi
+    fi
+fi
+
 echo "Updating Git submodules..."
 
 git submodule update --init --quiet

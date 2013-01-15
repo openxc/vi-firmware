@@ -39,6 +39,19 @@ download() {
     curl $url -L --O $filename
 }
 
+if ! command -v make >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "make"
+    else
+        if [ $DISTRO == "arch" ]; then
+            sudo pacman -S base-devel
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install build-essential
+        fi
+    fi
+fi
+
 echo "Updating Git submodules..."
 
 git submodule update --init --quiet

@@ -161,8 +161,8 @@ _popd
 
 echo "Patching case-sensitivity bugs in chipKIT libraries..."
 
-if [ $OS == "cygwin" ] && [ -d /cygdrive/c/WinAVR-20100110 ]; then
-    chmod a+x /cygdrive/c/WinAVR*/utils/bin/patch
+if [ $OS == "cygwin" ] && ! [ -e /usr/bin/patch ]; then
+    _cygwin_error "patchutils"
 fi
 
 # If the patch is already applied, patch will error out, so disable quit on

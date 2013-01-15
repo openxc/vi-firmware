@@ -22,6 +22,13 @@ _wait() {
     fi
 }
 
+_cygwin_error() {
+    echo
+    echo "Missing $1 - run the Cygwin installer again and select the base package set:"
+    echo "    patchutils, git, unzip, python, check"
+    die
+}
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
@@ -37,7 +44,11 @@ fi
 download() {
     url=$1
     filename=$2
-    curl $url -L --O $filename
+    if [ $OS == "cygwin" ]; then
+        wget --no-check-certificate $url -O $filename
+    else
+        curl $url -L --O $filename
+    fi
 }
 
 if ! command -v make >/dev/null 2>&1; then
@@ -85,9 +96,10 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
         MPIDE_BASENAME="mpide-0023-windows-20120903"
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
+        if ! command -v unzip >/dev/null 2>&1; then
+            _cygwin_error "unzip"
+        fi
     elif [ $OS == "mac" ]; then
-        # TODO how can we install this locally to the mpide directory? alternatively,
-        # what if we just used the linux version in OS X?
         MPIDE_BASENAME=mpide-0023-macosx-20120903
         MPIDE_FILE="$MPIDE_BASENAME".dmg
     else
@@ -162,6 +174,10 @@ _popd
 
 echo "Patching case-sensitivity bugs in chipKIT libraries..."
 
+if [ $OS == "cygwin" ] && ! [ -e /usr/bin/patch ]; then
+    _cygwin_error "patchutils"
+fi
+
 # If the patch is already applied, patch will error out, so disable quit on
 # error temporarily
 set +e
@@ -205,7 +221,8 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     _pushd $GCC_ARM_DIR
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="/cygdrive/c/Program Files/GNU Tools ARM Embedded/4.7 2012q4/"
-        INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE; echo -n \"Press Enter when the GCC for ARM Embedded installer is finished\"; read"
+        chmod a+x ../$GCC_ARM_FILE
+        INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE"
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"
@@ -214,6 +231,10 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if ! test -d "$GCC_INNER_DIR"
     then
         $INSTALL_COMMAND
+        if [ $OS == "cygwin" ]; then
+            echo -n "Press Enter when the GCC for ARM Embedded installer is finished"
+            read
+        fi
     fi
 
     if ! test -d arm-none-eabi
@@ -267,40 +288,44 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
 fi
 
-# TODO how can we check if it's installed. "ld -lcheck" doesn't work on all
-# platforms and what if you're on a 64-bit box and have the 32-bit version of
-# 'check' installed?
-echo "The 'check' library is required for the test suite. There's no \
-reliable way to detect if it is installed, so we are going to try and \
-re-install just in case"
+if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
 
-if [ $OS == "cygwin" ]; then
-    echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
-    _wait
-elif [ $OS == "linux" ]; then
-    if [ $DISTRO == "arch" ]; then
-        if [ "x86_64" == `uname -m` ]; then
+    echo "Installing the check unit testing library..."
+
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "check"
+    elif [ $OS == "linux" ]; then
+        if ! command -v lsb_release >/dev/null 2>&1; then
             echo
-            echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
+            echo "Missing the 'check' library - install it using your distro's package manager or build from source"
         else
-            sudo pacman --needed -S check
+            if [ $DISTRO == "arch" ]; then
+                if [ "x86_64" == `uname -m` ]; then
+                    echo
+                    echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
+                else
+                    sudo pacman --needed -S check
+                fi
+            elif [ $DISTRO == "Ubuntu" ]; then
+                sudo apt-get update -qq
+                sudo apt-get install check
+            else
+                echo
+                echo "Missing the 'check' library - install it using your distro's package manager or build from source"
+            fi
         fi
-    elif [ $DISTRO == "Ubuntu" ]; then
-        sudo apt-get update -qq
-        sudo apt-get install check
-    else
-        echo
-        echo "Missing the 'check' library - install it using your distro's package manager or build from source"
+    elif [ $OS == "osx" ]; then
+        # brew exists with 1 if it's already installed
+        set +e
+        brew install check
+        set -e
     fi
-elif [ $OS == "osx" ]; then
-    brew install check
 fi
 
 if ! command -v python >/dev/null 2>&1; then
     echo "Installing Python..."
     if [ $OS == "cygwin" ]; then
-        echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
-        _wait
+        _cygwin_error "python"
     elif [ $OS == "linux" ]; then
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S python

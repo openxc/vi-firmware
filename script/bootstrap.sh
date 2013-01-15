@@ -22,6 +22,22 @@ _wait() {
     fi
 }
 
+_install() {
+    if [ $OS == "mac" ]; then
+        # brew exists with 1 if it's already installed
+        set +e
+        brew install $1
+        set -e
+    else
+        if [ $DISTRO == "arch" ]; then
+            sudo pacman -S $1
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install $1
+        fi
+    fi
+}
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
@@ -62,14 +78,7 @@ if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "git"
     elif [ $OS == "mac" ]; then
-        brew install git
-    else
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S git
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install git
-        fi
+        _install git
     fi
 fi
 
@@ -295,11 +304,8 @@ elif [ $OS == "linux" ]; then
         echo
         echo "Missing the 'check' library - install it using your distro's package manager or build from source"
     fi
-elif [ $OS == "osx" ]; then
-    # brew exists with 1 if it's already installed
-    set +e
-    brew install check
-    set -e
+elif [ $OS == "mac" ]; then
+    _install check
 fi
 
 if ! command -v python >/dev/null 2>&1; then

@@ -40,6 +40,11 @@ download() {
     curl $url -L --O $filename
 }
 
+if [ $OS == "mac" ] && ! command -v brew >/dev/null 2>&1; then
+    echo "Installing Homebrew..."
+    ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
+fi
+
 if ! command -v make >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "make"

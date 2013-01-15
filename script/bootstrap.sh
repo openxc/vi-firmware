@@ -31,6 +31,7 @@ elif [ $KERNEL == "Darwin" ]; then
     OS="mac"
 else
     OS="linux"
+    DISTRO=`lsb_release -si`
 fi
 
 download() {
@@ -232,8 +233,6 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
     echo "Installing OpenOCD..."
     if [ $OS == "linux" ]; then
-        DISTRO=`lsb_release -si`
-
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S openocd
         elif [ $DISTRO == "Ubuntu" ]; then
@@ -279,12 +278,10 @@ if [ $OS == "cygwin" ]; then
     echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
     _wait
 elif [ $OS == "linux" ]; then
-    DISTRO=`lsb_release -si`
-
     if [ $DISTRO == "arch" ]; then
         if [ "x86_64" == `uname -m` ]; then
             echo
-            echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR if you don't already have it installed."
+            echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
         else
             sudo pacman --needed -S check
         fi
@@ -292,7 +289,8 @@ elif [ $OS == "linux" ]; then
         sudo apt-get update -qq
         sudo apt-get install check
     else
-        echo "May be missing the 'check' library - install it using your distro's package manager or build from source"
+        echo
+        echo "Missing the 'check' library - install it using your distro's package manager or build from source"
     fi
 elif [ $OS == "osx" ]; then
     brew install check
@@ -304,8 +302,6 @@ if ! command -v python >/dev/null 2>&1; then
         echo "Missing Python - run the Cygwin installer again and select the 'python' and 'python-argparse' package (http://cygwin.com/install.html)"
         _wait
     elif [ $OS == "linux" ]; then
-        DISTRO=`lsb_release -si`
-
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S python
         elif [ $DISTRO == "Ubuntu" ]; then
@@ -318,4 +314,4 @@ if ! command -v python >/dev/null 2>&1; then
 fi
 
 echo
-echo "All dependencies installed, ready to compile."
+echo "All mandatory dependencies installed, ready to compile."

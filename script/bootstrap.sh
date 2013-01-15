@@ -23,9 +23,10 @@ _wait() {
 }
 
 _cygwin_error() {
+    echo
     echo "Missing $1 - run the Cygwin installer again and select the base package set:"
-    echo "git, unzip, python,  check"
-    die "ERROR"
+    echo "    patchutils, git, unzip, python, check"
+    die
 }
 
 KERNEL=`uname`
@@ -277,36 +278,40 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
 fi
 
-# TODO how can we check if it's installed. "ld -lcheck" doesn't work on all
-# platforms and what if you're on a 64-bit box and have the 32-bit version of
-# 'check' installed?
-echo "The 'check' library is required for the test suite. There's no \
-reliable way to detect if it is installed, so we are going to try and \
-re-install just in case"
+if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
 
-if [ $OS == "cygwin" ]; then
-    echo "May be missing the 'check' library - run the Cygwin installer again and select the 'check' package (http://cygwin.com/install.html)"
-elif [ $OS == "linux" ]; then
-    DISTRO=`lsb_release -si`
+    echo "Installing the check unit testing library..."
 
-    if [ $DISTRO == "arch" ]; then
-        if [ "x86_64" == `uname -m` ]; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "check"
+    elif [ $OS == "linux" ]; then
+        if ! command -v lsb_release >/dev/null 2>&1; then
             echo
-            echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR if you don't already have it installed."
+            echo "Missing the 'check' library - install it using your distro's package manager or build from source"
         else
-            sudo pacman --needed -S check
+            DISTRO=`lsb_release -si`
+
+            if [ $DISTRO == "arch" ]; then
+                if [ "x86_64" == `uname -m` ]; then
+                    echo
+                    echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
+                else
+                    sudo pacman --needed -S check
+                fi
+            elif [ $DISTRO == "Ubuntu" ]; then
+                sudo apt-get update -qq
+                sudo apt-get install check
+            else
+                echo
+                echo "Missing the 'check' library - install it using your distro's package manager or build from source"
+            fi
         fi
-    elif [ $DISTRO == "Ubuntu" ]; then
-        sudo apt-get update -qq
-        sudo apt-get install check
-    else
-        echo "May be missing the 'check' library - install it using your distro's package manager or build from source"
+    elif [ $OS == "osx" ]; then
+        # brew exists with 1 if it's already installed
+        set +e
+        brew install check
+        set -e
     fi
-elif [ $OS == "osx" ]; then
-    # brew exists with 1 if it's already installed
-    set +e
-    brew install check
-    set -e
 fi
 
 if ! command -v python >/dev/null 2>&1; then

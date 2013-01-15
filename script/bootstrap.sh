@@ -209,7 +209,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="/cygdrive/c/Program Files/GNU Tools ARM Embedded/4.7 2012q4/"
         chmod a+x ../$GCC_ARM_FILE
-        INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE; echo -n \"Press Enter when the GCC for ARM Embedded installer is finished\"; read"
+        INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE"
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"
@@ -218,6 +218,10 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if ! test -d "$GCC_INNER_DIR"
     then
         $INSTALL_COMMAND
+        if [ $OS == "cygwin" ]; then
+            echo -n "Press Enter when the GCC for ARM Embedded installer is finished"
+            read
+        fi
     fi
 
     if ! test -d arm-none-eabi

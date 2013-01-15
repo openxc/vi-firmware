@@ -153,21 +153,13 @@ Install `Homebrew`_. Then:
 .. code-block:: sh
 
     $ brew install libftdi libusb
+    $ brew install --enable-ft2232_libftdi openocd
 
-Download the OpenOCD source distribution and build manually:
-
-.. code-block:: sh
-
-    $ ./configure --enable-ft2232_libftdi
-    $ make
-    $ sudo make install
-
-Edit
-``/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist``
-and remove the Olimex sections, then reload the module:
+Remove the Olimex sections from the FTDI kernel module, and then reload it:
 
 .. code-block:: sh
 
+    $ sudo sed -i "" -e "/Olimex/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
     $ sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
     $ sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
 

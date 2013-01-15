@@ -254,29 +254,25 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
             echo "Missing OpenOCD - install it using your distro's package manager or build from source"
             _wait
         fi
-    elif [ $OS == "osx" ]; then
-        OPENOCD_BASENAME="openocd-0.6.1"
-        OPENOCD_FILE="$OPENOCD_BASENAME.tar.bz2"
-        OPENOCD_DOWNLOAD_URL="http://downloads.sourceforge.net/project/openocd/openocd/0.6.1/$OPENOCD_FILE"
-
-        # look for homebrew
-        brew install libftdi libusb
-        download $OPENOCD_DOWNLOAD_URL $OPENOCD_FILE
-        tar -xjf $OPENOCD_FILE
-        _pushd $OPENOCD_BASENAME
-
-        ./configure --enable-ft2232_libftdi
-        make
-        sudo make install
-
-        # TODO modify ftdi kernel module
-        _popd
+    elif [ $OS == "mac" ]; then
+        _install libftdi
+        _install libusb
+        set +e
+        brew install --enable-ft2232_libftdi open-ocd
+        set -e
     elif [ $OS == "cygwin" ]; then
         echo
         echo "Missing OpenOCD and it's not trivial to install in Windows - you won't be able to program the ARM platform"
     fi
     _popd
+fi
 
+if [ -z $CI ]  && [ $OS == "mac" ]; then
+    if grep -q Olimex /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist; then
+        sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
+    fi
+    sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
+    sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
 fi
 
 # TODO how can we check if it's installed. "ld -lcheck" doesn't work on all

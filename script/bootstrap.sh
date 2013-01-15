@@ -220,9 +220,19 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     mkdir -p $GCC_ARM_DIR
     _pushd $GCC_ARM_DIR
     if [ $OS == "cygwin" ]; then
-        GCC_INNER_DIR="/cygdrive/c/Program Files/GNU Tools ARM Embedded/4.7 2012q4/"
         chmod a+x ../$GCC_ARM_FILE
         INSTALL_COMMAND="cygstart.exe ../$GCC_ARM_FILE"
+        PROGRAM_FILES_BASE="/cygdrive/c/"
+        PROGRAM_FILES="Program Files"
+        PROGRAM_FILES_64="Program Files (x86)"
+        TRAILING_DIRNAME="GNU Tools ARM Embedded/4.7 2012q4/"
+        GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
+        if ! test -d $GCC_INNER_DIR; then
+            GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
+            if ! test -d $GCC_INNER_DIR; then
+                die "GCC for ARM isn't installed in the expected location."
+            fi
+        fi
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"

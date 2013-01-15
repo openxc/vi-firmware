@@ -38,6 +38,7 @@ elif [ $KERNEL == "Darwin" ]; then
     OS="mac"
 else
     OS="linux"
+    DISTRO=`lsb_release -si`
 fi
 
 download() {
@@ -50,16 +51,27 @@ download() {
     fi
 }
 
+if ! command -v make >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "make"
+    else
+        if [ $DISTRO == "arch" ]; then
+            sudo pacman -S base-devel
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install build-essential
+        fi
+    fi
+fi
+
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "git"
     elif [ $OS == "mac" ]; then
         brew install git
     else
-        DISTRO=`lsb_release -si`
-
         if [ $DISTRO == "arch" ]; then
-            sudo pacman -S openocd
+            sudo pacman -S git
         elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get update -qq
             sudo apt-get install git
@@ -242,8 +254,6 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
     echo "Installing OpenOCD..."
     if [ $OS == "linux" ]; then
-        DISTRO=`lsb_release -si`
-
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S openocd
         elif [ $DISTRO == "Ubuntu" ]; then
@@ -289,8 +299,6 @@ if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
             echo
             echo "Missing the 'check' library - install it using your distro's package manager or build from source"
         else
-            DISTRO=`lsb_release -si`
-
             if [ $DISTRO == "arch" ]; then
                 if [ "x86_64" == `uname -m` ]; then
                     echo
@@ -319,8 +327,6 @@ if ! command -v python >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "python"
     elif [ $OS == "linux" ]; then
-        DISTRO=`lsb_release -si`
-
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S python
         elif [ $DISTRO == "Ubuntu" ]; then
@@ -333,4 +339,4 @@ if ! command -v python >/dev/null 2>&1; then
 fi
 
 echo
-echo "All dependencies installed, ready to compile."
+echo "All mandatory dependencies installed, ready to compile."

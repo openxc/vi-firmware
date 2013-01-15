@@ -60,7 +60,7 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
 /* The binary format handled by this function is as follows:
  *
- * A leading '{' followed by a 4 byte message ID, then a '|' separator and
+ * A leading '{' followed by a 2 byte message ID, then a '|' separator and
  * finally 8 bytes of data and a trailing '}'. E.g.:
  *
  * {<4 byte ID>|<8 bytes of data>}
@@ -77,7 +77,7 @@ void receiveBinaryWriteRequest(uint8_t* message) {
     }
 
     CanMessage outgoing = {0, 0};
-    memcpy((uint8_t*)&outgoing.id, &message[1], 4);
+    memcpy((uint8_t*)&outgoing.id, &message[1], 2);
     for(int i = 0; i < 8; i++) {
         ((uint8_t*)&(outgoing.data))[i] = message[i + 6];
     }

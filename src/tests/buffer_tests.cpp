@@ -143,7 +143,10 @@ START_TEST (test_enqueue_adds_crlf)
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &queue)];
     QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
-    ck_assert_str_eq((char*)snapshot, "a message\r\n");
+    const char* expected = "a message\r\n";
+    for(int i = 0; i < 11; i++) {
+        fail_unless((char)snapshot[i] == expected[i]);
+    }
 }
 END_TEST
 

@@ -69,14 +69,14 @@ project.
 
    -  ``${MPIDE_DIR}/hardware/pic32/compiler/pic32-tools/pic32mx/include``
    -  ``${MPIDE_DIR}/hardware/pic32/cores/pic32``
-   -  ``/cantranslator/libs/CDL/LPC17xxLib/inc`` (add as a "workspace
+   -  ``/src/libs/CDL/LPC17xxLib/inc`` (add as a "workspace
       path")
-   -  ``/cantranslator/libs/chipKITCAN`` (add as a "workspace path")
-   -  ``/cantranslator/libs/chipKITUSBDevice`` (add as a "workspace
+   -  ``/src/libs/chipKITCAN`` (add as a "workspace path")
+   -  ``/src/libs/chipKITUSBDevice`` (add as a "workspace
       path")
-   -  ``/cantranslator/libs/chipKITUSBDevice/utility`` (add as a
+   -  ``/src/libs/chipKITUSBDevice/utility`` (add as a
       "workspace path")
-   -  ``/cantranslator/libs/chipKITEthernet`` (add as a "workspace
+   -  ``/src/libs/chipKITEthernet`` (add as a "workspace
       path")
    -  ``/usr/include`` (only if you want to use the test suite, which
       requires the ``check`` C library)
@@ -87,7 +87,7 @@ project.
    ``Resource Configurations -> Exclude from   Build`` for these
    folders:
 
-   -  ``libs``
+   -  ``src/libs``
    -  ``build``
 
 If you didn't set up the environment variables from the ``Installation``

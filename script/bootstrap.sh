@@ -223,11 +223,8 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         PROGRAM_FILES_64="Program Files (x86)"
         TRAILING_DIRNAME="GNU Tools ARM Embedded/4.7 2012q4/"
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
-        if ! test -d $GCC_INNER_DIR; then
+        if ! test -d "$GCC_INNER_DIR"; then
             GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
-            if ! test -d $GCC_INNER_DIR; then
-                die "GCC for ARM isn't installed in the expected location."
-            fi
         fi
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2012q4"
@@ -243,8 +240,18 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         fi
     fi
 
-    if ! test -d arm-none-eabi
-    then
+    if [ $OS == "cygwin" ]; then
+        GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
+        if ! test -d "$GCC_INNER_DIR"; then
+	    GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
+	    if ! test -d "$GCC_INNER_DIR"; then
+	        die "GCC for ARM isn't installed in the expected location."
+	    fi
+	fi
+    fi
+
+    if ! test -d arm-none-eabi then
+        echo "Copying GCC binaries to local dependencies folder..."
         cp -R "$GCC_INNER_DIR"/* .
     fi
 

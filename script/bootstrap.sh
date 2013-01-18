@@ -47,6 +47,10 @@ download() {
     curl $url -L --O $filename
 }
 
+if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
+    _cygwin_error "curl"
+fi
+
 if ! command -v make >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "make"

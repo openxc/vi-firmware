@@ -6,6 +6,9 @@ The code base currently supports two embeddedd platforms - the chipKIT (based on
 the Microchip PIC32) and the Blueboard (based on the NXP LPC1768/69). Before you
 can compile, you will need to :doc:`define your CAN messages </definitions/definitions>`.
 
+The build process works with Linux (tested in Arch Linux and Ubuntu), OS X and
+Cygwin in Windows.
+
 .. note::
 
    When running ``make`` to compile, try adding the ``-j4`` flag to build jobs

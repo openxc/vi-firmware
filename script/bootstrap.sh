@@ -355,5 +355,11 @@ if ! command -v python >/dev/null 2>&1; then
      fi
 fi
 
+if ! python -c "import argparse"; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "python-argparse"
+    fi
+fi
+
 echo
 echo "All mandatory dependencies installed, ready to compile."

@@ -24,8 +24,8 @@ _wait() {
 
 _cygwin_error() {
     echo
-    echo "Missing $1 - run the Cygwin installer again and select the base package set:"
-    echo "    patchutils, git, unzip, python, check"
+    echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
+    echo "    patchutils, git, unzip, python, check, curl"
     die
 }
 
@@ -44,11 +44,7 @@ fi
 download() {
     url=$1
     filename=$2
-    if [ $OS == "cygwin" ]; then
-        wget --no-check-certificate $url -O $filename
-    else
-        curl $url -L --O $filename
-    fi
+    curl $url -L --O $filename
 }
 
 if ! command -v make >/dev/null 2>&1; then

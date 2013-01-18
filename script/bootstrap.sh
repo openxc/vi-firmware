@@ -25,7 +25,7 @@ _wait() {
 _cygwin_error() {
     echo
     echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
-    echo "    gcc, patchutils, git, unzip, python, check, curl"
+    echo "    gcc4, patchutils, git, unzip, python, python-argparse, check, curl"
     die
 }
 
@@ -302,7 +302,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
-    _cygwin_error "gcc"
+    _cygwin_error "ld"
 fi
 
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then

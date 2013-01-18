@@ -25,7 +25,7 @@ _wait() {
 _cygwin_error() {
     echo
     echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
-    echo "    patchutils, git, unzip, python, check, curl"
+    echo "    gcc, patchutils, git, unzip, python, check, curl"
     die
 }
 
@@ -250,7 +250,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 	fi
     fi
 
-    if ! test -d arm-none-eabi then
+    if ! test -d arm-none-eabi; then
         echo "Copying GCC binaries to local dependencies folder..."
         cp -R "$GCC_INNER_DIR"/* .
     fi
@@ -299,6 +299,10 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
     fi
     _popd
 
+fi
+
+if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
+    _cygwin_error "gcc"
 fi
 
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then

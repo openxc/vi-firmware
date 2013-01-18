@@ -13,6 +13,7 @@ Dependencies
 In order to build the CAN translator firmware from source, you need a few
 dependencies:
 
+* Git (in Cygwin you also need the `libsasl2` and `ca-certificates` packages)
 * ``cantranslator`` :ref:`source code <source>` cloned with Git - not from a .zip file
 * :ref:`MPIDE <mpidedep>`
 * Digilent's USB and CAN :ref:`libraries for the chipKIT <chipkit-libs>`

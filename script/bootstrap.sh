@@ -25,7 +25,7 @@ _wait() {
 _cygwin_error() {
     echo
     echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
-    echo "    gcc4, patchutils, git, unzip, python, python-argparse, check, curl"
+    echo "    gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
     die
 }
 

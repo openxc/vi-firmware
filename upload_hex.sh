@@ -43,13 +43,24 @@ if [ -z $PORT ]; then
 fi
 
 if [ -z "$MPIDE_DIR" ]; then
+    MPIDE_DIR="dependencies/mpide"
+fi
+
+if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
+    # avrdude from MPIDE not working in Cygwin, requiring WinAVR 
+    unset MPIDE_DIR
+fi
+
+if [ -z "$MPIDE_DIR" ] || ! [ -d "$MPIDE_DIR" ]; then
     echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
     if [ -z "$AVRDUDE" ]; then
         AVRDUDE="`which avrdude`"
     fi
 
-
     if [ -z "$AVRDUDE" ]; then
+        if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
+            echo "Install WinAVR to get avrdude"
+        fi
         die "ERROR: No avrdude binary found in your path"
     else
         echo "Using $AVRDUDE..."

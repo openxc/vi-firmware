@@ -18,7 +18,7 @@ def parse_options():
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
-    message_set = parser.add_argument("-m", "--message-set",
+    parser.add_argument("-m", "--message-set",
             action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
             default="generic", help="name of the vehicle or platform")
 
@@ -87,13 +87,12 @@ class Message(object):
         return "{&CAN_BUSES[%d], %d}, // %s" % (
                 self._lookupBusIndex(self.buses, self.bus_address),
                 self.id, self.name)
-        return result
 
     @staticmethod
     def _lookupBusIndex(buses, bus_address):
-        for i, bus in enumerate(iter(buses.items())):
-            if bus[0] == bus_address:
-                return i
+        for bus_number, candidate_bus_address in enumerate(("0x101", "0x102")):
+            if candidate_bus_address == bus_address:
+                return bus_number
 
 
 class Signal(object):

@@ -60,10 +60,10 @@ Running the Suite
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
 
 Debugging information
-=================
+=====================
 
 Viewing Debugging data
----------------------
+----------------------
 
 To view debugging information, first compile the firmware with the
 debugging flag.

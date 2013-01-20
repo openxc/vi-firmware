@@ -32,7 +32,12 @@ ifndef ARDUINO_PORT
 	ifeq ($(OSTYPE),Darwin)
 		ARDUINO_PORT = /dev/tty.usbserial*
 	else
-		ARDUINO_PORT = /dev/ttyUSB*
+		OSTYPE := $(shell uname -o)
+		ifeq ($(OSTYPE),Cygwin)
+			ARDUINO_PORT = com3
+		else
+			ARDUINO_PORT = /dev/ttyUSB*
+		endif
 	endif
 endif
 

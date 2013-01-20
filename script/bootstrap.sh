@@ -323,18 +323,14 @@ if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
             echo "Missing the 'check' library - install it using your distro's package manager or build from source"
         else
             if [ $DISTRO == "arch" ]; then
-                if [ "x86_64" == `uname -m` ]; then
-                    echo
-                    echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
-                else
-                    sudo pacman --needed -S check
-                fi
+                sudo pacman -S check
             elif [ $DISTRO == "Ubuntu" ]; then
                 sudo apt-get update -qq
                 sudo apt-get install check
             else
                 echo
                 echo "Missing the 'check' library - install it using your distro's package manager or build from source"
+                _wait
             fi
         fi
     elif [ $OS == "osx" ]; then

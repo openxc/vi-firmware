@@ -69,7 +69,7 @@ Command Line
 ------------
 
 When using the command line in Cygwin in Windows, you will need to figure out
-which COM port the device shows up as - by default we will assume ``com4`` but
+which COM port the device shows up as - by default we will assume ``com3`` but
 it may be different on your computer.
 
 Once you have ``avrdude`` installed, run the ``upload_hex.sh`` script with the

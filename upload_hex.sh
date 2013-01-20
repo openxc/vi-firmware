@@ -30,7 +30,7 @@ fi
 
 if [ -z $PORT ]; then
     if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
-        PORT="com4"
+        PORT="com3"
     else
         PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
         if [ -z $PORT ]; then

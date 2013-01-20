@@ -134,6 +134,8 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
     if [ $OS == "cygwin" ]; then
         chmod a+x mpide/hardware/pic32/compiler/pic32-tools/bin/*
         chmod a+x -R mpide/hardware/pic32/compiler/pic32-tools/pic32mx/
+        chmod a+x mpide/*.dll
+        chmod a+x mpide/hardware/tools/avr/bin/*
     fi
     _popd
 

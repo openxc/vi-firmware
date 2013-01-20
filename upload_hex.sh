@@ -46,11 +46,6 @@ if [ -z "$MPIDE_DIR" ]; then
     MPIDE_DIR="dependencies/mpide"
 fi
 
-if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
-    # avrdude from MPIDE not working in Cygwin, requiring WinAVR 
-    unset MPIDE_DIR
-fi
-
 if [ -z "$MPIDE_DIR" ] || ! [ -d "$MPIDE_DIR" ]; then
     echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
     if [ -z "$AVRDUDE" ]; then

@@ -29,13 +29,13 @@ and upload to the device.
     $ make flash
 
 If the flash command can't find your chipKIT, you may need to set the
-``ARDUINO_PORT`` variable (if the serial emulator doesn't show up as
+``SERIAL_PORT`` variable (if the serial emulator doesn't show up as
 ``/dev/ttyUSB*`` (in Linux) or ``/dev/tty.usbserial*`` (in Mac OS X)). For
 example, if the chipKIT shows up as ``/dev/ttyUSB4``:
 
 .. code-block:: sh
 
-    $ ARDUINO_PORT=/dev/ttyUSB4 make flash
+    $ SERIAL_PORT=/dev/ttyUSB4 make flash
 
 
 Troubleshooting

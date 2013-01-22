@@ -66,31 +66,24 @@ Viewing Debugging data
 ----------------------
 
 To view debugging information, first compile the firmware with the
-debugging flag.
+debugging flag:
 
 .. code-block:: sh
 
     $ make clean
-    $ DEBUG=1 make -j4
+    $ DEBUG=1 make
     $ make flash
 
-To build for a Blueboard, add the Platform flag to your make command:
+When compiled with ``DEBUG=1``, two things happen:
 
-.. code-block:: sh
+* Debug symbols are available in the .elf file generated in the ``build``
+  directory.
+* Log messages will be output over a UART port (no hardware flow control is
+  required)
+    * On the chipKIT Max32, logging will be on UART2 (Pin 17 - Rx, Pin 18 - Tx)
+      at 115200 baud.
+    * On the Blueboard LPC1768H, logging will be on UART0 (Pin P0.3 - Rx, Pin
+      P0.2 - Tx) at 115200 baud.
 
-    $ DEBUG=1 PLATFORM=BLUEBOARD make -j4
-
-Once the CAN Translator is built with active debugging, the data can
-be viewed via an FTDI cable.  On the chipKit Max32, the debugging
-information is on UART Port 2.  This port's RX is pin 17, and the TX
-is pin 16.  Those are the only two wires that need be connected to
-your FTDI cable.
-
-Once connected, view the traffic on that serial port with the screen
-command at 11520 baud.  On MacOS, the command is:
-
-.. code-block:: sh
-
-    $ screen /dev/tty.usbserial________  115200
-
-Be sure to substitue the actual serial port identifier.
+View this output using an FTDI cable and any of the many available serial
+terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.

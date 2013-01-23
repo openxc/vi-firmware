@@ -354,12 +354,14 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
     _popd
 fi
 
-if [ -z $CI ]  && [ $OS == "mac" ]; then
-    if grep -q Olimex /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist; then
-        sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
+FTDI_USB_DRIVER_PLIST=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
+if [ -z $CI ]  && [ $OS == "mac" ] && [ -e $FTDI_USB_DRIVER_PLIST ]; then
+    if grep -q Olimex $FTDI_USB_DRIVER_PLIST; then
+        sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
     fi
-    sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
-    sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
+    FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
+    sudo kextunload $FTDI_USB_DRIVER_MODULE
+    sudo kextload $FTID_USB_DRIVER_MODULE
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then

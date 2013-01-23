@@ -66,6 +66,18 @@ emulator_test:
 	PLATFORM=FORD make -j4 emulator
 	@make clean
 
+debug_compile_test: code_generation_test
+	DEBUG=1 make -j4
+	@make clean
+
+uart_compile_test: code_generation_test
+	USE_UART=1 make -j4
+	@make clean
+
+ethernet_compile_test: code_generation_test
+	USE_ETHERNET=1 make -j4
+	@make clean
+
 pic32_compile_test: code_generation_test
 	make -j4
 	@make clean

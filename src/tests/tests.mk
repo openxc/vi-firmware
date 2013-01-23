@@ -1,5 +1,7 @@
 # When running test cases on the development computer, don't compile with
 # embedded libraries
+#
+OSTYPE := $(shell uname)
 
 TEST_DIR = tests
 TEST_OBJDIR = build/$(TEST_DIR)
@@ -24,9 +26,26 @@ test: unit_tests
 	@make pic32_compile_test
 	@make lpc17xx_compile_test
 
-unit_tests: LD = g++
-unit_tests: CC = gcc
-unit_tests: CPP = g++
+ifeq ($(OSTYPE),Darwin)
+# gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
+# explicitly use clang/clang++
+TEST_LD = clang++
+TEST_CC = clang
+TEST_CPP = clang++
+else
+TEST_LD = g++
+TEST_CC = gcc
+TEST_CPP = g++
+endif
+
+# In Linux, expect BROWSER to name the preferred browser binary
+ifeq ($(OSTYPE),Darwin)
+BROWSER = open
+endif
+
+unit_tests: LD = $(TEST_LD)
+unit_tests: CC = $(TEST_CC)
+unit_tests: CPP = $(TEST_CPP)
 unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage
 unit_tests: CC_SYMBOLS = -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
@@ -58,8 +77,9 @@ coverage:
 	@make unit_tests
 	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
 	@lcov --remove $(COVERAGE_INFO_PATH) "libs/*" -o $(COVERAGE_INFO_PATH)
+	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
 	@genhtml -o $(TEST_OBJDIR)/coverage -t "cantranslator test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
-	@google-chrome $(TEST_OBJDIR)/coverage/index.html
+	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
 
 $(TEST_OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

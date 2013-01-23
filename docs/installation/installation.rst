@@ -7,12 +7,61 @@ If you've downloaded a pre-built binary for a specific vehicle, see the
 translator. Most users do not need to set up the full development described in
 these docs.
 
+Quick Start
+============
+
+Linux
+-----
+
+1. If your network uses an Internet proxy (e.g. a corporate network) set the
+   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
+2. Install Git from your distribution's package manager and clone the
+   `cantranslator <https://github.com/openxc/cantranslator>`_ repository: ``git
+   clone https://github.com/openxc/cantranslator``
+3. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
+4. If there were no errors, you are ready to
+   :doc:`compile <compiling>`.
+
+The ``bootstrap.sh`` script is tested in Ubuntu 12.04 and Arch Linux - other
+distributions will need to install the dependencies manually.
+
+Windows
+-------
+
+1. Install `Cygwin <http://www.cygwin.com>`_ and in the installer, select the
+   following packagse: ``gcc4, patchutils, git, unzip, python, python-argparse,
+   check, curl, libsasl2, ca-certificates``
+2. Start a Cygwin Terminal.
+3. If your network uses an Internet proxy (e.g. a corporate network) set the
+   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
+4. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
+   repository: ``git clone https://github.com/openxc/cantranslator``
+5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
+6. If there were no errors, you are ready to
+   :doc:`compile <compiling>`.
+
+OS X
+--------
+
+1. Open the Terminal app.
+2. If your network uses an Internet proxy (e.g. a corporate network) set the
+   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
+3. Install `Homebrew <http://mxcl.github.com/homebrew/>`_:
+   ``ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"``
+4. Install Git with Homebrew (``brew install git``) and clone the `cantranslator
+   <https://github.com/openxc/cantranslator>`_ repository: ``git clone
+   https://github.com/openxc/cantranslator``
+5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
+6. If there were no errors, you are ready to
+   :doc:`compile <compiling>`.
+
 Dependencies
 ============
 
 In order to build the CAN translator firmware from source, you need a few
 dependencies:
 
+* Git
 * ``cantranslator`` :ref:`source code <source>` cloned with Git - not from a .zip file
 * :ref:`MPIDE <mpidedep>`
 * Digilent's USB and CAN :ref:`libraries for the chipKIT <chipkit-libs>`
@@ -169,7 +218,7 @@ GCC for ARM Toolchain
 ---------------------
 
 Download the binary version of the toolchain for your platform (Linux, OS X or
-Windows) from this [Launchpad site](https://launchpad.net/gcc-arm-embedded).
+Windows) from this `Launchpad site <https://launchpad.net/gcc-arm-embedded>`_.
 
 Arch Linux
 ~~~~~~~~~~

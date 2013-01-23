@@ -68,10 +68,6 @@ Flashing
 Command Line
 ------------
 
-When using the command line in Cygwin in Windows, you will need to figure out
-which COM port the device shows up as - by default we will assume ``com4`` but
-it may be different on your computer.
-
 Once you have ``avrdude`` installed, run the ``upload_hex.sh`` script with the
 ``.hex`` file you downloaded (Windows users see below, this script will *not*
 work with the standard Windows command line or Powershell):
@@ -80,12 +76,21 @@ work with the standard Windows command line or Powershell):
 
    $ ./upload_hex.sh <the firmware file you downloaded>.hex
 
-
-To specify use ``com3`` for example:
+If you have more than one virtual serial (COM) port active, you may need to
+explicitly specific which port to use. Pass the port identified as the second
+argument to the script, e.g. in Linux:
 
 .. code-block:: sh
 
-   $ ./upload_hex.sh <the firmware file you downloaded>.hex com3
+   $ ./upload_hex.sh <the firmware file you downloaded>.hex /dev/ttyUSB2
+
+and in Windows, if you needed to use ``com4`` instead of the default ``com3``:
+
+.. code-block:: sh
+
+   $ ./upload_hex.sh <the firmware file you downloaded>.hex com4
+
+**Windows notes:**
 
 In Windows, this command will only work in Cygwin, not the standard
 ``cmd.exe`` or Powershell. If you have the ``sh.exe`` program installed by

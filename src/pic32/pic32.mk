@@ -6,14 +6,21 @@ ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
-ifndef MPIDE_DIR
-MPIDE_DIR = ../dependencies/mpide
+DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
+
+ifdef MPIDE_DIR
+MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
+
+ifneq ($(MPIDE_EXISTS),0)
+MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
+else
+MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
 
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
 $(error MPIDE missing - run "script/bootstrap.sh")
-endif
-
 endif
 
 ifndef CAN_EMULATOR
@@ -28,11 +35,23 @@ SERIAL_BAUDRATE = 115200
 
 OSTYPE := $(shell uname)
 
-ifndef ARDUINO_PORT
+ifndef SERIAL_PORT
+	# Backwards compatibility with people using old name for this
+	ifdef ARDUINO_PORT
+		SERIAL_PORT := $(ARDUINO_PORT)
+	endif
+endif
+
+ifndef SERIAL_PORT
 	ifeq ($(OSTYPE),Darwin)
-		ARDUINO_PORT = /dev/tty.usbserial*
+		SERIAL_PORT = /dev/tty.usbserial*
 	else
-		ARDUINO_PORT = /dev/ttyUSB*
+		OSTYPE := $(shell uname -o)
+		ifeq ($(OSTYPE),Cygwin)
+			SERIAL_PORT = com3
+		else
+			SERIAL_PORT = /dev/ttyUSB*
+		endif
 	endif
 endif
 

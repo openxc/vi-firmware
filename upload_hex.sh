@@ -30,7 +30,7 @@ fi
 
 if [ -z $PORT ]; then
     if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
-        PORT="com4"
+        PORT="com3"
     else
         PORT=`ls /dev/ttyUSB* 2> /dev/null | head -n 1`
         if [ -z $PORT ]; then
@@ -43,13 +43,19 @@ if [ -z $PORT ]; then
 fi
 
 if [ -z "$MPIDE_DIR" ]; then
+    MPIDE_DIR="dependencies/mpide"
+fi
+
+if [ -z "$MPIDE_DIR" ] || ! [ -d "$MPIDE_DIR" ]; then
     echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
     if [ -z "$AVRDUDE" ]; then
         AVRDUDE="`which avrdude`"
     fi
 
-
     if [ -z "$AVRDUDE" ]; then
+        if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
+            echo "Install WinAVR to get avrdude"
+        fi
         die "ERROR: No avrdude binary found in your path"
     else
         echo "Using $AVRDUDE..."

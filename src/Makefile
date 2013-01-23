@@ -2,6 +2,7 @@ SYMBOLS =
 
 BASE_TARGET = cantranslator
 OBJDIR_ROOT = build
+DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
 ifdef DEBUG

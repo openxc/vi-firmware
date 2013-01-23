@@ -6,6 +6,9 @@ The code base currently supports two embeddedd platforms - the chipKIT (based on
 the Microchip PIC32) and the Blueboard (based on the NXP LPC1768/69). Before you
 can compile, you will need to :doc:`define your CAN messages </definitions/definitions>`.
 
+The build process works with Linux (tested in Arch Linux and Ubuntu), OS X and
+Cygwin in Windows.
+
 .. note::
 
    When running ``make`` to compile, try adding the ``-j4`` flag to build jobs
@@ -26,13 +29,13 @@ and upload to the device.
     $ make flash
 
 If the flash command can't find your chipKIT, you may need to set the
-``ARDUINO_PORT`` variable (if the serial emulator doesn't show up as
+``SERIAL_PORT`` variable (if the serial emulator doesn't show up as
 ``/dev/ttyUSB*`` (in Linux) or ``/dev/tty.usbserial*`` (in Mac OS X)). For
 example, if the chipKIT shows up as ``/dev/ttyUSB4``:
 
 .. code-block:: sh
 
-    $ ARDUINO_PORT=/dev/ttyUSB4 make flash
+    $ SERIAL_PORT=/dev/ttyUSB4 make flash
 
 
 Troubleshooting
@@ -69,14 +72,14 @@ project.
 
    -  ``${MPIDE_DIR}/hardware/pic32/compiler/pic32-tools/pic32mx/include``
    -  ``${MPIDE_DIR}/hardware/pic32/cores/pic32``
-   -  ``/cantranslator/libs/CDL/LPC17xxLib/inc`` (add as a "workspace
+   -  ``/src/libs/CDL/LPC17xxLib/inc`` (add as a "workspace
       path")
-   -  ``/cantranslator/libs/chipKITCAN`` (add as a "workspace path")
-   -  ``/cantranslator/libs/chipKITUSBDevice`` (add as a "workspace
+   -  ``/src/libs/chipKITCAN`` (add as a "workspace path")
+   -  ``/src/libs/chipKITUSBDevice`` (add as a "workspace
       path")
-   -  ``/cantranslator/libs/chipKITUSBDevice/utility`` (add as a
+   -  ``/src/libs/chipKITUSBDevice/utility`` (add as a
       "workspace path")
-   -  ``/cantranslator/libs/chipKITEthernet`` (add as a "workspace
+   -  ``/src/libs/chipKITEthernet`` (add as a "workspace
       path")
    -  ``/usr/include`` (only if you want to use the test suite, which
       requires the ``check`` C library)
@@ -87,7 +90,7 @@ project.
    ``Resource Configurations -> Exclude from   Build`` for these
    folders:
 
-   -  ``libs``
+   -  ``src/libs``
    -  ``build``
 
 If you didn't set up the environment variables from the ``Installation``

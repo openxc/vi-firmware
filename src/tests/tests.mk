@@ -25,6 +25,8 @@ TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
 test: unit_tests
 	@make pic32_compile_test
 	@make lpc17xx_compile_test
+	@make blueboard_test
+	@make emulator_test
 
 ifeq ($(OSTYPE),Darwin)
 # gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
@@ -53,6 +55,16 @@ unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
+
+blueboard_test:
+	PLATFORM=BLUEBOARD make -j4 emulator
+	@make clean
+
+emulator_test:
+	make -j4 emulator
+	@make clean
+	PLATFORM=FORD make -j4 emulator
+	@make clean
 
 pic32_compile_test: code_generation_test
 	make -j4

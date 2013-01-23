@@ -360,8 +360,11 @@ if [ -z $CI ]  && [ $OS == "mac" ] && [ -e $FTDI_USB_DRIVER_PLIST ]; then
         sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
     fi
     FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
+    # Driver may not be loaded yet, but that's OK - don't exit on error.
+    set +e
     sudo kextunload $FTDI_USB_DRIVER_MODULE
-    sudo kextload $FTID_USB_DRIVER_MODULE
+    set -e
+    sudo kextload $FTDI_USB_DRIVER_MODULE
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then

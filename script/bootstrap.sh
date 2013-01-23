@@ -200,6 +200,41 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
 
 fi
 
+## FTDI library for programming chipKIT
+
+FTDI_DRIVER_FILE="DM20824_Setup.exe"
+FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/CDM/$FTDI_DRIVER_FILE"
+
+_pushd $DEPENDENCIES_FOLDER
+if ! test -e $FTDI_DRIVER_FILE
+then
+    echo "Downloading FTDI USB driver..."
+    download $FTDI_DRIVER_URL $FTDI_DRIVER_FILE
+fi
+
+if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
+
+    if [ $OS == "cygwin" ]; then
+        chmod a+x $FTDI_DRIVER_FILE
+        INSTALL_COMMAND="cygstart.exe $FTDI_DRIVER_FILE"
+        INSTALLED_FTDI_PATH="/cygdrive/c/Windows/System32/DriverStore/FileRepository"
+        INSTALLED_FTDI_FILE="ftser2k.sys"
+    elif [ $OS == "mac" ]; then
+        # TODO install from dng
+        echo
+    fi
+
+    if [ -z "$(find $INSTALLED_FTDI_PATH -name $INSTALLED_FTDI_FILE | head -n 1)" ]; then
+        $INSTALL_COMMAND
+
+        if [ $OS == "cygwin" ]; then
+            echo -n "Press Enter when the FTDI USB driver installer is finished"
+            read
+        fi
+    fi
+fi
+_popd
+
 ## chipKIT libraries for USB, CAN and Ethernet
 
 CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"

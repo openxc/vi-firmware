@@ -236,8 +236,8 @@ if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
             hdiutil detach $FTDI_VOLUME
         fi
     fi
+    _popd
 fi
-_popd
 
 ## chipKIT libraries for USB, CAN and Ethernet
 

@@ -372,7 +372,6 @@ if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
 fi
 
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
-
     echo "Installing the check unit testing library..."
 
     if [ $OS == "cygwin" ]; then
@@ -394,13 +393,8 @@ if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
             fi
         fi
     elif [ $OS == "mac" ]; then
-        # brew exists with 1 if it's already installed
-        set +e
-        brew install check
-        set -e
+        _install check
     fi
-elif [ $OS == "mac" ]; then
-    _install check
 fi
 
 if ! command -v python >/dev/null 2>&1; then

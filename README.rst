@@ -30,3 +30,7 @@ License
 Copyright (c) 2012-2013 Ford Motor Company
 
 Licensed under the BSD license.
+
+The Windows driver for the CAN translator and its installer available in
+`conf/windows-driver` is licensed under the GPL. The installer for the driver
+is licensed under the LGPL.

@@ -36,6 +36,12 @@ If you've downloaded a pre-built binary for a specific vehicle, see the
 translator. Most users do not need to set up the full development described in
 these docs.
 
+A Windows driver for the USB interface is available in the `conf/windows-driver
+<https://github.com/openxc/cantranslator/tree/master/conf/windows-driver>`_
+folder. The driver supports both 32- and 64-bit Windows. The driver is generated
+using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
+project.
+
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`firmware section`: http://openxcplatform.com/vehicle-interface/firmware.html
 

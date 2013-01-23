@@ -6,14 +6,21 @@ ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
-ifndef MPIDE_DIR
-MPIDE_DIR = ../dependencies/mpide
+DEPENDENCIES_MPIDE_DIR = ../dependencies/mpide
+
+ifdef MPIDE_DIR
+MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
+
+ifneq ($(MPIDE_EXISTS),0)
+MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
+else
+MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
 
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
 $(error MPIDE missing - run "script/bootstrap.sh")
-endif
-
 endif
 
 ifndef CAN_EMULATOR

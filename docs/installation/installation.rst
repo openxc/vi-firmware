@@ -20,7 +20,9 @@ Linux
    clone https://github.com/openxc/cantranslator``
 3. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
 4. If there were no errors, you are ready to
-   :doc:`compile <compiling>`.
+   :doc:`compile <compiling>`. If there are errors, follow the recommendations
+   in the error messages. You may need to manually install the dependencies if
+   your environment is not in a predictable state.
 
 The ``bootstrap.sh`` script is tested in Ubuntu 12.04 and Arch Linux - other
 distributions will need to install the dependencies manually.
@@ -29,7 +31,7 @@ Windows
 -------
 
 1. Install `Cygwin <http://www.cygwin.com>`_ and in the installer, select the
-   following packagse: ``gcc4, patchutils, git, unzip, python, python-argparse,
+   following packages ``gcc4, patchutils, git, unzip, python, python-argparse,
    check, curl, libsasl2, ca-certificates``
 2. Start a Cygwin Terminal.
 3. If your network uses an Internet proxy (e.g. a corporate network) set the
@@ -38,7 +40,9 @@ Windows
    repository: ``git clone https://github.com/openxc/cantranslator``
 5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
 6. If there were no errors, you are ready to
-   :doc:`compile <compiling>`.
+   :doc:`compile <compiling>`. If there are errors, follow the recommendations
+   in the error messages. You may need to manually install the dependencies if
+   your environment is not in a predictable state.
 
 OS X
 --------
@@ -53,7 +57,9 @@ OS X
    https://github.com/openxc/cantranslator``
 5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
 6. If there were no errors, you are ready to
-   :doc:`compile <compiling>`.
+   :doc:`compile <compiling>`. If there are errors, follow the recommendations
+   in the error messages. You may need to manually install the dependencies if
+   your environment is not in a predictable state.
 
 Dependencies
 ============

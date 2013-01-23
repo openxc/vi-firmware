@@ -79,6 +79,21 @@ if ! command -v git >/dev/null 2>&1; then
     fi
 fi
 
+if [ $OS != "cygwin" ] && ! command -v lcov >/dev/null 2>&1; then
+    echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
+    if [ $OS == "mac" ]; then
+        brew install lcov
+    else
+        if [ $DISTRO == "arch" ]; then
+            echo "Missing lcov - install from the AUR."
+            _wait
+        elif [ $DISTRO == "Ubuntu" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install lcov
+        fi
+    fi
+fi
+
 echo "Updating Git submodules..."
 
 git submodule update --init --quiet

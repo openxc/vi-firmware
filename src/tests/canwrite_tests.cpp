@@ -1,6 +1,5 @@
 #include <check.h>
 #include <stdint.h>
-#include "helpers.h"
 #include "canutil.h"
 #include "canwrite.h"
 #include "cJSON.h"

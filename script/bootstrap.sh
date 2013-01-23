@@ -327,7 +327,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
             echo "Missing OpenOCD - install it using your distro's package manager or build from source"
             _wait
         fi
-    elif [ $OS == "osx" ]; then
+    elif [ $OS == "mac" ]; then
         OPENOCD_BASENAME="openocd-0.6.1"
         OPENOCD_FILE="$OPENOCD_BASENAME.tar.bz2"
         OPENOCD_DOWNLOAD_URL="http://downloads.sourceforge.net/project/openocd/openocd/0.6.1/$OPENOCD_FILE"
@@ -378,7 +378,7 @@ if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
                 _wait
             fi
         fi
-    elif [ $OS == "osx" ]; then
+    elif [ $OS == "mac" ]; then
         # brew exists with 1 if it's already installed
         set +e
         brew install check

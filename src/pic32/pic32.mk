@@ -6,7 +6,7 @@ ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
-DEPENDENCIES_MPIDE_DIR = ../dependencies/mpide
+DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
 
 ifdef MPIDE_DIR
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)

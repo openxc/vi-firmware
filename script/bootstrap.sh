@@ -85,6 +85,17 @@ if ! command -v git >/dev/null 2>&1; then
     fi
 fi
 
+echo "Updating Git submodules..."
+
+git submodule update --init --quiet
+
+echo "Storing all downloaded dependencies in the \"dependencies\" folder"
+
+DEPENDENCIES_FOLDER="dependencies"
+mkdir -p $DEPENDENCIES_FOLDER
+
+echo "Installing dependencies for running test suite..."
+
 if [ $OS != "cygwin" ] && ! command -v lcov >/dev/null 2>&1; then
     echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
     if [ $OS == "mac" ]; then
@@ -100,14 +111,27 @@ if [ $OS != "cygwin" ] && ! command -v lcov >/dev/null 2>&1; then
     fi
 fi
 
-echo "Updating Git submodules..."
+if [ $OS == "mac" ]; then
+    _pushd $DEPENDENCIES_FOLDER
+    LLVM_BASENAME=clang+llvm-3.2-x86_64-apple-darwin11
+    LLVM_FILE=$LLVM_BASENAME.tar.gz
+    LLVM_URL=http://llvm.org/releases/3.2/$LLVM_FILE
 
-git submodule update --init --quiet
+    if ! test -e $LLVM_FILE
+    then
+        echo "Downloading LLVM 3.2..."
+        download $LLVM_URL $LLVM_FILE
+    fi
 
-echo "Storing all downloaded dependencies in the \"dependencies\" folder"
+    if ! test -d $LLVM_BASENAME
+    then
+        echo "Installing LLVM 3.2 to local folder..."
+        tar -xzf $LLVM_FILE
+        echo "LLVM 3.2 installed"
+    fi
 
-DEPENDENCIES_FOLDER="dependencies"
-mkdir -p $DEPENDENCIES_FOLDER
+    _popd
+fi
 
 echo "Installing dependencies for building for chipKIT Max32 platform"
 
@@ -134,7 +158,7 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
     _pushd $DEPENDENCIES_FOLDER
     if ! test -e $MPIDE_FILE
     then
-        echo "Downloaded MPIDE..."
+        echo "Downloading MPIDE..."
         download $MPIDE_URL $MPIDE_FILE
     fi
 

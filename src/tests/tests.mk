@@ -29,9 +29,10 @@ test: unit_tests
 ifeq ($(OSTYPE),Darwin)
 # gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
 # explicitly use clang/clang++
-TEST_LD = clang++
-TEST_CC = clang
-TEST_CPP = clang++
+LLVM_BIN_FOLDER = $(DEPENDENCIES_FOLDER)/clang+llvm-3.2-x86_64-apple-darwin11/bin
+TEST_CPP = $(LLVM_BIN_FOLDER)/clang++
+TEST_CC = $(LLVM_BIN_FOLDER)/clang
+TEST_LD = $(TEST_CPP)
 else
 TEST_LD = g++
 TEST_CC = gcc

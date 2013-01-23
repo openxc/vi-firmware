@@ -101,7 +101,13 @@ fi
 
 echo "Updating Git submodules..."
 
-git submodule update --init --quiet
+if ! git submodule update --init --quiet; then
+    echo "Unable to update git submodules - try running \"git submodule update\" to see the full error"
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "ca-certificates"
+    fi
+    die
+fi
 
 echo "Storing all downloaded dependencies in the \"dependencies\" folder"
 

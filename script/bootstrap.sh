@@ -202,34 +202,38 @@ fi
 
 ## FTDI library for programming chipKIT
 
-FTDI_DRIVER_FILE="DM20824_Setup.exe"
-FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/CDM/$FTDI_DRIVER_FILE"
-
-_pushd $DEPENDENCIES_FOLDER
-if ! test -e $FTDI_DRIVER_FILE
-then
-    echo "Downloading FTDI USB driver..."
-    download $FTDI_DRIVER_URL $FTDI_DRIVER_FILE
-fi
-
 if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
 
     if [ $OS == "cygwin" ]; then
-        chmod a+x $FTDI_DRIVER_FILE
-        INSTALL_COMMAND="cygstart.exe $FTDI_DRIVER_FILE"
+        FTDI_DRIVER_FILE="DM20824_Setup.exe"
+        FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/CDM/$FTDI_DRIVER_FILE"
         INSTALLED_FTDI_PATH="/cygdrive/c/Windows/System32/DriverStore/FileRepository"
         INSTALLED_FTDI_FILE="ftser2k.sys"
     elif [ $OS == "mac" ]; then
-        # TODO install from dng
-        echo
+        FTDI_DRIVER_FILE="FTDIUSBSerialDriver_v2_2_18.dmg"
+        FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/VCP/MacOSX/$FTDI_DRIVER_FILE"
+        INSTALLED_FTDI_PATH=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/
+        INSTALLED_FTDI_FILE=Info.plist
+    fi
+
+    _pushd $DEPENDENCIES_FOLDER
+    if ! test -e $FTDI_DRIVER_FILE
+    then
+        echo "Downloading FTDI USB driver..."
+        download $FTDI_DRIVER_URL $FTDI_DRIVER_FILE
     fi
 
     if [ -z "$(find $INSTALLED_FTDI_PATH -name $INSTALLED_FTDI_FILE | head -n 1)" ]; then
-        $INSTALL_COMMAND
 
         if [ $OS == "cygwin" ]; then
+            cygstart.exe $FTDI_DRIVER_FILE
             echo -n "Press Enter when the FTDI USB driver installer is finished"
             read
+        elif [ $OS == "mac" ]; then
+            hdiutil attach $FTDI_DRIVER_FILE
+            FTDI_VOLUME="/Volumes/FTDIUSBSerialDriver_v2_2_18"
+            sudo installer -pkg $FTDI_VOLUME/FTDIUSBSerialDriver_10_4_10_5_10_6_10_7.mpkg -target /
+            hdiutil detach $FTDI_VOLUME
         fi
     fi
 fi

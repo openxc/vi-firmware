@@ -89,7 +89,7 @@ lpc17xx_compile_test: code_generation_test
 code_generation_test:
 	@make clean
 	@mkdir -p $(TEST_OBJDIR)
-	../generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
+	../script/generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
     # Ideally we would symlink these files, but symlinks don't work well in Cygwin
 	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
 	@cp handlers.cpp.example handlers.cpp

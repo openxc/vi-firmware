@@ -6,7 +6,7 @@ Updates to the CAN translator firmware may be distributed as
 pre-compiled binaries, e.g. if they are distributed by an OEM who does
 not wish to make the CAN signals public. If that's the case for your
 vehicle, you will have a ``.hex`` file and can use the
-`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/upload_hex.sh>`_
+`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/script/upload_hex.sh>`_
 script to update your device.
 
 Prerequisites
@@ -36,7 +36,7 @@ are a number of options that will work.
 If you have `MPIDE`_ installed, that already includes a version of avrdude. You
 need to set the ``MPIDE_DIR`` environment variable in your terminal to point to
 the folder where you installed MPIDE. Once set, you should be able to use
-`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/upload_hex.sh>`_.
+`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/script/upload_hex.sh>`_.
 
 *Without MPIDE*
 
@@ -74,7 +74,7 @@ work with the standard Windows command line or Powershell):
 
 .. code-block:: sh
 
-   $ ./upload_hex.sh <the firmware file you downloaded>.hex
+   $ script/upload_hex.sh <the firmware file you downloaded>.hex
 
 If you have more than one virtual serial (COM) port active, you may need to
 explicitly specific which port to use. Pass the port identified as the second
@@ -82,13 +82,13 @@ argument to the script, e.g. in Linux:
 
 .. code-block:: sh
 
-   $ ./upload_hex.sh <the firmware file you downloaded>.hex /dev/ttyUSB2
+   $ script/upload_hex.sh <the firmware file you downloaded>.hex /dev/ttyUSB2
 
 and in Windows, if you needed to use ``com4`` instead of the default ``com3``:
 
 .. code-block:: sh
 
-   $ ./upload_hex.sh <the firmware file you downloaded>.hex com4
+   $ script/upload_hex.sh <the firmware file you downloaded>.hex com4
 
 **Windows notes:**
 
@@ -96,7 +96,7 @@ In Windows, this command will only work in Cygwin, not the standard
 ``cmd.exe`` or Powershell. If you have the ``sh.exe`` program installed by
 some other means (e.g. you have Git Shell) then it will
 actually work in Powershell, but you need to preface the command with ``sh``
-(i.e. ``sh ./upload_hex.sh ...``).
+(i.e. ``sh script/upload_hex.sh ...``).
 
 If you get errors about ``$'\r': command not found`` then your Git
 configuration added ``CRLF`` line endings and so you must run the script
@@ -104,7 +104,7 @@ like this:
 
 .. code-block:: sh
 
-   $ set -o igncr && export SHELLOPTS && ./upload_hex.sh <firmware you downloaded>.hex
+   $ set -o igncr && export SHELLOPTS && script/upload_hex.sh <firmware you downloaded>.hex
 
 WinAVR GUI
 ----------

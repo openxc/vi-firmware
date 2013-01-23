@@ -3,6 +3,7 @@
 from __future__ import print_function
 import collections
 import itertools
+import operator
 from collections import defaultdict
 import sys
 import argparse
@@ -314,6 +315,8 @@ class Parser(object):
         i = 1
         for bus in list(self.buses.values()):
             for message in bus['messages']:
+                message.signals = sorted(message.signals,
+                        key=operator.attrgetter('generic_name'))
                 for signal in message.signals:
                     signal.array_index = i - 1
                     print("    %s" % signal)

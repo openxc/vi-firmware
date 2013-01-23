@@ -76,7 +76,7 @@ For example, if your mappings are in ``signals.json``:
 
 .. code-block:: sh
 
-    $ ./generate_code.py --json signals.json > signals.cpp
+    $ script/generate_code.py --json signals.json > signals.cpp
 
 Drop the new ``signals.cpp`` file in the ``src`` folder, and it should now
 :doc:`compile </installation/compiling>`. Don't add anything else to this file -
@@ -88,7 +88,7 @@ messages in separate files, just pass multiple JSON files:
 
 .. code-block:: sh
 
-    $ ./generate_code.py --json highspeed.json --json mediumspeed.json > signals.cpp
+    $ script/generate_code.py --json highspeed.json --json mediumspeed.json > signals.cpp
 
 Note that the JSON files are parsed and merged, so if you want to define
 custom handlers and states separately from the signal definition itself,

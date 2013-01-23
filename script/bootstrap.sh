@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 die() {
     echo >&2 "$@"
@@ -42,6 +42,7 @@ _cygwin_error() {
     echo
     echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
     echo "    gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
+    echo "After installing the packages, re-run this bootstrap script."
     die
 }
 
@@ -101,7 +102,15 @@ fi
 
 echo "Updating Git submodules..."
 
-git submodule update --init --quiet
+if ! git submodule update --init --quiet; then
+    echo "Unable to update git submodules - try running \"git submodule update\" to see the full error"
+    echo "If git complains that it \"Needed a single revision\", run \"rm -rf src/libs\" and then try the bootstrap script again"
+    if [ $OS == "cygwin" ]; then
+        echo "In Cygwin this may be true (ignore if you know ca-certifications is installed:"
+        _cygwin_error "ca-certificates"
+    fi
+    die
+fi
 
 echo "Storing all downloaded dependencies in the \"dependencies\" folder"
 
@@ -202,38 +211,43 @@ fi
 
 ## FTDI library for programming chipKIT
 
-FTDI_DRIVER_FILE="DM20824_Setup.exe"
-FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/CDM/$FTDI_DRIVER_FILE"
-
-_pushd $DEPENDENCIES_FOLDER
-if ! test -e $FTDI_DRIVER_FILE
-then
-    echo "Downloading FTDI USB driver..."
-    download $FTDI_DRIVER_URL $FTDI_DRIVER_FILE
-fi
-
 if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
 
     if [ $OS == "cygwin" ]; then
-        chmod a+x $FTDI_DRIVER_FILE
-        INSTALL_COMMAND="cygstart.exe $FTDI_DRIVER_FILE"
+        FTDI_DRIVER_FILE="DM20824_Setup.exe"
+        FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/CDM/$FTDI_DRIVER_FILE"
         INSTALLED_FTDI_PATH="/cygdrive/c/Windows/System32/DriverStore/FileRepository"
         INSTALLED_FTDI_FILE="ftser2k.sys"
     elif [ $OS == "mac" ]; then
-        # TODO install from dng
-        echo
+        FTDI_DRIVER_FILE="FTDIUSBSerialDriver_v2_2_18.dmg"
+        FTDI_DRIVER_URL="http://www.ftdichip.com/Drivers/VCP/MacOSX/$FTDI_DRIVER_FILE"
+        INSTALLED_FTDI_PATH=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/
+        INSTALLED_FTDI_FILE=Info.plist
+    fi
+
+    _pushd $DEPENDENCIES_FOLDER
+    if ! test -e $FTDI_DRIVER_FILE
+    then
+        echo "Downloading FTDI USB driver..."
+        download $FTDI_DRIVER_URL $FTDI_DRIVER_FILE
     fi
 
     if [ -z "$(find $INSTALLED_FTDI_PATH -name $INSTALLED_FTDI_FILE | head -n 1)" ]; then
-        $INSTALL_COMMAND
 
         if [ $OS == "cygwin" ]; then
+            chmod a+x $FTDI_DRIVER_FILE
+            cygstart.exe $FTDI_DRIVER_FILE
             echo -n "Press Enter when the FTDI USB driver installer is finished"
             read
+        elif [ $OS == "mac" ]; then
+            hdiutil attach $FTDI_DRIVER_FILE
+            FTDI_VOLUME="/Volumes/FTDIUSBSerialDriver_v2_2_18"
+            sudo installer -pkg $FTDI_VOLUME/FTDIUSBSerialDriver_10_4_10_5_10_6_10_7.mpkg -target /
+            hdiutil detach $FTDI_VOLUME
         fi
     fi
+    _popd
 fi
-_popd
 
 ## chipKIT libraries for USB, CAN and Ethernet
 
@@ -391,15 +405,15 @@ fi
 
 FTDI_USB_DRIVER_PLIST=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
 if [ -z $CI ]  && [ $OS == "mac" ] && [ -e $FTDI_USB_DRIVER_PLIST ]; then
-    if grep -q Olimex $FTDI_USB_DRIVER_PLIST; then
+    if grep -q "Olimex OpenOCD JTAG A" $FTDI_USB_DRIVER_PLIST; then
         sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
+        FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
+        # Driver may not be loaded yet, but that's OK - don't exit on error.
+        set +e
+        sudo kextunload $FTDI_USB_DRIVER_MODULE
+        set -e
+        sudo kextload $FTDI_USB_DRIVER_MODULE
     fi
-    FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
-    # Driver may not be loaded yet, but that's OK - don't exit on error.
-    set +e
-    sudo kextunload $FTDI_USB_DRIVER_MODULE
-    set -e
-    sudo kextload $FTDI_USB_DRIVER_MODULE
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
@@ -407,7 +421,6 @@ if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
 fi
 
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
-
     echo "Installing the check unit testing library..."
 
     if [ $OS == "cygwin" ]; then
@@ -429,13 +442,8 @@ if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
             fi
         fi
     elif [ $OS == "mac" ]; then
-        # brew exists with 1 if it's already installed
-        set +e
-        brew install check
-        set -e
+        _install check
     fi
-elif [ $OS == "mac" ]; then
-    _install check
 fi
 
 if ! command -v python >/dev/null 2>&1; then

@@ -38,6 +38,12 @@ elif [ $KERNEL == "Darwin" ]; then
     OS="mac"
 else
     OS="linux"
+    if ! command -v lsb_release >/dev/null 2>&1; then
+        if command -v pacman>/dev/null 2>&1; then
+            sudo pacman -S lsb-release
+        fi
+    fi
+
     DISTRO=`lsb_release -si`
 fi
 

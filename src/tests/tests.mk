@@ -50,7 +50,7 @@ endif
 ifneq ($(OSTYPE),Darwin)
 	OSTYPE := $(shell uname -o)
 	ifeq ($(OSTYPE),Cygwin)
-		TEST_SCRIPT_PREFIX = "set -o igncr && export SHELLOPTS &&"
+		TEST_SET_OPTS = igncr
 	endif
 endif
 
@@ -62,7 +62,9 @@ unit_tests: CC_SYMBOLS = -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
-	@$(TEST_SCRIPT_PREFIX) sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
+	@set -o $(TEST_SET_OPTS)
+	@export SHELLOPTS
+	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
 blueboard_test:
 	PLATFORM=BLUEBOARD make -j4 emulator

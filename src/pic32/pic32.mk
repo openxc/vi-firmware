@@ -8,6 +8,19 @@ endif
 
 DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
 
+ifneq ($(OSTYPE),Darwin)
+	OSTYPE := $(shell uname -o)
+	ifeq ($(OSTYPE),Cygwin)
+		# The compiler expects windows-style paths, but the user typically
+		# provides a UNIX style path as the MPIDE_DIR. We could convert it with
+		# cygpath, but it's hard to do so reliable and it screws up all of the
+		# calls to "test" littered throughout these Makefiles. So, we're going
+		# to require MPIDE to be installed in the dependencies directory to we
+		# can use a relative path.
+		MPIDE_DIR =
+	endif
+endif
+
 ifdef MPIDE_DIR
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 

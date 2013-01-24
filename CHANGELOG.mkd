@@ -1,6 +1,14 @@
 # OpenXC CAN Translator Changelog
 
-## v2.1-dev
+## v2.1.1
+
+* Add bootstrap script to help new developers set up the build environment.
+* Add support for building from source in Windows (with Cygwin)
+* Support scripts in root directory are not moved to `script` subdirectory
+* JSON mapping format now expects message ID in hex (e.g. "0x80") instead of
+  decimal.
+
+## v2.1
 
 * Add Ethernet support on the chipKIT (thanks Ewgenij!)
 

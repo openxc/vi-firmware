@@ -102,6 +102,8 @@ fi
 
 echo "Updating Git submodules..."
 
+# git submodule update is a shell script and expects some lines to fail
+set +e
 if ! git submodule update --init --quiet; then
     echo "Unable to update git submodules - try running \"git submodule update\" to see the full error"
     echo "If git complains that it \"Needed a single revision\", run \"rm -rf src/libs\" and then try the bootstrap script again"
@@ -111,6 +113,7 @@ if ! git submodule update --init --quiet; then
     fi
     die
 fi
+set -e
 
 echo "Storing all downloaded dependencies in the \"dependencies\" folder"
 

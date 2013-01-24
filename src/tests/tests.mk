@@ -54,7 +54,7 @@ unit_tests: CC_SYMBOLS = -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
-	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
+	@set -o igncr && export SHELLOPTS && sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
 blueboard_test:
 	PLATFORM=BLUEBOARD make -j4 emulator

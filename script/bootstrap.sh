@@ -161,7 +161,7 @@ fi
 
 echo "Installing dependencies for building for chipKIT Max32 platform"
 
-if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
+if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
 
     if [ $OS == "cygwin" ]; then
         MPIDE_BASENAME="mpide-0023-windows-20120903"

@@ -22,14 +22,19 @@ TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
 
 .PRECIOUS: $(TESTABLE_OBJS) $(TESTS:.bin=.o)
 
+RED="$${txtbld}$$(tput setaf 1)"
+GREEN="$${txtbld}$$(tput setaf 2)"
+COLOR_RESET=$$(tput sgr0)
+
 test: unit_tests
 	@make pic32_compile_test
 	@make lpc17xx_compile_test
-	@make blueboard_test
+	@make ford_test
 	@make emulator_test
 	@make uart_compile_test
 	@make debug_compile_test
 	@make ethernet_compile_test
+	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
 # gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
@@ -65,39 +70,55 @@ unit_tests: CC_SYMBOLS = -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
-	@set -o $(TEST_SET_OPTS)
+	@set -o $(TEST_SET_OPTS) >/dev/null 2>&1
 	@export SHELLOPTS
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
-blueboard_test:
-	PLATFORM=BLUEBOARD make -j4 emulator
-	@make clean
-
 emulator_test:
-	make -j4 emulator
+	@echo -n "Testing CAN emulator build for chipKIT..."
+	@make -j4 emulator
 	@make clean
-	PLATFORM=FORD make -j4 emulator
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+	@echo -n "Testing CAN emulator build for Blueboard ARM board..."
+	@PLATFORM=BLUEBOARD make -j4 emulator
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 debug_compile_test: code_generation_test
-	DEBUG=1 make -j4
+	@echo -n "Testing build with DEBUG=1 flag..."
+	@DEBUG=1 make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 uart_compile_test: code_generation_test
-	USE_UART=1 make -j4
+	@echo -n "Testing build with USE_UART=1 flag..."
+	@USE_UART=1 make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 ethernet_compile_test: code_generation_test
-	USE_ETHERNET=1 make -j4
+	@echo -n "Testing build with USE_ETHERNET=1 flag..."
+	@USE_ETHERNET=1 make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 pic32_compile_test: code_generation_test
-	make -j4
+	@echo -n "Testing chipKIT build with example vehicle signals..."
+	@make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 lpc17xx_compile_test: code_generation_test
-	PLATFORM=FORD make -j4
+	@echo -n "Testing Blueboard board build with example vehicle signals..."
+	@PLATFORM=BLUEBOARD make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+ford_test:
+	@echo -n "Testing Ford board build with example vehicle signals..."
+	@PLATFORM=FORD make -j4 emulator
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 code_generation_test:
 	@make clean
@@ -118,6 +139,7 @@ coverage:
 	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
 	@genhtml -o $(TEST_OBJDIR)/coverage -t "cantranslator test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
 	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
+	@echo "$(GREEN)Coverage information generated in $(TEST_OBJDIR)/coverage/index.html.$(COLOR_RESET)"
 
 $(TEST_OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

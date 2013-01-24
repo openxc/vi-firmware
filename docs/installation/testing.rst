@@ -77,7 +77,7 @@ Running the Suite
 
 .. code-block:: sh
 
-    cantranslator/src $ make clean && make test
+    cantranslator/src $ make clean && make test -s
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
 

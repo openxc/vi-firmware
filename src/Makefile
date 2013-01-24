@@ -1,5 +1,8 @@
 SYMBOLS =
 
+GREEN="$${txtbld}$$(tput setaf 2)"
+COLOR_RESET=$$(tput sgr0)
+
 BASE_TARGET = cantranslator
 OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
@@ -48,6 +51,14 @@ emulator: all
 
 transmitter: SYMBOLS += TRANSMITTER
 transmitter: all
+
+.DEFAULT_GOAL = custom_all
+
+custom_all_prefix:
+	@echo "Compiling..."
+
+custom_all: custom_all_prefix all
+	@echo "$(GREEN)Compiled successfully.$(COLOR_RESET)"
 
 clean::
 	rm -rf $(OBJDIR_ROOT)/*

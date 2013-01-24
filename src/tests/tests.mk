@@ -27,6 +27,9 @@ test: unit_tests
 	@make lpc17xx_compile_test
 	@make blueboard_test
 	@make emulator_test
+	@make uart_compile_test
+	@make debug_compile_test
+	@make ethernet_compile_test
 
 ifeq ($(OSTYPE),Darwin)
 # gcc/g++ are the LLVM versions in OS X, which don't have coverage. must

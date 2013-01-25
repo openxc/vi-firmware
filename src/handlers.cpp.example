@@ -6,22 +6,6 @@ void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals
     sendNumericalMessage("latitude", 42.0, listener);
 }
 
-bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
-        CanSignal* signals, int signalCount) {
-    const char* direction = value->valuestring;
-    CanSignal* signal = NULL;
-    if(!strcmp("left", direction)) {
-        signal = lookupSignal("turn_signal_left", signals, signalCount);
-    } else if(!strcmp("right", direction)) {
-        signal = lookupSignal("turn_signal_right", signals, signalCount);
-    }
-    if(signal != NULL) {
-        return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
-                signals, signalCount);
-    }
-    return false;
-}
-
 float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     return value * -1;

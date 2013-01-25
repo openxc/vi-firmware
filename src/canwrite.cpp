@@ -119,6 +119,8 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(send) {
         enqueueCanMessage(signal->message, data);
+    } else {
+        debug("Writing not allowed for signal with name %s\r\n", signal->genericName);
     }
     return send;
 }

@@ -55,7 +55,8 @@ OS X
 4. Install Git with Homebrew (``brew install git``) and clone the `cantranslator
    <https://github.com/openxc/cantranslator>`_ repository: ``git clone
    https://github.com/openxc/cantranslator``
-5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
+5. Run ``set -o igncr && export SHELLOPTS && script/bootstrap.sh`` from the
+   ``cantranslator`` directory.
 6. If there were no errors, you are ready to
    :doc:`compile <compiling>`. If there are errors, follow the recommendations
    in the error messages. You may need to manually install the dependencies if

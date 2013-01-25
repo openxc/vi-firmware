@@ -211,7 +211,7 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
 bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send);
 
-bool handleTurnSignalCommand(char* name, cJSON* value, CanSignal* signals,
-        int signalCount);
+bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
+        CanSignal* signals, int signalCount);
 
 #endif // _SHARED_HANDLERS_H_

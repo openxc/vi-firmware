@@ -179,7 +179,6 @@ START_TEST (test_send_with_custom_with_states)
 }
 END_TEST
 
-
 uint64_t customStateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
     *send = false;
@@ -192,6 +191,15 @@ START_TEST (test_send_with_custom_says_no_send)
                 cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
                 SIGNALS, SIGNAL_COUNT));
     fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_force_send)
+{
+    fail_if(sendCanSignal(&SIGNALS[1],
+                cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
+                SIGNALS, SIGNAL_COUNT, true));
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &SIGNALS[1].message->bus->sendQueue));
 }
 END_TEST
 
@@ -262,6 +270,7 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_enqueue, test_send_with_null_writer);
     tcase_add_test(tc_enqueue, test_send_with_custom_with_states);
     tcase_add_test(tc_enqueue, test_send_with_custom_says_no_send);
+    tcase_add_test(tc_enqueue, test_force_send);
     suite_add_tcase(s, tc_enqueue);
 
     TCase *tc_write = tcase_create("write");

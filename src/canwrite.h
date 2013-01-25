@@ -120,8 +120,19 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  * writer - A function to convert from the cJSON value to an encoded uint64_t.
  * signals - An array of all CAN signals.
  * signalCount - The size of the signals array.
+ * force - true if the signals should be sent regardless of the writable status
+ *         in the CAN message structure.
  *
  * Returns true if the message was sent successfully.
+ */
+bool sendCanSignal(CanSignal* signal, cJSON* value,
+        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        CanSignal* signals, int signalCount, bool force);
+
+/* Public: Write a CAN signal with the given value to the bus.
+ *
+ * Just like the above function sendCanSignal(), but the value of force defaults
+ * to false.
  */
 bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
@@ -133,6 +144,14 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
  * but uses the CanSignal's value for "writeHandler" instead.
  *
  * See above for argument descriptions.
+ */
+bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+        int signalCount, bool force);
+
+/* Public: Write a CAN signal with the given value to the bus.
+ *
+ * Just like the above function sendCanSignal(), but the value of force defaults
+ * to false.
  */
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount);

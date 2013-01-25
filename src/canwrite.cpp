@@ -99,14 +99,24 @@ void enqueueCanMessage(CanMessage* message, uint64_t data) {
 
 bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount) {
-    uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*)
-        = signal->writeHandler;
-    return sendCanSignal(signal, value, writer, signals, signalCount);
+    return sendCanSignal(signal, value, signals, signalCount, false);
+}
+
+bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+        int signalCount, bool force) {
+    return sendCanSignal(signal, value, signal->writeHandler, signals,
+            signalCount, force);
 }
 
 bool sendCanSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
+    return sendCanSignal(signal, value, writer, signals, signalCount, false);
+}
+
+bool sendCanSignal(CanSignal* signal, cJSON* value,
+        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        CanSignal* signals, int signalCount, bool force) {
     if(writer == NULL) {
         if(signal->stateCount > 0) {
             writer = stateWriter;
@@ -117,7 +127,7 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
 
     bool send = true;
     uint64_t data = writer(signal, signals, signalCount, value, &send);
-    if(send) {
+    if(force || send) {
         enqueueCanMessage(signal->message, data);
     } else {
         debug("Writing not allowed for signal with name %s\r\n", signal->genericName);

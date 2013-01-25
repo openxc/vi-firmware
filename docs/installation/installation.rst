@@ -13,54 +13,84 @@ Quick Start
 Linux
 -----
 
-1. If your network uses an Internet proxy (e.g. a corporate network) set the
-   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
-2. Install Git from your distribution's package manager and clone the
-   `cantranslator <https://github.com/openxc/cantranslator>`_ repository: ``git
-   clone https://github.com/openxc/cantranslator``
-3. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
-4. If there were no errors, you are ready to
-   :doc:`compile <compiling>`. If there are errors, follow the recommendations
-   in the error messages. You may need to manually install the dependencies if
-   your environment is not in a predictable state.
+1. Install Git from your distribution's package manager.
 
-The ``bootstrap.sh`` script is tested in Ubuntu 12.04 and Arch Linux - other
-distributions will need to install the dependencies manually.
+   Ubuntu:
+
+  .. code-block:: sh
+
+    $ sudo apt-get install git
+
+  Arch Linux:
+
+  .. code-block:: sh
+
+    $ [sudo] pacman -S git
+
+2. Continue to the :ref:`all platforms <all-platforms>` section.
 
 Windows
 -------
 
 1. Install `Cygwin <http://www.cygwin.com>`_ and in the installer, select the
-   following packages ``gcc4, patchutils, git, unzip, python, python-argparse,
-   check, curl, libsasl2, ca-certificates``
+   following packages:
+
+  ``gcc4, patchutils, git, unzip, python, python-argparse, check, curl,
+  libsasl2, ca-certificates``
+
 2. Start a Cygwin Terminal.
-3. If your network uses an Internet proxy (e.g. a corporate network) set the
-   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
-4. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
-   repository: ``git clone https://github.com/openxc/cantranslator``
-5. Run ``script/bootstrap.sh`` from the ``cantranslator`` directory.
-6. If there were no errors, you are ready to
-   :doc:`compile <compiling>`. If there are errors, follow the recommendations
-   in the error messages. You may need to manually install the dependencies if
-   your environment is not in a predictable state.
+3. Configure the terminal to ignore Windows-style line endings in scripts:
+
+  .. code-block:: sh
+
+    $ set -o igncr && export SHELLOPTS
+
+4. Continue to the :ref:`all platforms <all-platforms>` section.
+
 
 OS X
 --------
 
 1. Open the Terminal app.
-2. If your network uses an Internet proxy (e.g. a corporate network) set the
-   ``http_proxy`` environment variable: ``export http_proxy=<your proxy>``
-3. Install `Homebrew <http://mxcl.github.com/homebrew/>`_:
+2. Install `Homebrew <http://mxcl.github.com/homebrew/>`_:
    ``ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"``
-4. Install Git with Homebrew (``brew install git``) and clone the `cantranslator
-   <https://github.com/openxc/cantranslator>`_ repository: ``git clone
-   https://github.com/openxc/cantranslator``
-5. Run ``set -o igncr && export SHELLOPTS && script/bootstrap.sh`` from the
-   ``cantranslator`` directory.
-6. If there were no errors, you are ready to
-   :doc:`compile <compiling>`. If there are errors, follow the recommendations
-   in the error messages. You may need to manually install the dependencies if
-   your environment is not in a predictable state.
+3. Install Git with Homebrew (``brew install git``).
+4. Continue to the :ref:`all platforms <all-platforms>` section.
+
+.. _all-platforms:
+
+All Platforms
+-------------
+
+1. If your network uses an Internet proxy (e.g. a corporate network) set the
+   ``http_proxy`` environment variable:
+
+  .. code-block:: sh
+
+    $ export http_proxy=<your proxy>
+
+2. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
+   repository:
+
+  .. code-block:: sh
+
+    $ git clone https://github.com/openxc/cantranslator
+
+3. Run the ``bootstrap.sh`` script:
+
+  .. code-block:: sh
+
+    $ cd cantranslator
+    $ script/bootstrap.sh
+
+4. If there were no errors, you are ready to :doc:`compile <compiling>`. If
+   there are errors, follow the recommendations in the error messages. You may
+   need to manually install the dependencies if your environment is not in a
+   predictable state.
+
+The ``bootstrap.sh`` script is tested in Cygwin, OS X Mountain Lion, Ubuntu
+12.04 and Arch Linux - other operating systems may need to install the
+dependencies manually.
 
 Dependencies
 ============

@@ -126,7 +126,7 @@ code_generation_test:
 	../script/generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
     # Ideally we would symlink these files, but symlinks don't work well in Cygwin
 	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
-	@rm handlers.h handlers.cpp
+	@rm -f handlers.h handlers.cpp
 	@cp handlers.cpp.example handlers.cpp
 	@cp handlers.h.example handlers.h
 

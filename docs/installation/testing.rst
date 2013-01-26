@@ -103,7 +103,7 @@ When compiled with ``DEBUG=1``, two things happen:
 - Log messages will be output over a UART port (no hardware flow control is
   required)
 
-    - On the chipKIT Max32, logging will be on UART2 (Pin 17 - Rx, Pin 18 - Tx)
+    - On the chipKIT Max32, logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx)
       at 115200 baud.
     - On the Blueboard LPC1768H, logging will be on UART0 (Pin P0.3 - Rx, Pin
       P0.2 - Tx) at 115200 baud.

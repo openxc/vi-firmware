@@ -214,4 +214,7 @@ bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         CanSignal* signals, int signalCount);
 
+void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener);
+
 #endif // _SHARED_HANDLERS_H_

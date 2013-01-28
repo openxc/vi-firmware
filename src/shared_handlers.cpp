@@ -124,7 +124,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
             signals, signalCount);
 
     if(steeringAngleSign == NULL) {
-        debug("Unable to find stering wheel angle sign signal");
+        debug("Unable to find stering wheel angle sign signal\r\n");
         *send = false;
     } else {
         if(steeringAngleSign->lastValue == 0) {
@@ -153,7 +153,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
             signalCount);
 
     if(buttonTypeSignal == NULL || buttonStateSignal == NULL) {
-        debug("Unable to find button type and state signals");
+        debug("Unable to find button type and state signals\r\n");
         return;
     }
 
@@ -161,10 +161,19 @@ void handleButtonEventMessage(int messageId, uint64_t data,
     float rawButtonState = decodeCanSignal(buttonStateSignal, data);
 
     bool send = true;
-    const char* buttonType = stateHandler(buttonTypeSignal, signals, signalCount,
-            rawButtonType, &send);
-    const char* buttonState = stateHandler(buttonStateSignal, signals, signalCount,
-            rawButtonState, &send);
+    const char* buttonType = stateHandler(buttonTypeSignal, signals,
+            signalCount, rawButtonType, &send);
+    if(!send || buttonType == NULL) {
+        debug("Unable to find button type corresponding to %f\r\n", rawButtonType);
+        return;
+    }
+
+    const char* buttonState = stateHandler(buttonStateSignal, signals,
+            signalCount, rawButtonState, &send);
+    if(!send || buttonState == NULL) {
+        debug("Unable to find button state corresponding to %f\r\n", rawButtonState);
+        return;
+    }
 
     if(send) {
         sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
@@ -186,7 +195,7 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
                 signals, signalCount, true);
     } else {
-        debug("Unable to find signal for %s turn signal", direction);
+        debug("Unable to find signal for %s turn signal\r\n", direction);
     }
     return false;
 }

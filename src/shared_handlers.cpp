@@ -175,10 +175,8 @@ void handleButtonEventMessage(int messageId, uint64_t data,
         return;
     }
 
-    if(send) {
-        sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
-                buttonState, listener);
-    }
+    sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
+            buttonState, listener);
 }
 
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,

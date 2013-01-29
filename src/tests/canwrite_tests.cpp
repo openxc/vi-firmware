@@ -48,13 +48,12 @@ void setup() {
 START_TEST (test_number_writer)
 {
     bool send = true;
-    uint64_t value = numberWriter(&SIGNALS[0], SIGNALS,
-            SIGNAL_COUNT, cJSON_CreateNumber(0xa), &send);
+    uint64_t value = numberWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0xa,
+            &send);
     ck_assert_int_eq(value, 0x1e00000000000000LLU);
     fail_unless(send);
 
-    value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateNumber(0x6), &send);
+    value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 0x6, &send);
     ck_assert_int_eq(value, 0x6000000000000000LLU);
     fail_unless(send);
 }
@@ -63,13 +62,12 @@ END_TEST
 START_TEST (test_boolean_writer)
 {
     bool send = true;
-    uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateBool(true), &send);
+    uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
+            &send);
     ck_assert_int_eq(value, 0x8000000000000000LLU);
     fail_unless(send);
 
-    value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateBool(false), &send);
+    value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, false, &send);
     ck_assert_int_eq(value, 0x0000000000000000LLU);
     fail_unless(send);
 }
@@ -103,8 +101,7 @@ START_TEST (test_write_not_allowed)
 {
     bool send = true;
     SIGNALS[1].writable = false;
-    numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, cJSON_CreateNumber(0x6),
-            &send);
+    numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 0x6, &send);
     fail_if(send);
 }
 END_TEST

@@ -38,13 +38,12 @@ uint64_t encodeCanSignal(CanSignal* signal, float value);
  */
 uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data);
 
-/* Public: Interpret the JSON value as a number and write it to the correct
- * bitfield for the given signal.
+/* Public: Write the given number to the correct bitfield for the given signal.
  *
  * signal - The signal associated with the value.
  * signals - An array of all CAN signals.
  * signalCount - The size of the CAN signals array.
- * value - The JSON object to write. The value will be interpreted as a double.
+ * value - The value to write.
  * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
@@ -52,8 +51,26 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data);
  * encoded value.
  */
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, double value, bool* send);
+
+/* Public: The same as numberWriter(CanSignal*, CanSignal*, int, double, bool*),
+ * but use the data argument as a starting point instead of 0x0.
+ *
+ * This is useful if you are composing a complete CAN message from multiple
+ * signal writers.
+ */
+uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, double value, bool* send, uint64_t data);
+
+/* Public: Interpret the JSON value as a double, then do the same as
+ * numberWriter(CanSignal*, CanSignal*, int, double, bool*).
+ */
+uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+/* Public: Interpret the JSON value as a double, then do the same as
+ * numberWriter(CanSignal*, CanSignal*, int, double, bool*, uint64_t).
+ */
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data);
 
@@ -74,26 +91,32 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, const char* value, bool* send);
 
+/* Public: The same as stateWriter(CanSignal*, CanSignal*, int, const char*,
+ * bool*), but use the data argument as the starting point for the CAN message
+ * instead of 0x0.
+ */
+uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, bool* send, uint64_t data);
+
 /* Public: Interpret the JSON value as a string, then do the same as
  * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
  */
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+/* Public: Interpret the JSON value as a string, then do the same as
+ * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*, uint64_t).
+ */
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data);
 
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send, uint64_t data);
-
-/* Public: Interpret the JSON value as a boolean and write it to the correct
- * bitfield for the given signal. This will write either a 0 or 1.
+/* Public: Write the given boolean value to the correct bitfield for the given
+ * signal. This will write either a 0 or 1.
  *
  * signal - The signal associated with the value.
  * signals - An array of all CAN signals.
  * signalCount - The size of the CAN signals array.
- * value - The JSON object to write. The value will be interpreted as a integer
- *      that represents a boolean.
+ * value - The boolean to write.
  * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
@@ -101,8 +124,24 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
  * encoded value.
  */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, bool value, bool* send);
+
+/* Public: The same as booleanWriter(CanSignal*, CanSignal*, int, bool, bool*),
+ * but use the data argument as the starting point for the CAN message instead
+ * of 0x0.
+ */
+uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, bool value, bool* send, uint64_t data);
+
+/* Public: Interpret the JSON value as a boolean, then do the same as
+ * numberWriter(CanSignal*, CanSignal*, int, bool, bool*).
+ */
+uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
 
+/* Public: Interpret the JSON value as a boolean, then do the same as
+ * numberWriter(CanSignal*, CanSignal*, int, bool, bool*, uint64_t).
+ */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send, uint64_t data);
 

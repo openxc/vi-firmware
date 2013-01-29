@@ -47,7 +47,6 @@ Windows
 
 4. Continue to the :ref:`all platforms <all-platforms>` section.
 
-
 OS X
 --------
 
@@ -63,11 +62,12 @@ All Platforms
 -------------
 
 1. If your network uses an Internet proxy (e.g. a corporate network) set the
-   ``http_proxy`` environment variable:
+   ``http_proxy`` and ``https_proxy`` environment variables:
 
   .. code-block:: sh
 
     $ export http_proxy=<your proxy>
+    $ export https_proxy=<your proxy>
 
 2. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
    repository:

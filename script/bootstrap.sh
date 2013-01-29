@@ -401,7 +401,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
         set -e
     elif [ $OS == "cygwin" ]; then
         echo
-        echo "Missing OpenOCD and it's not trivial to install in Windows - you won't be able to program the ARM platform"
+        echo "Missing OpenOCD and it's not trivial to install in Windows - you won't be able to program the ARM platform (not required for the chipKIT translator)"
     fi
     _popd
 fi

@@ -8,6 +8,7 @@ endif
 
 DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
 
+OSTYPE := $(shell uname)
 ifneq ($(OSTYPE),Darwin)
 	OSTYPE := $(shell uname -o)
 	ifeq ($(OSTYPE),Cygwin)

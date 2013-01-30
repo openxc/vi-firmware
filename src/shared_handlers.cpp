@@ -8,9 +8,16 @@ float fuelConsumedSinceRestartLiters = 0;
 
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {
+    if(signal == NULL) {
+        debug("Specific door signal for ID %s is NULL, vehicle may not support",
+                doorId);
+        return;
+    }
+
     float rawAjarStatus = decodeCanSignal(signal, data);
     bool send = true;
-    bool ajarStatus = booleanHandler(NULL, signals, signalCount, rawAjarStatus, &send);
+    bool ajarStatus = booleanHandler(NULL, signals, signalCount, rawAjarStatus,
+            &send);
 
     if(send && (signal->sendSame || !signal->received ||
                 rawAjarStatus != signal->lastValue)) {
@@ -19,6 +26,22 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
                 listener);
     }
     signal->lastValue = rawAjarStatus;
+}
+
+void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    sendDoorStatus("driver", data,
+            lookupSignal("driver_door", signals, signalCount),
+            signals, signalCount, listener);
+    sendDoorStatus("passenger", data,
+            lookupSignal("passenger_door", signals, signalCount),
+            signals, signalCount, listener);
+    sendDoorStatus("rear_right", data,
+            lookupSignal("rear_right_door", signals, signalCount),
+            signals, signalCount, listener);
+    sendDoorStatus("rear_left", data,
+            lookupSignal("rear_left_door", signals, signalCount),
+            signals, signalCount, listener);
 }
 
 float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
@@ -63,14 +86,14 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
     return fuelConsumedSinceRestartLiters;
 }
 
-float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);
 }
 
-float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_UL);
 }
@@ -124,7 +147,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
             signals, signalCount);
 
     if(steeringAngleSign == NULL) {
-        debug("Unable to find stering wheel angle sign signal");
+        debug("Unable to find stering wheel angle sign signal\r\n");
         *send = false;
     } else {
         if(steeringAngleSign->lastValue == 0) {
@@ -153,7 +176,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
             signalCount);
 
     if(buttonTypeSignal == NULL || buttonStateSignal == NULL) {
-        debug("Unable to find button type and state signals");
+        debug("Unable to find button type and state signals\r\n");
         return;
     }
 
@@ -161,15 +184,24 @@ void handleButtonEventMessage(int messageId, uint64_t data,
     float rawButtonState = decodeCanSignal(buttonStateSignal, data);
 
     bool send = true;
-    const char* buttonType = stateHandler(buttonTypeSignal, signals, signalCount,
-            rawButtonType, &send);
-    const char* buttonState = stateHandler(buttonStateSignal, signals, signalCount,
-            rawButtonState, &send);
-
-    if(send) {
-        sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
-                buttonState, listener);
+    const char* buttonType = stateHandler(buttonTypeSignal, signals,
+            signalCount, rawButtonType, &send);
+    if(!send || buttonType == NULL) {
+        debug("Unable to find button type corresponding to %f\r\n",
+                rawButtonType);
+        return;
     }
+
+    const char* buttonState = stateHandler(buttonStateSignal, signals,
+            signalCount, rawButtonState, &send);
+    if(!send || buttonState == NULL) {
+        debug("Unable to find button state corresponding to %f\r\n",
+                rawButtonState);
+        return;
+    }
+
+    sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
+            buttonState, listener);
 }
 
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
@@ -186,7 +218,7 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
                 signals, signalCount, true);
     } else {
-        debug("Unable to find signal for %s turn signal", direction);
+        debug("Unable to find signal for %s turn signal\r\n", direction);
     }
     return false;
 }

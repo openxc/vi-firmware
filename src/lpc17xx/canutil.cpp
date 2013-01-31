@@ -45,8 +45,17 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_ConfigPin(&PinCfg);
 }
 
+void configureTransceiver() {
+    // make P0.19 high to make sure the TJ1048T is awake
+    LPC_GPIO0->FIODIR |= 1 << 19;
+    LPC_GPIO0->FIOPIN |= 1 << 19;
+    LPC_GPIO0->FIODIR |= 1 << 6;
+    LPC_GPIO0->FIOPIN |= 1 << 6;
+}
+
 void initializeCan(CanBus* bus) {
     configureCanControllerPins(CAN_CONTROLLER(bus));
+    configureTransceiver();
 
     CAN_Init(CAN_CONTROLLER(bus), bus->speed);
     CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);

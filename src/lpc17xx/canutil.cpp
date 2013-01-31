@@ -27,7 +27,7 @@ CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     } else {
         debug("No filters configured, turning off acceptance filter\r\n");
         // disable acceptable filter so we get all messages
-        CAN_SetAFMode(LPC_CANAF, CAN_AccOff);
+        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
         return CAN_OK;
     }
 }

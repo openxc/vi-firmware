@@ -47,10 +47,10 @@ include tests/tests.mk
 
 emulator: SYMBOLS += CAN_EMULATOR
 emulator: BASE_TARGET = canemulator
-emulator: all
+emulator: custom_all
 
 transmitter: SYMBOLS += TRANSMITTER
-transmitter: all
+transmitter: custom_all
 
 .DEFAULT_GOAL = custom_all
 

@@ -11,7 +11,7 @@
 #define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 21 : 4)
 #define CAN_TX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 22 : 5)
 #define CAN_PORT_NUM(BUS) 0
-#define CAN_FUNCNUM 2
+#define CAN_FUNCNUM 3
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {

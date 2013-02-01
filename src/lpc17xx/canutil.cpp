@@ -15,12 +15,15 @@
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debug("Configuring %d filters...", filterCount);
-        // configure acceptance filter in bypass mode
+        debug("Configuring %d filters...\r\n", filterCount);
         CAN_SetAFMode(LPC_CANAF, CAN_Normal);
         CAN_ERROR result = CAN_OK;
         for(int i = 0; i < filterCount; i++) {
-            result = CAN_LoadFullCANEntry(CAN_CONTROLLER(bus), filters[i].value);
+            result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), filters[i].value,
+                    STD_ID_FORMAT);
+            if(result != CAN_OK) {
+                debug("Couldn't add message filter, error %d\r\n", result);
+            }
         }
         debug("Done.\r\n");
         return result;

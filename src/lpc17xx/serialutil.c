@@ -8,7 +8,7 @@
 
 // Only UART1 supports hardware flow control, so this has to be UART1
 #define UART1_DEVICE (LPC_UART_TypeDef*)LPC_UART1
-#define UART_BAUDRATE 921600
+#define UART_BAUDRATE 230000
 
 #ifdef BLUEBOARD
 
@@ -16,6 +16,8 @@
 #define UART1_PORTNUM 2
 #define UART1_TX_PINNUM 0
 #define UART1_RX_PINNUM 1
+#define UART1_FLOW_PORTNUM UART1_PORTNUM
+#define UART1_FLOW_FUNCNUM UART1_FUNCNUM
 #define UART1_CTS1_PINNUM 2
 #define UART1_RTS1_PINNUM 7
 
@@ -26,9 +28,10 @@
 #define UART1_PORTNUM 0
 #define UART1_TX_PINNUM 15
 #define UART1_RX_PINNUM 16
-// TODO these are incorrect because the layout doesn't connect the pins yet
-#define UART1_CTS1_PINNUM 2
-#define UART1_RTS1_PINNUM 7
+#define UART1_FLOW_PORTNUM 2
+#define UART1_FLOW_FUNCNUM 2
+#define UART1_RTS1_PINNUM 2
+#define UART1_CTS1_PINNUM 7
 
 #endif
 
@@ -113,7 +116,6 @@ void handleTransmitInterrupt() {
 void UART1_IRQHandler() {
     uint32_t interruptSource = UART_GetIntId(UART1_DEVICE)
         & UART_IIR_INTID_MASK;
-
     if(interruptSource == 0) {
         // Check Modem status
         uint8_t modemStatus = UART_FullModemGetStatus(LPC_UART1);
@@ -181,6 +183,9 @@ void configurePins() {
     PINSEL_ConfigPin(&PinCfg);
     PinCfg.Pinnum = UART1_RX_PINNUM;
     PINSEL_ConfigPin(&PinCfg);
+
+    PinCfg.Portnum = UART1_FLOW_PORTNUM;
+    PinCfg.Funcnum = UART1_FLOW_FUNCNUM;
     PinCfg.Pinnum = UART1_CTS1_PINNUM;
     PINSEL_ConfigPin(&PinCfg);
     PinCfg.Pinnum = UART1_RTS1_PINNUM;
@@ -219,6 +224,12 @@ void initializeSerial(SerialDevice* device) {
         configureFlowControl();
         configureInterrupts();
         CTS_STATE = ACTIVE;
+
+        // Configure P0.18 as an input, pulldown
+        LPC_PINCON->PINMODE1 |= (1 << 5);
+        // Ensure BT reset line is held high.
+        LPC_GPIO1->FIODIR |= (1 << 17);
+        LPC_GPIO1->FIOPIN |= (1 << 17);
     }
 }
 

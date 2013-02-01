@@ -33,7 +33,7 @@ Blueboard
 =========
 
 On the NGX Blueboard LPC1768-H, ``UART1`` is used for OpenXC output at the
-921600 baud rate. Like on the chipKIT, hardware flow control (RTS/CTS) is
+230000 baud rate. Like on the chipKIT, hardware flow control (RTS/CTS) is
 enabled, so CTS must be pulled low by the receiving device before data will be
 sent.
 

@@ -38,8 +38,11 @@ static void sendToHost(UsbDevice* usbDevice) {
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
+    // TODO theoretically this shouldn't need to be limited to 64 bytes, but I'm
+    // seeing memory corruption if we don't. is there another memory bug
+    // somewhere around here? ah, still get the memory bug but it happens later.
     while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)
-            && byteCount < USB_SEND_BUFFER_SIZE) {
+            && byteCount < USB_SEND_BUFFER_SIZE && byteCount < 64) {
         usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
     }
 

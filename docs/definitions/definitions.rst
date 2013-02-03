@@ -78,6 +78,13 @@ For example, if your mappings are in ``signals.json``:
 
     $ script/generate_code.py --json signals.json > signals.cpp
 
+If you used the ``xml_to_json.py`` script to convert an XML CAN database to
+JSON, make sure to provide both the converted file along with your mappings:
+
+.. code-block:: sh
+
+    $ script/generate_code.py --json signals.json --json mappings.json > signals.cpp
+
 Drop the new ``signals.cpp`` file in the ``src`` folder, and it should now
 :doc:`compile </installation/compiling>`. Don't add anything else to this file -
 it's derivative of the master JSON, and should be able to be wiped and recreated

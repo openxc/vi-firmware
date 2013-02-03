@@ -289,6 +289,10 @@ mapping file is ``mapping.json``, run the script:
 
     $ ./xml_to_json.py signals.xml mapping.json signals.json
 
-The script merges the two files, filling in the details of the CAN messages (bit
-position, bit size, offset, etc) in the JSON. The script creates the file
-``signals.json`` which will work as input to the code generation script.
+The script scans ``mapping.json`` to identify the CAN messages and
+signals that you want to use from the XML file. It pulls the neccessary details
+of the messages (bit position, bit size, offset, etc) and outputs the resulting
+subset as JSON into the output file, ``signals.json``.
+
+The resulting file together with ``mapping.json`` will work as input to the code
+generation script.

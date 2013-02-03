@@ -9,6 +9,10 @@ import sys
 import argparse
 
 
+def fatal_error(message):
+    sys.stderr.write("ERROR: %s" % message)
+    sys.exit(1)
+
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C source code from "
             "CAN signal descriptions in JSON")
@@ -263,8 +267,7 @@ class Parser(object):
 
     def print_source(self):
         if not self.validate_messages() or not self.validate_name():
-            sys.stderr.write("ERROR: unable to generate code")
-            sys.exit(1)
+            fatal_error("unable to generate code")
         self.print_header()
 
         print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
@@ -444,15 +447,18 @@ class JsonParser(Parser):
                 try:
                     data = json.load(json_file)
                 except ValueError as e:
-                    sys.stderr.write(
-                            "ERROR: %s does not contain valid JSON: \n%s\n"
-                            % (filename, e))
-                    sys.exit(1)
+                    fatal_error("%s does not contain valid JSON: \n%s\n" %
+                            (filename, e))
                 merged_dict = merge(merged_dict, data)
 
         self.commands = []
         for bus_address, bus_data in merged_dict.items():
-            self.buses[bus_address]['speed'] = bus_data['speed']
+            speed = bus_data.get('speed', None)
+            if speed is None:
+                fatal_error("Bus %s is missing the 'speed' attribute" %
+                        bus_address)
+                sys.exit(1)
+            self.buses[bus_address]['speed'] = speed
             self.buses[bus_address].setdefault('messages', [])
             for command_id, command_data in bus_data.get(
                     'commands', {}).items():

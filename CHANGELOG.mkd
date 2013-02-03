@@ -1,5 +1,11 @@
 # OpenXC CAN Translator Changelog
 
+## v2.1.2
+
+* Use bootstrap script when flashing binary firmware.
+* Refactor some custom message handlers
+* Avoid using cJSON in API for test suite
+
 ## v2.1.1
 
 * Add bootstrap script to help new developers set up the build environment.

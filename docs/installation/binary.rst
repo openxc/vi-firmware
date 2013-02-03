@@ -44,7 +44,7 @@ If you do not already have `MPIDE`_ installed (and that's fine, you don't really
 need it), you can install a programmer seprately:
 
 - Linux - Look for ``avrdude`` in your distribution's package manager.
-- OS X - Install ``avrdude`` with `Homebrew`_.
+- OS X - Install ``avrdude`` with `Homebrew`_ or `Macports`_.
 - Windows
    - If you prefer a GUI, install `WinAVR <http://winavr.sourceforge.net/>`_
    - If you prefer command line, install `Cygwin <http://cygwin.com>`_ and
@@ -52,6 +52,7 @@ need it), you can install a programmer seprately:
      environment variables.
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
+.. _`Macports`: http://www.macports.org/
 
 USB Cable
 ---------
@@ -90,6 +91,13 @@ and in Windows, if you needed to use ``com4`` instead of the default ``com3``:
 
    $ script/upload_hex.sh <the firmware file you downloaded>.hex com4
 
+** OSX (presumably linux as well) notes:**
+	avrdude needs to know where to find it's configuration file. There is a configuration
+	file inside the cantranslator directory. Export this setting before running avrdude.
+	
+	export AVRDUDE_CONF=cantranslator/conf/avrdude.conf
+	
+	
 **Windows notes:**
 
 In Windows, this command will only work in Cygwin, not the standard

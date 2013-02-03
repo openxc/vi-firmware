@@ -10,8 +10,8 @@ in `sample.json
 JSON Format
 ============
 
-The JSON object is a list of CAN buses (the ``0x102`` is a unique bus address
-and means it will use the "CAN2" module in the microcontroller, and whatever
+The JSON object is a list of CAN buses (the ``0x101`` is a unique bus address
+and means it will use the "CAN1" module in the microcontroller and whatever
 associated pins on the board), messages in each bus and a list of signals within
 each message.
 
@@ -19,7 +19,7 @@ CAN Bus
 -------
 
 The attributes of the CAN bus object (identified with the bus address in
-hex, e.g. ``0x102``):
+hex, i.e. only ``0x101`` and ``0x102`` are allowed):
 
 ``speed`` - The CAN bus speed in Kbps.
 

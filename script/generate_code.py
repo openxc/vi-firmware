@@ -9,8 +9,13 @@ import sys
 import argparse
 
 
+# Only works with 2 CAN buses since we are limited by 2 CAN controllers,
+# and we want to be a little careful that we always expect 0x101 to be
+# plugged into the CAN1 controller and 0x102 into CAN2.
+VALID_BUS_ADDRESSES = ("0x101", "0x102")
+
 def fatal_error(message):
-    sys.stderr.write("ERROR: %s" % message)
+    sys.stderr.write("ERROR: %s\n" % message)
     sys.exit(1)
 
 def parse_options():
@@ -95,9 +100,11 @@ class Message(object):
 
     @staticmethod
     def _lookupBusIndex(buses, bus_address):
-        for bus_number, candidate_bus_address in enumerate(("0x101", "0x102")):
+        for bus_number, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
             if candidate_bus_address == bus_address:
                 return bus_number
+        fatal_error("Bus address %s is invalid, only %s and %s are allowed" %
+                (bus_address, VALID_BUS_ADDRESSES[0], VALID_BUS_ADDRESSES[1]))
 
 
 class Signal(object):
@@ -272,10 +279,7 @@ class Parser(object):
 
         print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
-        # and we want to be a little careful that we always expect 0x101 to be
-        # plugged into the CAN1 controller and 0x102 into CAN2.
-        for bus_number, bus_address in enumerate(("0x101", "0x102")):
+        for bus_number, bus_address in enumerate(VALID_BUS_ADDRESSES):
             bus = self.buses.get(bus_address, None)
             if bus is not None:
                 self._print_bus_struct(bus_address, bus, bus_number + 1)

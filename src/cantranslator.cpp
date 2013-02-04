@@ -29,6 +29,7 @@ void loop() {
     }
 
     readFromHost(listener.usb, &receiveWriteRequest);
+    // TODO err, shouldn't this have a &?
     readFromSerial(listener.serial, receiveWriteRequest);
     readFromSocket(listener.ethernet, &receiveWriteRequest);
 
@@ -58,32 +59,6 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     enqueueCanMessage(&message, strtoull(dataString, &end, 16));
 }
 
-/* The binary format handled by this function is as follows:
- *
- * A leading '{' followed by a 2 byte message ID, then a '|' separator and
- * finally 8 bytes of data and a trailing '}'. E.g.:
- *
- * {<4 byte ID>|<8 bytes of data>}
- */
-void receiveBinaryWriteRequest(uint8_t* message) {
-    const int BINARY_CAN_WRITE_PACKET_LENGTH = 15;
-    if(message[0] != '{' || message[5] != '|' || message[14] != '}') {
-        debug("Received a corrupted CAN message: ");
-        for(int i = 0; i <= BINARY_CAN_WRITE_PACKET_LENGTH; i++) {
-            debug("%02x ", message[i] );
-        }
-        debug("\r\n");
-        return;
-    }
-
-    CanMessage outgoing = {0, 0};
-    memcpy((uint8_t*)&outgoing.id, &message[1], 2);
-    for(int i = 0; i < 8; i++) {
-        ((uint8_t*)&(outgoing.data))[i] = message[i + 6];
-    }
-    QUEUE_PUSH(CanMessage, &getCanBuses()[0].sendQueue, outgoing);
-}
-
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
     char* name = nameObject->valuestring;
     cJSON* value = cJSON_GetObjectItem(root, "value");
@@ -111,7 +86,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
     }
 }
 
-bool receiveJsonWriteRequest(uint8_t* message) {
+bool receiveWriteRequest(uint8_t* message) {
     cJSON *root = cJSON_Parse((char*)message);
     bool foundMessage = false;
     if(root != NULL) {
@@ -134,15 +109,6 @@ bool receiveJsonWriteRequest(uint8_t* message) {
                 "if it's valid, may be out of memory\r\n");
     }
     return foundMessage;
-}
-
-bool receiveWriteRequest(uint8_t* message) {
-#ifdef TRANSMITTER
-    receiveBinaryWriteRequest(message);
-    return true;
-#else
-    return receiveJsonWriteRequest(message);
-#endif
 }
 
 /*

@@ -91,6 +91,15 @@ void initializeUsb(UsbDevice* usbDevice) {
     debug("Done.\r\n");
 }
 
+
+/* Private: Arm the given endpoint for a read from the device to host.
+ *
+ * This also puts a NUL char in the beginning of the buffer so you don't get
+ * confused that it's still a valid message.
+ *
+ * device - the CAN USB device to arm the endpoint on
+ * buffer - the destination buffer for the next OUT transfer.
+ */
 void armForRead(UsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
     usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(

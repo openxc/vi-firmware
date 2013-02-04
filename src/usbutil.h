@@ -62,19 +62,9 @@ void initializeUsbCommon(UsbDevice*);
  */
 void initializeUsb(UsbDevice*);
 
-/* Public: Arm the given endpoint for a read from the device to host.
+/* Public: Pass the next OUT request message to the callback, if available.
  *
- * This also puts a NUL char in the beginning of the buffer so you don't get
- * confused that it's still a valid message.
- *
- * device - the CAN USB device to arm the endpoint on
- * buffer - the destination buffer for the next IN transfer.
- */
-void armForRead(UsbDevice* device, char* buffer);
-
-/* Public: Pass the next IN request message to the callback, if available.
- *
- * Checks if the input handle is not busy, indicating the presence of a new IN
+ * Checks if the input handle is not busy, indicating the presence of a new OUT
  * request from the host. If a message is available, the callback is notified
  * and the endpoint is re-armed for the next USB transfer.
  *

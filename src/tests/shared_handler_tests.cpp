@@ -79,8 +79,7 @@ START_TEST (test_button_event_handler_bad_state)
     bool send = true;
     uint64_t data = stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
-    data = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateNumber(42), &send, data);
+    data = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 42, &send, data);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
@@ -90,8 +89,8 @@ END_TEST
 START_TEST (test_door_handler)
 {
     bool send = true;
-    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateBool(true), &send);
+    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
+            &send);
     sendDoorStatus("foo", data, &SIGNALS[2], SIGNALS, SIGNAL_COUNT, &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
@@ -105,8 +104,8 @@ END_TEST
 START_TEST (test_send_invalid_door_status)
 {
     bool send = true;
-    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateBool(true), &send);
+    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
+            &send);
     sendDoorStatus("does-not-exist", data, NULL, SIGNALS, SIGNAL_COUNT, &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
@@ -115,8 +114,8 @@ END_TEST
 START_TEST (test_send_same_door_status)
 {
     bool send = true;
-    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateBool(true), &send);
+    uint64_t data = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
+            &send);
     sendDoorStatus("driver", data, &SIGNALS[2], SIGNALS, SIGNAL_COUNT, &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
     QUEUE_INIT(uint8_t, &listener.usb->sendQueue);

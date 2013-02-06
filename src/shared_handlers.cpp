@@ -3,7 +3,8 @@
 #include "log.h"
 
 float rotationsSinceRestart = 0;
-float odometerSinceRestart = 0;
+float rollingOdometerSinceRestart = 0;
+float totalOdometerAtRestart = 0;
 float fuelConsumedSinceRestartLiters = 0;
 
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
@@ -44,27 +45,45 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
             signals, signalCount, listener);
 }
 
-float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send) {
-    if(value < signal->lastValue) {
-        odometerSinceRestart +=
-                signal->maxValue - signal->lastValue + value;
-    } else {
-        odometerSinceRestart += value - signal->lastValue;
+float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
+    if(totalOdometerAtRestart == 0) {
+        CanSignal* odometerSignal = lookupSignal("total_odometer", signals,
+                signalCount);
+        if(odometerSignal != NULL && odometerSignal->received) {
+            totalOdometerAtRestart = odometerSignal->lastValue;
+        }
     }
-    return odometerSinceRestart;
+    return totalOdometerAtRestart;
+}
+
+float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
+       int signalCount, float value, bool* send, float factor) {
+    if(value < signal->lastValue) {
+        rollingOdometerSinceRestart += signal->maxValue - signal->lastValue
+            + value;
+    } else {
+        rollingOdometerSinceRestart += value - signal->lastValue;
+    }
+
+    return firstReceivedOdometerValue(signals, signalCount) +
+        rollingOdometerSinceRestart;
+}
+
+float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
+       int signalCount, float value, bool* send) {
+    return handleRollingOdometer(signal, signals, signalCount, value, send, 1);
 }
 
 float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send) {
-    return KM_PER_MILE * handleRollingOdometer(signal, signals, signalCount,
-            value, send);
+    return handleRollingOdometer(signal, signals, signalCount, value, send,
+            KM_PER_MILE);
 }
 
 float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send) {
-    return KM_PER_M * handleRollingOdometer(signal, signals, signalCount, value,
-            send);
+    return handleRollingOdometer(signal, signals, signalCount, value, send,
+            KM_PER_M);
 }
 
 bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
@@ -165,7 +184,8 @@ float handleMultisizeWheelRotationCount(CanSignal* signal, CanSignal* signals,
     } else {
         rotationsSinceRestart += value - signal->lastValue;
     }
-    return 2 * PI * wheelRadius * rotationsSinceRestart;
+    return firstReceivedOdometerValue(signals, signalCount) + (2 * PI *
+            wheelRadius * rotationsSinceRestart);
 }
 
 void handleButtonEventMessage(int messageId, uint64_t data,

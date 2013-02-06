@@ -200,7 +200,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
         return;
     }
 
-    sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
+    sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
             buttonState, listener);
 }
 

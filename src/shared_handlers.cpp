@@ -66,7 +66,7 @@ float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
     }
 
     return firstReceivedOdometerValue(signals, signalCount) +
-        rollingOdometerSinceRestart;
+        (factor * rollingOdometerSinceRestart);
 }
 
 float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,

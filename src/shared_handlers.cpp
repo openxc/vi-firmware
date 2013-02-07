@@ -97,9 +97,9 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
 float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send, float multiplier) {
     if(value < signal->lastValue) {
-        value += signal->maxValue - signal->lastValue + value;
+        value = signal->maxValue - signal->lastValue + value;
     } else {
-        value += value - signal->lastValue;
+        value = value - signal->lastValue;
     }
     fuelConsumedSinceRestartLiters += multiplier * value;
     return fuelConsumedSinceRestartLiters;

@@ -29,9 +29,11 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
         CanSignal* signals, int signalCount, float value, bool* send,
         float wheelRadius);
 
-/* Interpret the given signal as a rolling counter of kilometers travelled, but
- * keep a log of the values and output the total km travelled since the car was
- * started.
+/* Interpret the given signal as a rolling counter of km travelled, but keep
+ * a log of the values and output the total km travelled since the car was
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -41,12 +43,14 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
+float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
- * started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -61,7 +65,9 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
- * car was started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.

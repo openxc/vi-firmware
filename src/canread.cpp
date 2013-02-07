@@ -103,7 +103,6 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals,
         return signalState->name;
     }
     debug("No signal state found for value %d\r\n", value);
-    // TODO these send values aren't using anywhere when reading!
     *send = false;
     return NULL;
 }
@@ -167,7 +166,9 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     if(send) {
         float processedValue = handler(signal, signals, signalCount, value,
                 &send);
-        sendNumericalMessage(signal->genericName, processedValue, listener);
+        if(send) {
+            sendNumericalMessage(signal->genericName, processedValue, listener);
+        }
     }
     postTranslate(signal, value);
 }
@@ -184,7 +185,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         if(stringValue == NULL) {
             debug("No valid string returned from handler for %s\r\n",
                     signal->genericName);
-        } else {
+        } else if(send) {
             sendStringMessage(signal->genericName, stringValue, listener);
         }
     }
@@ -199,7 +200,9 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     float value = preTranslate(signal, data, &send);
     if(send) {
         bool booleanValue = handler(signal, signals, signalCount, value, &send);
-        sendBooleanMessage(signal->genericName, booleanValue, listener);
+        if(send) {
+            sendBooleanMessage(signal->genericName, booleanValue, listener);
+        }
     }
     postTranslate(signal, value);
 }

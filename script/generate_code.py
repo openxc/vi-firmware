@@ -126,7 +126,8 @@ class Signal(object):
         self.handler = handler
         self.writable = writable
         self.write_handler = write_handler
-        self.ignore = ignore
+        if ignore:
+            self.handler = "ignoreHandler"
         self.array_index = 0
         # the frequency determines how often the message should be propagated. a
         # frequency of 1 means that every time the signal it is received we will
@@ -384,7 +385,7 @@ class Parser(object):
                 if message.handler is not None:
                     print(("        %s(id, data, SIGNALS, " % message.handler +
                             "SIGNAL_COUNT, &listener);"))
-                for signal in (s for s in message.signals if not s.ignore):
+                for signal in (s for s in message.signals):
                     if signal.handler:
                         print(("        translateCanSignal(&listener, "
                                 "&SIGNALS[%d], data, " % signal.array_index +

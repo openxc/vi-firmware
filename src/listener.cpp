@@ -3,20 +3,45 @@
 #include "log.h"
 #include "buffers.h"
 
+#define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
+
+typedef enum {
+    USB = 0,
+    UART = 1,
+    ETHERNET = 2
+} MessageType;
+
+const char messageTypeNames[][9] = {
+    "USB",
+    "UART",
+    "Ethernet",
+};
+
+int droppedMessages[3];
+
+void droppedMessage(MessageType type) {
+    droppedMessages[type]++;
+    if(droppedMessages[type] > DROPPED_MESSAGE_LOGGING_THRESHOLD) {
+        droppedMessages[type] = 0;
+        debug("%s send queue full, dropped another %d messages\r\n",
+                messageTypeNames[type], DROPPED_MESSAGE_LOGGING_THRESHOLD);
+    }
+}
+
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
     if(listener->usb->configured && !conditionalEnqueue(
                 &listener->usb->sendQueue, message, messageSize)) {
-        debug("USB send queue full, dropping CAN message: %s\r\n", message);
+        droppedMessage(USB);
     }
 
     if(listener->serial != NULL && !conditionalEnqueue(
                 &listener->serial->sendQueue, message, messageSize)) {
-        debug("UART send queue full, dropping CAN message: %s\r\n", message);
+        droppedMessage(UART);
     }
 
     if(listener->ethernet != NULL && !conditionalEnqueue(
                 &listener->ethernet->sendQueue, message, messageSize)) {
-       debug("Ethernet send queue full, dropping CAN message: %s\r\n", message);
+        droppedMessage(ETHERNET);
     }
 }
 

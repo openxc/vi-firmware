@@ -205,6 +205,34 @@ START_TEST (test_default_handler)
 }
 END_TEST
 
+const char* noSendStringHandler(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    *send = false;
+    return NULL;
+}
+
+bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    *send = false;
+    return false;
+}
+
+START_TEST (test_translate_respects_send_value)
+{
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, ignoreHandler, SIGNALS,
+            SIGNAL_COUNT);
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, noSendStringHandler, SIGNALS,
+            SIGNAL_COUNT);
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB,
+            noSendBooleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+}
+END_TEST
+
 START_TEST (test_translate_float)
 {
     translateCanSignal(&listener, &SIGNALS[0], 0xEB, floatHandler, SIGNALS,
@@ -351,6 +379,7 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_preserve_last_value);
     tcase_add_test(tc_translate, test_default_handler);
     tcase_add_test(tc_translate, test_dont_send_same);
+    tcase_add_test(tc_translate, test_translate_respects_send_value);
     suite_add_tcase(s, tc_translate);
 
     return s;

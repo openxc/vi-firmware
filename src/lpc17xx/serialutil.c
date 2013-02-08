@@ -219,6 +219,7 @@ void initializeSerial(SerialDevice* device) {
         configureFlowControl();
         configureInterrupts();
         CTS_STATE = ACTIVE;
+        debug("Done.\r\n");
     }
 }
 

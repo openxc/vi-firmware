@@ -11,6 +11,9 @@
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
+#define EMULATOR_SEND_FREQUENCY 3
+
+int emulatorRateLimiter = 0;
 
 extern Listener listener;
 
@@ -69,20 +72,25 @@ bool usbWriteStub(uint8_t* buffer) {
 }
 
 void loop() {
-    sendNumericalMessage(
-            NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
-            rand() % 50 + rand() % 100 * .1, &listener);
-    sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
-            rand() % 2 == 1 ? true : false, &listener);
+    ++emulatorRateLimiter;
+    if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY) {
+        emulatorRateLimiter = 0;
 
-    int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
-    sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-            SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
+        sendNumericalMessage(
+                NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
+                rand() % 50 + rand() % 100 * .1, &listener);
+        sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
+                rand() % 2 == 1 ? true : false, &listener);
 
-    int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
-    Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
-    sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-            randomEvent.value, randomEvent.event, &listener);
+        int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
+        sendStringMessage(STATE_SIGNALS[stateSignalIndex],
+                SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
+
+        int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
+        sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
+                randomEvent.value, randomEvent.event, &listener);
+    }
 
     readFromHost(listener.usb, usbWriteStub);
     readFromSerial(listener.serial, usbWriteStub);

@@ -8,7 +8,7 @@ CanMessage MESSAGES[3] = {
     {NULL, 1},
 };
 
-const int SIGNAL_COUNT = 6;
+const int SIGNAL_COUNT = 7;
 
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
     { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, },
@@ -29,6 +29,8 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
         0.000000, 1, false, false, NULL, 0, false, NULL},
     {&MESSAGES[1], "rear_right_door", 18, 1, 1.000000, 0.000000, 0.000000,
         0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[1], "fuel_consumed_since_restart", 18, 1, 25.000000, 0.000000, 0.000000,
+        255.0, 1, false, false, NULL, 0, false, NULL},
 };
 
 Listener listener;
@@ -146,6 +148,29 @@ START_TEST (test_send_same_door_status)
 }
 END_TEST
 
+START_TEST (test_fuel_handler)
+{
+    bool send = true;
+    float result = 0;
+    CanSignal* signal = &SIGNALS[6];
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 0, &send, 1);
+    ck_assert_int_eq(0, result);
+    signal->lastValue = 0;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 1, &send, 1);
+    ck_assert_int_eq(1, result);
+    signal->lastValue = 1;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 255, &send, 1);
+    ck_assert_int_eq(255, result);
+    signal->lastValue = 255;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 2, &send, 1);
+    ck_assert_int_eq(257, result);
+    signal->lastValue = 2;
+}
+END_TEST
+
 Suite* handlerSuite(void) {
     Suite* s = suite_create("shared_handlers");
     TCase *tc_button_handler = tcase_create("button");
@@ -162,6 +187,11 @@ Suite* handlerSuite(void) {
     tcase_add_test(tc_door_handler, test_send_invalid_door_status);
     tcase_add_test(tc_door_handler, test_send_same_door_status);
     suite_add_tcase(s, tc_door_handler);
+
+    TCase *tc_fuel_handler = tcase_create("fuel");
+    tcase_add_checked_fixture(tc_fuel_handler, setup, NULL);
+    tcase_add_test(tc_fuel_handler, test_fuel_handler);
+    suite_add_tcase(s, tc_fuel_handler);
 
     return s;
 }

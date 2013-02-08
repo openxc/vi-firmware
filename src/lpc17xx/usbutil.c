@@ -49,7 +49,7 @@ static void sendToHost(UsbDevice* usbDevice) {
     }
 
     if(byteCount > 0) {
-        Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount - 1, NULL);
+        Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
     }
     Endpoint_ClearIN();
     Endpoint_SelectEndpoint(previousEndpoint);

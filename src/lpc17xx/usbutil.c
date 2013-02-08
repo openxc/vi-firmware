@@ -38,6 +38,8 @@ static void sendToHost(UsbDevice* usbDevice) {
 
     // get bytes from transmit FIFO into intermediate buffer
     int byteCount = 0;
+    // TODO are we only sending at most one message each time through? seem to
+    // get a really full queue even though we're not sending much
     // TODO theoretically this shouldn't need to be limited to 64 bytes, but I'm
     // seeing memory corruption if we don't. is there another memory bug
     // somewhere around here? ah, still get the memory bug but it happens later.

@@ -12,6 +12,4 @@ void initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
 }
 
-void armForRead(UsbDevice* usbDevice, char* buffer) { }
-
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) { }

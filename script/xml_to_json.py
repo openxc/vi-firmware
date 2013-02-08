@@ -58,9 +58,8 @@ class Message(object):
 def parse_options(argv):
     parser = argparse.ArgumentParser(
             description="Convert Canoe XML to the OpenXC JSON format.")
-    parser.add_argument("xml", default="c346_hs_mapping.txt",
-            help="Name of Canoe XML file")
-    parser.add_argument("mapping_filename", default="hs.json",
+    parser.add_argument("xml", help="Name of Canoe XML file")
+    parser.add_argument("mapping_filename",
             help="Path to a JSON file with CAN messages mapped to OpenXC names")
     parser.add_argument("out", default="dump.json",
             help="Name out output JSON file")

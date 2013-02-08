@@ -13,20 +13,7 @@ KERNEL=`uname`
 HEX_FILE="$1"
 PORT=$2
 
-die() {
-    echo >&2 "$@"
-    exit 1
-}
-
-if [ ${KERNEL:0:7} == "MINGW32" ]; then
-    OS="windows"
-elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
-    OS="cygwin"
-elif [ $KERNEL == "Darwin" ]; then
-    OS="mac"
-else
-    OS="linux"
-fi
+source $DIR/bootstrap_for_flashing.sh
 
 if [ -z $PORT ]; then
     if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then
@@ -43,10 +30,10 @@ if [ -z $PORT ]; then
 fi
 
 if [ -z "$MPIDE_DIR" ]; then
-    MPIDE_DIR="dependencies/mpide"
+    MPIDE_DIR="$DEPENDENCIES_FOLDER/mpide"
 fi
 
-if [ -z "$MPIDE_DIR" ] || ! [ -d "$MPIDE_DIR" ]; then
+if ! [ -d "$MPIDE_DIR" ]; then
     echo "No MPIDE_DIR environment variable found, will use standalone avrdude"
     if [ -z "$AVRDUDE" ]; then
         AVRDUDE="`which avrdude`"
@@ -77,7 +64,7 @@ if [ -z $AVRDUDE_CONF ]; then
         # path throws a "file not found" error
         AVRDUDE_CONF="conf/avrdude.conf"
     else
-        AVRDUDE_CONF="$DIR/conf/avrdude.conf"
+        AVRDUDE_CONF="$DIR/../conf/avrdude.conf"
     fi
 fi
 
@@ -88,10 +75,9 @@ AVRDUDE_ARD_BAUDRATE=115200
 
 AVRDUDE_COM_OPTS="-q -V -p $MCU"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
-echo "$AVRDUDE_COM_OPTS"
 
 if [ -z "$HEX_FILE" ]; then
-    die "path to hex file is required as a parameter"
+    die "path to hex file is required as a parameter, e.g.: script/upload_hex.sh <path to hex file>"
 fi
 
 upload() {
@@ -117,3 +103,4 @@ fi
 
 echo "Flashing $HEX_FILE to device at port $PORT in $OS"
 upload
+echo "${bldgreen}Flashing completed successfully${txtrst}"

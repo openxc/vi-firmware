@@ -29,9 +29,11 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
         CanSignal* signals, int signalCount, float value, bool* send,
         float wheelRadius);
 
-/* Interpret the given signal as a rolling counter of kilometers travelled, but
- * keep a log of the values and output the total km travelled since the car was
- * started.
+/* Interpret the given signal as a rolling counter of km travelled, but keep
+ * a log of the values and output the total km travelled since the car was
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -41,12 +43,14 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
+float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
- * started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -61,7 +65,9 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
- * car was started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -116,6 +122,22 @@ float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
  */
 float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
+
+/* Keep track of a rolling fuel flow counter signal to obtain a
+ * total since the vehicle started, and multiply the results by the given
+ * multiplier to obtain liters.
+ *
+ * signal - The rolling fuel flow signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * value - Microliters of fuel used since the last rollover.
+ * send - (output) Flip this to false if the message should not be sent.
+ * multiplier - factor necessary to convert the input units to liters.
+ *
+ * Returns the total fuel consumed since the vehicle started in liters.
+ */
+float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
  * the left and positive to the right, but the CAN signal is the opposite.

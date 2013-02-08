@@ -59,6 +59,7 @@ void initializeSerial(SerialDevice* device) {
         // this, and the alternative UART libraries provided by Microchip are a
         // bit of a mess.
         ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
+        debug("Done.\r\n");
     }
 }
 

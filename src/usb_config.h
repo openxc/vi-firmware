@@ -22,12 +22,7 @@ extern "C" {
 
 // Ford Motor Company USB Vendor ID
 #define VENDOR_ID 0x1bc4
-
-#ifdef TRANSMITTER
-#define PRODUCT_ID 0x0002
-#else
 #define PRODUCT_ID 0x0001
-#endif
 
 #define NUM_CONFIGURATIONS 0x01
 #define USB_VERSION 0x0200

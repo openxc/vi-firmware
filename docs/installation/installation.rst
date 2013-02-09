@@ -245,7 +245,7 @@ Remove the Olimex sections from the FTDI kernel module, and then reload it:
 
 .. code-block:: sh
 
-    $ sudo sed -i "" -e "/Olimex/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
+    $ sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
     $ sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
     $ sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
 

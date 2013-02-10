@@ -9,7 +9,7 @@
 #define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 21 : 4)
 #define CAN_TX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 22 : 5)
 #define CAN_PORT_NUM(BUS) 0
-#define CAN_FUNCNUM 3
+#define CAN_FUNCNUM(BUS) (BUS == LPC_CAN1 ? 3 : 2)
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
@@ -37,7 +37,7 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_CFG_Type PinCfg;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 0;
-    PinCfg.Funcnum = CAN_FUNCNUM;
+    PinCfg.Funcnum = CAN_FUNCNUM(controller);
     PinCfg.Pinnum = CAN_RX_PIN_NUM(controller);
     PinCfg.Portnum = CAN_PORT_NUM(controller);
     PINSEL_ConfigPin(&PinCfg);

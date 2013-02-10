@@ -54,11 +54,21 @@ void configureTransceiver() {
     LPC_GPIO0->FIOPIN |= 1 << 6;
 }
 
+bool CAN_CONTROLLER_INITIALIZED = false;
+
 void initializeCan(CanBus* bus) {
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 
-    CAN_Init(CAN_CONTROLLER(bus), bus->speed);
+    if(!CAN_CONTROLLER_INITIALIZED) {
+        // TODO workaround the fact that CAN_Init erase the acceptance filter
+        // table, so we need to initialize both CAN controllers before setting
+        // any filters, and then make sure not to call CAN_Init again.
+        for(int i = 0; i < getCanBusCount(); i++) {
+            CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);
+        }
+        CAN_CONTROLLER_INITIALIZED = true;
+    }
     CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);
 
     // enable receiver interrupt

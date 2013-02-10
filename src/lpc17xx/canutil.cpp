@@ -4,8 +4,6 @@
 #include "log.h"
 #include "lpc17xx_pinsel.h"
 
-#define CAN_CTRL(BUS) (BUS == LPC_CAN1 ? 0 : 1)
-
 // CAN1: select P0.21 as RD1. P0.22 as TD1
 // CAN2: select P0.4 as RD2, P0.5 as RD2
 #define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 21 : 4)

@@ -1,5 +1,13 @@
 # OpenXC CAN Translator Changelog
 
+## v2.1.3
+
+* Remove custom protocol for "binary" transfers - use "passthrough" JSON style.
+* Fix a NULL pointer dereference in the button handler that caused hard crashes
+  when CAN2 was connected.
+* Calculate correct value for rolling fuel consumed value, it incremented too
+  fast previously in some vehicles.
+
 ## v2.1.2
 
 * Use bootstrap script when flashing binary firmware.

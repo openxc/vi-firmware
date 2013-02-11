@@ -78,9 +78,9 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
 float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send, float multiplier) {
     if(value < signal->lastValue) {
-        value += signal->maxValue - signal->lastValue + value;
+        value = signal->maxValue - signal->lastValue + value;
     } else {
-        value += value - signal->lastValue;
+        value = value - signal->lastValue;
     }
     fuelConsumedSinceRestartLiters += multiplier * value;
     return fuelConsumedSinceRestartLiters;
@@ -200,7 +200,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
         return;
     }
 
-    sendEventedBooleanMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
+    sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
             buttonState, listener);
 }
 

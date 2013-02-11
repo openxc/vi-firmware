@@ -49,9 +49,6 @@ emulator: SYMBOLS += CAN_EMULATOR
 emulator: BASE_TARGET = canemulator
 emulator: custom_all
 
-transmitter: SYMBOLS += TRANSMITTER
-transmitter: custom_all
-
 .DEFAULT_GOAL = custom_all
 
 custom_all_prefix:

@@ -2,6 +2,29 @@
 
 set -e
 
+KERNEL=`uname`
+if [ ${KERNEL:0:7} == "MINGW32" ]; then
+    OS="windows"
+elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
+    OS="cygwin"
+elif [ $KERNEL == "Darwin" ]; then
+    OS="mac"
+else
+    OS="linux"
+    if ! command -v lsb_release >/dev/null 2>&1; then
+        # Arch Linux
+        if command -v pacman>/dev/null 2>&1; then
+            sudo pacman -S lsb-release
+        fi
+    fi
+
+    DISTRO=`lsb_release -si`
+fi
+
+if [ $OS == "cygwin" ] && ! command -v tput >/dev/null 2>&1; then
+    _cygwin_error "ncurses"
+fi
+
 txtrst=$(tput sgr0) # reset
 bldred=${txtbld}$(tput setaf 1)
 bldgreen=${txtbld}$(tput setaf 2)
@@ -42,7 +65,7 @@ _install() {
     fi
 }
 
-CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates"
+CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates, ncurses"
 
 _cygwin_error() {
     echo
@@ -57,25 +80,6 @@ download() {
     filename=$2
     curl $url -L --O $filename
 }
-
-KERNEL=`uname`
-if [ ${KERNEL:0:7} == "MINGW32" ]; then
-    OS="windows"
-elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
-    OS="cygwin"
-elif [ $KERNEL == "Darwin" ]; then
-    OS="mac"
-else
-    OS="linux"
-    if ! command -v lsb_release >/dev/null 2>&1; then
-        # Arch Linux
-        if command -v pacman>/dev/null 2>&1; then
-            sudo pacman -S lsb-release
-        fi
-    fi
-
-    DISTRO=`lsb_release -si`
-fi
 
 if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
     _cygwin_error "curl"
@@ -177,6 +181,17 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
         chmod a+x mpide/hardware/tools/avr/bin/*
     fi
     _popd
+
+fi
+
+ARCH=`uname -m`
+if [ $OS == "linux" ] && [ $ARCH == "x86_64" ]; then
+    if [ $DISTRO == "arch" ]; then
+        echo "Make sure lib32-libusb-compat and lib32-readline are installed from the AUR"
+    elif [ $DISTRO == "Ubuntu" ]; then
+        # TODO  figure out what is neccessary from a fresh build
+        echo ""
+    fi
 
 fi
 

@@ -10,16 +10,17 @@ in `sample.json
 JSON Format
 ============
 
-The JSON object is a list of CAN buses (the ``0x101`` is a unique bus address
-and means it will use the "CAN1" module in the microcontroller and whatever
-associated pins on the board), messages in each bus and a list of signals within
-each message.
+The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
+message IDs to CAN message objects in each bus, and CAN signal name to signal
+object within each message.
 
 CAN Bus
 -------
 
-The attributes of the CAN bus object (identified with the bus address in
-hex, i.e. only ``0x101`` and ``0x102`` are allowed):
+The object key for a CAN bus is a hex address that identifies which CAN
+controller on the microcontroller is attached to the bus. The platforms we are
+using now only have 2 CAN controllers, but by convention they are identified
+with ``0x101`` and ``0x102`` - these are the only acceptable bus addresses.
 
 ``speed`` - The CAN bus speed in Kbps.
 

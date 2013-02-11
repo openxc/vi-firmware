@@ -52,10 +52,10 @@ set -e
 
 echo "Installing dependencies for running test suite..."
 
-if [ $OS != "cygwin" ] && ! command -v lcov >/dev/null 2>&1; then
-    # TODO the text here isn't exactly right for how the conditional works now
-    echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
-    if [ $OS == "mac" ]; then
+if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
+    elif [ $OS == "mac" ]; then
         brew install lcov
     else
         if [ $DISTRO == "arch" ]; then

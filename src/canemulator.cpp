@@ -11,7 +11,7 @@
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
-#define EMULATOR_SEND_FREQUENCY 4
+#define EMULATOR_SEND_FREQUENCY 200
 
 int emulatorRateLimiter = 0;
 

@@ -4,14 +4,12 @@
 #include "log.h"
 #include "lpc17xx_pinsel.h"
 
-#define CAN_CTRL(BUS) (BUS == LPC_CAN1 ? 0 : 1)
-
 // CAN1: select P0.21 as RD1. P0.22 as TD1
 // CAN2: select P0.4 as RD2, P0.5 as RD2
 #define CAN_RX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 21 : 4)
 #define CAN_TX_PIN_NUM(BUS) (BUS == LPC_CAN1 ? 22 : 5)
 #define CAN_PORT_NUM(BUS) 0
-#define CAN_FUNCNUM 3
+#define CAN_FUNCNUM(BUS) (BUS == LPC_CAN1 ? 3 : 2)
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
@@ -39,7 +37,7 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_CFG_Type PinCfg;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 0;
-    PinCfg.Funcnum = CAN_FUNCNUM;
+    PinCfg.Funcnum = CAN_FUNCNUM(controller);
     PinCfg.Pinnum = CAN_RX_PIN_NUM(controller);
     PinCfg.Portnum = CAN_PORT_NUM(controller);
     PINSEL_ConfigPin(&PinCfg);
@@ -56,11 +54,21 @@ void configureTransceiver() {
     LPC_GPIO0->FIOPIN |= 1 << 6;
 }
 
+bool CAN_CONTROLLER_INITIALIZED = false;
+
 void initializeCan(CanBus* bus) {
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 
-    CAN_Init(CAN_CONTROLLER(bus), bus->speed);
+    if(!CAN_CONTROLLER_INITIALIZED) {
+        // TODO workaround the fact that CAN_Init erase the acceptance filter
+        // table, so we need to initialize both CAN controllers before setting
+        // any filters, and then make sure not to call CAN_Init again.
+        for(int i = 0; i < getCanBusCount(); i++) {
+            CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);
+        }
+        CAN_CONTROLLER_INITIALIZED = true;
+    }
     CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);
 
     // enable receiver interrupt

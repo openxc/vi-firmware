@@ -21,6 +21,14 @@ else
     DISTRO=`lsb_release -si`
 fi
 
+_cygwin_error() {
+    echo
+    echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
+    echo "    $CYGWIN_PACKAGES"
+    echo "After installing the packages, re-run this bootstrap script."
+    die
+}
+
 if [ $OS == "cygwin" ] && ! command -v tput >/dev/null 2>&1; then
     _cygwin_error "ncurses"
 fi
@@ -66,14 +74,6 @@ _install() {
 }
 
 CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates, ncurses"
-
-_cygwin_error() {
-    echo
-    echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
-    echo "    $CYGWIN_PACKAGES"
-    echo "After installing the packages, re-run this bootstrap script."
-    die
-}
 
 download() {
     url=$1

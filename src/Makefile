@@ -45,6 +45,9 @@ endif
 
 include tests/tests.mk
 
+transmitter: SYMBOLS += TRANSMITTER
+transmitter: custom_all
+
 emulator: SYMBOLS += CAN_EMULATOR
 emulator: BASE_TARGET = canemulator
 emulator: custom_all

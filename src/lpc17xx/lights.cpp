@@ -24,7 +24,7 @@
 #define LEFT_LED_G_CHANNEL 1
 #define LEFT_LED_B_CHANNEL 2
 
-#define MAX_PWM_VALUE 256
+#define PWM_PERIOD_MICROSECONDS 20000
 #define DIMMER_DELAY 1
 
 void disable(Light light, int duration) {
@@ -36,11 +36,8 @@ void disable(Light light) {
 }
 
 void setPwm(LPC_PWM_TypeDef* pwm, int channel, int value) {
-    delayMs(50);
-    if(value == 0) {
-        value = 1;
-    }
-    PWM_MatchUpdate(pwm, channel, value, PWM_MATCH_UPDATE_NOW);
+    PWM_MatchUpdate(pwm, channel, (value / 255) * PWM_PERIOD_MICROSECONDS,
+            PWM_MATCH_UPDATE_NOW);
 }
 
 void enable(Light light, RGB color) {
@@ -121,9 +118,8 @@ void initializePwm() {
     PWM_Init(LED_PWM_PERIPHERAL, PWM_MODE_TIMER, &pwmConfig);
 }
 
-void setPwmMatchValue(int matchValue) {
-    // set the max PWM value we will use for mapping
-    PWM_MatchUpdate(LED_PWM_PERIPHERAL, 0, matchValue, PWM_MATCH_UPDATE_NOW);
+void setPwmPeriod(int period) {
+    PWM_MatchUpdate(LED_PWM_PERIPHERAL, 0, period, PWM_MATCH_UPDATE_NOW);
 
     PWM_MATCHCFG_Type pwmMatchConfig;
     pwmMatchConfig.IntOnMatch = DISABLE;
@@ -136,7 +132,7 @@ void setPwmMatchValue(int matchValue) {
 void initializeLights() {
     configurePins();
     initializePwm();
-    setPwmMatchValue(MAX_PWM_VALUE);
+    setPwmPeriod(PWM_PERIOD_MICROSECONDS);
 
     // Initialize all PWM controllers
     PWM_ChannelConfig(LED_PWM_PERIPHERAL,

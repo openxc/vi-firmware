@@ -8,6 +8,7 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include "lights.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -21,6 +22,7 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeAllCan();
+    initializeLights();
 }
 
 void loop() {

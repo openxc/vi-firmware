@@ -1,10 +1,6 @@
 #ifndef _LIGHTS_H_
 #define _LIGHTS_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     LIGHT_A,
     LIGHT_B,
@@ -19,17 +15,13 @@ typedef struct {
 
 typedef struct {
     RGB red;
-    REG green;
-    REG blue;
+    RGB green;
+    RGB blue;
     RGB black;
+    RGB white;
 } Palette;
 
-Palette COLORS = {
-    {255, 0, 0},
-    {0, 255, 0},
-    {0, 0, 255},
-    {0, 0, 0},
-}
+extern Palette COLORS;
 
 void initializeLights();
 
@@ -70,9 +62,5 @@ void disable(Light light, int duration);
  * duration - the amount of time the light should remain lighted during the flash.
  */
 void flash(Light light, RGB color, int duration);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // _LIGHTS_H_

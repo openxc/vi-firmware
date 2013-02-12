@@ -10,8 +10,9 @@ in `sample.json
 JSON Format
 ============
 
-The root level JSON object maps CAN bus addresses to CAN bus
-objects,  CAN message IDs to CAN message objects in each bus, and CAN signal name to signal object within each message.
+The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
+message IDs to CAN message objects in each bus, and CAN signal name to signal
+object within each message.
 
 CAN Bus
 -------

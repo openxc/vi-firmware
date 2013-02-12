@@ -5,6 +5,7 @@
 #include "serialutil.h"
 #include "ethernetutil.h"
 #include "log.h"
+#include "timer.h"
 #include <stdlib.h>
 
 #define NUMERICAL_SIGNAL_COUNT 11

@@ -24,7 +24,7 @@
 #define LEFT_LED_G_CHANNEL 1
 #define LEFT_LED_B_CHANNEL 2
 
-#define PWM_PERIOD_MICROSECONDS 20000
+#define PWM_PERIOD_MICROSECONDS 1000
 #define DIMMER_DELAY 1
 
 void disable(Light light, int duration) {

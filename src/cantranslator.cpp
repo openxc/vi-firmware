@@ -8,7 +8,6 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
-#include "lights.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -22,16 +21,12 @@ bool receiveWriteRequest(uint8_t*);
 
 void setup() {
     initializeAllCan();
-    initializeLights();
 }
 
 void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         receiveCan(&getCanBuses()[i]);
     }
-
-    flash(LIGHT_A, COLORS.green, 20);
-    flash(LIGHT_B, COLORS.red, 20);
 
     readFromHost(listener.usb, &receiveWriteRequest);
     // TODO err, shouldn't this have a &?

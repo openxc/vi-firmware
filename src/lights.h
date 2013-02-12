@@ -17,6 +17,8 @@ typedef struct {
     RGB red;
     RGB green;
     RGB blue;
+    RGB orange;
+    RGB purple;
     RGB black;
     RGB white;
 } Palette;

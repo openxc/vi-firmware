@@ -2,6 +2,7 @@
 #include "listener.h"
 #include "log.h"
 #include "buffers.h"
+#include "lights.h"
 
 #define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
 
@@ -29,6 +30,7 @@ void droppedMessage(MessageType type) {
 }
 
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
+    flash(LIGHT_A, COLORS.blue, 2);
     if(listener->usb->configured && !conditionalEnqueue(
                 &listener->usb->sendQueue, message, messageSize)) {
         droppedMessage(USB);

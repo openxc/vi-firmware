@@ -30,7 +30,8 @@ void droppedMessage(MessageType type) {
 }
 
 void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
-    flash(LIGHT_A, COLORS.blue, 2);
+    // TODO make this non-blocking!
+    flash(LIGHT_A, COLORS.blue, 1);
     if(listener->usb->configured && !conditionalEnqueue(
                 &listener->usb->sendQueue, message, messageSize)) {
         droppedMessage(USB);

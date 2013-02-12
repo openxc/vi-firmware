@@ -1,7 +1,9 @@
 #include "LPC17xx.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_pwm.h"
+#include "timer.h"
 #include "lights.h"
+#include "log.h"
 
 #define LED_PWM_PERIPHERAL LPC_PWM1
 
@@ -26,135 +28,138 @@
 #define DIMMER_DELAY 1
 
 void disable(Light light, int duration) {
-	enable(light, COLORS.black, duration);
+    enable(light, COLORS.black, duration);
 }
 
 void disable(Light light) {
-	enable(light, COLORS.black, 0);
+    enable(light, COLORS.black, 0);
 }
 
 void setPwm(LPC_PWM_TypeDef* pwm, int channel, int value) {
-	PWM_MatchUpdate(pwm, channel, value, PWM_MATCH_UPDATE_NOW);
+    delayMs(50);
+    if(value == 0) {
+        value = 1;
+    }
+    PWM_MatchUpdate(pwm, channel, value, PWM_MATCH_UPDATE_NOW);
 }
 
 void enable(Light light, RGB color) {
-	int redChannel;
-	int greenChannel;
-	int blueChannel;
+    int redChannel;
+    int greenChannel;
+    int blueChannel;
 
-	switch(light) {
-		case LIGHT_A:
-			redChannel = RIGHT_LED_R_CHANNEL;
-			greenChannel = RIGHT_LED_G_CHANNEL;
-			blueChannel = RIGHT_LED_B_CHANNEL;
-			break;
-		case LIGHT_B:
-			redChannel = LEFT_LED_R_CHANNEL;
-			greenChannel = LEFT_LED_G_CHANNEL;
-			blueChannel = LEFT_LED_B_CHANNEL;
-			break;
-		default:
-			return;
-	}
-	setPwm(LED_PWM_PERIPHERAL, redChannel, color.r);
-	setPwm(LED_PWM_PERIPHERAL, greenChannel, color.g);
-	setPwm(LED_PWM_PERIPHERAL, blueChannel, color.b);
+    switch(light) {
+        case LIGHT_A:
+            redChannel = RIGHT_LED_R_CHANNEL;
+            greenChannel = RIGHT_LED_G_CHANNEL;
+            blueChannel = RIGHT_LED_B_CHANNEL;
+            break;
+        case LIGHT_B:
+            redChannel = LEFT_LED_R_CHANNEL;
+            greenChannel = LEFT_LED_G_CHANNEL;
+            blueChannel = LEFT_LED_B_CHANNEL;
+            break;
+        default:
+            return;
+    }
+
+    setPwm(LED_PWM_PERIPHERAL, redChannel, color.r);
+    setPwm(LED_PWM_PERIPHERAL, greenChannel, color.g);
+    setPwm(LED_PWM_PERIPHERAL, blueChannel, color.b);
 }
 
 void enable(Light light, RGB color, int duration) {
-	// TODO
+    enable(light, color);
+    // TODO
 }
 
 void flash(Light light, RGB color, int duration) {
-	enable(light, color);
-	// TODO make a non-blocking version of this using timers
-	/* delayMs(duration); */
-	disable(light);
+    enable(light, color);
+    // TODO make a non-blocking version of this using timers
+    delayMs(duration);
+    disable(light);
 }
 
 void configureChannel(LPC_PWM_TypeDef* pwm, int channel) {
-	/* Configure match option */
-	PWM_MATCHCFG_Type pwmMatchConfig;
-	pwmMatchConfig.IntOnMatch = DISABLE;
-	pwmMatchConfig.MatchChannel = RIGHT_LED_R_CHANNEL;
-	pwmMatchConfig.ResetOnMatch = DISABLE;
-	pwmMatchConfig.StopOnMatch = DISABLE;
+    /* Configure match option */
+    PWM_MATCHCFG_Type pwmMatchConfig;
+    pwmMatchConfig.IntOnMatch = DISABLE;
+    pwmMatchConfig.MatchChannel = RIGHT_LED_R_CHANNEL;
+    pwmMatchConfig.ResetOnMatch = DISABLE;
+    pwmMatchConfig.StopOnMatch = DISABLE;
 
-	PWM_ConfigMatch(pwm, &pwmMatchConfig);
-	/* Enable PWM Channel Output */
-	PWM_ChannelCmd(pwm, channel, ENABLE);
+    PWM_ConfigMatch(pwm, &pwmMatchConfig);
+    /* Enable PWM Channel Output */
+    PWM_ChannelCmd(pwm, channel, ENABLE);
 }
 
 void configurePins() {
-	PINSEL_CFG_Type PinCfg;
-	PinCfg.OpenDrain = 0;
-	PinCfg.Pinmode = 1;
-	PinCfg.Funcnum = PWM_FUNCNUM;
-	PinCfg.Portnum = RIGHT_LED_PORT;
-	PinCfg.Pinnum = RIGHT_LED_R_PIN;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = RIGHT_LED_G_PIN;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = RIGHT_LED_B_PIN;
-	PINSEL_ConfigPin(&PinCfg);
+    PINSEL_CFG_Type PinCfg;
+    PinCfg.OpenDrain = 0;
+    PinCfg.Pinmode = 1;
+    PinCfg.Funcnum = PWM_FUNCNUM;
+    PinCfg.Portnum = RIGHT_LED_PORT;
+    PinCfg.Pinnum = RIGHT_LED_R_PIN;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = RIGHT_LED_G_PIN;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = RIGHT_LED_B_PIN;
+    PINSEL_ConfigPin(&PinCfg);
 
-	PinCfg.Portnum = LEFT_LED_PORT;
-	PinCfg.Pinnum = LEFT_LED_R_PIN;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = LEFT_LED_G_PIN;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = LEFT_LED_B_PIN;
-	PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Portnum = LEFT_LED_PORT;
+    PinCfg.Pinnum = LEFT_LED_R_PIN;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = LEFT_LED_G_PIN;
+    PINSEL_ConfigPin(&PinCfg);
+    PinCfg.Pinnum = LEFT_LED_B_PIN;
+    PINSEL_ConfigPin(&PinCfg);
 }
 
 void initializePwm() {
-	PWM_TIMERCFG_Type pwmConfig;
-	PWM_ConfigStructInit(PWM_MODE_TIMER, &pwmConfig);
-	PWM_Init(LED_PWM_PERIPHERAL, PWM_MODE_TIMER, &pwmConfig);
+    PWM_TIMERCFG_Type pwmConfig;
+    PWM_ConfigStructInit(PWM_MODE_TIMER, &pwmConfig);
+    PWM_Init(LED_PWM_PERIPHERAL, PWM_MODE_TIMER, &pwmConfig);
 }
 
 void setPwmMatchValue(int matchValue) {
-	// set the max PWM value we will use for mapping
-	PWM_MatchUpdate(LED_PWM_PERIPHERAL, 0, matchValue, PWM_MATCH_UPDATE_NOW);
+    // set the max PWM value we will use for mapping
+    PWM_MatchUpdate(LED_PWM_PERIPHERAL, 0, matchValue, PWM_MATCH_UPDATE_NOW);
 
-	PWM_MATCHCFG_Type pwmMatchConfig;
-	pwmMatchConfig.IntOnMatch = DISABLE;
-	pwmMatchConfig.MatchChannel = 0;
-	pwmMatchConfig.ResetOnMatch = ENABLE;
-	pwmMatchConfig.StopOnMatch = DISABLE;
-	PWM_ConfigMatch(LED_PWM_PERIPHERAL, &pwmMatchConfig);
+    PWM_MATCHCFG_Type pwmMatchConfig;
+    pwmMatchConfig.IntOnMatch = DISABLE;
+    pwmMatchConfig.MatchChannel = 0;
+    pwmMatchConfig.ResetOnMatch = ENABLE;
+    pwmMatchConfig.StopOnMatch = DISABLE;
+    PWM_ConfigMatch(LED_PWM_PERIPHERAL, &pwmMatchConfig);
 }
 
 void initializeLights() {
-	configurePins();
-	initializePwm();
-	setPwmMatchValue(MAX_PWM_VALUE);
+    configurePins();
+    initializePwm();
+    setPwmMatchValue(MAX_PWM_VALUE);
 
-	// Initialize all PWM controllers
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			RIGHT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			RIGHT_LED_G_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			RIGHT_LED_B_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			LEFT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			LEFT_LED_G_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
-	PWM_ChannelConfig(LED_PWM_PERIPHERAL,
-			LEFT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    // Initialize all PWM controllers
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            RIGHT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            RIGHT_LED_G_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            RIGHT_LED_B_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            LEFT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            LEFT_LED_G_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
+    PWM_ChannelConfig(LED_PWM_PERIPHERAL,
+            LEFT_LED_R_CHANNEL, PWM_CHANNEL_SINGLE_EDGE);
 
-	configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_R_CHANNEL);
-	configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_G_CHANNEL);
-	configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_B_CHANNEL);
-	configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_R_CHANNEL);
-	configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_G_CHANNEL);
-	configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_B_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_R_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_G_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, RIGHT_LED_B_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_R_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_G_CHANNEL);
+    configureChannel(LED_PWM_PERIPHERAL, LEFT_LED_B_CHANNEL);
 
-	enable(LIGHT_A, COLORS.red);
-	enable(LIGHT_B, COLORS.green);
-
-	PWM_ResetCounter(LED_PWM_PERIPHERAL);
-	PWM_CounterCmd(LED_PWM_PERIPHERAL, ENABLE);
-	PWM_Cmd(LED_PWM_PERIPHERAL, ENABLE);
+    PWM_ResetCounter(LED_PWM_PERIPHERAL);
+    PWM_CounterCmd(LED_PWM_PERIPHERAL, ENABLE);
+    PWM_Cmd(LED_PWM_PERIPHERAL, ENABLE);
 }

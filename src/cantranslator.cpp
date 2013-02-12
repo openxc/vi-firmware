@@ -30,6 +30,9 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
 
+    flash(LIGHT_A, COLORS.green, 20);
+    flash(LIGHT_B, COLORS.red, 20);
+
     readFromHost(listener.usb, &receiveWriteRequest);
     // TODO err, shouldn't this have a &?
     readFromSerial(listener.serial, receiveWriteRequest);

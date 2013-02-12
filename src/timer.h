@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void delayMs(uint32_t delayInMs);
+void delayMs(int delayInMs);
 
 #ifdef __cplusplus
 }

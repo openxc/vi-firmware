@@ -57,6 +57,7 @@ int main(void) {
     for (;;) {
         loop();
         processListenerQueues(&listener);
+        updateLights();
     }
 
     return 0;

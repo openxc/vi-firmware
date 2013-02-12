@@ -139,3 +139,7 @@ void initializeLights() {
     PWM_CounterCmd(LED_PWM_PERIPHERAL, ENABLE);
     PWM_Cmd(LED_PWM_PERIPHERAL, ENABLE);
 }
+
+void updateLights() {
+    // TODO update light_b based on bluetooth and usb
+}

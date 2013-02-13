@@ -78,7 +78,7 @@ void initializeUsb(UsbDevice* usbDevice) {
     USB_Init();
     USB_Connect();
 
-    debug("Done.");
+    debug("Done.\r\n");
 }
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
@@ -89,7 +89,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
         for(int i = 0; i < usbDevice->outEndpointSize; i++) {
             if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                         Endpoint_Read_8())) {
-                debug("Dropped write from host -- queue is full");
+                debug("Dropped write from host -- queue is full\r\n");
             }
         }
         processQueue(&usbDevice->receiveQueue, callback);

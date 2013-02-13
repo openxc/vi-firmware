@@ -102,7 +102,7 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals,
     if(signalState != NULL) {
         return signalState->name;
     }
-    debug("No signal state found for value %d", value);
+    debug("No signal state found for value %d\r\n", value);
     *send = false;
     return NULL;
 }
@@ -183,7 +183,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         const char* stringValue = handler(signal, signals, signalCount, value,
                 &send);
         if(stringValue == NULL) {
-            debug("No valid string returned from handler for %s",
+            debug("No valid string returned from handler for %s\r\n",
                     signal->genericName);
         } else if(send) {
             sendStringMessage(signal->genericName, stringValue, listener);

@@ -48,7 +48,7 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     uint32_t id = idObject->valueint;
     cJSON* dataObject = cJSON_GetObjectItem(root, "data");
     if(dataObject == NULL) {
-        debug("Raw write request missing data", id);
+        debug("Raw write request missing data\r\n", id);
         return;
     }
 
@@ -70,7 +70,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
             true);
     if(signal != NULL) {
         if(value == NULL) {
-            debug("Write request for %s missing value", name);
+            debug("Write request for %s missing value\r\n", name);
             return;
         }
         sendCanSignal(signal, value, getSignals(), getSignalCount());
@@ -81,7 +81,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
             command->handler(name, value, event, getSignals(),
                     getSignalCount());
         } else {
-            debug("Writing not allowed for signal with name %s", name);
+            debug("Writing not allowed for signal with name %s\r\n", name);
         }
     }
 }
@@ -96,7 +96,7 @@ bool receiveWriteRequest(uint8_t* message) {
             cJSON* idObject = cJSON_GetObjectItem(root, "id");
             if(idObject == NULL) {
                 debug("Write request is malformed, "
-                        "missing name or id: %s", message);
+                        "missing name or id: %s\r\n", message);
             } else {
                 receiveRawWriteRequest(idObject, root);
             }
@@ -106,7 +106,7 @@ bool receiveWriteRequest(uint8_t* message) {
         cJSON_Delete(root);
     } else {
         debug("No valid JSON in incoming buffer yet -- "
-                "if it's valid, may be out of memory");
+                "if it's valid, may be out of memory\r\n");
     }
     return foundMessage;
 }

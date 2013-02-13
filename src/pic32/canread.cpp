@@ -35,7 +35,7 @@ void handleCanInterrupt(CanBus* bus) {
             // the interrupt handler so much that it locks up the device in
             // permanent interrupt handling land.
             //
-            // debug("Dropped CAN message with ID 0x%02x -- queue is full with %d",
+            // debug("Dropped CAN message with ID 0x%02x -- queue is full with %d\r\n",
                     // message.id, QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
         }
 

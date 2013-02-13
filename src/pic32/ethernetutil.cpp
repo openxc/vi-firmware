@@ -27,7 +27,7 @@ void initializeEthernet(EthernetDevice* device) {
         Ethernet.begin(device->macAddress, device->ipAddress);
 #endif
         device->server->begin();
-        debug("Done.");
+        debug("Done.\r\n");
     }
 }
 

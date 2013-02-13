@@ -11,6 +11,8 @@ void delayMs(int delayInMs);
  */
 unsigned long systemTimeMs();
 
+void initializeTimers();
+
 #ifdef __cplusplus
 }
 #endif

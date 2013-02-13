@@ -8,3 +8,5 @@ void delayMs(int delayInMs) {
 unsigned long systemTimeMs() {
     return millis();
 }
+
+void initializeTimers() { }

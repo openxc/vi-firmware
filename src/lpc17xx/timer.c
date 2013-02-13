@@ -13,3 +13,6 @@ void delayMs(int delayInMs) {
 	/* wait until delay time has elapsed */
 	while (LPC_TIM0->TCR & 0x01);
 }
+
+unsigned long systemTimeMs() {
+}

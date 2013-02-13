@@ -4,3 +4,7 @@
 void delayMs(int delayInMs) {
     delay(delayInMs);
 }
+
+unsigned long systemTimeMs() {
+    return millis();
+}

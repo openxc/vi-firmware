@@ -7,6 +7,10 @@ extern "C" {
 
 void delayMs(int delayInMs);
 
+/* Public: Return the current system time in milliseconds.
+ */
+unsigned long systemTimeMs();
+
 #ifdef __cplusplus
 }
 #endif

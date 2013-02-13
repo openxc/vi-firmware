@@ -119,7 +119,7 @@ void receiveCan(CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(message.id, message.data);
+        decodeCanMessage(bus, message.id, message.data);
     }
 }
 

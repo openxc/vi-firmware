@@ -105,7 +105,7 @@ START_TEST (test_send_numerical)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}");
 }
 END_TEST
 
@@ -119,7 +119,7 @@ START_TEST (test_preserve_float_precision)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42.500000}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42.500000}");
 }
 END_TEST
 
@@ -132,7 +132,7 @@ START_TEST (test_send_boolean)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":false}");
 }
 END_TEST
 
@@ -145,7 +145,7 @@ START_TEST (test_send_string)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"string\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"string\"}");
 }
 END_TEST
 
@@ -158,7 +158,7 @@ START_TEST (test_send_evented_boolean)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":false}");
 }
 END_TEST
 
@@ -171,7 +171,7 @@ START_TEST (test_send_evented_string)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}");
 }
 END_TEST
 
@@ -184,7 +184,7 @@ START_TEST (test_passthrough_message)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}");
 }
 END_TEST
 
@@ -201,7 +201,7 @@ START_TEST (test_default_handler)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}");
 }
 END_TEST
 
@@ -242,7 +242,7 @@ START_TEST (test_translate_float)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":42}");
 }
 END_TEST
 
@@ -260,7 +260,7 @@ START_TEST (test_translate_string)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}");
 }
 END_TEST
 
@@ -278,7 +278,7 @@ START_TEST (test_translate_bool)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":false}");
 }
 END_TEST
 
@@ -324,7 +324,7 @@ START_TEST (test_preserve_last_value)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}");
 }
 END_TEST
 
@@ -338,7 +338,7 @@ START_TEST (test_dont_send_same)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":true}");
 
     QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
     translateCanSignal(&listener, &SIGNALS[2], 0xEB, booleanHandler, SIGNALS,

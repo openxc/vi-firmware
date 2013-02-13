@@ -54,7 +54,7 @@ ifeq ($(OSTYPE),Darwin)
 BROWSER = open
 endif
 
-# Guard against \r\n line endings only in Cygwin
+# Guard against  line endings only in Cygwin
 ifneq ($(OSTYPE),Darwin)
 	OSTYPE := $(shell uname -o)
 	ifeq ($(OSTYPE),Cygwin)

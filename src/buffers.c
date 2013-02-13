@@ -13,7 +13,7 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     uint8_t snapshot[length];
     QUEUE_SNAPSHOT(uint8_t, queue, snapshot);
     if(callback == NULL) {
-        debug("Callback is NULL (%p) -- unable to handle queue at %p\r\n",
+        debug("Callback is NULL (%p) -- unable to handle queue at %p",
                 callback, queue);
         return;
     }
@@ -21,10 +21,10 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     if(callback(snapshot)) {
         QUEUE_INIT(uint8_t, queue);
     } else if(QUEUE_FULL(uint8_t, queue)) {
-        debug("Incoming write is too long\r\n");
+        debug("Incoming write is too long");
         QUEUE_INIT(uint8_t, queue);
     } else if(strnchr((char*)snapshot, sizeof(snapshot) - 1, '\0') != NULL) {
-        debug("Incoming buffered write corrupted (%s) -- clearing buffer\r\n",
+        debug("Incoming buffered write corrupted (%s) -- clearing buffer",
                 snapshot);
         QUEUE_INIT(uint8_t, queue);
     }

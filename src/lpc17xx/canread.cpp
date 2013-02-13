@@ -37,7 +37,7 @@ void CAN_IRQHandler() {
                 // the interrupt handler so much that it locks up the device in
                 // permanent interrupt handling land.
                 //
-                // debug("Dropped CAN message with ID 0x%02x -- queue is full\r\n",
+                // debug("Dropped CAN message with ID 0x%02x -- queue is full",
                 // message.id);
             }
         }

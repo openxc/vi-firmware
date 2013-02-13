@@ -67,7 +67,7 @@ void setup() {
 }
 
 bool usbWriteStub(uint8_t* buffer) {
-    debug("Ignoring write request -- running an emulator\r\n");
+    debug("Ignoring write request -- running an emulator");
     return true;
 }
 

@@ -23,7 +23,7 @@ void droppedMessage(MessageType type) {
     droppedMessages[type]++;
     if(droppedMessages[type] > DROPPED_MESSAGE_LOGGING_THRESHOLD) {
         droppedMessages[type] = 0;
-        debug("%s send queue full, dropped another %d messages\r\n",
+        debug("%s send queue full, dropped another %d messages",
                 messageTypeNames[type], DROPPED_MESSAGE_LOGGING_THRESHOLD);
     }
 }

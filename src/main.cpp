@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "serialutil.h"
 #include "usbutil.h"
 #include "ethernetutil.h"
@@ -5,7 +6,7 @@
 #include "signals.h"
 #include "log.h"
 #include "lights.h"
-#include <stdlib.h>
+#include "power.h"
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -46,6 +47,7 @@ int main(void) {
 #endif // __PIC32__
 
     initializeLogging();
+    initializePower();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
@@ -58,6 +60,7 @@ int main(void) {
         loop();
         processListenerQueues(&listener);
         updateLights();
+        updatePower();
     }
 
     return 0;

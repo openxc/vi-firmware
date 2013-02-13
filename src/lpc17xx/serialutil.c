@@ -230,7 +230,7 @@ void initializeSerial(SerialDevice* device) {
         // Ensure BT reset line is held high.
         LPC_GPIO1->FIODIR |= (1 << 17);
         LPC_GPIO1->FIOPIN |= (1 << 17);
-        debug("Done.\r\n");
+        debug("Done.");
     }
 }
 

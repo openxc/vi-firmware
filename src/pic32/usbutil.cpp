@@ -19,7 +19,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     switch(event) {
     case EVENT_CONFIGURED:
-        debug("USB Configured\r\n");
+        debug("USB Configured");
         USB_DEVICE.configured = true;
         USB_DEVICE.device.EnableEndpoint(USB_DEVICE.inEndpoint,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
@@ -48,7 +48,7 @@ bool waitForHandle(UsbDevice* usbDevice) {
             // This can get really noisy when running but I want to leave it in
             // because it' useful to enable when debugging.
             // debug("USB most likely not connected or at least not requesting "
-                    // "IN transfers - bailing out of handle waiting\r\n");
+                    // "IN transfers - bailing out of handle waiting");
             return false;
         }
     }
@@ -88,7 +88,7 @@ void initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-    debug("Done.\r\n");
+    debug("Done.");
 }
 
 
@@ -112,7 +112,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
             for(int i = 0; i < usbDevice->outEndpointSize; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
-                    debug("Dropped write from host -- queue is full\r\n");
+                    debug("Dropped write from host -- queue is full");
                 }
             }
             processQueue(&usbDevice->receiveQueue, callback);

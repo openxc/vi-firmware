@@ -2,5 +2,5 @@
 #include "WProgram.h"
 
 void delayMs(int delayInMs) {
-    delay(delayMs);
+    delay(delayInMs);
 }

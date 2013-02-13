@@ -51,7 +51,7 @@ int main(void) {
     initializeEthernet(listener.ethernet);
     initializeLights();
 
-    debug("Initializing as %s\r\n", getMessageSet());
+    debug("Initializing as %s", getMessageSet());
     setup();
 
     for (;;) {
@@ -74,13 +74,13 @@ bool handleControlRequest(uint8_t request) {
         char combinedVersion[strlen(VERSION) +
                 strlen(getMessageSet()) + 4];
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        debug("Version: %s\r\n", combinedVersion);
+        debug("Version: %s", combinedVersion);
 
         sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     }
     case RESET_CONTROL_COMMAND:
-        debug("Resetting...\r\n");
+        debug("Resetting...");
         reset();
         return true;
     default:

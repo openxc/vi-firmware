@@ -16,7 +16,7 @@ CAN* can2 = &can2Actual;
  */
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debug("Configuring %d filters...", filterCount);
+        debugNoNewline("Configuring %d filters...", filterCount);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
                 CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
         for(int i = 0; i < filterCount; i++) {
@@ -29,9 +29,9 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
             CAN_CONTROLLER(bus)->enableFilter((CAN::FILTER) filters[i].number,
                     true);
         }
-        debug("Done.\r\n");
+        debug("Done.");
     } else {
-        debug("No filters configured, turning off acceptance filter\r\n");
+        debug("No filters configured, turning off acceptance filter");
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
             CAN::FILTER_MASK_IDE_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(
@@ -96,5 +96,5 @@ void initializeCan(CanBus* bus) {
 
     CAN_CONTROLLER(bus)->attachInterrupt(bus->interruptHandler);
 
-    debug("Done.\r\n");
+    debug("Done.");
 }

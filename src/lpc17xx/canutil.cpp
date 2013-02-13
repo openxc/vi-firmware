@@ -13,20 +13,20 @@
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debug("Configuring %d filters...\r\n", filterCount);
+        debugNoNewline("Configuring %d filters...", filterCount);
         CAN_SetAFMode(LPC_CANAF, CAN_Normal);
         CAN_ERROR result = CAN_OK;
         for(int i = 0; i < filterCount; i++) {
             result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), filters[i].value,
                     STD_ID_FORMAT);
             if(result != CAN_OK) {
-                debug("Couldn't add message filter, error %d\r\n", result);
+                debug("Couldn't add message filter, error %d", result);
             }
         }
-        debug("Done.\r\n");
+        debug("Done.");
         return result;
     } else {
-        debug("No filters configured, turning off acceptance filter\r\n");
+        debug("No filters configured, turning off acceptance filter");
         // disable acceptable filter so we get all messages
         CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
         return CAN_OK;

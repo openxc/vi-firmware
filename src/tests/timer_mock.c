@@ -2,4 +2,6 @@
 
 void delayMs(int delayInMs) { }
 
-unsigned long systemTimeMs() { }
+unsigned long systemTimeMs() {
+    return 0;
+}

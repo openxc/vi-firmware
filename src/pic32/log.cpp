@@ -5,7 +5,7 @@
 
 extern HardwareSerial Serial2;
 
-void debug(const char* format, ...) {
+void debugNoNewline(const char* format, ...) {
 #ifdef __DEBUG__
     va_list args;
     va_start(args, format);

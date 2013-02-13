@@ -22,6 +22,10 @@ void initializeLogging();
  */
 void debug(const char* format, ...);
 
+/* Public: Like debug() but doesn't add a newline to the end of the message.
+ */
+void debugNoNewline(const char* format, ...);
+
 #ifdef __cplusplus
 }
 #endif

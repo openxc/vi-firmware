@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void debug(const char* format, ...) {
+void debugNoNewline(const char* format, ...) {
 #ifdef __DEBUG__
     va_list args;
     va_start(args, format);

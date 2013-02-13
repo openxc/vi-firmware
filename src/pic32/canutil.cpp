@@ -16,7 +16,7 @@ CAN* can2 = &can2Actual;
  */
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debug("Configuring %d filters...", filterCount);
+        debugNoNewline("Configuring %d filters...", filterCount);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
                 CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
         for(int i = 0; i < filterCount; i++) {

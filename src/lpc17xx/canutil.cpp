@@ -13,7 +13,7 @@
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debug("Configuring %d filters...\r\n", filterCount);
+        debugNoNewline("Configuring %d filters...\r\n", filterCount);
         CAN_SetAFMode(LPC_CANAF, CAN_Normal);
         CAN_ERROR result = CAN_OK;
         for(int i = 0; i < filterCount; i++) {

@@ -8,8 +8,11 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include "timer.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+#define CAN_ACTIVE_TIMEOUT_S 5
 
 extern Listener listener;
 
@@ -35,6 +38,14 @@ void loop() {
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
+    }
+
+    bool canBusActive = false;
+    for(int i = 0; i < getCanBusCount(); i++) {
+        if(systemTimeMs() - max(0, getCanBuses()[i].lastMessageReceived) <
+                CAN_ACTIVE_TIMEOUT_S * 1000) {
+            canBusActive = true;
+        }
     }
 }
 
@@ -120,6 +131,7 @@ void receiveCan(CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(bus, message.id, message.data);
+        bus->lastMessageReceived = systemTimeMs();
     }
 }
 

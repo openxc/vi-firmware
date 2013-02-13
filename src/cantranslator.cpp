@@ -42,7 +42,7 @@ void loop() {
 
     bool canBusActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
-        if(systemTimeMs() - MAX(0, getCanBuses()[i].lastMessageReceived) <
+        if(systemTimeMs() - getCanBuses()[i].lastMessageReceived <
                 CAN_ACTIVE_TIMEOUT_S * 1000) {
             canBusActive = true;
         }

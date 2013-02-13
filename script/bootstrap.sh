@@ -200,11 +200,11 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
         if ! test -d "$GCC_INNER_DIR"; then
-	    GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
-	    if ! test -d "$GCC_INNER_DIR"; then
-	        die "GCC for ARM isn't installed in the expected location."
-	    fi
-	fi
+            GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
+            if ! test -d "$GCC_INNER_DIR"; then
+                die "GCC for ARM isn't installed in the expected location."
+            fi
+        fi
     fi
 
     if ! test -d arm-none-eabi; then

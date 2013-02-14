@@ -8,16 +8,16 @@
 
 void TIMER3_IRQHandler() { }
 
-void resetTimer(LPC_TIM_TypeDef* timer) {
-    timer->TCR = 2;
-}
-
 void delayMs(int delayInMs) {
-    resetTimer(DELAY_TIMER);
+    TIM_TIMERCFG_Type delayTimerConfig;
+    TIM_ConfigStructInit(TIM_TIMER_MODE, &delayTimerConfig);
+    TIM_Init(DELAY_TIMER, TIM_TIMER_MODE, &delayTimerConfig);
+
     DELAY_TIMER->PR  = 0x00;        /* set prescaler to zero */
     DELAY_TIMER->MR0 = (SystemCoreClock / 4) / (1000 / delayInMs);  //enter delay time
-    DELAY_TIMER->IR  = 0xff;        /* reset all interrrupts */
+    DELAY_TIMER->IR  = 0xff;        /* reset all interrupts */
     DELAY_TIMER->MCR = 0x04;        /* stop timer on match */
+
     TIM_Cmd(DELAY_TIMER, ENABLE);
 
     /* wait until delay time has elapsed */

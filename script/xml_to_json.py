@@ -41,13 +41,15 @@ class Message(object):
         self.name = node.find("Name").text
         self.id = int(node.find("ID").text, 0)
 
-        for signal_node in node.findall("Signal"):
-            signal = Signal.from_xml_node(signal_node)
-            for message in all_messages:
-                for candidate in message.signals:
-                    if candidate.name == signal.name:
-                        signal.generic_name = candidate.generic_name
-                        self.signals.append(signal)
+        for message in all_messages:
+            if message.id == self.id:
+                signals = (Signal.from_xml_node(signal_node)
+                        for signal_node in node.findall("Signal"))
+                for signal in signals:
+                    for candidate in message.signals:
+                        if candidate.name == signal.name:
+                            signal.generic_name = candidate.generic_name
+                            self.signals.append(signal)
 
     def to_dict(self):
         return {"name": self.name,

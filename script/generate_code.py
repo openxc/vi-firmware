@@ -398,7 +398,7 @@ class Parser(object):
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))
-                    print("            break;")
+                print("            break;")
             print("        }")
         print("    }")
 

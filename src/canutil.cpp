@@ -1,5 +1,6 @@
 #include "canutil.h"
 #include "canwrite.h"
+#include "timer.h"
 #include "log.h"
 
 void initializeCanCommon(CanBus* bus) {
@@ -7,6 +8,7 @@ void initializeCanCommon(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = sendCanMessage;
+    bus->lastMessageReceived = systemTimeMs();
 }
 
 int lookup(void* key,

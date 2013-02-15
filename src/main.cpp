@@ -4,6 +4,7 @@
 #include "listener.h"
 #include "signals.h"
 #include "log.h"
+#include "timer.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -45,6 +46,7 @@ int main(void) {
 #endif // __PIC32__
 
     initializeLogging();
+    initializeTimers();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);

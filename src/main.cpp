@@ -4,6 +4,7 @@
 #include "listener.h"
 #include "signals.h"
 #include "log.h"
+#include "lights.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -48,6 +49,7 @@ int main(void) {
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
+    initializeLights();
 
     debug("Initializing as %s", getMessageSet());
     setup();
@@ -55,6 +57,7 @@ int main(void) {
     for (;;) {
         loop();
         processListenerQueues(&listener);
+        updateLights();
     }
 
     return 0;

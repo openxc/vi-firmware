@@ -3,6 +3,7 @@
 #include "log.h"
 
 #define USB_PACKET_SIZE 64
+#define USB_VBUS_ANALOG_INPUT A0
 
 extern "C" {
 extern bool handleControlRequest(uint8_t);
@@ -56,6 +57,14 @@ bool waitForHandle(UsbDevice* usbDevice) {
 }
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
+    if(usbDevice->configured && analogRead(USB_VBUS_ANALOG_INPUT) < 100) {
+        // if there's nothing attached to the analog input it floats at ~828, so
+        // if we're powering the board from micro-USB (and the jumper is going
+        // to 5v and not the analog input), this is still OK.
+        debug("USB not longer detected - marking unconfigured");
+        usbDevice->configured = false;
+    }
+
     while(usbDevice->configured &&
             !QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
         // Make sure the USB write is 100% complete before messing with this buffer
@@ -88,6 +97,7 @@ void initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
+    pinMode(USB_VBUS_ANALOG_INPUT, INPUT);
     debug("Done.");
 }
 

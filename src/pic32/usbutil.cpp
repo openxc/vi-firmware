@@ -43,7 +43,8 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 
 bool waitForHandle(UsbDevice* usbDevice) {
     int i = 0;
-    while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
+    while(usbDevice->configured &&
+            usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
         if(i > 800) {
             // This can get really noisy when running but I want to leave it in

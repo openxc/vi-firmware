@@ -9,6 +9,8 @@ void initializePower();
 
 void updatePower();
 
+void enterLowPowerMode();
+
 #ifdef __cplusplus
 }
 #endif

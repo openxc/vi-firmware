@@ -63,13 +63,20 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
-    if(USB_DeviceState != DEVICE_STATE_Configured) {
-        usbDevice->configured = false;
-        return;
-    }
-    usbDevice->configured = true;
 
-    sendToHost(usbDevice);
+    if(usbDevice->configured &&
+            USB_DeviceState != DEVICE_STATE_Configured) {
+        debug("USB no longer detected - marking unconfigured");
+        usbDevice->configured = false;
+    } else if(!usbDevice->configured &&
+            USB_DeviceState == DEVICE_STATE_Configured) {
+        debug("USB configured.");
+        usbDevice->configured = true;
+    }
+
+    if(usbDevice->configured) {
+        sendToHost(usbDevice);
+    }
 }
 
 

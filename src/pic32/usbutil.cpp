@@ -62,7 +62,7 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
         // if there's nothing attached to the analog input it floats at ~828, so
         // if we're powering the board from micro-USB (and the jumper is going
         // to 5v and not the analog input), this is still OK.
-        debug("USB not longer detected - marking unconfigured");
+        debug("USB no longer detected - marking unconfigured");
         usbDevice->configured = false;
     }
 

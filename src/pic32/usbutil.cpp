@@ -2,8 +2,8 @@
 #include "buffers.h"
 #include "log.h"
 
-#define USB_PACKET_SIZE 64
 #define USB_VBUS_ANALOG_INPUT A0
+#define USB_HANDLE_MAX_WAIT_COUNT 800
 
 extern "C" {
 extern bool handleControlRequest(uint8_t);
@@ -46,7 +46,13 @@ bool waitForHandle(UsbDevice* usbDevice) {
     while(usbDevice->configured &&
             usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
-        if(i > 800) {
+        if(i > USB_HANDLE_MAX_WAIT_COUNT) {
+            // The reason we want to exit this loop early is that if USB is
+            // attached and configured, but the host isn't sending an IN
+            // requests, we will block here forever. As it is, it still slows
+            // down UART transfers quite a bit, so setting configured = false
+            // ASAP is important.
+
             // This can get really noisy when running but I want to leave it in
             // because it' useful to enable when debugging.
             // debug("USB most likely not connected or at least not requesting "
@@ -68,27 +74,32 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
 
     while(usbDevice->configured &&
             !QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
-        // Make sure the USB write is 100% complete before messing with this buffer
-        // after we copy the message into it - the Microchip library doesn't copy
-        // the data to its own internal buffer. See #171 for background on this
-        // issue.
-        if(!waitForHandle(usbDevice)) {
-            return;
-        }
-
         int byteCount = 0;
-        while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) && byteCount < 64) {
-            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+        while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) &&
+                byteCount < USB_SEND_BUFFER_SIZE) {
+            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
+                    &usbDevice->sendQueue);
         }
 
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
+            // Make sure the USB write is 100% complete before messing with this
+            // buffer after we copy the message into it - the Microchip library
+            // doesn't copy the data to its own internal buffer. See #171 for
+            // background on this issue.
             if(!waitForHandle(usbDevice)) {
+                // TODO instead of dropping, replace POP above with a SNAPSHOT
+                // and POP off only exactly how many bytes were sent after the
+                // fact.
+                // debug("USB not responding in a timely fashion, dropped data");
                 return;
             }
-            int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
+
+            int bytesToTransfer = min(MAX_USB_PACKET_SIZE_BYTES,
+                    byteCount - nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
-                    usbDevice->inEndpoint, &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);
+                    usbDevice->inEndpoint,
+                    &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
     }
@@ -114,7 +125,8 @@ void initializeUsb(UsbDevice* usbDevice) {
 void armForRead(UsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
     usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(
-            usbDevice->outEndpoint, (uint8_t*)buffer, usbDevice->outEndpointSize);
+            usbDevice->outEndpoint, (uint8_t*)buffer,
+            usbDevice->outEndpointSize);
 }
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {

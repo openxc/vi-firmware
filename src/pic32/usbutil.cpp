@@ -3,7 +3,7 @@
 #include "log.h"
 
 #define USB_VBUS_ANALOG_INPUT A0
-#define USB_HANDLE_MAX_WAIT_COUNT 25000
+#define USB_HANDLE_MAX_WAIT_COUNT 35000
 
 extern "C" {
 extern bool handleControlRequest(uint8_t);

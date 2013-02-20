@@ -3,7 +3,7 @@
 #include "log.h"
 
 #define USB_VBUS_ANALOG_INPUT A0
-#define USB_HANDLE_MAX_WAIT_COUNT 800
+#define USB_HANDLE_MAX_WAIT_COUNT 25000
 
 extern "C" {
 extern bool handleControlRequest(uint8_t);
@@ -41,6 +41,10 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
+bool vbusEnabled() {
+    return analogRead(USB_VBUS_ANALOG_INPUT) < 100;
+}
+
 bool waitForHandle(UsbDevice* usbDevice) {
     int i = 0;
     while(usbDevice->configured &&
@@ -63,13 +67,19 @@ bool waitForHandle(UsbDevice* usbDevice) {
     return true;
 }
 
+
 void processUsbSendQueue(UsbDevice* usbDevice) {
-    if(usbDevice->configured && analogRead(USB_VBUS_ANALOG_INPUT) < 100) {
+    if(usbDevice->configured && vbusEnabled()) {
         // if there's nothing attached to the analog input it floats at ~828, so
         // if we're powering the board from micro-USB (and the jumper is going
         // to 5v and not the analog input), this is still OK.
         debug("USB no longer detected - marking unconfigured");
         usbDevice->configured = false;
+    }
+
+    // Don't touch usbDevice->sendBuffer if there's still a pending transfer
+    if(!waitForHandle(usbDevice)) {
+        return;
     }
 
     while(usbDevice->configured &&
@@ -87,11 +97,14 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
             // buffer after we copy the message into it - the Microchip library
             // doesn't copy the data to its own internal buffer. See #171 for
             // background on this issue.
+            // TODO instead of dropping, replace POP above with a SNAPSHOT
+            // and POP off only exactly how many bytes were sent after the
+            // fact.
+            // TODO in order for this not to fail too often I had to increase
+            // the USB_HANDLE_MAX_WAIT_COUNT. that may be OK since now we have
+            // VBUS detection.
             if(!waitForHandle(usbDevice)) {
-                // TODO instead of dropping, replace POP above with a SNAPSHOT
-                // and POP off only exactly how many bytes were sent after the
-                // fact.
-                // debug("USB not responding in a timely fashion, dropped data");
+                debug("USB not responding in a timely fashion, dropped data");
                 return;
             }
 

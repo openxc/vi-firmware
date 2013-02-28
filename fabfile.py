@@ -83,8 +83,8 @@ def docs(clean='no', browse_='no'):
     local('git add -A')
     local('git commit -m "Update Sphinx docs."')
     local('git push')
-    local('git stash pop')
     local('git checkout master')
+    local('git stash pop')
 
 
 @task

@@ -77,11 +77,13 @@ def docs(clean='no', browse_='no'):
         local('cp -R %s %s' % (docs_path, temp_path))
     local('git checkout gh-pages')
     local('git pull')
+    local('git stash -u')
     local('cp -R %s/html/* .' % temp_path)
     local('touch .nojekyll')
     local('git add -A')
     local('git commit -m "Update Sphinx docs."')
     local('git push')
+    local('git stash pop')
     local('git checkout master')
 
 

@@ -18,7 +18,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "3.0-dev";
+const char* VERSION = "3.0";
 
 SerialDevice SERIAL_DEVICE;
 EthernetDevice ETHERNET_DEVICE;

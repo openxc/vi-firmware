@@ -1,6 +1,6 @@
 # OpenXC CAN Translator Changelog
 
-## v3.0-dev
+## v3.0
 
 * Combine odometer and fine_odometer_since restart into a single high-precision
   signal. TODO pull shared handlers into a submodule so we don't have to bump

@@ -76,6 +76,7 @@ def docs(clean='no', browse_='no'):
     with lcd(temp_path):
         local('cp -R %s %s' % (docs_path, temp_path))
     local('git checkout gh-pages')
+    local('git pull')
     local('cp -R %s/html/* .' % temp_path)
     local('touch .nojekyll')
     local('git add -A')

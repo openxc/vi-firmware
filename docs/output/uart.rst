@@ -29,6 +29,18 @@ interfaces when using flow control.
 - Pin 18 - ``U1ARTS``, connect this to the CTS line of the receiver.
 - Pin 19 - ``U1ACTS``, connect this to the RTS line of the receiver.
 
+An additional item to consider when using UART: typically you will want to rig
+the chipKIT to be self-powered (either from an external power source or the
+vehicle) if you're going to use UART for adding Bluetooth support. There's not
+much point in being wireless if you still need power from USB.
+
+In that case, move the USB power jumper from the 5v input on the Network Shield
+to A0 (analog input 0). Instead of using 5v to power the board, the firmware can
+use it to detect if USB is actually attached or not. The benefit of this is that
+if you connect USB, then disconnect it, we can detect that in the firmware and
+stop wasting time trying to send data over USB. This will dramatically increase
+the throughput over UART.
+
 Blueboard
 =========
 

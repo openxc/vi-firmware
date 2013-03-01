@@ -93,7 +93,7 @@ to read vehicle data - see the `device connections
 of the `OpenXC website`_ to make sure you have the correct cable attached.
 
 Uploading Script
-------------
+----------------
 
 Open a terminal and ``cd`` into the ``cantranslator`` folder that you cloned
 with Git. Run the ``upload_hex.sh`` script with the ``.hex`` file you
@@ -176,7 +176,7 @@ need it), you can install a programmer seprately:
 - Linux - Look for ``avrdude`` in your distribution's package manager.
 - OS X - Install ``avrdude`` with `Homebrew`_.
 - Windows
-   - Install `Cygwin <http://cygwin.com>`_ and `MPIDE`_, and follow the
+   - Install `Cygwin`_ and `MPIDE`_, and follow the
      :doc:`installation` documentation to configure the MPIDE environment
      variables.
 

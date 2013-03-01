@@ -8,8 +8,11 @@
 #include "log.h"
 #include "cJSON.h"
 #include "listener.h"
+#include "timer.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+#define CAN_ACTIVE_TIMEOUT_S 5
 
 extern Listener listener;
 
@@ -36,6 +39,14 @@ void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
+
+    bool canBusActive = false;
+    for(int i = 0; i < getCanBusCount(); i++) {
+        if(systemTimeMs() - getCanBuses()[i].lastMessageReceived <
+                CAN_ACTIVE_TIMEOUT_S * 1000) {
+            canBusActive = true;
+        }
+    }
 }
 
 void initializeAllCan() {
@@ -48,7 +59,7 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     uint32_t id = idObject->valueint;
     cJSON* dataObject = cJSON_GetObjectItem(root, "data");
     if(dataObject == NULL) {
-        debug("Raw write request missing data\r\n", id);
+        debug("Raw write request missing data", id);
         return;
     }
 
@@ -70,7 +81,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
             true);
     if(signal != NULL) {
         if(value == NULL) {
-            debug("Write request for %s missing value\r\n", name);
+            debug("Write request for %s missing value", name);
             return;
         }
         sendCanSignal(signal, value, getSignals(), getSignalCount());
@@ -81,7 +92,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
             command->handler(name, value, event, getSignals(),
                     getSignalCount());
         } else {
-            debug("Writing not allowed for signal with name %s\r\n", name);
+            debug("Writing not allowed for signal with name %s", name);
         }
     }
 }
@@ -96,7 +107,7 @@ bool receiveWriteRequest(uint8_t* message) {
             cJSON* idObject = cJSON_GetObjectItem(root, "id");
             if(idObject == NULL) {
                 debug("Write request is malformed, "
-                        "missing name or id: %s\r\n", message);
+                        "missing name or id: %s", message);
             } else {
                 receiveRawWriteRequest(idObject, root);
             }
@@ -106,7 +117,7 @@ bool receiveWriteRequest(uint8_t* message) {
         cJSON_Delete(root);
     } else {
         debug("No valid JSON in incoming buffer yet -- "
-                "if it's valid, may be out of memory\r\n");
+                "if it's valid, may be out of memory");
     }
     return foundMessage;
 }
@@ -119,7 +130,8 @@ void receiveCan(CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(message.id, message.data);
+        decodeCanMessage(bus, message.id, message.data);
+        bus->lastMessageReceived = systemTimeMs();
     }
 }
 

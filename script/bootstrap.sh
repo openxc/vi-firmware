@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR/..
+
 source $DIR/bootstrap_for_flashing.sh
 
 CYGWIN_PACKAGES="gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
@@ -200,11 +204,11 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
         if ! test -d "$GCC_INNER_DIR"; then
-	    GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
-	    if ! test -d "$GCC_INNER_DIR"; then
-	        die "GCC for ARM isn't installed in the expected location."
-	    fi
-	fi
+            GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
+            if ! test -d "$GCC_INNER_DIR"; then
+                die "GCC for ARM isn't installed in the expected location."
+            fi
+        fi
     fi
 
     if ! test -d arm-none-eabi; then
@@ -311,5 +315,7 @@ if ! python -c "import argparse"; then
     fi
 fi
 
+popd
+
 echo
-echo "${bldgreen}All mandatory dependencies installed, ready to compile.$txtrst"
+echo "${bldgreen}All developer dependencies installed, ready to compile.$txtrst"

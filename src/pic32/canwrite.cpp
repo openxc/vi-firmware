@@ -29,7 +29,7 @@ bool sendCanMessage(CanBus* bus, CanMessage request) {
         CAN_CONTROLLER(bus)->flushTxChannel(CAN::CHANNEL0);
         return true;
     } else {
-        debug("Unable to get TX message area\r\n");
+        debug("Unable to get TX message area");
     }
     return false;
 }

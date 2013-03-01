@@ -5,7 +5,13 @@
 extern "C" {
 #endif
 
-void delayMs(uint32_t delayInMs);
+void delayMs(int delayInMs);
+
+/* Public: Return the current system time in milliseconds.
+ */
+unsigned long systemTimeMs();
+
+void initializeTimers();
 
 #ifdef __cplusplus
 }

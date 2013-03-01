@@ -27,6 +27,8 @@
 #include "WProgram.h"
 
 #define UART_BAUDRATE 460800
+// See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
+#define _UARTMODE_BRGH 3
 
 // bit 8 in the uxMode register controls hardware flow control
 #define _UARTMODE_FLOWCONTROL 8
@@ -54,12 +56,17 @@ void initializeSerial(SerialDevice* device) {
         initializeSerialCommon(device);
         device->controller = &Serial;
         ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
+        // Override baud rate setup to allow baud rates 200000 (see
+        // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
+        // eventually make it into the MPIDE toolchain)
+        ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 / UART_BAUDRATE) - 1);
+        ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) | (1 << _UARTMODE_BRGH);
         // Manually enable RTS/CTS hardware flow control using the UART2
         // register. The chipKIT serial library doesn't have an interface to do
         // this, and the alternative UART libraries provided by Microchip are a
         // bit of a mess.
         ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
-        debug("Done.\r\n");
+        debug("Done.");
     }
 }
 

@@ -2,6 +2,9 @@
 
 set -e
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR/..
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     OS="windows"
@@ -20,6 +23,14 @@ else
 
     DISTRO=`lsb_release -si`
 fi
+
+_cygwin_error() {
+    echo
+    echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
+    echo "    $CYGWIN_PACKAGES"
+    echo "After installing the packages, re-run this bootstrap script."
+    die
+}
 
 if [ $OS == "cygwin" ] && ! command -v tput >/dev/null 2>&1; then
     _cygwin_error "ncurses"
@@ -67,19 +78,15 @@ _install() {
 
 CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates, ncurses"
 
-_cygwin_error() {
-    echo
-    echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
-    echo "    $CYGWIN_PACKAGES"
-    echo "After installing the packages, re-run this bootstrap script."
-    die
-}
-
 download() {
     url=$1
     filename=$2
     curl $url -L --O $filename
 }
+
+if [ `id -u` == 0 ]; then
+    die "Error: running as root - don't use 'sudo' with this script"
+fi
 
 if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
     _cygwin_error "curl"
@@ -194,6 +201,8 @@ if [ $OS == "linux" ] && [ $ARCH == "x86_64" ]; then
     fi
 
 fi
+
+popd
 
 echo
 echo "${bldgreen}All mandatory dependencies installed, ready to flash.$txtrst"

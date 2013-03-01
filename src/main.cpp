@@ -5,6 +5,7 @@
 #include "signals.h"
 #include "log.h"
 #include "lights.h"
+#include "timer.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -18,7 +19,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "2.2-dev";
+const char* VERSION = "3.0";
 
 SerialDevice SERIAL_DEVICE;
 EthernetDevice ETHERNET_DEVICE;
@@ -46,12 +47,13 @@ int main(void) {
 #endif // __PIC32__
 
     initializeLogging();
+    initializeTimers();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
     initializeLights();
 
-    debug("Initializing as %s\r\n", getMessageSet());
+    debug("Initializing as %s", getMessageSet());
     setup();
 
     for (;;) {
@@ -73,13 +75,13 @@ bool handleControlRequest(uint8_t request) {
         char combinedVersion[strlen(VERSION) +
                 strlen(getMessageSet()) + 4];
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        debug("Version: %s\r\n", combinedVersion);
+        debug("Version: %s", combinedVersion);
 
         sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     }
     case RESET_CONTROL_COMMAND:
-        debug("Resetting...\r\n");
+        debug("Resetting...");
         reset();
         return true;
     default:

@@ -1,8 +1,10 @@
 #include "usbutil.h"
 #include "buffers.h"
 #include "log.h"
+#include "gpio.h"
 
-#define USB_PACKET_SIZE 64
+#define USB_VBUS_ANALOG_INPUT A0
+#define USB_HANDLE_MAX_WAIT_COUNT 35000
 
 extern "C" {
 extern bool handleControlRequest(uint8_t);
@@ -19,7 +21,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     switch(event) {
     case EVENT_CONFIGURED:
-        debug("USB Configured\r\n");
+        debug("USB Configured");
         USB_DEVICE.configured = true;
         USB_DEVICE.device.EnableEndpoint(USB_DEVICE.inEndpoint,
                 USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
@@ -40,45 +42,78 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
+bool vbusEnabled() {
+    return analogRead(USB_VBUS_ANALOG_INPUT) < 100;
+}
+
 bool waitForHandle(UsbDevice* usbDevice) {
     int i = 0;
-    while(usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
+    while(usbDevice->configured &&
+            usbDevice->device.HandleBusy(usbDevice->deviceToHostHandle)) {
         ++i;
-        if(i > 800) {
+        if(i > USB_HANDLE_MAX_WAIT_COUNT) {
+            // The reason we want to exit this loop early is that if USB is
+            // attached and configured, but the host isn't sending an IN
+            // requests, we will block here forever. As it is, it still slows
+            // down UART transfers quite a bit, so setting configured = false
+            // ASAP is important.
+
             // This can get really noisy when running but I want to leave it in
             // because it' useful to enable when debugging.
             // debug("USB most likely not connected or at least not requesting "
-                    // "IN transfers - bailing out of handle waiting\r\n");
+                    // "IN transfers - bailing out of handle waiting");
             return false;
         }
     }
     return true;
 }
 
+
 void processUsbSendQueue(UsbDevice* usbDevice) {
+    if(usbDevice->configured && vbusEnabled()) {
+        // if there's nothing attached to the analog input it floats at ~828, so
+        // if we're powering the board from micro-USB (and the jumper is going
+        // to 5v and not the analog input), this is still OK.
+        debug("USB no longer detected - marking unconfigured");
+        usbDevice->configured = false;
+    }
+
+    // Don't touch usbDevice->sendBuffer if there's still a pending transfer
+    if(!waitForHandle(usbDevice)) {
+        return;
+    }
+
     while(usbDevice->configured &&
             !QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
-        // Make sure the USB write is 100% complete before messing with this buffer
-        // after we copy the message into it - the Microchip library doesn't copy
-        // the data to its own internal buffer. See #171 for background on this
-        // issue.
-        if(!waitForHandle(usbDevice)) {
-            return;
-        }
-
         int byteCount = 0;
-        while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) && byteCount < 64) {
-            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+        while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue) &&
+                byteCount < USB_SEND_BUFFER_SIZE) {
+            usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
+                    &usbDevice->sendQueue);
         }
 
         int nextByteIndex = 0;
         while(nextByteIndex < byteCount) {
+            // Make sure the USB write is 100% complete before messing with this
+            // buffer after we copy the message into it - the Microchip library
+            // doesn't copy the data to its own internal buffer. See #171 for
+            // background on this issue.
+            // TODO instead of dropping, replace POP above with a SNAPSHOT
+            // and POP off only exactly how many bytes were sent after the
+            // fact.
+            // TODO in order for this not to fail too often I had to increase
+            // the USB_HANDLE_MAX_WAIT_COUNT. that may be OK since now we have
+            // VBUS detection.
             if(!waitForHandle(usbDevice)) {
+                debug("USB not responding in a timely fashion, dropped data");
                 return;
             }
-            int bytesToTransfer = min(USB_PACKET_SIZE, byteCount - nextByteIndex);
+
+            int bytesToTransfer = min(MAX_USB_PACKET_SIZE_BYTES,
+                    byteCount - nextByteIndex);
             usbDevice->deviceToHostHandle = usbDevice->device.GenWrite(
-                    usbDevice->inEndpoint, &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);
+                    usbDevice->inEndpoint,
+                    &usbDevice->sendBuffer[nextByteIndex], bytesToTransfer);
             nextByteIndex += bytesToTransfer;
         }
     }
@@ -88,7 +123,8 @@ void initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-    debug("Done.\r\n");
+    setGpioDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
+    debug("Done.");
 }
 
 
@@ -103,7 +139,8 @@ void initializeUsb(UsbDevice* usbDevice) {
 void armForRead(UsbDevice* usbDevice, char* buffer) {
     buffer[0] = 0;
     usbDevice->hostToDeviceHandle = usbDevice->device.GenRead(
-            usbDevice->outEndpoint, (uint8_t*)buffer, usbDevice->outEndpointSize);
+            usbDevice->outEndpoint, (uint8_t*)buffer,
+            usbDevice->outEndpointSize);
 }
 
 void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
@@ -112,7 +149,7 @@ void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
             for(int i = 0; i < usbDevice->outEndpointSize; i++) {
                 if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
                             usbDevice->receiveBuffer[i])) {
-                    debug("Dropped write from host -- queue is full\r\n");
+                    debug("Dropped write from host -- queue is full");
                 }
             }
             processQueue(&usbDevice->receiveQueue, callback);

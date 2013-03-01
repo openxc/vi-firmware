@@ -27,7 +27,7 @@ Linux
 
     $ [sudo] pacman -S git
 
-2. Continue to the :ref:`all platforms <all-platforms>` section.
+2. Continue to the :ref:`all platforms <all-plats>` section.
 
 Windows
 -------
@@ -45,7 +45,7 @@ Windows
 
     $ set -o igncr && export SHELLOPTS
 
-4. Continue to the :ref:`all platforms <all-platforms>` section.
+4. Continue to the :ref:`all platforms <all-plats>` section.
 
 OS X
 --------
@@ -54,9 +54,9 @@ OS X
 2. Install `Homebrew <http://mxcl.github.com/homebrew/>`_:
    ``ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"``
 3. Install Git with Homebrew (``brew install git``).
-4. Continue to the :ref:`all platforms <all-platforms>` section.
+4. Continue to the :ref:`all platforms <all-plats>` section.
 
-.. _all-platforms:
+.. _all-plats:
 
 All Platforms
 -------------

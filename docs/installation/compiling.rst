@@ -23,7 +23,6 @@ and upload to the device.
 
 .. code-block:: sh
 
-    $ git submodule init && git submodule update
     $ make clean
     $ make
     $ make flash

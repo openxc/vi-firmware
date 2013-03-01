@@ -44,6 +44,10 @@ Listener listener = {&USB_DEVICE,
 #endif // __USE_ETHERNET__
 };
 
+/* Public: Update the color and status of a board's light that shows the output
+ * interface status. This function is intended to be called each time through
+ * the main program loop.
+ */
 void updateInterfaceLight() {
     if(bluetoothConnected()) {
         enable(LIGHT_B, COLORS.blue);

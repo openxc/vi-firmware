@@ -43,8 +43,12 @@ void loop() {
     updateDataLights();
 }
 
-static bool busWasActive = true;
+/* Public: Update the color and status of a board's light that shows the status
+ * of the CAN bus. This function is intended to be called each time through the
+ * main program loop.
+ */
 void updateDataLights() {
+    static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
         busActive = busActive || canBusActive(&getCanBuses()[i]);

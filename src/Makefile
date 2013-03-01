@@ -55,10 +55,10 @@ emulator: custom_all
 .DEFAULT_GOAL = custom_all
 
 custom_all_prefix:
-	@echo "Compiling..."
+	@echo "Compiling for $(PLATFORM)..."
 
 custom_all: custom_all_prefix all
-	@echo "$(GREEN)Compiled successfully.$(COLOR_RESET)"
+	@echo "$(GREEN)Compiled successfully for $(PLATFORM).$(COLOR_RESET)"
 
 clean::
 	rm -rf $(OBJDIR_ROOT)/*

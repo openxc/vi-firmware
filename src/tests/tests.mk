@@ -19,6 +19,7 @@ TESTABLE_LIB_CPP_SRCS = $(wildcard $(TEST_DIR)/*_mock.cpp)
 
 TESTABLE_LIB_OBJ_FILES = $(addprefix $(TEST_OBJDIR)/, $(TESTABLE_LIB_C_SRCS:.c=.o))
 TESTABLE_LIB_OBJ_FILES += $(addprefix $(TEST_OBJDIR)/, $(TESTABLE_LIB_CPP_SRCS:.cpp=.o))
+
 TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
 				$(TESTABLE_LIB_OBJ_FILES)
 

@@ -27,14 +27,6 @@
 #define PWM_PERIOD_MICROSECONDS 1000
 #define DIMMER_DELAY 1
 
-void disable(Light light, int duration) {
-    enable(light, COLORS.black, duration);
-}
-
-void disable(Light light) {
-    enable(light, COLORS.black, 0);
-}
-
 void setPwm(LPC_PWM_TypeDef* pwm, int channel, int value) {
     PWM_MatchUpdate(pwm, channel, (value / 255) * PWM_PERIOD_MICROSECONDS,
             PWM_MATCH_UPDATE_NEXT_RST);
@@ -63,18 +55,6 @@ void enable(Light light, RGB color) {
     setPwm(LED_PWM_PERIPHERAL, redChannel, color.r);
     setPwm(LED_PWM_PERIPHERAL, greenChannel, color.g);
     setPwm(LED_PWM_PERIPHERAL, blueChannel, color.b);
-}
-
-void enable(Light light, RGB color, int duration) {
-    enable(light, color);
-    // TODO
-}
-
-void flash(Light light, RGB color, int duration) {
-    enable(light, color);
-    // TODO make a non-blocking version of this using timers
-    delayMs(duration);
-    disable(light);
 }
 
 void configureChannel(LPC_PWM_TypeDef* pwm, int channel) {
@@ -158,4 +138,8 @@ void initializeLights() {
     PWM_ResetCounter(LED_PWM_PERIPHERAL);
     PWM_CounterCmd(LED_PWM_PERIPHERAL, ENABLE);
     PWM_Cmd(LED_PWM_PERIPHERAL, ENABLE);
+}
+
+void updateLights() {
+    // TODO update light_b based on bluetooth and usb
 }

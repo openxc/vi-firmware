@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "serialutil.h"
 #include "usbutil.h"
 #include "ethernetutil.h"
@@ -7,6 +8,7 @@
 #include "lights.h"
 #include "timer.h"
 #include "bluetooth.h"
+#include "power.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -59,6 +61,7 @@ int main(void) {
 
     initializeLogging();
     initializeTimers();
+    initializePower();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
@@ -71,6 +74,7 @@ int main(void) {
         loop();
         processListenerQueues(&listener);
         updateInterfaceLight();
+        updatePower();
     }
 
     return 0;

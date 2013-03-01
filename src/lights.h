@@ -65,4 +65,19 @@ void disable(Light light, int duration);
  */
 void flash(Light light, RGB color, int duration);
 
+/* Public: Update the color and status of a board's lights based on whatever
+ * status or counts may be interesting. This function is intended to be called
+ * each time through the main program loop.
+ *
+ * Each platform can define this function so that you can change the light
+ * status based on platform-specific funcionality (e.g. knowing the Bluetooth
+ * CONNECT status).
+ */
+void updateLights();
+
+/* Public: Light updates that happen on every platform. This function is
+ * intended to be called each time through the main program loop.
+ */
+void updateLightsCommon();
+
 #endif // _LIGHTS_H_

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR/..
+
 source $DIR/bootstrap_for_flashing.sh
 
 CYGWIN_PACKAGES="gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
@@ -311,5 +315,7 @@ if ! python -c "import argparse"; then
     fi
 fi
 
+popd
+
 echo
-echo "${bldgreen}All mandatory dependencies installed, ready to compile.$txtrst"
+echo "${bldgreen}All developer dependencies installed, ready to compile.$txtrst"

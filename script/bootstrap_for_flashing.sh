@@ -2,6 +2,9 @@
 
 set -e
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR/..
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     OS="windows"
@@ -198,6 +201,8 @@ if [ $OS == "linux" ] && [ $ARCH == "x86_64" ]; then
     fi
 
 fi
+
+popd
 
 echo
 echo "${bldgreen}All mandatory dependencies installed, ready to flash.$txtrst"

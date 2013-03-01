@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef enum {
-    GPIO_DIRECTION_OUTPUT = 0,
-    GPIO_DIRECTION_INPUT = 1
+    GPIO_DIRECTION_INPUT = 0,
+    GPIO_DIRECTION_OUTPUT = 1
 } GpioDirection;
 
 typedef enum {

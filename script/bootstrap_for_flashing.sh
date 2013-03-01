@@ -81,6 +81,10 @@ download() {
     curl $url -L --O $filename
 }
 
+if [ `id -u` == 0 ]; then
+    die "Error: running as root - don't use 'sudo' with this script"
+fi
+
 if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
     _cygwin_error "curl"
 fi

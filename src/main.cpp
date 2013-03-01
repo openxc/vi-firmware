@@ -6,6 +6,7 @@
 #include "log.h"
 #include "lights.h"
 #include "timer.h"
+#include "bluetooth.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -41,6 +42,16 @@ Listener listener = {&USB_DEVICE,
 #endif // __USE_ETHERNET__
 };
 
+void updateInterfaceLight() {
+    if(bluetoothConnected()) {
+        enable(LIGHT_B, COLORS.blue);
+    } else if(USB_DEVICE.configured) {
+        enable(LIGHT_B, COLORS.green);
+    } else {
+        disable(LIGHT_B);
+    }
+}
+
 int main(void) {
 #ifdef __PIC32__
     init();
@@ -59,6 +70,7 @@ int main(void) {
     for (;;) {
         loop();
         processListenerQueues(&listener);
+        updateInterfaceLight();
     }
 
     return 0;

@@ -9,10 +9,9 @@
 #include "cJSON.h"
 #include "listener.h"
 #include "timer.h"
+#include "lights.h"
 #include <stdint.h>
 #include <stdlib.h>
-
-#define CAN_ACTIVE_TIMEOUT_S 5
 
 extern Listener listener;
 
@@ -21,6 +20,7 @@ extern Listener listener;
 void receiveCan(CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
+void updateDataLights();
 
 void setup() {
     initializeAllCan();
@@ -40,12 +40,24 @@ void loop() {
         processCanWriteQueue(&getCanBuses()[i]);
     }
 
-    bool canBusActive = false;
+    updateDataLights();
+}
+
+static bool busWasActive = true;
+void updateDataLights() {
+    bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
-        if(systemTimeMs() - getCanBuses()[i].lastMessageReceived <
-                CAN_ACTIVE_TIMEOUT_S * 1000) {
-            canBusActive = true;
-        }
+        busActive = busActive || canBusActive(&getCanBuses()[i]);
+    }
+
+    if(!busWasActive && busActive) {
+        debug("CAN woke up - enabling LED");
+        enable(LIGHT_A, COLORS.blue);
+        busWasActive = true;
+    } else if(!busActive && busWasActive) {
+        debug("CAN went silent - disabling LED");
+        disable(LIGHT_A);
+        busWasActive = false;
     }
 }
 

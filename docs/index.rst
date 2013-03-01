@@ -99,6 +99,34 @@ to our issue tracker at http://github.com/openxc/cantranslator/issues/
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 .. _`output format`: http://openxcplatform.com/vehicle-interface/output-format.html
 
+LED Lights
+==========
+
+With no better place for this information right now, here's how the LED lights
+work on the supported boards.
+
+chipKIT
+-------
+
+The chipKIT has 1 user controllable LED. When CAN activity is detected, the LED
+will be enabled (it's green).
+
+Ford ARM-based Prototype
+------------------------
+
+The Ford prototype has 2 RGB LEDs.
+
+**LED A**
+
+- CAN activity detected - Blue
+- No CAN activity on either bus - Off
+
+**LED B**
+
+- USB connected, Bluetooth not connected - Green
+- Bluetooth connected, USB in either state - Blue
+- Neither USB or Bluetooth connected - Off
+
 Related Projects
 ================
 

@@ -37,7 +37,7 @@ void disable(Light light) {
 
 void setPwm(LPC_PWM_TypeDef* pwm, int channel, int value) {
     PWM_MatchUpdate(pwm, channel, (value / 255) * PWM_PERIOD_MICROSECONDS,
-            PWM_MATCH_UPDATE_NOW);
+            PWM_MATCH_UPDATE_NEXT_RST);
 }
 
 void enable(Light light, RGB color) {

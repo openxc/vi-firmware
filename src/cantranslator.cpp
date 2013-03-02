@@ -10,6 +10,7 @@
 #include "listener.h"
 #include "timer.h"
 #include "lights.h"
+#include "power.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -62,6 +63,7 @@ void updateDataLights() {
         debug("CAN went silent - disabling LED");
         disable(LIGHT_A);
         busWasActive = false;
+        enterLowPowerMode();
     }
 }
 

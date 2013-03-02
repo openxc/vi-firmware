@@ -6,19 +6,21 @@ static LPC_GPIO_TypeDef* const LPC_GPIO[5] = {
 };
 
 void setGpioDirection(uint32_t port, uint32_t pin, GpioDirection direction) {
+    uint32_t bitmask = 1 << pin;
     if(direction == GPIO_DIRECTION_OUTPUT) {
-        LPC_GPIO[port]->FIODIR |= 1 << pin;
+        LPC_GPIO[port]->FIODIR |= bitmask;
     } else {
-        LPC_GPIO[port]->FIODIR &= ~(1 << pin);
+        LPC_GPIO[port]->FIODIR &= ~bitmask;
     }
 }
 
 void setGpioValue(uint32_t port, uint32_t pin, GpioValue value) {
+    uint32_t bitmask = 1 << pin;
     if(value == GPIO_VALUE_LOW) {
         // FIOCLR is faster than FIOSET to 0
-        LPC_GPIO[port]->FIOCLR = (1 << pin);
+        LPC_GPIO[port]->FIOCLR = bitmask;
     } else {
-        LPC_GPIO[port]->FIOSET = (1 << pin);
+        LPC_GPIO[port]->FIOSET = bitmask;
     }
 }
 

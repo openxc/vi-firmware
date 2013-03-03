@@ -48,23 +48,30 @@ void WDT_IRQHandler(void) {
     WDT_ClrTimeOutFlag();
 }
 
+void CANActivity_IRQHandler(void) {
+    NVIC_DisableIRQ(CANActivity_IRQn);
+    LPC_SC->CANSLEEPCLR = (0x1<<1)|(0x1<<2);
+    LPC_CAN1->MOD = LPC_CAN2->MOD &= ~(0x1<<4);
+    LPC_SC->CANWAKEFLAGS = (0x1<<1)|(0x1<<2);
+}
+
 #define WDT_TIMEOUT     2000000
 
 void enterLowPowerMode() {
     debug("Going to low power mode");
-    /* NVIC_EnableIRQ(CANActivity_IRQn); */
+    NVIC_EnableIRQ(CANActivity_IRQn);
     WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_INT_ONLY);
-    NVIC_EnableIRQ(WDT_IRQn);
+    /* NVIC_EnableIRQ(WDT_IRQn); */
     WDT_Start(WDT_TIMEOUT);
-	LPC_SC->PLL0CON &= ~(1<<1); /* Disconnect the main PLL (PLL0) */
-	LPC_SC->PLL0FEED = 0xAA; /* Feed */
-	LPC_SC->PLL0FEED = 0x55; /* Feed */
-	while ((LPC_SC->PLL0STAT & (1<<25)) != 0x00); /* Wait for main PLL (PLL0) to disconnect */
-	LPC_SC->PLL0CON &= ~(1<<0); /* Turn off the main PLL (PLL0) */
-	LPC_SC->PLL0FEED = 0xAA; /* Feed */
-	LPC_SC->PLL0FEED = 0x55; /* Feed */
-	while ((LPC_SC->PLL0STAT & (1<<24)) != 0x00); /* Wait for main PLL (PLL0) to shut down */
-    CLKPWR_DeepSleep();
+    LPC_SC->PLL0CON &= ~(1<<1); /* Disconnect the main PLL (PLL0) */
+    LPC_SC->PLL0FEED = 0xAA; /* Feed */
+    LPC_SC->PLL0FEED = 0x55; /* Feed */
+    while ((LPC_SC->PLL0STAT & (1<<25)) != 0x00); /* Wait for main PLL (PLL0) to disconnect */
+    LPC_SC->PLL0CON &= ~(1<<0); /* Turn off the main PLL (PLL0) */
+    LPC_SC->PLL0FEED = 0xAA; /* Feed */
+    LPC_SC->PLL0FEED = 0x55; /* Feed */
+    while ((LPC_SC->PLL0STAT & (1<<24)) != 0x00); /* Wait for main PLL (PLL0) to shut down */
+    CLKPWR_PowerDown();
 
     NVIC_SystemReset();
     /* SystemInit(); */

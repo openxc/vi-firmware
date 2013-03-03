@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_clkpwr.h"
-#include "lpc17xx_wdt.h"
 
 #define POWER_CONTROL_PORT 2
 #define POWER_CONTROL_PIN 13
@@ -42,27 +41,22 @@ void initializePower() {
 void updatePower() {
 }
 
-void WDT_IRQHandler(void) {
-    // Disable WDT interrupt
-    NVIC_DisableIRQ(WDT_IRQn);
-    WDT_ClrTimeOutFlag();
-}
-
 void CANActivity_IRQHandler(void) {
-    NVIC_DisableIRQ(CANActivity_IRQn);
-    LPC_SC->CANSLEEPCLR = (0x1<<1)|(0x1<<2);
-    LPC_CAN1->MOD = LPC_CAN2->MOD &= ~(0x1<<4);
-    LPC_SC->CANWAKEFLAGS = (0x1<<1)|(0x1<<2);
+    // TODO This isn't especially graceful, we just reset the device after a
+    // wakeup. Then again, it makes the code a hell of a lot simpler because we
+    // only have to worry about initialization of core peripherals in one spot,
+    // setup() in cantranslator.cpp and main.cpp. I'll leave this for now and we
+    // can revisit it if there is some reason we need to keep state between CAN
+    // wakeup events (e.g. fine_odometer_since_restart could be more persistant,
+    // but then it actually might be more confusing since it'd be
+    // fine_odometer_since_we_lost_power)
+    NVIC_SystemReset();
 }
-
-#define WDT_TIMEOUT     2000000
 
 void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
-    WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_INT_ONLY);
-    /* NVIC_EnableIRQ(WDT_IRQn); */
-    WDT_Start(WDT_TIMEOUT);
+
     LPC_SC->PLL0CON &= ~(1<<1); /* Disconnect the main PLL (PLL0) */
     LPC_SC->PLL0FEED = 0xAA; /* Feed */
     LPC_SC->PLL0FEED = 0x55; /* Feed */
@@ -71,13 +65,6 @@ void enterLowPowerMode() {
     LPC_SC->PLL0FEED = 0xAA; /* Feed */
     LPC_SC->PLL0FEED = 0x55; /* Feed */
     while ((LPC_SC->PLL0STAT & (1<<24)) != 0x00); /* Wait for main PLL (PLL0) to shut down */
+
     CLKPWR_PowerDown();
-
-    NVIC_SystemReset();
-    /* SystemInit(); */
-    /* initializeLogging(); */
-
-    /* debug("Woke up from low power mode"); */
-    /* debug("SMFLAG: %d, DSFLAG: %d, PDFLAG: %d", */
-            /* LPC_SC->PCON & (1 << 8), LPC_SC->PCON & (1 << 9), LPC_SC->PCON & (1 << 10)); */
 }

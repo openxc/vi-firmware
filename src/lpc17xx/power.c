@@ -57,14 +57,5 @@ void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
 
-    LPC_SC->PLL0CON &= ~(1<<1); /* Disconnect the main PLL (PLL0) */
-    LPC_SC->PLL0FEED = 0xAA; /* Feed */
-    LPC_SC->PLL0FEED = 0x55; /* Feed */
-    while ((LPC_SC->PLL0STAT & (1<<25)) != 0x00); /* Wait for main PLL (PLL0) to disconnect */
-    LPC_SC->PLL0CON &= ~(1<<0); /* Turn off the main PLL (PLL0) */
-    LPC_SC->PLL0FEED = 0xAA; /* Feed */
-    LPC_SC->PLL0FEED = 0x55; /* Feed */
-    while ((LPC_SC->PLL0STAT & (1<<24)) != 0x00); /* Wait for main PLL (PLL0) to shut down */
-
     CLKPWR_PowerDown();
 }

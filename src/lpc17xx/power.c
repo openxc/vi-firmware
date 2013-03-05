@@ -45,7 +45,7 @@ void initializePower() {
     PINSEL_ConfigPin(&PinCfg);
 
     setGpioDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
-    setPowerPassthroughStatus(false);
+    setPowerPassthroughStatus(true);
 
     debug("Done.");
 
@@ -76,6 +76,8 @@ void CANActivity_IRQHandler(void) {
 void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
+
+    setPowerPassthroughStatus(false);
 
     // Disable brown-out detection when we go into lower power
     LPC_SC->PCON |= (1 << 2);

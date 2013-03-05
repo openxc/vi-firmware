@@ -62,9 +62,13 @@ void updateDataLights() {
         busWasActive = true;
     } else if(!busActive && busWasActive) {
         debug("CAN went silent - disabling LED");
+        busWasActive = false;
+
+        // TODO I don't love having all of this here, but it's the best place
+        // for now. Maybe the modules need a deinitializeFoo() method in
+        // addition to the initialize one.
         disable(LIGHT_A);
         disable(LIGHT_B);
-        busWasActive = false;
         setBluetoothStatus(false);
 
         // Make sure lights and Bluetooth are disabled before sleeping

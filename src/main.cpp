@@ -70,6 +70,7 @@ int main(void) {
     initializeSerial(listener.serial);
     initializeEthernet(listener.ethernet);
     initializeLights();
+    initializeBluetooth();
 
     debug("Initializing as %s", getMessageSet());
     setup();

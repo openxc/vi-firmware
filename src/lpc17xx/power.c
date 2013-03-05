@@ -34,7 +34,7 @@ void setPowerPassthroughStatus(bool enabled) {
 }
 
 void initializePower() {
-    debugNoNewline("Initializing power controls...");
+    debug("Initializing power controls...");
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type PinCfg;
     PinCfg.OpenDrain = 0;
@@ -79,6 +79,9 @@ void enterLowPowerMode() {
 
     // Disable brown-out detection when we go into lower power
     LPC_SC->PCON |= (1 << 2);
+
+    // Disable all the things
+    LPC_SC->PCONP = 0;
 
     CLKPWR_PowerDown();
 }

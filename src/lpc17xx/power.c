@@ -8,6 +8,9 @@
 #define POWER_CONTROL_PORT 2
 #define POWER_CONTROL_PIN 13
 
+#define PROGRAM_BUTTON_PORT 2
+#define PROGRAM_BUTTON_PIN 12
+
 uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
     CLKPWR_PCONP_PCTIM1,
@@ -36,13 +39,13 @@ void setPowerPassthroughStatus(bool enabled) {
 void initializePower() {
     debug("Initializing power controls...");
     // Configure 12v passthrough control as a digital output
-    PINSEL_CFG_Type PinCfg;
-    PinCfg.OpenDrain = 0;
-    PinCfg.Pinmode = 1;
-    PinCfg.Funcnum = 0;
-    PinCfg.Portnum = POWER_CONTROL_PORT;
-    PinCfg.Pinnum = POWER_CONTROL_PIN;
-    PINSEL_ConfigPin(&PinCfg);
+    PINSEL_CFG_Type powerPassthroughPinConfig;
+    powerPassthroughPinConfig.OpenDrain = 0;
+    powerPassthroughPinConfig.Pinmode = 1;
+    powerPassthroughPinConfig.Funcnum = 0;
+    powerPassthroughPinConfig.Portnum = POWER_CONTROL_PORT;
+    powerPassthroughPinConfig.Pinnum = POWER_CONTROL_PIN;
+    PINSEL_ConfigPin(&powerPassthroughPinConfig);
 
     setGpioDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
     setPowerPassthroughStatus(true);
@@ -56,12 +59,20 @@ void initializePower() {
     }
 
     debug("Done.");
+
+    PINSEL_CFG_Type programButtonPinConfig;
+    programButtonPinConfig.OpenDrain = 0;
+    programButtonPinConfig.Pinmode = 1;
+    programButtonPinConfig.Funcnum = 1;
+    programButtonPinConfig.Portnum = PROGRAM_BUTTON_PORT;
+    programButtonPinConfig.Pinnum = PROGRAM_BUTTON_PIN;
+    PINSEL_ConfigPin(&programButtonPinConfig);
 }
 
 void updatePower() {
 }
 
-void CANActivity_IRQHandler(void) {
+void handleWake() {
     // TODO This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
     // only have to worry about initialization of core peripherals in one spot,
@@ -73,9 +84,18 @@ void CANActivity_IRQHandler(void) {
     NVIC_SystemReset();
 }
 
+void CANActivity_IRQHandler(void) {
+    handleWake();
+}
+
+void EINT2_IRQHandler(void) {
+    handleWake();
+}
+
 void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
+    NVIC_EnableIRQ(EINT2_IRQn);
 
     setPowerPassthroughStatus(false);
 

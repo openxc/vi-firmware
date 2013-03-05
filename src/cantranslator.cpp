@@ -63,8 +63,12 @@ void updateDataLights() {
     } else if(!busActive && busWasActive) {
         debug("CAN went silent - disabling LED");
         disable(LIGHT_A);
+        disable(LIGHT_B);
         busWasActive = false;
         setBluetoothStatus(false);
+
+        // Make sure lights and Bluetooth are disabled before sleeping
+        delayMs(100);
         enterLowPowerMode();
     }
 }

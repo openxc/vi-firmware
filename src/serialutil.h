@@ -1,7 +1,6 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

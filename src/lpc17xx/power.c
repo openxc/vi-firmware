@@ -82,8 +82,5 @@ void enterLowPowerMode() {
     // Disable brown-out detection when we go into lower power
     LPC_SC->PCON |= (1 << 2);
 
-    // Disable all the things
-    LPC_SC->PCONP = 0;
-
     CLKPWR_PowerDown();
 }

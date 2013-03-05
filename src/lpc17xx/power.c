@@ -8,6 +8,18 @@
 #define POWER_CONTROL_PORT 2
 #define POWER_CONTROL_PIN 13
 
+uint32_t DISABLED_PERIPHERALS[] = {
+    CLKPWR_PCONP_PCTIM0,
+    CLKPWR_PCONP_PCTIM1,
+    CLKPWR_PCONP_PCSPI,
+    CLKPWR_PCONP_PCI2C0,
+    CLKPWR_PCONP_PCRTC,
+    CLKPWR_PCONP_PCSSP1,
+    CLKPWR_PCONP_PCI2C1,
+    CLKPWR_PCONP_PCSSP0,
+    CLKPWR_PCONP_PCI2C2,
+};
+
 void setPowerPassthroughStatus(bool enabled) {
     int pinStatus;
     debugNoNewline("Switching 12v power passthrough ");
@@ -36,6 +48,14 @@ void initializePower() {
     setPowerPassthroughStatus(false);
 
     debug("Done.");
+
+    debugNoNewline("Turning off unused peripherals...");
+    for(int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
+            sizeof(DISABLED_PERIPHERALS[0]); i++) {
+        CLKPWR_ConfigPPWR(DISABLED_PERIPHERALS[i], DISABLE);
+    }
+
+    debug("Done.");
 }
 
 void updatePower() {
@@ -56,6 +76,9 @@ void CANActivity_IRQHandler(void) {
 void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
+
+    // Disable brown-out detection when we go into lower power
+    LPC_SC->PCON |= (1 << 2);
 
     CLKPWR_PowerDown();
 }

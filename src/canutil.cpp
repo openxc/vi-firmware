@@ -12,8 +12,8 @@ void initializeCanCommon(CanBus* bus) {
 }
 
 bool canBusActive(CanBus* bus) {
-    return bus->lastMessageReceived > 0 && systemTimeMs() -
-        bus->lastMessageReceived < CAN_ACTIVE_TIMEOUT_S * 1000;
+    return systemTimeMs() - bus->lastMessageReceived
+            < CAN_ACTIVE_TIMEOUT_S * 1000;
 }
 
 int lookup(void* key,

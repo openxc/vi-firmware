@@ -61,6 +61,7 @@ void updateDataLights() {
         enable(LIGHT_A, COLORS.blue);
         busWasActive = true;
     } else if(!busActive && busWasActive) {
+#ifndef TRANSMITTER
         debug("CAN went silent - disabling LED");
         busWasActive = false;
 
@@ -74,6 +75,7 @@ void updateDataLights() {
         // Make sure lights and Bluetooth are disabled before sleeping
         delayMs(100);
         enterLowPowerMode();
+#endif
     }
 }
 

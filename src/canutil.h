@@ -36,7 +36,7 @@ QUEUE_DECLARE(CanMessage, 16);
  *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
  * writeHandler - a function that actually writes out a CanMessage object to the
- *      network interface (implementation is platform specific);
+ *      CAN interface (implementation is platform specific);
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be

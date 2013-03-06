@@ -6,9 +6,9 @@
 #include <stdbool.h>
 
 void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
-    for(int i = 0, j = 4; i < 3 && j < 8; i++, j++) {
-        a[i] = nthByte(source, i);
-        b[i] = nthByte(source, j);
+    for(int i = 0, j = 4; i < 4 && j < 8; i++, j++) {
+        a[3 - i] = nthByte(source, j);
+        b[3 - i] = nthByte(source, i);
     }
 }
 

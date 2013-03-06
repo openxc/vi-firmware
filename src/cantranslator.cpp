@@ -33,10 +33,9 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
 
-    readFromHost(listener.usb, &receiveWriteRequest);
-    // TODO err, shouldn't this have a &?
+    readFromHost(listener.usb, receiveWriteRequest);
     readFromSerial(listener.serial, receiveWriteRequest);
-    readFromSocket(listener.ethernet, &receiveWriteRequest);
+    readFromSocket(listener.ethernet, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);

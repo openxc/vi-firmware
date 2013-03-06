@@ -12,6 +12,12 @@
 #define VBUS_PIN 30
 #define VBUS_FUNCNUM 2
 
+#define USB_DM_PORT 0
+#define USB_DM_PIN 30
+#define USB_DM_FUNCNUM 1
+
+#define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
+
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
 
@@ -41,6 +47,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
     USB_DEVICE.configured = true;
 }
 
+/* Private: Flush any queued data out to the USB host. */
 static void sendToHost(UsbDevice* usbDevice) {
     if(!usbDevice->configured) {
         return;
@@ -66,6 +73,60 @@ static void sendToHost(UsbDevice* usbDevice) {
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 
+/* Private: Detect if USB VBUS is active.
+ *
+ * This isn't useful if there's no diode between an external 12v/9v power supply
+ * (e.g. vehicle power from OBD-II) and the 5v rail, because then VBUS high when
+ * the power is powered on regardless of the status of USB. In that situation,
+ * you can fall back to the usbHostDetected() function instead.
+ *
+ * Returns true if VBUS is high.
+ */
+bool vbusDetected() {
+    return (GPIO_ReadValue(VBUS_PORT) & (1 << VBUS_PIN)) != 0;
+}
+
+/* Private: Detect if a USB host is actually attached, regardless of VBUS.
+ *
+ * This is a bit hacky, as normally you should rely on VBUS to detect if USB is
+ * connected. See vbusDetected() for reasons why we need this workaround on the
+ * current prototype.
+ *
+ * Returns true of there is measureable activity on the D- USB line.
+ */
+bool usbHostDetected() {
+    static int debounce = 0;
+
+    if((GPIO_ReadValue(USB_DM_PORT) & (1 << USB_DM_PIN)) == 0) {
+        ++debounce;
+    } else {
+        debounce = 0;
+    }
+
+    if(debounce > USB_HOST_DETECT_DEBOUNCE_VALUE) {
+        debounce = 0;
+        return false;
+    }
+    return true;
+}
+
+/* Private: Configure I/O pins used to detect if USB is connected to a host. */
+void configureUsbDetection() {
+    PINSEL_CFG_Type vbusPinConfig;
+    vbusPinConfig.Funcnum = VBUS_FUNCNUM;
+    vbusPinConfig.Portnum = VBUS_PORT;
+    vbusPinConfig.Pinnum = VBUS_PIN;
+    vbusPinConfig.Pinmode = PINSEL_PINMODE_TRISTATE;
+    PINSEL_ConfigPin(&vbusPinConfig);
+
+    PINSEL_CFG_Type hostDetectPinConfig;
+    hostDetectPinConfig.Funcnum = USB_DM_FUNCNUM;
+    hostDetectPinConfig.Portnum = USB_DM_PORT;
+    hostDetectPinConfig.Pinnum = USB_DM_PIN;
+    hostDetectPinConfig.Pinmode = PINSEL_PINMODE_TRISTATE;
+    PINSEL_ConfigPin(&hostDetectPinConfig);
+}
+
 void sendControlMessage(uint8_t* data, uint8_t length) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
@@ -77,35 +138,23 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 
-bool vbusDetected() {
-    return (GPIO_ReadValue(VBUS_PORT) & (1 << VBUS_PIN)) != 0;
-}
 
 void processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
-    if(usbDevice->configured &&
-            (USB_DeviceState != DEVICE_STATE_Configured || !vbusDetected())) {
+    if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
+                || !vbusDetected() || !usbHostDetected())) {
         EVENT_USB_Device_Disconnect();
     } else {
         sendToHost(usbDevice);
     }
 }
 
-void configureVbusDetection() {
-    PINSEL_CFG_Type PinCfg;
-    PinCfg.Funcnum = VBUS_FUNCNUM;
-    PinCfg.Portnum = VBUS_PORT;
-    PinCfg.Pinnum = VBUS_PIN;
-    PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-    PINSEL_ConfigPin(&PinCfg);
-}
-
 void initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     USB_Init();
     USB_Connect();
-    configureVbusDetection();
+    configureUsbDetection();
 
     debug("Done.");
 }

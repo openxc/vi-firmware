@@ -11,6 +11,9 @@
 #define PROGRAM_BUTTON_PORT 2
 #define PROGRAM_BUTTON_PIN 12
 
+#define USB_CONNECT_PORT 2
+#define USB_CONNECT_PIN 9
+
 uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
     CLKPWR_PCONP_PCTIM1,
@@ -96,6 +99,9 @@ void enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
     NVIC_EnableIRQ(EINT2_IRQn);
+
+    // Turn off USB connection status LED
+    setGpioValue(USB_CONNECT_PORT, USB_CONNECT_PIN, GPIO_VALUE_HIGH);
 
     setPowerPassthroughStatus(false);
 

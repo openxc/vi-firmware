@@ -9,7 +9,7 @@
 #include "cJSON.h"
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
-#define CAN_ACTIVE_TIMEOUT_S 5
+#define CAN_ACTIVE_TIMEOUT_S 30
 
 /* Public: A CAN message, particularly for writing to CAN.
  *

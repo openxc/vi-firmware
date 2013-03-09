@@ -61,17 +61,29 @@ _wait() {
 }
 
 _install() {
-    if [ $OS == "mac" ]; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error $1
+    elif [ $OS == "mac" ]; then
         # brew exists with 1 if it's already installed
         set +e
         brew install $1
         set -e
     else
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S $1
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install $1
+        if ! command -v lsb_release >/dev/null 2>&1; then
+            echo
+            echo "Missing $1 - install it using your distro's package manager or build from source"
+            _wait
+        else
+            if [ $DISTRO == "arch" ]; then
+                sudo pacman -S $1
+            elif [ $DISTRO == "Ubuntu" ]; then
+                sudo apt-get update -qq
+                sudo apt-get install $1 -y
+            else
+                echo
+                echo "Missing $1 - install it using your distro's package manager or build from source"
+                _wait
+            fi
         fi
     fi
 }
@@ -88,8 +100,12 @@ if [ `id -u` == 0 ]; then
     die "Error: running as root - don't use 'sudo' with this script"
 fi
 
-if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
-    _cygwin_error "curl"
+if ! command -v curl >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "curl"
+    else
+        _install curl
+    fi
 fi
 
 echo "Storing all downloaded dependencies in the \"dependencies\" folder"

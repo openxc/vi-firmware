@@ -26,7 +26,7 @@ if ! command -v make >/dev/null 2>&1; then
             sudo pacman -S base-devel
         elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get update -qq
-            sudo apt-get install build-essential
+            sudo apt-get install build-essential -y
         fi
     fi
 fi
@@ -67,7 +67,7 @@ if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
             _wait
         elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get update -qq
-            sudo apt-get install lcov
+            sudo apt-get install lcov -y
         fi
     fi
 fi
@@ -228,15 +228,7 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
     echo "Installing OpenOCD..."
     if [ $OS == "linux" ]; then
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S openocd
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install openocd
-        else
-            echo "Missing OpenOCD - install it using your distro's package manager or build from source"
-            _wait
-        fi
+        _install "openocd"
     elif [ $OS == "mac" ]; then
         _install libftdi
         _install libusb
@@ -270,43 +262,12 @@ fi
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
     echo "Installing the check unit testing library..."
 
-    if [ $OS == "cygwin" ]; then
-        _cygwin_error "check"
-    elif [ $OS == "linux" ]; then
-        if ! command -v lsb_release >/dev/null 2>&1; then
-            echo
-            echo "Missing the 'check' library - install it using your distro's package manager or build from source"
-        else
-            if [ $DISTRO == "arch" ]; then
-                sudo pacman -S check
-            elif [ $DISTRO == "Ubuntu" ]; then
-                sudo apt-get update -qq
-                sudo apt-get install check
-            else
-                echo
-                echo "Missing the 'check' library - install it using your distro's package manager or build from source"
-                _wait
-            fi
-        fi
-    elif [ $OS == "mac" ]; then
-        _install check
-    fi
+    _install "check"
 fi
 
 if ! command -v python >/dev/null 2>&1; then
     echo "Installing Python..."
-    if [ $OS == "cygwin" ]; then
-        _cygwin_error "python"
-    elif [ $OS == "linux" ]; then
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S python
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get install python
-        else
-            echo "Missing Python - install it using your distro's package manager or build from source"
-            _wait
-        fi
-     fi
+    _install "python"
 fi
 
 if ! python -c "import argparse"; then

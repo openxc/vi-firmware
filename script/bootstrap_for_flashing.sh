@@ -81,8 +81,12 @@ download() {
     curl $url -L --O $filename
 }
 
-if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
-    _cygwin_error "curl"
+if ! command -v curl >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "curl"
+    else
+        _install curl
+    fi
 fi
 
 echo "Storing all downloaded dependencies in the \"dependencies\" folder"

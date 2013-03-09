@@ -68,7 +68,7 @@ _install() {
             sudo pacman -S $1
         elif [ $DISTRO == "Ubuntu" ]; then
             sudo apt-get update -qq
-            sudo apt-get install $1
+            sudo apt-get install $1 -y
         fi
     fi
 }

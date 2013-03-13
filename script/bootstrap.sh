@@ -21,6 +21,9 @@ fi
 if ! command -v make >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "make"
+    elif [ $OS == "mac" ]; then
+            echo "Missing 'make' - install the Xcode CLI tools"
+	    die
     else
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S base-devel

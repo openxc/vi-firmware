@@ -59,7 +59,7 @@ TARGET_ELF = $(OBJDIR)/$(TARGET).elf
 ifdef DEBUG
 CC_FLAGS += -g -ggdb
 else
-CC_FLAGS += -Os -Wno-maybe-uninitialized
+CC_FLAGS += -Os -Wno-uninitialized
 endif
 
 BSP_EXISTS = $(shell test -e libs/BSP/bsp.h; echo $$?)

@@ -1,7 +1,7 @@
 #include <check.h>
 #include <stdint.h>
 #include "listener.h"
-#include "queue.h"
+#include "emqueue.h"
 #include "cJSON.h"
 
 Listener listener;

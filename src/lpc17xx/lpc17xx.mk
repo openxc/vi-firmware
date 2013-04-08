@@ -6,12 +6,13 @@ endif
 
 OBJDIR = build/lpc17xx
 TARGET = $(BASE_TARGET)-lpc17xx
-CMSIS_PATH = ./libs/CDL/CMSISv2p00_LPC17xx
-DRIVER_PATH = ./libs/CDL/LPC17xxLib
-INCLUDE_PATHS = -I. -I./libs/cJSON -I./libs/nxpUSBlib/Drivers \
-				-I$(DRIVER_PATH)/inc -I./libs/BSP -I$(CMSIS_PATH)/inc
-LINKER_SCRIPT = lpc17xx/LPC17xx.ld
 LIBS_PATH = libs
+CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
+DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
+INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
+				-I./$(LIBS_PATH)/nxpUSBlib/Drivers \
+				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
+LINKER_SCRIPT = lpc17xx/LPC17xx.ld
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
@@ -49,6 +50,7 @@ LIB_C_SRCS += $(CMSIS_PATH)/src/core_cm3.c
 LIB_C_SRCS += $(CMSIS_PATH)/src/system_LPC17xx.c
 LIB_C_SRCS += $(wildcard $(DRIVER_PATH)/src/*.c)
 LIB_C_SRCS += $(LIBS_PATH)/cJSON/cJSON.o
+LIB_C_SRCS += $(LIBS_PATH)/emqueue/emqueue.o
 LOCAL_CPP_SRCS = $(wildcard *.cpp) $(wildcard lpc17xx/*.cpp)
 LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o) $(LIB_C_SRCS:.c=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
@@ -62,9 +64,9 @@ else
 CC_FLAGS += -Os -Wno-uninitialized
 endif
 
-BSP_EXISTS = $(shell test -e libs/BSP/bsp.h; echo $$?)
-CDL_EXISTS = $(shell test -e libs/CDL/README.mkd; echo $$?)
-USBLIB_EXISTS = $(shell test -e libs/nxpUSBlib/README.mkd; echo $$?)
+BSP_EXISTS = $(shell test -e $(LIBS_PATH)/BSP/bsp.h; echo $$?)
+CDL_EXISTS = $(shell test -e $(LIBS_PATH)/CDL/README.mkd; echo $$?)
+USBLIB_EXISTS = $(shell test -e $(LIBS_PATH)/nxpUSBlib/README.mkd; echo $$?)
 ifneq ($(BSP_EXISTS),0)
 $(error BSP dependency is missing - did you run "git submodule init && git submodule update"?)
 endif

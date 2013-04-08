@@ -6,14 +6,15 @@ OSTYPE := $(shell uname)
 TEST_DIR = tests
 TEST_OBJDIR = build/$(TEST_DIR)
 
+LIBS_PATH = libs
 TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
-INCLUDE_PATHS += -I. -I./libs/cJSON
+INCLUDE_PATHS += -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue
 
-TESTABLE_OBJ_FILES = bitfield.o queue.o canutil.o canwrite.o canread.o \
-				listener.o libs/cJSON/cJSON.o buffers.o strutil.o usbutil.o \
-				serialutil.o ethernetutil.o shared_handlers.o
+TESTABLE_OBJ_FILES = bitfield.o canutil.o canwrite.o canread.o \
+    listener.o $(LIBS_PATH)/cJSON/cJSON.o $(LIBS_PATH)/emqueue/emqueue.o \
+    buffers.o strutil.o usbutil.o serialutil.o ethernetutil.o shared_handlers.o
 TESTABLE_LIB_C_SRCS = $(wildcard $(TEST_DIR)/*_mock.c)
 TESTABLE_LIB_CPP_SRCS = $(wildcard $(TEST_DIR)/*_mock.cpp)
 
@@ -139,7 +140,7 @@ coverage:
 	@lcov --base-directory . --directory . --zerocounters -q
 	@make unit_tests
 	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
-	@lcov --remove $(COVERAGE_INFO_PATH) "libs/*" -o $(COVERAGE_INFO_PATH)
+	@lcov --remove $(COVERAGE_INFO_PATH) "$(LIBS_PATH)/*" -o $(COVERAGE_INFO_PATH)
 	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
 	@genhtml -o $(TEST_OBJDIR)/coverage -t "cantranslator test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
 	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html

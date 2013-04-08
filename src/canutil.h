@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitfield.h"
-#include "queue.h"
+#include "emqueue.h"
 #include "cJSON.h"
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16

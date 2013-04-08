@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "queue.h"
+#include "emqueue.h"
 
 #define ByteQueue QUEUE_TYPE(uint8_t)
 

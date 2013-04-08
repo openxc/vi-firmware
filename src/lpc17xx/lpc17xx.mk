@@ -12,7 +12,11 @@ DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
 INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
 				-I./$(LIBS_PATH)/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
-LINKER_SCRIPT = lpc17xx/LPC17xx.ld
+ifdef BOOTLOADER
+LINKER_SCRIPT = lpc17xx/LPC17xx-bootloader.ld
+else
+LINKER_SCRIPT = lpc17xx/LPC17xx-baremetal.ld
+endif
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
@@ -99,7 +103,7 @@ $(OBJDIR)/%.o: %.cpp
 	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TARGET_ELF): $(OBJECTS)
-	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) -o $@ $^ $(LD_SYS_LIBS)
+	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) -Llpc17xx -o $@ $^ $(LD_SYS_LIBS)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(OBJCOPY) -O binary $< $@

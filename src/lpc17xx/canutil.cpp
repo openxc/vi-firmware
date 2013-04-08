@@ -58,6 +58,7 @@ void configureTransceiver() {
 bool CAN_CONTROLLER_INITIALIZED = false;
 
 void initializeCan(CanBus* bus) {
+    initializeCanCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 
@@ -75,8 +76,7 @@ void initializeCan(CanBus* bus) {
     // enable receiver interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_RIE, ENABLE);
     // enable transmit interrupt
-    // TODO handle this?
-    //CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
+    CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
 

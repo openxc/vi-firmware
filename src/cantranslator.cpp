@@ -9,10 +9,11 @@
 #include "cJSON.h"
 #include "listener.h"
 #include "timer.h"
+#include "lights.h"
+#include "power.h"
+#include "bluetooth.h"
 #include <stdint.h>
 #include <stdlib.h>
-
-#define CAN_ACTIVE_TIMEOUT_S 5
 
 extern Listener listener;
 
@@ -21,6 +22,7 @@ extern Listener listener;
 void receiveCan(CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
+void updateDataLights();
 
 void setup() {
     initializeAllCan();
@@ -31,21 +33,48 @@ void loop() {
         receiveCan(&getCanBuses()[i]);
     }
 
-    readFromHost(listener.usb, &receiveWriteRequest);
-    // TODO err, shouldn't this have a &?
+    readFromHost(listener.usb, receiveWriteRequest);
     readFromSerial(listener.serial, receiveWriteRequest);
-    readFromSocket(listener.ethernet, &receiveWriteRequest);
+    readFromSocket(listener.ethernet, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
     }
 
-    bool canBusActive = false;
+    updateDataLights();
+}
+
+/* Public: Update the color and status of a board's light that shows the status
+ * of the CAN bus. This function is intended to be called each time through the
+ * main program loop.
+ */
+void updateDataLights() {
+    static bool busWasActive;
+    bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
-        if(systemTimeMs() - getCanBuses()[i].lastMessageReceived <
-                CAN_ACTIVE_TIMEOUT_S * 1000) {
-            canBusActive = true;
-        }
+        busActive = busActive || canBusActive(&getCanBuses()[i]);
+    }
+
+    if(!busWasActive && busActive) {
+        debug("CAN woke up - enabling LED");
+        enable(LIGHT_A, COLORS.blue);
+        busWasActive = true;
+    } else if(!busActive && busWasActive) {
+#ifndef TRANSMITTER
+        debug("CAN went silent - disabling LED");
+        busWasActive = false;
+
+        // TODO I don't love having all of this here, but it's the best place
+        // for now. Maybe the modules need a deinitializeFoo() method in
+        // addition to the initialize one.
+        disable(LIGHT_A);
+        disable(LIGHT_B);
+        setBluetoothStatus(false);
+
+        // Make sure lights and Bluetooth are disabled before sleeping
+        delayMs(100);
+        enterLowPowerMode();
+#endif
     }
 }
 

@@ -9,6 +9,7 @@
 #include "cJSON.h"
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
+#define CAN_ACTIVE_TIMEOUT_S 30
 
 /* Public: A CAN message, particularly for writing to CAN.
  *
@@ -35,7 +36,7 @@ QUEUE_DECLARE(CanMessage, 16);
  *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
  * writeHandler - a function that actually writes out a CanMessage object to the
- *      network interface (implementation is platform specific);
+ *      CAN interface (implementation is platform specific);
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be
@@ -169,6 +170,14 @@ void initializeCan(CanBus* bus);
 /* Public: Perform platform-agnostic CAN initialization.
  */
 void initializeCanCommon(CanBus* bus);
+
+/* Public: Check if the device is connected to an active CAN bus, i.e. it's
+ * received a message in the recent past.
+ *
+ * Returns true if a message was received on the CAN bus within
+ * CAN_ACTIVE_TIMEOUT_S seconds.
+ */
+bool canBusActive(CanBus* bus);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

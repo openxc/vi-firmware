@@ -3,8 +3,13 @@
 #include "lpc17xx_timer.h"
 #include "timer.h"
 
-#define SYSTEM_CLOCK_TIMER LPC_TIM3
 #define DELAY_TIMER LPC_TIM0
+
+unsigned int SYSTEM_TICK_COUNT;
+
+void SysTick_Handler() {
+    ++SYSTEM_TICK_COUNT;
+}
 
 void delayMs(int delayInMs) {
     TIM_TIMERCFG_Type delayTimerConfig;
@@ -23,13 +28,10 @@ void delayMs(int delayInMs) {
 }
 
 unsigned long systemTimeMs() {
-    return SYSTEM_CLOCK_TIMER->TC;
+    return SYSTEM_TICK_COUNT;
 }
 
 void initializeTimers() {
-    TIM_TIMERCFG_Type systemClockTimerConfig;
-    systemClockTimerConfig.PrescaleOption = TIM_PRESCALE_TICKVAL;
-    systemClockTimerConfig.PrescaleValue = SystemCoreClock / (4 * 1000);
-    TIM_Init(SYSTEM_CLOCK_TIMER, TIM_TIMER_MODE, &systemClockTimerConfig);
-    TIM_Cmd(SYSTEM_CLOCK_TIMER, ENABLE);
+    // Configure for 1ms tick
+    SysTick_Config(SystemCoreClock / 1000);
 }

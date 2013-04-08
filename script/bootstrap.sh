@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/bootstrap_for_flashing.sh
 
-CYGWIN_PACKAGES="gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
+CYGWIN_PACKAGES="make, gcc4, patchutils, git, unzip, python, check, curl, libsasl2, ca-certificates"
 
 if [ $OS == "windows" ]; then
     die "Sorry, the bootstrap script for compiling from source doesn't support the Windows console - try Cygwin."

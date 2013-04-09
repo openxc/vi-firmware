@@ -36,7 +36,7 @@ endif
 
 AS = $(GCC_BIN)arm-none-eabi-as
 LD = $(GCC_BIN)arm-none-eabi-g++
-LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
+LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections,-Map=$(OBJDIR)/$(BASE_TARGET).map
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy

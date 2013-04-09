@@ -1,5 +1,23 @@
 # OpenXC CAN Translator Changelog
 
+## v3.1
+
+* Minor improvements to bootstrap scripts for greater compatibility.
+* Add LED indicator module and some feedback when I/O interfaces are active.
+  * (PIC32) Flash user LED on chipKIT when CAN is active.
+  * (LPC17xx) Control 2 RGB LEDs based on CAN activity and I/O interface
+    activity.
+* Add microcontroller power control to enable sleeping when CAN is active.
+  * (LPC17xx) Put the micro into low power mode when CAN is quiet, wake with CAN
+    activity. Turn off Bluetooth module on Ford prototype board, 12v power
+    passthrough and all other peripherals.
+* Monitor VBUS of micro-USB port to improve performance when USB is disconnected
+  * (PIC32) If micro-USB VBUS is patched into analog input 0 on the chipKIT,
+    read true USB status from that pin.
+  * (LPC17xx) Read VBUS status from LPC17xx VBUS input.
+* Pull C queue implementation out to an independent library,
+  [emqueue](https://github.com/openxc/emqueue).
+
 ## v3.0
 
 * BREAKING CHANGE: Combine `odometer` and `fine_odometer_since` restart into a

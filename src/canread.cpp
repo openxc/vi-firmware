@@ -163,10 +163,12 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
-    float processedValue = handler(signal, signals, signalCount, value,
-                &send);
     if(send) {
-        sendNumericalMessage(signal->genericName, processedValue, listener);
+        float processedValue = handler(signal, signals, signalCount, value,
+                &send);
+        if(send) {
+            sendNumericalMessage(signal->genericName, processedValue, listener);
+        }
     }
     postTranslate(signal, value);
 }

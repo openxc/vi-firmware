@@ -45,6 +45,40 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
             signals, signalCount, listener);
 }
 
+void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
+        CanSignal* signals, int signalCount, Listener* listener) {
+    if(signal == NULL) {
+        debug("Specific tire signal for ID %s is NULL, vehicle may not support",
+                tireId);
+        return;
+    }
+
+    bool send = true;
+    // TODO use preTranslate for sendDoorStatus, too
+    float pressure = preTranslate(signal, data, &send);
+    if(send) {
+        sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
+                listener);
+    }
+    postTranslate(signal, pressure);
+}
+
+void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    sendTirePressure("front_left", data,
+            lookupSignal("tire_pressure_front_left", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("front_right", data,
+            lookupSignal("tire_pressure_front_right", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("rear_right", data,
+            lookupSignal("tire_pressure_rear_right", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("rear_left", data,
+            lookupSignal("tire_pressure_rear_left", signals, signalCount),
+            signals, signalCount, listener);
+}
+
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
     if(totalOdometerAtRestart == 0) {
         CanSignal* odometerSignal = lookupSignal("total_odometer", signals,

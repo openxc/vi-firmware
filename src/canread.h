@@ -216,4 +216,24 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send);
 
+/* Public: Determine if the received signal should be sent out and update
+ * signal metadata.
+ *
+ * signal - The signal to look for in the CAN message data.
+ * data - The data of the CAN message.
+ * send - Will be flipped to false if the signal should not be sent (e.g. the
+ *      signal is on a limited send frequency and the timer is not up yet).
+ *
+ * Returns the float value of the signal decoded from the data.
+ */
+float preTranslate(CanSignal* signal, uint64_t data, bool* send);
+
+/* Public: Update signal metadata after translating and sending.
+ *
+ * We keep track of the last value of each CAN signal (in its raw float form),
+ * but we can't update the value until after all translation has happened,
+ * in case a custom handler needs to use the value.
+ */
+void postTranslate(CanSignal* signal, float value);
+
 #endif // _CANREAD_H_

@@ -175,6 +175,19 @@ START_TEST (test_send_evented_string)
 }
 END_TEST
 
+START_TEST (test_send_evented_float)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    sendEventedFloatMessage("test", "value", 43.0, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
+}
+END_TEST
+
 START_TEST (test_passthrough_message)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
@@ -366,6 +379,7 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_sending, test_send_string);
     tcase_add_test(tc_sending, test_send_evented_boolean);
     tcase_add_test(tc_sending, test_send_evented_string);
+    tcase_add_test(tc_sending, test_send_evented_float);
     tcase_add_test(tc_sending, test_passthrough_message);
     suite_add_tcase(s, tc_sending);
 

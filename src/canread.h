@@ -136,6 +136,17 @@ void sendEventedBooleanMessage(const char* name, const char* value, bool event,
 void sendEventedStringMessage(const char* name, const char* value,
         const char* event, Listener* listener);
 
+/* Public: Send the given name, value and event out to the listener in an OpenXC
+ * JSON message followed by a newline.
+ *
+ * name - The value for the name field of the OpenXC message.
+ * value - The string value for the value field of the OpenXC message.
+ * event - The float event for the event field of the OpenXC message.
+ * listener - The listener device to send on.
+ */
+void sendEventedFloatMessage(const char* name, const char* value, float event,
+        Listener* listener);
+
 /* Public: Parse a CAN signal from a message and apply required transformation.
  *
  * signal - The details of the signal to decode and forward.

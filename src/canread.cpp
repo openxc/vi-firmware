@@ -120,6 +120,12 @@ void sendStringMessage(const char* name, const char* value,
     sendJSONMessage(name, cJSON_CreateString(value), NULL, listener);
 }
 
+void sendEventedFloatMessage(const char* name, const char* value, float event,
+        Listener* listener) {
+    sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
+            listener);
+}
+
 void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),

@@ -276,3 +276,34 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
     }
     return false;
 }
+
+void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    // TODO just handling passenger right now - expand to other seats if we have
+    // the sensors. pull most of those out into a sendOccupancy function where
+    // it fills in the *_occupancy_lower and *_occupancy_upper prefix
+    float rawLowerStatus = decodeCanSignal(
+            lookupSignal("passenger_occupancy_lower", signals, signalCount),
+            data);
+    float rawUpperStatus = decodeCanSignal(
+            lookupSignal("passenger_occupancy_upper", signals, signalCount),
+            data);
+
+    bool send = true;
+    bool lowerStatus = booleanHandler(NULL, signals, signalCount,
+            rawLowerStatus, &send);
+    bool upperStatus = booleanHandler(NULL, signals, signalCount,
+            rawUpperStatus, &send);
+    if(lowerStatus) {
+        if(upperStatus) {
+            sendEventedStringMessage("occupancy_status", "passenger", "adult",
+                    listener);
+        } else {
+            sendEventedStringMessage("occupancy_status", "passenger", "child",
+                    listener);
+        }
+    } else {
+        sendEventedStringMessage("occupancy_status", "passenger", "empty",
+                listener);
+    }
+}

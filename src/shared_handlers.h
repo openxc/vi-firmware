@@ -264,4 +264,26 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
 void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener);
 
+/* Combine the values from two sensors in each seat to determine if there is
+ * actually an occupant, and if so their general size (child or adult).
+ *
+ * The following signals must be defined in the signal array, and they must all
+ * be contained in the same CAN message:
+ *
+ *      * passenger_occupancy_lower
+ *      * passenger_occupancy_upper
+ *      * TODO add more seats
+ *
+ * This is a message handler, and takes care of sending the JSON messages.
+ *
+ * messageId - The ID of the occupant sensor CAN message.
+ * data - The CAN message data containing all occupancy information.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * send - (output) Flip this to false if the message should not be sent.
+ * listener - The listener that wraps the output devices.
+ */
+void handleOccupancyMessage(int messageId, uint64_t data,
+              CanSignal* signals, int signalCount, Listener* listener);
+
 #endif // _SHARED_HANDLERS_H_

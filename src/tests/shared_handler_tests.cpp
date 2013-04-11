@@ -3,13 +3,14 @@
 #include "shared_handlers.h"
 #include "canwrite.h"
 
-CanMessage MESSAGES[3] = {
+CanMessage MESSAGES[4] = {
     {NULL, 0},
     {NULL, 1},
     {NULL, 2},
+    {NULL, 3},
 };
 
-const int SIGNAL_COUNT = 11;
+const int SIGNAL_COUNT = 13;
 
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
     { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, },
@@ -39,6 +40,10 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&MESSAGES[2], "tire_pressure_rear_right", 17, 1, 1.000000, 0.000000, 0.000000,
         0.000000, 1, false, false, NULL, 0, false, NULL},
     {&MESSAGES[2], "tire_pressure_rear_left", 18, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[3], "passenger_occupancy_lower", 17, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[3], "passenger_occupancy_upper", 18, 1, 1.000000, 0.000000, 0.000000,
         0.000000, 1, false, false, NULL, 0, false, NULL},
 };
 
@@ -157,6 +162,69 @@ START_TEST (test_send_same_tire_pressure)
 }
 END_TEST
 
+START_TEST (test_occupancy_handler_child)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data, SIGNALS, SIGNAL_COUNT,
+            &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "adult") == NULL);
+    fail_unless(strstr((char*)snapshot, "empty") == NULL);
+}
+END_TEST
+
+START_TEST (test_occupancy_handler_adult)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, true,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data, SIGNALS, SIGNAL_COUNT,
+            &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "adult") == NULL);
+    fail_unless(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "empty") == NULL);
+}
+END_TEST
+
+START_TEST (test_occupancy_handler_empty)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, false,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data,
+            SIGNALS, SIGNAL_COUNT, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "empty") == NULL);
+    fail_unless(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "adult") == NULL);
+}
+END_TEST
+
 START_TEST (test_fuel_handler)
 {
     bool send = true;
@@ -246,6 +314,13 @@ Suite* handlerSuite(void) {
     tcase_add_test(tc_tire_pressure, test_send_invalid_tire);
     tcase_add_test(tc_tire_pressure, test_send_same_tire_pressure);
     suite_add_tcase(s, tc_tire_pressure);
+
+    TCase *tc_occupancy = tcase_create("occupancy");
+    tcase_add_checked_fixture(tc_occupancy, setup, NULL);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_child);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_adult);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_empty);
+    suite_add_tcase(s, tc_occupancy);
 
     return s;
 }

@@ -177,15 +177,13 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
-    if(send) {
-        const char* stringValue = handler(signal, signals, signalCount, value,
-                &send);
-        if(stringValue == NULL) {
-            debug("No valid string returned from handler for %s",
-                    signal->genericName);
-        } else if(send) {
-            sendStringMessage(signal->genericName, stringValue, listener);
-        }
+    const char* stringValue = handler(signal, signals, signalCount, value,
+            &send);
+    if(stringValue == NULL) {
+        debug("No valid string returned from handler for %s",
+                signal->genericName);
+    } else if(send) { 
+        sendStringMessage(signal->genericName, stringValue, listener);
     }
     postTranslate(signal, value);
 }
@@ -196,11 +194,9 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
+    bool booleanValue = handler(signal, signals, signalCount, value, &send);
     if(send) {
-        bool booleanValue = handler(signal, signals, signalCount, value, &send);
-        if(send) {
-            sendBooleanMessage(signal->genericName, booleanValue, listener);
-        }
+        sendBooleanMessage(signal->genericName, booleanValue, listener);
     }
     postTranslate(signal, value);
 }

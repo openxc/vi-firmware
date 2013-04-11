@@ -277,17 +277,17 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
     return false;
 }
 
-void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
-    // TODO just handling passenger right now - expand to other seats if we have
-    // the sensors. pull most of those out into a sendOccupancy function where
-    // it fills in the *_occupancy_lower and *_occupancy_upper prefix
-    float rawLowerStatus = decodeCanSignal(
-            lookupSignal("passenger_occupancy_lower", signals, signalCount),
-            data);
-    float rawUpperStatus = decodeCanSignal(
-            lookupSignal("passenger_occupancy_upper", signals, signalCount),
-            data);
+void sendOccupancyStatus(const char* seatId, uint64_t data,
+        CanSignal* lowerSignal, CanSignal* upperSignal,
+        CanSignal* signals, int signalCount, Listener* listener) {
+    if(lowerSignal == NULL || upperSignal == NULL) {
+        debug("Upper or lower occupancy signal for seat ID %s is NULL, "
+                "vehicle may not support", seatId);
+        return;
+    }
+
+    float rawLowerStatus = decodeCanSignal(lowerSignal, data);
+    float rawUpperStatus = decodeCanSignal(upperSignal, data);
 
     bool send = true;
     bool lowerStatus = booleanHandler(NULL, signals, signalCount,
@@ -296,14 +296,26 @@ void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
             rawUpperStatus, &send);
     if(lowerStatus) {
         if(upperStatus) {
-            sendEventedStringMessage("occupancy_status", "passenger", "adult",
+            sendEventedStringMessage("occupancy_status", seatId, "adult",
                     listener);
         } else {
-            sendEventedStringMessage("occupancy_status", "passenger", "child",
+            sendEventedStringMessage("occupancy_status", seatId, "child",
                     listener);
         }
     } else {
-        sendEventedStringMessage("occupancy_status", "passenger", "empty",
+        sendEventedStringMessage("occupancy_status", seatId, "empty",
                 listener);
     }
+}
+
+void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    sendOccupancyStatus("driver", data,
+            lookupSignal("driver_occupancy_lower", signals, signalCount),
+            lookupSignal("driver_occupancy_upper", signals, signalCount),
+            signals, signalCount, listener);
+    sendOccupancyStatus("passenger", data,
+            lookupSignal("passenger_occupancy_lower", signals, signalCount),
+            lookupSignal("passenger_occupancy_upper", signals, signalCount),
+            signals, signalCount, listener);
 }

@@ -1,7 +1,7 @@
 BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
-ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON
+ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue
 ifdef ETHERNET
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif

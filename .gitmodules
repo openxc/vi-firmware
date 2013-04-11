@@ -13,3 +13,6 @@
 [submodule "src/libs/arduino.mk"]
 	path = src/libs/arduino.mk
 	url = https://github.com/peplin/arduino.mk
+[submodule "src/libs/emqueue"]
+	path = src/libs/emqueue
+	url = https://github.com/openxc/emqueue

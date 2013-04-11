@@ -187,7 +187,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
  *
  * This is a message handler, and takes care of sending the JSON messages.
  *
- * messageId - The ID of the GPS CAN message for this dat.
+ * messageId - The ID of the GPS CAN message.
  * data - The CAN message data containing all GPS information.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.

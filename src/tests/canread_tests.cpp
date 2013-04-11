@@ -49,7 +49,7 @@ void setup() {
 START_TEST (test_decode_signal)
 {
     CanSignal signal = SIGNALS[0];
-    uint64_t data = 0xEB;
+    uint64_t data = 0xEB00000000000000;
     float result = decodeCanSignal(&signal, data);
     float correctResult = 0xA * 1001.0 - 30000.0;
     fail_unless(result == correctResult,
@@ -208,7 +208,8 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_default_handler)
 {
-    translateCanSignal(&listener, &SIGNALS[0], 0xEB, SIGNALS, SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB00000000000000, SIGNALS,
+            SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
@@ -326,11 +327,11 @@ float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_preserve_last_value)
 {
-    translateCanSignal(&listener, &SIGNALS[0], 0xEB, SIGNALS, SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB00000000000000, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
     QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
 
-    translateCanSignal(&listener, &SIGNALS[0], 0x1234123, preserveHandler, SIGNALS,
+    translateCanSignal(&listener, &SIGNALS[0], 0x1234123000000000, preserveHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
@@ -344,8 +345,8 @@ END_TEST
 START_TEST (test_dont_send_same)
 {
     SIGNALS[2].sendSame = false;
-    translateCanSignal(&listener, &SIGNALS[2], 0xEB, booleanHandler, SIGNALS,
-            SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[2], 0xEB00000000000000,
+            booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
@@ -354,8 +355,8 @@ START_TEST (test_dont_send_same)
     ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
 
     QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
-    translateCanSignal(&listener, &SIGNALS[2], 0xEB, booleanHandler, SIGNALS,
-            SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[2], 0xEB00000000000000,
+            booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
 END_TEST

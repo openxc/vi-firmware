@@ -64,7 +64,7 @@ START_TEST (test_button_event_handler)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
@@ -78,7 +78,7 @@ START_TEST (test_button_event_handler_bad_type)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
@@ -92,7 +92,7 @@ START_TEST (test_button_event_handler_correct_types)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
@@ -113,7 +113,7 @@ START_TEST (test_button_event_handler_bad_state)
     uint64_t data = stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
     data = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 11, &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }

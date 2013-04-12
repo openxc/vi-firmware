@@ -87,6 +87,18 @@ int main(void) {
 extern "C" {
 #endif
 
+/* Private: Handle an incoming USB control request.
+ *
+ * There are two accepted control requests:
+ *
+ *  - VERSION_CONTROL_COMMAND - return the version of the firmware as a string,
+ *      including the vehicle it is built to translate.
+ *  - RESET_CONTROL_COMMAND - reset the device.
+ *
+ *  TODO This function is defined in main.cpp because it needs to reference the
+ *  version and message set, which aren't declared in any header files at the
+ *  moment. Ripe for refactoring!
+ */
 bool handleControlRequest(uint8_t request) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:

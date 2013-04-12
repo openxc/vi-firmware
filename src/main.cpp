@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "bluetooth.h"
 #include "power.h"
+#include "platform.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -59,10 +60,7 @@ void updateInterfaceLight() {
 }
 
 int main(void) {
-#ifdef __PIC32__
-    init();
-#endif // __PIC32__
-
+    initializePlatform();
     initializeLogging();
     initializeTimers();
     initializePower();

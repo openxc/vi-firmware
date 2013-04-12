@@ -28,6 +28,12 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
+The firmware currently supports 3 platforms:
+
+- chipKIT Max32 (``PLATFORM=CHIPKIT``)
+- NGX Blueboard (``PLATFORM=BLUEBOARD``)
+- Ford OpenXC prototype vehicle interface (``PLATFORM=FORDBOARD``)
+
 Pre-built Binary
 ================
 

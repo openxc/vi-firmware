@@ -149,16 +149,25 @@ right turn signal are split into two signals instead of the 1
 state-based signal used by OpenXC. You can use the ``sendCanSignal``
 function in ``canwrite.h`` to do the actual data sending on the CAN bus.
 
-Message Handlers
-=======================
+Value & Message Handlers
+========================
 
-The default handler for each signal is a simple passthrough, translating
-the signal's ID to an abstracted name (e.g. ``SteeringWheelAngle``) and
-its value from engineering units to something more usable. Some signals
-require additional processing that you may wish to do within the
-translator and not on the host device. Other signals may need to be
-combined to make a composite signal that's more meaningful to
-developers.
+There are two levels of custom handlers:
+
+-  Message handlers - use these for custom processing of the entire CAN
+   message.
+-  Value handlers - use these for making non-standard transformations to
+   a signal value
+
+Value Handlers
+---------------
+
+The default value handler for each signal is a simple passthrough, translating
+the signal's ID to an abstracted name (e.g. ``SteeringWheelAngle``) and its
+value from engineering units to something more usable. Some signals require
+additional processing that you may wish to do within the translator and not on
+the host device. Other signals may need to be combined to make a composite
+signal that's more meaningful to developers.
 
 An good example is steering wheel angle. For an app developer to get a
 value that ranges from e.g. -350 to +350, we need to combine two
@@ -172,13 +181,6 @@ than float. A handler is provided for dealing with boolean values, the
 ``false`` for 0.0. If you want to translate integer state values to
 string names (for parsing as an enum, for example) you will need to
 write a value handler that returns a ``char*``.
-
-There are two levels of custom handlers:
-
--  Message handlers - use these for custom processing of the entire CAN
-   message.
--  Value handlers - use these for making non-standard transformations to
-   a signal value
 
 For this example, we want to modify the value of ``SteeringWheelAngle``
 by setting the sign positive or negative based on the value of the other
@@ -234,12 +236,20 @@ The ``bool* send`` parameter is a pointer to a ``bool`` you can flip to
 useful if you don't want to keep notifying the same status over and over
 again, but only in the event of a change in value (you can use the
 ``lastValue`` field on the CanSignal object to determine if this is
-true).
+true). It's also good practice to inspect the value of ``send`` when your custom
+handler is called - the normal translation stack may have decided the data
+shouldn't be sent (e.g. the value hasn't changed and ``sendSame == false``).
+Handlers are called every time a signal is received, even if ``send == false``,
+so that you have the flexibility to implement custom processing that depends on
+receiving every data point.
 
 A known issue with this method is that there is no guarantee that the
 last value of another signal arrived in the message or before/after the
 value you're current modifying. For steering wheel angle, that's
 probably OK - for other signals, not so much.
+
+Message Handlers
+----------------
 
 If you need greater precision, you can provide a custom handler for the
 entire message to guarantee they arrived together. You can generate 0, 1

@@ -260,6 +260,61 @@ START_TEST (test_translate_float)
 }
 END_TEST
 
+int frequencyTestCounter = 0;
+float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
+    frequencyTestCounter++;
+    return 42;
+}
+
+START_TEST (test_translate_float_handler_called_every_time)
+{
+    SIGNALS[0].sendFrequency = 2;
+    frequencyTestCounter = 0;
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, floatHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, floatHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    ck_assert_int_eq(frequencyTestCounter, 2);
+}
+END_TEST
+
+bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send) {
+    frequencyTestCounter++;
+    return true;
+}
+
+START_TEST (test_translate_bool_handler_called_every_time)
+{
+    SIGNALS[0].sendFrequency = 2;
+    frequencyTestCounter = 0;
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, boolHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, boolHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    ck_assert_int_eq(frequencyTestCounter, 2);
+}
+END_TEST
+
+const char* strHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    frequencyTestCounter++;
+    return "Dude.";
+}
+
+START_TEST (test_translate_str_handler_called_every_time)
+{
+    SIGNALS[0].sendFrequency = 2;
+    frequencyTestCounter = 0;
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, strHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    translateCanSignal(&listener, &SIGNALS[0], 0xEB, strHandlerFrequencyTest, SIGNALS,
+            SIGNAL_COUNT);
+    ck_assert_int_eq(frequencyTestCounter, 2);
+}
+END_TEST
+
 const char* stringHandler(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     return "foo";
@@ -395,6 +450,9 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_default_handler);
     tcase_add_test(tc_translate, test_dont_send_same);
     tcase_add_test(tc_translate, test_translate_respects_send_value);
+    tcase_add_test(tc_translate, test_translate_float_handler_called_every_time);
+    tcase_add_test(tc_translate, test_translate_bool_handler_called_every_time);
+    tcase_add_test(tc_translate, test_translate_str_handler_called_every_time);
     suite_add_tcase(s, tc_translate);
 
     return s;

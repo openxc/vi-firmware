@@ -260,11 +260,11 @@ START_TEST (test_translate_float)
 }
 END_TEST
 
-int frequencyTestCounter=0;
+int frequencyTestCounter = 0;
 float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     frequencyTestCounter++;
-    return frequencyTestCounter;
+    return 42;
 }
 
 START_TEST (test_translate_float_handler_called_every_time)

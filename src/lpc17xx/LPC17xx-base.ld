@@ -1,16 +1,3 @@
-/* Linker script for mbed LPC17xx */
-GROUP(-lstdc++ -lsupc++ -lm -lc -lnosys -lgcc)
-
-/* Linker script to configure memory regions. */
-MEMORY
-{
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 512K
-  RAM (rwx) : ORIGIN = 0x100000C8, LENGTH = 0x7F38
-
-  USB_RAM(rwx) : ORIGIN = 0x2007C000, LENGTH = 16K
-  ETH_RAM(rwx) : ORIGIN = 0x20080000, LENGTH = 16K
-}
-
 /* Linker script to place sections and symbol values. Should be used together
  * with other linker script that defines memory regions FLASH and RAM.
  * It references following symbols, which must be defined in code:

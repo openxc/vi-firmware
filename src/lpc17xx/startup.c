@@ -87,22 +87,9 @@ void CANActivity_IRQHandler(void) __attribute__ ((weak, alias ("Default_Handler"
 // The signature of Cortex-M3 interrupt handlers.
 typedef void (* const Interrupt_Handler_P)(void);
 
-void Reset_Handler(void) {
-  SystemInit();
-
-  uint32_t *s, *d;
-  // Copy initialization data to RAM (.data section)
-  s = &__etext;
-  d = &__data_start__;
-  while (d < &__data_end__) *d++ = *s++;
-  // Zero the remaining allocated RAM (.bss section)
-  d = &__bss_start__;
-  while (d < &__bss_end__)  *d++ = 0;
-
-  // Everything is ready. Run the user program.
-  main();
-  while(1); // in case main() fails
-}
+// Forward declaration of Reset_Handler so we can refernece interrupt_vectors
+// when setting the VTOR in the handler.
+void Reset_Handler(void);
 
 // Interrupt vectors table
 __attribute__ ((section(".isr_vector")))
@@ -202,3 +189,27 @@ Interrupt_Handler_P interrupt_vectors[] = {
   USBActivity_IRQHandler,    // 33 49 0xC4   USB Activity Interrupt USB_NEED_CLK
   CANActivity_IRQHandler,    // 34 50 0xC8   CAN Activity Interrupt CAN1WAKE, CAN2WAKE
 };
+
+void Reset_Handler(void) {
+  SystemInit();
+  // SystemInit clears the Vector Table Offset Register (VTOR) back to 0. If
+  // we're running bare metal, the VTOR should be 0. If we're running behind the
+  // USB bootloader, however, the interrupt vectors are not at to top of flash
+  // anymore. We set the VTOR in the bootloader, but since we need to run
+  // SystemInit here to power up the peripherals and clock, we have to re-set it
+  // to the address of interrupt_vectors.
+  SCB->VTOR = (uint32_t) interrupt_vectors;
+
+  uint32_t *s, *d;
+  // Copy initialization data to RAM (.data section)
+  s = &__etext;
+  d = &__data_start__;
+  while (d < &__data_end__) *d++ = *s++;
+  // Zero the remaining allocated RAM (.bss section)
+  d = &__bss_start__;
+  while (d < &__bss_end__)  *d++ = 0;
+
+  // Everything is ready. Run the user program.
+  main();
+  while(1); // in case main() fails
+}

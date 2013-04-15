@@ -14,6 +14,38 @@ Cygwin in Windows.
    When running ``make`` to compile, try adding the ``-j4`` flag to build jobs
    in parallel - the speedup can be quite dramatic.
 
+Makefile Options
+=============
+
+These options are passed as shell environment variables to the Makefile, e.g.
+
+.. code-block:: sh
+
+   $ DEBUG=1 make
+
+``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable debug
+   logging over :doc:`UART`.
+
+``PLATFORM`` - Select the target microcontroller platform. Supported options
+   are:
+
+   - ``CHIPKIT`` - chipKIT Max32
+   - ``BLUEBOARD`` - NGX Blueboard
+   - ``FORDBOARD`` - Ford OpenXC prototype vehicle interface
+
+``UART`` - By default, UART output of OpenXC vehicle data is disabled. Set this
+to ``1`` to enable :doc:`UART` output.
+
+``ETHERNET`` - By default, TCP output of OpenXC vehicle data is disabled. Set
+this to ``1`` to enable TCP output on boards that have an Ethernet interface (only
+the chipKIT Max32 right now).
+
+``BOOTLOADER`` - By default, the firmware is built to run on a bare-metal
+microcontroller, i.e. it starts at the top of flash memory. Set this to ``1`` to
+configure the memory layout to be compatible with a USB bootloader. A modified
+version of the `OpenLPC USB bootloader
+<https://github.com/openxc/openlpc-USB_Bootloader>`_ is tested and working.
+
 chipKIT Max32
 =============
 

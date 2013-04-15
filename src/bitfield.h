@@ -27,6 +27,9 @@ extern "C" {
  *
  *     000000000000000010101000000000000000000000000000000000000000000
  *
+ * If the architecture where is code is running is little-endian, the input data
+ * will be swapped before grabbing the bit field.
+ *
  * Examples
  *
  *  uint64_t value = getBitField(data, 2, 4);

@@ -3,12 +3,14 @@
 #include "shared_handlers.h"
 #include "canwrite.h"
 
-CanMessage MESSAGES[3] = {
+CanMessage MESSAGES[4] = {
     {NULL, 0},
     {NULL, 1},
+    {NULL, 2},
+    {NULL, 3},
 };
 
-const int SIGNAL_COUNT = 7;
+const int SIGNAL_COUNT = 13;
 
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
     { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, },
@@ -31,6 +33,18 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
         0.000000, 1, false, false, NULL, 0, false, NULL},
     {&MESSAGES[1], "fuel_consumed_since_restart", 18, 1, 25.000000, 0.000000, 0.000000,
         255.0, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[2], "tire_pressure_front_left", 15, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[2], "tire_pressure_front_right", 16, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[2], "tire_pressure_rear_right", 17, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[2], "tire_pressure_rear_left", 18, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[3], "passenger_occupancy_lower", 17, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
+    {&MESSAGES[3], "passenger_occupancy_upper", 18, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, NULL, 0, false, NULL},
 };
 
 Listener listener;
@@ -55,7 +69,7 @@ START_TEST (test_button_event_handler)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
@@ -69,7 +83,7 @@ START_TEST (test_button_event_handler_bad_type)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 }
@@ -83,7 +97,7 @@ START_TEST (test_button_event_handler_correct_types)
             &send);
     data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
             &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
 
@@ -104,9 +118,133 @@ START_TEST (test_button_event_handler_bad_state)
     uint64_t data = stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
     data = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 11, &send, data);
-    handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
+    handleButtonEventMessage(0, data, SIGNALS, SIGNAL_COUNT,
             &listener);
     fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+}
+END_TEST
+
+START_TEST (test_tire_pressure_handler)
+{
+    bool send = true;
+    uint64_t data = numberWriter(&SIGNALS[7], SIGNALS, SIGNAL_COUNT, 23.1,
+            &send);
+    sendTirePressure("foo", data, &SIGNALS[7], SIGNALS, SIGNAL_COUNT, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "foo") == NULL);
+}
+END_TEST
+
+START_TEST (test_send_invalid_tire)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[7], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    sendDoorStatus("does-not-exist", data, NULL, SIGNALS, SIGNAL_COUNT, &listener);
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+}
+END_TEST
+
+START_TEST (test_send_same_tire_pressure)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[7], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    sendDoorStatus("front_left", data, &SIGNALS[7], SIGNALS, SIGNAL_COUNT, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+    QUEUE_INIT(uint8_t, &listener.usb->sendQueue);
+    sendDoorStatus("front_left", data, &SIGNALS[7], SIGNALS, SIGNAL_COUNT, &listener);
+    fail_unless(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+}
+END_TEST
+
+START_TEST (test_occupancy_handler_child)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data, SIGNALS, SIGNAL_COUNT,
+            &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "adult") == NULL);
+    fail_unless(strstr((char*)snapshot, "empty") == NULL);
+}
+END_TEST
+
+START_TEST (test_occupancy_handler_adult)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, true,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data, SIGNALS, SIGNAL_COUNT,
+            &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "adult") == NULL);
+    fail_unless(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "empty") == NULL);
+}
+END_TEST
+
+START_TEST (test_occupancy_handler_empty)
+{
+    bool send = true;
+    uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, false,
+            &send);
+    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
+            &send, data);
+    handleOccupancyMessage(SIGNALS[11].message->id, data,
+            SIGNALS, SIGNAL_COUNT, &listener);
+    fail_if(QUEUE_EMPTY(uint8_t, &listener.usb->sendQueue));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "passenger") == NULL);
+    fail_if(strstr((char*)snapshot, "empty") == NULL);
+    fail_unless(strstr((char*)snapshot, "child") == NULL);
+    fail_unless(strstr((char*)snapshot, "adult") == NULL);
+}
+END_TEST
+
+START_TEST (test_fuel_handler)
+{
+    bool send = true;
+    float result = 0;
+    CanSignal* signal = &SIGNALS[6];
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 0, &send, 1);
+    ck_assert_int_eq(0, result);
+    signal->lastValue = 0;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 1, &send, 1);
+    ck_assert_int_eq(1, result);
+    signal->lastValue = 1;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 255, &send, 1);
+    ck_assert_int_eq(255, result);
+    signal->lastValue = 255;
+
+    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 2, &send, 1);
+    ck_assert_int_eq(257, result);
+    signal->lastValue = 2;
 }
 END_TEST
 
@@ -148,29 +286,6 @@ START_TEST (test_send_same_door_status)
 }
 END_TEST
 
-START_TEST (test_fuel_handler)
-{
-    bool send = true;
-    float result = 0;
-    CanSignal* signal = &SIGNALS[6];
-    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 0, &send, 1);
-    ck_assert_int_eq(0, result);
-    signal->lastValue = 0;
-
-    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 1, &send, 1);
-    ck_assert_int_eq(1, result);
-    signal->lastValue = 1;
-
-    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 255, &send, 1);
-    ck_assert_int_eq(255, result);
-    signal->lastValue = 255;
-
-    result = handleFuelFlow(signal, SIGNALS, SIGNAL_COUNT, 2, &send, 1);
-    ck_assert_int_eq(257, result);
-    signal->lastValue = 2;
-}
-END_TEST
-
 Suite* handlerSuite(void) {
     Suite* s = suite_create("shared_handlers");
     TCase *tc_button_handler = tcase_create("button");
@@ -192,6 +307,20 @@ Suite* handlerSuite(void) {
     tcase_add_checked_fixture(tc_fuel_handler, setup, NULL);
     tcase_add_test(tc_fuel_handler, test_fuel_handler);
     suite_add_tcase(s, tc_fuel_handler);
+
+    TCase *tc_tire_pressure = tcase_create("tire_pressure");
+    tcase_add_checked_fixture(tc_tire_pressure, setup, NULL);
+    tcase_add_test(tc_tire_pressure, test_tire_pressure_handler);
+    tcase_add_test(tc_tire_pressure, test_send_invalid_tire);
+    tcase_add_test(tc_tire_pressure, test_send_same_tire_pressure);
+    suite_add_tcase(s, tc_tire_pressure);
+
+    TCase *tc_occupancy = tcase_create("occupancy");
+    tcase_add_checked_fixture(tc_occupancy, setup, NULL);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_child);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_adult);
+    tcase_add_test(tc_occupancy, test_occupancy_handler_empty);
+    suite_add_tcase(s, tc_occupancy);
 
     return s;
 }

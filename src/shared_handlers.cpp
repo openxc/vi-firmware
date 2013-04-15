@@ -45,6 +45,40 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
             signals, signalCount, listener);
 }
 
+void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
+        CanSignal* signals, int signalCount, Listener* listener) {
+    if(signal == NULL) {
+        debug("Specific tire signal for ID %s is NULL, vehicle may not support",
+                tireId);
+        return;
+    }
+
+    bool send = true;
+    // TODO use preTranslate for sendDoorStatus, too
+    float pressure = preTranslate(signal, data, &send);
+    if(send) {
+        sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
+                listener);
+    }
+    postTranslate(signal, pressure);
+}
+
+void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    sendTirePressure("front_left", data,
+            lookupSignal("tire_pressure_front_left", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("front_right", data,
+            lookupSignal("tire_pressure_front_right", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("rear_right", data,
+            lookupSignal("tire_pressure_rear_right", signals, signalCount),
+            signals, signalCount, listener);
+    sendTirePressure("rear_left", data,
+            lookupSignal("tire_pressure_rear_left", signals, signalCount),
+            signals, signalCount, listener);
+}
+
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
     if(totalOdometerAtRestart == 0) {
         CanSignal* odometerSignal = lookupSignal("total_odometer", signals,
@@ -241,4 +275,47 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         debug("Unable to find signal for %s turn signal", direction);
     }
     return false;
+}
+
+void sendOccupancyStatus(const char* seatId, uint64_t data,
+        CanSignal* lowerSignal, CanSignal* upperSignal,
+        CanSignal* signals, int signalCount, Listener* listener) {
+    if(lowerSignal == NULL || upperSignal == NULL) {
+        debug("Upper or lower occupancy signal for seat ID %s is NULL, "
+                "vehicle may not support", seatId);
+        return;
+    }
+
+    float rawLowerStatus = decodeCanSignal(lowerSignal, data);
+    float rawUpperStatus = decodeCanSignal(upperSignal, data);
+
+    bool send = true;
+    bool lowerStatus = booleanHandler(NULL, signals, signalCount,
+            rawLowerStatus, &send);
+    bool upperStatus = booleanHandler(NULL, signals, signalCount,
+            rawUpperStatus, &send);
+    if(lowerStatus) {
+        if(upperStatus) {
+            sendEventedStringMessage("occupancy_status", seatId, "adult",
+                    listener);
+        } else {
+            sendEventedStringMessage("occupancy_status", seatId, "child",
+                    listener);
+        }
+    } else {
+        sendEventedStringMessage("occupancy_status", seatId, "empty",
+                listener);
+    }
+}
+
+void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener) {
+    sendOccupancyStatus("driver", data,
+            lookupSignal("driver_occupancy_lower", signals, signalCount),
+            lookupSignal("driver_occupancy_upper", signals, signalCount),
+            signals, signalCount, listener);
+    sendOccupancyStatus("passenger", data,
+            lookupSignal("passenger_occupancy_lower", signals, signalCount),
+            lookupSignal("passenger_occupancy_upper", signals, signalCount),
+            signals, signalCount, listener);
 }

@@ -4,7 +4,7 @@ OpenXC CAN Translator
 
 .. image:: /_static/logo.png
 
-:Version: 3.0
+:Version: 3.1
 :Web: http://openxcplatform.com
 :Documentation: http://openxcplatform.com/cantranslator
 :Source: http://github.com/openxc/cantranslator
@@ -27,6 +27,12 @@ The CAN translation module code runs on an Arduino-compatible microcontroller
 connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
+
+The firmware currently supports 3 platforms:
+
+- chipKIT Max32 (``PLATFORM=CHIPKIT``)
+- NGX Blueboard (``PLATFORM=BLUEBOARD``)
+- Ford OpenXC prototype vehicle interface (``PLATFORM=FORDBOARD``)
 
 Pre-built Binary
 ================

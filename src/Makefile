@@ -32,7 +32,7 @@ endif
 # Valid PLATFORM options:
 # 	CHIPKIT
 # 	BLUEBOARD
-# 	FORD
+# 	FORDBOARD
 ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif

@@ -8,6 +8,8 @@ CanMessage receiveCanMessage(CanBus* bus) {
             CAN::CHANNEL1);
 
     CanMessage result = {bus, message->msgSID.SID, 0};
+    // Copy incoming data, flipping byte order to little-endian storage (can't
+    // just use memcpy).
     result.data = message->data[0];
     result.data |= (((uint64_t)message->data[1]) << 8);
     result.data |= (((uint64_t)message->data[2]) << 16);

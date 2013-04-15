@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "bluetooth.h"
 #include "power.h"
+#include "platform.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -22,7 +23,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "3.0";
+const char* VERSION = "3.1";
 
 SerialDevice SERIAL_DEVICE;
 EthernetDevice ETHERNET_DEVICE;
@@ -59,10 +60,7 @@ void updateInterfaceLight() {
 }
 
 int main(void) {
-#ifdef __PIC32__
-    init();
-#endif // __PIC32__
-
+    initializePlatform();
     initializeLogging();
     initializeTimers();
     initializePower();
@@ -89,6 +87,18 @@ int main(void) {
 extern "C" {
 #endif
 
+/* Private: Handle an incoming USB control request.
+ *
+ * There are two accepted control requests:
+ *
+ *  - VERSION_CONTROL_COMMAND - return the version of the firmware as a string,
+ *      including the vehicle it is built to translate.
+ *  - RESET_CONTROL_COMMAND - reset the device.
+ *
+ *  TODO This function is defined in main.cpp because it needs to reference the
+ *  version and message set, which aren't declared in any header files at the
+ *  moment. Ripe for refactoring!
+ */
 bool handleControlRequest(uint8_t request) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:

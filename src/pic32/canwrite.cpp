@@ -3,6 +3,13 @@
 #include "bitfield.h"
 #include "log.h"
 
+/* Private: Copy message data to destination buffer as big endian, as opposed to the
+ * PIC32's little endian (hence we can't just use memcpy).
+ *
+ * source - source data to copy.
+ * destination - pointer to an array of uint8_t (must be size 8) to copy the
+ *      data.
+ */
 void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
     for(int i = 0; i < 8; i++) {
         destination[i] = ((uint8_t*)&source)[i];

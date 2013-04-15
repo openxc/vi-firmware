@@ -12,6 +12,7 @@
 #define PI 3.14159265
 #define DOOR_STATUS_GENERIC_NAME "door_status"
 #define BUTTON_EVENT_GENERIC_NAME "button_event"
+#define TIRE_PRESSURE_GENERIC_NAME "tire_pressure"
 
 /* Interpret the given signal as a wheel rotation counter, and transform it to
  * an absolute distance travelled since the car was started.
@@ -186,7 +187,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
  *
  * This is a message handler, and takes care of sending the JSON messages.
  *
- * messageId - The ID of the GPS CAN message for this dat.
+ * messageId - The ID of the GPS CAN message.
  * data - The CAN message data containing all GPS information.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
@@ -227,6 +228,23 @@ void handleButtonEventMessage(int messageId, uint64_t data,
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener);
 
+/* Decode a numerical signal (the pressure of the tire in question) and
+ * send an OpenXC JSON message with the value (tire ID) and event (tire
+ * pressure) filled in.
+ *
+ * This function doesn't match the signature required to be used directly as a
+ * message or value handler, but it can be called from another handler.
+ *
+ * tireId - The name of the tire, e.g. rear_left.
+ * data - The incoming CAN message data that contains the signal.
+ * signal - The CAN signal for tire pressure.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * listener - The listener that wraps the output devices.
+ */
+void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
+        CanSignal* signals, int signalCount, Listener* listener);
+
 /**
  * We consider dipped beam or auto to be lights on.
  */
@@ -236,7 +254,36 @@ bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         CanSignal* signals, int signalCount);
 
+/** Handle a CAN message that contains the ajar status of all doors.
+ */
 void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener);
+
+/** Handle a CAN message that contains the pressure of all tires.
+ */
+void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Listener* listener);
+
+/* Combine the values from two sensors in each seat to determine if there is
+ * actually an occupant, and if so their general size (child or adult).
+ *
+ * The following signals must be defined in the signal array, and they must all
+ * be contained in the same CAN message:
+ *
+ *      * passenger_occupancy_lower
+ *      * passenger_occupancy_upper
+ *      * TODO add more seats
+ *
+ * This is a message handler, and takes care of sending the JSON messages.
+ *
+ * messageId - The ID of the occupant sensor CAN message.
+ * data - The CAN message data containing all occupancy information.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * send - (output) Flip this to false if the message should not be sent.
+ * listener - The listener that wraps the output devices.
+ */
+void handleOccupancyMessage(int messageId, uint64_t data,
+              CanSignal* signals, int signalCount, Listener* listener);
 
 #endif // _SHARED_HANDLERS_H_

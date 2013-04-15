@@ -234,7 +234,8 @@ The ``bool* send`` parameter is a pointer to a ``bool`` you can flip to
 useful if you don't want to keep notifying the same status over and over
 again, but only in the event of a change in value (you can use the
 ``lastValue`` field on the CanSignal object to determine if this is
-true).
+true).  Note that the signal handlers will be called for each message
+received, whether send is true or false.
 
 A known issue with this method is that there is no guarantee that the
 last value of another signal arrived in the message or before/after the

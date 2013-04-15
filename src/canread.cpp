@@ -153,8 +153,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
-    float processedValue = handler(signal, signals, signalCount, value,
-                &send);
+    float processedValue = handler(signal, signals, signalCount, value, &send);
     if(send) {
         sendNumericalMessage(signal->genericName, processedValue, listener);
     }
@@ -172,7 +171,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     if(stringValue == NULL) {
         debug("No valid string returned from handler for %s",
                 signal->genericName);
-    } else if(send) { 
+    } else if(send) {
         sendStringMessage(signal->genericName, stringValue, listener);
     }
     postTranslate(signal, value);

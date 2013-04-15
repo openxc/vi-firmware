@@ -4,7 +4,12 @@ ifneq ($(GCC_ARM_ON_PATH),0)
 GCC_BIN = ../dependencies/gcc-arm-embedded/bin/
 endif
 
+ifndef JTAG_INTERFACE
+	JTAG_INTERFACE = "olimex-arm-usb-ocd"
+endif
+
 OBJDIR = build/lpc17xx
+OPENOCD_CONF_BASE = "../conf/openocd"
 TARGET = $(BASE_TARGET)-lpc17xx
 LIBS_PATH = libs
 CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
@@ -82,10 +87,10 @@ endif
 all: $(TARGET_BIN)
 
 flash: all
-	@openocd -f ../conf/$(BASE_TARGET).cfg -f ../conf/flash.cfg
+	@openocd -f $(OPENOCD_CONF_BASE)/$(BASE_TARGET).cfg -f $(OPENOCD_CONF_BASE)/interface/$(JTAG_INTERFACE).cfg -f $(OPENOCD_CONF_BASE)/flash.cfg
 
 gdb: all
-	@openocd -f ../conf/gdb.cfg
+	@openocd -f $(OPENOCD_CONF_BASE)/gdb.cfg
 
 .s.o:
 	$(AS) $(AS_FLAGS) -o $@ $<

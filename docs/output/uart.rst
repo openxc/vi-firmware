@@ -12,7 +12,7 @@ messages in the opposite direction on the serial device - from the host
 to the CAN translator. They'll be processed in exactly the same way.
 These write messages are accepted via serial even if USB is connected.
 
-chipKIT Max32
+Digilent chipKIT Max32
 =============
 
 On the chipKIT, ``UART1A`` is used for OpenXC output at the 460800 baud rate.
@@ -41,13 +41,12 @@ if you connect USB, then disconnect it, we can detect that in the firmware and
 stop wasting time trying to send data over USB. This will dramatically increase
 the throughput over UART.
 
-Blueboard
-=========
+NXP LPC17xx
+===========
 
-On the NGX Blueboard LPC1768-H, ``UART1`` is used for OpenXC output at the
-230000 baud rate. Like on the chipKIT, hardware flow control (RTS/CTS) is
-enabled, so CTS must be pulled low by the receiving device before data will be
-sent.
+On the LPC17xx, ``UART1`` is used for OpenXC output at the 230000 baud rate.
+Like on the chipKIT, hardware flow control (RTS/CTS) is enabled, so CTS must be
+pulled low by the receiving device before data will be sent.
 
 - Pin 2.0 - ``UART1 TX``, connect this to the RX line of the receiver.
 - Pin 2.1 - ``UART1 RX``, connect this to the TX line of the receiver.

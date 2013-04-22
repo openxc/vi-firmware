@@ -141,13 +141,34 @@ it doesn't seem to pick up on the GCC ``__builtin_*`` functions, and
 some of the chipKIT libraries are finicky. This won't have an effect on
 the actual build process, just the error reporting.
 
-NGX Blueboard
+NXP LPC17xx
 ==============
 
-Support for the NXP LPC17xx, an ARM Cortex M3 microcontroller, is
-experimental at the moment and the documentation is incomplete. We are
-building successfully on the NGX Blueboard 1768-H using the Olimex
-ARM-OCD-USB JTAG programmer.
+The NXP LPC17xx, an ARM Cortex M3 microcontroller, is also supported on a number
+of boards. The NGX Blueboard 1768-H is tested and working (although it needs
+some additional hardware to add CAN bus support).
+
+USB Bootloader
+---------------
+
+If you are running a :doc:`supported bootloader <bootloaders>`, you don't need
+any special programming hardware. Compile the firmware to run under the
+bootloader:
+
+.. code-block:: sh
+
+   $ make clean
+   $ PLATFORM=BLUEBOARD BOOTLOADER=1 make -j4
+
+The compiled firmware will be located at
+``build/lpc17xx/cantranslator-lpc17xx.bin``. If you are using the USB
+bootloader, hold down the bootloader button on the board and attach the USB
+connector to your computer. When the LPC17xx drive appears, delete
+the existing firmware file and copy the new one. Eject the device and power
+cycle it - you should not be running the freshly compiled firmware.
+
+Bare Metal
+-----------
 
 Once the :doc:`dependencies <installation>` are installed, attach a JTAG adapter to
 your computer and the CAN translator, then compile and flash:
@@ -159,6 +180,6 @@ your computer and the CAN translator, then compile and flash:
     $ PLATFORM=BLUEBOARD make flash
 
 The config files in this repository assume your JTAG adapter is the
-Olimex ARM-USB-OCD unit. If you have a different unit, change the first
-line in ``conf/flash.cfg`` to the correct value.
-
+Olimex ARM-USB-OCD unit. If you have a different unit, modify the
+``src/lpc17xx/lpc17xx.mk`` Makefile to load your programmer's OpenOCD
+configuration.

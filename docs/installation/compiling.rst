@@ -40,11 +40,10 @@ to ``1`` to enable :doc:`UART` output.
 this to ``1`` to enable TCP output on boards that have an Ethernet interface (only
 the chipKIT Max32 right now).
 
-``BOOTLOADER`` - By default, the firmware is built to run on a bare-metal
-microcontroller, i.e. it starts at the top of flash memory. Set this to ``1`` to
-configure the memory layout to be compatible with a USB bootloader. A modified
-version of the `OpenLPC USB bootloader
-<https://github.com/openxc/openlpc-USB_Bootloader>`_ is tested and working.
+``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
+with a :doc:`bootloader <bootloaders>`, allowing you to update the firmware
+without specialized hardware. If you want to build to run on bare-metal hardware
+(i.e. start at the top of flash memory) set this to ``0``.
 
 chipKIT Max32
 =============
@@ -74,6 +73,9 @@ and if in Windows it appeared as COM4:
 
     $ SERIAL_PORT=com4 make flash
 
+This build process assumes your chipKIT is running the :doc:`avrdude bootloader
+<bootloaders>` - all chipKITs come programmed with a compatible bootloader by
+default.
 
 Troubleshooting
 ---------------

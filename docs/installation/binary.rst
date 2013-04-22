@@ -4,10 +4,11 @@ Flashing a Pre-compiled Binary
 
 Updates to the CAN translator firmware may be distributed as
 pre-compiled binaries, e.g. if they are distributed by an OEM who does
-not wish to make the CAN signals public. If that's the case for your
-vehicle, you will have a ``.hex`` file and can use the
-`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/script/upload_hex.sh>`_
-script to update your device.
+not wish to make the CAN signals public. A binary firmware may be distributed
+either as a ``.hex`` or ``.bin`` file.
+
+For the moment, all of the pre-compiled firmare are built to run with a
+:doc:`bootloader <bootloaders>` on the microcontroller.
 
 Quick Start
 ============
@@ -80,8 +81,11 @@ All Platforms
 
     $ git clone https://github.com/openxc/cantranslator
 
-Flashing
-========
+Flashing the chipKIT Max32
+==========================
+
+These instructions assume your chipKIT is running the stock firmware, the
+avrdude bootloader.
 
 USB Cable
 ---------
@@ -95,12 +99,12 @@ of the `OpenXC website`_ to make sure you have the correct cable attached.
 Uploading Script
 ----------------
 
-Open a terminal and ``cd`` into the ``cantranslator`` folder that you cloned
-with Git. Run the ``upload_hex.sh`` script with the ``.hex`` file you
-downloaded:
+Open a terminal run the ``upload_hex.sh`` script from the ``cantranslator``
+directory, passing it the path to the ``.hex`` file you downloaded:
 
 .. code-block:: sh
 
+   $ cd cantranslator
    $ script/upload_hex.sh <firmware file you downloaded>.hex
 
 The ``upload_hex.sh`` script attempts to install all required dependencies
@@ -141,25 +145,22 @@ added Windows-style ``CRLF`` line endings. Run this first to ignore the ``CR``:
 .. _manual-deps:
 
 Dependencies
-============
+------------
 
-If the bootstrap script failed, you will need to install the dependencies manually. You will need:
-
-* ``avrdude``
-* FTDI Driver
+If the flashing script failed, you may need to install the dependencies
+manually.
 
 FTDI Driver
------------
+```````````
 
 If you are using Windows or OS X, you need to install the FTDI
 driver. If you didn't need to install MPIDE, you can download the driver
 separately from `FTDI <http://www.ftdichip.com/Drivers/VCP.htm>`_.
 
 AVR Programmer
---------------
-
-In order to program the CAN translator, you need an AVR programmer tool. There
-are a number of options that will work.
+``````````````
+In order to program the CAN translator, you need to install an AVR programmer.
+There are a number of free options that will work.
 
 *With MPIDE*
 
@@ -181,3 +182,11 @@ need it), you can install a programmer seprately:
      variables.
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
+
+Flashing the LPC17xx
+=====================
+
+Pre-compiled binaries built with the ``BOOTLOADER`` flag on (see all `compiler
+flags <compiling>`_) are compatible with the `OpenLPC USB bootloader
+<https://github.com/openxc/openlpc-USB_Bootloader>`_  - see the
+:doc:`bootloaders <bootloaders>` section for instructions.

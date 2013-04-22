@@ -1,5 +1,11 @@
 # OpenXC CAN Translator Changelog
 
+## v3.2
+
+* Support building to run under a USB bootloader on the LPC17xx.
+* Bug fix: custom value handlers are now called every time a signal is received,
+  regardless of the value of `send_same` and `send_frequency`.
+
 ## v3.1
 
 * Minor improvements to bootstrap scripts for greater compatibility.

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /* Public: Reads a subset of bits from a byte array.
  *
@@ -54,6 +55,17 @@ void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
  * Returns the requested byte from the source bytes.
  */
 uint8_t nthByte(uint64_t source, int byteNum);
+
+typedef enum {
+    LITTLE_ENDIAN,
+    BIG_ENDIAN
+} Endianness;
+
+/* Public: Return true if the platform is big endian byte order.
+ *
+ * Returns true if the platform is big endian.
+ */
+Endianness endianness();
 
 #ifdef __cplusplus
 }

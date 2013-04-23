@@ -113,7 +113,7 @@ uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
 }
 
 void enqueueCanMessage(CanMessage* message, uint64_t data) {
-    if(endianness() == BIG_ENDIAN) {
+    if(endianness() == ENDIANNESS_LITTLE) {
         data = __builtin_bswap64(data);
     }
     CanMessage outgoingMessage = {message->bus, message->id, data};

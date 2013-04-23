@@ -6,7 +6,7 @@ Endianness endianness() {
         char c[4];
     } bint = {0x01020304};
 
-    return bint.c[0] == 1 ? BIG_ENDIAN : LITTLE_ENDIAN;
+    return bint.c[0] == 1 ? ENDIANNESS_BIG : ENDIANNESS_LITTLE;
 }
 
 /**
@@ -35,7 +35,7 @@ uint64_t getBitField(uint64_t data, int startBit, int numBits) {
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
-    if(endianness() == LITTLE_ENDIAN) {
+    if(endianness() == ENDIANNESS_LITTLE) {
         data = __builtin_bswap64(data);
     }
     uint8_t* bytes = (uint8_t*)&data;

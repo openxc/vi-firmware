@@ -56,17 +56,6 @@ void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
  */
 uint8_t nthByte(uint64_t source, int byteNum);
 
-typedef enum {
-    ENDIANNESS_LITTLE,
-    ENDIANNESS_BIG,
-} Endianness;
-
-/* Public: Return true if the platform is big endian byte order.
- *
- * Returns true if the platform is big endian.
- */
-Endianness endianness();
-
 #ifdef __cplusplus
 }
 #endif

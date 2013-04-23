@@ -59,7 +59,7 @@ void postTranslate(CanSignal* signal, float value) {
 
 float decodeCanSignal(CanSignal* signal, uint64_t data) {
     uint64_t rawValue = getBitField(data, signal->bitPosition,
-            signal->bitSize);
+            signal->bitSize, true);
     return rawValue * signal->factor + signal->offset;
 }
 

@@ -5,6 +5,9 @@
 #include "serialutil.h"
 #include "ethernetutil.h"
 
+namespace openxc {
+namespace listener {
+
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
  *
@@ -44,5 +47,8 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize);
  * listener - Listener instance with the interface queues to flush.
  */
 void processListenerQueues(Listener* listener);
+
+} // namespace listener
+} // namespace openxc
 
 #endif // _LISTENER_H_

@@ -3,6 +3,8 @@
 
 QUEUE_DEFINE(CanMessage);
 
+using openxc::bitfield::setBitField;
+
 void checkWritePermission(CanSignal* signal, bool* send) {
     if(!signal->writable) {
         *send = false;

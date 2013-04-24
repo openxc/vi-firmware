@@ -10,6 +10,8 @@
 #define VALUE_FIELD_NAME "value"
 #define EVENT_FIELD_NAME "event"
 
+using openxc::listener::Listener;
+
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a JSON message with "id" and "data" attributes and send it out to the
  * listeners.

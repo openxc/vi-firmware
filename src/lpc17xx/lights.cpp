@@ -70,7 +70,7 @@ void configureChannel(LPC_PWM_TypeDef* pwm, int channel) {
     PWM_ChannelCmd(pwm, channel, ENABLE);
 }
 
-void configurePins() {
+void configureLightPins() {
     PINSEL_CFG_Type PinCfg;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 1;
@@ -110,7 +110,7 @@ void setPwmPeriod(int period) {
 }
 
 void initializeLights() {
-    configurePins();
+    configureLightPins();
     initializePwm();
     setPwmPeriod(PWM_PERIOD_MICROSECONDS);
 

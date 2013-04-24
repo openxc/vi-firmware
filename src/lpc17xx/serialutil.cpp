@@ -35,6 +35,8 @@
 
 #endif
 
+using openxc::listener::Listener;
+
 extern Listener listener;
 
 __IO int32_t RTS_STATE;
@@ -172,7 +174,7 @@ void configureFlowControl() {
     resumeReceive();
 }
 
-void configurePins() {
+void configureSerialPins() {
     PINSEL_CFG_Type PinCfg;
 
     PinCfg.Funcnum = UART1_FUNCNUM;
@@ -218,7 +220,7 @@ void initializeSerial(SerialDevice* device) {
     if(device != NULL) {
         initializeSerialCommon(device);
 
-        configurePins();
+        configureSerialPins();
         configureUart();
         configureFifo();
         configureFlowControl();

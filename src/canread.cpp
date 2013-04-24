@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "log.h"
 
+using openxc::bitfield::getBitField;
+
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it to the listener.
  *

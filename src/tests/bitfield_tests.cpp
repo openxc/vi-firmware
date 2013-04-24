@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include "bitfield.h"
 
+using openxc::bitfield::getBitField;
+using openxc::bitfield::setBitField;
+using openxc::bitfield::nthByte;
+
 START_TEST (test_one_bit_not_swapped)
 {
     uint64_t data = 0x80;

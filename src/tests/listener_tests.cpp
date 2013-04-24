@@ -4,6 +4,8 @@
 #include "emqueue.h"
 #include "cJSON.h"
 
+using openxc::listener::Listener;
+
 Listener listener;
 UsbDevice usb;
 SerialDevice serial;

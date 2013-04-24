@@ -1,12 +1,11 @@
 #ifndef _BITFIELD_H_
 #define _BITFIELD_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
+
+namespace openxc {
+namespace bitfield {
 
 /* Public: Reads a subset of bits from a byte array.
  *
@@ -59,8 +58,7 @@ void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
  */
 uint8_t nthByte(uint64_t source, int byteNum);
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace bitfield
+} // namespace openxc
 
 #endif // _BITFIELD_H_

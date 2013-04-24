@@ -1,5 +1,7 @@
 #include "bitfield.h"
 
+namespace bitfield = openxc::bitfield;
+
 /**
  * Find the ending bit of a bitfield within the final byte.
  *
@@ -22,7 +24,7 @@ int endingByte(int startBit, int numBits) {
     return (startBit + numBits - 1) / 8;
 }
 
-uint64_t getBitField(uint64_t data, int startBit, int numBits, bool bigEndian) {
+uint64_t bitfield::getBitField(uint64_t data, int startBit, int numBits, bool bigEndian) {
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
@@ -48,13 +50,13 @@ uint64_t getBitField(uint64_t data, int startBit, int numBits, bool bigEndian) {
  * TODO it would be nice to have a warning if you call with this a value that
  * won't fit in the number of bits you've specified it should use.
  */
-void setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
+void bitfield::setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
     int shiftDistance = 64 - startBit - numBits;
     value <<= shiftDistance;
     *data &= ~(bitmask(numBits) << shiftDistance);
     *data |= value;
 }
 
-uint8_t nthByte(uint64_t source, int byteNum) {
+uint8_t bitfield::nthByte(uint64_t source, int byteNum) {
     return (source >> (64 - ((byteNum + 1) * 8))) & 0xFF;
 }

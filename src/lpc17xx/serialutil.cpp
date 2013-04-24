@@ -146,7 +146,7 @@ void UART1_IRQHandler() {
     }
 }
 
-void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::serial::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
             processQueue(&device->receiveQueue, callback);
@@ -216,7 +216,7 @@ void configureInterrupts() {
     NVIC_EnableIRQ(UART1_IRQn);
 }
 
-void initializeSerial(SerialDevice* device) {
+void openxc::serial::initializeSerial(SerialDevice* device) {
     if(device != NULL) {
         initializeSerialCommon(device);
 
@@ -236,7 +236,7 @@ void initializeSerial(SerialDevice* device) {
     }
 }
 
-void processSerialSendQueue(SerialDevice* device) {
+void openxc::serial::processSerialSendQueue(SerialDevice* device) {
     if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
         enableTransmitInterrupt();
         handleTransmitInterrupt();

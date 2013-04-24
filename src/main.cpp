@@ -19,6 +19,8 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
+using openxc::serial::SerialDevice;
+
 extern void reset();
 extern void setup();
 extern void loop();

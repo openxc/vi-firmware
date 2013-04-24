@@ -1,13 +1,12 @@
 #ifndef _SERIALUTIL_H_
 #define _SERIALUTIL_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "buffers.h"
 
 #define MAX_MESSAGE_SIZE 128
+
+namespace openxc {
+namespace serial {
 
 /* Public: A container for a UART connection with queues for both input and
  * output.
@@ -50,8 +49,7 @@ void initializeSerial(SerialDevice* device);
  */
 void processSerialSendQueue(SerialDevice* device);
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace serial
+} // namespace openxc
 
 #endif // _SERIALUTIL_H_

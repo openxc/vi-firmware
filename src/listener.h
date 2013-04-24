@@ -5,6 +5,8 @@
 #include "serialutil.h"
 #include "ethernetutil.h"
 
+using openxc::serial::SerialDevice;
+
 namespace openxc {
 namespace listener {
 

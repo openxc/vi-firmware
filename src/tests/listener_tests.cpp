@@ -5,6 +5,7 @@
 #include "cJSON.h"
 
 using openxc::listener::Listener;
+using openxc::serial::SerialDevice;
 
 Listener listener;
 UsbDevice usb;

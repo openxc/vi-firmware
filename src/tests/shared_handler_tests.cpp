@@ -3,6 +3,10 @@
 #include "shared_handlers.h"
 #include "canwrite.h"
 
+using openxc::can::write::booleanWriter;
+using openxc::can::write::stateWriter;
+using openxc::can::write::numberWriter;
+
 CanMessage MESSAGES[4] = {
     {NULL, 0},
     {NULL, 1},

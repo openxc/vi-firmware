@@ -16,7 +16,7 @@ void copyToMessageBuffer(uint64_t source, uint8_t* destination) {
     }
 }
 
-bool sendCanMessage(CanBus* bus, CanMessage request) {
+bool openxc::can::write::sendCanMessage(CanBus* bus, CanMessage request) {
     CAN::TxMessageBuffer* message = CAN_CONTROLLER(bus)->getTxMessageBuffer(
             CAN::CHANNEL0);
     if (message != NULL) {

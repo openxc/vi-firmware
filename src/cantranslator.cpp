@@ -18,6 +18,9 @@
 using openxc::bluetooth::setBluetoothStatus;
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
+using openxc::can::write::processCanWriteQueue;
+using openxc::can::write::sendCanSignal;
+using openxc::can::write::enqueueCanMessage;
 
 extern Listener listener;
 

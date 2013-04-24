@@ -1,3 +1,3 @@
 #include "canwrite.h"
 
-bool sendCanMessage(CanBus* bus, CanMessage request) { }
+bool openxc::can::write::sendCanMessage(CanBus* bus, CanMessage request) { }

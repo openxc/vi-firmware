@@ -14,7 +14,7 @@ void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
     }
 }
 
-bool sendCanMessage(CanBus* bus, CanMessage request) {
+bool openxc::can::write::sendCanMessage(CanBus* bus, CanMessage request) {
     CAN_MSG_Type message;
     message.id =  request.id;
     message.len = 8;

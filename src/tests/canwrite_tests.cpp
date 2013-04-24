@@ -4,6 +4,14 @@
 #include "canwrite.h"
 #include "cJSON.h"
 
+using openxc::can::write::sendCanSignal;
+using openxc::can::write::processCanWriteQueue;
+using openxc::can::write::enqueueCanMessage;
+using openxc::can::write::numberWriter;
+using openxc::can::write::booleanWriter;
+using openxc::can::write::stateWriter;
+using openxc::can::write::encodeCanSignal;
+
 CanBus bus = {115200, 0x101};
 
 CanMessage MESSAGES[3] = {

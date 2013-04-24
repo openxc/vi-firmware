@@ -16,6 +16,8 @@ using openxc::can::read::sendEventedStringMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
+using openxc::can::write::booleanWriter;
+using openxc::can::write::sendCanSignal;
 
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {

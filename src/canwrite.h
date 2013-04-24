@@ -7,6 +7,10 @@ using openxc::can::CanSignal;
 using openxc::can::CanSignalState;
 using openxc::can::CanCommand;
 
+namespace openxc {
+namespace can {
+namespace write {
+
 /* Public: Encode and store value in a bit field for the given signal.
  *
  * The value is converted to engineering units (i.e. any offset or factor used
@@ -224,5 +228,9 @@ void processCanWriteQueue(CanBus* bus);
  * Returns true if the message was sent successfully.
  */
 bool sendCanMessage(CanBus* bus, CanMessage request);
+
+} // namespace write
+} // namespace can
+} // namespace openxc
 
 #endif // _CANWRITE_H_

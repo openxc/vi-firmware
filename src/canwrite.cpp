@@ -1,9 +1,9 @@
 #include "canwrite.h"
 #include "log.h"
 
-QUEUE_DEFINE(CanMessage);
-
 using openxc::bitfield::setBitField;
+
+QUEUE_DEFINE(CanMessage);
 
 void checkWritePermission(CanSignal* signal, bool* send) {
     if(!signal->writable) {

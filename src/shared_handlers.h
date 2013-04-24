@@ -14,6 +14,8 @@
 #define BUTTON_EVENT_GENERIC_NAME "button_event"
 #define TIRE_PRESSURE_GENERIC_NAME "tire_pressure"
 
+using openxc::can::CanSignal;
+
 /* Interpret the given signal as a wheel rotation counter, and transform it to
  * an absolute distance travelled since the car was started.
  *

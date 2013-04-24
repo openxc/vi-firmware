@@ -3,6 +3,10 @@
 
 #include "canutil.h"
 
+using openxc::can::CanSignal;
+using openxc::can::CanSignalState;
+using openxc::can::CanCommand;
+
 /* Public: Encode and store value in a bit field for the given signal.
  *
  * The value is converted to engineering units (i.e. any offset or factor used

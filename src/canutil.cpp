@@ -3,7 +3,7 @@
 #include "timer.h"
 #include "log.h"
 
-void initializeCanCommon(CanBus* bus) {
+void openxc::can::initializeCanCommon(CanBus* bus) {
     debugNoNewline("Initializing CAN node 0x%2x...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
@@ -11,7 +11,7 @@ void initializeCanCommon(CanBus* bus) {
     bus->lastMessageReceived = systemTimeMs();
 }
 
-bool canBusActive(CanBus* bus) {
+bool openxc::can::canBusActive(CanBus* bus) {
     return systemTimeMs() - bus->lastMessageReceived
             < CAN_ACTIVE_TIMEOUT_S * 1000;
 }
@@ -31,7 +31,7 @@ bool signalStateNameComparator(void* name, int index, void* states) {
     return !strcmp((const char*)name, ((CanSignalState*)states)[index].name);
 }
 
-CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
+CanSignalState* openxc::can::lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     int index = lookup((void*)name, signalStateNameComparator,
             (void*)signal->states, signal->stateCount);
@@ -46,7 +46,7 @@ bool signalStateValueComparator(void* value, int index, void* states) {
     return (*(int*)value) == ((CanSignalState*)states)[index].value;
 }
 
-CanSignalState* lookupSignalState(int value, CanSignal* signal,
+CanSignalState* openxc::can::lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     int index = lookup((void*)&value, signalStateValueComparator,
             (void*)signal->states, signal->stateCount);
@@ -66,7 +66,7 @@ bool writableSignalComparator(void* name, int index, void* signals) {
             ((CanSignal*)signals)[index].writable;
 }
 
-CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
+CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals, int signalCount,
         bool writable) {
     bool (*comparator)(void* key, int index, void* candidates) = signalComparator;
     if(writable) {
@@ -80,7 +80,7 @@ CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
     }
 }
 
-CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount) {
+CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals, int signalCount) {
     return lookupSignal(name, signals, signalCount, false);
 }
 
@@ -88,7 +88,7 @@ bool commandComparator(void* name, int index, void* commands) {
     return !strcmp((const char*)name, ((CanCommand*)commands)[index].genericName);
 }
 
-CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCount) {
+CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands, int commandCount) {
     int index = lookup((void*)name, commandComparator, (void*)commands,
             commandCount);
     if(index != -1) {

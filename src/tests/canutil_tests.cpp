@@ -5,6 +5,8 @@
 #include "canwrite.h"
 #include "cJSON.h"
 
+using openxc::can::initializeCanCommon;
+
 CanMessage MESSAGES[3] = {
     {NULL, 0},
     {NULL, 1},

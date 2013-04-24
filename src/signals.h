@@ -4,6 +4,10 @@
 #include "canread.h"
 #include "canwrite.h"
 
+using openxc::can::CanFilter;
+using openxc::can::CanSignalState;
+using openxc::can::CanSignal;
+
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
  */

@@ -16,6 +16,8 @@
 #include <stdlib.h>
 
 using openxc::bluetooth::setBluetoothStatus;
+using openxc::can::canBusActive;
+using openxc::can::initializeCan;
 
 extern Listener listener;
 

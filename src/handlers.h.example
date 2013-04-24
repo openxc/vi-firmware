@@ -3,6 +3,8 @@
 
 #include "canread.h"
 
+using openxc::can::CanSignal;
+
 float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
 

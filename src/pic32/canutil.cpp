@@ -43,7 +43,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     }
 }
 
-void initializeCan(CanBus* bus) {
+void openxc::can::initializeCan(CanBus* bus) {
     initializeCanCommon(bus);
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete

@@ -21,6 +21,8 @@
 
 using openxc::serial::SerialDevice;
 using openxc::usb::sendControlMessage;
+using openxc::bluetooth::bluetoothConnected;
+using openxc::bluetooth::initializeBluetooth;
 
 extern void reset();
 extern void setup();

@@ -15,6 +15,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+using openxc::bluetooth::setBluetoothStatus;
+
 extern Listener listener;
 
 /* Forward declarations */

@@ -26,7 +26,8 @@ void setGpioValue(uint32_t port, uint32_t pin, GpioValue value) {
 
 GpioValue getGpioValue(uint32_t port, uint32_t pin) {
     LPC_GPIO[port]->FIOMASK = ~(1 << pin);
-    GpioValue value = LPC_GPIO[port]->FIOPIN >> pin;
+    GpioValue value = LPC_GPIO[port]->FIOPIN >> pin == 1
+            ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
     LPC_GPIO[port]->FIOMASK = 0;
     return value;
 }

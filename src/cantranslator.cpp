@@ -26,6 +26,7 @@ void updateDataLights();
 
 void setup() {
     initializeAllCan();
+    initializeSignals();
 }
 
 void loop() {

@@ -1,6 +1,6 @@
 # OpenXC CAN Translator Changelog
 
-## v3.3-dev
+## v4.0-dev
 
 ## v3.2
 

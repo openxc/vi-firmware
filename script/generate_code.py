@@ -332,6 +332,8 @@ class Parser(object):
         print("};")
         print()
 
+        print("void initializeSignals() { }")
+
         print("const int COMMAND_COUNT = %d;" % self.command_count)
         print("CanCommand COMMANDS[COMMAND_COUNT] = {")
 

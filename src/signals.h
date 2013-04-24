@@ -4,6 +4,11 @@
 #include "canread.h"
 #include "canwrite.h"
 
+/* Public: Perform any one-time initialization necessary. This is called when
+ * the microcontroller first starts.
+ */
+void initializeSignals();
+
 /* Public: The number of CAN buses to read. This is limited to 2, as the
  * hardware controller only has 2 CAN channels.
  */

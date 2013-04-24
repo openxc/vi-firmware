@@ -95,6 +95,8 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, true, false, NULL, 0, false, NULL},
 };
 
+void initializeSignals() { }
+
 const int COMMAND_COUNT = 0;
 CanCommand COMMANDS[COMMAND_COUNT] = {
 };

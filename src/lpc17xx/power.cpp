@@ -14,6 +14,12 @@
 #define USB_CONNECT_PORT 2
 #define USB_CONNECT_PIN 9
 
+using openxc::gpio::setGpioValue;
+using openxc::gpio::setGpioDirection;
+using openxc::gpio::GPIO_VALUE_HIGH;
+using openxc::gpio::GPIO_VALUE_LOW;
+using openxc::gpio::GPIO_DIRECTION_OUTPUT;
+
 uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
     CLKPWR_PCONP_PCTIM1,
@@ -36,7 +42,8 @@ void setPowerPassthroughStatus(bool enabled) {
         debug("off");
         pinStatus = 1;
     }
-    setGpioValue(POWER_CONTROL_PORT, POWER_CONTROL_PIN, pinStatus);
+    setGpioValue(POWER_CONTROL_PORT, POWER_CONTROL_PIN,
+            pinStatus ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 }
 
 void initializePower() {
@@ -56,7 +63,7 @@ void initializePower() {
     debug("Done.");
 
     debugNoNewline("Turning off unused peripherals...");
-    for(int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
+    for(unsigned int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
             sizeof(DISABLED_PERIPHERALS[0]); i++) {
         CLKPWR_ConfigPPWR(DISABLED_PERIPHERALS[i], DISABLE);
     }

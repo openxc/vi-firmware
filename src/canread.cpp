@@ -37,7 +37,7 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     sendJSON(root, listener);
 }
 
-float preTranslate(CanSignal* signal, uint64_t data, bool* send) {
+float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* send) {
     float value = decodeCanSignal(signal, data);
 
     if(!signal->received || signal->sendClock == signal->sendFrequency - 1) {
@@ -55,33 +55,33 @@ float preTranslate(CanSignal* signal, uint64_t data, bool* send) {
     return value;
 }
 
-void postTranslate(CanSignal* signal, float value) {
+void openxc::can::read::postTranslate(CanSignal* signal, float value) {
     signal->lastValue = value;
 }
 
-float decodeCanSignal(CanSignal* signal, uint64_t data) {
+float openxc::can::read::decodeCanSignal(CanSignal* signal, uint64_t data) {
     uint64_t rawValue = getBitField(data, signal->bitPosition,
             signal->bitSize, true);
     return rawValue * signal->factor + signal->offset;
 }
 
-float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+float openxc::can::read::passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     return value;
 }
 
-bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+bool openxc::can::read::booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     return value == 0.0 ? false : true;
 }
 
-float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+float openxc::can::read::ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     *send = false;
     return value;
 }
 
-const char* stateHandler(CanSignal* signal, CanSignal* signals,
+const char* openxc::can::read::stateHandler(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     CanSignalState* signalState = lookupSignalState(value, signal, signals,
             signalCount);
@@ -93,38 +93,38 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals,
     return NULL;
 }
 
-void sendNumericalMessage(const char* name, float value, Listener* listener) {
+void openxc::can::read::sendNumericalMessage(const char* name, float value, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateNumber(value), NULL, listener);
 }
 
-void sendBooleanMessage(const char* name, bool value, Listener* listener) {
+void openxc::can::read::sendBooleanMessage(const char* name, bool value, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateBool(value), NULL, listener);
 }
 
-void sendStringMessage(const char* name, const char* value,
+void openxc::can::read::sendStringMessage(const char* name, const char* value,
         Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), NULL, listener);
 }
 
-void sendEventedFloatMessage(const char* name, const char* value, float event,
+void openxc::can::read::sendEventedFloatMessage(const char* name, const char* value, float event,
         Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
             listener);
 }
 
-void sendEventedBooleanMessage(const char* name, const char* value, bool event,
+void openxc::can::read::sendEventedBooleanMessage(const char* name, const char* value, bool event,
         Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
             listener);
 }
 
-void sendEventedStringMessage(const char* name, const char* value,
+void openxc::can::read::sendEventedStringMessage(const char* name, const char* value,
         const char* event, Listener* listener) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
             listener);
 }
 
-void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
+void openxc::can::read::passthroughCanMessage(Listener* listener, int id, uint64_t data) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
 
@@ -149,7 +149,7 @@ void passthroughCanMessage(Listener* listener, int id, uint64_t data) {
     sendJSON(root, listener);
 }
 
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -162,7 +162,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -179,7 +179,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -192,7 +192,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
         uint64_t data, CanSignal* signals, int signalCount) {
     translateCanSignal(listener, signal, data, passthroughHandler, signals,
             signalCount);

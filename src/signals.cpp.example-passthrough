@@ -13,6 +13,8 @@
 #include "handlers.h"
 #include "shared_handlers.h"
 
+using openxc::can::read::passthroughCanMessage;
+
 extern Listener listener;
 
 #ifdef __LPC17XX__

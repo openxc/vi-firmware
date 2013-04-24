@@ -7,6 +7,16 @@ float rollingOdometerSinceRestart = 0;
 float totalOdometerAtRestart = 0;
 float fuelConsumedSinceRestartLiters = 0;
 
+using openxc::can::read::decodeCanSignal;
+using openxc::can::read::booleanHandler;
+using openxc::can::read::stateHandler;
+using openxc::can::read::sendEventedBooleanMessage;
+using openxc::can::read::sendEventedFloatMessage;
+using openxc::can::read::sendEventedStringMessage;
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::preTranslate;
+using openxc::can::read::postTranslate;
+
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {
     if(signal == NULL) {

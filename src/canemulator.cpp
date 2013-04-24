@@ -14,6 +14,11 @@
 #define EVENT_SIGNAL_COUNT 1
 #define EMULATOR_SEND_FREQUENCY 200
 
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::sendBooleanMessage;
+using openxc::can::read::sendStringMessage;
+using openxc::can::read::sendEventedBooleanMessage;
+
 int emulatorRateLimiter = 0;
 
 extern Listener listener;

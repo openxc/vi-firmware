@@ -12,6 +12,10 @@
 
 using openxc::listener::Listener;
 
+namespace openxc {
+namespace can {
+namespace read {
+
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a JSON message with "id" and "data" attributes and send it out to the
  * listeners.
@@ -238,5 +242,9 @@ float preTranslate(CanSignal* signal, uint64_t data, bool* send);
  * in case a custom handler needs to use the value.
  */
 void postTranslate(CanSignal* signal, float value);
+
+} // namespace read
+} // namespace can
+} // namespace openxc
 
 #endif // _CANREAD_H_

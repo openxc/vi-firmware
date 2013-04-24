@@ -5,6 +5,20 @@
 #include "canwrite.h"
 #include "cJSON.h"
 
+using openxc::can::read::decodeCanSignal;
+using openxc::can::read::translateCanSignal;
+using openxc::can::read::booleanHandler;
+using openxc::can::read::ignoreHandler;
+using openxc::can::read::stateHandler;
+using openxc::can::read::passthroughHandler;
+using openxc::can::read::passthroughCanMessage;
+using openxc::can::read::sendEventedBooleanMessage;
+using openxc::can::read::sendEventedStringMessage;
+using openxc::can::read::sendEventedFloatMessage;
+using openxc::can::read::sendBooleanMessage;
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::sendStringMessage;
+
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 CanMessage MESSAGES[3] = {

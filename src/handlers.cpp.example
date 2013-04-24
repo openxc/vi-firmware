@@ -1,6 +1,8 @@
 #include "handlers.h"
 #include "canwrite.h"
 
+using openxc::can::read::sendNumericalMessage;
+
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
     sendNumericalMessage("latitude", 42.0, listener);

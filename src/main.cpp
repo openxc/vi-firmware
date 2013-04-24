@@ -20,6 +20,7 @@
 #define DATA_OUT_ENDPOINT 2
 
 using openxc::serial::SerialDevice;
+using openxc::usb::sendControlMessage;
 
 extern void reset();
 extern void setup();
@@ -85,10 +86,6 @@ int main(void) {
     return 0;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Private: Handle an incoming USB control request.
  *
  * There are two accepted control requests:
@@ -121,7 +118,3 @@ bool handleControlRequest(uint8_t request) {
         return false;
     }
 }
-
-#ifdef __cplusplus
-}
-#endif

@@ -4,12 +4,12 @@
 
 bool USB_PROCESSED = false;
 
-void processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     USB_PROCESSED = true;
 }
 
-void initializeUsb(UsbDevice* usbDevice) {
+void openxc::usb::initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
 }
 
-void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) { }
+void openxc::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) { }

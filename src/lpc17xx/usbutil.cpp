@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include "lpc17xx_pinsel.h"
 
-#include "bsp.h"
 #include "LPC17xx.h"
 #include "lpc17xx_gpio.h"
+
+extern "C" {
+#include "bsp.h"
+}
 
 #define VBUS_PORT 1
 #define VBUS_PIN 30
@@ -17,6 +20,8 @@
 #define USB_DM_FUNCNUM 1
 
 #define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
+
+using openxc::usb::UsbDevice;
 
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
@@ -127,7 +132,7 @@ void configureUsbDetection() {
     PINSEL_ConfigPin(&hostDetectPinConfig);
 }
 
-void sendControlMessage(uint8_t* data, uint8_t length) {
+void openxc::usb::sendControlMessage(uint8_t* data, uint8_t length) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
@@ -139,7 +144,7 @@ void sendControlMessage(uint8_t* data, uint8_t length) {
 }
 
 
-void processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
     if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
@@ -150,16 +155,16 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
     }
 }
 
-void initializeUsb(UsbDevice* usbDevice) {
+void openxc::usb::initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     USB_Init();
-    USB_Connect();
+    ::USB_Connect();
     configureUsbDetection();
 
     debug("Done.");
 }
 
-void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void openxc::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 

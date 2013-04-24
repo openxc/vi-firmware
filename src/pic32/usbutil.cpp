@@ -6,9 +6,7 @@
 #define USB_VBUS_ANALOG_INPUT A0
 #define USB_HANDLE_MAX_WAIT_COUNT 35000
 
-extern "C" {
 extern bool handleControlRequest(uint8_t);
-}
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
@@ -38,7 +36,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     }
 }
 
-void sendControlMessage(uint8_t* data, uint8_t length) {
+void openxc::usb::sendControlMessage(uint8_t* data, uint8_t length) {
     USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
@@ -69,7 +67,7 @@ bool waitForHandle(UsbDevice* usbDevice) {
 }
 
 
-void processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     if(usbDevice->configured && vbusEnabled()) {
         // if there's nothing attached to the analog input it floats at ~828, so
         // if we're powering the board from micro-USB (and the jumper is going
@@ -119,14 +117,13 @@ void processUsbSendQueue(UsbDevice* usbDevice) {
     }
 }
 
-void initializeUsb(UsbDevice* usbDevice) {
+void openxc::usb::initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
     setGpioDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
     debug("Done.");
 }
-
 
 /* Private: Arm the given endpoint for a read from the device to host.
  *
@@ -143,7 +140,7 @@ void armForRead(UsbDevice* usbDevice, char* buffer) {
             usbDevice->outEndpointSize);
 }
 
-void readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void openxc::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     if(!usbDevice->device.HandleBusy(usbDevice->hostToDeviceHandle)) {
         if(usbDevice->receiveBuffer[0] != NULL) {
             for(int i = 0; i < usbDevice->outEndpointSize; i++) {

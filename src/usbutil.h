@@ -5,10 +5,6 @@
 #include "chipKITUSBDevice.h"
 #endif // __PIC32__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 #include <stdint.h>
 #include "buffers.h"
@@ -17,6 +13,9 @@ extern "C" {
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512
 #define MAX_USB_PACKET_SIZE_BYTES USB_BUFFER_SIZE
+
+namespace openxc {
+namespace usb {
 
 /* Public: a container for a CAN translator USB device and associated metadata.
  *
@@ -90,8 +89,7 @@ void processUsbSendQueue(UsbDevice* device);
  */
 void sendControlMessage(uint8_t* data, uint8_t length);
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace usb
+} // namespace openxc
 
 #endif // _USBUTIL_H_

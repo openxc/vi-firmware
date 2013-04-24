@@ -3,7 +3,7 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
-#include "ethernetutil.h"
+#include "networkutil.h"
 #include "log.h"
 #include "timer.h"
 #include <stdlib.h>

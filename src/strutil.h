@@ -7,11 +7,11 @@ extern "C" {
 
 #include <stddef.h>
 
-// Microchip Ethernet library comprises a function with
+// Microchip Network library comprises a function with
 // the same name and the same functionality "strnchr".
 // Therefore this section should not be compiled when
-// the Ethernet library is included.
-#ifndef __USER_ETHERNET__
+// the Network library is included.
+#ifndef __USE_NETWORK__
 
 /*
  * Thanks to https://gist.github.com/855214.
@@ -22,6 +22,6 @@ const char *strnchr(const char *str, size_t len, char character);
 }
 #endif
 
-#endif // __USER_ETHERNET__
+#endif // __USE_NETWORK__
 
 #endif // _STRUTIL_H_

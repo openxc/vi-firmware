@@ -5,28 +5,27 @@
 #include "cJSON.h"
 
 using openxc::listener::Listener;
-using openxc::serial::SerialDevice;
 
 Listener listener;
 UsbDevice usb;
 SerialDevice serial;
-EthernetDevice ethernet;
+NetworkDevice network;
 
 extern bool USB_PROCESSED;
 extern bool SERIAL_PROCESSED;
-extern bool ETHERNET_PROCESSED;
+extern bool NETWORK_PROCESSED;
 
 void setup() {
     listener.usb = &usb;
     listener.serial = NULL;
-    listener.ethernet = NULL;
+    listener.network = NULL;
     initializeUsb(&usb);
     initializeSerial(&serial);
-    initializeEthernet(&ethernet);
+    initializeNetwork(&network);
     listener.usb->configured = true;
     USB_PROCESSED = false;
     SERIAL_PROCESSED = false;
-    ETHERNET_PROCESSED = false;
+    NETWORK_PROCESSED = false;
 }
 
 START_TEST (test_only_usb)
@@ -40,13 +39,13 @@ START_TEST (test_only_usb)
 }
 END_TEST
 
-START_TEST (test_full_ethernet)
+START_TEST (test_full_network)
 {
-    listener.ethernet = &ethernet;
+    listener.network = &network;
     for(int i = 0; i < 512; i++) {
-        QUEUE_PUSH(uint8_t, &listener.ethernet->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &listener.network->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &listener.ethernet->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &listener.network->sendQueue));
 
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
@@ -97,7 +96,7 @@ END_TEST
 START_TEST (test_with_uart_and_network)
 {
     listener.serial = &serial;
-    listener.ethernet = &ethernet;
+    listener.network = &network;
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
 
@@ -109,8 +108,8 @@ START_TEST (test_with_uart_and_network)
     QUEUE_SNAPSHOT(uint8_t, &listener.serial->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.ethernet->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.ethernet->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &listener.network->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &listener.network->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -120,7 +119,7 @@ START_TEST (test_process_usb)
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
     fail_if(SERIAL_PROCESSED);
-    fail_if(ETHERNET_PROCESSED);
+    fail_if(NETWORK_PROCESSED);
 }
 END_TEST
 
@@ -130,18 +129,18 @@ START_TEST (test_process_usb_and_uart)
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
     fail_unless(SERIAL_PROCESSED);
-    fail_if(ETHERNET_PROCESSED);
+    fail_if(NETWORK_PROCESSED);
 }
 END_TEST
 
 START_TEST (test_process_all)
 {
     listener.serial = &serial;
-    listener.ethernet = &ethernet;
+    listener.network = &network;
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
     fail_unless(SERIAL_PROCESSED);
-    fail_unless(ETHERNET_PROCESSED);
+    fail_unless(NETWORK_PROCESSED);
 }
 END_TEST
 
@@ -154,7 +153,7 @@ Suite* listenerSuite(void) {
     tcase_add_test(tc_core, test_with_uart_and_network);
     tcase_add_test(tc_core, test_full_usb);
     tcase_add_test(tc_core, test_full_uart);
-    tcase_add_test(tc_core, test_full_ethernet);
+    tcase_add_test(tc_core, test_full_network);
     tcase_add_test(tc_core, test_process_all);
     tcase_add_test(tc_core, test_process_usb_and_uart);
     tcase_add_test(tc_core, test_process_usb);

@@ -14,7 +14,7 @@ INCLUDE_PATHS += -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue
 
 TESTABLE_OBJ_FILES = bitfield.o canutil.o canwrite.o canread.o \
     listener.o $(LIBS_PATH)/cJSON/cJSON.o $(LIBS_PATH)/emqueue/emqueue.o \
-    buffers.o strutil.o usbutil.o serialutil.o ethernetutil.o shared_handlers.o
+    buffers.o strutil.o usbutil.o serialutil.o networkutil.o shared_handlers.o
 TESTABLE_LIB_C_SRCS = $(wildcard $(TEST_DIR)/*_mock.c)
 TESTABLE_LIB_CPP_SRCS = $(wildcard $(TEST_DIR)/*_mock.cpp)
 
@@ -37,7 +37,7 @@ test: unit_tests
 	@make emulator_test
 	@make uart_compile_test
 	@make debug_compile_test
-	@make ethernet_compile_test
+	@make network_compile_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
@@ -100,9 +100,9 @@ uart_compile_test: code_generation_test
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
-ethernet_compile_test: code_generation_test
-	@echo -n "Testing build with USE_ETHERNET=1 flag..."
-	@USE_ETHERNET=1 make -j4
+network_compile_test: code_generation_test
+	@echo -n "Testing build with USE_NETWORK=1 flag..."
+	@USE_NETWORK=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

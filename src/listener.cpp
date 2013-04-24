@@ -11,13 +11,13 @@ using openxc::serial::processSerialSendQueue;
 typedef enum {
     USB = 0,
     UART = 1,
-    ETHERNET = 2
+    NETWORK = 2
 } MessageType;
 
 const char messageTypeNames[][9] = {
     "USB",
     "UART",
-    "Ethernet",
+    "Network",
 };
 
 int droppedMessages[3];
@@ -42,9 +42,9 @@ void openxc::listener::sendMessage(Listener* listener, uint8_t* message, int mes
         droppedMessage(UART);
     }
 
-    if(listener->ethernet != NULL && !conditionalEnqueue(
-                &listener->ethernet->sendQueue, message, messageSize)) {
-        droppedMessage(ETHERNET);
+    if(listener->network != NULL && !conditionalEnqueue(
+                &listener->network->sendQueue, message, messageSize)) {
+        droppedMessage(NETWORK);
     }
 }
 
@@ -56,7 +56,7 @@ void openxc::listener::processListenerQueues(Listener* listener) {
         processSerialSendQueue(listener->serial);
     }
 
-    if(listener->ethernet != NULL) {
-       processEthernetSendQueue(listener->ethernet);
+    if(listener->network != NULL) {
+       processNetworkSendQueue(listener->network);
     }
 }

@@ -2,8 +2,8 @@ BOARD_TAG = mega_pic32
 TARGET = $(BASE_TARGET)-pic32
 
 ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue
-ifdef ETHERNET
-ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
+ifdef NETWORK
+ARDUINO_LIBS += chipKITNetwork chipKITNetwork/utility
 endif
 
 DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
@@ -87,11 +87,11 @@ $(error chipKIT CAN library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
-ifdef ETHERNET
-EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITEthernet
+ifdef NETWORK
+EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITNetwork
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
-$(error chipKIT Ethernet library missing - run "script/bootstrap.sh" to download)
+$(error chipKIT Network library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 

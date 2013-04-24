@@ -3,7 +3,7 @@
 #include "usbutil.h"
 #include "canread.h"
 #include "serialutil.h"
-#include "ethernetutil.h"
+#include "networkutil.h"
 #include "signals.h"
 #include "log.h"
 #include "cJSON.h"
@@ -43,7 +43,7 @@ void loop() {
 
     readFromHost(listener.usb, receiveWriteRequest);
     readFromSerial(listener.serial, receiveWriteRequest);
-    readFromSocket(listener.ethernet, receiveWriteRequest);
+    readFromSocket(listener.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);

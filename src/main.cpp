@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "serialutil.h"
 #include "usbutil.h"
-#include "ethernetutil.h"
+#include "networkutil.h"
 #include "listener.h"
 #include "signals.h"
 #include "log.h"
@@ -31,7 +31,7 @@ extern void loop();
 const char* VERSION = "4.0-dev";
 
 SerialDevice SERIAL_DEVICE;
-EthernetDevice ETHERNET_DEVICE;
+NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
@@ -45,9 +45,9 @@ Listener listener = {&USB_DEVICE,
 #else
     NULL,
 #endif // __USE_UART__
-#ifdef __USE_ETHERNET__
-    &ETHERNET_DEVICE
-#endif // __USE_ETHERNET__
+#ifdef __USE_NETWORK__
+    &NETWORK_DEVICE
+#endif // __USE_NETWORK__
 };
 
 /* Public: Update the color and status of a board's light that shows the output
@@ -71,7 +71,7 @@ int main(void) {
     initializePower();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
-    initializeEthernet(listener.ethernet);
+    initializeNetwork(listener.network);
     initializeLights();
     initializeBluetooth();
 

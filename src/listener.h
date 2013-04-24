@@ -3,10 +3,11 @@
 
 #include "usbutil.h"
 #include "serialutil.h"
-#include "ethernetutil.h"
+#include "networkutil.h"
 
 using openxc::serial::SerialDevice;
 using openxc::usb::UsbDevice;
+using openxc::network::NetworkDevice;
 
 namespace openxc {
 namespace listener {
@@ -16,7 +17,7 @@ namespace listener {
  *
  * This structure sets up a standard interface for all output devices to receive
  * updates from CAN. Right now, this means USB and UART, but it can be extended
- * to output over another UART, Ethernet, WiFi, etc.
+ * to output over another UART, Network, WiFi, etc.
  *
  * TODO This file could most likely be refactored and improved. Ideally these
  * output interfaces would all have the same type, so this could just be a list
@@ -26,7 +27,7 @@ namespace listener {
 typedef struct {
     UsbDevice* usb;
     SerialDevice* serial;
-    EthernetDevice* ethernet;
+    NetworkDevice* network;
 } Listener;
 
 /* Public: Queue the message to send on all of the interfaces registered with

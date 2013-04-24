@@ -18,8 +18,8 @@ ifdef UART
 SYMBOLS += __USE_UART__
 endif
 
-ifdef ETHERNET
-SYMBOLS += __USE_ETHERNET__
+ifdef NETWORK
+SYMBOLS += __USE_NETWORK__
 endif
 
 ifndef BOOTLOADER

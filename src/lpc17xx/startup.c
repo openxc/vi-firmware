@@ -179,7 +179,7 @@ Interrupt_Handler_P interrupt_vectors[] = {
   CAN_IRQHandler,       // 25 41 0xA4   CAN CAN Common, CAN 0 Tx, CAN 0 Rx, CAN 1 Tx, CAN 1 Rx
   DMA_IRQHandler,       // 26 42 0xA8   GPDMA IntStatus of DMA channel 0, IntStatus of DMA channel 1
   I2S_IRQHandler,       // 27 43 0xAC   I2S irq, dmareq1, dmareq2
-  ENET_IRQHandler,  // 28 44 0xB0   Ethernet WakeupInt, SoftInt, TxDoneInt, TxFinishedInt, TxErrorInt,
+  ENET_IRQHandler,  // 28 44 0xB0   Network WakeupInt, SoftInt, TxDoneInt, TxFinishedInt, TxErrorInt,
         //      TxUnderrunInt, RxDoneInt, RxFinishedInt, RxErrorInt, RxOverrunInt.
   RIT_IRQHandler,       // 29 45 0xB4   Repetitive Interrupt Timer (RITINT)
   MCPWM_IRQHandler, // 30 46 0xB8   Motor Control PWM IPER[2:0], IPW[2:0], ICAP[2:0], FES

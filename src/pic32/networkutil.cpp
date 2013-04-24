@@ -1,9 +1,9 @@
-#include "ethernetutil.h"
+#include "networkutil.h"
 #include "log.h"
 #include "buffers.h"
 #include <stddef.h>
 
-#ifdef __USE_ETHERNET__
+#ifdef __USE_NETWORK__
 
 // This size can be set to any arbitrary value. Its
 // function is just to define the size of the send
@@ -15,16 +15,16 @@
 
 Server server = Server(DEFAULT_NETWORK_PORT);
 
-void initializeEthernet(EthernetDevice* device) {
+void openxc::network::initializeNetwork(NetworkDevice* device) {
     if(device != NULL) {
-        initializeEthernetCommon(device);
+        initializeNetworkCommon(device);
         device->macAddress = DEFAULT_MAC_ADDRESS;
         device->ipAddress = DEFAULT_IP_ADDRESS;
         device->server = &server;
 #ifdef USE_DHCP
-        Ethernet.begin();
+        Network.begin();
 #else
-        Ethernet.begin(device->macAddress, device->ipAddress);
+        Network.begin(device->macAddress, device->ipAddress);
 #endif
         device->server->begin();
         debug("Done.");
@@ -34,8 +34,8 @@ void initializeEthernet(EthernetDevice* device) {
 // The message bytes are sequentially popped from the
 // send queue to the send buffer. After the buffer is full
 // or the queue is empty, the contents of the buffer are
-// sent over the ethernet to listening clients.
-void processEthernetSendQueue(EthernetDevice* device) {
+// sent over the network to listening clients.
+void openxc::network::processNetworkSendQueue(NetworkDevice* device) {
     unsigned int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -43,9 +43,9 @@ void processEthernetSendQueue(EthernetDevice* device) {
         sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
-    // must call at least one Ethernet method to keep the TCP/IP stack alive,
+    // must call at least one Network method to keep the TCP/IP stack alive,
     // because it's implemented all in software - a quirk of the chipKIT
-    // library. Ethernet.PeriodicTasks() is supposed to be specifically for this
+    // library. Network.PeriodicTasks() is supposed to be specifically for this
     // purpose, but it doesn't seem to have any effect while this does.
     device->server->available();
     if(byteCount > 0) {
@@ -53,7 +53,7 @@ void processEthernetSendQueue(EthernetDevice* device) {
     }
 }
 
-void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) {
     Client client = device->server->available();
     if(client) {
         uint8_t byte;
@@ -67,8 +67,8 @@ void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) {
 
 #else
 
-void readFromSocket(EthernetDevice* device, bool (*callback)(uint8_t*)) { }
-void initializeEthernet(EthernetDevice* device) { }
-void processEthernetSendQueue(EthernetDevice* device) { }
+void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
+void openxc::network::initializeNetwork(NetworkDevice* device) { }
+void openxc::network::processNetworkSendQueue(NetworkDevice* device) { }
 
 #endif

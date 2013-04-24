@@ -1,10 +1,10 @@
-#include "ethernetutil.h"
+#include "networkutil.h"
 #include "log.h"
 #include <stddef.h>
 
-void initializeEthernetCommon(EthernetDevice* device) {
+void openxc::network::initializeNetworkCommon(NetworkDevice* device) {
     if(device != NULL) {
-        debug("Initializing Ethernet...");
+        debug("Initializing Network...");
         QUEUE_INIT(uint8_t, &device->receiveQueue);
         QUEUE_INIT(uint8_t, &device->sendQueue);
     }

@@ -46,7 +46,7 @@ void setPowerPassthroughStatus(bool enabled) {
             pinStatus ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 }
 
-void initializePower() {
+void openxc::power::initializePower() {
     debug("Initializing power controls...");
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type powerPassthroughPinConfig;
@@ -79,7 +79,7 @@ void initializePower() {
     PINSEL_ConfigPin(&programButtonPinConfig);
 }
 
-void updatePower() {
+void openxc::power::updatePower() {
 }
 
 void handleWake() {
@@ -102,7 +102,7 @@ void EINT2_IRQHandler(void) {
     handleWake();
 }
 
-void enterLowPowerMode() {
+void openxc::power::enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
     NVIC_EnableIRQ(EINT2_IRQn);

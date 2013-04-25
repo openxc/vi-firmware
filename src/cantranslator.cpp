@@ -24,6 +24,7 @@ using openxc::can::write::enqueueCanMessage;
 using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
+using openxc::power::enterLowPowerMode;
 
 extern Listener listener;
 

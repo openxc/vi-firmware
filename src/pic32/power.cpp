@@ -1,10 +1,10 @@
 #include "power.h"
 
-void initializePower() {
+void openxc::power::initializePower() {
 }
 
-void updatePower() {
+void openxc::power::updatePower() {
 }
 
-void enterLowPowerMode() {
+void openxc::power::enterLowPowerMode() {
 }

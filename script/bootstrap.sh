@@ -102,7 +102,7 @@ echo "Installing dependencies for building for chipKIT Max32 platform"
 ## chipKIT libraries for USB, CAN and Network
 
 CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"
-CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Ethernet%20and%20USB%20Libs.zip"
+CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs.zip"
 CHIPKIT_ZIP_FILE="chipkit.zip"
 
 _pushd $DEPENDENCIES_FOLDER

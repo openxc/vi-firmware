@@ -1,8 +1,6 @@
 #ifndef _BLUETOOTH_H_
 #define _BLUETOOTH_H_
 
-#include <stdbool.h>
-
 namespace openxc {
 namespace bluetooth {
 

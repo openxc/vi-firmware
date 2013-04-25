@@ -2,7 +2,6 @@
 #define _BITFIELD_H_
 
 #include <stdint.h>
-#include <stdbool.h>
 
 namespace openxc {
 namespace bitfield {

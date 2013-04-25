@@ -1,7 +1,6 @@
 #include "power.h"
 #include "log.h"
 #include "gpio.h"
-#include <stdbool.h>
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_clkpwr.h"
 

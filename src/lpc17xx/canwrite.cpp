@@ -3,7 +3,6 @@
 #include "canutil.h"
 #include "canwrite.h"
 #include "log.h"
-#include <stdbool.h>
 
 using openxc::bitfield::nthByte;
 

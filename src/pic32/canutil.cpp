@@ -3,6 +3,8 @@
 #include "signals.h"
 #include "log.h"
 
+using openxc::log::debugNoNewline;
+
 CAN can1Actual(CAN::CAN1);
 CAN can2Actual(CAN::CAN2);
 CAN* can1 = &can1Actual;

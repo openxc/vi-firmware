@@ -2,6 +2,7 @@
 #include "log.h"
 
 using openxc::bitfield::setBitField;
+using openxc::log::debugNoNewline;
 
 QUEUE_DEFINE(CanMessage);
 

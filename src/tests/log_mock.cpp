@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void debugNoNewline(const char* format, ...) {
+void openxc::log::debugNoNewline(const char* format, ...) {
 #ifdef __DEBUG__
     va_list args;
     va_start(args, format);
@@ -11,4 +11,4 @@ void debugNoNewline(const char* format, ...) {
 #endif // __DEBUG__
 }
 
-void initializeLogging() { }
+void openxc::log::initializeLogging() { }

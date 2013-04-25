@@ -241,6 +241,7 @@ class Parser(object):
         print("using openxc::can::write::booleanWriter;")
         print("using openxc::can::write::stateWriter;")
         print("using openxc::can::write::numberWriter;")
+        print("using namespace openxc::signals::handlers;")
         print()
         print("#ifdef __LPC17XX__")
         print("#define can1 LPC_CAN1")

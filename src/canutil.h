@@ -9,7 +9,6 @@
 #include "cJSON.h"
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
-#define CAN_ACTIVE_TIMEOUT_S 30
 
 // TODO CanMessage and CanBus are temporarily defined outside of the openxc::can
 // namespace because we're not able to used namespaced types with emqueue.
@@ -60,6 +59,8 @@ typedef struct CanBus CanBus;
 
 namespace openxc {
 namespace can {
+
+extern const int CAN_ACTIVE_TIMEOUT_S;
 
 /* Public: A CAN transceiver message filter.
  *

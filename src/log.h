@@ -1,8 +1,6 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#define MAX_LOG_LINE_LENGTH 120
-
 /* Public: Construct a string for the given format and args and output it on
  *      whatever debug interface the current platform is using. This function
  *      could be implemented in multiple ways - UART, regular printf, etc. The
@@ -19,6 +17,8 @@
 
 namespace openxc {
 namespace log {
+
+extern const int MAX_LOG_LINE_LENGTH;
 
 /* Public: Initialize the debug logging framework. This function must be called
  *      before using debug().

@@ -6,6 +6,11 @@
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;
 using openxc::can::write::numberWriter;
+using openxc::signals::handlers::handleButtonEventMessage;
+using openxc::signals::handlers::sendTirePressure;
+using openxc::signals::handlers::sendDoorStatus;
+using openxc::signals::handlers::handleOccupancyMessage;
+using openxc::signals::handlers::handleFuelFlow;
 
 CanMessage MESSAGES[4] = {
     {NULL, 0},

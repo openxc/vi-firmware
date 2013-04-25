@@ -5,16 +5,20 @@
 #include "canread.h"
 #include "usbutil.h"
 
-#define LITERS_PER_GALLON 3.78541178
-#define LITERS_PER_UL .000001
-#define KM_PER_MILE 1.609344
-#define KM_PER_M .001
-#define PI 3.14159265
-#define DOOR_STATUS_GENERIC_NAME "door_status"
-#define BUTTON_EVENT_GENERIC_NAME "button_event"
-#define TIRE_PRESSURE_GENERIC_NAME "tire_pressure"
-
 using openxc::can::CanSignal;
+
+namespace openxc {
+namespace signals {
+namespace handlers {
+
+extern const float LITERS_PER_GALLON;
+extern const float LITERS_PER_UL;
+extern const float KM_PER_MILE;
+extern const float KM_PER_M;
+extern const float PI;
+extern const char* DOOR_STATUS_GENERIC_NAME;
+extern const char* BUTTON_EVENT_GENERIC_NAME;
+extern const char* TIRE_PRESSURE_GENERIC_NAME;
 
 /* Interpret the given signal as a wheel rotation counter, and transform it to
  * an absolute distance travelled since the car was started.
@@ -287,5 +291,9 @@ void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
  */
 void handleOccupancyMessage(int messageId, uint64_t data,
               CanSignal* signals, int signalCount, Listener* listener);
+
+} // namespace handlers
+} // namespace signals
+} // namespace openxc
 
 #endif // _SHARED_HANDLERS_H_

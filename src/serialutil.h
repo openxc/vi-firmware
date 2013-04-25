@@ -3,10 +3,10 @@
 
 #include "buffers.h"
 
-#define MAX_MESSAGE_SIZE 128
-
 namespace openxc {
 namespace serial {
+
+extern const int MAX_MESSAGE_SIZE;
 
 /* Public: A container for a UART connection with queues for both input and
  * output.

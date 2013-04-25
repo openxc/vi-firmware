@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "buffers.h"
 
+using openxc::buffers::conditionalEnqueue;
+using openxc::buffers::processQueue;
+
 ByteQueue queue;
 bool called;
 bool callbackStatus;

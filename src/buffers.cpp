@@ -4,7 +4,7 @@
 
 QUEUE_DEFINE(uint8_t)
 
-void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
+void openxc::buffers::processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     int length = QUEUE_LENGTH(uint8_t, queue);
     if(length == 0) {
         return;
@@ -30,7 +30,7 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*)) {
     }
 }
 
-bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
+bool openxc::buffers::conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize) {
     if(queue == NULL || QUEUE_AVAILABLE(uint8_t, queue) < messageSize + 2) {
         return false;

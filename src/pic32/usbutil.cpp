@@ -11,6 +11,7 @@ extern bool handleControlRequest(uint8_t);
 using openxc::usb::UsbDevice;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::gpio::setGpioDirection;
+using openxc::buffers::processQueue;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;

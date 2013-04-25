@@ -33,6 +33,8 @@
 // bit 8 in the uxMode register controls hardware flow control
 #define _UARTMODE_FLOWCONTROL 8
 
+using openxc::buffers::processQueue;
+
 extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT

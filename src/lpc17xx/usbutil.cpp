@@ -22,6 +22,7 @@ extern "C" {
 #define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
 
 using openxc::usb::UsbDevice;
+using openxc::buffers::processQueue;
 
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);

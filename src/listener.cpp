@@ -7,6 +7,7 @@
 #define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
 
 using openxc::serial::processSerialSendQueue;
+using openxc::buffers::conditionalEnqueue;
 
 typedef enum {
     USB = 0,

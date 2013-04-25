@@ -1,15 +1,14 @@
 #ifndef _BUFFERS_H_
 #define _BUFFERS_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "emqueue.h"
 
 #define ByteQueue QUEUE_TYPE(uint8_t)
 
 QUEUE_DECLARE(uint8_t, 512)
+
+namespace openxc {
+namespace buffers {
 
 /* Public: Pass the buffer in the queue to the callback, which should return
  * true if an OpenXC message is found and processed, then reset the queue back
@@ -36,9 +35,7 @@ void processQueue(ByteQueue* queue, bool (*callback)(uint8_t*));
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize);
 
-
-#ifdef __cplusplus
-}
-#endif
+} // namespace buffers
+} // namespace openxc
 
 #endif // _BUFFERS_H_

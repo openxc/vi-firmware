@@ -36,6 +36,7 @@
 #endif
 
 using openxc::listener::Listener;
+using openxc::buffers::processQueue;
 
 extern Listener listener;
 

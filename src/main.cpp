@@ -27,6 +27,7 @@ using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
 using openxc::lights::initializeLights;
+using openxc::platform::initializePlatform;
 
 extern void reset();
 extern void setup();

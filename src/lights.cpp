@@ -3,6 +3,8 @@
 #include "listener.h"
 #include "log.h"
 
+using openxc::time::delayMs;
+
 openxc::lights::Palette openxc::lights::COLORS = {
     {255, 0, 0}, // red
     {0, 255, 0}, // green

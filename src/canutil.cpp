@@ -3,6 +3,8 @@
 #include "timer.h"
 #include "log.h"
 
+using openxc::time::systemTimeMs;
+
 void openxc::can::initializeCanCommon(CanBus* bus) {
     debugNoNewline("Initializing CAN node 0x%2x...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);

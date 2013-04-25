@@ -30,6 +30,7 @@ using openxc::lights::initializeLights;
 using openxc::platform::initializePlatform;
 using openxc::power::initializePower;
 using openxc::power::updatePower;
+using openxc::time::initializeTimers;
 
 extern void reset();
 extern void setup();

@@ -25,6 +25,8 @@ using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
 using openxc::power::enterLowPowerMode;
+using openxc::time::delayMs;
+using openxc::time::systemTimeMs;
 
 extern Listener listener;
 

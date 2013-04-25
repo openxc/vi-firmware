@@ -1,20 +1,23 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace openxc {
+namespace time {
 
+/* Public: Delay execution by the given number of milliseconds.
+ */
 void delayMs(int delayInMs);
 
 /* Public: Return the current system time in milliseconds.
  */
 unsigned long systemTimeMs();
 
+/* Public: Perform any one-time initialization required to use system times,
+ * including those for system time and the delayMs function.
+ */
 void initializeTimers();
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace time
+} // namespace openxc
 
 #endif // __TIMER__H__

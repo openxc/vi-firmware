@@ -24,8 +24,6 @@
 
 using openxc::can::read::translateCanSignal;
 
-extern Listener listener;
-
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
 #define can2 LPC_CAN2
@@ -97,37 +95,37 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, true, false, NULL, 0, false, NULL},
 };
 
-void initializeSignals() { }
+void openxc::signals::initializeSignals() { }
 
 const int COMMAND_COUNT = 0;
 CanCommand COMMANDS[COMMAND_COUNT] = {
 };
 
-CanCommand* getCommands() {
+CanCommand* openxc::signals::getCommands() {
     return COMMANDS;
 }
 
-int getCommandCount() {
+int openxc::signals::getCommandCount() {
     return COMMAND_COUNT;
 }
 
-CanSignal* getSignals() {
+CanSignal* openxc::signals::getSignals() {
     return SIGNALS;
 }
 
-int getSignalCount() {
+int openxc::signals::getSignalCount() {
     return SIGNAL_COUNT;
 }
 
-CanBus* getCanBuses() {
+CanBus* openxc::signals::getCanBuses() {
     return CAN_BUSES;
 }
 
-int getCanBusCount() {
+int openxc::signals::getCanBusCount() {
     return CAN_BUS_COUNT;
 }
 
-const char* getMessageSet() {
+const char* openxc::signals::getMessageSet() {
     return "example-2012";
 }
 
@@ -140,17 +138,17 @@ const char* getMessageSet() {
  * translateCanSignal function that matches your desired output format (float,
  * bool or string).
  */
-void decodeCanMessage(int id, uint64_t data) {
+void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {
     switch (id) {
     case 0x29:
-        translateCanSignal(&listener, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
-        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(listener, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(listener, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x52:
-        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(listener, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x65:
-        translateCanSignal(&listener, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(listener, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
         break;
     }
 }
@@ -162,7 +160,7 @@ CanFilter FILTERS[15];
  * messages, or one including just the 0x65 message (because that's on a
  * different bus, the one attached to the 2nd CAN module).
  */
-CanFilter* initializeFilters(uint64_t address, int* count) {
+CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
     Serial.println("Initializing filters...");
     switch(address) {
     case 0x101:

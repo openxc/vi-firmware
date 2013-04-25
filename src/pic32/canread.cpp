@@ -3,6 +3,8 @@
 #include "signals.h"
 #include "log.h"
 
+using openxc::signals::getCanBuses;
+
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
             CAN::CHANNEL1);

@@ -12,6 +12,9 @@
 #define CAN_PORT_NUM(BUS) 0
 #define CAN_FUNCNUM(BUS) (BUS == LPC_CAN1 ? 3 : 2)
 
+using openxc::signals::getCanBusCount;
+using openxc::signals::getCanBuses;
+using openxc::signals::initializeFilters;
 using openxc::log::debugNoNewline;
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {

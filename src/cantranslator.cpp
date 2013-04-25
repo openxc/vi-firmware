@@ -21,18 +21,28 @@ using openxc::can::initializeCan;
 using openxc::can::write::processCanWriteQueue;
 using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
+using openxc::can::lookupCommand;
+using openxc::can::lookupSignal;
 using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
 using openxc::power::enterLowPowerMode;
 using openxc::time::delayMs;
 using openxc::time::systemTimeMs;
+using openxc::signals::initializeSignals;
+using openxc::signals::getCanBuses;
+using openxc::signals::getCanBusCount;
+using openxc::signals::getCommands;
+using openxc::signals::getCommandCount;
+using openxc::signals::getSignals;
+using openxc::signals::getSignalCount;
+using openxc::signals::decodeCanMessage;
 
 extern Listener listener;
 
 /* Forward declarations */
 
-void receiveCan(CanBus*);
+void receiveCan(Listener*, CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
@@ -44,7 +54,7 @@ void setup() {
 
 void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
-        receiveCan(&getCanBuses()[i]);
+        receiveCan(&listener, &getCanBuses()[i]);
     }
 
     readFromHost(listener.usb, receiveWriteRequest);
@@ -169,11 +179,11 @@ bool receiveWriteRequest(uint8_t* message) {
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
  */
-void receiveCan(CanBus* bus) {
+void receiveCan(Listener* listener, CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(bus, message.id, message.data);
+        decodeCanMessage(listener, bus, message.id, message.data);
         bus->lastMessageReceived = systemTimeMs();
     }
 }

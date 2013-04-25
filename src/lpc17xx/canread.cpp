@@ -3,6 +3,9 @@
 #include "signals.h"
 #include "log.h"
 
+using openxc::signals::getCanBusCount;
+using openxc::signals::getCanBuses;
+
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
     CAN_ReceiveMsg(CAN_CONTROLLER(bus), &message);

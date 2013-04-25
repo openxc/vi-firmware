@@ -32,6 +32,7 @@ using openxc::power::initializePower;
 using openxc::power::updatePower;
 using openxc::time::initializeTimers;
 using openxc::log::initializeLogging;
+using openxc::signals::getMessageSet;
 
 extern void reset();
 extern void setup();

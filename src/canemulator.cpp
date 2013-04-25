@@ -6,6 +6,7 @@
 #include "networkutil.h"
 #include "log.h"
 #include "timer.h"
+#include "signals.h"
 #include <stdlib.h>
 
 #define NUMERICAL_SIGNAL_COUNT 11
@@ -104,7 +105,7 @@ void loop() {
 
 void reset() { }
 
-const char* getMessageSet() {
+const char* openxc::signals::getMessageSet() {
     return "emulator";
 }
 

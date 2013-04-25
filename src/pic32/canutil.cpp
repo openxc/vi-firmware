@@ -4,6 +4,7 @@
 #include "log.h"
 
 using openxc::log::debugNoNewline;
+using openxc::signals::initializeFilters;
 
 CAN can1Actual(CAN::CAN1);
 CAN can2Actual(CAN::CAN2);

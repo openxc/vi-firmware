@@ -31,9 +31,9 @@ typedef struct {
     uint8_t macAddress[6];
 
     // device to host
-    ByteQueue sendQueue;
+    QUEUE_TYPE(uint8_t) sendQueue;
     // host to device
-    ByteQueue receiveQueue;
+    QUEUE_TYPE(uint8_t) receiveQueue;
 #ifdef __USE_NETWORK__
     Server* server;
 #endif // __USE_NETWORK__

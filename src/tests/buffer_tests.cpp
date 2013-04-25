@@ -5,7 +5,7 @@
 using openxc::buffers::conditionalEnqueue;
 using openxc::buffers::processQueue;
 
-ByteQueue queue;
+QUEUE_TYPE(uint8_t) queue;
 bool called;
 bool callbackStatus;
 

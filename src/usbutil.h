@@ -38,8 +38,8 @@ typedef struct {
     int outEndpoint;
     int outEndpointSize;
     bool configured;
-    ByteQueue sendQueue;
-    ByteQueue receiveQueue;
+    QUEUE_TYPE(uint8_t) sendQueue;
+    QUEUE_TYPE(uint8_t) receiveQueue;
     // This buffer MUST be non-local, so it doesn't get invalidated when it
     // falls off the stack
     uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];

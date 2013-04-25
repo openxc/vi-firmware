@@ -23,6 +23,10 @@ using openxc::serial::SerialDevice;
 using openxc::usb::sendControlMessage;
 using openxc::bluetooth::bluetoothConnected;
 using openxc::bluetooth::initializeBluetooth;
+using openxc::lights::LIGHT_A;
+using openxc::lights::LIGHT_B;
+using openxc::lights::COLORS;
+using openxc::lights::initializeLights;
 
 extern void reset();
 extern void setup();

@@ -32,7 +32,7 @@ void setPwm(LPC_PWM_TypeDef* pwm, int channel, int value) {
             PWM_MATCH_UPDATE_NEXT_RST);
 }
 
-void enable(Light light, RGB color) {
+void openxc::lights::enable(Light light, RGB color) {
     int redChannel;
     int greenChannel;
     int blueChannel;
@@ -109,7 +109,7 @@ void setPwmPeriod(int period) {
     PWM_ConfigMatch(LED_PWM_PERIPHERAL, &pwmMatchConfig);
 }
 
-void initializeLights() {
+void openxc::lights::initializeLights() {
     configureLightPins();
     initializePwm();
     setPwmPeriod(PWM_PERIOD_MICROSECONDS);

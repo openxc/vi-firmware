@@ -21,6 +21,9 @@ using openxc::can::initializeCan;
 using openxc::can::write::processCanWriteQueue;
 using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
+using openxc::lights::LIGHT_A;
+using openxc::lights::LIGHT_B;
+using openxc::lights::COLORS;
 
 extern Listener listener;
 

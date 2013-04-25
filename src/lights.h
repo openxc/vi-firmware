@@ -1,6 +1,9 @@
 #ifndef _LIGHTS_H_
 #define _LIGHTS_H_
 
+namespace openxc {
+namespace lights {
+
 typedef enum {
     LIGHT_A,
     LIGHT_B,
@@ -64,5 +67,8 @@ void disable(Light light, int duration);
  * duration - the amount of time the light should remain lighted during the flash.
  */
 void flash(Light light, RGB color, int duration);
+
+} // namespace lights
+} // namespace openxc
 
 #endif // _LIGHTS_H_

@@ -15,10 +15,13 @@ extern const float LITERS_PER_GALLON;
 extern const float LITERS_PER_UL;
 extern const float KM_PER_MILE;
 extern const float KM_PER_M;
-extern const float PI;
 extern const char* DOOR_STATUS_GENERIC_NAME;
 extern const char* BUTTON_EVENT_GENERIC_NAME;
 extern const char* TIRE_PRESSURE_GENERIC_NAME;
+
+#ifndef __PIC32__
+extern const float PI;
+#endif
 
 /* Interpret the given signal as a wheel rotation counter, and transform it to
  * an absolute distance travelled since the car was started.

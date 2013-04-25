@@ -23,10 +23,13 @@ const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
 const float openxc::signals::handlers::LITERS_PER_UL = .000001;
 const float openxc::signals::handlers::KM_PER_MILE = 1.609344;
 const float openxc::signals::handlers::KM_PER_M = .001;
-const float openxc::signals::handlers::PI = 3.14159265;
 const char* openxc::signals::handlers::DOOR_STATUS_GENERIC_NAME = "door_status";
 const char* openxc::signals::handlers::BUTTON_EVENT_GENERIC_NAME = "button_event";
 const char* openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME = "tire_pressure";
+
+#ifndef __PIC32__
+const float openxc::signals::handlers::PI = 3.14159265;
+#endif
 
 void openxc::signals::handlers::sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {

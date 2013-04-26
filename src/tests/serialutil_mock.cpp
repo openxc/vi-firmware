@@ -2,16 +2,16 @@
 #include "buffers.h"
 #include "log.h"
 
-using openxc::interface::serial::SerialDevice;
+using openxc::interface::uart::SerialDevice;
 
 bool SERIAL_PROCESSED = false;
 
-void openxc::interface::serial::processSerialSendQueue(SerialDevice* device) {
+void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
     SERIAL_PROCESSED = true;
 }
 
-void openxc::interface::serial::readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) { }
+void openxc::interface::uart::readFromSerial(SerialDevice* serial, bool (*callback)(uint8_t*)) { }
 
-void openxc::interface::serial::initializeSerial(SerialDevice* serial) {
+void openxc::interface::uart::initializeSerial(SerialDevice* serial) {
     initializeSerialCommon(serial);
 }

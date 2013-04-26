@@ -5,7 +5,7 @@
 
 namespace openxc {
 namespace interface {
-namespace serial {
+namespace uart {
 
 extern const int MAX_MESSAGE_SIZE;
 
@@ -50,7 +50,7 @@ void initializeSerial(SerialDevice* device);
  */
 void processSerialSendQueue(SerialDevice* device);
 
-} // namespace serial
+} // namespace uart
 } // namespace interface
 } // namespace openxc
 

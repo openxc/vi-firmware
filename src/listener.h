@@ -5,7 +5,7 @@
 #include "serialutil.h"
 #include "networkutil.h"
 
-using openxc::interface::serial::SerialDevice;
+using openxc::interface::uart::SerialDevice;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
 

@@ -19,7 +19,7 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
-using openxc::interface::serial::SerialDevice;
+using openxc::interface::uart::SerialDevice;
 using openxc::interface::usb::sendControlMessage;
 using openxc::bluetooth::bluetoothConnected;
 using openxc::bluetooth::initializeBluetooth;

@@ -6,7 +6,7 @@
 
 #define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
 
-using openxc::interface::serial::processSerialSendQueue;
+using openxc::interface::uart::processSerialSendQueue;
 using openxc::util::bytebuffer::conditionalEnqueue;
 
 typedef enum {

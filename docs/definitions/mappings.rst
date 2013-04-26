@@ -12,10 +12,24 @@ JSON Format
 
 The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
 message IDs to CAN message objects in each bus, and CAN signal name to signal
-object within each message.
+object within each message. A second top-level section is available to list
+one-time initialization functions that should be called.
 
-CAN Bus
--------
+Initializers
+------------
+
+The key ``initializers`` should have as its value an array of strings. Each
+string should be the name of a function with the type signature:
+
+.. code-block:: c
+
+   void function();
+
+These functions will be called once at the beginning of execution, before
+reading any CAN messages.
+
+CAN Buses
+---------
 
 The object key for a CAN bus is a hex address that identifies which CAN
 controller on the microcontroller is attached to the bus. The platforms we are

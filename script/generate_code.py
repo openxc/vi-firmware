@@ -219,6 +219,7 @@ class Parser(object):
         self.signal_count = 0
         self.message_count = 0
         self.command_count = 0
+        self.initializers = []
 
     def parse(self):
         raise NotImplementedError
@@ -340,7 +341,10 @@ class Parser(object):
         print("};")
         print()
 
-        print("void openxc::signals::initializeSignals() { }")
+        print("void openxc::signals::initializeSignals() {")
+        for initializer in self.initializers:
+            print("    %s();" % initializer);
+        print("}")
 
         print("const int COMMAND_COUNT = %d;" % self.command_count)
         print("CanCommand COMMANDS[COMMAND_COUNT] = {")
@@ -470,8 +474,9 @@ class JsonParser(Parser):
                             (filename, e))
                 merged_dict = merge(merged_dict, data)
 
+        self.initializers = merged_dict.get("initializers", [])
         self.commands = []
-        for bus_address, bus_data in merged_dict.items():
+        for bus_address, bus_data in merged_dict.get("buses", {}).items():
             speed = bus_data.get('speed', None)
             if speed is None:
                 fatal_error("Bus %s is missing the 'speed' attribute" %

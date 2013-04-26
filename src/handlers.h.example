@@ -11,4 +11,8 @@ float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener);
 
+void initializeMyStuff();
+
+void initializeOtherStuff();
+
 #endif // _HANDLERS_H_

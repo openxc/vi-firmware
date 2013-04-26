@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include "buffers.h"
 
-using openxc::buffers::conditionalEnqueue;
-using openxc::buffers::processQueue;
+using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::util::bytebuffer::processQueue;
 
 QUEUE_TYPE(uint8_t) queue;
 bool called;

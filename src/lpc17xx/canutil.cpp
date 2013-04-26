@@ -15,7 +15,7 @@
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::signals::initializeFilters;
-using openxc::log::debugNoNewline;
+using openxc::util::log::debugNoNewline;
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {

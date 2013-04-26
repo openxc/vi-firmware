@@ -1,3 +1,3 @@
 #include "log.h"
 
-const int openxc::log::MAX_LOG_LINE_LENGTH = 120;
+const int openxc::util::log::MAX_LOG_LINE_LENGTH = 120;

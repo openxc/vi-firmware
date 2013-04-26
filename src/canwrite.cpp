@@ -1,8 +1,8 @@
 #include "canwrite.h"
 #include "log.h"
 
-using openxc::bitfield::setBitField;
-using openxc::log::debugNoNewline;
+using openxc::util::bitfield::setBitField;
+using openxc::util::log::debugNoNewline;
 
 QUEUE_DEFINE(CanMessage);
 

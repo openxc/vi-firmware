@@ -6,7 +6,8 @@
 QUEUE_DECLARE(uint8_t, 512)
 
 namespace openxc {
-namespace buffers {
+namespace util {
+namespace bytebuffer {
 
 /* Public: Pass the buffer in the queue to the callback, which should return
  * true if an OpenXC message is found and processed, then reset the queue back
@@ -33,7 +34,8 @@ void processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*));
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize);
 
-} // namespace buffers
+} // namespace bytebuffer
+} // namespace util
 } // namespace openxc
 
 #endif // _BUFFERS_H_

@@ -19,8 +19,8 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
-using openxc::serial::SerialDevice;
-using openxc::usb::sendControlMessage;
+using openxc::interface::serial::SerialDevice;
+using openxc::interface::usb::sendControlMessage;
 using openxc::bluetooth::bluetoothConnected;
 using openxc::bluetooth::initializeBluetooth;
 using openxc::lights::LIGHT_A;
@@ -30,8 +30,8 @@ using openxc::lights::initializeLights;
 using openxc::platform::initializePlatform;
 using openxc::power::initializePower;
 using openxc::power::updatePower;
-using openxc::time::initializeTimers;
-using openxc::log::initializeLogging;
+using openxc::util::time::initializeTimers;
+using openxc::util::log::initializeLogging;
 using openxc::signals::getMessageSet;
 
 extern void reset();

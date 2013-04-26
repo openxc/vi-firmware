@@ -15,6 +15,7 @@
 #define MAX_USB_PACKET_SIZE_BYTES USB_BUFFER_SIZE
 
 namespace openxc {
+namespace interface {
 namespace usb {
 
 /* Public: a container for a CAN translator USB device and associated metadata.
@@ -90,6 +91,7 @@ void processUsbSendQueue(UsbDevice* device);
 void sendControlMessage(uint8_t* data, uint8_t length);
 
 } // namespace usb
+} // namespace interface
 } // namespace openxc
 
 #endif // _USBUTIL_H_

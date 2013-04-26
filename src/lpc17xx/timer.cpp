@@ -11,7 +11,7 @@ void SysTick_Handler() {
     ++SYSTEM_TICK_COUNT;
 }
 
-void openxc::time::delayMs(int delayInMs) {
+void openxc::util::time::delayMs(int delayInMs) {
     TIM_TIMERCFG_Type delayTimerConfig;
     TIM_ConfigStructInit(TIM_TIMER_MODE, &delayTimerConfig);
     TIM_Init(DELAY_TIMER, TIM_TIMER_MODE, &delayTimerConfig);
@@ -27,11 +27,11 @@ void openxc::time::delayMs(int delayInMs) {
     while (DELAY_TIMER->TCR & 0x01);
 }
 
-unsigned long openxc::time::systemTimeMs() {
+unsigned long openxc::util::time::systemTimeMs() {
     return SYSTEM_TICK_COUNT;
 }
 
-void openxc::time::initializeTimers() {
+void openxc::util::time::initializeTimers() {
     // Configure for 1ms tick
     SysTick_Config(SystemCoreClock / 1000);
 }

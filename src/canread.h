@@ -4,7 +4,7 @@
 #include "canutil.h"
 #include "listener.h"
 
-using openxc::listener::Listener;
+using openxc::interface::Listener;
 
 namespace openxc {
 namespace can {

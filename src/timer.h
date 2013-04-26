@@ -2,6 +2,7 @@
 #define __TIMER_H__
 
 namespace openxc {
+namespace util {
 namespace time {
 
 /* Public: Delay execution by the given number of milliseconds.
@@ -18,6 +19,7 @@ unsigned long systemTimeMs();
 void initializeTimers();
 
 } // namespace time
+} // namespace util
 } // namespace openxc
 
 #endif // __TIMER__H__

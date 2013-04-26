@@ -15,7 +15,7 @@
 
 Server server = Server(DEFAULT_NETWORK_PORT);
 
-void openxc::network::initializeNetwork(NetworkDevice* device) {
+void openxc::interface::network::initializeNetwork(NetworkDevice* device) {
     if(device != NULL) {
         initializeNetworkCommon(device);
         device->macAddress = DEFAULT_MAC_ADDRESS;
@@ -35,7 +35,7 @@ void openxc::network::initializeNetwork(NetworkDevice* device) {
 // send queue to the send buffer. After the buffer is full
 // or the queue is empty, the contents of the buffer are
 // sent over the network to listening clients.
-void openxc::network::processNetworkSendQueue(NetworkDevice* device) {
+void openxc::interface::network::processNetworkSendQueue(NetworkDevice* device) {
     unsigned int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -53,7 +53,7 @@ void openxc::network::processNetworkSendQueue(NetworkDevice* device) {
     }
 }
 
-void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) {
     Client client = device->server->available();
     if(client) {
         uint8_t byte;
@@ -67,8 +67,8 @@ void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uin
 
 #else
 
-void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
-void openxc::network::initializeNetwork(NetworkDevice* device) { }
-void openxc::network::processNetworkSendQueue(NetworkDevice* device) { }
+void openxc::interface::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
+void openxc::interface::network::initializeNetwork(NetworkDevice* device) { }
+void openxc::interface::network::processNetworkSendQueue(NetworkDevice* device) { }
 
 #endif

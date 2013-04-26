@@ -22,7 +22,7 @@ int endingByte(int startBit, int numBits) {
     return (startBit + numBits - 1) / 8;
 }
 
-uint64_t openxc::bitfield::getBitField(uint64_t data, int startBit, int numBits, bool bigEndian) {
+uint64_t openxc::util::bitfield::getBitField(uint64_t data, int startBit, int numBits, bool bigEndian) {
     int startByte = startingByte(startBit);
     int endByte = endingByte(startBit, numBits);
 
@@ -48,13 +48,13 @@ uint64_t openxc::bitfield::getBitField(uint64_t data, int startBit, int numBits,
  * TODO it would be nice to have a warning if you call with this a value that
  * won't fit in the number of bits you've specified it should use.
  */
-void openxc::bitfield::setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
+void openxc::util::bitfield::setBitField(uint64_t* data, uint64_t value, int startBit, int numBits) {
     int shiftDistance = 64 - startBit - numBits;
     value <<= shiftDistance;
     *data &= ~(bitmask(numBits) << shiftDistance);
     *data |= value;
 }
 
-uint8_t openxc::bitfield::nthByte(uint64_t source, int byteNum) {
+uint8_t openxc::util::bitfield::nthByte(uint64_t source, int byteNum) {
     return (source >> (64 - ((byteNum + 1) * 8))) & 0xFF;
 }

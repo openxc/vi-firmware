@@ -10,6 +10,7 @@
 #define USE_DHCP
 
 namespace openxc {
+namespace interface {
 namespace network {
 
 /* Public: A container for an network connection with queues for both input and
@@ -56,6 +57,7 @@ void processNetworkSendQueue(NetworkDevice* device);
 void readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*));
 
 } // namespace network
+} // namespace interface
 } // namespace openxc
 
 #endif

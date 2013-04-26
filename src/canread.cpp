@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "log.h"
 
-using openxc::bitfield::getBitField;
+using openxc::util::bitfield::getBitField;
 
 const char* openxc::can::read::ID_FIELD_NAME = "id";
 const char* openxc::can::read::DATA_FIELD_NAME = "data";

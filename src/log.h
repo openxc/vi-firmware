@@ -13,9 +13,10 @@
  * format - A printf-style format string.
  * args - printf-style arguments that match the format string.
  */
-#define debug(...) openxc::log::debugNoNewline(__VA_ARGS__); openxc::log::debugNoNewline("\r\n");
+#define debug(...) openxc::util::log::debugNoNewline(__VA_ARGS__); openxc::util::log::debugNoNewline("\r\n");
 
 namespace openxc {
+namespace util {
 namespace log {
 
 extern const int MAX_LOG_LINE_LENGTH;
@@ -30,6 +31,7 @@ void initializeLogging();
 void debugNoNewline(const char* format, ...);
 
 } // namespace log
+} // namespace util
 } // namespace openxc
 
 #endif // _LOG_H_

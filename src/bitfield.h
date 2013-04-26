@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 namespace openxc {
+namespace util {
 namespace bitfield {
 
 /* Public: Reads a subset of bits from a byte array.
@@ -58,6 +59,7 @@ void setBitField(uint64_t* data, uint64_t value, int startPos, int numBits);
 uint8_t nthByte(uint64_t source, int byteNum);
 
 } // namespace bitfield
+} // namespace util
 } // namespace openxc
 
 #endif // _BITFIELD_H_

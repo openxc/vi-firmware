@@ -3,7 +3,7 @@
 #include "signals.h"
 #include "log.h"
 
-using openxc::log::debugNoNewline;
+using openxc::util::log::debugNoNewline;
 using openxc::signals::initializeFilters;
 
 CAN can1Actual(CAN::CAN1);

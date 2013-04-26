@@ -2,10 +2,10 @@
 
 bool NETWORK_PROCESSED = false;
 
-void openxc::network::processNetworkSendQueue(NetworkDevice* device) {
+void openxc::interface::network::processNetworkSendQueue(NetworkDevice* device) {
     NETWORK_PROCESSED = true;
 }
 
-void openxc::network::initializeNetwork(NetworkDevice* device) {
+void openxc::interface::network::initializeNetwork(NetworkDevice* device) {
     initializeNetworkCommon(device);
 }

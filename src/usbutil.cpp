@@ -1,9 +1,9 @@
 #include "usbutil.h"
 #include "log.h"
 
-using openxc::log::debugNoNewline;
+using openxc::util::log::debugNoNewline;
 
-void openxc::usb::initializeUsbCommon(UsbDevice* usbDevice) {
+void openxc::interface::usb::initializeUsbCommon(UsbDevice* usbDevice) {
     debugNoNewline("Initializing USB.....");
     QUEUE_INIT(uint8_t, &usbDevice->sendQueue);
     QUEUE_INIT(uint8_t, &usbDevice->receiveQueue);

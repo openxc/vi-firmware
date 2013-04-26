@@ -3,8 +3,8 @@
 #include "timer.h"
 #include "log.h"
 
-using openxc::time::systemTimeMs;
-using openxc::log::debugNoNewline;
+using openxc::util::time::systemTimeMs;
+using openxc::util::log::debugNoNewline;
 
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
 

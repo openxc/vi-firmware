@@ -21,8 +21,8 @@ extern "C" {
 
 #define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
 
-using openxc::usb::UsbDevice;
-using openxc::buffers::processQueue;
+using openxc::interface::usb::UsbDevice;
+using openxc::util::bytebuffer::processQueue;
 
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
@@ -133,7 +133,7 @@ void configureUsbDetection() {
     PINSEL_ConfigPin(&hostDetectPinConfig);
 }
 
-void openxc::usb::sendControlMessage(uint8_t* data, uint8_t length) {
+void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
@@ -145,7 +145,7 @@ void openxc::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 }
 
 
-void openxc::usb::processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::interface::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
     if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
@@ -156,7 +156,7 @@ void openxc::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     }
 }
 
-void openxc::usb::initializeUsb(UsbDevice* usbDevice) {
+void openxc::interface::usb::initializeUsb(UsbDevice* usbDevice) {
     initializeUsbCommon(usbDevice);
     USB_Init();
     ::USB_Connect();
@@ -165,7 +165,7 @@ void openxc::usb::initializeUsb(UsbDevice* usbDevice) {
     debug("Done.");
 }
 
-void openxc::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void openxc::interface::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 

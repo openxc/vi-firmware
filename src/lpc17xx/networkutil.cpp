@@ -1,7 +1,7 @@
 #include "networkutil.h"
 
-void openxc::network::initializeNetwork(NetworkDevice* serial) { }
+void openxc::interface::network::initializeNetwork(NetworkDevice* serial) { }
 
-void openxc::network::processNetworkSendQueue(NetworkDevice* device) { }
+void openxc::interface::network::processNetworkSendQueue(NetworkDevice* device) { }
 
-void openxc::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
+void openxc::interface::network::readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*)) { }

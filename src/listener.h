@@ -5,12 +5,12 @@
 #include "serialutil.h"
 #include "networkutil.h"
 
-using openxc::serial::SerialDevice;
-using openxc::usb::UsbDevice;
-using openxc::network::NetworkDevice;
+using openxc::interface::serial::SerialDevice;
+using openxc::interface::usb::UsbDevice;
+using openxc::interface::network::NetworkDevice;
 
 namespace openxc {
-namespace listener {
+namespace interface {
 
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
@@ -52,7 +52,7 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize);
  */
 void processListenerQueues(Listener* listener);
 
-} // namespace listener
+} // namespace interface
 } // namespace openxc
 
 #endif // _LISTENER_H_

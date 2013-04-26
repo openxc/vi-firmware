@@ -33,13 +33,13 @@
 // bit 8 in the uxMode register controls hardware flow control
 #define _UARTMODE_FLOWCONTROL 8
 
-using openxc::buffers::processQueue;
+using openxc::util::bytebuffer::processQueue;
 
 extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
-void openxc::serial::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::serial::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
         if(bytesAvailable > 0) {
@@ -53,7 +53,7 @@ void openxc::serial::readFromSerial(SerialDevice* device, bool (*callback)(uint8
     }
 }
 
-void openxc::serial::initializeSerial(SerialDevice* device) {
+void openxc::interface::serial::initializeSerial(SerialDevice* device) {
     if(device != NULL) {
         initializeSerialCommon(device);
         device->controller = &Serial;
@@ -74,7 +74,7 @@ void openxc::serial::initializeSerial(SerialDevice* device) {
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
-void openxc::serial::processSerialSendQueue(SerialDevice* device) {
+void openxc::interface::serial::processSerialSendQueue(SerialDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&

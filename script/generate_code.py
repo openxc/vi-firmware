@@ -234,7 +234,7 @@ class Parser(object):
             print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
         print()
-        print("using openxc::listener::Listener;")
+        print("using openxc::interface::Listener;")
         print("using openxc::can::read::translateCanSignal;")
         print("using openxc::can::read::booleanHandler;")
         print("using openxc::can::read::stateHandler;")

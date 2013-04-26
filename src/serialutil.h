@@ -4,6 +4,7 @@
 #include "buffers.h"
 
 namespace openxc {
+namespace interface {
 namespace serial {
 
 extern const int MAX_MESSAGE_SIZE;
@@ -50,6 +51,7 @@ void initializeSerial(SerialDevice* device);
 void processSerialSendQueue(SerialDevice* device);
 
 } // namespace serial
+} // namespace interface
 } // namespace openxc
 
 #endif // _SERIALUTIL_H_

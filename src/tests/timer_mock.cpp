@@ -1,9 +1,9 @@
 #include "timer.h"
 
-void openxc::time::delayMs(int delayInMs) { }
+void openxc::util::time::delayMs(int delayInMs) { }
 
-unsigned long openxc::time::systemTimeMs() {
+unsigned long openxc::util::time::systemTimeMs() {
     return 0;
 }
 
-void openxc::time::initializeTimers() { }
+void openxc::util::time::initializeTimers() { }

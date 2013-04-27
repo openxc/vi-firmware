@@ -1,6 +1,6 @@
 #include <check.h>
 #include <stdint.h>
-#include "bitfield.h"
+#include "util/bitfield.h"
 
 using openxc::util::bitfield::getBitField;
 using openxc::util::bitfield::setBitField;

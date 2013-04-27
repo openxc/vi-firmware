@@ -1,6 +1,6 @@
-#include "serialutil.h"
-#include "buffers.h"
-#include "log.h"
+#include "interface/uart.h"
+#include "util/bytebuffer.h"
+#include "util/log.h"
 
 using openxc::interface::uart::SerialDevice;
 

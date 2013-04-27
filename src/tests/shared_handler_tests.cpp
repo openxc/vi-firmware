@@ -1,7 +1,7 @@
 #include <check.h>
 #include <stdint.h>
 #include "shared_handlers.h"
-#include "canwrite.h"
+#include "can/canwrite.h"
 
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;

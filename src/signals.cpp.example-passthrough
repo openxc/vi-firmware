@@ -6,10 +6,10 @@
 */
 
 #ifndef CAN_EMULATOR
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
 #include "handlers.h"
 #include "shared_handlers.h"
 

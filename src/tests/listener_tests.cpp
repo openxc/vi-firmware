@@ -1,6 +1,6 @@
 #include <check.h>
 #include <stdint.h>
-#include "listener.h"
+#include "interface/pipeline.h"
 #include "emqueue.h"
 #include "cJSON.h"
 

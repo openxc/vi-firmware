@@ -1,8 +1,8 @@
 #include <check.h>
 #include <stdint.h>
 #include "canutil.h"
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
 #include "cJSON.h"
 
 using openxc::can::read::decodeCanSignal;

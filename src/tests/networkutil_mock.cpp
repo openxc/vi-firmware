@@ -1,4 +1,4 @@
-#include "networkutil.h"
+#include "interface/network.h"
 
 bool NETWORK_PROCESSED = false;
 

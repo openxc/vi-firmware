@@ -1,8 +1,8 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
 
 using openxc::can::CanFilter;
 using openxc::can::CanSignalState;

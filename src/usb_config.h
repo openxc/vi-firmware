@@ -1,5 +1,5 @@
-#ifndef __USB_CONFIG_H__
-#define __USB_CONFIG_H__
+#ifndef _USB_CONFIG_H_
+#define _USB_CONFIG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,4 +102,4 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 }
 #endif
 
-#endif // __USB_CONFIG_H__
+#endif // _USB_CONFIG_H_

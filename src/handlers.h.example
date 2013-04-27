@@ -1,7 +1,7 @@
 #ifndef _HANDLERS_H_
 #define _HANDLERS_H_
 
-#include "canread.h"
+#include "can/canread.h"
 
 using openxc::can::CanSignal;
 

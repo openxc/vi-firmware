@@ -2,8 +2,8 @@
 #ifndef _SHARED_HANDLERS_H_
 #define _SHARED_HANDLERS_H_
 
-#include "canread.h"
-#include "usbutil.h"
+#include "can/canread.h"
+#include "interface/usb.h"
 
 using openxc::can::CanSignal;
 

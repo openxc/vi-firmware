@@ -1,6 +1,6 @@
 #include <check.h>
 #include <stdint.h>
-#include "buffers.h"
+#include "util/bytebuffer.h"
 
 using openxc::util::bytebuffer::conditionalEnqueue;
 using openxc::util::bytebuffer::processQueue;

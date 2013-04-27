@@ -1,7 +1,7 @@
 #include "canutil.h"
-#include "canwrite.h"
-#include "timer.h"
-#include "log.h"
+#include "can/canwrite.h"
+#include "util/timer.h"
+#include "util/log.h"
 
 using openxc::util::time::systemTimeMs;
 using openxc::util::log::debugNoNewline;

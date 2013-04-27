@@ -41,10 +41,23 @@ ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
+LOCAL_C_SRCS = $(wildcard *.c)
+LOCAL_C_SRCS += $(wildcard can/*.c)
+LOCAL_C_SRCS += $(wildcard interface/*.c)
+LOCAL_C_SRCS += $(wildcard platform/*.c)
+LOCAL_C_SRCS += $(wildcard util/*.c)
+LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/*.c)
+LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
+LOCAL_CPP_SRCS = $(wildcard *.cpp)
+LOCAL_CPP_SRCS += $(wildcard can/*.cpp)
+LOCAL_CPP_SRCS += $(wildcard interface/*.cpp)
+LOCAL_CPP_SRCS += $(wildcard platform/*.cpp)
+LOCAL_CPP_SRCS += $(wildcard util/*.cpp)
+
 ifeq ($(PLATFORM), CHIPKIT)
-include pic32/pic32.mk
+include platform/pic32/pic32.mk
 else
-include lpc17xx/lpc17xx.mk
+include platform/lpc17xx/lpc17xx.mk
 endif
 
 include tests/tests.mk

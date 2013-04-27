@@ -1,6 +1,6 @@
-#include "usbutil.h"
-#include "buffers.h"
-#include "log.h"
+#include "interface/usb.h"
+#include "util/bytebuffer.h"
+#include "util/log.h"
 
 bool USB_PROCESSED = false;
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 // TODO we don't really need this but it gets around an issue with multiple
 // definitions of the byte queue
-#include "buffers.h"
+#include "util/bytebuffer.h"
 
 typedef struct test_t {
     int i;

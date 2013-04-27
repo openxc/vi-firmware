@@ -1,11 +1,11 @@
 #ifdef CAN_EMULATOR
 
-#include "usbutil.h"
-#include "canread.h"
-#include "serialutil.h"
-#include "networkutil.h"
-#include "log.h"
-#include "timer.h"
+#include "interface/usb.h"
+#include "can/canread.h"
+#include "interface/uart.h"
+#include "interface/network.h"
+#include "util/log.h"
+#include "util/timer.h"
 #include "signals.h"
 #include <stdlib.h>
 

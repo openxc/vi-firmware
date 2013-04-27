@@ -1,7 +1,7 @@
 #include <check.h>
 #include <stdint.h>
 #include "canutil.h"
-#include "canwrite.h"
+#include "can/canwrite.h"
 #include "cJSON.h"
 
 using openxc::can::write::sendCanSignal;

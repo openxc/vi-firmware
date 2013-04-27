@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "bitfield.h"
+#include "util/bitfield.h"
 #include "emqueue.h"
 #include "cJSON.h"
 

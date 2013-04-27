@@ -1,5 +1,5 @@
 #include "handlers.h"
-#include "canwrite.h"
+#include "can/canwrite.h"
 
 using openxc::can::read::sendNumericalMessage;
 

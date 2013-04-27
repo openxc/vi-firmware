@@ -1,7 +1,7 @@
-#include "timer.h"
+#include "util/timer.h"
 #include "lights.h"
-#include "listener.h"
-#include "log.h"
+#include "interface/pipeline.h"
+#include "util/log.h"
 
 using openxc::util::time::delayMs;
 

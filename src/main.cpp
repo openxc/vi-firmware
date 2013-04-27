@@ -1,15 +1,15 @@
 #include <stdlib.h>
-#include "serialutil.h"
-#include "usbutil.h"
-#include "networkutil.h"
-#include "listener.h"
+#include "interface/uart.h"
+#include "interface/usb.h"
+#include "interface/network.h"
+#include "interface/pipeline.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
 #include "lights.h"
-#include "timer.h"
+#include "util/timer.h"
 #include "bluetooth.h"
 #include "power.h"
-#include "platform.h"
+#include "platform/platform.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80

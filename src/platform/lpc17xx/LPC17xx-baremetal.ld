@@ -8,4 +8,4 @@ MEMORY
 }
 
 GROUP(-lstdc++ -lsupc++ -lm -lc -lnosys -lgcc)
-INCLUDE "LPC17xx-base.ld"
+INCLUDE "platform/lpc17xx/LPC17xx-base.ld"

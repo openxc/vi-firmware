@@ -18,9 +18,9 @@ INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
 				-I./$(LIBS_PATH)/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
 ifeq ($(BOOTLOADER), 1)
-LINKER_SCRIPT = lpc17xx/LPC17xx-bootloader.ld
+LINKER_SCRIPT = platform/lpc17xx/LPC17xx-bootloader.ld
 else
-LINKER_SCRIPT = lpc17xx/LPC17xx-baremetal.ld
+LINKER_SCRIPT = platform/lpc17xx/LPC17xx-baremetal.ld
 endif
 
 CC = $(GCC_BIN)arm-none-eabi-gcc

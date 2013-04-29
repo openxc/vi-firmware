@@ -41,18 +41,16 @@ ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
-LOCAL_C_SRCS = $(wildcard *.c)
-LOCAL_C_SRCS += $(wildcard can/*.c)
-LOCAL_C_SRCS += $(wildcard interface/*.c)
-LOCAL_C_SRCS += $(wildcard platform/*.c)
-LOCAL_C_SRCS += $(wildcard util/*.c)
-LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
-LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
-LOCAL_CPP_SRCS = $(wildcard *.cpp)
-LOCAL_CPP_SRCS += $(wildcard can/*.cpp)
-LOCAL_CPP_SRCS += $(wildcard interface/*.cpp)
-LOCAL_CPP_SRCS += $(wildcard platform/*.cpp)
-LOCAL_CPP_SRCS += $(wildcard util/*.cpp)
+CROSSPLATFORM_C_SRCS = $(wildcard *.c)
+CROSSPLATFORM_C_SRCS += $(wildcard can/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard interface/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard util/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
+CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk

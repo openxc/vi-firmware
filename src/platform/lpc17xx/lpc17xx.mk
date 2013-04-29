@@ -46,7 +46,7 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
 
-LOCAL_C_SRCS += $(wildcard lpc17xx/*.c)
+ARM_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/lpc17xx/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HAL/LPC17XX/*.c)
@@ -59,9 +59,9 @@ LIB_C_SRCS += $(CMSIS_PATH)/src/system_LPC17xx.c
 LIB_C_SRCS += $(wildcard $(DRIVER_PATH)/src/*.c)
 LIB_C_SRCS += $(LIBS_PATH)/cJSON/cJSON.o
 LIB_C_SRCS += $(LIBS_PATH)/emqueue/emqueue.o
-LOCAL_CPP_SRCS += $(wildcard lpc17xx/*.cpp)
-LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o) $(LOCAL_CPP_SRCS:.cpp=.o) $(LIB_C_SRCS:.c=.o)
-OBJECTS = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
+ARM_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/lpc17xx/*.cpp)
+ARM_OBJ_FILES = $(ARM_C_SRCS:.c=.o) $(ARM_CPP_SRCS:.cpp=.o) $(LIB_C_SRCS:.c=.o)
+OBJECTS = $(patsubst %,$(OBJDIR)/%,$(ARM_OBJ_FILES))
 
 TARGET_BIN = $(OBJDIR)/$(TARGET).bin
 TARGET_ELF = $(OBJDIR)/$(TARGET).elf

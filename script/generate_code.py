@@ -226,10 +226,10 @@ class Parser(object):
 
     def print_header(self):
         print("#ifndef CAN_EMULATOR")
-        print("#include \"canread.h\"")
-        print("#include \"canwrite.h\"")
+        print("#include \"can/canread.h\"")
+        print("#include \"can/canwrite.h\"")
         print("#include \"signals.h\"")
-        print("#include \"log.h\"")
+        print("#include \"util/log.h\"")
         if getattr(self, 'uses_custom_handlers', None):
             print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")

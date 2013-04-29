@@ -8,6 +8,10 @@
 #include "emqueue.h"
 #include "cJSON.h"
 
+#ifdef __LPC17XX__
+#include "platform/lpc17xx/canutil_lpc17xx.h"
+#endif // __LPC17XX__
+
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 // TODO CanMessage and CanBus are temporarily defined outside of the openxc::can

@@ -1,5 +1,4 @@
 #include "can/canread.h"
-#include "canutil_lpc17xx.h"
 #include "signals.h"
 #include "util/log.h"
 

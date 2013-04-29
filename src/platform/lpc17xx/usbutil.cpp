@@ -3,6 +3,7 @@
 #include "util/bytebuffer.h"
 #include <stdio.h>
 #include "lpc17xx_pinsel.h"
+#include "usb_config.h"
 
 #include "LPC17xx.h"
 #include "lpc17xx_gpio.h"

@@ -12,19 +12,16 @@ TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 INCLUDE_PATHS += -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue
 
-TESTABLE_OBJ_FILES = bitfield.o canutil.o canwrite.o canread.o \
-    listener.o $(LIBS_PATH)/cJSON/cJSON.o $(LIBS_PATH)/emqueue/emqueue.o \
-    buffers.o strutil.o usbutil.o serialutil.o networkutil.o shared_handlers.o
-TESTABLE_LIB_C_SRCS = $(wildcard $(TEST_DIR)/*_mock.c)
-TESTABLE_LIB_CPP_SRCS = $(wildcard $(TEST_DIR)/*_mock.cpp)
+NON_TESTABLE_SRCS = signals.cpp main.cpp cantranslator.cpp canemulator.cpp
 
-TESTABLE_LIB_OBJ_FILES = $(addprefix $(TEST_OBJDIR)/, $(TESTABLE_LIB_C_SRCS:.c=.o))
-TESTABLE_LIB_OBJ_FILES += $(addprefix $(TEST_OBJDIR)/, $(TESTABLE_LIB_CPP_SRCS:.cpp=.o))
+TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c)
+TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)
+TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 
-TESTABLE_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TESTABLE_OBJ_FILES)) \
-				$(TESTABLE_LIB_OBJ_FILES)
+TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)
+TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 
-.PRECIOUS: $(TESTABLE_OBJS) $(TESTS:.bin=.o)
+.PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
 RED="$${txtbld}$$(tput setaf 1)"
 GREEN="$${txtbld}$$(tput setaf 2)"
@@ -154,6 +151,6 @@ $(TEST_OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
-$(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TESTABLE_OBJS)
+$(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)
 	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)

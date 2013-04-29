@@ -103,8 +103,8 @@ endif
 USER_LIB_PATH = ./libs
 ARDUINO_MAKEFILE_HOME = libs/arduino.mk
 
-LOCAL_C_SRCS += $(wildcard platform/pic32/*.c)
-LOCAL_CPP_SRCS += $(wildcard platform/pic32/*.cpp)
+LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
+LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 
 include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 

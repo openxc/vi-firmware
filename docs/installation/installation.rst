@@ -44,8 +44,10 @@ Windows
   .. code-block:: sh
 
     $ set -o igncr && export SHELLOPTS
-
-4. Continue to the :ref:`all platforms <all-plats>` section.
+4. Install the :ref:`FTDI driver <ftdi>` (the bootstrap script tries to take
+   care of this, but some developers are reporting that it doesn't actaully get
+   installed)
+5. Continue to the :ref:`all platforms <all-plats>` section.
 
 OS X
 --------

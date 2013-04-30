@@ -91,7 +91,7 @@ all: $(TARGET_BIN)
 
 flash: all
 	@echo "Flashing $(PLATFORM) via JTAG with OpenOCD..."
-	@openocd -f $(OPENOCD_CONF_BASE)/$(BASE_TARGET).cfg -f $(OPENOCD_CONF_BASE)/interface/$(JTAG_INTERFACE).cfg -f $(OPENOCD_CONF_BASE)/flash.cfg
+	openocd -s $(OPENOCD_CONF_BASE) -f $(BASE_TARGET).cfg -f interface/$(JTAG_INTERFACE)-custom.cfg -f flash.cfg
 	@echo "$(GREEN)Flashed $(PLATFORM) successfully.$(COLOR_RESET)"
 
 gdb: all

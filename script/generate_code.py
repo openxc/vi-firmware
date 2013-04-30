@@ -243,7 +243,8 @@ class Parser(object):
         print("using openxc::can::write::booleanWriter;")
         print("using openxc::can::write::stateWriter;")
         print("using openxc::can::write::numberWriter;")
-        print("using namespace openxc::signals::handlers;")
+        if getattr(self, 'uses_custom_handlers', None):
+            print("using namespace openxc::signals::handlers;")
         print()
         print("#ifdef __LPC17XX__")
         print("#define can1 LPC_CAN1")
@@ -419,7 +420,7 @@ class Parser(object):
         print("    }")
 
         if self._message_count() == 0:
-            print("    passthroughCanMessage(listener, id, data);")
+            print("    openxc::can::read::passthroughCanMessage(listener, id, data);")
 
         print("}\n")
 

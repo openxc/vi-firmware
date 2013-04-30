@@ -6,7 +6,7 @@ OpenXC CAN Translator
 
 :Version: 3.3-dev
 :Web: http://openxcplatform.com
-:Documentation: http://openxcplatform.com/cantranslator
+:Documentation: http://openxcplatform.com/cantranslator/
 :Source: http://github.com/openxc/cantranslator
 :Keywords: vehicle, openxc, embedded
 
@@ -22,7 +22,7 @@ website`_ or the `CAN translator documentation`_.
 
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
-.. _`CAN translator documentation`: http://openxcplatform.com/cantranslator
+.. _`CAN translator documentation`: http://openxcplatform.com/cantranslator/
 
 License
 =======

@@ -6,7 +6,7 @@ OpenXC CAN Translator
 
 :Version: 3.3-dev
 :Web: http://openxcplatform.com
-:Documentation: http://openxcplatform.com/cantranslator
+:Documentation: http://openxcplatform.com/cantranslator/
 :Source: http://github.com/openxc/cantranslator
 
 .. toctree::

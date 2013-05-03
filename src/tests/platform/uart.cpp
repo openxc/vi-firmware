@@ -1,6 +1,7 @@
 #include "interface/uart.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include <cstddef>
 
 using openxc::interface::uart::SerialDevice;
 
@@ -15,3 +16,8 @@ void openxc::interface::uart::readFromSerial(SerialDevice* serial, bool (*callba
 void openxc::interface::uart::initializeSerial(SerialDevice* serial) {
     initializeSerialCommon(serial);
 }
+
+bool openxc::interface::uart::serialConnected(SerialDevice* device) {
+    return device != NULL;
+}
+

@@ -20,8 +20,8 @@
 #define DATA_OUT_ENDPOINT 2
 
 using openxc::interface::uart::SerialDevice;
+using openxc::interface::uart::serialConnected;
 using openxc::interface::usb::sendControlMessage;
-using openxc::bluetooth::bluetoothConnected;
 using openxc::bluetooth::initializeBluetooth;
 using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
@@ -50,11 +50,7 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-#ifdef __USE_UART__
     &SERIAL_DEVICE,
-#else
-    NULL,
-#endif // __USE_UART__
 #ifdef __USE_NETWORK__
     &NETWORK_DEVICE
 #endif // __USE_NETWORK__
@@ -65,7 +61,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(bluetoothConnected()) {
+    if(serialConnected(listener.serial)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);

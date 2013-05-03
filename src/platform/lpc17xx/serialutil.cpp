@@ -5,10 +5,14 @@
 #include "interface/pipeline.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include "gpio.h"
 
 // Only UART1 supports hardware flow control, so this has to be UART1
 #define UART1_DEVICE (LPC_UART_TypeDef*)LPC_UART1
 #define UART_BAUDRATE 230000
+
+#define UART_STATUS_PORT 0
+#define UART_STATUS_PIN 18
 
 #ifdef BLUEBOARD
 
@@ -37,6 +41,10 @@
 
 using openxc::interface::Listener;
 using openxc::util::bytebuffer::processQueue;
+using openxc::gpio::setGpioDirection;
+using openxc::gpio::getGpioValue;
+using openxc::gpio::GpioValue;
+using openxc::gpio::GpioDirection;
 
 extern Listener listener;
 
@@ -218,23 +226,31 @@ void configureInterrupts() {
 }
 
 void openxc::interface::uart::initializeSerial(SerialDevice* device) {
-    if(device != NULL) {
-        initializeSerialCommon(device);
-
-        configureSerialPins();
-        configureUart();
-        configureFifo();
-        configureFlowControl();
-        configureInterrupts();
-        CTS_STATE = ACTIVE;
-
-        // Configure P0.18 as an input, pulldown
-        LPC_PINCON->PINMODE1 |= (1 << 5);
-        // Ensure BT reset line is held high.
-        LPC_GPIO1->FIODIR |= (1 << 17);
-        LPC_GPIO1->FIOPIN |= (1 << 17);
-        debug("Done.");
+    if(device == NULL) {
+        debug("Can't initialize a NULL SerialDevice");
+        return;
     }
+
+    initializeSerialCommon(device);
+
+    configureSerialPins();
+    configureUart();
+    configureFifo();
+    configureFlowControl();
+    configureInterrupts();
+    CTS_STATE = ACTIVE;
+
+    // Configure P0.18 as an input, pulldown
+    LPC_PINCON->PINMODE1 |= (1 << 5);
+    // Ensure BT reset line is held high.
+    LPC_GPIO1->FIODIR |= (1 << 17);
+    LPC_GPIO1->FIOPIN |= (1 << 17);
+    debug("Done.");
+
+    setGpioDirection(UART_STATUS_PORT, UART_STATUS_PIN,
+            GpioDirection::GPIO_DIRECTION_INPUT);
+
+    debug("Done.");
 }
 
 void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
@@ -243,3 +259,9 @@ void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
         handleTransmitInterrupt();
     }
 }
+
+bool openxc::interface::uart::serialConnected(SerialDevice* device) {
+    return device != NULL && getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN)
+            != GpioValue::GPIO_VALUE_LOW;
+}
+

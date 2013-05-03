@@ -32,7 +32,6 @@ test: unit_tests
 	@make lpc17xx_compile_test
 	@make ford_test
 	@make emulator_test
-	@make uart_compile_test
 	@make debug_compile_test
 	@make network_compile_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
@@ -88,12 +87,6 @@ emulator_test:
 debug_compile_test: code_generation_test
 	@echo -n "Testing build with DEBUG=1 flag..."
 	@DEBUG=1 make -j4
-	@make clean
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-uart_compile_test: code_generation_test
-	@echo -n "Testing build with USE_UART=1 flag..."
-	@USE_UART=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

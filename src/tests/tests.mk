@@ -12,7 +12,8 @@ TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 INCLUDE_PATHS += -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue
 
-NON_TESTABLE_SRCS = signals.cpp main.cpp cantranslator.cpp canemulator.cpp
+NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp cantranslator.cpp \
+		    canemulator.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c)
 TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)

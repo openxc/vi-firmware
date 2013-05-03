@@ -11,6 +11,8 @@ void updatePower();
 
 void enterLowPowerMode();
 
+void handleWake();
+
 #ifdef __cplusplus
 }
 #endif

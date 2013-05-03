@@ -38,11 +38,14 @@ endif
 # 	CHIPKIT
 # 	BLUEBOARD
 # 	FORDBOARD
+# 	FLEETCARMA
 ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
 ifeq ($(PLATFORM), CHIPKIT)
+include pic32/pic32.mk
+else ifeq ($(PLATFORM), FLEETCARMA)
 include pic32/pic32.mk
 else
 include lpc17xx/lpc17xx.mk

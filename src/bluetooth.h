@@ -22,6 +22,10 @@ void setBluetoothStatus(bool status);
 /* Public: Perform any initialization required to control Bluetooth. */
 void initializeBluetooth();
 
+/* Public: Shut down the bluetooth peripheral (save power). */
+void deinitializeBluetooth();
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -90,6 +90,11 @@ void processUsbSendQueue(UsbDevice* device);
  */
 void sendControlMessage(uint8_t* data, uint8_t length);
 
+/* Public: Disconnect from host and turn off the USB peripheral 
+ * 		  (minimal power draw). 
+ */
+void deinitializeUsb(UsbDevice*);
+
 #ifdef __cplusplus
 }
 #endif

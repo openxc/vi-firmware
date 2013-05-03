@@ -14,6 +14,7 @@
 #include "bluetooth.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include "pic32/canutil_pic32.h"
 
 extern Listener listener;
 
@@ -67,10 +68,32 @@ void updateDataLights() {
         // TODO I don't love having all of this here, but it's the best place
         // for now. Maybe the modules need a deinitializeFoo() method in
         // addition to the initialize one.
+		// deinitialize() is definitely a good idea to have generic calls
+		// that will disable peripherals before sleeping (to get low current)
+		// will simply call into some library functions for now
+		
+		// disable LED(s)
         disable(LIGHT_A);
         disable(LIGHT_B);
+		
+		// Move CAN module to DISABLED state.
+		// CAN module will still be capable of wake from sleep.
+		// The OP_MODE of the CAN module itself is actually irrelevant 
+		// when going to sleep.
+		// The main reason for this is to provide a generic function call
+		// to disable the off-chip transceiver(s), which saves power, without
+		// disabling the CAN module itself.
+		for(int i = 0; i < getCanBusCount(); ++i) {
+			setCanOpModeDisable(&getCanBuses()[i]);
+		}
+		
+		// shut down the USB peripheral to save power
+		deinitializeUsb(listener.usb);
+		
+		// disable bluetooth peripheral to save power
         setBluetoothStatus(false);
-
+		deinitializeBluetooth();
+		
         // Make sure lights and Bluetooth are disabled before sleeping
         delayMs(100);
         enterLowPowerMode();

@@ -2,7 +2,6 @@
 Supported Platforms
 ===================
 
-
 The firmware supports compiling for the Microchip's PIC32 microcontroller and
 NXP's LPC1768/69 (and possibly other ARM Cortex M3 micros).
 
@@ -18,4 +17,11 @@ LPC176x
 =======
 
 * :doc:`NGX Blueboard LPC1768-H <blueboard>`
-* :doc:`Ford Prototype Vehicle Interface <fordboard>`
+* :doc:`Ford Prototype Vehicle Interface <ford>`
+
+.. toctree::
+    :maxdepth: 2
+    :glob:
+    :hidden:
+
+    *

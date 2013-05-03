@@ -57,15 +57,15 @@ CAN Message Definition
 Output Interfaces & Format
 ===========================
 
-See the `output format`_ section of the `OpenXC website`_ for details.
+The OpenXC message format is specified and versioned separately from any of the
+individual OpenXC interfaces or libraries, in the `OpenXC Message Format
+<https://github.com/openxc/openxc-message-format>`_ repository.
 
 .. toctree::
     :maxdepth: 1
     :glob:
 
     output/*
-
-.. _`output format`: http://openxcplatform.com/vehicle-interface/output-format.html
 
 Contributing
 ==============

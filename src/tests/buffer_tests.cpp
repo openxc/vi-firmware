@@ -1,8 +1,11 @@
 #include <check.h>
 #include <stdint.h>
-#include "buffers.h"
+#include "util/bytebuffer.h"
 
-ByteQueue queue;
+using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::util::bytebuffer::processQueue;
+
+QUEUE_TYPE(uint8_t) queue;
 bool called;
 bool callbackStatus;
 

@@ -1,25 +1,48 @@
 #ifndef CAN_EMULATOR
 
-#include "usbutil.h"
-#include "canread.h"
-#include "serialutil.h"
-#include "ethernetutil.h"
+#include "interface/usb.h"
+#include "can/canread.h"
+#include "interface/uart.h"
+#include "interface/network.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
 #include "cJSON.h"
-#include "listener.h"
-#include "timer.h"
+#include "interface/pipeline.h"
+#include "util/timer.h"
 #include "lights.h"
 #include "power.h"
 #include "bluetooth.h"
 #include <stdint.h>
 #include <stdlib.h>
 
+using openxc::bluetooth::setBluetoothStatus;
+using openxc::can::canBusActive;
+using openxc::can::initializeCan;
+using openxc::can::write::processCanWriteQueue;
+using openxc::can::write::sendCanSignal;
+using openxc::can::write::enqueueCanMessage;
+using openxc::can::lookupCommand;
+using openxc::can::lookupSignal;
+using openxc::lights::LIGHT_A;
+using openxc::lights::LIGHT_B;
+using openxc::lights::COLORS;
+using openxc::power::enterLowPowerMode;
+using openxc::util::time::delayMs;
+using openxc::util::time::systemTimeMs;
+using openxc::signals::initializeSignals;
+using openxc::signals::getCanBuses;
+using openxc::signals::getCanBusCount;
+using openxc::signals::getCommands;
+using openxc::signals::getCommandCount;
+using openxc::signals::getSignals;
+using openxc::signals::getSignalCount;
+using openxc::signals::decodeCanMessage;
+
 extern Listener listener;
 
 /* Forward declarations */
 
-void receiveCan(CanBus*);
+void receiveCan(Listener*, CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
@@ -31,12 +54,12 @@ void setup() {
 
 void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
-        receiveCan(&getCanBuses()[i]);
+        receiveCan(&listener, &getCanBuses()[i]);
     }
 
     readFromHost(listener.usb, receiveWriteRequest);
     readFromSerial(listener.serial, receiveWriteRequest);
-    readFromSocket(listener.ethernet, receiveWriteRequest);
+    readFromSocket(listener.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
@@ -156,11 +179,11 @@ bool receiveWriteRequest(uint8_t* message) {
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the serial monitor.
  */
-void receiveCan(CanBus* bus) {
+void receiveCan(Listener* listener, CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(bus, message.id, message.data);
+        decodeCanMessage(listener, bus, message.id, message.data);
         bus->lastMessageReceived = systemTimeMs();
     }
 }

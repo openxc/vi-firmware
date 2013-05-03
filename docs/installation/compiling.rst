@@ -36,8 +36,8 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``UART`` - By default, UART output of OpenXC vehicle data is disabled. Set this
 to ``1`` to enable :doc:`UART` output.
 
-``ETHERNET`` - By default, TCP output of OpenXC vehicle data is disabled. Set
-this to ``1`` to enable TCP output on boards that have an Ethernet interface (only
+``NETWORK`` - By default, TCP output of OpenXC vehicle data is disabled. Set
+this to ``1`` to enable TCP output on boards that have an Network interface (only
 the chipKIT Max32 right now).
 
 ``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
@@ -118,7 +118,7 @@ project.
       path")
    -  ``/src/libs/chipKITUSBDevice/utility`` (add as a
       "workspace path")
-   -  ``/src/libs/chipKITEthernet`` (add as a "workspace
+   -  ``/src/libs/chipKITNetwork`` (add as a "workspace
       path")
    -  ``/usr/include`` (only if you want to use the test suite, which
       requires the ``check`` C library)

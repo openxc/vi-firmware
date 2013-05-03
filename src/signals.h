@@ -1,8 +1,15 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
+
+using openxc::can::CanFilter;
+using openxc::can::CanSignalState;
+using openxc::can::CanSignal;
+
+namespace openxc {
+namespace signals {
 
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
@@ -54,7 +61,7 @@ const char* getMessageSet();
  * id - The 11-bit ID of the incoming CAN message.
  * data - The 64-bit data field of the CAN message.
  */
-void decodeCanMessage(CanBus* bus, int id, uint64_t data);
+void decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data);
 
 /* Public: Initialize an array of the CAN message filters that should be set for
  * the CAN module with the given address.
@@ -70,5 +77,8 @@ void decodeCanMessage(CanBus* bus, int id, uint64_t data);
  * module with the given address.
  */
 CanFilter* initializeFilters(uint64_t address, int* count);
+
+} // namespace signals
+} // namespace openxc
 
 #endif // _SIGNALS_H_

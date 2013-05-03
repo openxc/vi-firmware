@@ -1,11 +1,8 @@
 #ifndef _BLUETOOTH_H_
 #define _BLUETOOTH_H_
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace openxc {
+namespace bluetooth {
 
 /* Public: Check the connection status of a Bluetooth adapter.
  *
@@ -22,8 +19,7 @@ void setBluetoothStatus(bool status);
 /* Public: Perform any initialization required to control Bluetooth. */
 void initializeBluetooth();
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace bluetooth
+} // namespace openxc
 
 #endif // _BLUETOOTH_H_

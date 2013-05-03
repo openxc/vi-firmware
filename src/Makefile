@@ -1,4 +1,5 @@
 SYMBOLS =
+SHELL := /bin/bash
 
 GREEN="$${txtbld}$$(tput setaf 2)"
 COLOR_RESET=$$(tput sgr0)

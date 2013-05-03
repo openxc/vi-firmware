@@ -150,7 +150,8 @@ void sendEventedFloatMessage(const char* name, const char* value, float event,
 /* Public: Parse a CAN signal from a message and apply required transformation.
  *
  * signal - The details of the signal to decode and forward.
- * data   - The raw bytes of the CAN message that contains the signal.
+ * data   - The raw bytes of the CAN message that contains the signal, assumed
+ *      to be in big-endian byte order from CAN.
  *
  * Returns the final, transformed value of the signal.
  */

@@ -4,21 +4,10 @@ OpenXC CAN Translator
 
 .. image:: /_static/logo.png
 
-:Version: 3.2
+:Version: 3.3-dev
 :Web: http://openxcplatform.com
 :Documentation: http://openxcplatform.com/cantranslator/
 :Source: http://github.com/openxc/cantranslator
-
-.. toctree::
-    :hidden:
-    :glob:
-
-    installation/installation
-    installation/compiling
-    installation/binary
-    installation/testing
-
-    output/*
 
 About
 =====
@@ -28,11 +17,16 @@ connected to one or more CAN buses. It receives either all CAN messages or a
 filtered subset, performs any unit conversion or factoring required and outputs
 a generic version to a USB interface.
 
-The firmware currently supports 3 platforms:
+The firmware supports :doc:`multiple microcontrollers </platforms/platforms>`.
 
-- chipKIT Max32 (``PLATFORM=CHIPKIT``)
-- NGX Blueboard (``PLATFORM=BLUEBOARD``)
-- Ford OpenXC prototype vehicle interface (``PLATFORM=FORDBOARD``)
+Setup
+======
+
+.. toctree::
+    :maxdepth: 2
+
+    installation/installation
+    platforms/platforms
 
 Pre-built Binary
 ================
@@ -51,21 +45,11 @@ project.
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`firmware section`: http://openxcplatform.com/vehicle-interface/firmware.html
 
-Installation
-============
-
-.. toctree::
-    :maxdepth: 2
-    :glob:
-
-    installation/installation
-    installation/*
-
 CAN Message Definition
 ======================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :glob:
 
     definitions/*
@@ -73,7 +57,9 @@ CAN Message Definition
 Output Interfaces & Format
 ===========================
 
-See the `output format`_ section of the `OpenXC website`_ for details.
+The OpenXC message format is specified and versioned separately from any of the
+individual OpenXC interfaces or libraries, in the `OpenXC Message Format
+<https://github.com/openxc/openxc-message-format>`_ repository.
 
 .. toctree::
     :maxdepth: 1
@@ -103,35 +89,6 @@ If you have any suggestions, bug reports or annoyances please report them
 to our issue tracker at http://github.com/openxc/cantranslator/issues/
 
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
-.. _`output format`: http://openxcplatform.com/vehicle-interface/output-format.html
-
-LED Lights
-==========
-
-With no better place for this information right now, here's how the LED lights
-work on the supported boards.
-
-chipKIT
--------
-
-The chipKIT has 1 user controllable LED. When CAN activity is detected, the LED
-will be enabled (it's green).
-
-Ford ARM-based Prototype
-------------------------
-
-The Ford prototype has 2 RGB LEDs.
-
-**LED A**
-
-- CAN activity detected - Blue
-- No CAN activity on either bus - Off
-
-**LED B**
-
-- USB connected, Bluetooth not connected - Green
-- Bluetooth connected, USB in either state - Blue
-- Neither USB or Bluetooth connected - Off
 
 Related Projects
 ================

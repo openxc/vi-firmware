@@ -1,6 +1,6 @@
-=========
+=======
 Testing
-=========
+=======
 
 Windows USB Device Driver
 =========================
@@ -101,12 +101,7 @@ When compiled with ``DEBUG=1``, two things happen:
 - Debug symbols are available in the .elf file generated in the ``build``
   directory.
 - Log messages will be output over a UART port (no hardware flow control is
-  required)
-
-    - On the chipKIT Max32, logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx)
-      at 115200 baud.
-    - On the Blueboard LPC1768H, logging will be on UART0 (Pin P0.3 - Rx, Pin
-      P0.2 - Tx) at 115200 baud.
+  required) - see :doc:`supported platforms </platforms/platforms>` for details.
 
 View this output using an FTDI cable and any of the many available serial
 terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.

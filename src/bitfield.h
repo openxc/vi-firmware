@@ -6,17 +6,21 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /* Public: Reads a subset of bits from a byte array.
  *
  * data - the bytes in question.
  * startPos - the starting index of the bit field (beginning from 0).
  * numBits - the width of the bit field to extract.
+ * bigEndian - if the data passed in is little endian, set this to false and it
+ *      will be flipped before grabbing the bit field.
  *
  * Bit fields are positioned according to big-endian bit layout, but inside the
  * bit field, values are represented as little-endian. Therefore, to get the bit
- * field, we just need to convert to big-endian bit ordering to find the field,
- * and directly use the value we find in the field.
+ * field, we swap the overall byte order if bigEndian == false and
+ * use the value we find in the field (assuming the embedded platform is little
+ * endian).
  *
  * For example, the bit layout of the value "42" (i.e. 00101010 set at position
  * 14 with length 6 is:
@@ -36,7 +40,7 @@ extern "C" {
  *
  * Returns the value of the requested bit field.
  */
-uint64_t getBitField(uint64_t data, int startPos, int numBits);
+uint64_t getBitField(uint64_t data, int startPos, int numBits, bool bigEndian);
 
 /* Public: Set the bit field in the given data array to the new value.
  *

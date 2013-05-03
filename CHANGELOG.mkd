@@ -2,6 +2,11 @@
 
 ## v4.0-dev
 
+* BREAKING CHANGE: Moved .h files into subdirectories to minimize the number of
+  files at the top level.
+* BREAKING CHANGE: Moved almost all functions and data structures inside C++
+  namespaces - all code is now compiled with g++.
+
 ## v3.2
 
 * Support building to run under a USB bootloader on the LPC17xx.

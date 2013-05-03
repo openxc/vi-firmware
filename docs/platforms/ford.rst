@@ -27,9 +27,9 @@ Compiling
 USB Bootloader
 """"""""""""""
 
-If you are running a :doc:`supported bootloader </installation/bootloaders>`, you don't need
-any special programming hardware. Compile the firmware to run under the
-bootloader:
+If you are running a :doc:`supported bootloader </installation/bootloaders>`,
+you don't need any special programming hardware. Compile the firmware to run
+under the bootloader:
 
 .. code-block:: sh
 
@@ -37,8 +37,9 @@ bootloader:
    $ PLATFORM=BLUEBOARD BOOTLOADER=1 make -j4
 
 The compiled firmware will be located at
-``build/lpc17xx/cantranslator-lpc17xx.bin``. See the `bootloaders </installation/bootloaders>`_
-page for instructions on how to load the firmware.
+``build/lpc17xx/cantranslator-lpc17xx.bin``. See the
+`bootloaders </installation/bootloaders>`_ page for instructions on how to load
+the firmware.
 
 Bare Metal
 """"""""""
@@ -60,14 +61,12 @@ configuration.
 UART
 ----
 
-On the LPC17xx, ``UART1`` is used for OpenXC output at the 230000 baud rate.
-Like on the chipKIT, hardware flow control (RTS/CTS) is enabled, so CTS must be
-pulled low by the receiving device before data will be sent.
+The software configuration is identical to the :doc:`Blueboard <blueboard>`. The
+Ford prototype includes an RN-41 on the PCB attached to the RX, TX, CTS and RTS
+pins, in addition to the UART status pin.
 
-- Pin 2.0 - ``UART1 TX``, connect this to the RX line of the receiver.
-- Pin 2.1 - ``UART1 RX``, connect this to the TX line of the receiver.
-- Pin 2.2 - ``UART1 CTS``, connect this to the RTS line of the receiver.
-- Pin 2.7 - ``UART1 RTS``, connect this to the CTS line of the receiver.
+When a Bluetooth host pairs with the RN-42 and opens an RFCOMM connection, pin
+0.18 will be pulled high and the VI will being streaming vehicle data over UART.
 
 Debug Logging
 -------------

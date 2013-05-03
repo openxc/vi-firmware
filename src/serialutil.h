@@ -50,6 +50,12 @@ void initializeSerial(SerialDevice* device);
  */
 void processSerialSendQueue(SerialDevice* device);
 
+/* Public: Check the connection status of a UART receiver.
+ *
+ * Returns true if UART is connected.
+ */
+bool serialConnected(SerialDevice* device);
+
 #ifdef __cplusplus
 }
 #endif

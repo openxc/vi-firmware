@@ -24,14 +24,17 @@
 #include "buffers.h"
 #include "log.h"
 #include "HardwareSerial.h"
+#include "gpio.h"
 #include "WProgram.h"
 
+#define UART_ENABLED_PIN 5
 #define UART_BAUDRATE 460800
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
 
 // bit 8 in the uxMode register controls hardware flow control
 #define _UARTMODE_FLOWCONTROL 8
+
 
 extern HardwareSerial Serial;
 
@@ -52,22 +55,28 @@ void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
 }
 
 void initializeSerial(SerialDevice* device) {
-    if(device != NULL) {
-        initializeSerialCommon(device);
-        device->controller = &Serial;
-        ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
-        // Override baud rate setup to allow baud rates 200000 (see
-        // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
-        // eventually make it into the MPIDE toolchain)
-        ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 / UART_BAUDRATE) - 1);
-        ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) | (1 << _UARTMODE_BRGH);
-        // Manually enable RTS/CTS hardware flow control using the UART2
-        // register. The chipKIT serial library doesn't have an interface to do
-        // this, and the alternative UART libraries provided by Microchip are a
-        // bit of a mess.
-        ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
-        debug("Done.");
+    if(device == NULL) {
+        debug("Can't initialize a NULL SerialDevice");
+        return;
     }
+
+    initializeSerialCommon(device);
+    device->controller = &Serial;
+    ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
+    // Override baud rate setup to allow baud rates 200000 (see
+    // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
+    // eventually make it into the MPIDE toolchain)
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 / UART_BAUDRATE) - 1);
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) | (1 << _UARTMODE_BRGH);
+    // Manually enable RTS/CTS hardware flow control using the UART2
+    // register. The chipKIT serial library doesn't have an interface to do
+    // this, and the alternative UART libraries provided by Microchip are a
+    // bit of a mess.
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
+
+    setGpioDirection(0, UART_ENABLED_PIN, GPIO_DIRECTION_INPUT);
+
+    debug("Done.");
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
@@ -84,4 +93,8 @@ void processSerialSendQueue(SerialDevice* device) {
         ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
                 byteCount);
     }
+}
+
+bool serialConnected(SerialDevice* device) {
+    return device != NULL && analogRead(UART_ENABLED_PIN) == GPIO_VALUE_HIGH;
 }

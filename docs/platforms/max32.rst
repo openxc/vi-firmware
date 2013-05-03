@@ -206,7 +206,9 @@ UART
 
 On the chipKIT, ``UART1A`` is used for OpenXC output at the 460800 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
-receiving device before data will be sent.
+receiving device before data will be sent. There are a few tricky things to
+watch out for with UART (i.e. Bluetooth) output on the chipKIT, so make sure to
+read this entire section.
 
 ``UART1A`` is also used by the USB-Serial connection, so in order to flash the
 PIC32, the Tx/Rx lines must be disconnected. Ideally we could leave that UART
@@ -218,17 +220,22 @@ interfaces when using flow control.
 - Pin 18 - ``U1ARTS``, connect this to the CTS line of the receiver.
 - Pin 19 - ``U1ACTS``, connect this to the RTS line of the receiver.
 
+UART data is sent only if pin 5 is pulled high. If you are using a Bluetooth
+module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_ from
+SparkFun, you need to hard-wire 5v into this pin to actually enabling UART.
+
 An additional item to consider when using UART: typically you will want to rig
 the chipKIT to be self-powered (either from an external power source or the
 vehicle) if you're going to use UART for adding Bluetooth support. There's not
 much point in being wireless if you still need power from USB.
 
-In that case, move the USB power jumper from the 5v input on the Network Shield
+In that case, move the power jumper from the 5v input on the Network Shield
 to A0 (analog input 0). Instead of using 5v to power the board, the firmware can
 use it to detect if USB is actually attached or not. The benefit of this is that
 if you connect USB, then disconnect it, we can detect that in the firmware and
 stop wasting time trying to send data over USB. This will dramatically increase
 the throughput over UART.
+
 
 Debug Logging
 -------------

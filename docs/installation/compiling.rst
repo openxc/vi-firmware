@@ -18,14 +18,12 @@ These options are passed as shell environment variables to the Makefile, e.g.
 
    $ DEBUG=1 make
 
-``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable debug
-   logging over :doc:`UART </output/uart>`.
+``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable
+      debug logging. See the :doc:`platform docs </platforms/platforms>` for
+      details on how to read this output.
 
 ``PLATFORM`` - Select the target :doc:`microcontroller platform </platforms/platforms>`
    (see the platform specific pages for valid options).
-
-``UART`` - By default, UART output of OpenXC vehicle data is disabled. Set this
-to ``1`` to enable :doc:`UART </output/uart>` output.
 
 ``ETHERNET`` - By default, TCP output of OpenXC vehicle data is disabled. Set
 this to ``1`` to enable TCP output on boards that have an Ethernet interface (only

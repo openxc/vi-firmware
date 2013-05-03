@@ -35,7 +35,7 @@ void sendMessage(Listener* listener, uint8_t* message, int messageSize) {
         droppedMessage(USB);
     }
 
-    if(listener->serial != NULL && !conditionalEnqueue(
+    if(serialConnected(listener->serial) && !conditionalEnqueue(
                 &listener->serial->sendQueue, message, messageSize)) {
         droppedMessage(UART);
     }
@@ -50,7 +50,7 @@ void processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     processUsbSendQueue(listener->usb);
-    if(listener->serial != NULL) {
+    if(serialConnected(listener->serial)) {
         processSerialSendQueue(listener->serial);
     }
 

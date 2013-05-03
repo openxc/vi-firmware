@@ -15,10 +15,6 @@ else
 SYMBOLS += NDEBUG
 endif
 
-ifdef UART
-SYMBOLS += __USE_UART__
-endif
-
 ifdef ETHERNET
 SYMBOLS += __USE_ETHERNET__
 endif

@@ -35,11 +35,7 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-#ifdef __USE_UART__
     &SERIAL_DEVICE,
-#else
-    NULL,
-#endif // __USE_UART__
 #ifdef __USE_ETHERNET__
     &ETHERNET_DEVICE
 #endif // __USE_ETHERNET__
@@ -50,7 +46,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(bluetoothConnected()) {
+    if(serialConnected(listener.serial)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);

@@ -5,10 +5,14 @@
 #include "listener.h"
 #include "buffers.h"
 #include "log.h"
+#include "gpio.h"
 
 // Only UART1 supports hardware flow control, so this has to be UART1
 #define UART1_DEVICE (LPC_UART_TypeDef*)LPC_UART1
 #define UART_BAUDRATE 230000
+
+#define UART_STATUS_PORT 0
+#define UART_STATUS_PIN 18
 
 #ifdef BLUEBOARD
 
@@ -215,23 +219,30 @@ void configureInterrupts() {
 }
 
 void initializeSerial(SerialDevice* device) {
-    if(device != NULL) {
-        initializeSerialCommon(device);
-
-        configurePins();
-        configureUart();
-        configureFifo();
-        configureFlowControl();
-        configureInterrupts();
-        CTS_STATE = ACTIVE;
-
-        // Configure P0.18 as an input, pulldown
-        LPC_PINCON->PINMODE1 |= (1 << 5);
-        // Ensure BT reset line is held high.
-        LPC_GPIO1->FIODIR |= (1 << 17);
-        LPC_GPIO1->FIOPIN |= (1 << 17);
-        debug("Done.");
+    if(device == NULL) {
+        debug("Can't initialize a NULL SerialDevice");
+        return;
     }
+
+    initializeSerialCommon(device);
+
+    configurePins();
+    configureUart();
+    configureFifo();
+    configureFlowControl();
+    configureInterrupts();
+    CTS_STATE = ACTIVE;
+
+    // Configure P0.18 as an input, pulldown
+    LPC_PINCON->PINMODE1 |= (1 << 5);
+    // Ensure BT reset line is held high.
+    LPC_GPIO1->FIODIR |= (1 << 17);
+    LPC_GPIO1->FIOPIN |= (1 << 17);
+
+    setGpioDirection(UART_STATUS_PORT, UART_STATUS_PIN,
+            GPIO_DIRECTION_INPUT);
+
+    debug("Done.");
 }
 
 void processSerialSendQueue(SerialDevice* device) {
@@ -240,3 +251,9 @@ void processSerialSendQueue(SerialDevice* device) {
         handleTransmitInterrupt();
     }
 }
+
+bool serialConnected(SerialDevice* device) {
+    return device != NULL &&
+            getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN) != GPIO_VALUE_LOW;
+}
+

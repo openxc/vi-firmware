@@ -15,7 +15,7 @@ These write messages are accepted via serial even if USB is connected.
 Digilent chipKIT Max32
 =============
 
-On the chipKIT, ``UART1A`` is used for OpenXC output at the 460800 baud rate.
+On the chipKIT, ``UART1A`` is used for OpenXC output at the 230800 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
 receiving device before data will be sent.
 

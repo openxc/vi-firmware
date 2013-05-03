@@ -26,7 +26,7 @@
 #include "HardwareSerial.h"
 #include "WProgram.h"
 
-#define UART_BAUDRATE 460800
+#define UART_BAUDRATE 230000
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
 

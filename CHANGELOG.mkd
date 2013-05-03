@@ -5,6 +5,8 @@
 * BREAKING CHANGE: Add initializeSignals() function to signals.h, must be
   implemented by vehicle platforms. generate_signals.py supports calling
   multiple initialization functions inside this method.
+* BREAKING CHANGE (for hardware): chipKIT uses same baud as LPC17xx for UART,
+  RN-42 modules will need to be updated.
 
 ## v3.2
 

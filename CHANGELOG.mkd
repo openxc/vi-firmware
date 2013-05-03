@@ -1,6 +1,10 @@
 # OpenXC CAN Translator Changelog
 
-## v3.3-dev
+## v4.0-dev
+
+* BREAKING CHANGE: Remove UART compile-time flag in favor of setting UART status
+  via an external pin. This allows you to dynamically control sending over UART
+  when a Bluetooth module actually is attached and has a connected host.
 
 ## v3.2
 

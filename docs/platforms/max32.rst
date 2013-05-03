@@ -220,9 +220,10 @@ interfaces when using flow control.
 - Pin 18 - ``U1ARTS``, connect this to the CTS line of the receiver.
 - Pin 19 - ``U1ACTS``, connect this to the RTS line of the receiver.
 
-UART data is sent only if pin 5 is pulled high. If you are using a Bluetooth
-module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_ from
-SparkFun, you need to hard-wire 5v into this pin to actually enabling UART.
+UART data is sent only if pin A1 is pulled low (to ground). If you are using a
+Bluetooth module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_
+from SparkFun, you need to hard-wire 5v into this pin to actually enabling UART.
+To disable UART, pull A1 high or leave it floating.
 
 An additional item to consider when using UART: typically you will want to rig
 the chipKIT to be self-powered (either from an external power source or the

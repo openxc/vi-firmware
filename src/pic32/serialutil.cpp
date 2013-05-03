@@ -27,7 +27,7 @@
 #include "gpio.h"
 #include "WProgram.h"
 
-#define UART_ENABLED_PIN 5
+#define UART_ENABLED_PIN A1
 #define UART_BAUDRATE 460800
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
@@ -96,5 +96,8 @@ void processSerialSendQueue(SerialDevice* device) {
 }
 
 bool serialConnected(SerialDevice* device) {
-    return device != NULL && analogRead(UART_ENABLED_PIN) == GPIO_VALUE_HIGH;
+    // Use analogRead instead of digitalRead so we don't have to require
+    // everyone *not* using UART to add an external pull-down resistor. When the
+    // analog input is pulled down to GND, UART will be enabled.
+    return device != NULL && analogRead(UART_ENABLED_PIN) < 100;
 }

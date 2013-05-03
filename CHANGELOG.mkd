@@ -2,6 +2,10 @@
 
 ## v4.0-dev
 
+* BREAKING CHANGE: Add initializeSignals() function to signals.h, must be
+  implemented by vehicle platforms. generate_signals.py supports calling
+  multiple initialization functions inside this method.
+
 ## v3.2
 
 * Support building to run under a USB bootloader on the LPC17xx.

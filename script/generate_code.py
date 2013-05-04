@@ -168,7 +168,6 @@ class Signal(object):
 
     def validate(self):
         if self.position == None or self.length == None:
-            from pdb import set_trace; set_trace(); # TODO
             sys.stderr.write("ERROR: %s (generic name: %s) is incomplete\n" % (
                 self.name, self.generic_name))
             return False

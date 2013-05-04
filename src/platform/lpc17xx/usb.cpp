@@ -35,6 +35,8 @@ void configureEndpoints() {
             ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
 }
 
+extern "C" {
+
 void EVENT_USB_Device_Disconnect() {
     debug("USB no longer detected - marking unconfigured");
     USB_DEVICE.configured = false;
@@ -52,6 +54,8 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
     debug("USB configured.");
     USB_DEVICE.configured = true;
+}
+
 }
 
 /* Private: Flush any queued data out to the USB host. */

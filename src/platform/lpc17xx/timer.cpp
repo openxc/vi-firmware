@@ -7,8 +7,12 @@
 
 unsigned int SYSTEM_TICK_COUNT;
 
+extern "C" {
+
 void SysTick_Handler() {
     ++SYSTEM_TICK_COUNT;
+}
+
 }
 
 void openxc::util::time::delayMs(int delayInMs) {

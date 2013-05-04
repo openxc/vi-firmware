@@ -124,6 +124,8 @@ void handleTransmitInterrupt() {
     }
 }
 
+extern "C" {
+
 void UART1_IRQHandler() {
     uint32_t interruptSource = UART_GetIntId(UART1_DEVICE)
         & UART_IIR_INTID_MASK;
@@ -153,6 +155,8 @@ void UART1_IRQHandler() {
             handleTransmitInterrupt();
             break;
     }
+}
+
 }
 
 void openxc::interface::uart::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {

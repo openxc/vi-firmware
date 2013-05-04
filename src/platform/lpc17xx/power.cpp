@@ -94,14 +94,6 @@ void handleWake() {
     NVIC_SystemReset();
 }
 
-void CANActivity_IRQHandler(void) {
-    handleWake();
-}
-
-void EINT2_IRQHandler(void) {
-    handleWake();
-}
-
 void openxc::power::enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
@@ -116,4 +108,16 @@ void openxc::power::enterLowPowerMode() {
     LPC_SC->PCON |= (1 << 2);
 
     CLKPWR_DeepSleep();
+}
+
+extern "C" {
+
+void CANActivity_IRQHandler(void) {
+    handleWake();
+}
+
+void EINT2_IRQHandler(void) {
+    handleWake();
+}
+
 }

@@ -1,17 +1,17 @@
 define hook-step
-    mon cortex_m3 maskisr on
+    mon cortex_m maskisr on
 end
 
 define hookpost-step
-    mon cortex_m3 maskisr off
+    mon cortex_m maskisr off
 end
 
 define hook-next
-    mon cortex_m3 maskisr on
+    mon cortex_m maskisr on
 end
 
 define hookpost-next
-    mon cortex_m3 maskisr off
+    mon cortex_m maskisr off
 end
 
 set remote hardware-breakpoint-limit 6

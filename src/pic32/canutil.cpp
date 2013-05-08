@@ -102,20 +102,20 @@ void initializeCan(CanBus* bus) {
     // enable the bus acvitity wake-up event (to enable wake from sleep)
     CAN_CONTROLLER(bus)->enableModuleEvent(CAN::BUS_ACTIVITY_WAKEUP_EVENT, true);
     CAN_CONTROLLER(bus)->enableFeature(CAN::WAKEUP_BUS_FILTER, true);
-    
+
     // switch ON off-chip CAN line drivers (if necessary)
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
     value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
     setGpioDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
     setGpioValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
     #endif
-    
+
     // move CAN module to OPERATIONAL state (go on bus)
     CAN_CONTROLLER(bus)->setOperatingMode(CAN::NORMAL_OPERATION);
     while(CAN_CONTROLLER(bus)->getOperatingMode() != CAN::NORMAL_OPERATION);
 
     CAN_CONTROLLER(bus)->attachInterrupt(bus->interruptHandler);
-    
+
     debug("Done.");
 }
 
@@ -126,7 +126,7 @@ void setCanOpModeDisable(CanBus* bus) {
     // set the operational mode
     CAN_CONTROLLER(bus)->setOperatingMode(CAN::DISABLE);
     while(CAN_CONTROLLER(bus)->getOperatingMode() != CAN::DISABLE);
-    
+
     // disable off-chip line driver
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
     value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;

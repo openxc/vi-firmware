@@ -131,7 +131,7 @@ void deinitializeUsb(UsbDevice* usbDevice) {
 
     // disable USB (notifies stack we are disabling)
     USBModuleDisable();
-    
+
     // power off the USB peripheral
     // TODO could not find a ready-made function or macro
     // in the USB library to actually turn off the module.

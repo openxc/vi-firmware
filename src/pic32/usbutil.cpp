@@ -129,16 +129,16 @@ void initializeUsb(UsbDevice* usbDevice) {
 
 void deinitializeUsb(UsbDevice* usbDevice) {
 
-	// disable USB (notifies stack we are disabling)
-	USBModuleDisable();
-	
-	// power off the USB peripheral
-	// TODO could not find a ready-made function or macro
-	// in the USB library to actually turn off the module.
-	// USBModuleDisable() is close to what we want, but it
-	// sets the ON bit to 1 for some reason.
-	// so, easy solution is just go right to the control register, for now
-	U1PWRCCLR = (1 << 0);
+    // disable USB (notifies stack we are disabling)
+    USBModuleDisable();
+    
+    // power off the USB peripheral
+    // TODO could not find a ready-made function or macro
+    // in the USB library to actually turn off the module.
+    // USBModuleDisable() is close to what we want, but it
+    // sets the ON bit to 1 for some reason.
+    // so, easy solution is just go right to the control register, for now
+    U1PWRCCLR = (1 << 0);
 
 }
 

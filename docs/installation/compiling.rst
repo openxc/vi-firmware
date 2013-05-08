@@ -18,17 +18,15 @@ These options are passed as shell environment variables to the Makefile, e.g.
 
    $ DEBUG=1 make
 
-``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable debug
-   logging over :doc:`UART </output/uart>`.
+``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable
+      debug logging. See the :doc:`platform docs </platforms/platforms>` for
+      details on how to read this output.
 
 ``PLATFORM`` - Select the target :doc:`microcontroller platform </platforms/platforms>`
    (see the platform specific pages for valid options).
 
-``UART`` - By default, UART output of OpenXC vehicle data is disabled. Set this
-to ``1`` to enable :doc:`UART </output/uart>` output.
-
-``ETHERNET`` - By default, TCP output of OpenXC vehicle data is disabled. Set
-this to ``1`` to enable TCP output on boards that have an Ethernet interface (only
+``NETWORK`` - By default, TCP output of OpenXC vehicle data is disabled. Set
+this to ``1`` to enable TCP output on boards that have an Network interface (only
 the chipKIT Max32 right now).
 
 ``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
@@ -52,6 +50,6 @@ If the compilation didn't work:
 -  Did you download the .zip file of the ``cantranslator`` project from
    GitHub? Use git to clone the repository instead - the library dependencies
    are stored as git submodules and do not work when using the zip file.
--  If you get a lot of errors about ``undefined refernece to getSignals()'`` and
+-  If you get a lot of errors about ``undefined reference to getSignals()'`` and
    other functions, you need to make sure you defined your CAN messages - read
    through :doc:`/definitions/definitions` before trying to compile.

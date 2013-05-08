@@ -15,12 +15,8 @@ else
 SYMBOLS += NDEBUG
 endif
 
-ifdef UART
-SYMBOLS += __USE_UART__
-endif
-
-ifdef ETHERNET
-SYMBOLS += __USE_ETHERNET__
+ifdef NETWORK
+SYMBOLS += __USE_NETWORK__
 endif
 
 ifndef BOOTLOADER
@@ -43,12 +39,23 @@ ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
+CROSSPLATFORM_C_SRCS = $(wildcard *.c)
+CROSSPLATFORM_C_SRCS += $(wildcard can/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard interface/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard util/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
+CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
+
 ifeq ($(PLATFORM), CHIPKIT)
-include pic32/pic32.mk
+include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FLEETCARMA)
-include pic32/pic32.mk
+include platform/pic32/pic32.mk
 else
-include lpc17xx/lpc17xx.mk
+include platform/lpc17xx/lpc17xx.mk
 endif
 
 include tests/tests.mk

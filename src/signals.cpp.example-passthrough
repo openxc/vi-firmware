@@ -6,14 +6,14 @@
 */
 
 #ifndef CAN_EMULATOR
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
 #include "handlers.h"
 #include "shared_handlers.h"
 
-extern Listener listener;
+using openxc::can::read::passthroughCanMessage;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
@@ -41,6 +41,8 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
     },
 };
 
+void openxc::signals::initializeSignals() { }
+
 const int SIGNAL_COUNT = 0;
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
 };
@@ -52,41 +54,41 @@ const int COMMAND_COUNT = 0;
 CanCommand COMMANDS[COMMAND_COUNT] = {
 };
 
-CanCommand* getCommands() {
+CanCommand* openxc::signals::getCommands() {
     return COMMANDS;
 }
 
-int getCommandCount() {
+int openxc::signals::getCommandCount() {
     return COMMAND_COUNT;
 }
 
-CanSignal* getSignals() {
+CanSignal* openxc::signals::getSignals() {
     return SIGNALS;
 }
 
-int getSignalCount() {
+int openxc::signals::getSignalCount() {
     return SIGNAL_COUNT;
 }
 
-CanBus* getCanBuses() {
+CanBus* openxc::signals::getCanBuses() {
     return CAN_BUSES;
 }
 
-int getCanBusCount() {
+int openxc::signals::getCanBusCount() {
     return CAN_BUS_COUNT;
 }
 
-const char* getMessageSet() {
+const char* openxc::signals::getMessageSet() {
     return "passthrough-2012";
 }
 
-void decodeCanMessage(int id, uint64_t data) {
-    passthroughCanMessage(&listener, id, data);
+void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {
+    passthroughCanMessage(listener, id, data);
 }
 
 CanFilter FILTERS[0];
 
-CanFilter* initializeFilters(uint64_t address, int* count) {
+CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
     *count = 0;
     return FILTERS;
 }

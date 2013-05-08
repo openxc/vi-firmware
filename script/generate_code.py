@@ -167,7 +167,7 @@ class Signal(object):
                 "max_value": self.max_value}
 
     def validate(self):
-        if self.position == None:
+        if self.position == None or self.length == None:
             sys.stderr.write("ERROR: %s (generic name: %s) is incomplete\n" % (
                 self.name, self.generic_name))
             return False
@@ -219,21 +219,31 @@ class Parser(object):
         self.signal_count = 0
         self.message_count = 0
         self.command_count = 0
+        self.initializers = []
 
     def parse(self):
         raise NotImplementedError
 
     def print_header(self):
         print("#ifndef CAN_EMULATOR")
-        print("#include \"canread.h\"")
-        print("#include \"canwrite.h\"")
+        print("#include \"can/canread.h\"")
+        print("#include \"can/canwrite.h\"")
         print("#include \"signals.h\"")
-        print("#include \"log.h\"")
+        print("#include \"util/log.h\"")
         if getattr(self, 'uses_custom_handlers', None):
             print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
         print()
-        print("extern Listener listener;")
+        print("using openxc::interface::Listener;")
+        print("using openxc::can::read::translateCanSignal;")
+        print("using openxc::can::read::booleanHandler;")
+        print("using openxc::can::read::stateHandler;")
+        print("using openxc::can::read::ignoreHandler;")
+        print("using openxc::can::write::booleanWriter;")
+        print("using openxc::can::write::stateWriter;")
+        print("using openxc::can::write::numberWriter;")
+        if getattr(self, 'uses_custom_handlers', None):
+            print("using namespace openxc::signals::handlers;")
         print()
         print("#ifdef __LPC17XX__")
         print("#define can1 LPC_CAN1")
@@ -332,6 +342,11 @@ class Parser(object):
         print("};")
         print()
 
+        print("void openxc::signals::initializeSignals() {")
+        for initializer in self.initializers:
+            print("    %s();" % initializer);
+        print("}")
+
         print("const int COMMAND_COUNT = %d;" % self.command_count)
         print("CanCommand COMMANDS[COMMAND_COUNT] = {")
 
@@ -342,42 +357,42 @@ class Parser(object):
         print()
 
         # TODO store all of this in a separate, committed .cpp file
-        print("CanCommand* getCommands() {")
+        print("CanCommand* openxc::signals::getCommands() {")
         print("    return COMMANDS;")
         print("}")
         print()
 
-        print("int getCommandCount() {")
+        print("int openxc::signals::getCommandCount() {")
         print("    return COMMAND_COUNT;")
         print("}")
         print()
 
-        print("CanSignal* getSignals() {")
+        print("CanSignal* openxc::signals::getSignals() {")
         print("    return SIGNALS;")
         print("}")
         print()
 
-        print("int getSignalCount() {")
+        print("int openxc::signals::getSignalCount() {")
         print("    return SIGNAL_COUNT;")
         print("}")
         print()
 
-        print("CanBus* getCanBuses() {")
+        print("CanBus* openxc::signals::getCanBuses() {")
         print("    return CAN_BUSES;")
         print("}")
         print()
 
-        print("int getCanBusCount() {")
+        print("int openxc::signals::getCanBusCount() {")
         print("    return CAN_BUS_COUNT;")
         print("}")
         print()
 
-        print("const char* getMessageSet() {")
+        print("const char* openxc::signals::getMessageSet() {")
         print("    return \"%s\";" % self.name)
         print("}")
         print()
 
-        print("void decodeCanMessage(CanBus* bus, int id, uint64_t data) {")
+        print("void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {")
         print("    switch(bus->address) {")
         for bus_address, bus in self.buses.items():
             print("    case %s:" % bus_address)
@@ -386,15 +401,15 @@ class Parser(object):
                 print("        case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
                     print(("            %s(id, data, SIGNALS, " %
-                        message.handler + "SIGNAL_COUNT, &listener);"))
+                        message.handler + "SIGNAL_COUNT, listener);"))
                 for signal in (s for s in message.signals):
                     if signal.handler:
-                        print(("            translateCanSignal(&listener, "
+                        print(("            translateCanSignal(listener, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name)))
                     else:
-                        print(("            translateCanSignal(&listener, "
+                        print(("            translateCanSignal(listener, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))
@@ -404,7 +419,7 @@ class Parser(object):
         print("    }")
 
         if self._message_count() == 0:
-            print("    passthroughCanMessage(&listener, id, data);")
+            print("    openxc::can::read::passthroughCanMessage(listener, id, data);")
 
         print("}\n")
 
@@ -424,7 +439,7 @@ class Parser(object):
         print("CanFilter FILTERS[%d];" % self._message_count())
 
         print()
-        print("CanFilter* initializeFilters(uint64_t address, int* count) {")
+        print("CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {")
         print("    switch(address) {")
         for bus_address, bus in self.buses.items():
             print("    case %s:" % bus_address)
@@ -460,8 +475,9 @@ class JsonParser(Parser):
                             (filename, e))
                 merged_dict = merge(merged_dict, data)
 
+        self.initializers = merged_dict.get("initializers", [])
         self.commands = []
-        for bus_address, bus_data in merged_dict.items():
+        for bus_address, bus_data in merged_dict.get("buses", {}).items():
             speed = bus_data.get('speed', None)
             if speed is None:
                 fatal_error("Bus %s is missing the 'speed' attribute" %

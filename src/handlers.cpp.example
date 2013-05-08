@@ -1,5 +1,7 @@
 #include "handlers.h"
-#include "canwrite.h"
+#include "can/canwrite.h"
+
+using openxc::can::read::sendNumericalMessage;
 
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
@@ -10,3 +12,7 @@ float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     return value * -1;
 }
+
+void initializeMyStuff() { }
+
+void initializeOtherStuff() { }

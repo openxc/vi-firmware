@@ -1,11 +1,12 @@
 #ifdef CAN_EMULATOR
 
-#include "usbutil.h"
-#include "canread.h"
-#include "serialutil.h"
-#include "ethernetutil.h"
-#include "log.h"
-#include "timer.h"
+#include "interface/usb.h"
+#include "can/canread.h"
+#include "interface/uart.h"
+#include "interface/network.h"
+#include "util/log.h"
+#include "util/timer.h"
+#include "signals.h"
 #include <stdlib.h>
 
 #define NUMERICAL_SIGNAL_COUNT 11
@@ -13,6 +14,11 @@
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
 #define EMULATOR_SEND_FREQUENCY 200
+
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::sendBooleanMessage;
+using openxc::can::read::sendStringMessage;
+using openxc::can::read::sendEventedBooleanMessage;
 
 int emulatorRateLimiter = 0;
 
@@ -99,7 +105,7 @@ void loop() {
 
 void reset() { }
 
-const char* getMessageSet() {
+const char* openxc::signals::getMessageSet() {
     return "emulator";
 }
 

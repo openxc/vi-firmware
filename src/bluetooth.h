@@ -1,17 +1,8 @@
 #ifndef _BLUETOOTH_H_
 #define _BLUETOOTH_H_
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Public: Check the connection status of a Bluetooth adapter.
- *
- * Returns true if Bluetooth is connected to master device.
- */
-bool bluetoothConnected();
+namespace openxc {
+namespace bluetooth {
 
 /* Public: Enable or disable a Bluetooth module.
  *
@@ -25,9 +16,7 @@ void initializeBluetooth();
 /* Public: Shut down the bluetooth peripheral (save power). */
 void deinitializeBluetooth();
 
-
-#ifdef __cplusplus
-}
-#endif
+} // namespace bluetooth
+} // namespace openxc
 
 #endif // _BLUETOOTH_H_

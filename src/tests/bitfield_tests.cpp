@@ -1,6 +1,10 @@
 #include <check.h>
 #include <stdint.h>
-#include "bitfield.h"
+#include "util/bitfield.h"
+
+using openxc::util::bitfield::getBitField;
+using openxc::util::bitfield::setBitField;
+using openxc::util::bitfield::nthByte;
 
 START_TEST (test_one_bit_not_swapped)
 {

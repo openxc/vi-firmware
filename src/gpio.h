@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace openxc {
+namespace gpio {
 
 typedef enum {
     GPIO_DIRECTION_INPUT = 0,
@@ -21,8 +20,7 @@ void setGpioDirection(uint32_t port, uint32_t pin, GpioDirection direction);
 void setGpioValue(uint32_t port, uint32_t pin, GpioValue value);
 GpioValue getGpioValue(uint32_t port, uint32_t pin);
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace gpio
+} // namespace openxc
 
 #endif // __GPIO_H__

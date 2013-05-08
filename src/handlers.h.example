@@ -1,12 +1,18 @@
 #ifndef _HANDLERS_H_
 #define _HANDLERS_H_
 
-#include "canread.h"
+#include "can/canread.h"
+
+using openxc::can::CanSignal;
 
 float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
 
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener);
+
+void initializeMyStuff();
+
+void initializeOtherStuff();
 
 #endif // _HANDLERS_H_

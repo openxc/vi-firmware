@@ -1,15 +1,15 @@
 #include <stdlib.h>
-#include "serialutil.h"
-#include "usbutil.h"
-#include "ethernetutil.h"
-#include "listener.h"
+#include "interface/uart.h"
+#include "interface/usb.h"
+#include "interface/network.h"
+#include "interface/pipeline.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
 #include "lights.h"
-#include "timer.h"
+#include "util/timer.h"
 #include "bluetooth.h"
 #include "power.h"
-#include "platform.h"
+#include "platform/platform.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -19,14 +19,29 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
+using openxc::interface::uart::SerialDevice;
+using openxc::interface::uart::serialConnected;
+using openxc::interface::usb::sendControlMessage;
+using openxc::bluetooth::initializeBluetooth;
+using openxc::lights::LIGHT_A;
+using openxc::lights::LIGHT_B;
+using openxc::lights::COLORS;
+using openxc::lights::initializeLights;
+using openxc::platform::initializePlatform;
+using openxc::power::initializePower;
+using openxc::power::updatePower;
+using openxc::util::time::initializeTimers;
+using openxc::util::log::initializeLogging;
+using openxc::signals::getMessageSet;
+
 extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "3.3-dev";
+const char* VERSION = "4.0-dev";
 
 SerialDevice SERIAL_DEVICE;
-EthernetDevice ETHERNET_DEVICE;
+NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
@@ -35,14 +50,10 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-#ifdef __USE_UART__
     &SERIAL_DEVICE,
-#else
-    NULL,
-#endif // __USE_UART__
-#ifdef __USE_ETHERNET__
-    &ETHERNET_DEVICE
-#endif // __USE_ETHERNET__
+#ifdef __USE_NETWORK__
+    &NETWORK_DEVICE
+#endif // __USE_NETWORK__
 };
 
 /* Public: Update the color and status of a board's light that shows the output
@@ -50,7 +61,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(bluetoothConnected()) {
+    if(serialConnected(listener.serial)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);
@@ -66,7 +77,7 @@ int main(void) {
     initializePower();
     initializeUsb(listener.usb);
     initializeSerial(listener.serial);
-    initializeEthernet(listener.ethernet);
+    initializeNetwork(listener.network);
     initializeLights();
     initializeBluetooth();
 
@@ -82,10 +93,6 @@ int main(void) {
 
     return 0;
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Private: Handle an incoming USB control request.
  *
@@ -119,7 +126,3 @@ bool handleControlRequest(uint8_t request) {
         return false;
     }
 }
-
-#ifdef __cplusplus
-}
-#endif

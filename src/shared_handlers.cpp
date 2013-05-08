@@ -1,13 +1,37 @@
 #include "shared_handlers.h"
-#include "canwrite.h"
-#include "log.h"
+#include "can/canwrite.h"
+#include "util/log.h"
 
 float rotationsSinceRestart = 0;
 float rollingOdometerSinceRestart = 0;
 float totalOdometerAtRestart = 0;
 float fuelConsumedSinceRestartLiters = 0;
 
-void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
+using openxc::can::read::decodeCanSignal;
+using openxc::can::read::booleanHandler;
+using openxc::can::read::stateHandler;
+using openxc::can::read::sendEventedBooleanMessage;
+using openxc::can::read::sendEventedFloatMessage;
+using openxc::can::read::sendEventedStringMessage;
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::preTranslate;
+using openxc::can::read::postTranslate;
+using openxc::can::write::booleanWriter;
+using openxc::can::write::sendCanSignal;
+
+const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
+const float openxc::signals::handlers::LITERS_PER_UL = .000001;
+const float openxc::signals::handlers::KM_PER_MILE = 1.609344;
+const float openxc::signals::handlers::KM_PER_M = .001;
+const char* openxc::signals::handlers::DOOR_STATUS_GENERIC_NAME = "door_status";
+const char* openxc::signals::handlers::BUTTON_EVENT_GENERIC_NAME = "button_event";
+const char* openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME = "tire_pressure";
+
+#ifndef __PIC32__
+const float openxc::signals::handlers::PI = 3.14159265;
+#endif
+
+void openxc::signals::handlers::sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {
     if(signal == NULL) {
         debug("Specific door signal for ID %s is NULL, vehicle may not support",
@@ -29,7 +53,7 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
     signal->lastValue = rawAjarStatus;
 }
 
-void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
+void openxc::signals::handlers::handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
     sendDoorStatus("driver", data,
             lookupSignal("driver_door", signals, signalCount),
@@ -45,7 +69,7 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
             signals, signalCount, listener);
 }
 
-void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
+void openxc::signals::handlers::sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
         CanSignal* signals, int signalCount, Listener* listener) {
     if(signal == NULL) {
         debug("Specific tire signal for ID %s is NULL, vehicle may not support",
@@ -63,7 +87,7 @@ void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
     postTranslate(signal, pressure);
 }
 
-void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+void openxc::signals::handlers::handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
     sendTirePressure("front_left", data,
             lookupSignal("tire_pressure_front_left", signals, signalCount),
@@ -103,24 +127,24 @@ float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
         (factor * rollingOdometerSinceRestart);
 }
 
-float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send, 1);
 }
 
-float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
             KM_PER_MILE);
 }
 
-float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
             KM_PER_M);
 }
 
-bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
+bool openxc::signals::handlers::handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     if(value != 0) {
         return true;
@@ -128,7 +152,7 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
     return false;
 }
 
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+float openxc::signals::handlers::handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send, float multiplier) {
     if(value < signal->lastValue) {
         value = signal->maxValue - signal->lastValue + value;
@@ -139,24 +163,24 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
     return fuelConsumedSinceRestartLiters;
 }
 
-float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);
 }
 
-float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_UL);
 }
 
-float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
+float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
         float value, bool* send) {
     return value * -1;
 }
 
-void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
+void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
     float latitudeDegrees = decodeCanSignal(
             lookupSignal("latitude_degrees", signals, signalCount), data);
@@ -189,12 +213,12 @@ void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
     sendNumericalMessage("longitude", longitudeDegrees, listener);
 }
 
-bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
+bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send) {
     return value == 2 || value == 3;
 }
 
-float handleUnsignedSteeringWheelAngle(CanSignal* signal,
+float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal* signal,
         CanSignal* signals, int signalCount, float value, bool* send) {
     CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
             signals, signalCount);
@@ -211,7 +235,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
     return value;
 }
 
-float handleMultisizeWheelRotationCount(CanSignal* signal, CanSignal* signals,
+float openxc::signals::handlers::handleMultisizeWheelRotationCount(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send, float wheelRadius) {
     if(value < signal->lastValue) {
         rotationsSinceRestart += signal->maxValue - signal->lastValue + value;
@@ -222,7 +246,7 @@ float handleMultisizeWheelRotationCount(CanSignal* signal, CanSignal* signals,
             wheelRadius * rotationsSinceRestart);
 }
 
-void handleButtonEventMessage(int messageId, uint64_t data,
+void openxc::signals::handlers::handleButtonEventMessage(int messageId, uint64_t data,
         CanSignal* signals, int signalCount, Listener* listener) {
     CanSignal* buttonTypeSignal = lookupSignal("button_type", signals,
             signalCount);
@@ -258,7 +282,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
             buttonState, listener);
 }
 
-bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
+bool openxc::signals::handlers::handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         CanSignal* signals, int signalCount) {
     const char* direction = value->valuestring;
     CanSignal* signal = NULL;
@@ -308,7 +332,7 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
     }
 }
 
-void handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
+void openxc::signals::handlers::handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Listener* listener) {
     sendOccupancyStatus("driver", data,
             lookupSignal("driver_occupancy_lower", signals, signalCount),

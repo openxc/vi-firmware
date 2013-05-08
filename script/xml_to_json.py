@@ -84,7 +84,7 @@ def main(argv=None):
         tree = parse(arguments.xml)
         bus_address, bus = list(parser.buses.items())[0]
         n = Network(tree, bus_address, bus['messages'])
-        data = n.to_dict()
+        data = {'buses': n.to_dict()}
 
     with open(arguments.out, 'w') as output_file:
         json.dump(data, output_file, indent=4)

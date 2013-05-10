@@ -159,7 +159,8 @@ bool sendCanSignal(CanSignal* signal, cJSON* value,
 void processCanWriteQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
-        debugNoNewline("Sending CAN message id = 0x%03x, data = 0x", message.id);
+        debugNoNewline("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
+                bus->address, message.id);
         for(int i = 0; i < 8; i++) {
             debugNoNewline("%02x ", ((uint8_t*)&message.data)[i]);
         }

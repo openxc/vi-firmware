@@ -107,13 +107,19 @@ class Message(object):
                 (bus_address, VALID_BUS_ADDRESSES[0], VALID_BUS_ADDRESSES[1]))
 
 
+def all_messages(buses):
+    for bus in list(buses.values()):
+        for message in bus['messages']:
+            yield message
+
+
 class Signal(object):
-    def __init__(self, messages=None, message=None, name=None,
+    def __init__(self, buses=None, message=None, name=None,
             generic_name=None, position=None, length=None, factor=1, offset=0,
             min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=0, send_same=True,
             writable=False, write_handler=None):
-        self.messages = messages
+        self.buses = buses
         self.message = message
         self.name = name
         self.generic_name = generic_name
@@ -180,15 +186,15 @@ class Signal(object):
         return(end - l + 1)
 
     @staticmethod
-    def _lookupMessageIndex(messages, message):
-        for i, candidate in enumerate(messages):
+    def _lookupMessageIndex(buses, message):
+        for i, candidate in enumerate(all_messages(buses)):
             if candidate.id == message.id:
                 return i
 
     def __str__(self):
         result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self._lookupMessageIndex(self.messages, self.message),
+                self._lookupMessageIndex(self.buses, self.message),
                 self.generic_name, self.position, self.length, self.factor,
                 self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
@@ -250,14 +256,13 @@ class Parser(object):
 
     def validate_messages(self):
         valid = True
-        for bus in list(self.buses.values()):
-            for message in bus['messages']:
-                if message.handler is not None:
+        for message in all_messages(self.buses):
+            if message.handler is not None:
+                self.uses_custom_handlers = True
+            for signal in message.signals:
+                valid = valid and signal.validate()
+                if signal.handler is not None:
                     self.uses_custom_handlers = True
-                for signal in message.signals:
-                    valid = valid and signal.validate()
-                    if signal.handler is not None:
-                        self.uses_custom_handlers = True
         return valid
 
     def validate_name(self):
@@ -291,12 +296,9 @@ class Parser(object):
         print("const int MESSAGE_COUNT = %d;" % self.message_count)
         print("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
 
-        i = 1
-        for bus in list(self.buses.values()):
-            for message in bus['messages']:
-                message.array_index = i - 1
-                print("    %s" % message)
-                i += 1
+        for i, message in enumerate(all_messages(self.buses)):
+            message.array_index = i
+            print("    %s" % message)
         print("};")
         print()
 
@@ -305,30 +307,28 @@ class Parser(object):
         print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12)
 
         states_index = 0
-        for bus in list(self.buses.values()):
-            for message in bus['messages']:
-                for signal in message.signals:
-                    if len(signal.states) > 0:
-                        print("    {", end=' ')
-                        for state in signal.states:
-                            print("%s," % state, end=' ')
-                        print("},")
-                        signal.states_index = states_index
-                        states_index += 1
+        for message in all_messages(self.buses):
+            for signal in message.signals:
+                if len(signal.states) > 0:
+                    print("    {", end=' ')
+                    for state in signal.states:
+                        print("%s," % state, end=' ')
+                    print("},")
+                    signal.states_index = states_index
+                    states_index += 1
         print("};")
         print()
 
         print("CanSignal SIGNALS[SIGNAL_COUNT] = {")
 
         i = 1
-        for bus in list(self.buses.values()):
-            for message in bus['messages']:
-                message.signals = sorted(message.signals,
-                        key=operator.attrgetter('generic_name'))
-                for signal in message.signals:
-                    signal.array_index = i - 1
-                    print("    %s" % signal)
-                    i += 1
+        for message in all_messages(self.buses):
+            message.signals = sorted(message.signals,
+                    key=operator.attrgetter('generic_name'))
+            for signal in message.signals:
+                signal.array_index = i - 1
+                print("    %s" % signal)
+                i += 1
         print("};")
         print()
 
@@ -414,7 +414,7 @@ class Parser(object):
         print("#endif // CAN_EMULATOR")
 
     def _message_count(self):
-        return sum((len(bus['messages']) for bus in list(self.buses.values())))
+        return len(list(all_messages(self.buses)))
 
     def print_filters(self):
         # These arrays can't be initialized when we create the variables or else
@@ -488,7 +488,7 @@ class JsonParser(Parser):
                         for raw_match in raw_matches:
                             states.append(SignalState(raw_match, name))
                     message.signals.append(Signal(
-                            self.buses[bus_address]['messages'],
+                            self.buses,
                             message,
                             signal_name,
                             signal.get('generic_name', None),

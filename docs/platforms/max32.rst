@@ -204,7 +204,7 @@ re-programming.
 UART
 ----
 
-On the chipKIT, ``UART1A`` is used for OpenXC output at the 460800 baud rate.
+On the chipKIT, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
 receiving device before data will be sent. There are a few tricky things to
 watch out for with UART (i.e. Bluetooth) output on the chipKIT, so make sure to

@@ -1,12 +1,12 @@
 #include "interface/usb.h"
+#include <stdio.h>
 #include "util/log.h"
 #include "util/bytebuffer.h"
-#include <stdio.h>
-#include "lpc17xx_pinsel.h"
+#include "gpio.h"
 #include "usb_config.h"
 
 #include "LPC17xx.h"
-#include "lpc17xx_gpio.h"
+#include "lpc17xx_pinsel.h"
 
 extern "C" {
 #include "bsp.h"
@@ -22,8 +22,15 @@ extern "C" {
 
 #define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
 
+#define USB_CONNECT_PORT 2
+#define USB_CONNECT_PIN 9
+
 using openxc::interface::usb::UsbDevice;
 using openxc::util::bytebuffer::processQueue;
+using openxc::gpio::getGpioValue;
+using openxc::gpio::setGpioValue;
+using openxc::gpio::GPIO_VALUE_HIGH;
+using openxc::gpio::GPIO_VALUE_LOW;
 
 extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
@@ -94,7 +101,7 @@ static void sendToHost(UsbDevice* usbDevice) {
  * Returns true if VBUS is high.
  */
 bool vbusDetected() {
-    return (GPIO_ReadValue(VBUS_PORT) & (1 << VBUS_PIN)) != 0;
+    return getGpioValue(VBUS_PORT, VBUS_PIN) != GPIO_VALUE_LOW;
 }
 
 /* Private: Detect if a USB host is actually attached, regardless of VBUS.
@@ -108,7 +115,7 @@ bool vbusDetected() {
 bool usbHostDetected() {
     static int debounce = 0;
 
-    if((GPIO_ReadValue(USB_DM_PORT) & (1 << USB_DM_PIN)) == 0) {
+    if(getGpioValue(USB_DM_PORT, USB_DM_PIN) == GPIO_VALUE_LOW) {
         ++debounce;
     } else {
         debounce = 0;
@@ -187,4 +194,7 @@ void openxc::interface::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 
-void openxc::interface::usb::deinitializeUsb(UsbDevice* usbDevice) { }
+void openxc::interface::usb::deinitializeUsb(UsbDevice* usbDevice) {
+    // Turn off USB connection status LED
+    setGpioValue(USB_CONNECT_PORT, USB_CONNECT_PIN, GPIO_VALUE_HIGH);
+}

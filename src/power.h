@@ -9,9 +9,6 @@ namespace power {
  */
 void initializePower();
 
-// TODO kill this method
-void updatePower();
-
 /* Public: Shut down all peripherals, set up interrupts to wake on CAN activity
  * and put the microcontroller into a low power mode.
  *
@@ -23,6 +20,11 @@ void updatePower();
  */
 void enterLowPowerMode();
 
+/* Public: Perform any resets to re-initialization required after waking up from
+ * low power mode to begin normal operation again.
+ *
+ * A popular thing to do here is just to soft reset the board.
+ */
 void handleWake();
 
 } // namespace power

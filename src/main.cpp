@@ -29,7 +29,6 @@ using openxc::lights::COLORS;
 using openxc::lights::initializeLights;
 using openxc::platform::initializePlatform;
 using openxc::power::initializePower;
-using openxc::power::updatePower;
 using openxc::util::time::initializeTimers;
 using openxc::util::log::initializeLogging;
 using openxc::signals::getMessageSet;
@@ -88,7 +87,6 @@ int main(void) {
         loop();
         processListenerQueues(&listener);
         updateInterfaceLight();
-        updatePower();
     }
 
     return 0;

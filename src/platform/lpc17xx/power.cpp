@@ -10,9 +10,6 @@
 #define PROGRAM_BUTTON_PORT 2
 #define PROGRAM_BUTTON_PIN 12
 
-#define USB_CONNECT_PORT 2
-#define USB_CONNECT_PIN 9
-
 using openxc::gpio::setGpioValue;
 using openxc::gpio::setGpioDirection;
 using openxc::gpio::GPIO_VALUE_HIGH;
@@ -79,9 +76,6 @@ void openxc::power::initializePower() {
     PINSEL_ConfigPin(&programButtonPinConfig);
 }
 
-void openxc::power::updatePower() {
-}
-
 void handleWake() {
     // TODO This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
@@ -98,9 +92,6 @@ void openxc::power::enterLowPowerMode() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
     NVIC_EnableIRQ(EINT2_IRQn);
-
-    // Turn off USB connection status LED
-    setGpioValue(USB_CONNECT_PORT, USB_CONNECT_PIN, GPIO_VALUE_HIGH);
 
     setPowerPassthroughStatus(false);
 

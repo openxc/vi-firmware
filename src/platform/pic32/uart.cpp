@@ -35,7 +35,8 @@
 
 #elif defined(CHIPKIT)
 
-    #define UART_ENABLED_PIN A1
+    #define UART_STATUS_PORT 0
+    #define UART_STATUS_PIN A1
 
 #endif
 
@@ -55,7 +56,8 @@ extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
-void openxc::interface::uart::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::uart::readFromSerial(SerialDevice* device,
+        bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
         if(bytesAvailable > 0) {
@@ -81,15 +83,17 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
     // Override baud rate setup to allow baud rates 200000 (see
     // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
     // eventually make it into the MPIDE toolchain)
-    ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 / UART_BAUDRATE) - 1);
-    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) | (1 << _UARTMODE_BRGH);
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 /
+            UART_BAUDRATE) - 1);
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
+            (1 << _UARTMODE_BRGH);
     // Manually enable RTS/CTS hardware flow control using the UART2
     // register. The chipKIT serial library doesn't have an interface to do
     // this, and the alternative UART libraries provided by Microchip are a
     // bit of a mess.
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
 
-    setGpioDirection(0, UART_ENABLED_PIN, GPIO_DIRECTION_INPUT);
+    setGpioDirection(UART_STATUS_PORT, UART_STATUS_PIN, GPIO_DIRECTION_INPUT);
 
     debug("Done.");
 }
@@ -116,7 +120,7 @@ bool openxc::interface::uart::serialConnected(SerialDevice* device) {
     // Use analogRead instead of digitalRead so we don't have to require
     // everyone *not* using UART to add an external pull-down resistor. When the
     // analog input is pulled down to GND, UART will be enabled.
-    return device != NULL && analogRead(UART_ENABLED_PIN) < 100;
+    return device != NULL && analogRead(UART_STATUS_PIN) < 100;
 
 #else
 

@@ -242,7 +242,7 @@ Debug Logging
 -------------
 
 On the chipKIT Max32, logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx) at
-115200 baud.
+115200 baud (if the firmware was compiled with ``DEBUG=1``).
 
 LED Lights
 -----------

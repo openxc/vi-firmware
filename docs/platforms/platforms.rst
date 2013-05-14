@@ -20,7 +20,7 @@ PIC32
 Two PIC32 boards are supported:
 
 * :doc:`Digilent chipKIT Max32 <max32>`
-* FleetCarma Data Logger
+* :doc:`FleetCarma Data Logger <fleetcarma>`
 
 LPC176x
 =======

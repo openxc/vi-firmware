@@ -21,6 +21,7 @@ CAN can2Actual(CAN::CAN2);
 CAN* can1 = &can1Actual;
 CAN* can2 = &can2Actual;
 
+
 /* Private: Initializes message filters on the CAN controller.
  *
  * bus - The CanBus instance to configure the filters for.
@@ -56,6 +57,31 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     }
 }
 
+/* Public: Change the operational mode of the specified CAN module to
+ * CAN_DISABLE. Also set state of any off-chip CAN line driver as needed for
+ * platform.
+ *
+ * CAN module will still be capable of wake from sleep.
+ * The OP_MODE of the CAN module itself is actually irrelevant
+ * when going to sleep. The main reason for this is to provide a generic
+ * function call to disable the off-chip transceiver(s), which saves power,
+ * without disabling the CAN module itself.
+ */
+void openxc::can::deinitializeCan(CanBus* bus) {
+    GpioValue value;
+
+    // set the operational mode
+    CAN_CONTROLLER(bus)->setOperatingMode(CAN::DISABLE);
+    while(CAN_CONTROLLER(bus)->getOperatingMode() != CAN::DISABLE);
+
+    // disable off-chip line driver
+    #if defined(CAN1_TRANSCEIVER_SWITCHED)
+    value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
+    setGpioDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+    setGpioValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
+    #endif
+}
+
 void openxc::can::initializeCan(CanBus* bus) {
     initializeCanCommon(bus);
     GpioValue value;
@@ -80,13 +106,14 @@ void openxc::can::initializeCan(CanBus* bus) {
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    CAN_CONTROLLER(bus)->assignMemoryBuffer(bus->buffer, BUS_MEMORY_BUFFER_SIZE);
+    CAN_CONTROLLER(bus)->assignMemoryBuffer(bus->buffer,
+            BUS_MEMORY_BUFFER_SIZE);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit
     // Request" disabled, meaning that other nodes can't request for us to
     // transmit data.
-    CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL0, 8, CAN::TX_RTR_DISABLED,
-            CAN::LOW_MEDIUM_PRIORITY);
+    CAN_CONTROLLER(bus)->configureChannelForTx(CAN::CHANNEL0, 8,
+            CAN::TX_RTR_DISABLED, CAN::LOW_MEDIUM_PRIORITY);
 
     // Configure channel 1 for RX with 8 byte buffers - remember this is channel
     // 1 on the given bus, it doesn't mean CAN1 or CAN2 on the chipKIT board.
@@ -101,12 +128,13 @@ void openxc::can::initializeCan(CanBus* bus) {
     // (channel event) and the receive channel event (module event). The
     // interrrupt peripheral library is used to enable the CAN interrupt to the
     // CPU.
-    CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1, CAN::RX_CHANNEL_NOT_EMPTY,
-            true);
+    CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
+            CAN::RX_CHANNEL_NOT_EMPTY, true);
     CAN_CONTROLLER(bus)->enableModuleEvent(CAN::RX_EVENT, true);
 
     // enable the bus acvitity wake-up event (to enable wake from sleep)
-    CAN_CONTROLLER(bus)->enableModuleEvent(CAN::BUS_ACTIVITY_WAKEUP_EVENT, true);
+    CAN_CONTROLLER(bus)->enableModuleEvent(
+            CAN::BUS_ACTIVITY_WAKEUP_EVENT, true);
     CAN_CONTROLLER(bus)->enableFeature(CAN::WAKEUP_BUS_FILTER, true);
 
     // switch ON off-chip CAN line drivers (if necessary)
@@ -123,21 +151,4 @@ void openxc::can::initializeCan(CanBus* bus) {
     CAN_CONTROLLER(bus)->attachInterrupt(bus->interruptHandler);
 
     debug("Done.");
-}
-
-void openxc::can::setCanOpModeDisable(CanBus* bus) {
-
-    GpioValue value;
-
-    // set the operational mode
-    CAN_CONTROLLER(bus)->setOperatingMode(CAN::DISABLE);
-    while(CAN_CONTROLLER(bus)->getOperatingMode() != CAN::DISABLE);
-
-    // disable off-chip line driver
-    #if defined(CAN1_TRANSCEIVER_SWITCHED)
-    value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
-    setGpioDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
-    setGpioValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
-    #endif
-
 }

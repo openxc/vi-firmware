@@ -14,7 +14,7 @@ using openxc::gpio::GPIO_DIRECTION_OUTPUT;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::gpio::GpioValue;
 
-void openxc::bluetooth::setBluetoothStatus(bool enabled) {
+void setBluetoothStatus(bool enabled) {
     debug("Turning Bluetooth %s", enabled ? "on" : "off");
     setGpioValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
             enabled ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
@@ -29,4 +29,5 @@ void openxc::bluetooth::initializeBluetooth() {
 }
 
 void openxc::bluetooth::deinitializeBluetooth() {
+    setBluetoothStatus(false);
 }

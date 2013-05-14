@@ -32,3 +32,8 @@ void openxc::lights::flash(Light light, RGB color, int duration) {
     delayMs(duration);
     disable(light);
 }
+
+void openxc::lights::deinitializeLights() {
+    disable(LIGHT_A);
+    disable(LIGHT_B);
+}

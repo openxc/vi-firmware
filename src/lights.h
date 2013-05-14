@@ -30,6 +30,8 @@ extern Palette COLORS;
 
 void initializeLights();
 
+void deinitializeLights();
+
 /* Public: Display the given color on the light.
  *
  * light - the light to change.

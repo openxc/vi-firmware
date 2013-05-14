@@ -69,7 +69,7 @@ ifndef SERIAL_PORT
 	endif
 endif
 
-EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS)
+EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS) -D$(PLATFORM)
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 

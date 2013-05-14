@@ -27,8 +27,20 @@
 #include "gpio.h"
 #include "WProgram.h"
 
+#if defined(FLEETCARMA)
+
+    #define UART_STATUS_PORT 0
+    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN_POLARITY 1    // high == connected
+
+#elif defined(CHIPKIT)
+
+    #define UART_ENABLED_PIN A1
+
+#endif
+
 #define UART_BAUDRATE 230000
-#define UART_ENABLED_PIN A1
+
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
 
@@ -99,8 +111,29 @@ void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
 }
 
 bool openxc::interface::uart::serialConnected(SerialDevice* device) {
+#ifdef CHIPKIT
+
     // Use analogRead instead of digitalRead so we don't have to require
     // everyone *not* using UART to add an external pull-down resistor. When the
     // analog input is pulled down to GND, UART will be enabled.
     return device != NULL && analogRead(UART_ENABLED_PIN) < 100;
+
+#else
+
+    bool status = false;
+    GpioValue value = getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN);
+    switch(value) {
+        case GPIO_VALUE_HIGH:
+            status = UART_STATUS_PIN_POLARITY ? true : false;
+            break;
+        case GPIO_VALUE_LOW:
+            status = UART_STATUS_PIN_POLARITY ? false : true;
+            break;
+         default:
+            status = false;
+            break;
+    }
+    return status;
+
+#endif
 }

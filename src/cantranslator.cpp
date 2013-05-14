@@ -15,11 +15,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-using openxc::bluetooth::setBluetoothStatus;
 using openxc::bluetooth::deinitializeBluetooth;
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
-using openxc::can::setCanOpModeDisable;
+using openxc::can::deinitializeCan;
 using openxc::can::write::processCanWriteQueue;
 using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
@@ -28,6 +27,7 @@ using openxc::can::lookupSignal;
 using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
+using openxc::lights::deinitializeLights;
 using openxc::power::enterLowPowerMode;
 using openxc::util::time::delayMs;
 using openxc::util::time::systemTimeMs;
@@ -90,36 +90,15 @@ void updateDataLights() {
         debug("CAN went silent - disabling LED");
         busWasActive = false;
 
-        // TODO I don't love having all of this here, but it's the best place
-        // for now. Maybe the modules need a deinitializeFoo() method in
-        // addition to the initialize one.
-        // deinitialize() is definitely a good idea to have generic calls
-        // that will disable peripherals before sleeping (to get low current)
-        // will simply call into some library functions for now
-
-        // disable LED(s)
-        disable(LIGHT_A);
-        disable(LIGHT_B);
-
-        // Move CAN module to DISABLED state.
-        // CAN module will still be capable of wake from sleep.
-        // The OP_MODE of the CAN module itself is actually irrelevant
-        // when going to sleep.
-        // The main reason for this is to provide a generic function call
-        // to disable the off-chip transceiver(s), which saves power, without
-        // disabling the CAN module itself.
+        // De-init and shut down all peripherals to save power
         for(int i = 0; i < getCanBusCount(); ++i) {
-            setCanOpModeDisable(&getCanBuses()[i]);
+            deinitializeCan(&getCanBuses()[i]);
         }
-
-        // shut down the USB peripheral to save power
+        deinitializeLights();
         deinitializeUsb(listener.usb);
-
-        // disable bluetooth peripheral to save power
-        setBluetoothStatus(false);
         deinitializeBluetooth();
 
-        // Make sure lights and Bluetooth are disabled before sleeping
+        // Wait for peripherals to disabled before sleeping
         delayMs(100);
         enterLowPowerMode();
 #endif

@@ -62,6 +62,8 @@ void configureTransceiver() {
 
 bool CAN_CONTROLLER_INITIALIZED = false;
 
+void openxc::can::deinitializeCan(CanBus* bus) { }
+
 void openxc::can::initializeCan(CanBus* bus) {
     initializeCanCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
@@ -92,5 +94,3 @@ void openxc::can::initializeCan(CanBus* bus) {
         debug("Unable to initialize CAN acceptance filters");
     }
 }
-
-void openxc::can::setCanOpModeDisable(CanBus* bus) { }

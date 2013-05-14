@@ -30,11 +30,7 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-# Valid PLATFORM options:
-# 	CHIPKIT
-# 	BLUEBOARD
-# 	FORDBOARD
-# 	FLEETCARMA
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD FLEETCARMA
 ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
@@ -54,8 +50,12 @@ ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FLEETCARMA)
 include platform/pic32/pic32.mk
-else
+else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
+else ifeq ($(PLATFORM), BLUEBOARD)
+include platform/lpc17xx/lpc17xx.mk
+else
+$(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")
 endif
 
 include tests/tests.mk

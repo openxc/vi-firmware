@@ -111,7 +111,7 @@ lpc17xx_compile_test: code_generation_test
 
 ford_test:
 	@echo -n "Testing Ford board build with example vehicle signals..."
-	@PLATFORM=FORD make -j4 emulator
+	@PLATFORM=FORDBOARD make -j4 emulator
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

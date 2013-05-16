@@ -43,6 +43,8 @@ QUEUE_DECLARE(CanMessage, 16);
  *      CAN_IRQHandler.
  * writeHandler - a function that actually writes out a CanMessage object to the
  *      CAN interface (implementation is platform specific);
+ * lastMessageReceived - the time (in ms) when the last CAN message was
+ *      received. If no message has been received, it should be 0.
  * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be

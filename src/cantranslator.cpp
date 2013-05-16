@@ -75,6 +75,7 @@ void loop() {
  * main program loop.
  */
 void updateDataLights() {
+    static unsigned long startupTime = systemTimeMs();
     static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -85,7 +86,9 @@ void updateDataLights() {
         debug("CAN woke up - enabling LED");
         enable(LIGHT_A, COLORS.blue);
         busWasActive = true;
-    } else if(!busActive && busWasActive) {
+    } else if(!busActive && busWasActive && systemTimeMs() - startupTime >
+            (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) {
+        // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
         debug("CAN went silent - disabling LED");
         busWasActive = false;

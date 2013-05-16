@@ -13,12 +13,12 @@ void openxc::can::initializeCanCommon(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendCanMessage;
-    bus->lastMessageReceived = systemTimeMs();
+    bus->lastMessageReceived = 0;
 }
 
 bool openxc::can::canBusActive(CanBus* bus) {
-    return systemTimeMs() - bus->lastMessageReceived
-            < CAN_ACTIVE_TIMEOUT_S * 1000;
+    return bus->lastMessageReceived != 0 &&
+        systemTimeMs() - bus->lastMessageReceived < CAN_ACTIVE_TIMEOUT_S * 1000;
 }
 
 int lookup(void* key,

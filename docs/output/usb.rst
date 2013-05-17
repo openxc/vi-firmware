@@ -60,11 +60,12 @@ Endpoint 2 OUT
 OpenXC JSON messages created by the host to send to the vehicle (i.e. to
 write to the CAN bus) are sent via ``OUT`` transactions. The CAN
 translator is prepared to accept writes from the host as soon as it
-initializes USB, so they can be sent at any time. There is no special
-demarcation on these messages to indicate they are writes - the fact
-that they are written in the ``OUT`` direction is sufficient. Write
-messages must be no more than 4 USB packets in size, i.e. 4 \* 64 = 256
-bytes.
+initializes USB, so they can be sent at any time. The messages must be separated
+by a NULL character.
+
+There is no special demarcation on these messages to indicate they are writes -
+the fact that they are written in the ``OUT`` direction is sufficient. Write
+messages must be no more than 4 USB packets in size, i.e. 4 \* 64 = 256 bytes.
 
 In the same way the CAN translator is pre-configured with a list of CAN
 signals to read and parse from the CAN bus, it is configured with a

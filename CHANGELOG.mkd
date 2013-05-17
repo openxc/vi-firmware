@@ -14,6 +14,11 @@
 * BREAKING CHANGE: Remove UART compile-time flag in favor of setting UART status
   via an external pin. This allows you to dynamically control sending over UART
   when a Bluetooth module actually is attached and has a connected host.
+* PIC32-based VI will now go into low power mode if no CAN activity is detected
+  for 30 seconds, and will wake up when CAN activity resumes. There is a ~5
+  second timeout in the chipKIT bootloader that will cause the first 5 seconds
+  of CAN traffic after a wakeup to be missed.
+* Added support for FleetCarma data logger (a PIC32 device).
 
 ## v3.2
 

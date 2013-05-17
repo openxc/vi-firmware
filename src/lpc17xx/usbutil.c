@@ -43,7 +43,8 @@ void EVENT_USB_Device_ControlRequest() {
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
-    debug("USB configured.");
+    // don't use debug logging in here because if the function doesn't return
+    // quick enough, the control transfer can fail because it times out
     USB_DEVICE.configured = true;
 }
 

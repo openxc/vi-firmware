@@ -2,6 +2,7 @@
 #include "canutil_pic32.h"
 #include "signals.h"
 #include "log.h"
+#include "power.h"
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
@@ -22,6 +23,15 @@ CanMessage receiveCanMessage(CanBus* bus) {
 }
 
 void handleCanInterrupt(CanBus* bus) {
+
+	// handle the bus activity wake from sleep event
+	if((CAN_CONTROLLER(bus)->getModuleEvent() & CAN::BUS_ACTIVITY_WAKEUP_EVENT) != 0
+            && CAN_CONTROLLER(bus)->getPendingEventCode()
+            == CAN::WAKEUP_EVENT) {
+				handleWake();
+			}
+
+	// handle the receive message event
     if((CAN_CONTROLLER(bus)->getModuleEvent() & CAN::RX_EVENT) != 0
             && CAN_CONTROLLER(bus)->getPendingEventCode()
             == CAN::CHANNEL1_EVENT) {

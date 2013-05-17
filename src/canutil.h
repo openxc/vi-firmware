@@ -243,5 +243,10 @@ CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  */
 CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
+		
+/* Public: 	Change the operational mode of the specified CAN module to CAN_DISABLE.
+ *			Also set state of any off-chip CAN line driver as needed for platform.
+ */
+void setCanOpModeDisable(CanBus* bus);
 
 #endif // _CANUTIL_H_

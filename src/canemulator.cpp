@@ -80,14 +80,14 @@ bool usbWriteStub(uint8_t* buffer) {
 
 void loop() {
     ++emulatorRateLimiter;
-    if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY) {
-        emulatorRateLimiter = 0;
-
+    if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY / 2) {
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
                 rand() % 50 + rand() % 100 * .1, &listener);
         sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
                 rand() % 2 == 1 ? true : false, &listener);
+    } else if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY) {
+        emulatorRateLimiter = 0;
 
         int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],

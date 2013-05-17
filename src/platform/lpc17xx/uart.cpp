@@ -78,10 +78,8 @@ void disableTransmitInterrupt() {
 }
 
 void enableTransmitInterrupt() {
-    if(TRANSMIT_INTERRUPT_STATUS == RESET) {
-        UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
-        TRANSMIT_INTERRUPT_STATUS = SET;
-    }
+    UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
+    TRANSMIT_INTERRUPT_STATUS = SET;
 }
 
 void handleReceiveInterrupt() {
@@ -153,6 +151,8 @@ void UART1_IRQHandler() {
             break;
         case UART_IIR_INTID_THRE:
             handleTransmitInterrupt();
+            break;
+        default:
             break;
     }
 }
@@ -234,7 +234,6 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
         debug("Can't initialize a NULL SerialDevice");
         return;
     }
-
     initializeSerialCommon(device);
 
     configureSerialPins();
@@ -243,6 +242,8 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
     configureFlowControl();
     configureInterrupts();
     CTS_STATE = ACTIVE;
+
+    TRANSMIT_INTERRUPT_STATUS = RESET;
 
     // Configure P0.18 as an input, pulldown
     LPC_PINCON->PINMODE1 |= (1 << 5);
@@ -259,8 +260,11 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
 
 void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
     if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
-        enableTransmitInterrupt();
-        handleTransmitInterrupt();
+        if(TRANSMIT_INTERRUPT_STATUS == RESET) {
+            handleTransmitInterrupt();
+        } else {
+            enableTransmitInterrupt();
+        }
     }
 }
 

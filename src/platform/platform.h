@@ -1,6 +1,8 @@
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__
 
+#include "interface/pipeline.h"
+
 namespace openxc {
 namespace platform {
 
@@ -8,6 +10,11 @@ namespace platform {
  * platform the firmware is running on.
  */
 void initializePlatform();
+
+/* Public: De-init and disable any peripherals, enable any neccessary wakeup
+ * interrupts and finally suspend the microcontroller.
+ */
+void suspend(openxc::interface::Listener* listener);
 
 } // namespace platform
 } // namespace openxc

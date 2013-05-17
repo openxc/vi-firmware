@@ -12,13 +12,12 @@
 #include "lights.h"
 #include "power.h"
 #include "bluetooth.h"
+#include "platform/platform.h"
 #include <stdint.h>
 #include <stdlib.h>
 
-using openxc::bluetooth::deinitializeBluetooth;
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
-using openxc::can::deinitializeCan;
 using openxc::can::write::processCanWriteQueue;
 using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
@@ -27,9 +26,6 @@ using openxc::can::lookupSignal;
 using openxc::lights::LIGHT_A;
 using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
-using openxc::lights::deinitializeLights;
-using openxc::power::enterLowPowerMode;
-using openxc::util::time::delayMs;
 using openxc::util::time::systemTimeMs;
 using openxc::signals::initializeSignals;
 using openxc::signals::getCanBuses;
@@ -39,6 +35,7 @@ using openxc::signals::getCommandCount;
 using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
+using openxc::platform::suspend;
 
 extern Listener listener;
 
@@ -90,20 +87,8 @@ void updateDataLights() {
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
-        debug("CAN went silent - disabling LED");
         busWasActive = false;
-
-        // De-init and shut down all peripherals to save power
-        for(int i = 0; i < getCanBusCount(); ++i) {
-            deinitializeCan(&getCanBuses()[i]);
-        }
-        deinitializeLights();
-        deinitializeUsb(listener.usb);
-        deinitializeBluetooth();
-
-        // Wait for peripherals to disabled before sleeping
-        delayMs(100);
-        enterLowPowerMode();
+        suspend(&listener);
 #endif
     }
 }

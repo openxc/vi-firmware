@@ -67,10 +67,8 @@ void disableTransmitInterrupt() {
 }
 
 void enableTransmitInterrupt() {
-    if(TRANSMIT_INTERRUPT_STATUS == RESET) {
-        UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
-        TRANSMIT_INTERRUPT_STATUS = SET;
-    }
+    UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
+    TRANSMIT_INTERRUPT_STATUS = SET;
 }
 
 void handleReceiveInterrupt() {
@@ -140,6 +138,8 @@ void UART1_IRQHandler() {
             break;
         case UART_IIR_INTID_THRE:
             handleTransmitInterrupt();
+            break;
+        default:
             break;
     }
 }
@@ -225,6 +225,8 @@ void initializeSerial(SerialDevice* device) {
         configureInterrupts();
         CTS_STATE = ACTIVE;
 
+        TRANSMIT_INTERRUPT_STATUS = RESET;
+
         // Configure P0.18 as an input, pulldown
         LPC_PINCON->PINMODE1 |= (1 << 5);
         // Ensure BT reset line is held high.
@@ -236,7 +238,10 @@ void initializeSerial(SerialDevice* device) {
 
 void processSerialSendQueue(SerialDevice* device) {
     if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
-        enableTransmitInterrupt();
-        handleTransmitInterrupt();
+        if(TRANSMIT_INTERRUPT_STATUS == RESET) {
+            handleTransmitInterrupt();
+        } else {
+            enableTransmitInterrupt();
+        }
     }
 }

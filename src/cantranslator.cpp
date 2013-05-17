@@ -24,7 +24,6 @@ using openxc::can::write::enqueueCanMessage;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
 using openxc::lights::LIGHT_A;
-using openxc::lights::LIGHT_B;
 using openxc::lights::COLORS;
 using openxc::util::time::systemTimeMs;
 using openxc::signals::initializeSignals;

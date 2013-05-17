@@ -16,6 +16,12 @@ namespace signals {
  */
 void initializeSignals();
 
+/* Public: Any additional processing that should happen each time through the
+ * main firmware loop, in addition to the built-in CAN message handling. This
+ * function is called once at the end of every iteration of the main loop.
+ */
+void loop();
+
 /* Public: The number of CAN buses to read. This is limited to 2, as the
  * hardware controller only has 2 CAN channels.
  */

@@ -15,4 +15,6 @@ void initializeMyStuff();
 
 void initializeOtherStuff();
 
+void myLooper();
+
 #endif // _HANDLERS_H_

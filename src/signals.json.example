@@ -88,5 +88,8 @@
     "initializers": [
         "initializeMyStuff",
         "initializeOtherStuff"
+    ],
+    "loopers": [
+        "myLooper"
     ]
 }

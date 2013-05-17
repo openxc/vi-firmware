@@ -65,6 +65,7 @@ void loop() {
     }
 
     updateDataLights();
+    openxc::signals::loop();
 }
 
 /* Public: Update the color and status of a board's light that shows the status

@@ -226,6 +226,7 @@ class Parser(object):
         self.message_count = 0
         self.command_count = 0
         self.initializers = []
+        self.loopers = []
 
     def parse(self):
         raise NotImplementedError
@@ -346,6 +347,13 @@ class Parser(object):
         for initializer in self.initializers:
             print("    %s();" % initializer);
         print("}")
+        print()
+
+        print("void openxc::signals::loop() {")
+        for looper in self.loopers:
+            print("    %s();" % looper);
+        print("}")
+        print()
 
         print("const int COMMAND_COUNT = %d;" % self.command_count)
         print("CanCommand COMMANDS[COMMAND_COUNT] = {")
@@ -476,6 +484,7 @@ class JsonParser(Parser):
                 merged_dict = merge(merged_dict, data)
 
         self.initializers = merged_dict.get("initializers", [])
+        self.loopers = merged_dict.get("loopers", [])
         self.commands = []
         for bus_address, bus_data in merged_dict.get("buses", {}).items():
             speed = bus_data.get('speed', None)

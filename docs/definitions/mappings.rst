@@ -12,8 +12,9 @@ JSON Format
 
 The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
 message IDs to CAN message objects in each bus, and CAN signal name to signal
-object within each message. A second top-level section is available to list
-one-time initialization functions that should be called.
+object within each message. Other top-level sections are available to list
+one-time initialization functions and to list arbitrary functions that should be
+added to the main loop.
 
 Initializers
 ------------
@@ -27,6 +28,19 @@ string should be the name of a function with the type signature:
 
 These functions will be called once at the beginning of execution, before
 reading any CAN messages.
+
+Loopers
+--------
+
+The key ``loopers`` should have as its value an array of strings. Each
+string should be the name of a function with the type signature:
+
+.. code-block:: c
+
+   void function();
+
+These functions will be called once each time through the main loop function,
+after reading and processing any CAN messages.
 
 CAN Buses
 ---------

@@ -16,3 +16,8 @@ float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
 void initializeMyStuff() { }
 
 void initializeOtherStuff() { }
+
+void myLooper() {
+    // this function will be called once each time through the main loop, after
+    // all CAN message processing has been completed
+}

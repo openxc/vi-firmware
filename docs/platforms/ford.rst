@@ -37,8 +37,8 @@ bootloader:
    $ PLATFORM=BLUEBOARD BOOTLOADER=1 make -j4
 
 The compiled firmware will be located at
-``build/lpc17xx/cantranslator-lpc17xx.bin``. See the `bootloaders </installation/bootloaders>`_
-page for instructions on how to load the firmware.
+``build/lpc17xx/cantranslator-lpc17xx.bin``. See the :doc:`bootloaders
+</installation/bootloaders>`_ page for instructions on how to load the firmware.
 
 Bare Metal
 """"""""""

@@ -2,6 +2,8 @@
 #include "canwrite.h"
 #include "log.h"
 
+#define OCCUPANCY_STATUS_GENERIC_NAME "occupancy_status"
+
 float rotationsSinceRestart = 0;
 float rollingOdometerSinceRestart = 0;
 float totalOdometerAtRestart = 0;
@@ -296,15 +298,15 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
             rawUpperStatus, &send);
     if(lowerStatus) {
         if(upperStatus) {
-            sendEventedStringMessage("occupancy_status", seatId, "adult",
-                    listener);
+            sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
+                    "adult", listener);
         } else {
-            sendEventedStringMessage("occupancy_status", seatId, "child",
-                    listener);
+            sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
+                    "child", listener);
         }
     } else {
-        sendEventedStringMessage("occupancy_status", seatId, "empty",
-                listener);
+        sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
+                "empty", listener);
     }
 }
 

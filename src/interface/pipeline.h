@@ -5,7 +5,7 @@
 #include "interface/uart.h"
 #include "interface/network.h"
 
-using openxc::interface::uart::SerialDevice;
+using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
 
@@ -26,7 +26,7 @@ namespace interface {
  */
 typedef struct {
     UsbDevice* usb;
-    SerialDevice* serial;
+    UartDevice* uart;
     NetworkDevice* network;
 } Listener;
 

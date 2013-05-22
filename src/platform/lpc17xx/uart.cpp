@@ -83,12 +83,12 @@ void enableTransmitInterrupt() {
 }
 
 void handleReceiveInterrupt() {
-    while(!QUEUE_FULL(uint8_t, &listener.serial->receiveQueue)) {
+    while(!QUEUE_FULL(uint8_t, &listener.uart->receiveQueue)) {
         uint8_t byte;
         uint32_t received = UART_Receive(UART1_DEVICE, &byte, 1, NONE_BLOCKING);
         if(received > 0) {
-            QUEUE_PUSH(uint8_t, &listener.serial->receiveQueue, byte);
-            if(QUEUE_FULL(uint8_t, &listener.serial->receiveQueue)) {
+            QUEUE_PUSH(uint8_t, &listener.uart->receiveQueue, byte);
+            if(QUEUE_FULL(uint8_t, &listener.uart->receiveQueue)) {
                 pauseReceive();
             }
         } else {
@@ -106,16 +106,16 @@ void handleTransmitInterrupt() {
 
     while(UART_CheckBusy(UART1_DEVICE) == SET);
 
-    while(!QUEUE_EMPTY(uint8_t, &listener.serial->sendQueue)) {
-        uint8_t byte = QUEUE_PEEK(uint8_t, &listener.serial->sendQueue);
+    while(!QUEUE_EMPTY(uint8_t, &listener.uart->sendQueue)) {
+        uint8_t byte = QUEUE_PEEK(uint8_t, &listener.uart->sendQueue);
         if(UART_Send(UART1_DEVICE, &byte, 1, NONE_BLOCKING)) {
-            QUEUE_POP(uint8_t, &listener.serial->sendQueue);
+            QUEUE_POP(uint8_t, &listener.uart->sendQueue);
         } else {
             break;
         }
     }
 
-    if(QUEUE_EMPTY(uint8_t, &listener.serial->sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &listener.uart->sendQueue)) {
         disableTransmitInterrupt();
     } else {
         enableTransmitInterrupt();
@@ -159,7 +159,7 @@ void UART1_IRQHandler() {
 
 }
 
-void openxc::interface::uart::readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::uart::readFromUart(UartDevice* device, bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
             processQueue(&device->receiveQueue, callback);
@@ -170,7 +170,7 @@ void openxc::interface::uart::readFromSerial(SerialDevice* device, bool (*callba
     }
 }
 
-/* Auto flow control does work, but it turns the serial write functions into
+/* Auto flow control does work, but it turns the uart write functions into
  * blocking functions, which drags USB down. Instead we handle it manually so we
  * can make them asynchronous and let USB run at full speed.
  */
@@ -187,7 +187,7 @@ void configureFlowControl() {
     resumeReceive();
 }
 
-void configureSerialPins() {
+void configureUartPins() {
     PINSEL_CFG_Type PinCfg;
 
     PinCfg.Funcnum = UART1_FUNCNUM;
@@ -229,14 +229,14 @@ void configureInterrupts() {
     NVIC_EnableIRQ(UART1_IRQn);
 }
 
-void openxc::interface::uart::initializeSerial(SerialDevice* device) {
+void openxc::interface::uart::initializeUart(UartDevice* device) {
     if(device == NULL) {
-        debug("Can't initialize a NULL SerialDevice");
+        debug("Can't initialize a NULL UartDevice");
         return;
     }
-    initializeSerialCommon(device);
+    initializeUartCommon(device);
 
-    configureSerialPins();
+    configureUartPins();
     configureUart();
     configureFifo();
     configureFlowControl();
@@ -258,7 +258,7 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
     debug("Done.");
 }
 
-void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
+void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
     if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
         if(TRANSMIT_INTERRUPT_STATUS == RESET) {
             handleTransmitInterrupt();
@@ -268,7 +268,7 @@ void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
     }
 }
 
-bool openxc::interface::uart::serialConnected(SerialDevice* device) {
+bool openxc::interface::uart::uartConnected(UartDevice* device) {
     return device != NULL && getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN)
             != GpioValue::GPIO_VALUE_LOW;
 }

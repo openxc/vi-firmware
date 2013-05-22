@@ -1,6 +1,6 @@
 #include "interface/network.h"
 
-void openxc::interface::network::initializeNetwork(NetworkDevice* serial) { }
+void openxc::interface::network::initializeNetwork(NetworkDevice* uart) { }
 
 void openxc::interface::network::processNetworkSendQueue(NetworkDevice* device) { }
 

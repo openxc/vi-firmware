@@ -15,7 +15,7 @@ ROM USB_DEVICE_DESCRIPTOR device_dsc=
     DEVICE_VERSION,
     0x01,                   // Manufacturer string index
     0x02,                   // Product string index
-    0x00,                   // Device serial number string index
+    0x00,                   // Device uart number string index
     NUM_CONFIGURATIONS
 };
 

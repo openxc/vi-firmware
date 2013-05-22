@@ -100,7 +100,7 @@ void loop() {
     }
 
     readFromHost(listener.usb, usbWriteStub);
-    readFromSerial(listener.serial, usbWriteStub);
+    readFromUart(listener.uart, usbWriteStub);
 }
 
 void reset() { }

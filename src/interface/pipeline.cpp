@@ -6,8 +6,8 @@
 
 #define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
 
-using openxc::interface::uart::processSerialSendQueue;
-using openxc::interface::uart::serialConnected;
+using openxc::interface::uart::processUartSendQueue;
+using openxc::interface::uart::uartConnected;
 using openxc::util::bytebuffer::conditionalEnqueue;
 
 typedef enum {
@@ -39,8 +39,8 @@ void openxc::interface::sendMessage(Listener* listener, uint8_t* message, int me
         droppedMessage(USB);
     }
 
-    if(serialConnected(listener->serial) && !conditionalEnqueue(
-                &listener->serial->sendQueue, message, messageSize)) {
+    if(uartConnected(listener->uart) && !conditionalEnqueue(
+                &listener->uart->sendQueue, message, messageSize)) {
         droppedMessage(UART);
     }
 
@@ -54,8 +54,8 @@ void openxc::interface::processListenerQueues(Listener* listener) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     processUsbSendQueue(listener->usb);
-    if(serialConnected(listener->serial)) {
-        processSerialSendQueue(listener->serial);
+    if(uartConnected(listener->uart)) {
+        processUartSendQueue(listener->uart);
     }
 
     if(listener->network != NULL) {

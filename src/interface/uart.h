@@ -1,5 +1,5 @@
-#ifndef _SERIALUTIL_H_
-#define _SERIALUTIL_H_
+#ifndef _UARTUTIL_H_
+#define _UARTUTIL_H_
 
 #include "util/bytebuffer.h"
 
@@ -23,7 +23,7 @@ typedef struct {
     // host to device
     QUEUE_TYPE(uint8_t) receiveQueue;
     void* controller;
-} SerialDevice;
+} UartDevice;
 
 /* Public: Try to read a message from the UART device (or grab data that's
  * already been received and queued in the receiveQueue) and process it using
@@ -32,32 +32,32 @@ typedef struct {
  * device - The UART device to check for incoming data.
  * callback - A function to call with any received data.
  */
-void readFromSerial(SerialDevice* device, bool (*callback)(uint8_t*));
+void readFromUart(UartDevice* device, bool (*callback)(uint8_t*));
 
 /* Public: Perform platform-agnostic UART initialization.
  */
-void initializeSerialCommon(SerialDevice* device);
+void initializeUartCommon(UartDevice* device);
 
 /* Public: Initializes the UART device at at 115200 baud rate and initializes
  * the receive buffer.
  */
-void initializeSerial(SerialDevice* device);
+void initializeUart(UartDevice* device);
 
 /* Public: Send any bytes in the outgoing data queue out over the UART
  * connection.
  *
  * This function may or may not be blocking - it's implementation dependent.
  */
-void processSerialSendQueue(SerialDevice* device);
+void processUartSendQueue(UartDevice* device);
 
 /* Public: Check the connection status of a UART receiver.
  *
  * Returns true if UART is connected.
  */
-bool serialConnected(SerialDevice* device);
+bool uartConnected(UartDevice* device);
 
 } // namespace uart
 } // namespace interface
 } // namespace openxc
 
-#endif // _SERIALUTIL_H_
+#endif // _UARTUTIL_H_

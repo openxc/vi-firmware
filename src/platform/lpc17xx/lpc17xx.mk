@@ -115,4 +115,4 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(OBJCOPY) -O binary $< $@
 
 ispflash: all
-	@lpc21isp -bin $(TARGET_BIN) $(SERIAL_PORT) 115200 1474
+	@lpc21isp -bin $(TARGET_BIN) $(UART_PORT) 115200 1474

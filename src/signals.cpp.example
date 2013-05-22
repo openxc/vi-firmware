@@ -161,7 +161,7 @@ CanFilter FILTERS[15];
  * different bus, the one attached to the 2nd CAN module).
  */
 CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
-    Serial.println("Initializing filters...");
+    uart.println("Initializing filters...");
     switch(address) {
     case 0x101:
         *count = 2;

@@ -8,23 +8,23 @@ using openxc::interface::Listener;
 
 Listener listener;
 UsbDevice usb;
-SerialDevice serial;
+UartDevice uart;
 NetworkDevice network;
 
 extern bool USB_PROCESSED;
-extern bool SERIAL_PROCESSED;
+extern bool UART_PROCESSED;
 extern bool NETWORK_PROCESSED;
 
 void setup() {
     listener.usb = &usb;
-    listener.serial = NULL;
+    listener.uart = NULL;
     listener.network = NULL;
     initializeUsb(&usb);
-    initializeSerial(&serial);
+    initializeUart(&uart);
     initializeNetwork(&network);
     listener.usb->configured = true;
     USB_PROCESSED = false;
-    SERIAL_PROCESSED = false;
+    UART_PROCESSED = false;
     NETWORK_PROCESSED = false;
 }
 
@@ -54,11 +54,11 @@ END_TEST
 
 START_TEST (test_full_uart)
 {
-    listener.serial = &serial;
+    listener.uart = &uart;
     for(int i = 0; i < 512; i++) {
-        QUEUE_PUSH(uint8_t, &listener.serial->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &listener.uart->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &listener.serial->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &listener.uart->sendQueue));
 
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
@@ -79,7 +79,7 @@ END_TEST
 
 START_TEST (test_with_uart)
 {
-    listener.serial = &serial;
+    listener.uart = &uart;
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
 
@@ -87,15 +87,15 @@ START_TEST (test_with_uart)
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.serial->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.serial->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &listener.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &listener.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_with_uart_and_network)
 {
-    listener.serial = &serial;
+    listener.uart = &uart;
     listener.network = &network;
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
@@ -104,8 +104,8 @@ START_TEST (test_with_uart_and_network)
     QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.serial->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.serial->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &listener.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &listener.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &listener.network->sendQueue)];
@@ -118,28 +118,28 @@ START_TEST (test_process_usb)
 {
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
-    fail_if(SERIAL_PROCESSED);
+    fail_if(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
 }
 END_TEST
 
 START_TEST (test_process_usb_and_uart)
 {
-    listener.serial = &serial;
+    listener.uart = &uart;
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
-    fail_unless(SERIAL_PROCESSED);
+    fail_unless(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
 }
 END_TEST
 
 START_TEST (test_process_all)
 {
-    listener.serial = &serial;
+    listener.uart = &uart;
     listener.network = &network;
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
-    fail_unless(SERIAL_PROCESSED);
+    fail_unless(UART_PROCESSED);
     fail_unless(NETWORK_PROCESSED);
 }
 END_TEST

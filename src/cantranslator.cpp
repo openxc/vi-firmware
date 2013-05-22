@@ -56,7 +56,7 @@ void loop() {
     }
 
     readFromHost(listener.usb, receiveWriteRequest);
-    readFromSerial(listener.serial, receiveWriteRequest);
+    readFromUart(listener.uart, receiveWriteRequest);
     readFromSocket(listener.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -168,7 +168,7 @@ bool receiveWriteRequest(uint8_t* message) {
 
 /*
  * Check to see if a packet has been received. If so, read the packet and print
- * the packet payload to the serial monitor.
+ * the packet payload to the uart monitor.
  */
 void receiveCan(Listener* listener, CanBus* bus) {
     // TODO what happens if we process until the queue is empty?

@@ -19,8 +19,8 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
-using openxc::interface::uart::SerialDevice;
-using openxc::interface::uart::serialConnected;
+using openxc::interface::uart::UartDevice;
+using openxc::interface::uart::uartConnected;
 using openxc::interface::usb::sendControlMessage;
 using openxc::bluetooth::initializeBluetooth;
 using openxc::lights::LIGHT_B;
@@ -38,7 +38,7 @@ extern void loop();
 
 const char* VERSION = "4.0-dev";
 
-SerialDevice SERIAL_DEVICE;
+UartDevice UART_DEVICE;
 NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
@@ -48,7 +48,7 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Listener listener = {&USB_DEVICE,
-    &SERIAL_DEVICE,
+    &UART_DEVICE,
 #ifdef __USE_NETWORK__
     &NETWORK_DEVICE
 #endif // __USE_NETWORK__
@@ -59,7 +59,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(serialConnected(listener.serial)) {
+    if(uartConnected(listener.uart)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);
@@ -74,7 +74,7 @@ int main(void) {
     initializeTimers();
     initializePower();
     initializeUsb(listener.usb);
-    initializeSerial(listener.serial);
+    initializeUart(listener.uart);
     initializeNetwork(listener.network);
     initializeLights();
     initializeBluetooth();

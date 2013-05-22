@@ -1,11 +1,11 @@
 /* UART interface for PIC32.
  *
- * On the PIC32, the CAN translator uses Serial from the chipKIT library's
+ * On the PIC32, the CAN translator uses uart from the chipKIT library's
  * HardwareSerial interface for vehicle data. This is equivalent to UART1A or
  * U1A. Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low
  * by the receiving device before data will be sent.
  *
- * UART1 is also used by the USB-Serial connection, so in order to flash the
+ * UART1 is also used by the USB-Uart connection, so in order to flash the
  * PIC32, these Tx/Rx lines must be disconnected. Ideally we could leave that
  * UART interface for debugging, but there are conflicts with all other exposed
  * UART interfaces when using flow control.
@@ -56,7 +56,7 @@ extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
-void openxc::interface::uart::readFromSerial(SerialDevice* device,
+void openxc::interface::uart::readFromUart(UartDevice* device,
         bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
@@ -71,13 +71,13 @@ void openxc::interface::uart::readFromSerial(SerialDevice* device,
     }
 }
 
-void openxc::interface::uart::initializeSerial(SerialDevice* device) {
+void openxc::interface::uart::initializeUart(UartDevice* device) {
     if(device == NULL) {
-        debug("Can't initialize a NULL SerialDevice");
+        debug("Can't initialize a NULL UartDevice");
         return;
     }
 
-    initializeSerialCommon(device);
+    initializeUartCommon(device);
     device->controller = &Serial;
     ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
     // Override baud rate setup to allow baud rates 200000 (see
@@ -88,7 +88,7 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
             (1 << _UARTMODE_BRGH);
     // Manually enable RTS/CTS hardware flow control using the UART2
-    // register. The chipKIT serial library doesn't have an interface to do
+    // register. The chipKIT uart library doesn't have an interface to do
     // this, and the alternative UART libraries provided by Microchip are a
     // bit of a mess.
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
@@ -100,7 +100,7 @@ void openxc::interface::uart::initializeSerial(SerialDevice* device) {
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
-void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
+void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -114,7 +114,7 @@ void openxc::interface::uart::processSerialSendQueue(SerialDevice* device) {
     }
 }
 
-bool openxc::interface::uart::serialConnected(SerialDevice* device) {
+bool openxc::interface::uart::uartConnected(UartDevice* device) {
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require

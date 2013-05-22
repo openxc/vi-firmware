@@ -4,24 +4,25 @@
 #include "emqueue.h"
 #include "cJSON.h"
 
+namespace uart = openxc::interface::uart;
 using openxc::interface::Listener;
 
 Listener listener;
-UsbDevice usb;
-UartDevice uart;
-NetworkDevice network;
+UsbDevice usbDevice;
+UartDevice uartDevice;
+NetworkDevice networkDevice;
 
 extern bool USB_PROCESSED;
 extern bool UART_PROCESSED;
 extern bool NETWORK_PROCESSED;
 
 void setup() {
-    listener.usb = &usb;
+    listener.usb = &usbDevice;
     listener.uart = NULL;
     listener.network = NULL;
-    initializeUsb(&usb);
-    initializeUart(&uart);
-    initializeNetwork(&network);
+    initializeUsb(&usbDevice);
+    uart::initialize(&uartDevice);
+    initializeNetwork(&networkDevice);
     listener.usb->configured = true;
     USB_PROCESSED = false;
     UART_PROCESSED = false;
@@ -41,7 +42,7 @@ END_TEST
 
 START_TEST (test_full_network)
 {
-    listener.network = &network;
+    listener.network = &networkDevice;
     for(int i = 0; i < 512; i++) {
         QUEUE_PUSH(uint8_t, &listener.network->sendQueue, (uint8_t) 128);
     }
@@ -54,7 +55,7 @@ END_TEST
 
 START_TEST (test_full_uart)
 {
-    listener.uart = &uart;
+    listener.uart = &uartDevice;
     for(int i = 0; i < 512; i++) {
         QUEUE_PUSH(uint8_t, &listener.uart->sendQueue, (uint8_t) 128);
     }
@@ -79,7 +80,7 @@ END_TEST
 
 START_TEST (test_with_uart)
 {
-    listener.uart = &uart;
+    listener.uart = &uartDevice;
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
 
@@ -95,8 +96,8 @@ END_TEST
 
 START_TEST (test_with_uart_and_network)
 {
-    listener.uart = &uart;
-    listener.network = &network;
+    listener.uart = &uartDevice;
+    listener.network = &networkDevice;
     const char* message = "message";
     sendMessage(&listener, (uint8_t*)message, 8);
 
@@ -125,7 +126,7 @@ END_TEST
 
 START_TEST (test_process_usb_and_uart)
 {
-    listener.uart = &uart;
+    listener.uart = &uartDevice;
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
@@ -135,8 +136,8 @@ END_TEST
 
 START_TEST (test_process_all)
 {
-    listener.uart = &uart;
-    listener.network = &network;
+    listener.uart = &uartDevice;
+    listener.network = &networkDevice;
     processListenerQueues(&listener);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);

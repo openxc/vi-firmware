@@ -19,8 +19,9 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
+namespace uart = openxc::interface::uart;
+
 using openxc::interface::uart::UartDevice;
-using openxc::interface::uart::uartConnected;
 using openxc::interface::usb::sendControlMessage;
 using openxc::bluetooth::initializeBluetooth;
 using openxc::lights::LIGHT_B;
@@ -59,7 +60,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(uartConnected(listener.uart)) {
+    if(uart::connected(listener.uart)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);
@@ -74,7 +75,7 @@ int main(void) {
     initializeTimers();
     initializePower();
     initializeUsb(listener.usb);
-    initializeUart(listener.uart);
+    uart::initialize(listener.uart);
     initializeNetwork(listener.network);
     initializeLights();
     initializeBluetooth();

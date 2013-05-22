@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+namespace uart = openxc::interface::uart;
+
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
 using openxc::can::write::processCanWriteQueue;
@@ -56,7 +58,7 @@ void loop() {
     }
 
     readFromHost(listener.usb, receiveWriteRequest);
-    readFromUart(listener.uart, receiveWriteRequest);
+    uart::read(listener.uart, receiveWriteRequest);
     readFromSocket(listener.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {

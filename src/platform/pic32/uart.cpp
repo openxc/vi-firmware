@@ -56,7 +56,7 @@ extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
-void openxc::interface::uart::readFromUart(UartDevice* device,
+void openxc::interface::uart::read(UartDevice* device,
         bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
@@ -71,13 +71,13 @@ void openxc::interface::uart::readFromUart(UartDevice* device,
     }
 }
 
-void openxc::interface::uart::initializeUart(UartDevice* device) {
+void openxc::interface::uart::initialize(UartDevice* device) {
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
         return;
     }
 
-    initializeUartCommon(device);
+    initializeCommon(device);
     device->controller = &Serial;
     ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
     // Override baud rate setup to allow baud rates 200000 (see
@@ -100,7 +100,7 @@ void openxc::interface::uart::initializeUart(UartDevice* device) {
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
-void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
+void openxc::interface::uart::processSendQueue(UartDevice* device) {
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -114,7 +114,7 @@ void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
     }
 }
 
-bool openxc::interface::uart::uartConnected(UartDevice* device) {
+bool openxc::interface::uart::connected(UartDevice* device) {
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require

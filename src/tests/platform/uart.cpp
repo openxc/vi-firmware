@@ -7,17 +7,17 @@ using openxc::interface::uart::UartDevice;
 
 bool UART_PROCESSED = false;
 
-void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
+void openxc::interface::uart::processSendQueue(UartDevice* device) {
     UART_PROCESSED = true;
 }
 
-void openxc::interface::uart::readFromUart(UartDevice* uart, bool (*callback)(uint8_t*)) { }
+void openxc::interface::uart::read(UartDevice* uart, bool (*callback)(uint8_t*)) { }
 
-void openxc::interface::uart::initializeUart(UartDevice* uart) {
-    initializeUartCommon(uart);
+void openxc::interface::uart::initialize(UartDevice* uart) {
+    uart::initializeCommon(uart);
 }
 
-bool openxc::interface::uart::uartConnected(UartDevice* device) {
+bool openxc::interface::uart::connected(UartDevice* device) {
     return device != NULL;
 }
 

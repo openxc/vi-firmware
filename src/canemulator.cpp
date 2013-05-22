@@ -15,6 +15,8 @@
 #define EVENT_SIGNAL_COUNT 1
 #define EMULATOR_SEND_FREQUENCY 200
 
+namespace uart = openxc::interface::uart;
+
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendStringMessage;
@@ -100,7 +102,7 @@ void loop() {
     }
 
     readFromHost(listener.usb, usbWriteStub);
-    readFromUart(listener.uart, usbWriteStub);
+    uart::read(listener.uart, usbWriteStub);
 }
 
 void reset() { }

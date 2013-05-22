@@ -159,7 +159,7 @@ void UART1_IRQHandler() {
 
 }
 
-void openxc::interface::uart::readFromUart(UartDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::uart::read(UartDevice* device, bool (*callback)(uint8_t*)) {
     if(device != NULL) {
         if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
             processQueue(&device->receiveQueue, callback);
@@ -229,12 +229,12 @@ void configureInterrupts() {
     NVIC_EnableIRQ(UART1_IRQn);
 }
 
-void openxc::interface::uart::initializeUart(UartDevice* device) {
+void openxc::interface::uart::initialize(UartDevice* device) {
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
         return;
     }
-    initializeUartCommon(device);
+    initializeCommon(device);
 
     configureUartPins();
     configureUart();
@@ -258,7 +258,7 @@ void openxc::interface::uart::initializeUart(UartDevice* device) {
     debug("Done.");
 }
 
-void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
+void openxc::interface::uart::processSendQueue(UartDevice* device) {
     if(!QUEUE_EMPTY(uint8_t, &device->sendQueue)) {
         if(TRANSMIT_INTERRUPT_STATUS == RESET) {
             handleTransmitInterrupt();
@@ -268,7 +268,7 @@ void openxc::interface::uart::processUartSendQueue(UartDevice* device) {
     }
 }
 
-bool openxc::interface::uart::uartConnected(UartDevice* device) {
+bool openxc::interface::uart::connected(UartDevice* device) {
     return device != NULL && getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN)
             != GpioValue::GPIO_VALUE_LOW;
 }

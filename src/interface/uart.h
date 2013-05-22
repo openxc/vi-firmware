@@ -32,29 +32,29 @@ typedef struct {
  * device - The UART device to check for incoming data.
  * callback - A function to call with any received data.
  */
-void readFromUart(UartDevice* device, bool (*callback)(uint8_t*));
+void read(UartDevice* device, bool (*callback)(uint8_t*));
 
 /* Public: Perform platform-agnostic UART initialization.
  */
-void initializeUartCommon(UartDevice* device);
+void initializeCommon(UartDevice* device);
 
 /* Public: Initializes the UART device at at 115200 baud rate and initializes
  * the receive buffer.
  */
-void initializeUart(UartDevice* device);
+void initialize(UartDevice* device);
 
 /* Public: Send any bytes in the outgoing data queue out over the UART
  * connection.
  *
  * This function may or may not be blocking - it's implementation dependent.
  */
-void processUartSendQueue(UartDevice* device);
+void processSendQueue(UartDevice* device);
 
 /* Public: Check the connection status of a UART receiver.
  *
  * Returns true if UART is connected.
  */
-bool uartConnected(UartDevice* device);
+bool connected(UartDevice* device);
 
 } // namespace uart
 } // namespace interface

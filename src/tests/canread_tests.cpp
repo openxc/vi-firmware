@@ -1,6 +1,6 @@
 #include <check.h>
 #include <stdint.h>
-#include "canutil.h"
+#include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
 #include "cJSON.h"

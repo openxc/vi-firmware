@@ -1,4 +1,4 @@
-#include "canutil.h"
+#include "can/canutil.h"
 #include "canutil_pic32.h"
 #include "signals.h"
 #include "util/log.h"

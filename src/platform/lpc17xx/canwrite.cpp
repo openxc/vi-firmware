@@ -1,5 +1,5 @@
 #include "util/bitfield.h"
-#include "canutil.h"
+#include "can/canutil.h"
 #include "can/canwrite.h"
 #include "util/log.h"
 

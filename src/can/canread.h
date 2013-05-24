@@ -1,7 +1,7 @@
 #ifndef _CANREAD_H_
 #define _CANREAD_H_
 
-#include "canutil.h"
+#include "can/canutil.h"
 #include "interface/pipeline.h"
 
 using openxc::interface::Pipeline;

@@ -1,7 +1,7 @@
 #ifndef _CANWRITE_H_
 #define _CANWRITE_H_
 
-#include "canutil.h"
+#include "can/canutil.h"
 
 using openxc::can::CanSignal;
 using openxc::can::CanSignalState;

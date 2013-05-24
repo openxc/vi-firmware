@@ -1,3 +1,3 @@
 #include "platform/platform.h"
 
-void openxc::platform::initializePlatform() { }
+void openxc::platform::initialize() { }

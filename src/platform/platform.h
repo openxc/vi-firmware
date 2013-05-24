@@ -9,7 +9,7 @@ namespace platform {
 /* Public: Perform any one-time, up front initialization required fro the
  * platform the firmware is running on.
  */
-void initializePlatform();
+void initialize();
 
 /* Public: De-init and disable any peripherals, enable any neccessary wakeup
  * interrupts and finally suspend the microcontroller.

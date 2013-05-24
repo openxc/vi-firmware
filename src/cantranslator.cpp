@@ -21,6 +21,7 @@ namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
 namespace can = openxc::can;
+namespace platform = openxc::platform;
 
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
@@ -33,7 +34,6 @@ using openxc::signals::getCommandCount;
 using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
-using openxc::platform::suspend;
 
 extern Pipeline pipeline;
 
@@ -87,7 +87,7 @@ void updateDataLights() {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
         busWasActive = false;
-        suspend(&pipeline);
+        platform::suspend(&pipeline);
 #endif
     }
 }

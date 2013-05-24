@@ -24,10 +24,10 @@ namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
 namespace bluetooth = openxc::bluetooth;
 namespace lights = openxc::lights;
+namespace platform = openxc::platform;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
-using openxc::platform::initializePlatform;
 using openxc::power::initializePower;
 using openxc::util::time::initializeTimers;
 using openxc::util::log::initializeLogging;
@@ -70,7 +70,7 @@ void updateInterfaceLight() {
 }
 
 int main(void) {
-    initializePlatform();
+    platform::initialize();
     initializeLogging();
     initializeTimers();
     initializePower();

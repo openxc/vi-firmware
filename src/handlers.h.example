@@ -9,7 +9,7 @@ float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
 
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener);
+        int signalCount, Pipeline* pipeline);
 
 void initializeMyStuff();
 

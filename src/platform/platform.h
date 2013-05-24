@@ -14,7 +14,7 @@ void initializePlatform();
 /* Public: De-init and disable any peripherals, enable any neccessary wakeup
  * interrupts and finally suspend the microcontroller.
  */
-void suspend(openxc::interface::Listener* listener);
+void suspend(openxc::interface::Pipeline* pipeline);
 
 } // namespace platform
 } // namespace openxc

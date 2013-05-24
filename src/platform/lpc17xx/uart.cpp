@@ -39,14 +39,14 @@
 
 #endif
 
-using openxc::interface::Listener;
+using openxc::interface::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::setGpioDirection;
 using openxc::gpio::getGpioValue;
 using openxc::gpio::GpioValue;
 using openxc::gpio::GpioDirection;
 
-extern Listener listener;
+extern Pipeline pipeline;
 
 __IO int32_t RTS_STATE;
 __IO int32_t CTS_STATE;
@@ -83,12 +83,12 @@ void enableTransmitInterrupt() {
 }
 
 void handleReceiveInterrupt() {
-    while(!QUEUE_FULL(uint8_t, &listener.uart->receiveQueue)) {
+    while(!QUEUE_FULL(uint8_t, &pipeline.uart->receiveQueue)) {
         uint8_t byte;
         uint32_t received = UART_Receive(UART1_DEVICE, &byte, 1, NONE_BLOCKING);
         if(received > 0) {
-            QUEUE_PUSH(uint8_t, &listener.uart->receiveQueue, byte);
-            if(QUEUE_FULL(uint8_t, &listener.uart->receiveQueue)) {
+            QUEUE_PUSH(uint8_t, &pipeline.uart->receiveQueue, byte);
+            if(QUEUE_FULL(uint8_t, &pipeline.uart->receiveQueue)) {
                 pauseReceive();
             }
         } else {
@@ -106,16 +106,16 @@ void handleTransmitInterrupt() {
 
     while(UART_CheckBusy(UART1_DEVICE) == SET);
 
-    while(!QUEUE_EMPTY(uint8_t, &listener.uart->sendQueue)) {
-        uint8_t byte = QUEUE_PEEK(uint8_t, &listener.uart->sendQueue);
+    while(!QUEUE_EMPTY(uint8_t, &pipeline.uart->sendQueue)) {
+        uint8_t byte = QUEUE_PEEK(uint8_t, &pipeline.uart->sendQueue);
         if(UART_Send(UART1_DEVICE, &byte, 1, NONE_BLOCKING)) {
-            QUEUE_POP(uint8_t, &listener.uart->sendQueue);
+            QUEUE_POP(uint8_t, &pipeline.uart->sendQueue);
         } else {
             break;
         }
     }
 
-    if(QUEUE_EMPTY(uint8_t, &listener.uart->sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &pipeline.uart->sendQueue)) {
         disableTransmitInterrupt();
     } else {
         enableTransmitInterrupt();

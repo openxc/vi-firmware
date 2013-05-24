@@ -201,10 +201,10 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * send - (output) Flip this to false if the message should not be sent.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener);
+        int signalCount, Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
  * combine the result into a single OpenXC JSON with both a value (the button
@@ -215,10 +215,10 @@ void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * send - (output) Flip this to false if the message should not be sent.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void handleButtonEventMessage(int messageId, uint64_t data,
-        CanSignal* signals, int signalCount, Listener* listener);
+        CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /* Decode a boolean signal (the door ajar status for the door in question) and
  * send an OpenXC JSON message with the value (door ID) and event (ajar status)
@@ -232,10 +232,10 @@ void handleButtonEventMessage(int messageId, uint64_t data,
  * signal - The CAN signal for door status.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Listener* listener);
+        CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /* Decode a numerical signal (the pressure of the tire in question) and
  * send an OpenXC JSON message with the value (tire ID) and event (tire
@@ -249,10 +249,10 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
  * signal - The CAN signal for tire pressure.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Listener* listener);
+        CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
@@ -266,12 +266,12 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
 /** Handle a CAN message that contains the ajar status of all doors.
  */
 void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener);
+        int signalCount, Pipeline* pipeline);
 
 /** Handle a CAN message that contains the pressure of all tires.
  */
 void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener);
+        int signalCount, Pipeline* pipeline);
 
 /* Combine the values from two sensors in each seat to determine if there is
  * actually an occupant, and if so their general size (child or adult).
@@ -290,10 +290,10 @@ void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * send - (output) Flip this to false if the message should not be sent.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void handleOccupancyMessage(int messageId, uint64_t data,
-              CanSignal* signals, int signalCount, Listener* listener);
+              CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 } // namespace handlers
 } // namespace signals

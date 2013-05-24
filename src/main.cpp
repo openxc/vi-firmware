@@ -47,7 +47,7 @@ UsbDevice USB_DEVICE = {
     DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
-Listener listener = {&USB_DEVICE,
+Pipeline pipeline = {&USB_DEVICE,
     &UART_DEVICE,
 #ifdef __USE_NETWORK__
     &NETWORK_DEVICE
@@ -59,7 +59,7 @@ Listener listener = {&USB_DEVICE,
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(uartConnected(listener.uart)) {
+    if(uartConnected(pipeline.uart)) {
         enable(LIGHT_B, COLORS.blue);
     } else if(USB_DEVICE.configured) {
         enable(LIGHT_B, COLORS.green);
@@ -73,9 +73,9 @@ int main(void) {
     initializeLogging();
     initializeTimers();
     initializePower();
-    initializeUsb(listener.usb);
-    initializeUart(listener.uart);
-    initializeNetwork(listener.network);
+    initializeUsb(pipeline.usb);
+    initializeUart(pipeline.uart);
+    initializeNetwork(pipeline.network);
     initializeLights();
     initializeBluetooth();
 
@@ -84,7 +84,7 @@ int main(void) {
 
     for (;;) {
         loop();
-        processListenerQueues(&listener);
+        processPipelineQueues(&pipeline);
         updateInterfaceLight();
     }
 

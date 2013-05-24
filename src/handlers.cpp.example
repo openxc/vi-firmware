@@ -4,8 +4,8 @@
 using openxc::can::read::sendNumericalMessage;
 
 void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
-    sendNumericalMessage("latitude", 42.0, listener);
+        int signalCount, Pipeline* pipeline) {
+    sendNumericalMessage("latitude", 42.0, pipeline);
 }
 
 float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,

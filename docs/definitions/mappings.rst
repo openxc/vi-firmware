@@ -286,7 +286,7 @@ or many translated messages from one call to your handler function.
 .. code-block:: c
 
     void handleSteeringWheelMessage(int messageId, uint64_t data,
-            CanSignal* signals, int signalCount, Listener* listener);
+            CanSignal* signals, int signalCount, Pipeline* pipeline);
         float steeringWheelAngle = decodeCanSignal(&signals[1], data);
         float steeringWheelSign = decodeCanSignal(&signals[2], data);
 

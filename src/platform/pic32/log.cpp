@@ -21,6 +21,6 @@ void openxc::util::log::debugNoNewline(const char* format, ...) {
 #endif // __DEBUG__
 }
 
-void openxc::util::log::initializeLogging() {
+void openxc::util::log::initialize() {
     Serial2.begin(115200);
 }

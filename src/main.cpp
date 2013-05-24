@@ -30,7 +30,6 @@ namespace power = openxc::power;
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
 using openxc::util::time::initializeTimers;
-using openxc::util::log::initializeLogging;
 using openxc::signals::getMessageSet;
 
 extern void reset();
@@ -71,7 +70,7 @@ void updateInterfaceLight() {
 
 int main(void) {
     platform::initialize();
-    initializeLogging();
+    openxc::util::log::initialize();
     initializeTimers();
     power::initialize();
     usb::initialize(pipeline.usb);

@@ -24,7 +24,7 @@ extern const int MAX_LOG_LINE_LENGTH;
 /* Public: Initialize the debug logging framework. This function must be called
  *      before using debug().
  */
-void initializeLogging();
+void initialize();
 
 /* Public: Like debug() but doesn't add a newline to the end of the message.
  */

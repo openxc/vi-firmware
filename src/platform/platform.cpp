@@ -11,9 +11,6 @@
 namespace usb = openxc::interface::usb;
 namespace time = openxc::util::time;
 
-using openxc::can::deinitialize;
-using openxc::power::suspend;
-using openxc::lights::deinitialize;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 

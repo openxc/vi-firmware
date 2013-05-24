@@ -3,7 +3,8 @@
 #include "util/timer.h"
 #include "util/log.h"
 
-using openxc::util::time::systemTimeMs;
+namespace time = openxc::util::time;
+
 using openxc::util::log::debugNoNewline;
 
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
@@ -18,7 +19,7 @@ void openxc::can::initializeCommon(CanBus* bus) {
 
 bool openxc::can::busActive(CanBus* bus) {
     return bus->lastMessageReceived != 0 &&
-        systemTimeMs() - bus->lastMessageReceived < CAN_ACTIVE_TIMEOUT_S * 1000;
+        time::systemTimeMs() - bus->lastMessageReceived < CAN_ACTIVE_TIMEOUT_S * 1000;
 }
 
 int lookup(void* key,

@@ -22,10 +22,10 @@ namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
 namespace can = openxc::can;
 namespace platform = openxc::platform;
+namespace time = openxc::util::time;
 
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
-using openxc::util::time::systemTimeMs;
 using openxc::signals::initializeSignals;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
@@ -71,7 +71,7 @@ void loop() {
  * main program loop.
  */
 void updateDataLights() {
-    static unsigned long startupTime = systemTimeMs();
+    static unsigned long startupTime = time::systemTimeMs();
     static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -82,7 +82,7 @@ void updateDataLights() {
         debug("CAN woke up - enabling LED");
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         busWasActive = true;
-    } else if(!busActive && (busWasActive || systemTimeMs() - startupTime >
+    } else if(!busActive && (busWasActive || time::systemTimeMs() - startupTime >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
@@ -174,7 +174,7 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(pipeline, bus, message.id, message.data);
-        bus->lastMessageReceived = systemTimeMs();
+        bus->lastMessageReceived = time::systemTimeMs();
     }
 }
 

@@ -16,7 +16,7 @@ unsigned long systemTimeMs();
 /* Public: Perform any one-time initialization required to use system times,
  * including those for system time and the delayMs function.
  */
-void initializeTimers();
+void initialize();
 
 } // namespace time
 } // namespace util

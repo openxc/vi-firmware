@@ -35,7 +35,7 @@ unsigned long openxc::util::time::systemTimeMs() {
     return SYSTEM_TICK_COUNT;
 }
 
-void openxc::util::time::initializeTimers() {
+void openxc::util::time::initialize() {
     // Configure for 1ms tick
     SysTick_Config(SystemCoreClock / 1000);
 }

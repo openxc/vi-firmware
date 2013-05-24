@@ -9,4 +9,4 @@ unsigned long openxc::util::time::systemTimeMs() {
     return millis();
 }
 
-void openxc::util::time::initializeTimers() { }
+void openxc::util::time::initialize() { }

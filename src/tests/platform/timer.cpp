@@ -6,4 +6,4 @@ unsigned long openxc::util::time::systemTimeMs() {
     return 0;
 }
 
-void openxc::util::time::initializeTimers() { }
+void openxc::util::time::initialize() { }

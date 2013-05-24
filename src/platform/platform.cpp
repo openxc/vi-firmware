@@ -9,11 +9,11 @@
 #include "can/canread.h"
 
 namespace usb = openxc::interface::usb;
+namespace time = openxc::util::time;
 
 using openxc::can::deinitialize;
 using openxc::power::suspend;
 using openxc::lights::deinitialize;
-using openxc::util::time::delayMs;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 
@@ -29,6 +29,6 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     bluetooth::deinitialize();
 
     // Wait for peripherals to disabled before sleeping
-    delayMs(100);
+    time::delayMs(100);
     power::suspend();
 }

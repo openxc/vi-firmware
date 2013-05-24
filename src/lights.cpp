@@ -3,7 +3,7 @@
 #include "interface/pipeline.h"
 #include "util/log.h"
 
-using openxc::util::time::delayMs;
+namespace time = openxc::util::time;
 
 openxc::lights::Palette openxc::lights::COLORS = {
     {255, 0, 0}, // red
@@ -29,7 +29,7 @@ void openxc::lights::enable(Light light, RGB color, int duration) {
 void openxc::lights::flash(Light light, RGB color, int duration) {
     enable(light, color);
     // TODO make a non-blocking version of this using timers
-    delayMs(duration);
+    time::delayMs(duration);
     disable(light);
 }
 

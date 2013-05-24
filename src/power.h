@@ -7,7 +7,7 @@ namespace power {
 /* Public: Initialize any systems replated to power for the microcontroller or
  * connected peripherals.
  */
-void initializePower();
+void initialize();
 
 /* Public: Shut down all peripherals, set up interrupts to wake on CAN activity
  * and put the microcontroller into a low power mode.
@@ -18,7 +18,7 @@ void initializePower();
  * active state. An alternative is to reset the entire system after wakeup, in
  * which case this function never returns.
  */
-void enterLowPowerMode();
+void suspend();
 
 /* Public: Perform any resets to re-initialization required after waking up from
  * low power mode to begin normal operation again.

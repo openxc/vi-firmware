@@ -11,7 +11,7 @@
 namespace usb = openxc::interface::usb;
 
 using openxc::can::deinitialize;
-using openxc::power::enterLowPowerMode;
+using openxc::power::suspend;
 using openxc::lights::deinitialize;
 using openxc::util::time::delayMs;
 using openxc::signals::getCanBusCount;
@@ -30,5 +30,5 @@ void openxc::platform::suspend(Pipeline* pipeline) {
 
     // Wait for peripherals to disabled before sleeping
     delayMs(100);
-    enterLowPowerMode();
+    power::suspend();
 }

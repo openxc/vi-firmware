@@ -43,7 +43,7 @@ void setPowerPassthroughStatus(bool enabled) {
             pinStatus ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 }
 
-void openxc::power::initializePower() {
+void openxc::power::initialize() {
     debug("Initializing power controls...");
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type powerPassthroughPinConfig;
@@ -76,7 +76,7 @@ void openxc::power::initializePower() {
     PINSEL_ConfigPin(&programButtonPinConfig);
 }
 
-void handleWake() {
+void openxc::power::handleWake() {
     // TODO This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
     // only have to worry about initialization of core peripherals in one spot,
@@ -88,7 +88,7 @@ void handleWake() {
     NVIC_SystemReset();
 }
 
-void openxc::power::enterLowPowerMode() {
+void openxc::power::suspend() {
     debug("Going to low power mode");
     NVIC_EnableIRQ(CANActivity_IRQn);
     NVIC_EnableIRQ(EINT2_IRQn);
@@ -104,11 +104,11 @@ void openxc::power::enterLowPowerMode() {
 extern "C" {
 
 void CANActivity_IRQHandler(void) {
-    handleWake();
+    openxc::power::handleWake();
 }
 
 void EINT2_IRQHandler(void) {
-    handleWake();
+    openxc::power::handleWake();
 }
 
 }

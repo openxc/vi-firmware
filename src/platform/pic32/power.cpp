@@ -2,7 +2,7 @@
 #include "util/log.h"
 #include <plib.h>
 
-void openxc::power::initializePower() {
+void openxc::power::initialize() {
 }
 
 /* This function will invoke the CPU power save sleep mode.
@@ -18,7 +18,7 @@ void openxc::power::initializePower() {
  * Using the existing C++ libraries here isn't always possible, however, since
  * they can use overloaded functions, which gcc won't allow.
  */
-void openxc::power::enterLowPowerMode() {
+void openxc::power::suspend() {
     debug("Going to low power mode");
 
     PowerSaveSleep();

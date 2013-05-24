@@ -4,8 +4,9 @@
 #include "util/log.h"
 #include "power.h"
 
+namespace power = openxc::power;
+
 using openxc::signals::getCanBuses;
-using openxc::power::handleWake;
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
@@ -32,7 +33,7 @@ void handleCanInterrupt(CanBus* bus) {
                 CAN::BUS_ACTIVITY_WAKEUP_EVENT) != 0
             && CAN_CONTROLLER(bus)->getPendingEventCode()
                 == CAN::WAKEUP_EVENT) {
-        handleWake();
+        power::handleWake();
     }
 
     // handle the receive message event

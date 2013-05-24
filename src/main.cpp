@@ -25,10 +25,10 @@ namespace usb = openxc::interface::usb;
 namespace bluetooth = openxc::bluetooth;
 namespace lights = openxc::lights;
 namespace platform = openxc::platform;
+namespace power = openxc::power;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
-using openxc::power::initializePower;
 using openxc::util::time::initializeTimers;
 using openxc::util::log::initializeLogging;
 using openxc::signals::getMessageSet;
@@ -73,7 +73,7 @@ int main(void) {
     platform::initialize();
     initializeLogging();
     initializeTimers();
-    initializePower();
+    power::initialize();
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
     network::initialize(pipeline.network);

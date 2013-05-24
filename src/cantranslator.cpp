@@ -20,9 +20,8 @@ namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
+namespace can = openxc::can;
 
-using openxc::can::canBusActive;
-using openxc::can::initializeCan;
 using openxc::can::write::processCanWriteQueue;
 using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
@@ -79,7 +78,7 @@ void updateDataLights() {
     static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
-        busActive = busActive || canBusActive(&getCanBuses()[i]);
+        busActive = busActive || can::busActive(&getCanBuses()[i]);
     }
 
     if(!busWasActive && busActive) {
@@ -98,7 +97,7 @@ void updateDataLights() {
 
 void initializeAllCan() {
     for(int i = 0; i < getCanBusCount(); i++) {
-        initializeCan(&(getCanBuses()[i]));
+        can::initialize(&(getCanBuses()[i]));
     }
 }
 

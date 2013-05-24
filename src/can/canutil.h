@@ -178,17 +178,17 @@ typedef struct {
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
  */
-void initializeCan(CanBus* bus);
+void initialize(CanBus* bus);
 
 /* Public: De-initialize the CAN controller.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
  */
-void deinitializeCan(CanBus* bus);
+void deinitialize(CanBus* bus);
 
 /* Public: Perform platform-agnostic CAN initialization.
  */
-void initializeCanCommon(CanBus* bus);
+void initializeCommon(CanBus* bus);
 
 /* Public: Check if the device is connected to an active CAN bus, i.e. it's
  * received a message in the recent past.
@@ -196,7 +196,7 @@ void initializeCanCommon(CanBus* bus);
  * Returns true if a message was received on the CAN bus within
  * CAN_ACTIVE_TIMEOUT_S seconds.
  */
-bool canBusActive(CanBus* bus);
+bool busActive(CanBus* bus);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

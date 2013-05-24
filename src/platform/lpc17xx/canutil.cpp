@@ -62,10 +62,10 @@ void configureTransceiver() {
 
 bool CAN_CONTROLLER_INITIALIZED = false;
 
-void openxc::can::deinitializeCan(CanBus* bus) { }
+void openxc::can::deinitialize(CanBus* bus) { }
 
-void openxc::can::initializeCan(CanBus* bus) {
-    initializeCanCommon(bus);
+void openxc::can::initialize(CanBus* bus) {
+    can::initializeCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 

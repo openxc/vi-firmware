@@ -67,7 +67,7 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
  * function call to disable the off-chip transceiver(s), which saves power,
  * without disabling the CAN module itself.
  */
-void openxc::can::deinitializeCan(CanBus* bus) {
+void openxc::can::deinitialize(CanBus* bus) {
     GpioValue value;
 
     // set the operational mode
@@ -82,8 +82,8 @@ void openxc::can::deinitializeCan(CanBus* bus) {
     #endif
 }
 
-void openxc::can::initializeCan(CanBus* bus) {
-    initializeCanCommon(bus);
+void openxc::can::initialize(CanBus* bus) {
+    can::initializeCommon(bus);
     GpioValue value;
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete

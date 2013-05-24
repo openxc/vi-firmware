@@ -5,7 +5,7 @@
 #include "can/canwrite.h"
 #include "cJSON.h"
 
-using openxc::can::initializeCanCommon;
+namespace can = openxc::can;
 
 CanMessage MESSAGES[3] = {
     {NULL, 0},
@@ -119,7 +119,7 @@ END_TEST
 START_TEST (test_initialize)
 {
     CanBus bus = {500, 0x101};
-    initializeCanCommon(&bus);
+    can::initializeCommon(&bus);
 }
 END_TEST
 

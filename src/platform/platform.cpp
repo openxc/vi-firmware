@@ -10,7 +10,7 @@
 
 namespace usb = openxc::interface::usb;
 
-using openxc::can::deinitializeCan;
+using openxc::can::deinitialize;
 using openxc::power::enterLowPowerMode;
 using openxc::lights::deinitialize;
 using openxc::util::time::delayMs;
@@ -22,7 +22,7 @@ void openxc::platform::suspend(Pipeline* pipeline) {
 
     // De-init and shut down all peripherals to save power
     for(int i = 0; i < getCanBusCount(); ++i) {
-        deinitializeCan(&getCanBuses()[i]);
+        can::deinitialize(&getCanBuses()[i]);
     }
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);

@@ -21,6 +21,7 @@
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
@@ -75,7 +76,7 @@ int main(void) {
     initializeLogging();
     initializeTimers();
     initializePower();
-    initializeUsb(pipeline.usb);
+    usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
     network::initialize(pipeline.network);
     initializeLights();
@@ -114,7 +115,7 @@ bool handleControlRequest(uint8_t request) {
         sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
         debug("Version: %s", combinedVersion);
 
-        sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
+        usb::sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     }
     case RESET_CONTROL_COMMAND:

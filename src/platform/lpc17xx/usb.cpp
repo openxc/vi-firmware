@@ -158,7 +158,7 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 }
 
 
-void openxc::interface::usb::processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
     if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
@@ -169,8 +169,8 @@ void openxc::interface::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     }
 }
 
-void openxc::interface::usb::initializeUsb(UsbDevice* usbDevice) {
-    initializeUsbCommon(usbDevice);
+void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
+    usb::initializeCommon(usbDevice);
     USB_Init();
     ::USB_Connect();
     configureUsbDetection();
@@ -178,7 +178,7 @@ void openxc::interface::usb::initializeUsb(UsbDevice* usbDevice) {
     debug("Done.");
 }
 
-void openxc::interface::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void openxc::interface::usb::read(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 
@@ -195,7 +195,7 @@ void openxc::interface::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 
-void openxc::interface::usb::deinitializeUsb(UsbDevice* usbDevice) {
+void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
     // Turn off USB connection status LED
     setGpioValue(USB_CONNECT_PORT, USB_CONNECT_PIN, GPIO_VALUE_HIGH);
 }

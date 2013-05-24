@@ -17,6 +17,7 @@
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
 
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendBooleanMessage;
@@ -102,7 +103,7 @@ void loop() {
                 randomEvent.value, randomEvent.event, &pipeline);
     }
 
-    readFromHost(pipeline.usb, usbWriteStub);
+    usb::read(pipeline.usb, usbWriteStub);
     uart::read(pipeline.uart, usbWriteStub);
 }
 

@@ -51,7 +51,7 @@ void openxc::interface::sendMessage(Pipeline* pipeline, uint8_t* message, int me
 void openxc::interface::processPipelineQueues(Pipeline* pipeline) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
-    processUsbSendQueue(pipeline->usb);
+    usb::processSendQueue(pipeline->usb);
     if(uart::connected(pipeline->uart)) {
         uart::processSendQueue(pipeline->uart);
     }

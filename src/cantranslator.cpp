@@ -18,6 +18,7 @@
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
 
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
@@ -58,7 +59,7 @@ void loop() {
         receiveCan(&pipeline, &getCanBuses()[i]);
     }
 
-    readFromHost(pipeline.usb, receiveWriteRequest);
+    usb::read(pipeline.usb, receiveWriteRequest);
     uart::read(pipeline.uart, receiveWriteRequest);
     network::read(pipeline.network, receiveWriteRequest);
 

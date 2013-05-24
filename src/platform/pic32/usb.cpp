@@ -72,7 +72,7 @@ bool waitForHandle(UsbDevice* usbDevice) {
 }
 
 
-void openxc::interface::usb::processUsbSendQueue(UsbDevice* usbDevice) {
+void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     if(usbDevice->configured && vbusEnabled()) {
         // if there's nothing attached to the analog input it floats at ~828, so
         // if we're powering the board from micro-USB (and the jumper is going
@@ -122,15 +122,15 @@ void openxc::interface::usb::processUsbSendQueue(UsbDevice* usbDevice) {
     }
 }
 
-void openxc::interface::usb::initializeUsb(UsbDevice* usbDevice) {
-    initializeUsbCommon(usbDevice);
+void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
+    usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
     setGpioDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
     debug("Done.");
 }
 
-void openxc::interface::usb::deinitializeUsb(UsbDevice* usbDevice) {
+void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
     // disable USB (notifies stack we are disabling)
     USBModuleDisable();
 
@@ -158,7 +158,7 @@ void armForRead(UsbDevice* usbDevice, char* buffer) {
             usbDevice->outEndpointSize);
 }
 
-void openxc::interface::usb::readFromHost(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
+void openxc::interface::usb::read(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
     if(!usbDevice->device.HandleBusy(usbDevice->hostToDeviceHandle)) {
         if(usbDevice->receiveBuffer[0] != NULL) {
             for(int i = 0; i < usbDevice->outEndpointSize; i++) {

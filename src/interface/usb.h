@@ -53,13 +53,13 @@ typedef struct {
 
 /* Public: Perform platform-agnostic USB initialization.
  */
-void initializeUsbCommon(UsbDevice*);
+void initializeCommon(UsbDevice*);
 
 /* Public: Initializes the USB controller as a full-speed device with the
  * configuration specified in usb_descriptors.c. Must be called before
  * any other USB fuctions are used.
  */
-void initializeUsb(UsbDevice*);
+void initialize(UsbDevice*);
 
 /* Public: Pass the next OUT request message to the callback, if available.
  *
@@ -71,14 +71,14 @@ void initializeUsb(UsbDevice*);
  * callback - A function that handles USB in requests. The callback should
  *      return true if a message was properly received and parsed.
  */
-void readFromHost(UsbDevice* device, bool (*callback)(uint8_t*));
+void read(UsbDevice* device, bool (*callback)(uint8_t*));
 
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
  * host.
  *
  * This function may or may not be blocking - it's implementation dependent.
  */
-void processUsbSendQueue(UsbDevice* device);
+void processSendQueue(UsbDevice* device);
 
 /* Public: Send a USB control message on EP0 (the endponit used only for control
  * transfers).
@@ -92,7 +92,7 @@ void sendControlMessage(uint8_t* data, uint8_t length);
 /* Public: Disconnect from host and turn off the USB peripheral
  *           (minimal power draw).
  */
-void deinitializeUsb(UsbDevice*);
+void deinitialize(UsbDevice*);
 
 } // namespace usb
 } // namespace interface

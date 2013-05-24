@@ -3,7 +3,7 @@
 
 using openxc::util::log::debugNoNewline;
 
-void openxc::interface::usb::initializeUsbCommon(UsbDevice* usbDevice) {
+void openxc::interface::usb::initializeCommon(UsbDevice* usbDevice) {
     debugNoNewline("Initializing USB.....");
     QUEUE_INIT(uint8_t, &usbDevice->sendQueue);
     QUEUE_INIT(uint8_t, &usbDevice->receiveQueue);

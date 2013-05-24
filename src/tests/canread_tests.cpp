@@ -5,6 +5,8 @@
 #include "can/canwrite.h"
 #include "cJSON.h"
 
+namespace usb = openxc::interface::usb;
+
 using openxc::can::read::decodeCanSignal;
 using openxc::can::read::translateCanSignal;
 using openxc::can::read::booleanHandler;
@@ -48,11 +50,11 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 };
 
 Pipeline pipeline;
-UsbDevice usb;
+UsbDevice usbDevice;
 
 void setup() {
-    pipeline.usb = &usb;
-    initializeUsb(&usb);
+    pipeline.usb = &usbDevice;
+    usb::initialize(&usbDevice);
     pipeline.usb->configured = true;
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;

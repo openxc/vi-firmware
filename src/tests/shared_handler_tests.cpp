@@ -3,6 +3,8 @@
 #include "shared_handlers.h"
 #include "can/canwrite.h"
 
+namespace usb = openxc::interface::usb;
+
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;
 using openxc::can::write::numberWriter;
@@ -57,11 +59,11 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
 };
 
 Pipeline pipeline;
-UsbDevice usb;
+UsbDevice usbDevice;
 
 void setup() {
-    pipeline.usb = &usb;
-    initializeUsb(&usb);
+    pipeline.usb = &usbDevice;
+    usb::initialize(&usbDevice);
     pipeline.usb->configured = true;
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;

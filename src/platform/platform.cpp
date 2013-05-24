@@ -8,6 +8,8 @@
 #include "util/log.h"
 #include "can/canread.h"
 
+namespace usb = openxc::interface::usb;
+
 using openxc::bluetooth::deinitializeBluetooth;
 using openxc::can::deinitializeCan;
 using openxc::power::enterLowPowerMode;
@@ -24,7 +26,7 @@ void openxc::platform::suspend(Pipeline* pipeline) {
         deinitializeCan(&getCanBuses()[i]);
     }
     deinitializeLights();
-    deinitializeUsb(pipeline->usb);
+    usb::deinitialize(pipeline->usb);
     deinitializeBluetooth();
 
     // Wait for peripherals to disabled before sleeping

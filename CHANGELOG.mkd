@@ -11,6 +11,8 @@
   files at the top level.
 * BREAKING CHANGE: Moved almost all functions and data structures inside C++
   namespaces - all code is now compiled with g++.
+* BREAKING CHANGE: Renamed many functions to avoid duplicating new namespace
+  name in function
 * BREAKING CHANGE: Remove UART compile-time flag in favor of setting UART status
   via an external pin. This allows you to dynamically control sending over UART
   when a Bluetooth module actually is attached and has a connected host.

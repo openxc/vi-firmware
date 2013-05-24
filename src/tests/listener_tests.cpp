@@ -6,6 +6,8 @@
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
+
 using openxc::interface::Pipeline;
 
 Pipeline pipeline;
@@ -21,7 +23,7 @@ void setup() {
     pipeline.usb = &usbDevice;
     pipeline.uart = NULL;
     pipeline.network = NULL;
-    initializeUsb(&usbDevice);
+    usb::initialize(&usbDevice);
     uart::initialize(&uartDevice);
     network::initialize(&networkDevice);
     pipeline.usb->configured = true;

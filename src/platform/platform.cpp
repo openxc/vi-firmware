@@ -13,7 +13,7 @@ namespace usb = openxc::interface::usb;
 using openxc::bluetooth::deinitializeBluetooth;
 using openxc::can::deinitializeCan;
 using openxc::power::enterLowPowerMode;
-using openxc::lights::deinitializeLights;
+using openxc::lights::deinitialize;
 using openxc::util::time::delayMs;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
@@ -25,7 +25,7 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     for(int i = 0; i < getCanBusCount(); ++i) {
         deinitializeCan(&getCanBuses()[i]);
     }
-    deinitializeLights();
+    lights::deinitialize();
     usb::deinitialize(pipeline->usb);
     deinitializeBluetooth();
 

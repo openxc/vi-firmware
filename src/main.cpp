@@ -22,13 +22,11 @@
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
+namespace lights = openxc::lights;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
 using openxc::bluetooth::initializeBluetooth;
-using openxc::lights::LIGHT_B;
-using openxc::lights::COLORS;
-using openxc::lights::initializeLights;
 using openxc::platform::initializePlatform;
 using openxc::power::initializePower;
 using openxc::util::time::initializeTimers;
@@ -63,11 +61,11 @@ Pipeline pipeline = {&USB_DEVICE,
  */
 void updateInterfaceLight() {
     if(uart::connected(pipeline.uart)) {
-        enable(LIGHT_B, COLORS.blue);
+        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     } else if(USB_DEVICE.configured) {
-        enable(LIGHT_B, COLORS.green);
+        lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
-        disable(LIGHT_B);
+        lights::disable(lights::LIGHT_B);
     }
 }
 
@@ -79,7 +77,7 @@ int main(void) {
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
     network::initialize(pipeline.network);
-    initializeLights();
+    lights::initialize();
     initializeBluetooth();
 
     debug("Initializing as %s", getMessageSet());

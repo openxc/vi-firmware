@@ -2,4 +2,4 @@
 
 void openxc::lights::enable(Light light, RGB color) { }
 
-void openxc::lights::initializeLights() { }
+void openxc::lights::initialize() { }

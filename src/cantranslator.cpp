@@ -19,6 +19,7 @@
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
+namespace lights = openxc::lights;
 
 using openxc::can::canBusActive;
 using openxc::can::initializeCan;
@@ -27,8 +28,6 @@ using openxc::can::write::sendCanSignal;
 using openxc::can::write::enqueueCanMessage;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
-using openxc::lights::LIGHT_A;
-using openxc::lights::COLORS;
 using openxc::util::time::systemTimeMs;
 using openxc::signals::initializeSignals;
 using openxc::signals::getCanBuses;
@@ -85,7 +84,7 @@ void updateDataLights() {
 
     if(!busWasActive && busActive) {
         debug("CAN woke up - enabling LED");
-        enable(LIGHT_A, COLORS.blue);
+        lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         busWasActive = true;
     } else if(!busActive && (busWasActive || systemTimeMs() - startupTime >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {

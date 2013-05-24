@@ -109,7 +109,7 @@ void setPwmPeriod(int period) {
     PWM_ConfigMatch(LED_PWM_PERIPHERAL, &pwmMatchConfig);
 }
 
-void openxc::lights::initializeLights() {
+void openxc::lights::initialize() {
     configureLightPins();
     initializePwm();
     setPwmPeriod(PWM_PERIOD_MICROSECONDS);

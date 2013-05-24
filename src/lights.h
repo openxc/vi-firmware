@@ -28,9 +28,9 @@ typedef struct {
 
 extern Palette COLORS;
 
-void initializeLights();
+void initialize();
 
-void deinitializeLights();
+void deinitialize();
 
 /* Public: Display the given color on the light.
  *

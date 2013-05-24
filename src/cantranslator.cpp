@@ -22,9 +22,6 @@ namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
 namespace can = openxc::can;
 
-using openxc::can::write::processCanWriteQueue;
-using openxc::can::write::sendCanSignal;
-using openxc::can::write::enqueueCanMessage;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
 using openxc::util::time::systemTimeMs;
@@ -62,7 +59,7 @@ void loop() {
     network::read(pipeline.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
-        processCanWriteQueue(&getCanBuses()[i]);
+        can::write::processWriteQueue(&getCanBuses()[i]);
     }
 
     updateDataLights();
@@ -113,7 +110,7 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
     char* end;
     // TODO hard coding bus 0 right now, but it should support sending on either
     CanMessage message = {&getCanBuses()[0], id};
-    enqueueCanMessage(&message, strtoull(dataString, &end, 16));
+    can::write::enqueueMessage(&message, strtoull(dataString, &end, 16));
 }
 
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
@@ -130,7 +127,7 @@ void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
             debug("Write request for %s missing value", name);
             return;
         }
-        sendCanSignal(signal, value, getSignals(), getSignalCount());
+        can::write::sendSignal(signal, value, getSignals(), getSignalCount());
     } else {
         CanCommand* command = lookupCommand(name, getCommands(),
                 getCommandCount());

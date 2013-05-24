@@ -7,7 +7,8 @@ float rollingOdometerSinceRestart = 0;
 float totalOdometerAtRestart = 0;
 float fuelConsumedSinceRestartLiters = 0;
 
-using openxc::can::read::decodeCanSignal;
+namespace can = openxc::can;
+
 using openxc::can::read::booleanHandler;
 using openxc::can::read::stateHandler;
 using openxc::can::read::sendEventedBooleanMessage;
@@ -17,7 +18,7 @@ using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
 using openxc::can::write::booleanWriter;
-using openxc::can::write::sendCanSignal;
+using openxc::can::write::sendSignal;
 
 const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
 const float openxc::signals::handlers::LITERS_PER_UL = .000001;
@@ -39,7 +40,7 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId, uint64_t data
         return;
     }
 
-    float rawAjarStatus = decodeCanSignal(signal, data);
+    float rawAjarStatus = can::read::decodeSignal(signal, data);
     bool send = true;
     bool ajarStatus = booleanHandler(NULL, signals, signalCount, rawAjarStatus,
             &send);
@@ -182,18 +183,18 @@ float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal* si
 
 void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Pipeline* pipeline) {
-    float latitudeDegrees = decodeCanSignal(
+    float latitudeDegrees = can::read::decodeSignal(
             lookupSignal("latitude_degrees", signals, signalCount), data);
-    float latitudeMinutes = decodeCanSignal(
+    float latitudeMinutes = can::read::decodeSignal(
             lookupSignal("latitude_minutes", signals, signalCount), data);
-    float latitudeMinuteFraction = decodeCanSignal(
+    float latitudeMinuteFraction = can::read::decodeSignal(
             lookupSignal("latitude_minute_fraction", signals, signalCount),
             data);
-    float longitudeDegrees = decodeCanSignal(
+    float longitudeDegrees = can::read::decodeSignal(
             lookupSignal("longitude_degrees", signals, signalCount), data);
-    float longitudeMinutes = decodeCanSignal(
+    float longitudeMinutes = can::read::decodeSignal(
             lookupSignal("longitude_minutes", signals, signalCount), data);
-    float longitudeMinuteFraction = decodeCanSignal(
+    float longitudeMinuteFraction = can::read::decodeSignal(
             lookupSignal("longitude_minute_fraction", signals, signalCount),
             data);
 
@@ -258,8 +259,8 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId, uint64_t
         return;
     }
 
-    float rawButtonType = decodeCanSignal(buttonTypeSignal, data);
-    float rawButtonState = decodeCanSignal(buttonStateSignal, data);
+    float rawButtonType = can::read::decodeSignal(buttonTypeSignal, data);
+    float rawButtonState = can::read::decodeSignal(buttonStateSignal, data);
 
     bool send = true;
     const char* buttonType = stateHandler(buttonTypeSignal, signals,
@@ -293,7 +294,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name, cJSON*
     }
 
     if(signal != NULL) {
-        return sendCanSignal(signal, cJSON_CreateBool(true), booleanWriter,
+        return can::write::sendSignal(signal, cJSON_CreateBool(true), booleanWriter,
                 signals, signalCount, true);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
@@ -310,8 +311,8 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
         return;
     }
 
-    float rawLowerStatus = decodeCanSignal(lowerSignal, data);
-    float rawUpperStatus = decodeCanSignal(upperSignal, data);
+    float rawLowerStatus = can::read::decodeSignal(lowerSignal, data);
+    float rawUpperStatus = can::read::decodeSignal(upperSignal, data);
 
     bool send = true;
     bool lowerStatus = booleanHandler(NULL, signals, signalCount,

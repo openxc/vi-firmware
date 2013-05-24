@@ -27,7 +27,7 @@ namespace write {
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t encodeCanSignal(CanSignal* signal, float value);
+uint64_t encodeSignal(CanSignal* signal, float value);
 
 /* Public: Encode and store a value in the bit field for a signal, but using the
  * given data as the starting point.
@@ -44,7 +44,7 @@ uint64_t encodeCanSignal(CanSignal* signal, float value);
  * Returns a the 64-bit data block provided but with the bit field for the
  * signal set to the encoded value.
  */
-uint64_t encodeCanSignal(CanSignal* signal, float value, uint64_t data);
+uint64_t encodeSignal(CanSignal* signal, float value, uint64_t data);
 
 /* Public: Write the given number to the correct bitfield for the given signal.
  *
@@ -172,35 +172,35 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  *
  * Returns true if the message was sent successfully.
  */
-bool sendCanSignal(CanSignal* signal, cJSON* value,
+bool sendSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Just like the above function sendCanSignal(), but the value of force defaults
+ * Just like the above function sendSignal(), but the value of force defaults
  * to false.
  */
-bool sendCanSignal(CanSignal* signal, cJSON* value,
+bool sendSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Just like the above function sendCanSignal() that accepts a writer function,
+ * Just like the above function sendSignal() that accepts a writer function,
  * but uses the CanSignal's value for "writeHandler" instead.
  *
  * See above for argument descriptions.
  */
-bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Just like the above function sendCanSignal(), but the value of force defaults
+ * Just like the above function sendSignal(), but the value of force defaults
  * to false.
  */
-bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount);
 
 /* Public: The lowest-level API available to send a CAN message. The byte order
@@ -210,13 +210,13 @@ bool sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
  * message - the CAN message this data should be sent in.
  * data - the data for the CAN message, byte order will be reversed.
  */
-void enqueueCanMessage(CanMessage* message, uint64_t data);
+void enqueueMessage(CanMessage* message, uint64_t data);
 
 /* Public: Write any queued outgoing messages to the CAN bus.
  *
  * bus - The CanBus instance that has a queued to be flushed out to CAN.
  */
-void processCanWriteQueue(CanBus* bus);
+void processWriteQueue(CanBus* bus);
 
 /* Public: Write a CAN message with the given data and node ID to the bus.
  *
@@ -227,7 +227,7 @@ void processCanWriteQueue(CanBus* bus);
  *
  * Returns true if the message was sent successfully.
  */
-bool sendCanMessage(CanBus* bus, CanMessage request);
+bool sendMessage(CanBus* bus, CanMessage request);
 
 } // namespace write
 } // namespace can

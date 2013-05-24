@@ -6,14 +6,12 @@
 #include "cJSON.h"
 
 namespace usb = openxc::interface::usb;
+namespace can = openxc::can;
 
-using openxc::can::read::decodeCanSignal;
-using openxc::can::read::translateCanSignal;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::ignoreHandler;
 using openxc::can::read::stateHandler;
 using openxc::can::read::passthroughHandler;
-using openxc::can::read::passthroughCanMessage;
 using openxc::can::read::sendEventedBooleanMessage;
 using openxc::can::read::sendEventedStringMessage;
 using openxc::can::read::sendEventedFloatMessage;
@@ -67,7 +65,7 @@ void setup() {
 START_TEST (test_decode_signal)
 {
     CanSignal signal = SIGNALS[0];
-    float result = decodeCanSignal(&signal, BIG_ENDIAN_TEST_DATA);
+    float result = can::read::decodeSignal(&signal, BIG_ENDIAN_TEST_DATA);
     float correctResult = 0xA * 1001.0 - 30000.0;
     fail_unless(result == correctResult,
             "decode is incorrect: %f but should be %f", result, correctResult);
@@ -208,7 +206,7 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    passthroughCanMessage(&pipeline, 42, 0x123456789ABCDEF1LLU);
+    can::read::passthroughMessage(&pipeline, 42, 0x123456789ABCDEF1LLU);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
@@ -225,7 +223,7 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_default_handler)
 {
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -250,15 +248,15 @@ bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_respects_send_value)
 {
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, ignoreHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, ignoreHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, noSendStringHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, noSendStringHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             noSendBooleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
@@ -266,7 +264,7 @@ END_TEST
 
 START_TEST (test_translate_float)
 {
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -288,9 +286,9 @@ START_TEST (test_translate_float_handler_called_every_time)
 {
     SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -306,9 +304,9 @@ START_TEST (test_translate_bool_handler_called_every_time)
 {
     SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -324,9 +322,9 @@ START_TEST (test_translate_str_handler_called_every_time)
 {
     SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
             SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -339,7 +337,7 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, stringHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, stringHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -357,7 +355,7 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    translateCanSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA, booleanTranslateHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA, booleanTranslateHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -371,7 +369,7 @@ END_TEST
 START_TEST (test_always_send_first)
 {
     SIGNALS[0].sendFrequency = 5;
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
 END_TEST
@@ -379,15 +377,15 @@ END_TEST
 START_TEST (test_limited_frequency)
 {
     SIGNALS[0].sendFrequency = 5;
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
 END_TEST
@@ -399,11 +397,11 @@ float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_preserve_last_value)
 {
-    translateCanSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
 
-    translateCanSignal(&pipeline, &SIGNALS[0], 0x1234123000000000, preserveHandler, SIGNALS,
+    can::read::translateSignal(&pipeline, &SIGNALS[0], 0x1234123000000000, preserveHandler, SIGNALS,
             SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -417,7 +415,7 @@ END_TEST
 START_TEST (test_dont_send_same)
 {
     SIGNALS[2].sendSame = false;
-    translateCanSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
             booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
@@ -427,7 +425,7 @@ START_TEST (test_dont_send_same)
     ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
 
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
-    translateCanSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
             booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }

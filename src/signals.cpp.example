@@ -22,7 +22,7 @@
 #include "handlers.h"
 #include "shared_handlers.h"
 
-using openxc::can::read::translateCanSignal;
+using openxc::can::read::can::read::translateSignal;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
@@ -135,20 +135,20 @@ const char* openxc::signals::getMessageSet() {
  * coming in, and processes all CAN signals that are in that message. There are
  * many utility functions in canutil.h and canread.h to do this work, so you
  * probably don't need to do much in this function besides call the
- * translateCanSignal function that matches your desired output format (float,
+ * can::read::translateSignal function that matches your desired output format (float,
  * bool or string).
  */
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
     switch (id) {
     case 0x29:
-        translateCanSignal(pipeline, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
-        translateCanSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x52:
-        translateCanSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x65:
-        translateCanSignal(pipeline, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
         break;
     }
 }

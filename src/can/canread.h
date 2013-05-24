@@ -29,7 +29,7 @@ extern const char* EVENT_FIELD_NAME;
  * id - the ID of the CAN message.
  * data - 64 bits of data from the message.
  */
-void passthroughCanMessage(Pipeline* pipeline, int id, uint64_t data);
+void passthroughMessage(Pipeline* pipeline, int id, uint64_t data);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the pipeline;
@@ -38,7 +38,7 @@ void passthroughCanMessage(Pipeline* pipeline, int id, uint64_t data);
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
+void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
         CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
@@ -52,7 +52,7 @@ void translateCanSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
-void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -68,7 +68,7 @@ void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array
  */
-void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -88,7 +88,7 @@ void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
  * signals - An array of all active signals.
  * signalCount - The length of the signals array>
  */
-void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -161,7 +161,7 @@ void sendEventedFloatMessage(const char* name, const char* value, float event,
  *
  * Returns the final, transformed value of the signal.
  */
-float decodeCanSignal(CanSignal* signal, uint64_t data);
+float decodeSignal(CanSignal* signal, uint64_t data);
 
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.

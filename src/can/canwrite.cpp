@@ -1,6 +1,8 @@
 #include "can/canwrite.h"
 #include "util/log.h"
 
+namespace can = openxc::can;
+
 using openxc::util::bitfield::setBitField;
 using openxc::util::log::debugNoNewline;
 
@@ -20,7 +22,7 @@ uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals
 uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, bool value, bool* send, uint64_t data) {
     checkWritePermission(signal, send);
-    return encodeCanSignal(signal, value, data);
+    return encodeSignal(signal, value, data);
 }
 
 uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
@@ -47,7 +49,7 @@ uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
 uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, double value, bool* send, uint64_t data) {
     checkWritePermission(signal, send);
-    return encodeCanSignal(signal, value, data);
+    return encodeSignal(signal, value, data);
 }
 
 uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
@@ -70,7 +72,7 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
                 signalCount);
         if(signalState != NULL) {
             checkWritePermission(signal, send);
-            return encodeCanSignal(signal, signalState->value, data);
+            return encodeSignal(signal, signalState->value, data);
         } else {
             debug("Couldn't find a valid signal state for \"%s\"", value);
         }
@@ -101,11 +103,11 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
     return stateWriter(signal, signals, signalCount, value, send, 0);
 }
 
-uint64_t openxc::can::write::encodeCanSignal(CanSignal* signal, float value) {
-    return encodeCanSignal(signal, value, 0);
+uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
+    return encodeSignal(signal, value, 0);
 }
 
-uint64_t openxc::can::write::encodeCanSignal(CanSignal* signal, float value, uint64_t data) {
+uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value, uint64_t data) {
     float rawValue = (value - signal->offset) / signal->factor;
     if(rawValue > 0) {
         // round up to avoid losing precision when we cast to an int
@@ -115,30 +117,30 @@ uint64_t openxc::can::write::encodeCanSignal(CanSignal* signal, float value, uin
     return data;
 }
 
-void openxc::can::write::enqueueCanMessage(CanMessage* message, uint64_t data) {
+void openxc::can::write::enqueueMessage(CanMessage* message, uint64_t data) {
     CanMessage outgoingMessage = {message->bus, message->id,
         __builtin_bswap64(data)};
     QUEUE_PUSH(CanMessage, &message->bus->sendQueue, outgoingMessage);
 }
 
-bool openxc::can::write::sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount) {
-    return sendCanSignal(signal, value, signals, signalCount, false);
+    return sendSignal(signal, value, signals, signalCount, false);
 }
 
-bool openxc::can::write::sendCanSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
+bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
         int signalCount, bool force) {
-    return sendCanSignal(signal, value, signal->writeHandler, signals,
+    return sendSignal(signal, value, signal->writeHandler, signals,
             signalCount, force);
 }
 
-bool openxc::can::write::sendCanSignal(CanSignal* signal, cJSON* value,
+bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount) {
-    return sendCanSignal(signal, value, writer, signals, signalCount, false);
+    return sendSignal(signal, value, writer, signals, signalCount, false);
 }
 
-bool openxc::can::write::sendCanSignal(CanSignal* signal, cJSON* value,
+bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
         uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
         CanSignal* signals, int signalCount, bool force) {
     if(writer == NULL) {
@@ -152,14 +154,14 @@ bool openxc::can::write::sendCanSignal(CanSignal* signal, cJSON* value,
     bool send = true;
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(force || send) {
-        enqueueCanMessage(signal->message, data);
+        enqueueMessage(signal->message, data);
     } else {
         debug("Writing not allowed for signal with name %s", signal->genericName);
     }
     return send;
 }
 
-void openxc::can::write::processCanWriteQueue(CanBus* bus) {
+void openxc::can::write::processWriteQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
         debugNoNewline("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",

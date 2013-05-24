@@ -12,7 +12,7 @@ void openxc::can::initializeCommon(CanBus* bus) {
     debugNoNewline("Initializing CAN node 0x%2x...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
-    bus->writeHandler = openxc::can::write::sendCanMessage;
+    bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;
 }
 

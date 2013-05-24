@@ -1,7 +1,7 @@
 /* This is an example implementation of the functions defined in signals.h that
 * are required to compile and deploy to the OpenXC CAN translator. This file is
 * different from signals.cpp.example in that it does not define any CAN messages
-* to be translated, and instead uses the passthroughCanMessage function to spit
+* to be translated, and instead uses the can::read::passthroughMessage function to spit
 * out raw CAN data from the bus over USB and UART.
 */
 
@@ -13,7 +13,7 @@
 #include "handlers.h"
 #include "shared_handlers.h"
 
-using openxc::can::read::passthroughCanMessage;
+using openxc::can::read::can::read::passthroughMessage;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
@@ -83,7 +83,7 @@ const char* openxc::signals::getMessageSet() {
 }
 
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
-    passthroughCanMessage(pipeline, id, data);
+    can::read::passthroughMessage(pipeline, id, data);
 }
 
 CanFilter FILTERS[0];

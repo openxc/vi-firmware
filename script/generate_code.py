@@ -241,8 +241,9 @@ class Parser(object):
             print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
         print()
+        print("namespace can = openxc::can;")
+        print()
         print("using openxc::interface::Pipeline;")
-        print("using openxc::can::read::translateCanSignal;")
         print("using openxc::can::read::booleanHandler;")
         print("using openxc::can::read::stateHandler;")
         print("using openxc::can::read::ignoreHandler;")
@@ -412,12 +413,12 @@ class Parser(object):
                         message.handler + "SIGNAL_COUNT, pipeline);"))
                 for signal in (s for s in message.signals):
                     if signal.handler:
-                        print(("            translateCanSignal(pipeline, "
+                        print(("            can::read::translateSignal(pipeline, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name)))
                     else:
-                        print(("            translateCanSignal(pipeline, "
+                        print(("            can::read::translateSignal(pipeline, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))

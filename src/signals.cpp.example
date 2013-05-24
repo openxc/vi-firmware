@@ -138,17 +138,17 @@ const char* openxc::signals::getMessageSet() {
  * translateCanSignal function that matches your desired output format (float,
  * bool or string).
  */
-void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {
+void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
     switch (id) {
     case 0x29:
-        translateCanSignal(listener, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
-        translateCanSignal(listener, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(pipeline, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x52:
-        translateCanSignal(listener, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(pipeline, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
         break;
     case 0x65:
-        translateCanSignal(listener, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        translateCanSignal(pipeline, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
         break;
     }
 }

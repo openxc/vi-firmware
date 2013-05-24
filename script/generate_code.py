@@ -241,7 +241,7 @@ class Parser(object):
             print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
         print()
-        print("using openxc::interface::Listener;")
+        print("using openxc::interface::Pipeline;")
         print("using openxc::can::read::translateCanSignal;")
         print("using openxc::can::read::booleanHandler;")
         print("using openxc::can::read::stateHandler;")
@@ -400,7 +400,7 @@ class Parser(object):
         print("}")
         print()
 
-        print("void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {")
+        print("void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {")
         print("    switch(bus->address) {")
         for bus_address, bus in self.buses.items():
             print("    case %s:" % bus_address)
@@ -409,15 +409,15 @@ class Parser(object):
                 print("        case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
                     print(("            %s(id, data, SIGNALS, " %
-                        message.handler + "SIGNAL_COUNT, listener);"))
+                        message.handler + "SIGNAL_COUNT, pipeline);"))
                 for signal in (s for s in message.signals):
                     if signal.handler:
-                        print(("            translateCanSignal(listener, "
+                        print(("            translateCanSignal(pipeline, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name)))
                     else:
-                        print(("            translateCanSignal(listener, "
+                        print(("            translateCanSignal(pipeline, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))
@@ -427,7 +427,7 @@ class Parser(object):
         print("    }")
 
         if self._message_count() == 0:
-            print("    openxc::can::read::passthroughCanMessage(listener, id, data);")
+            print("    openxc::can::read::passthroughCanMessage(pipeline, id, data);")
 
         print("}\n")
 

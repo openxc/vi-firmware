@@ -32,7 +32,7 @@ const float openxc::signals::handlers::PI = 3.14159265;
 #endif
 
 void openxc::signals::handlers::sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Listener* listener) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(signal == NULL) {
         debug("Specific door signal for ID %s is NULL, vehicle may not support",
                 doorId);
@@ -48,29 +48,29 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId, uint64_t data
                 rawAjarStatus != signal->lastValue)) {
         signal->received = true;
         sendEventedBooleanMessage(DOOR_STATUS_GENERIC_NAME, doorId, ajarStatus,
-                listener);
+                pipeline);
     }
     signal->lastValue = rawAjarStatus;
 }
 
 void openxc::signals::handlers::handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
+        int signalCount, Pipeline* pipeline) {
     sendDoorStatus("driver", data,
             lookupSignal("driver_door", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendDoorStatus("passenger", data,
             lookupSignal("passenger_door", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendDoorStatus("rear_right", data,
             lookupSignal("rear_right_door", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendDoorStatus("rear_left", data,
             lookupSignal("rear_left_door", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
 }
 
 void openxc::signals::handlers::sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Listener* listener) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(signal == NULL) {
         debug("Specific tire signal for ID %s is NULL, vehicle may not support",
                 tireId);
@@ -82,25 +82,25 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId, uint64_t da
     float pressure = preTranslate(signal, data, &send);
     if(send) {
         sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
-                listener);
+                pipeline);
     }
     postTranslate(signal, pressure);
 }
 
 void openxc::signals::handlers::handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
+        int signalCount, Pipeline* pipeline) {
     sendTirePressure("front_left", data,
             lookupSignal("tire_pressure_front_left", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendTirePressure("front_right", data,
             lookupSignal("tire_pressure_front_right", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendTirePressure("rear_right", data,
             lookupSignal("tire_pressure_rear_right", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendTirePressure("rear_left", data,
             lookupSignal("tire_pressure_rear_left", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
 }
 
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
@@ -181,7 +181,7 @@ float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal* si
 }
 
 void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
+        int signalCount, Pipeline* pipeline) {
     float latitudeDegrees = decodeCanSignal(
             lookupSignal("latitude_degrees", signals, signalCount), data);
     float latitudeMinutes = decodeCanSignal(
@@ -209,8 +209,8 @@ void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data, C
     }
     longitudeDegrees += longitudeMinutes;
 
-    sendNumericalMessage("latitude", latitudeDegrees, listener);
-    sendNumericalMessage("longitude", longitudeDegrees, listener);
+    sendNumericalMessage("latitude", latitudeDegrees, pipeline);
+    sendNumericalMessage("longitude", longitudeDegrees, pipeline);
 }
 
 bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
@@ -247,7 +247,7 @@ float openxc::signals::handlers::handleMultisizeWheelRotationCount(CanSignal* si
 }
 
 void openxc::signals::handlers::handleButtonEventMessage(int messageId, uint64_t data,
-        CanSignal* signals, int signalCount, Listener* listener) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     CanSignal* buttonTypeSignal = lookupSignal("button_type", signals,
             signalCount);
     CanSignal* buttonStateSignal = lookupSignal("button_state", signals,
@@ -279,7 +279,7 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId, uint64_t
     }
 
     sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
-            buttonState, listener);
+            buttonState, pipeline);
 }
 
 bool openxc::signals::handlers::handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
@@ -303,7 +303,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name, cJSON*
 
 void sendOccupancyStatus(const char* seatId, uint64_t data,
         CanSignal* lowerSignal, CanSignal* upperSignal,
-        CanSignal* signals, int signalCount, Listener* listener) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(lowerSignal == NULL || upperSignal == NULL) {
         debug("Upper or lower occupancy signal for seat ID %s is NULL, "
                 "vehicle may not support", seatId);
@@ -321,25 +321,25 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
     if(lowerStatus) {
         if(upperStatus) {
             sendEventedStringMessage("occupancy_status", seatId, "adult",
-                    listener);
+                    pipeline);
         } else {
             sendEventedStringMessage("occupancy_status", seatId, "child",
-                    listener);
+                    pipeline);
         }
     } else {
         sendEventedStringMessage("occupancy_status", seatId, "empty",
-                listener);
+                pipeline);
     }
 }
 
 void openxc::signals::handlers::handleOccupancyMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener) {
+        int signalCount, Pipeline* pipeline) {
     sendOccupancyStatus("driver", data,
             lookupSignal("driver_occupancy_lower", signals, signalCount),
             lookupSignal("driver_occupancy_upper", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
     sendOccupancyStatus("passenger", data,
             lookupSignal("passenger_occupancy_lower", signals, signalCount),
             lookupSignal("passenger_occupancy_upper", signals, signalCount),
-            signals, signalCount, listener);
+            signals, signalCount, pipeline);
 }

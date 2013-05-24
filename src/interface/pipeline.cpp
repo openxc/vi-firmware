@@ -31,32 +31,32 @@ void droppedMessage(MessageType type) {
     }
 }
 
-void openxc::interface::sendMessage(Listener* listener, uint8_t* message, int messageSize) {
-    if(listener->usb->configured && !conditionalEnqueue(
-                &listener->usb->sendQueue, message, messageSize)) {
+void openxc::interface::sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize) {
+    if(pipeline->usb->configured && !conditionalEnqueue(
+                &pipeline->usb->sendQueue, message, messageSize)) {
         droppedMessage(USB);
     }
 
-    if(uart::connected(listener->uart) && !conditionalEnqueue(
-                &listener->uart->sendQueue, message, messageSize)) {
+    if(uart::connected(pipeline->uart) && !conditionalEnqueue(
+                &pipeline->uart->sendQueue, message, messageSize)) {
         droppedMessage(UART);
     }
 
-    if(listener->network != NULL && !conditionalEnqueue(
-                &listener->network->sendQueue, message, messageSize)) {
+    if(pipeline->network != NULL && !conditionalEnqueue(
+                &pipeline->network->sendQueue, message, messageSize)) {
         droppedMessage(NETWORK);
     }
 }
 
-void openxc::interface::processListenerQueues(Listener* listener) {
+void openxc::interface::processPipelineQueues(Pipeline* pipeline) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
-    processUsbSendQueue(listener->usb);
-    if(uart::connected(listener->uart)) {
-        uart::processSendQueue(listener->uart);
+    processUsbSendQueue(pipeline->usb);
+    if(uart::connected(pipeline->uart)) {
+        uart::processSendQueue(pipeline->uart);
     }
 
-    if(listener->network != NULL) {
-       processNetworkSendQueue(listener->network);
+    if(pipeline->network != NULL) {
+       processNetworkSendQueue(pipeline->network);
     }
 }

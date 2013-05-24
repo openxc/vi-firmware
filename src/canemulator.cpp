@@ -24,7 +24,7 @@ using openxc::can::read::sendEventedBooleanMessage;
 
 int emulatorRateLimiter = 0;
 
-extern Listener listener;
+extern Pipeline pipeline;
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -85,24 +85,24 @@ void loop() {
     if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY / 2) {
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
-                rand() % 50 + rand() % 100 * .1, &listener);
+                rand() % 50 + rand() % 100 * .1, &pipeline);
         sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
-                rand() % 2 == 1 ? true : false, &listener);
+                rand() % 2 == 1 ? true : false, &pipeline);
     } else if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY) {
         emulatorRateLimiter = 0;
 
         int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
+                SIGNAL_STATES[stateSignalIndex][rand() % 3], &pipeline);
 
         int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
         sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-                randomEvent.value, randomEvent.event, &listener);
+                randomEvent.value, randomEvent.event, &pipeline);
     }
 
-    readFromHost(listener.usb, usbWriteStub);
-    uart::read(listener.uart, usbWriteStub);
+    readFromHost(pipeline.usb, usbWriteStub);
+    uart::read(pipeline.uart, usbWriteStub);
 }
 
 void reset() { }

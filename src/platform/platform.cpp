@@ -16,7 +16,7 @@ using openxc::util::time::delayMs;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 
-void openxc::platform::suspend(Listener* listener) {
+void openxc::platform::suspend(Pipeline* pipeline) {
     debug("CAN went silent - disabling LED");
 
     // De-init and shut down all peripherals to save power
@@ -24,7 +24,7 @@ void openxc::platform::suspend(Listener* listener) {
         deinitializeCan(&getCanBuses()[i]);
     }
     deinitializeLights();
-    deinitializeUsb(listener->usb);
+    deinitializeUsb(pipeline->usb);
     deinitializeBluetooth();
 
     // Wait for peripherals to disabled before sleeping

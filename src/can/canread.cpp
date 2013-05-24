@@ -11,29 +11,29 @@ const char* openxc::can::read::VALUE_FIELD_NAME = "value";
 const char* openxc::can::read::EVENT_FIELD_NAME = "event";
 
 /* Private: Serialize the root JSON object to a string (ending with a newline)
- * and send it to the listener.
+ * and send it to the pipeline.
  *
  * root - The JSON object to send.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
-void sendJSON(cJSON* root, Listener* listener) {
+void sendJSON(cJSON* root, Pipeline* pipeline) {
     char* message = cJSON_PrintUnformatted(root);
-    sendMessage(listener, (uint8_t*) message, strlen(message));
+    sendMessage(pipeline, (uint8_t*) message, strlen(message));
     cJSON_Delete(root);
     free(message);
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to
- * the OpenXC standard) and send it out to the listener.
+ * the OpenXC standard) and send it out to the pipeline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The numerical, string or booelan for the value field of the OpenXC
  *     message.
  * event - (Optional) The event for the event field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
 void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
-        Listener* listener) {
+        Pipeline* pipeline) {
     using openxc::can::read::NAME_FIELD_NAME;
     using openxc::can::read::VALUE_FIELD_NAME;
     using openxc::can::read::EVENT_FIELD_NAME;
@@ -44,7 +44,7 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     if(event != NULL) {
         cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
     }
-    sendJSON(root, listener);
+    sendJSON(root, pipeline);
 }
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* send) {
@@ -103,38 +103,38 @@ const char* openxc::can::read::stateHandler(CanSignal* signal, CanSignal* signal
     return NULL;
 }
 
-void openxc::can::read::sendNumericalMessage(const char* name, float value, Listener* listener) {
-    sendJSONMessage(name, cJSON_CreateNumber(value), NULL, listener);
+void openxc::can::read::sendNumericalMessage(const char* name, float value, Pipeline* pipeline) {
+    sendJSONMessage(name, cJSON_CreateNumber(value), NULL, pipeline);
 }
 
-void openxc::can::read::sendBooleanMessage(const char* name, bool value, Listener* listener) {
-    sendJSONMessage(name, cJSON_CreateBool(value), NULL, listener);
+void openxc::can::read::sendBooleanMessage(const char* name, bool value, Pipeline* pipeline) {
+    sendJSONMessage(name, cJSON_CreateBool(value), NULL, pipeline);
 }
 
 void openxc::can::read::sendStringMessage(const char* name, const char* value,
-        Listener* listener) {
-    sendJSONMessage(name, cJSON_CreateString(value), NULL, listener);
+        Pipeline* pipeline) {
+    sendJSONMessage(name, cJSON_CreateString(value), NULL, pipeline);
 }
 
 void openxc::can::read::sendEventedFloatMessage(const char* name, const char* value, float event,
-        Listener* listener) {
+        Pipeline* pipeline) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
-            listener);
+            pipeline);
 }
 
 void openxc::can::read::sendEventedBooleanMessage(const char* name, const char* value, bool event,
-        Listener* listener) {
+        Pipeline* pipeline) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
-            listener);
+            pipeline);
 }
 
 void openxc::can::read::sendEventedStringMessage(const char* name, const char* value,
-        const char* event, Listener* listener) {
+        const char* event, Pipeline* pipeline) {
     sendJSONMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
-            listener);
+            pipeline);
 }
 
-void openxc::can::read::passthroughCanMessage(Listener* listener, int id, uint64_t data) {
+void openxc::can::read::passthroughCanMessage(Pipeline* pipeline, int id, uint64_t data) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
 
@@ -156,10 +156,10 @@ void openxc::can::read::passthroughCanMessage(Listener* listener, int id, uint64
             combined.bytes[7]);
     cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
 
-    sendJSON(root, listener);
+    sendJSON(root, pipeline);
 }
 
-void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -167,12 +167,12 @@ void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal
     float value = preTranslate(signal, data, &send);
     float processedValue = handler(signal, signals, signalCount, value, &send);
     if(send) {
-        sendNumericalMessage(signal->genericName, processedValue, listener);
+        sendNumericalMessage(signal->genericName, processedValue, pipeline);
     }
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -184,12 +184,12 @@ void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal
         debug("No valid string returned from handler for %s",
                 signal->genericName);
     } else if(send) {
-        sendStringMessage(signal->genericName, stringValue, listener);
+        sendStringMessage(signal->genericName, stringValue, pipeline);
     }
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount) {
@@ -197,13 +197,13 @@ void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal
     float value = preTranslate(signal, data, &send);
     bool booleanValue = handler(signal, signals, signalCount, value, &send);
     if(send) {
-        sendBooleanMessage(signal->genericName, booleanValue, listener);
+        sendBooleanMessage(signal->genericName, booleanValue, pipeline);
     }
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateCanSignal(Listener* listener, CanSignal* signal,
+void openxc::can::read::translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data, CanSignal* signals, int signalCount) {
-    translateCanSignal(listener, signal, data, passthroughHandler, signals,
+    translateCanSignal(pipeline, signal, data, passthroughHandler, signals,
             signalCount);
 }

@@ -82,8 +82,8 @@ const char* openxc::signals::getMessageSet() {
     return "passthrough-2012";
 }
 
-void openxc::signals::decodeCanMessage(Listener* listener, CanBus* bus, int id, uint64_t data) {
-    passthroughCanMessage(listener, id, data);
+void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
+    passthroughCanMessage(pipeline, id, data);
 }
 
 CanFilter FILTERS[0];

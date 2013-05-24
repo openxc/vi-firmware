@@ -4,7 +4,7 @@
 #include "canutil.h"
 #include "interface/pipeline.h"
 
-using openxc::interface::Listener;
+using openxc::interface::Pipeline;
 
 namespace openxc {
 namespace can {
@@ -18,41 +18,41 @@ extern const char* EVENT_FIELD_NAME;
 
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a JSON message with "id" and "data" attributes and send it out to the
- * listeners.
+ * pipelines.
  *
  * This is useful for debugging when CAN acceptance filters are disabled. Call
  * this function every time decodeCanMessage is called and you will get a full
  * CAN message stream.
  *
- * listener - The listener device to send the raw message over as an integer ID
+ * pipeline - The pipeline to send the raw message over as an integer ID
  *      and hex data as an ASCII encoded string.
  * id - the ID of the CAN message.
  * data - 64 bits of data from the message.
  */
-void passthroughCanMessage(Listener* listener, int id, uint64_t data);
+void passthroughCanMessage(Pipeline* pipeline, int id, uint64_t data);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and send the result to the listener;
+ * transforations and send the result to the pipeline;
  *
- * listener - The listener device to send the final formatted message on.
+ * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
  */
-void translateCanSignal(Listener* listener, CanSignal* signal, uint64_t data,
+void translateCanSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
         CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and also run the final float value through the handler
- * function before sending the result to the listener.
+ * function before sending the result to the pipeline.
  *
- * listener - The listener device to send the final formatted message on.
+ * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - a function that performs extra processing on the float value.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -61,14 +61,14 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * transforations and (expecting the float value to be 0 or 1) convert it to a
  * boolean.
  *
- * listener - The listener device to send the final formatted message on.
+ * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - a function that converts the float value to a boolean.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array
  */
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
@@ -80,7 +80,7 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * (e.g. because no state was found associated with the float value), bad things
  * may happen.
  *
- * listener - The listener device to send the final formatted message on.
+ * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data - The raw bytes of the CAN message that contains the signal.
  * handler - A function that returns the string state value associated with the
@@ -88,70 +88,70 @@ void translateCanSignal(Listener* listener, CanSignal* signal,
  * signals - An array of all active signals.
  * signalCount - The length of the signals array>
  */
-void translateCanSignal(Listener* listener, CanSignal* signal,
+void translateCanSignal(Pipeline* pipeline, CanSignal* signal,
         uint64_t data,
         const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
         CanSignal* signals, int signalCount);
 
-/* Public: Send the given name and value out to the listener in an OpenXC JSON
+/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
  * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The numerical value for the value field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
-void sendNumericalMessage(const char* name, float value, Listener* listener);
+void sendNumericalMessage(const char* name, float value, Pipeline* pipeline);
 
-/* Public: Send the given name and value out to the listener in an OpenXC JSON
+/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
  * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
-void sendStringMessage(const char* name, const char* value, Listener* listener);
+void sendStringMessage(const char* name, const char* value, Pipeline* pipeline);
 
-/* Public: Send the given name and value out to the listener in an OpenXC JSON
+/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
  * message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The boolean value for the value field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
-void sendBooleanMessage(const char* name, bool value, Listener* listener);
+void sendBooleanMessage(const char* name, bool value, Pipeline* pipeline);
 
-/* Public: Send the given name, value and event out to the listener in an OpenXC
+/* Public: Send the given name, value and event out to the pipeline in an OpenXC
  * JSON message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
  * event - The boolean event for the event field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
 void sendEventedBooleanMessage(const char* name, const char* value, bool event,
-        Listener* listener);
+        Pipeline* pipeline);
 
-/* Public: Send the given name, value and event out to the listener in an OpenXC
+/* Public: Send the given name, value and event out to the pipeline in an OpenXC
  * JSON message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
  * event - The string event for the event field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
 void sendEventedStringMessage(const char* name, const char* value,
-        const char* event, Listener* listener);
+        const char* event, Pipeline* pipeline);
 
-/* Public: Send the given name, value and event out to the listener in an OpenXC
+/* Public: Send the given name, value and event out to the pipeline in an OpenXC
  * JSON message followed by a newline.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
  * event - The float event for the event field of the OpenXC message.
- * listener - The listener device to send on.
+ * pipeline - The pipeline to send on.
  */
 void sendEventedFloatMessage(const char* name, const char* value, float event,
-        Listener* listener);
+        Pipeline* pipeline);
 
 /* Public: Parse a CAN signal from a message and apply required transformation.
  *

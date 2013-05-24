@@ -38,11 +38,11 @@ using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 using openxc::platform::suspend;
 
-extern Listener listener;
+extern Pipeline pipeline;
 
 /* Forward declarations */
 
-void receiveCan(Listener*, CanBus*);
+void receiveCan(Pipeline*, CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
@@ -54,12 +54,12 @@ void setup() {
 
 void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
-        receiveCan(&listener, &getCanBuses()[i]);
+        receiveCan(&pipeline, &getCanBuses()[i]);
     }
 
-    readFromHost(listener.usb, receiveWriteRequest);
-    uart::read(listener.uart, receiveWriteRequest);
-    readFromSocket(listener.network, receiveWriteRequest);
+    readFromHost(pipeline.usb, receiveWriteRequest);
+    uart::read(pipeline.uart, receiveWriteRequest);
+    readFromSocket(pipeline.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         processCanWriteQueue(&getCanBuses()[i]);
@@ -90,7 +90,7 @@ void updateDataLights() {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
         busWasActive = false;
-        suspend(&listener);
+        suspend(&pipeline);
 #endif
     }
 }
@@ -172,11 +172,11 @@ bool receiveWriteRequest(uint8_t* message) {
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the uart monitor.
  */
-void receiveCan(Listener* listener, CanBus* bus) {
+void receiveCan(Pipeline* pipeline, CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(listener, bus, message.id, message.data);
+        decodeCanMessage(pipeline, bus, message.id, message.data);
         bus->lastMessageReceived = systemTimeMs();
     }
 }

@@ -5,9 +5,9 @@
 #include "cJSON.h"
 
 namespace uart = openxc::interface::uart;
-using openxc::interface::Listener;
+using openxc::interface::Pipeline;
 
-Listener listener;
+Pipeline pipeline;
 UsbDevice usbDevice;
 UartDevice uartDevice;
 NetworkDevice networkDevice;
@@ -17,13 +17,13 @@ extern bool UART_PROCESSED;
 extern bool NETWORK_PROCESSED;
 
 void setup() {
-    listener.usb = &usbDevice;
-    listener.uart = NULL;
-    listener.network = NULL;
+    pipeline.usb = &usbDevice;
+    pipeline.uart = NULL;
+    pipeline.network = NULL;
     initializeUsb(&usbDevice);
     uart::initialize(&uartDevice);
     initializeNetwork(&networkDevice);
-    listener.usb->configured = true;
+    pipeline.usb->configured = true;
     USB_PROCESSED = false;
     UART_PROCESSED = false;
     NETWORK_PROCESSED = false;
@@ -32,92 +32,92 @@ void setup() {
 START_TEST (test_only_usb)
 {
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_full_network)
 {
-    listener.network = &networkDevice;
+    pipeline.network = &networkDevice;
     for(int i = 0; i < 512; i++) {
-        QUEUE_PUSH(uint8_t, &listener.network->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &pipeline.network->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &listener.network->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &pipeline.network->sendQueue));
 
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 }
 END_TEST
 
 START_TEST (test_full_uart)
 {
-    listener.uart = &uartDevice;
+    pipeline.uart = &uartDevice;
     for(int i = 0; i < 512; i++) {
-        QUEUE_PUSH(uint8_t, &listener.uart->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &pipeline.uart->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &listener.uart->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &pipeline.uart->sendQueue));
 
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 }
 END_TEST
 
 START_TEST (test_full_usb)
 {
     for(int i = 0; i < 512; i++) {
-        QUEUE_PUSH(uint8_t, &listener.usb->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &pipeline.usb->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &listener.usb->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->sendQueue));
 
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 }
 END_TEST
 
 START_TEST (test_with_uart)
 {
-    listener.uart = &uartDevice;
+    pipeline.uart = &uartDevice;
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.uart->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_with_uart_and_network)
 {
-    listener.uart = &uartDevice;
-    listener.network = &networkDevice;
+    pipeline.uart = &uartDevice;
+    pipeline.network = &networkDevice;
     const char* message = "message";
-    sendMessage(&listener, (uint8_t*)message, 8);
+    sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &listener.usb->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.uart->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &listener.network->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &listener.network->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.network->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.network->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_process_usb)
 {
-    processListenerQueues(&listener);
+    processPipelineQueues(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_if(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -126,8 +126,8 @@ END_TEST
 
 START_TEST (test_process_usb_and_uart)
 {
-    listener.uart = &uartDevice;
-    processListenerQueues(&listener);
+    pipeline.uart = &uartDevice;
+    processPipelineQueues(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -136,17 +136,17 @@ END_TEST
 
 START_TEST (test_process_all)
 {
-    listener.uart = &uartDevice;
-    listener.network = &networkDevice;
-    processListenerQueues(&listener);
+    pipeline.uart = &uartDevice;
+    pipeline.network = &networkDevice;
+    processPipelineQueues(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_unless(NETWORK_PROCESSED);
 }
 END_TEST
 
-Suite* listenerSuite(void) {
-    Suite* s = suite_create("listener");
+Suite* pipelineSuite(void) {
+    Suite* s = suite_create("pipeline");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_only_usb);
@@ -165,7 +165,7 @@ Suite* listenerSuite(void) {
 
 int main(void) {
     int numberFailed;
-    Suite* s = listenerSuite();
+    Suite* s = pipelineSuite();
     SRunner *sr = srunner_create(s);
     // Don't fork so we can actually use gdb
     srunner_set_fork_status(sr, CK_NOFORK);

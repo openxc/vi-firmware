@@ -57,6 +57,6 @@ void openxc::interface::processPipelineQueues(Pipeline* pipeline) {
     }
 
     if(pipeline->network != NULL) {
-       processNetworkSendQueue(pipeline->network);
+       network::processSendQueue(pipeline->network);
     }
 }

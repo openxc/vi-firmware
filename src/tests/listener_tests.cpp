@@ -5,6 +5,7 @@
 #include "cJSON.h"
 
 namespace uart = openxc::interface::uart;
+namespace network = openxc::interface::network;
 using openxc::interface::Pipeline;
 
 Pipeline pipeline;
@@ -22,7 +23,7 @@ void setup() {
     pipeline.network = NULL;
     initializeUsb(&usbDevice);
     uart::initialize(&uartDevice);
-    initializeNetwork(&networkDevice);
+    network::initialize(&networkDevice);
     pipeline.usb->configured = true;
     USB_PROCESSED = false;
     UART_PROCESSED = false;

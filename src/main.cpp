@@ -20,6 +20,7 @@
 #define DATA_OUT_ENDPOINT 2
 
 namespace uart = openxc::interface::uart;
+namespace network = openxc::interface::network;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
@@ -76,7 +77,7 @@ int main(void) {
     initializePower();
     initializeUsb(pipeline.usb);
     uart::initialize(pipeline.uart);
-    initializeNetwork(pipeline.network);
+    network::initialize(pipeline.network);
     initializeLights();
     initializeBluetooth();
 

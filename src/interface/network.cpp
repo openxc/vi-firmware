@@ -2,7 +2,7 @@
 #include "util/log.h"
 #include <stddef.h>
 
-void openxc::interface::network::initializeNetworkCommon(NetworkDevice* device) {
+void openxc::interface::network::initializeCommon(NetworkDevice* device) {
     if(device != NULL) {
         debug("Initializing Network...");
         QUEUE_INIT(uint8_t, &device->receiveQueue);

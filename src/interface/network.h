@@ -42,19 +42,19 @@ typedef struct {
 
 /* Public: Perform platform-agnostic Network initialization.
  */
-void initializeNetworkCommon(NetworkDevice* device);
+void initializeCommon(NetworkDevice* device);
 
 /* Initializes the network interface with MAC and IP addresses, starts
  * listening for connections.
  */
-void initializeNetwork(NetworkDevice* device);
+void initialize(NetworkDevice* device);
 
 /* Processes the network send queue and sends its bytes to connected network
  * clients.
  */
-void processNetworkSendQueue(NetworkDevice* device);
+void processSendQueue(NetworkDevice* device);
 
-void readFromSocket(NetworkDevice* device, bool (*callback)(uint8_t*));
+void read(NetworkDevice* device, bool (*callback)(uint8_t*));
 
 } // namespace network
 } // namespace interface

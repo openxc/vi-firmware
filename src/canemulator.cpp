@@ -16,6 +16,7 @@
 #define EMULATOR_SEND_FREQUENCY 200
 
 namespace uart = openxc::interface::uart;
+namespace network = openxc::interface::network;
 
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendBooleanMessage;

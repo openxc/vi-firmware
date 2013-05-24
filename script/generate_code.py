@@ -428,7 +428,7 @@ class Parser(object):
         print("    }")
 
         if self._message_count() == 0:
-            print("    openxc::can::read::passthroughCanMessage(pipeline, id, data);")
+            print("    openxc::can::read::passthroughMessage(pipeline, id, data);")
 
         print("}\n")
 

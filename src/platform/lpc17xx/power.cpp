@@ -10,8 +10,8 @@
 #define PROGRAM_BUTTON_PORT 2
 #define PROGRAM_BUTTON_PIN 12
 
-using openxc::gpio::setGpioValue;
-using openxc::gpio::setGpioDirection;
+namespace gpio = openxc::gpio;
+
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
@@ -39,7 +39,7 @@ void setPowerPassthroughStatus(bool enabled) {
         debug("off");
         pinStatus = 1;
     }
-    setGpioValue(POWER_CONTROL_PORT, POWER_CONTROL_PIN,
+    gpio::setValue(POWER_CONTROL_PORT, POWER_CONTROL_PIN,
             pinStatus ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 }
 
@@ -54,7 +54,7 @@ void openxc::power::initialize() {
     powerPassthroughPinConfig.Pinnum = POWER_CONTROL_PIN;
     PINSEL_ConfigPin(&powerPassthroughPinConfig);
 
-    setGpioDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
+    gpio::setDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
     setPowerPassthroughStatus(true);
 
     debug("Done.");

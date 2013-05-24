@@ -16,9 +16,9 @@ typedef enum {
     GPIO_VALUE_HIGH = 1
 } GpioValue;
 
-void setGpioDirection(uint32_t port, uint32_t pin, GpioDirection direction);
-void setGpioValue(uint32_t port, uint32_t pin, GpioValue value);
-GpioValue getGpioValue(uint32_t port, uint32_t pin);
+void setDirection(uint32_t port, uint32_t pin, GpioDirection direction);
+void setValue(uint32_t port, uint32_t pin, GpioValue value);
+GpioValue getValue(uint32_t port, uint32_t pin);
 
 } // namespace gpio
 } // namespace openxc

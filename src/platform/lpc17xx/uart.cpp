@@ -39,10 +39,10 @@
 
 #endif
 
+namespace gpio = openxc::gpio;
+
 using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
-using openxc::gpio::setGpioDirection;
-using openxc::gpio::getGpioValue;
 using openxc::gpio::GpioValue;
 using openxc::gpio::GpioDirection;
 
@@ -252,7 +252,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     LPC_GPIO1->FIOPIN |= (1 << 17);
     debug("Done.");
 
-    setGpioDirection(UART_STATUS_PORT, UART_STATUS_PIN,
+    gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             GpioDirection::GPIO_DIRECTION_INPUT);
 
     debug("Done.");
@@ -269,7 +269,7 @@ void openxc::interface::uart::processSendQueue(UartDevice* device) {
 }
 
 bool openxc::interface::uart::connected(UartDevice* device) {
-    return device != NULL && getGpioValue(UART_STATUS_PORT, UART_STATUS_PIN)
+    return device != NULL && gpio::getValue(UART_STATUS_PORT, UART_STATUS_PIN)
             != GpioValue::GPIO_VALUE_LOW;
 }
 

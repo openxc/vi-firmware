@@ -19,6 +19,8 @@
 
 #endif
 
+namespace gpio = openxc::gpio;
+
 using openxc::gpio::GpioValue;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_VALUE_HIGH;
@@ -31,7 +33,7 @@ void enablePin(openxc::lights::RGB color, int pin, int polarity) {
     } else {
         value = polarity ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
     }
-    setGpioValue(0, pin, value);
+    gpio::setValue(0, pin, value);
 }
 
 void openxc::lights::enable(Light light, RGB color) {
@@ -56,10 +58,10 @@ void openxc::lights::enable(Light light, RGB color) {
 
 void openxc::lights::initialize() {
     #if defined(USER_LED_A_SUPPORT)
-    setGpioDirection(0, USER_LED_A_PIN, GPIO_DIRECTION_OUTPUT);
+    gpio::setDirection(0, USER_LED_A_PIN, GPIO_DIRECTION_OUTPUT);
     #endif
 
     #if defined(USER_LED_B_SUPPORT)
-    setGpioDirection(0, USER_LED_B_PIN, GPIO_DIRECTION_OUTPUT);
+    gpio::setDirection(0, USER_LED_B_PIN, GPIO_DIRECTION_OUTPUT);
     #endif
 }

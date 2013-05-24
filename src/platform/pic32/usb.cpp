@@ -6,16 +6,16 @@
 #define USB_VBUS_ANALOG_INPUT A0
 #define USB_HANDLE_MAX_WAIT_COUNT 35000
 
-extern bool handleControlRequest(uint8_t);
+namespace gpio = openxc::gpio;
 
 using openxc::interface::usb::UsbDevice;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
-using openxc::gpio::setGpioDirection;
 using openxc::util::bytebuffer::processQueue;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 extern UsbDevice USB_DEVICE;
+extern bool handleControlRequest(uint8_t);
 
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
@@ -126,7 +126,7 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-    setGpioDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
+    gpio::setDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
     debug("Done.");
 }
 

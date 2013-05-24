@@ -10,9 +10,9 @@
     #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)
 #endif
 
+namespace gpio = openxc::gpio;
+
 using openxc::gpio::GpioValue;
-using openxc::gpio::setGpioDirection;
-using openxc::gpio::setGpioValue;
 using openxc::util::log::debugNoNewline;
 using openxc::signals::initializeFilters;
 
@@ -77,8 +77,8 @@ void openxc::can::deinitialize(CanBus* bus) {
     // disable off-chip line driver
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
     value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
-    setGpioDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
-    setGpioValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
+    gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+    gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
     #endif
 }
 
@@ -140,8 +140,8 @@ void openxc::can::initialize(CanBus* bus) {
     // switch ON off-chip CAN line drivers (if necessary)
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
     value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
-    setGpioDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
-    setGpioValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
+    gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+    gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
     #endif
 
     // move CAN module to OPERATIONAL state (go on bus)

@@ -20,7 +20,7 @@ void setBluetoothStatus(bool enabled) {
             enabled ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 }
 
-void openxc::bluetooth::initializeBluetooth() {
+void openxc::bluetooth::initialize() {
     debug("Initializing Bluetooth...");
     setGpioDirection(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
             GPIO_DIRECTION_OUTPUT);
@@ -28,6 +28,6 @@ void openxc::bluetooth::initializeBluetooth() {
     debug("Done.");
 }
 
-void openxc::bluetooth::deinitializeBluetooth() {
+void openxc::bluetooth::deinitialize() {
     setBluetoothStatus(false);
 }

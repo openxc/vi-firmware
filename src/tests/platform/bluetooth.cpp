@@ -1,5 +1,5 @@
 #include "bluetooth.h"
 
-void openxc::bluetooth::initializeBluetooth() { }
+void openxc::bluetooth::initialize() { }
 
-void openxc::bluetooth::deinitializeBluetooth() { }
+void openxc::bluetooth::deinitialize() { }

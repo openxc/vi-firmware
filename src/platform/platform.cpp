@@ -10,7 +10,6 @@
 
 namespace usb = openxc::interface::usb;
 
-using openxc::bluetooth::deinitializeBluetooth;
 using openxc::can::deinitializeCan;
 using openxc::power::enterLowPowerMode;
 using openxc::lights::deinitialize;
@@ -27,7 +26,7 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     }
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);
-    deinitializeBluetooth();
+    bluetooth::deinitialize();
 
     // Wait for peripherals to disabled before sleeping
     delayMs(100);

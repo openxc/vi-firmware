@@ -28,7 +28,7 @@ void setBluetoothStatus(bool enabled) {
 #endif
 }
 
-void openxc::bluetooth::initializeBluetooth() {
+void openxc::bluetooth::initialize() {
 #ifdef BLUETOOTH_SUPPORT
     debug("Initializing Bluetooth...");
 
@@ -44,6 +44,6 @@ void openxc::bluetooth::initializeBluetooth() {
 #endif
 }
 
-void openxc::bluetooth::deinitializeBluetooth() {
+void openxc::bluetooth::deinitialize() {
     setBluetoothStatus(false);
 }

@@ -5,10 +5,10 @@ namespace openxc {
 namespace bluetooth {
 
 /* Public: Perform any initialization required to control Bluetooth. */
-void initializeBluetooth();
+void initialize();
 
 /* Public: Shut down the bluetooth peripheral (save power). */
-void deinitializeBluetooth();
+void deinitialize();
 
 } // namespace bluetooth
 } // namespace openxc

@@ -7,7 +7,7 @@
 #include "signals.h"
 #include "util/log.h"
 #include "cJSON.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "util/timer.h"
 #include "lights.h"
 #include "power.h"

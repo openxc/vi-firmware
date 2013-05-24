@@ -243,7 +243,7 @@ class Parser(object):
         print()
         print("namespace can = openxc::can;")
         print()
-        print("using openxc::interface::Pipeline;")
+        print("using openxc::pipeline::Pipeline;")
         print("using openxc::can::read::booleanHandler;")
         print("using openxc::can::read::stateHandler;")
         print("using openxc::can::read::ignoreHandler;")

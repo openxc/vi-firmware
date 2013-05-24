@@ -2,7 +2,7 @@
 #include "interface/uart.h"
 #include "interface/usb.h"
 #include "interface/network.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "signals.h"
 #include "util/log.h"
 #include "lights.h"
@@ -84,7 +84,7 @@ int main(void) {
 
     for (;;) {
         loop();
-        processPipelineQueues(&pipeline);
+        process(&pipeline);
         updateInterfaceLight();
     }
 

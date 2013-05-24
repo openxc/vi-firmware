@@ -1,6 +1,6 @@
 #include "util/timer.h"
 #include "lights.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "util/log.h"
 
 namespace time = openxc::util::time;

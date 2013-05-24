@@ -10,7 +10,7 @@ using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
 
 namespace openxc {
-namespace interface {
+namespace pipeline {
 
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
@@ -50,7 +50,7 @@ void sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize);
  *
  * pipeline - Pipeline instance with the interface queues to flush.
  */
-void processPipelineQueues(Pipeline* pipeline);
+void process(Pipeline* pipeline);
 
 } // namespace interface
 } // namespace openxc

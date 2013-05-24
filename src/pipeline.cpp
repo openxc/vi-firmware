@@ -1,10 +1,14 @@
 #include "emqueue.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "util/log.h"
 #include "util/bytebuffer.h"
 #include "lights.h"
 
 #define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
+
+namespace uart = openxc::interface::uart;
+namespace usb = openxc::interface::usb;
+namespace network = openxc::interface::network;
 
 using openxc::util::bytebuffer::conditionalEnqueue;
 
@@ -31,7 +35,7 @@ void droppedMessage(MessageType type) {
     }
 }
 
-void openxc::interface::sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize) {
+void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize) {
     if(pipeline->usb->configured && !conditionalEnqueue(
                 &pipeline->usb->sendQueue, message, messageSize)) {
         droppedMessage(USB);
@@ -48,7 +52,7 @@ void openxc::interface::sendMessage(Pipeline* pipeline, uint8_t* message, int me
     }
 }
 
-void openxc::interface::processPipelineQueues(Pipeline* pipeline) {
+void openxc::pipeline::process(Pipeline* pipeline) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     usb::processSendQueue(pipeline->usb);

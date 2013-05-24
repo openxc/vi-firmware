@@ -1,6 +1,6 @@
 #include <check.h>
 #include <stdint.h>
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "emqueue.h"
 #include "cJSON.h"
 
@@ -8,7 +8,7 @@ namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
 
-using openxc::interface::Pipeline;
+using openxc::pipeline::Pipeline;
 
 Pipeline pipeline;
 UsbDevice usbDevice;
@@ -120,7 +120,7 @@ END_TEST
 
 START_TEST (test_process_usb)
 {
-    processPipelineQueues(&pipeline);
+    process(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_if(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -130,7 +130,7 @@ END_TEST
 START_TEST (test_process_usb_and_uart)
 {
     pipeline.uart = &uartDevice;
-    processPipelineQueues(&pipeline);
+    process(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -141,7 +141,7 @@ START_TEST (test_process_all)
 {
     pipeline.uart = &uartDevice;
     pipeline.network = &networkDevice;
-    processPipelineQueues(&pipeline);
+    process(&pipeline);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_unless(NETWORK_PROCESSED);

@@ -2,9 +2,9 @@
 #define _CANREAD_H_
 
 #include "can/canutil.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 
-using openxc::interface::Pipeline;
+using openxc::pipeline::Pipeline;
 
 namespace openxc {
 namespace can {

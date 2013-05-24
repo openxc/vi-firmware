@@ -2,7 +2,7 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
 #include "interface/uart.h"
-#include "interface/pipeline.h"
+#include "pipeline.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
 #include "gpio.h"
@@ -39,7 +39,7 @@
 
 #endif
 
-using openxc::interface::Pipeline;
+using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::setGpioDirection;
 using openxc::gpio::getGpioValue;

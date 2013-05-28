@@ -303,7 +303,8 @@ class Parser(object):
             fatal_error("unable to generate code")
         self.print_header()
 
-        print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
+        print("const int CAN_BUS_COUNT = %d;" % len(
+                list(valid_buses(self.buses))))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
         for bus_number, (bus_address, bus) in enumerate(valid_buses(self.buses)):
             self._print_bus_struct(bus_address, bus, bus_number + 1)

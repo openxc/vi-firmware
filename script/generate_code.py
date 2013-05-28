@@ -94,23 +94,31 @@ class Message(object):
         self.signals = []
 
     def __str__(self):
-        return "{&CAN_BUSES[%d], %d}, // %s" % (
-                self._lookupBusIndex(self.buses, self.bus_address),
-                self.id, self.name)
+        bus_index = self._lookupBusIndex(self.buses, self.bus_address)
+        if bus_index is not None:
+            return "{&CAN_BUSES[%d], %d}, // %s" % (bus_index, self.id,
+                    self.name)
+        return ""
 
-    @staticmethod
-    def _lookupBusIndex(buses, bus_address):
+    def _lookupBusIndex(self, buses, bus_address):
         for bus_number, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
             if candidate_bus_address == bus_address:
                 return bus_number
-        fatal_error("Bus address %s is invalid, only %s and %s are allowed" %
-                (bus_address, VALID_BUS_ADDRESSES[0], VALID_BUS_ADDRESSES[1]))
+        sys.stderr.write("Bus address '%s' is invalid, only %s and %s are allowed - message 0x%x will be disabled\n" %
+                (bus_address, VALID_BUS_ADDRESSES[0], VALID_BUS_ADDRESSES[1],
+                    self.id))
 
 
 def all_messages(buses):
-    for bus in list(buses.values()):
+    for _, bus in valid_buses(buses):
         for message in bus['messages']:
             yield message
+
+
+def valid_buses(buses):
+    for bus_address, bus in sorted(buses.items(), key=operator.itemgetter(0)):
+        if bus_address in VALID_BUS_ADDRESSES:
+            yield bus_address, bus
 
 
 class Signal(object):
@@ -297,10 +305,8 @@ class Parser(object):
 
         print("const int CAN_BUS_COUNT = %d;" % len(self.buses))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        for bus_number, bus_address in enumerate(VALID_BUS_ADDRESSES):
-            bus = self.buses.get(bus_address, None)
-            if bus is not None:
-                self._print_bus_struct(bus_address, bus, bus_number + 1)
+        for bus_number, (bus_address, bus) in enumerate(valid_buses(self.buses)):
+            self._print_bus_struct(bus_address, bus, bus_number + 1)
 
         print("};")
         print()
@@ -403,7 +409,7 @@ class Parser(object):
 
         print("void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {")
         print("    switch(bus->address) {")
-        for bus_address, bus in self.buses.items():
+        for bus_address, bus in valid_buses(self.buses):
             print("    case %s:" % bus_address)
             print("        switch (id) {")
             for message in bus['messages']:
@@ -450,7 +456,7 @@ class Parser(object):
         print()
         print("CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {")
         print("    switch(address) {")
-        for bus_address, bus in self.buses.items():
+        for bus_address, bus in valid_buses(self.buses):
             print("    case %s:" % bus_address)
             print("        *count = %d;" % len(bus['messages']))
             for i, message in enumerate(bus['messages']):

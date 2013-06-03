@@ -24,6 +24,11 @@ else
     DISTRO=`lsb_release -si`
 fi
 
+die() {
+    echo >&2 "${bldred}$@${txtrst}"
+    exit 1
+}
+
 _cygwin_error() {
     echo
     echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
@@ -39,11 +44,6 @@ fi
 txtrst=$(tput sgr0) # reset
 bldred=${txtbld}$(tput setaf 1)
 bldgreen=${txtbld}$(tput setaf 2)
-
-die() {
-    echo >&2 "${bldred}$@${txtrst}"
-    exit 1
-}
 
 _pushd() {
     pushd $1 > /dev/null

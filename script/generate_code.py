@@ -7,14 +7,15 @@ import operator
 from collections import defaultdict
 import sys
 import argparse
+import os
 
 
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
 # plugged into the CAN1 controller and 0x102 into CAN2.
 VALID_BUS_ADDRESSES = (1, 2)
-
 MAX_SIGNAL_STATES = 12
+DEFAULT_SEARCH_PATH = "."
 
 def fatal_error(message):
     # TODO add red color
@@ -30,11 +31,18 @@ def parse_options():
             "from CAN signal descriptions in JSON")
     json_files = parser.add_argument("-j", "--json",
             action="append",
-        type=str,
-        nargs='*',
+            type=str,
+            nargs='*',
             dest="json_files",
             metavar="FILE",
             help="generate source from this JSON file")
+    parser.add_argument("-s", "--search-paths",
+            type=str,
+            nargs='+',
+            dest="search_paths",
+            default=None,
+            metavar="PATH",
+            help="add directories to the search path when using relative paths")
     parser.add_argument("-m", "--message-set",
             action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
             default=None, help="override name of vehicle or platform")
@@ -490,16 +498,27 @@ class Parser(object):
         print("}")
 
 
+def find_file(filename, search_paths):
+    for search_path in search_paths:
+        full_path = "%s/%s" % (search_path, filename)
+        if os.path.exists(full_path):
+            return full_path
+    fatal_error("Unable to find '%s' in search paths (%s)" % (
+            filename, search_paths))
+
 class JsonParser(Parser):
-    def __init__(self, filenames, name=None):
+    def __init__(self, search_paths, filenames, name=None):
         super(JsonParser, self).__init__(name)
+
         if not isinstance(filenames, list):
             filenames = [filenames]
         else:
             filenames = itertools.chain(*filenames)
         self.json_files = filenames
 
-    # The JSON parser accepts the format specified in the README.
+        self.search_paths = search_paths or []
+        self.search_paths.append(DEFAULT_SEARCH_PATH)
+
     def parse(self):
         import json
         merged_dict = {}
@@ -511,6 +530,17 @@ class JsonParser(Parser):
                     fatal_error("%s does not contain valid JSON: \n%s\n" %
                             (filename, e))
                 merged_dict = merge(merged_dict, data)
+
+        for parent_filename in merged_dict.get("parents", []):
+            with open(find_file(parent_filename, self.search_paths)) as json_file:
+                try:
+                    parent_data = json.load(json_file)
+                except ValueError as e:
+                    fatal_error("%s does not contain valid JSON: \n%s\n" %
+                            (parent_filename, e))
+                merged_dict = merge(parent_data, merged_dict)
+                found_parent = True
+                break
 
         self.name = self.name or merged_dict.get("name", "generic")
         self.initializers = merged_dict.get("initializers", [])
@@ -536,11 +566,11 @@ class JsonParser(Parser):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
 
-            with open(mapping['mapping'], 'r') as mapping_file:
+            with open(find_file(mapping['mapping'], self.search_paths)) as mapping_file:
                 mapping_data = json.load(mapping_file)
                 messages = mapping_data.get('messages', None)
                 if messages is None:
-                    fatal_error("Mapping file is missing a 'messages' field")
+                    fatal_error("Mapping file '%s' is missing a 'messages' field" % mapping['mapping'])
                 self.load_messages(messages, mapping['bus'])
 
         self.load_messages(merged_dict.get('messages', {}));
@@ -582,7 +612,8 @@ class JsonParser(Parser):
 def main():
     arguments = parse_options()
 
-    parser = JsonParser(arguments.json_files, arguments.message_set)
+    parser = JsonParser(arguments.search_paths, arguments.json_files,
+            arguments.message_set)
 
     parser.parse()
     parser.print_source()

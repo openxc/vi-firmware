@@ -109,6 +109,12 @@ lpc17xx_compile_test: code_generation_test
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
+mapped_lpc17xx_compile_test: mapped_code_generation_test
+	@echo -n "Testing Blueboard board build with example mapped vehicle signals..."
+	@PLATFORM=BLUEBOARD make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
 ford_test:
 	@echo -n "Testing Ford board build with example vehicle signals..."
 	@PLATFORM=FORDBOARD make -j4 emulator
@@ -119,7 +125,17 @@ code_generation_test:
 	@make clean
 	@mkdir -p $(TEST_OBJDIR)
 	../script/generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
-    # Ideally we would symlink these files, but symlinks don't work well in Cygwin
+	# Ideally we would symlink these files, but symlinks don't work well in Cygwin
+	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
+	@rm -f handlers.h handlers.cpp
+	@cp handlers.cpp.example handlers.cpp
+	@cp handlers.h.example handlers.h
+
+mapped_code_generation_test:
+	@make clean
+	@mkdir -p $(TEST_OBJDIR)
+	../script/generate_code.py --json mapped_signal_set.json.example > $(TEST_OBJDIR)/signals.cpp
+	# Ideally we would symlink these files, but symlinks don't work well in Cygwin
 	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
 	@rm -f handlers.h handlers.cpp
 	@cp handlers.cpp.example handlers.cpp

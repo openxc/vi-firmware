@@ -85,8 +85,8 @@ class Command(object):
 
 
 class Message(object):
-    def __init__(self, buses, bus_address, id, name, handler=None):
-        self.bus_address = bus_address
+    def __init__(self, buses, bus_name, id, name, handler=None):
+        self.bus_name = bus_name
         self.buses = buses
         self.id = int(id, 0)
         self.name = name
@@ -94,19 +94,22 @@ class Message(object):
         self.signals = []
 
     def __str__(self):
-        bus_index = self._lookupBusIndex(self.buses, self.bus_address)
+        bus_index = self._lookup_bus_index(self.buses, self.bus_name)
         if bus_index is not None:
             return "{&CAN_BUSES[%d], %d}, // %s" % (bus_index, self.id,
                     self.name)
+        else:
+            sys.stderr.write("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
+                    (self.bus_name, VALID_BUS_ADDRESSES, self.id))
         return ""
 
-    def _lookupBusIndex(self, buses, bus_address):
-        for bus_number, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
-            if candidate_bus_address == bus_address:
-                return bus_number
-        sys.stderr.write("Bus address '%s' is invalid, only %s and %s are allowed - message 0x%x will be disabled\n" %
-                (bus_address, VALID_BUS_ADDRESSES[0], VALID_BUS_ADDRESSES[1],
-                    self.id))
+    @staticmethod
+    def _lookup_bus_index(buses, bus_name):
+        if bus_name in buses and 'controller' in buses[bus_name]:
+            for index, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
+                if candidate_bus_address == buses[bus_name]['controller']:
+                    return index
+        return None
 
 
 def all_messages(buses):
@@ -324,7 +327,7 @@ class Parser(object):
         print()
 
         print("const int SIGNAL_COUNT = %d;" % self.signal_count)
-        # TODO need to handle signals with more than 12 states
+        # TODO print a warning if we use more than 12 states
         print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12)
 
         states_index = 0
@@ -514,13 +517,29 @@ class JsonParser(Parser):
             self.commands.append(command)
 
         for mapping in merged_dict.get("mappings", []):
-            # TODO
-            pass
+            if 'database' in mapping:
+                # TODO run xml_to_json, or maybe makefile?
+                pass
 
-        for message_id, message_data in merged_dict.get('messages', {}).items():
+            if 'mapping' not in mapping:
+                fatal_error("Mapping is missing the mapping file path")
+
+            with open(mapping['mapping'], 'r') as mapping_file:
+                mapping_data = json.load(mapping_file)
+                messages = mapping_data.get('messages', None)
+                if messages is None:
+                    fatal_error("Mapping file is missing a 'messages' field")
+                self.load_messages(messages, mapping['bus'])
+
+        self.load_messages(merged_dict.get('messages', {}));
+
+    def load_messages(self, messages, default_bus=None):
+        for message_id, message_data in messages.items():
             self.signal_count += len(message_data['signals'])
             self.message_count += 1
-            message = Message(self.buses, message_data.get('bus'), message_id,
+            message = Message(self.buses,
+                    message_data.get('bus', None) or default_bus,
+                    message_id,
                     message_data.get('name', None),
                     message_data.get('handler', None))
             for signal_name, signal in message_data['signals'].items():
@@ -546,7 +565,7 @@ class JsonParser(Parser):
                         signal.get('send_same', True),
                         signal.get('writable', False),
                         signal.get('write_handler', None)))
-            self.buses[message.bus_address]['messages'].append(message)
+            self.buses[message.bus_name]['messages'].append(message)
 
 def main():
     arguments = parse_options()

@@ -49,7 +49,6 @@ using openxc::gpio::GpioDirection;
 extern Pipeline pipeline;
 
 __IO int32_t RTS_STATE;
-__IO int32_t CTS_STATE;
 __IO FlagStatus TRANSMIT_INTERRUPT_STATUS;
 
 /* Disable request to send through RTS line. We cannot handle any more data
@@ -74,12 +73,11 @@ void resumeReceive() {
 
 void disableTransmitInterrupt() {
     UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, DISABLE);
-    TRANSMIT_INTERRUPT_STATUS = RESET;
 }
 
 void enableTransmitInterrupt() {
-    UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
     TRANSMIT_INTERRUPT_STATUS = SET;
+    UART_IntConfig(UART1_DEVICE, UART_INTCFG_THRE, ENABLE);
 }
 
 void handleReceiveInterrupt() {
@@ -100,10 +98,6 @@ void handleReceiveInterrupt() {
 void handleTransmitInterrupt() {
     disableTransmitInterrupt();
 
-    if(CTS_STATE == INACTIVE) {
-        return;
-    }
-
     while(UART_CheckBusy(UART1_DEVICE) == SET);
 
     while(!QUEUE_EMPTY(uint8_t, &pipeline.uart->sendQueue)) {
@@ -117,6 +111,7 @@ void handleTransmitInterrupt() {
 
     if(QUEUE_EMPTY(uint8_t, &pipeline.uart->sendQueue)) {
         disableTransmitInterrupt();
+        TRANSMIT_INTERRUPT_STATUS = RESET;
     } else {
         enableTransmitInterrupt();
     }
@@ -127,24 +122,22 @@ extern "C" {
 void UART1_IRQHandler() {
     uint32_t interruptSource = UART_GetIntId(UART1_DEVICE)
         & UART_IIR_INTID_MASK;
-    if(interruptSource == 0) {
-        // Check Modem status
-        uint8_t modemStatus = UART_FullModemGetStatus(LPC_UART1);
-        // Check CTS status change flag
-        if (modemStatus & UART1_MODEM_STAT_DELTA_CTS) {
-            // if CTS status is active, continue to send data
-            if (modemStatus & UART1_MODEM_STAT_CTS) {
-                CTS_STATE = ACTIVE;
-                UART_TxCmd(UART1_DEVICE, ENABLE);
-            } else {
-                // Otherwise, Stop current transmission immediately
-                CTS_STATE = INACTIVE;
-                UART_TxCmd(UART1_DEVICE, DISABLE);
-            }
-        }
-    }
-
     switch(interruptSource) {
+        case UART1_IIR_INTID_MODEM: {
+            // Check Modem status
+            uint8_t modemStatus = UART_FullModemGetStatus(LPC_UART1);
+            // Check CTS status change flag
+            if (modemStatus & UART1_MODEM_STAT_DELTA_CTS) {
+                // if CTS status is active, continue to send data
+                if (modemStatus & UART1_MODEM_STAT_CTS) {
+                    UART_TxCmd(UART1_DEVICE, ENABLE);
+                } else {
+                    // Otherwise, Stop current transmission immediately
+                    UART_TxCmd(UART1_DEVICE, DISABLE);
+                }
+            }
+            break;
+        }
         case UART_IIR_INTID_RDA:
         case UART_IIR_INTID_CTI:
             handleReceiveInterrupt();
@@ -241,7 +234,6 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     configureFifo();
     configureFlowControl();
     configureInterrupts();
-    CTS_STATE = ACTIVE;
 
     TRANSMIT_INTERRUPT_STATUS = RESET;
 

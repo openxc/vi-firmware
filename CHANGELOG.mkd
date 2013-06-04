@@ -22,6 +22,13 @@
   of CAN traffic after a wakeup to be missed.
 * Added support for FleetCarma data logger (a PIC32 device).
 
+## v3.2.1
+
+* Increase reliability of UART on LPC17xx.
+* Decrease data rate of emulator to more closely match a real vehicle (this
+  fixes issues with Bluetooth dropouts when using the emulator firmware).
+* Ensure consistent CAN message ordering when using the code generation tools.
+
 ## v3.2
 
 * Support building to run under a USB bootloader on the LPC17xx.

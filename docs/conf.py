@@ -49,7 +49,7 @@ copyright = '2012, Christopher Peplin'
 # built documents.
 #
 # The short X.Y version.
-version = '3.3'
+version = '4.0-dev'
 # The full version, including alpha/beta/rc tags.
 release = '4.0-dev'
 

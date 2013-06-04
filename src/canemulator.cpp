@@ -13,7 +13,7 @@
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
-#define EMULATOR_SEND_FREQUENCY 200
+#define EMULATOR_SEND_FREQUENCY 1000
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -84,13 +84,13 @@ bool usbWriteStub(uint8_t* buffer) {
 
 void loop() {
     ++emulatorRateLimiter;
-    if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY / 2) {
+    if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY / 2) {
         sendNumericalMessage(
                 NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
                 rand() % 50 + rand() % 100 * .1, &pipeline);
         sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
                 rand() % 2 == 1 ? true : false, &pipeline);
-    } else if(emulatorRateLimiter >= EMULATOR_SEND_FREQUENCY) {
+    } else if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY) {
         emulatorRateLimiter = 0;
 
         int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;

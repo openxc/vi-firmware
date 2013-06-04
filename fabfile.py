@@ -57,6 +57,7 @@ def make_tag():
         prompt("New release tag in the format vX.Y[.Z]?", 'tag',
                 validate=VERSION_PATTERN)
         local('git tag -as %(tag)s' % env)
+        local('git push origin', capture=True)
         local('git push --tags origin', capture=True)
         local('git fetch --tags origin', capture=True)
     else:

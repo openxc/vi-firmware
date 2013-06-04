@@ -20,7 +20,13 @@ class Network(object):
         self.messages = {}
 
         for message_id, message in all_messages.items():
-            node = tree.find("/Node/TxMessage[ID=\"%s\"]" % message_id)
+            message_id = int(message_id, 0)
+            query = "/Node/TxMessage[ID=\"0x%s\"]"
+            # Search for both lower and upper case hex
+            for attr_value in ["%X", "%x"]:
+                node = tree.find(query % (attr_value % message_id))
+                if node is not None:
+                    break
             if node is None:
                 warning("Unable to find message ID %s in XML" % message_id)
             else:

@@ -10,7 +10,6 @@ import argparse
 import os
 
 
-
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
 # plugged into the CAN1 controller and 0x102 into CAN2.

@@ -14,9 +14,16 @@ import argparse
 # plugged into the CAN1 controller and 0x102 into CAN2.
 VALID_BUS_ADDRESSES = (1, 2)
 
+MAX_SIGNAL_STATES = 12
+
 def fatal_error(message):
+    # TODO add red color
     sys.stderr.write("ERROR: %s\n" % message)
     sys.exit(1)
+
+def warning(message):
+    # TODO add yellow color
+    sys.stderr.write("WARNING: %s\n" % message)
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C++ source code "
@@ -99,7 +106,7 @@ class Message(object):
             return "{&CAN_BUSES[%d], %d}, // %s" % (bus_index, self.id,
                     self.name)
         else:
-            sys.stderr.write("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
+            warning("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
                     (self.bus_name, VALID_BUS_ADDRESSES, self.id))
         return ""
 
@@ -185,8 +192,8 @@ class Signal(object):
 
     def validate(self):
         if self.position == None or self.length == None:
-            sys.stderr.write("ERROR: %s (generic name: %s) is incomplete\n" % (
-                self.name, self.generic_name))
+            warning("%s (generic name: %s) is incomplete\n" %
+                    (self.name, self.generic_name))
             return False
         return True
 
@@ -291,7 +298,7 @@ class Parser(object):
 
     def validate_name(self):
         if self.name is None:
-            sys.stderr.write("ERROR: missing message set (%s)" % self.name)
+            warning("missing message set (%s)" % self.name)
             return False
         return True
 
@@ -327,13 +334,18 @@ class Parser(object):
         print()
 
         print("const int SIGNAL_COUNT = %d;" % self.signal_count)
-        # TODO print a warning if we use more than 12 states
-        print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {" % 12)
+        print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {"
+                % MAX_SIGNAL_STATES)
 
         states_index = 0
         for message in all_messages(self.buses):
             for signal in message.signals:
                 if len(signal.states) > 0:
+                    if states_index >= MAX_SIGNAL_STATES:
+                        warning("Ignoring anything beyond %d states for %s" %
+                                (MAX_SIGNAL_STATES, signal.generic_name))
+                        break
+
                     print("    {", end=' ')
                     for state in signal.states:
                         print("%s," % state, end=' ')

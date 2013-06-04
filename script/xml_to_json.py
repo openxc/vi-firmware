@@ -7,11 +7,6 @@ from lxml import etree
 
 from generate_code import Signal
 
-def fatal_error(message):
-    # TODO add red color
-    sys.stderr.write("ERROR: %s\n" % message)
-    sys.exit(1)
-
 
 def warning(message):
     # TODO add yellow color
@@ -27,12 +22,12 @@ class Network(object):
         for message_id, message in all_messages.items():
             node = tree.find("/Node/TxMessage[ID=\"%s\"]" % message_id)
             if node is None:
-                warning("Unable to find message ID %d in XML" % message_id)
+                warning("Unable to find message ID %s in XML" % message_id)
             else:
                 self.messages[message_id] = Message(node, message['signals'])
 
     def to_dict(self):
-        return {"messages": dict(("0x%x" % message.id,
+        return {'messages': dict(("0x%x" % message.id,
                     message.to_dict())
                 for message in list(self.messages.values())
                 if len(message.signals) > 0)}
@@ -47,6 +42,10 @@ class Message(object):
         self.name = node.find("Name").text
         self.id = int(node.find("ID").text, 0)
 
+
+        # TODO  we should pull what's required from the XML version instead of
+        # just adding the generic name, so we could use that directly as input
+        # later - merge the two files
         for signal_name in mapped_signals.keys():
             mapped_signal_node = node.find("Signal[Name=\"%s\"]" % signal_name)
             if mapped_signal_node is not None:
@@ -72,7 +71,7 @@ def parse_options(argv):
     return parser.parse_args(argv)
 
 
-def convert_to_json(database_filename, messages):
+def merge_database_into_mapping(database_filename, messages):
     if len(messages) == 0:
         warning("No messages specified for mapping from XML")
         return {}
@@ -86,7 +85,7 @@ def main(argv=None):
 
     with open(arguments.mapping_filename, 'r') as mapping_file:
         mapping = json.load(mapping_file)
-        data = convert_to_json(arguments.database, mapping.get('messages', []))
+        data = merge_database_into_mapping(arguments.database, mapping.get('messages', []))
 
     with open(arguments.out, 'w') as output_file:
         json.dump(data, output_file, indent=4)

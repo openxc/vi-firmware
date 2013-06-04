@@ -10,6 +10,7 @@ import argparse
 import os
 
 
+
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
 # plugged into the CAN1 controller and 0x102 into CAN2.
@@ -559,10 +560,6 @@ class JsonParser(Parser):
             self.commands.append(command)
 
         for mapping in merged_dict.get("mappings", []):
-            if 'database' in mapping:
-                # TODO run xml_to_json, or maybe makefile?
-                pass
-
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
 
@@ -571,6 +568,13 @@ class JsonParser(Parser):
                 messages = mapping_data.get('messages', None)
                 if messages is None:
                     fatal_error("Mapping file '%s' is missing a 'messages' field" % mapping['mapping'])
+
+                if 'database' in mapping:
+                    from xml_to_json import merge_database_into_mapping
+                    messages = merge_database_into_mapping(
+                            find_file(mapping['database'], self.search_paths),
+                            messages)['messages']
+
                 self.load_messages(messages, mapping['bus'])
 
         self.load_messages(merged_dict.get('messages', {}));

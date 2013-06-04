@@ -1,6 +1,11 @@
 # OpenXC CAN Translator Changelog
 
-## v3.3-dev
+## v3.2.1
+
+* Increase reliability of UART on LPC17xx.
+* Decrease data rate of emulator to more closely match a real vehicle (this
+  fixes issues with Bluetooth dropouts when using the emulator firmware).
+* Ensure consistent CAN message ordering when using the code generation tools.
 
 ## v3.2
 

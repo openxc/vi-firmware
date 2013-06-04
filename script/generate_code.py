@@ -374,7 +374,6 @@ class Parser(object):
         print("};")
         print()
 
-        # TODO store all of this in a separate, committed .cpp file
         print("CanCommand* openxc::signals::getCommands() {")
         print("    return COMMANDS;")
         print("}")

@@ -12,15 +12,15 @@ import argparse
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
 # plugged into the CAN1 controller and 0x102 into CAN2.
-VALID_BUS_ADDRESSES = ("0x101", "0x102")
+VALID_BUS_ADDRESSES = (1, 2)
 
 def fatal_error(message):
     sys.stderr.write("ERROR: %s\n" % message)
     sys.exit(1)
 
 def parse_options():
-    parser = argparse.ArgumentParser(description="Generate C source code from "
-            "CAN signal descriptions in JSON")
+    parser = argparse.ArgumentParser(description="Generate C++ source code "
+            "from CAN signal descriptions in JSON")
     json_files = parser.add_argument("-j", "--json",
             action="append",
         type=str,
@@ -30,7 +30,7 @@ def parse_options():
             help="generate source from this JSON file")
     parser.add_argument("-m", "--message-set",
             action="store", type=str, dest="message_set", metavar="MESSAGE_SET",
-            default="generic", help="name of the vehicle or platform")
+            default=None, help="override name of vehicle or platform")
 
     arguments = parser.parse_args()
 
@@ -116,9 +116,9 @@ def all_messages(buses):
 
 
 def valid_buses(buses):
-    for bus_address, bus in sorted(buses.items(), key=operator.itemgetter(0)):
-        if bus_address in VALID_BUS_ADDRESSES:
-            yield bus_address, bus
+    for bus_name, bus in sorted(buses.items(), key=operator.itemgetter(0)):
+        if bus['controller'] in VALID_BUS_ADDRESSES:
+            yield bus['controller'], bus
 
 
 class Signal(object):
@@ -235,6 +235,7 @@ class Parser(object):
         self.command_count = 0
         self.initializers = []
         self.loopers = []
+        self.commands = []
 
     def parse(self):
         raise NotImplementedError
@@ -306,7 +307,8 @@ class Parser(object):
         print("const int CAN_BUS_COUNT = %d;" % len(
                 list(valid_buses(self.buses))))
         print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        for bus_number, (bus_address, bus) in enumerate(valid_buses(self.buses)):
+        for bus_number, (bus_address, bus) in enumerate(
+                valid_buses(self.buses)):
             self._print_bus_struct(bus_address, bus, bus_number + 1)
 
         print("};")
@@ -408,7 +410,8 @@ class Parser(object):
         print("}")
         print()
 
-        print("void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {")
+        print("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
+                "CanBus* bus, int id, uint64_t data) {")
         print("    switch(bus->address) {")
         for bus_address, bus in valid_buses(self.buses):
             print("    case %s:" % bus_address)
@@ -420,12 +423,14 @@ class Parser(object):
                         message.handler + "SIGNAL_COUNT, pipeline);"))
                 for signal in (s for s in message.signals):
                     if signal.handler:
-                        print(("            can::read::translateSignal(pipeline, "
+                        print(("            can::read::translateSignal("
+                                "pipeline, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name)))
                     else:
-                        print(("            can::read::translateSignal(pipeline, "
+                        print(("            can::read::translateSignal("
+                                "pipeline, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))
@@ -435,7 +440,8 @@ class Parser(object):
         print("    }")
 
         if self._message_count() == 0:
-            print("    openxc::can::read::passthroughMessage(pipeline, id, data);")
+            print("    openxc::can::read::passthroughMessage(pipeline, id, "
+                    "data);")
 
         print("}\n")
 
@@ -455,7 +461,8 @@ class Parser(object):
         print("CanFilter FILTERS[%d];" % self._message_count())
 
         print()
-        print("CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {")
+        print("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
+                "int* count) {")
         print("    switch(address) {")
         for bus_address, bus in valid_buses(self.buses):
             print("    case %s:" % bus_address)
@@ -491,54 +498,56 @@ class JsonParser(Parser):
                             (filename, e))
                 merged_dict = merge(merged_dict, data)
 
+        self.name = self.name or merged_dict.get("name", "generic")
         self.initializers = merged_dict.get("initializers", [])
         self.loopers = merged_dict.get("loopers", [])
-        self.commands = []
-        for bus_address, bus_data in merged_dict.get("buses", {}).items():
-            speed = bus_data.get('speed', None)
-            if speed is None:
-                fatal_error("Bus %s is missing the 'speed' attribute" %
-                        bus_address)
-                sys.exit(1)
-            self.buses[bus_address]['speed'] = speed
-            self.buses[bus_address].setdefault('messages', [])
-            for command_id, command_data in bus_data.get(
-                    'commands', {}).items():
-                self.command_count += 1
-                command = Command(command_id, command_data.get('handler', None))
-                self.commands.append(command)
 
-            for message_id, message_data in bus_data.get('messages', {}
-                    ).items():
-                self.signal_count += len(message_data['signals'])
-                self.message_count += 1
-                message = Message(self.buses, bus_address, message_id,
-                        message_data.get('name', None),
-                        message_data.get('handler', None))
-                for signal_name, signal in message_data['signals'].items():
-                    states = []
-                    for name, raw_matches in signal.get('states', {}).items():
-                        for raw_match in raw_matches:
-                            states.append(SignalState(raw_match, name))
-                    message.signals.append(Signal(
-                            self.buses,
-                            message,
-                            signal_name,
-                            signal.get('generic_name', None),
-                            signal.get('bit_position', None),
-                            signal.get('bit_size', None),
-                            signal.get('factor', 1.0),
-                            signal.get('offset', 0.0),
-                            signal.get('min_value', 0.0),
-                            signal.get('max_value', 0.0),
-                            signal.get('value_handler', None),
-                            signal.get('ignore', False),
-                            states,
-                            signal.get('send_frequency', 1),
-                            signal.get('send_same', True),
-                            signal.get('writable', False),
-                            signal.get('write_handler', None)))
-                self.buses[bus_address]['messages'].append(message)
+        self.buses = merged_dict.get("buses", {})
+        for bus_name, bus in self.buses.items():
+            if bus.get('speed', None) is None:
+                fatal_error("Bus %s is missing the 'speed' attribute" %
+                        bus_name)
+            bus['messages'] = []
+
+        for command in merged_dict.get('commands', []):
+            self.command_count += 1
+            command = Command(command['name'], command.get('handler', None))
+            self.commands.append(command)
+
+        for mapping in merged_dict.get("mappings", []):
+            # TODO
+            pass
+
+        for message_id, message_data in merged_dict.get('messages', {}).items():
+            self.signal_count += len(message_data['signals'])
+            self.message_count += 1
+            message = Message(self.buses, message_data.get('bus'), message_id,
+                    message_data.get('name', None),
+                    message_data.get('handler', None))
+            for signal_name, signal in message_data['signals'].items():
+                states = []
+                for name, raw_matches in signal.get('states', {}).items():
+                    for raw_match in raw_matches:
+                        states.append(SignalState(raw_match, name))
+                message.signals.append(Signal(
+                        self.buses,
+                        message,
+                        signal_name,
+                        signal.get('generic_name', None),
+                        signal.get('bit_position', None),
+                        signal.get('bit_size', None),
+                        signal.get('factor', 1.0),
+                        signal.get('offset', 0.0),
+                        signal.get('min_value', 0.0),
+                        signal.get('max_value', 0.0),
+                        signal.get('handler', None),
+                        signal.get('ignore', False),
+                        states,
+                        signal.get('send_frequency', 1),
+                        signal.get('send_same', True),
+                        signal.get('writable', False),
+                        signal.get('write_handler', None)))
+            self.buses[message.bus_address]['messages'].append(message)
 
 def main():
     arguments = parse_options()

@@ -102,6 +102,39 @@ CAN message definition in another document.
 firmware and should be applied to the entire raw message value (see
 :ref:`message-handlers`).
 
+.. _message-handlers:
+
+Message Handlers
+----------------
+
+If you need additional control, you can provide a custom handler for the
+entire message to combine multiple signals into a single value (or any
+other arbitrary processing). You can generate 0, 1 or many translated
+messages from one call to your handler function.
+
+.. code-block:: c
+
+    void handleSteeringWheelMessage(int messageId, uint64_t data,
+            CanSignal* signals, int signalCount, Pipeline* pipeline);
+        float steeringWheelAngle = decodeCanSignal(&signals[1], data);
+        float steeringWheelSign = decodeCanSignal(&signals[2], data);
+
+        float finalValue = steeringWheelAngle;
+        if(steeringWheelSign == 0) {
+            // left turn
+            finalValue *= -1;
+        }
+
+        char* message = generateJson(signals[1], finalValue);
+        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
+    }
+
+Using a custom message handler will not automatically stop the normal
+translation workflow for individual signals. To mute them (but still store
+their values in ``signal->lastvalue``), specify ``ignoreHandler`` as the
+``value_handler``. This is not done by default because not every signal in
+a message is always handled by a message handler.
+
 .. _signal:
 
 Signal
@@ -175,60 +208,6 @@ value), you can specify a custom function here to encode the value for a CAN
 messages. This is only necessary for boolean types at the moment - if your
 signal has states defined, we assume you need to encode a string state value
 back to its original numerical value.
-
-Mappings
-========
-
-The ``mappings`` field is an optional field allows you to move the definitions
-from the ``messages`` list to separate files for improved composability. This
-field must be a list of JSON objects with:
-
-``mapping`` - a path to a JSON file containing a single object with the key
-``messages``, containing objects formatted as the :ref:`Messages` section
-documents. In short, you can pull out the ``messages`` key from the main file
-and throw it into a separate file and link it in here.
-
-``bus`` - (optional) The name of one of the defined CAN buses where these
-messages can be found - this value will be set for all of the messages contained
-the mapping file, but can be overriden by setting ``bus`` again in an individual
-message.
-
-``database`` - (optional) a path to
-a CAN message database associated with these mappings. Right now, XML exported
-from Vector CANdb++ is supported. If this is defined, you can leave the bit
-position, bit size, factor, offset, max and min values out of the ``mapping``
-file - they will be picked up automatically from the database.
-
-Database-backed Mappings
--------------------------------------------------
-
-If you use Vector DBC files to store your "gold standard" CAN signal
-definitions, you can save some effort by using the static CAN messages
-definition from the database instead of repeating it in JSON.
-
-In the database ``mapping`` file referred to earlier, you only need to define
-(at minimum) the generic name for each signal in the message.
-
-If you're not using the full build system in OpenXC, you can also use the
-XML/JSON combiner tool manually. Assuming the data exported from Vector is in
-``signals.xml`` and your minimal mapping file is ``mapping.json``, run the
-script:
-
-.. code-block:: sh
-
-    cantranslator/ $ script/xml_to_json.py signals.xml mapping.json signals.json
-
-The script scans ``mapping.json`` to identify the CAN messages and
-signals that you want to use from the XML file. It pulls the neccessary details
-of the messages (bit position, bit size, offset, etc) and outputs the resulting
-subset as JSON into the output file, ``signals.json``.
-
-Handlers
-========
-
-The ``handlers`` key is an optional list of paths to C++ source and header files
-that should be compiled with the firmware. This may include value handlers,
-message handlers, initializers or custom loopers.
 
 .. _value-handlers:
 
@@ -320,49 +299,63 @@ last value of another signal arrived in the message or before/after the
 value you're current modifying. For steering wheel angle, that's
 probably OK - for other signals, not so much.
 
-.. _message-handlers:
+Mappings
+========
 
-Message Handlers
-----------------
+The ``mappings`` field is an optional field allows you to move the definitions
+from the ``messages`` list to separate files for improved composability. This
+field must be a list of JSON objects with:
 
-If you need additional control, you can provide a custom handler for the
-entire message to combine multiple signals into a single value (or any
-other arbitrary processing). You can generate 0, 1 or many translated
-messages from one call to your handler function.
+``mapping`` - a path to a JSON file containing a single object with the key
+``messages``, containing objects formatted as the :ref:`Messages` section
+documents. In short, you can pull out the ``messages`` key from the main file
+and throw it into a separate file and link it in here.
 
-.. code-block:: c
+``bus`` - (optional) The name of one of the defined CAN buses where these
+messages can be found - this value will be set for all of the messages contained
+the mapping file, but can be overriden by setting ``bus`` again in an individual
+message.
 
-    void handleSteeringWheelMessage(int messageId, uint64_t data,
-            CanSignal* signals, int signalCount, Pipeline* pipeline);
-        float steeringWheelAngle = decodeCanSignal(&signals[1], data);
-        float steeringWheelSign = decodeCanSignal(&signals[2], data);
+``database`` - (optional) a path to
+a CAN message database associated with these mappings. Right now, XML exported
+from Vector CANdb++ is supported. If this is defined, you can leave the bit
+position, bit size, factor, offset, max and min values out of the ``mapping``
+file - they will be picked up automatically from the database.
 
-        float finalValue = steeringWheelAngle;
-        if(steeringWheelSign == 0) {
-            // left turn
-            finalValue *= -1;
-        }
+Database-backed Mappings
+-------------------------------------------------
 
-        char* message = generateJson(signals[1], finalValue);
-        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
-    }
+If you use Vector DBC files to store your "gold standard" CAN signal
+definitions, you can save some effort by using the static CAN messages
+definition from the database instead of repeating it in JSON.
 
-Using a custom message handler will not automatically stop the normal
-translation workflow for individual signals. To mute them (but still store
-their values in ``signal->lastvalue``), specify ``ignoreHandler`` as the
-``value_handler``. This is not done by default because not every signal in
-a message is always handled by a message handler.
+In the database ``mapping`` file referred to earlier, you only need to define
+(at minimum) the generic name for each signal in the message.
+
+If you're not using the full build system in OpenXC, you can also use the
+XML/JSON combiner tool manually. Assuming the data exported from Vector is in
+``signals.xml`` and your minimal mapping file is ``mapping.json``, run the
+script:
+
+.. code-block:: sh
+
+    cantranslator/ $ script/xml_to_json.py signals.xml mapping.json signals.json
+
+The script scans ``mapping.json`` to identify the CAN messages and
+signals that you want to use from the XML file. It pulls the neccessary details
+of the messages (bit position, bit size, offset, etc) and outputs the resulting
+subset as JSON into the output file, ``signals.json``.
 
 Commands
 ========
 
 The ``commands`` field is a mapping of arbitrary command names to functions that
 should be called to run arbitrary code in the VI on-demand (e.g. sending
-multiple CAN signals at once). The value of this attribute is a list of objects,
-the key of each object being the name that will be used for this command over
-the OpenXC interface.
+multiple CAN signals at once). The value of this attribute is a list of objects
+with these attributes:
 
-The attributes of a ``command`` object are:
+``name`` - The name of the command to be recognized on the OpenXC translated
+interface.
 
 ``handler`` - The name of a custom command handler function (that matches the
 ``CommandHandler`` function prototype from ``canutil.h``) that should

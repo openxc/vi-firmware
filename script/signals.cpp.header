@@ -1,12 +1,9 @@
 #ifndef CAN_EMULATOR
-#include \"can/canread.h\"
-#include \"can/canwrite.h\"
-#include \"signals.h\"
-#include \"util/log.h\"
-#include \"shared_handlers.h\"
-
-if getattr(self, 'uses_custom_handlers', None):
-    #include \"handlers.h\"
+#include "can/canread.h"
+#include "can/canwrite.h"
+#include "signals.h"
+#include "util/log.h"
+#include "shared_handlers.h"
 
 namespace can = openxc::can;
 
@@ -17,9 +14,6 @@ using openxc::can::read::ignoreHandler;
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;
 using openxc::can::write::numberWriter;
-
-if getattr(self, 'uses_custom_handlers', None):
-    using namespace openxc::signals::handlers;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1

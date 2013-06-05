@@ -15,6 +15,8 @@ from common import warning, fatal_error, Signal, SignalState, Message, \
 MAX_SIGNAL_STATES = 12
 DEFAULT_SEARCH_PATH = "."
 
+base_path = os.path.dirname(sys.argv[0])
+
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C++ source code "
@@ -60,16 +62,16 @@ class Parser(object):
     def parse(self):
         raise NotImplementedError
 
-    def print_header(self):
-        base_path = os.path.dirname(sys.argv[0])
+    def build_header(self):
+        result = ""
         with open("%s/signals.cpp.header" % base_path) as header:
-            print(header.read())
+            result += header.read()
 
         if getattr(self, 'uses_custom_handlers', None):
-            print("#include \"handlers.h\"")
-        if getattr(self, 'uses_custom_handlers', None):
-            print("using namespace openxc::signals::handlers;")
-        print()
+            '\n'.join([result,
+                "#include \"handlers.h\"",
+                "using namespace openxc::signals::handlers;"])
+        return result
 
     def validate_messages(self):
         valid = True
@@ -88,40 +90,44 @@ class Parser(object):
             return False
         return True
 
-    def _print_bus_struct(self, bus_address, bus, bus_number):
-        print("    { %d, %s, can%d, " % (bus['speed'], bus_address, bus_number))
-        print("#ifdef __PIC32__")
-        print("        handleCan%dInterrupt," % bus_number)
-        print("#endif // __PIC32__")
-        print("    },")
+    def _build_bus_struct(self, bus_address, bus, bus_number):
+        result = """    {{ {bus_speed}, {bus_address}, can{bus_number},
+        #ifdef __PIC32__
+        handleCan{bus_number}Interrupt,
+        #endif // __PIC32__
+    }},"""
+        return result.format(bus_speed=bus['speed'], bus_address=bus_address,
+                bus_number=bus_number)
 
-    def print_source(self):
+    def build_source(self):
         if not self.validate_messages() or not self.validate_name():
             fatal_error("unable to generate code")
-        self.print_header()
+        lines = [self.build_header()]
 
-        print("const int CAN_BUS_COUNT = %d;" % len(
+        lines.append("const int CAN_BUS_COUNT = %d;" % len(
                 list(valid_buses(self.buses))))
-        print("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
+        lines.append("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
         for bus_number, (bus_address, bus) in enumerate(
                 valid_buses(self.buses)):
-            self._print_bus_struct(bus_address, bus, bus_number + 1)
+            lines.append(self._build_bus_struct(bus_address, bus, bus_number +
+                1))
+            lines.append("")
 
-        print("};")
-        print()
+        lines.append("};")
+        lines.append("")
 
-        print("const int MESSAGE_COUNT = %d;" % self.message_count)
-        print("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
+        lines.append("const int MESSAGE_COUNT = %d;" % self.message_count)
+        lines.append("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
 
         for i, message in enumerate(all_messages(self.buses)):
             message.array_index = i
-            print("    %s" % message)
-        print("};")
-        print()
+            lines.append("    %s" % message)
+        lines.append("};")
+        lines.append("")
 
-        print("const int SIGNAL_COUNT = %d;" % self.signal_count)
-        print("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {"
-                % MAX_SIGNAL_STATES)
+        lines.append("const int SIGNAL_COUNT = %d;" % self.signal_count)
+        lines.append(("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {"
+                % MAX_SIGNAL_STATES))
 
         states_index = 0
         for message in all_messages(self.buses):
@@ -132,16 +138,16 @@ class Parser(object):
                                 (MAX_SIGNAL_STATES, signal.generic_name))
                         break
 
-                    print("    {", end=' ')
+                    lines.append("    {", end=' ')
                     for state in signal.states:
-                        print("%s," % state, end=' ')
-                    print("},")
+                        lines.append("%s," % state, end=' ')
+                    lines.append("},")
                     signal.states_index = states_index
                     states_index += 1
-        print("};")
-        print()
+        lines.append("};")
+        lines.append("")
 
-        print("CanSignal SIGNALS[SIGNAL_COUNT] = {")
+        lines.append("CanSignal SIGNALS[SIGNAL_COUNT] = {")
 
         i = 1
         for message in all_messages(self.buses):
@@ -149,131 +155,109 @@ class Parser(object):
                     key=operator.attrgetter('generic_name'))
             for signal in message.signals:
                 signal.array_index = i - 1
-                print("    %s" % signal)
+                lines.append("    %s" % signal)
                 i += 1
-        print("};")
-        print()
+        lines.append("};")
+        lines.append("")
 
-        print("void openxc::signals::initializeSignals() {")
+        lines.append("void openxc::signals::initializeSignals() {")
         for initializer in self.initializers:
-            print("    %s();" % initializer);
-        print("}")
-        print()
+            lines.append("    %s();" % initializer)
+        lines.append("}")
+        lines.append("")
 
-        print("void openxc::signals::loop() {")
+        lines.append("void openxc::signals::loop() {")
         for looper in self.loopers:
-            print("    %s();" % looper);
-        print("}")
-        print()
+            lines.append("    %s();" % looper)
+        lines.append("}")
+        lines.append("")
 
-        print("const int COMMAND_COUNT = %d;" % self.command_count)
-        print("CanCommand COMMANDS[COMMAND_COUNT] = {")
+        lines.append("const int COMMAND_COUNT = %d;" % self.command_count)
+        lines.append("CanCommand COMMANDS[COMMAND_COUNT] = {")
 
         for command in self.commands:
-            print("    ", command)
+            lines.append("    ", command)
 
-        print("};")
-        print()
+        lines.append("};")
+        lines.append("")
 
-        print("CanCommand* openxc::signals::getCommands() {")
-        print("    return COMMANDS;")
-        print("}")
-        print()
+        with open("%s/signals.cpp.middle" % base_path) as middle:
+            lines.append(middle.read())
 
-        print("int openxc::signals::getCommandCount() {")
-        print("    return COMMAND_COUNT;")
-        print("}")
-        print()
+        lines.append("const char* openxc::signals::getMessageSet() {")
+        lines.append("    return \"%s\";" % self.name)
+        lines.append("}")
+        lines.append("")
 
-        print("CanSignal* openxc::signals::getSignals() {")
-        print("    return SIGNALS;")
-        print("}")
-        print()
-
-        print("int openxc::signals::getSignalCount() {")
-        print("    return SIGNAL_COUNT;")
-        print("}")
-        print()
-
-        print("CanBus* openxc::signals::getCanBuses() {")
-        print("    return CAN_BUSES;")
-        print("}")
-        print()
-
-        print("int openxc::signals::getCanBusCount() {")
-        print("    return CAN_BUS_COUNT;")
-        print("}")
-        print()
-
-        print("const char* openxc::signals::getMessageSet() {")
-        print("    return \"%s\";" % self.name)
-        print("}")
-        print()
-
-        print("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
+        lines.append("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
                 "CanBus* bus, int id, uint64_t data) {")
-        print("    switch(bus->address) {")
+        lines.append("    switch(bus->address) {")
         for bus_address, bus in valid_buses(self.buses):
-            print("    case %s:" % bus_address)
-            print("        switch (id) {")
+            lines.append("    case %s:" % bus_address)
+            lines.append("        switch (id) {")
             for message in bus['messages']:
-                print("        case 0x%x: // %s" % (message.id, message.name))
+                lines.append("        case 0x%x: // %s" % (message.id, message.name))
                 if message.handler is not None:
-                    print(("            %s(id, data, SIGNALS, " %
+                    lines.append(("            %s(id, data, SIGNALS, " %
                         message.handler + "SIGNAL_COUNT, pipeline);"))
                 for signal in (s for s in message.signals):
                     if signal.handler:
-                        print(("            can::read::translateSignal("
+                        lines.append(("            can::read::translateSignal("
                                 "pipeline, "
                                 "&SIGNALS[%d], data, " % signal.array_index +
                                 "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
                                 signal.handler, signal.name)))
                     else:
-                        print(("            can::read::translateSignal("
+                        lines.append(("            can::read::translateSignal("
                                 "pipeline, "
                                 "&SIGNALS[%d], " % signal.array_index +
                                 "data, SIGNALS, SIGNAL_COUNT); // %s"
                                     % signal.name))
-                print("            break;")
-            print("        }")
-            print("        break;")
-        print("    }")
+                lines.append("            break;")
+            lines.append("        }")
+            lines.append("        break;")
+        lines.append("    }")
 
         if self._message_count() == 0:
-            print("    openxc::can::read::passthroughMessage(pipeline, id, "
+            lines.append("    openxc::can::read::passthroughMessage(pipeline, id, "
                     "data);")
 
-        print("}\n")
+        lines.append("}")
+        lines.append("")
 
         # Create a set of filters.
-        self.print_filters()
-        print()
-        print("#endif // CAN_EMULATOR")
+        lines.append(self.build_filters())
+        lines.append("")
+        lines.append("#endif // CAN_EMULATOR")
+
+        return '\n'.join(lines)
 
     def _message_count(self):
         return len(list(all_messages(self.buses)))
 
-    def print_filters(self):
+    def build_filters(self):
         # These arrays can't be initialized when we create the variables or else
         # they end up in the .data portion of the compiled program, and it
         # becomes too big for the microcontroller. Initializing them at runtime
         # gets around that problem.
-        print("CanFilter FILTERS[%d];" % self._message_count())
+        lines = []
+        lines.append("CanFilter FILTERS[%d];" % self._message_count())
 
-        print()
-        print("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
+        lines.append("")
+        lines.append("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
                 "int* count) {")
-        print("    switch(address) {")
+        lines.append("    switch(address) {")
         for bus_address, bus in valid_buses(self.buses):
-            print("    case %s:" % bus_address)
-            print("        *count = %d;" % len(bus['messages']))
+            lines.append("    case %s:" % bus_address)
+            lines.append("        *count = %d;" % len(bus['messages']))
             for i, message in enumerate(bus['messages']):
-                print("        FILTERS[%d] = {%d, 0x%x, %d};" % (
+                lines.append("        FILTERS[%d] = {%d, 0x%x, %d};" % (
                         i, i, message.id, 1))
-            print("        break;")
-        print("    }")
-        print("    return FILTERS;")
-        print("}")
+            lines.append("        break;")
+        lines.append("    }")
+        lines.append("    return FILTERS;")
+        lines.append("}")
+        return '\n'.join(lines)
 
 
 class JsonParser(Parser):
@@ -348,7 +332,7 @@ class JsonParser(Parser):
 
                 self.load_messages(messages, mapping['bus'])
 
-        self.load_messages(merged_dict.get('messages', {}));
+        self.load_messages(merged_dict.get('messages', {}))
 
     def load_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():
@@ -381,7 +365,7 @@ def main():
             arguments.message_set)
 
     parser.parse()
-    parser.print_source()
+    print(parser.build_source())
 
 if __name__ == "__main__":
     sys.exit(main())

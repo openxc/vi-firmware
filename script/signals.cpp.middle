@@ -1,0 +1,23 @@
+CanCommand* openxc::signals::getCommands() {
+    return COMMANDS;
+}
+
+int openxc::signals::getCommandCount() {
+    return COMMAND_COUNT;
+}
+
+CanSignal* openxc::signals::getSignals() {
+    return SIGNALS;
+}
+
+int openxc::signals::getSignalCount() {
+    return SIGNAL_COUNT;
+}
+
+CanBus* openxc::signals::getCanBuses() {
+    return CAN_BUSES;
+}
+
+int openxc::signals::getCanBusCount() {
+    return CAN_BUS_COUNT;
+}

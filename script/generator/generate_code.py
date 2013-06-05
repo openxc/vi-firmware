@@ -184,8 +184,11 @@ def main():
     if arguments.super_set is not None:
         super_set_data = load_json_from_search_path(arguments.super_set,
                 arguments.search_paths)
-        # TODO warn if no message sets found
-        message_sets.extend(super_set_data.get('message_sets', []))
+        super_set_message_sets = super_set_data.get('message_sets', [])
+        if len(super_set_message_sets) == 0:
+            warning("Superset '%s' has no message sets" %
+                    super_set_data.get('name', 'unknown'))
+        message_sets.extend(super_set_message_sets)
 
     generator = CodeGenerator(search_paths)
     for filename in message_sets:

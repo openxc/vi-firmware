@@ -13,14 +13,22 @@ class CodeGenerator(object):
         self.message_sets = []
 
     def _max_command_count(self):
+        if len(self.message_sets) == 0:
+            return 0
+
         return max(len(message_set.commands)
                 for message_set in self.message_sets)
 
     def _max_message_count(self):
+        if len(self.message_sets) == 0:
+            return 0
         return max(len(list(message_set.all_messages()))
                 for message_set in self.message_sets)
 
     def _max_signal_count(self):
+        if len(self.message_sets) == 0:
+            return 0
+
         return max(len(list(message_set.all_signals()))
                 for message_set in self.message_sets)
 

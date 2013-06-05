@@ -82,6 +82,16 @@ def find_file(filename, search_paths):
     fatal_error("Unable to find '%s' in search paths (%s)" % (
             filename, search_paths))
 
+def load_json_from_search_path(filename, search_paths):
+    with open(find_file(super_set, self.search_paths)) as superset_file:
+        try:
+            data = json.load(json_file)
+        except ValueError as e:
+            fatal_error("%s does not contain valid JSON: \n%s\n" %
+                    (filename, e))
+        else:
+            return data
+
 
 class Message(object):
     def __init__(self, buses, bus_name, id, name, handler=None):

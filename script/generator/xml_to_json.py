@@ -63,10 +63,6 @@ class Message(object):
         self.name = node.find("Name").text
         self.id = int(node.find("ID").text, 0)
 
-
-        # TODO  we should pull what's required from the XML version instead of
-        # just adding the generic name, so we could use that directly as input
-        # later - merge the two files
         for signal_name in mapped_signals.keys():
             mapped_signal_node = node.find("Signal[Name=\"%s\"]" % signal_name)
             if mapped_signal_node is not None:
@@ -99,19 +95,3 @@ def merge_database_into_mapping(database_filename, messages):
     else:
         tree = etree.parse(database_filename)
         return Network(tree, messages).to_dict()
-
-
-def main(argv=None):
-    arguments = parse_options(argv)
-
-    with open(arguments.mapping_filename, 'r') as mapping_file:
-        mapping = json.load(mapping_file)
-        data = merge_database_into_mapping(arguments.database, mapping.get('messages', []))
-
-    with open(arguments.out, 'w') as output_file:
-        json.dump(data, output_file, indent=4)
-    print("Wrote results to %s" % arguments.out)
-
-
-if __name__ == "__main__":
-    sys.exit(main())

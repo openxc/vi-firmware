@@ -3,11 +3,13 @@
 #include "can/canwrite.h"
 #include "signals.h"
 #include "util/log.h"
+#include "config.h"
 #include "shared_handlers.h"
 
 namespace can = openxc::can;
 
 using openxc::pipeline::Pipeline;
+using openxc::config::CONFIG;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::stateHandler;
 using openxc::can::read::ignoreHandler;

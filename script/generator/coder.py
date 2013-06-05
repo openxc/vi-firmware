@@ -2,7 +2,7 @@ import os
 import sys
 import operator
 
-from common import valid_buses, all_messages, fatal_error, warning
+from common import warning
 
 MAX_SIGNAL_STATES = 12
 base_path = os.path.dirname(sys.argv[0])
@@ -11,7 +11,19 @@ class CodeGenerator(object):
     def __init__(self):
         self.message_sets = []
 
-    def build_header(self):
+    def _max_command_count(self):
+        return max(len(message_set.commands)
+                for message_set in self.message_sets)
+
+    def _max_message_count(self):
+        return max(len(list(message_set.all_messages()))
+                for message_set in self.message_sets)
+
+    def _max_signal_count(self):
+        return max(len(list(message_set.all_signals()))
+                for message_set in self.message_sets)
+
+    def _build_header(self):
         result = ""
         with open("%s/signals.cpp.header" % base_path) as header:
             result += header.read()
@@ -22,168 +34,277 @@ class CodeGenerator(object):
                 "using namespace openxc::signals::handlers;"])
         return result
 
+    def _build_message_set(self, index, message_set):
+        return "    { %d, %s, %d, %d, %d }," % (index, message_set.name,
+                len(message_set.buses), len(list(message_set.all_messages())),
+                len(list(message_set.all_signals())))
+
     def _build_bus_struct(self, bus_address, bus, bus_number):
-        result = """    {{ {bus_speed}, {bus_address}, can{bus_number},
-        #ifdef __PIC32__
-        handleCan{bus_number}Interrupt,
-        #endif // __PIC32__
-    }},"""
+        result = """        {{ {bus_speed}, {bus_address}, can{bus_number},
+            #ifdef __PIC32__
+            handleCan{bus_number}Interrupt,
+            #endif // __PIC32__
+        }},"""
         return result.format(bus_speed=bus['speed'], bus_address=bus_address,
                 bus_number=bus_number)
 
-    def build_source(self):
-        if not self.validate_messages() or not self.validate_name():
-            fatal_error("unable to generate code")
-        lines = [self.build_header()]
+    def _build_messages(self):
+        lines = []
+        lines.append("const int MAX_MESSAGE_COUNT = %d;" %
+                self._max_message_count())
+        lines.append("CanMessage CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {")
 
-        lines.append("const int CAN_BUS_COUNT = %d;" % len(
-                list(valid_buses(self.buses))))
-        lines.append("CanBus CAN_BUSES[CAN_BUS_COUNT] = {")
-        for bus_number, (bus_address, bus) in enumerate(
-                valid_buses(self.buses)):
-            lines.append(self._build_bus_struct(bus_address, bus, bus_number +
-                1))
-            lines.append("")
+        def block(message_set, message_set_index=None):
+            lines = []
+            for message_index, message in enumerate(message_set.all_messages()):
+                message.message_set_index = message_set_index
+                message.array_index = message_index
+                lines.append("        %s" % message)
+            return lines
 
-        lines.append("};")
-        lines.append("")
-
-        lines.append("const int MESSAGE_COUNT = %d;" % self._message_count)
-        lines.append("CanMessage CAN_MESSAGES[MESSAGE_COUNT] = {")
-
-        for i, message in enumerate(all_messages(self.buses)):
-            message.array_index = i
-            lines.append("    %s" % message)
-        lines.append("};")
-        lines.append("")
-
-        lines.append("const int SIGNAL_COUNT = %d;" % self.signal_count)
-        lines.append(("CanSignalState SIGNAL_STATES[SIGNAL_COUNT][%d] = {"
-                % MAX_SIGNAL_STATES))
-
-        states_index = 0
-        for message in all_messages(self.buses):
-            for signal in message.signals:
-                if len(signal.states) > 0:
-                    if states_index >= MAX_SIGNAL_STATES:
-                        warning("Ignoring anything beyond %d states for %s" %
-                                (MAX_SIGNAL_STATES, signal.generic_name))
-                        break
-
-                    lines.append("    {", end=' ')
-                    for state in signal.states:
-                        lines.append("%s," % state, end=' ')
-                    lines.append("},")
-                    signal.states_index = states_index
-                    states_index += 1
-        lines.append("};")
-        lines.append("")
-
-        lines.append("CanSignal SIGNALS[SIGNAL_COUNT] = {")
-
-        i = 1
-        for message in all_messages(self.buses):
-            message.signals = sorted(message.signals,
-                    key=operator.attrgetter('generic_name'))
-            for signal in message.signals:
-                signal.array_index = i - 1
-                lines.append("    %s" % signal)
-                i += 1
-        lines.append("};")
-        lines.append("")
-
-        lines.append("void openxc::signals::initializeSignals() {")
-        for initializer in self.initializers:
-            lines.append("    %s();" % initializer)
-        lines.append("}")
-        lines.append("")
-
-        lines.append("void openxc::signals::loop() {")
-        for looper in self.loopers:
-            lines.append("    %s();" % looper)
-        lines.append("}")
-        lines.append("")
-
-        lines.append("const int COMMAND_COUNT = %d;" % self.command_count)
-        lines.append("CanCommand COMMANDS[COMMAND_COUNT] = {")
-
-        for command in self.commands:
-            lines.append("    ", command)
+        lines.extend(self._message_set_lister(block))
 
         lines.append("};")
         lines.append("")
+        return lines
 
-        with open("%s/signals.cpp.middle" % base_path) as middle:
-            lines.append(middle.read())
+    def _build_message_sets(self):
+        lines = []
+        lines.append("const int MESSAGE_SET_COUNT = %d;" %
+                len(self.message_sets))
+        lines.append("CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {")
+        for i, message_set in enumerate(self.message_sets):
+            lines.append(self._build_message_set(i, message_set))
+        lines.append("};")
+        return lines
 
-        lines.append("const char* openxc::signals::getMessageSet() {")
-        lines.append("    return \"%s\";" % self.name)
-        lines.append("}")
+    def _build_buses(self):
+        lines = []
+        lines.append("const int MAX_CAN_BUS_COUNT = 2;")
+        lines.append("CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {")
+
+        def block(message_set, **kwargs):
+            lines = []
+            for bus_number, (bus_address, bus) in enumerate(
+                    message_set.valid_buses()):
+                lines.append(self._build_bus_struct(bus_address, bus,
+                    bus_number + 1))
+                lines.append("")
+            return lines
+
+        lines.extend(self._message_set_lister(block))
+        lines.append("};")
         lines.append("")
 
-        lines.append("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
-                "CanBus* bus, int id, uint64_t data) {")
-        lines.append("    switch(bus->address) {")
-        for bus_address, bus in valid_buses(self.buses):
-            lines.append("    case %s:" % bus_address)
-            lines.append("        switch (id) {")
-            for message in bus['messages']:
-                lines.append("        case 0x%x: // %s" % (message.id, message.name))
-                if message.handler is not None:
-                    lines.append(("            %s(id, data, SIGNALS, " %
-                        message.handler + "SIGNAL_COUNT, pipeline);"))
-                for signal in (s for s in message.signals):
-                    if signal.handler:
-                        lines.append(("            can::read::translateSignal("
-                                "pipeline, "
-                                "&SIGNALS[%d], data, " % signal.array_index +
-                                "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
-                                signal.handler, signal.name)))
-                    else:
-                        lines.append(("            can::read::translateSignal("
-                                "pipeline, "
-                                "&SIGNALS[%d], " % signal.array_index +
-                                "data, SIGNALS, SIGNAL_COUNT); // %s"
-                                    % signal.name))
+        return lines
+
+    def _build_filters(self):
+        # These arrays can't be initialized when we create the variables or else
+        # they end up in the .data portion of the compiled program, and it
+        # becomes too big for the microcontroller. Initializing them at runtime
+        # gets around that problem.
+        lines = []
+        lines.append("CanFilter FILTERS[MAX_MESSAGE_COUNT];")
+
+        lines.append("")
+        lines.append("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
+                "int* count) {")
+
+        def block(message_set_index, message_set):
+            lines = []
+            lines.append("        switch(address) {")
+            for bus_address, bus in message_set.valid_buses():
+                lines.append("        case %s:" % bus_address)
+                lines.append("            *count = %d;" % len(bus['messages']))
+                for i, message in enumerate(bus['messages']):
+                    lines.append("            FILTERS[%d] = {%d, 0x%x, %d};" % (
+                            i, i, message.id, 1))
                 lines.append("            break;")
             lines.append("        }")
             lines.append("        break;")
-        lines.append("    }")
+            lines.append("    }")
+            return lines
 
-        if self._message_count() == 0:
+        lines.extend(self._message_set_switcher(block))
+        lines.append("    return FILTERS;")
+        lines.append("}")
+        return lines
+
+    def _build_signal_states(self):
+        lines = []
+        lines.append("const int MAX_SIGNAL_STATES = %d;" % MAX_SIGNAL_STATES)
+        lines.append("const int MAX_SIGNAL_COUNT = %d;" %
+                self._max_signal_count())
+        lines.append("CanSignalState SIGNAL_STATES[]"
+                "[MAX_SIGNAL_COUNT][MAX_SIGNAL_STATES] = {")
+
+        def block(message_set, **kwargs):
+            states_index = 0
+            lines = []
+            for message in message_set.all_messages():
+                for signal in message.signals:
+                    if len(signal.states) > 0:
+                        if states_index >= MAX_SIGNAL_STATES:
+                            warning("Ignoring anything beyond %d states for %s" %
+                                    (MAX_SIGNAL_STATES, signal.generic_name))
+                            break
+
+                        lines.append("        {", end=' ')
+                        for state in signal.states:
+                            lines.append("%s," % state, end=' ')
+                        lines.append("},")
+                        signal.states_index = states_index
+                        states_index += 1
+            return lines
+
+        lines.extend(self._message_set_lister(block))
+
+        lines.append("};")
+        lines.append("")
+
+        return lines
+
+    def _message_set_lister(self, block, indent=4):
+        lines = []
+        whitespace = " " * indent
+        for message_set_index, message_set in enumerate(sorted(
+                    self.message_sets, key=operator.attrgetter('name'))):
+            lines.append(whitespace + "{ // message set: %s" % message_set.name)
+            lines.extend(block(message_set, message_set_index=message_set_index))
+            lines.append(whitespace + "},")
+        return lines
+
+    def _message_set_switcher(self, block, indent=4):
+        lines = []
+        whitespace = " " * indent
+        lines.append(whitespace + "switch(CONFIG.canMessageSetIndex) {")
+        for message_set_index, message_set in enumerate(self.message_sets):
+            lines.append(whitespace + "case %d: // message set: %s" % (
+                    message_set_index, message_set.name))
+            lines.extend(block(message_set_index, message_set))
+            lines.append(whitespace + "break;")
+            lines.append(whitespace + "}")
+        return lines
+
+    def _build_signals(self):
+        lines = []
+        lines.append("CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {")
+
+        def block(message_set, **kwargs):
+            lines = []
+            i = 1
+            for message in message_set.all_messages():
+                message.signals = sorted(message.signals,
+                        key=operator.attrgetter('generic_name'))
+                for signal in message.signals:
+                    signal.array_index = i - 1
+                    lines.append("        %s" % signal)
+                    i += 1
+            return lines
+
+        lines.extend(self._message_set_lister(block))
+        lines.append("};")
+        lines.append("")
+
+        return lines
+
+    def _build_initializers(self):
+        lines = []
+        lines.append("void openxc::signals::initializeSignals() {")
+
+        def block(message_set, **kwargs):
+            return ["        %s();" % initializer
+                for initializer in message_set.initializers]
+        lines.extend(self._message_set_lister(block))
+        lines.append("}")
+        lines.append("")
+        return lines
+
+    def _build_loop(self):
+        lines = []
+        lines.append("void openxc::signals::loop() {")
+        def block(message_set, **kwargs):
+            return ["        %s();" % looper for looper in message_set.loopers]
+        lines.extend(self._message_set_lister(block))
+        lines.append("}")
+        lines.append("")
+        return lines
+
+    def _build_commands(self):
+        lines = []
+        lines.append("const int MAX_COMMAND_COUNT = %d;" %
+                self._max_command_count())
+        lines.append("CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {")
+        def block(message_set, **kwargs):
+            return ["        %s" % command for command in message_set.commands]
+        lines.extend(self._message_set_lister(block))
+        lines.append("};")
+        lines.append("")
+
+        return lines
+
+    def _build_decoder(self):
+        lines = []
+        lines.append("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
+                "CanBus* bus, int id, uint64_t data) {")
+
+        def block(message_set_index, message_set):
+            lines = []
+            lines.append("        switch(bus->address) {")
+            for bus_address, bus in message_set.valid_buses():
+                lines.append("        case %s:" % bus_address)
+                lines.append("            switch (id) {")
+                for message in bus['messages']:
+                    lines.append("            case 0x%x: // %s" % (message.id, message.name))
+                    if message.handler is not None:
+                        lines.append(("                %s(id, data, SIGNALS, " %
+                            message.handler + "SIGNAL_COUNT, pipeline);"))
+                    for signal in (s for s in message.signals):
+                        if signal.handler:
+                            lines.append(("                can::read::translateSignal("
+                                    "pipeline, "
+                                    "&SIGNALS[%d], data, " % signal.array_index +
+                                    "&%s, SIGNALS, SIGNAL_COUNT); // %s" % (
+                                    signal.handler, signal.name)))
+                        else:
+                            lines.append(("                can::read::translateSignal("
+                                    "pipeline, "
+                                    "&SIGNALS[%d], " % signal.array_index +
+                                    "data, SIGNALS, SIGNAL_COUNT); // %s"
+                                        % signal.name))
+                    lines.append("                break;")
+                lines.append("            }")
+                lines.append("            break;")
+            lines.append("        }")
+            return lines
+
+        lines.extend(self._message_set_switcher(block))
+
+        if self._max_message_count() == 0:
             lines.append("    openxc::can::read::passthroughMessage(pipeline, id, "
                     "data);")
 
         lines.append("}")
         lines.append("")
 
+        return lines
+
+    def build_source(self):
+        lines = [self._build_header()]
+
+        lines.extend(self._build_message_sets())
+        lines.extend(self._build_buses())
+        lines.extend(self._build_messages())
+        lines.extend(self._build_signal_states())
+        lines.extend(self._build_signals())
+        lines.extend(self._build_initializers())
+        lines.extend(self._build_loop())
+        lines.extend(self._build_commands())
+        lines.extend(self._build_decoder())
         # Create a set of filters.
-        lines.append(self.build_filters())
-        lines.append("")
-        lines.append("#endif // CAN_EMULATOR")
+        lines.extend(self._build_filters())
 
-        return '\n'.join(lines)
+        with open("%s/signals.cpp.footer" % base_path) as footer:
+            lines.append(footer.read())
 
-    def build_filters(self):
-        # These arrays can't be initialized when we create the variables or else
-        # they end up in the .data portion of the compiled program, and it
-        # becomes too big for the microcontroller. Initializing them at runtime
-        # gets around that problem.
-        lines = []
-        lines.append("CanFilter FILTERS[%d];" % self._message_count())
-
-        lines.append("")
-        lines.append("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
-                "int* count) {")
-        lines.append("    switch(address) {")
-        for bus_address, bus in valid_buses(self.buses):
-            lines.append("    case %s:" % bus_address)
-            lines.append("        *count = %d;" % len(bus['messages']))
-            for i, message in enumerate(bus['messages']):
-                lines.append("        FILTERS[%d] = {%d, 0x%x, %d};" % (
-                        i, i, message.id, 1))
-            lines.append("        break;")
-        lines.append("    }")
-        lines.append("    return FILTERS;")
-        lines.append("}")
         return '\n'.join(lines)

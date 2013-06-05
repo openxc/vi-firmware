@@ -4,12 +4,14 @@ from __future__ import print_function
 from collections import defaultdict
 import sys
 import argparse
+import operator
 import json
 
 from coder import CodeGenerator
 from xml_to_json import merge_database_into_mapping
 from common import warning, fatal_error, Signal, SignalState, Message, \
-        Command, merge, all_messages, find_file, load_json_from_search_path
+        Command, merge, find_file, load_json_from_search_path, \
+        VALID_BUS_ADDRESSES
 
 DEFAULT_SEARCH_PATH = "."
 
@@ -45,7 +47,8 @@ def parse_options():
 
 
 class MessageSet(object):
-    def __init__(self, name=None):
+    def __init__(self, name):
+        self.name = name
         self.buses = defaultdict(dict)
         self.signal_count = 0
         self.command_count = 0
@@ -53,9 +56,24 @@ class MessageSet(object):
         self.loopers = []
         self.commands = []
 
+    def valid_buses(self):
+        for bus_name, bus in sorted(self.buses.items(), key=operator.itemgetter(0)):
+            if bus['controller'] in VALID_BUS_ADDRESSES:
+                yield bus['controller'], bus
+
+    def all_messages(self):
+        for _, bus in self.valid_buses():
+            for message in bus['messages']:
+                yield message
+
+    def all_signals(self):
+        for message in self.all_messages():
+            for signal in message.signals:
+                yield signal
+
     def validate_messages(self):
         valid = True
-        for message in all_messages(self.buses):
+        for message in self.all_messages():
             if message.handler is not None:
                 self.uses_custom_handlers = True
             for signal in message.signals:
@@ -71,7 +89,7 @@ class MessageSet(object):
         return True
 
     def _message_count(self):
-        return len(list(all_messages(self.buses)))
+        return len(list(self.all_messages()))
 
 
 class JsonMessageSet(MessageSet):
@@ -110,8 +128,8 @@ class JsonMessageSet(MessageSet):
 
     @classmethod
     def _parse_commands(cls, data):
-        return (Command(command['name'], command.get('handler', None))
-                for command in data.get('commands', []))
+        return [Command(command['name'], command.get('handler', None))
+                for command in data.get('commands', [])]
 
     @classmethod
     def _parse_buses(cls, data):
@@ -158,7 +176,7 @@ class JsonMessageSet(MessageSet):
                         states.append(SignalState(raw_match, name))
                 signal.pop('states', None)
                 message.signals.append(Signal(
-                        self.buses,
+                        self,
                         message,
                         signal_name,
                         states=states,
@@ -181,8 +199,10 @@ def main():
 
     generator = CodeGenerator()
     for filename in message_sets:
-        generator.message_sets += JsonMessageSet.parse(filename,
-                search_paths=search_paths)
+        message_set = JsonMessageSet.parse(filename, search_paths=search_paths)
+        if not message_set.validate_messages() or not message_set.validate_name():
+            fatal_error("unable to generate code")
+        generator.message_sets.append(message_set)
 
     print(generator.build_source())
 

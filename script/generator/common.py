@@ -53,16 +53,6 @@ def merge(a, b):
     return dst
 
 
-def valid_buses(buses):
-    for bus_name, bus in sorted(buses.items(), key=operator.itemgetter(0)):
-        if bus['controller'] in VALID_BUS_ADDRESSES:
-            yield bus['controller'], bus
-
-
-def all_messages(buses):
-    for _, bus in valid_buses(buses):
-        for message in bus['messages']:
-            yield message
 
 
 class Command(object):
@@ -94,7 +84,8 @@ def load_json_from_search_path(filename, search_paths):
 
 
 class Message(object):
-    def __init__(self, buses, bus_name, id, name, handler=None):
+    def __init__(self, buses, bus_name, id, name,
+            handler=None):
         self.bus_name = bus_name
         self.buses = buses
         self.id = int(id, 0)
@@ -105,8 +96,8 @@ class Message(object):
     def __str__(self):
         bus_index = self._lookup_bus_index(self.buses, self.bus_name)
         if bus_index is not None:
-            return "{&CAN_BUSES[%d], %d}, // %s" % (bus_index, self.id,
-                    self.name)
+            return "{&CAN_BUSES[%d][%d], %d}, // %s" % (self.message_set_index,
+                    bus_index, self.id, self.name)
         else:
             warning("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
                     (self.bus_name, VALID_BUS_ADDRESSES, self.id))
@@ -122,12 +113,12 @@ class Message(object):
 
 
 class Signal(object):
-    def __init__(self, buses=None, message=None, name=None,
+    def __init__(self, message_set=None, message=None, name=None,
             generic_name=None, bit_position=None, bit_size=None, factor=1,
             offset=0, min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=1, send_same=True, writable=False,
             write_handler=None):
-        self.buses = buses
+        self.message_set = message_set
         self.message = message
         self.name = name
         self.generic_name = generic_name
@@ -194,15 +185,15 @@ class Signal(object):
         return(end - l + 1)
 
     @staticmethod
-    def _lookupMessageIndex(buses, message):
-        for i, candidate in enumerate(all_messages(buses)):
+    def _lookupMessageIndex(message_set, message):
+        for i, candidate in enumerate(message_set.all_messages()):
             if candidate.id == message.id:
                 return i
 
     def __str__(self):
         result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self._lookupMessageIndex(self.buses, self.message),
+                self._lookupMessageIndex(self.message_set, self.message),
                 self.generic_name, self.bit_position, self.bit_size,
                 self.factor, self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))

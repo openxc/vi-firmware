@@ -1,0 +1,34 @@
+CanCommand* openxc::signals::getCommands() {
+    return COMMANDS[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getCommandCount() {
+    return getActiveMessageSet()->commandCount;
+}
+
+CanSignal* openxc::signals::getSignals() {
+    return SIGNALS[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getSignalCount() {
+    return getActiveMessageSet()->signalCount;
+}
+
+CanBus* openxc::signals::getCanBuses() {
+    return CAN_BUSES[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getCanBusCount() {
+    return getActiveMessageSet()->busCount;;
+}
+
+CanMessageSet* openxc::signals::getActiveMessageSet() {
+    // TODO be defensive
+    return &MESSAGE_SETS[CONFIG.messageSetIndex];
+}
+
+CanMessageSet* openxc::signals::getMessageSets() {
+    return MESSAGE_SETS;
+}
+
+#endif // CAN_EMULATOR

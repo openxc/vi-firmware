@@ -24,7 +24,7 @@ int openxc::signals::getCanBusCount() {
 
 CanMessageSet* openxc::signals::getActiveMessageSet() {
     // TODO be defensive
-    return &MESSAGE_SETS[CONFIG.messageSetIndex];
+    return &MESSAGE_SETS[getConfiguration()->messageSetIndex];
 }
 
 CanMessageSet* openxc::signals::getMessageSets() {

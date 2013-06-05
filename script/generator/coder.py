@@ -187,7 +187,7 @@ class CodeGenerator(object):
     def _message_set_switcher(self, block, indent=4):
         lines = []
         whitespace = " " * indent
-        lines.append(whitespace + "switch(CONFIG.messageSetIndex) {")
+        lines.append(whitespace + "switch(getConfiguration()->messageSetIndex) {")
         for message_set_index, message_set in enumerate(self.message_sets):
             lines.append(whitespace + "case %d: // message set: %s" % (
                     message_set_index, message_set.name))

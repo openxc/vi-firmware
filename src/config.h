@@ -10,7 +10,7 @@ typedef struct {
     int messageSetIndex;
 } Configuration;
 
-static Configuration CONFIG;
+Configuration* getConfiguration();
 
 } // namespace config
 } // namespace openxc

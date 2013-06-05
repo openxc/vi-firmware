@@ -1,3 +1,6 @@
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
 #include "can/canutil.h"
 
 namespace openxc {
@@ -7,7 +10,9 @@ typedef struct {
     int messageSetIndex;
 } Configuration;
 
-Configuration CONFIG;
+static Configuration CONFIG;
 
 } // namespace config
 } // namespace openxc
+
+#endif // _CONFIG_H_

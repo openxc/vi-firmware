@@ -30,7 +30,7 @@ namespace time = openxc::util::time;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
-using openxc::signals::getMessageSet;
+using openxc::signals::getActiveMessageSet;
 
 extern void reset();
 extern void setup();
@@ -79,7 +79,7 @@ int main(void) {
     lights::initialize();
     bluetooth::initialize();
 
-    debug("Initializing as %s", getMessageSet());
+    debug("Initializing as %s", getActiveMessageSet()->name);
     setup();
 
     for (;;) {
@@ -108,8 +108,8 @@ bool handleControlRequest(uint8_t request) {
     case VERSION_CONTROL_COMMAND:
     {
         char combinedVersion[strlen(VERSION) +
-                strlen(getMessageSet()) + 4];
-        sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
+                strlen(getActiveMessageSet()->name) + 4];
+        sprintf(combinedVersion, "%s (%s)", VERSION, getActiveMessageSet()->name);
         debug("Version: %s", combinedVersion);
 
         usb::sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));

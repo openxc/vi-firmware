@@ -5,14 +5,26 @@
 #include "can/canwrite.h"
 
 using openxc::can::CanFilter;
-using openxc::can::CanSignalState;
-using openxc::can::CanSignal;
 
 namespace openxc {
 namespace signals {
 
+/** Public: Return the currently active CAN configuration. */
+CanMessageSet* getActiveMessageSet();
+
+/** Public: Retrive a list of all possible CAN configurations.
+ *
+ * Returns a pointer to an array of all configurations.
+ */
+CanMessageSet* getMessageSets();
+
+/** Public: Return the length of the array returned by getConfigurations() */
+int getConfigurationCount();
+
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
+ *
+ * TODO should this also be called when the configuration is switched?
  */
 void initializeSignals();
 
@@ -22,19 +34,22 @@ void initializeSignals();
  */
 void loop();
 
-/* Public: The number of CAN buses to read. This is limited to 2, as the
- * hardware controller only has 2 CAN channels.
+/* Public: Return the number of CAN buses configured in the active
+ * configuration. This is limited to 2, as the hardware controller only has 2
+ * CAN channels.
  */
 int getCanBusCount();
 
-/* Public: Return an array of all CAN signals you are able to process and
- * translate to send over USB.
+/* Public: Return an array of all CAN signals to be processed in the active
+ * configuration.
  */
 CanSignal* getSignals();
 
-/* Public: Return an array of all OpenXC CAN commnds you are able to process and
- * write back to CAN with a custom handler. Commands not defined here are
- * handled using a 1-1 mapping from the signals list.
+/* Public: Return an array of all OpenXC CAN commands enabled in the active
+ * configuration that can write back to CAN with a custom handler.
+ *
+ * Commands not defined here are handled using a 1-1 mapping from the signals
+ * list.
  */
 CanCommand* getCommands();
 
@@ -48,11 +63,6 @@ int getSignalCount();
  * monitor. The size of this array is fixed at 2.
  */
 CanBus* getCanBuses();
-
-/* Public: Return the name of the vehicle or architecture this translator is
- * currently programmed for.
- */
-const char* getMessageSet();
 
 /* Public: Decode CAN signals from raw CAN messages, translate from engineering
  * units to something more human readable, and send the resulting value over USB
@@ -70,7 +80,8 @@ const char* getMessageSet();
 void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
 
 /* Public: Initialize an array of the CAN message filters that should be set for
- * the CAN module with the given address.
+ * the CAN module with the given address, given the currently active
+ * configuration.
  *
  * If an array is of length 0, the CAN acceptance filter will be disabled and
  * all CAN messages will be passed through the translation stack.

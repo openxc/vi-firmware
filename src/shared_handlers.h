@@ -5,8 +5,6 @@
 #include "can/canread.h"
 #include "interface/usb.h"
 
-using openxc::can::CanSignal;
-
 namespace openxc {
 namespace signals {
 namespace handlers {

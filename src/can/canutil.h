@@ -17,17 +17,77 @@
 // TODO CanMessage and CanBus are temporarily defined outside of the openxc::can
 // namespace because we're not able to used namespaced types with emqueue.
 
+/* Public: A state encoded (SED) signal's mapping from numerical values to
+ * OpenXC state names.
+ *
+ * value - The integer value of the state on the CAN bus.
+ * name  - The corresponding string name for the state in OpenXC.
+ */
+struct CanSignalState {
+    int value;
+    const char* name;
+};
+typedef struct CanSignalState CanSignalState;
+
+/* Public: A CAN signal to decode from the bus and output over USB.
+ *
+ * message     - The message this signal is a part of.
+ * genericName - The name of the signal to be output over USB.
+ * bitPosition - The starting bit of the signal in its CAN message.
+ * bitSize     - The width of the bit field in the CAN message.
+ * factor      - The final value will be multiplied by this factor. Use 1 if you
+ *               don't need a factor.
+ * offset      - The final value will be added to this offset. Use 0 if you
+ *               don't need an offset.
+ * minValue    - The minimum value for the processed signal.
+ * maxValue    - The maximum value for the processed signal.
+ * sendFrequency - How often to pass along this message when received. To
+ *              process every value, set this to 0.
+ * sendSame    - If true, will re-send even if the value hasn't changed.
+ * received    - mark true if this signal has ever been received.
+ * states      - An array of CanSignalState describing the mapping
+ *               between numerical and string values for valid states.
+ * stateCount  - The length of the states array.
+ * writable    - True if the signal is allowed to be written from the USB host
+ *               back to CAN. Defaults to false.
+ * writeHandler - An optional function to encode a signal value to be written to
+ *                CAN into a uint64_t. If null, the default encoder is used.
+ * lastValue   - The last received value of the signal. Defaults to undefined.
+ * sendClock   - An internal counter value, don't use this.
+ */
+struct CanSignal {
+    struct CanMessage* message;
+    const char* genericName;
+    int bitPosition;
+    int bitSize;
+    float factor;
+    float offset;
+    float minValue;
+    float maxValue;
+    int sendFrequency;
+    bool sendSame;
+    bool received;
+    CanSignalState* states;
+    int stateCount;
+    bool writable;
+    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
+    float lastValue;
+    int sendClock;
+};
+typedef struct CanSignal CanSignal;
+
 /* Public: A CAN message, particularly for writing to CAN.
  *
  * bus - A pointer to the bus this message is on.
  * id - The ID of the message.
  * data  - The message's data field.
  */
-typedef struct {
+struct CanMessage {
     struct CanBus* bus;
     uint32_t id;
     uint64_t data;
-} CanMessage;
+};
+typedef struct CanMessage CanMessage;
 
 QUEUE_DECLARE(CanMessage, 16);
 
@@ -63,6 +123,15 @@ struct CanBus {
 };
 typedef struct CanBus CanBus;
 
+typedef struct {
+    int index;
+    const char* name;
+    int busCount;
+    int messageCount;
+    int signalCount;
+    int commandCount;
+} CanMessageSet;
+
 namespace openxc {
 namespace can {
 
@@ -80,64 +149,6 @@ typedef struct {
     int value;
     int channel;
 } CanFilter;
-
-/* Public: A state encoded (SED) signal's mapping from numerical values to
- * OpenXC state names.
- *
- * value - The integer value of the state on the CAN bus.
- * name  - The corresponding string name for the state in OpenXC.
- */
-typedef struct {
-    int value;
-    const char* name;
-} CanSignalState;
-
-/* Public: A CAN signal to decode from the bus and output over USB.
- *
- * message     - The message this signal is a part of.
- * genericName - The name of the signal to be output over USB.
- * bitPosition - The starting bit of the signal in its CAN message.
- * bitSize     - The width of the bit field in the CAN message.
- * factor      - The final value will be multiplied by this factor. Use 1 if you
- *               don't need a factor.
- * offset      - The final value will be added to this offset. Use 0 if you
- *               don't need an offset.
- * minValue    - The minimum value for the processed signal.
- * maxValue    - The maximum value for the processed signal.
- * sendFrequency - How often to pass along this message when received. To
- *              process every value, set this to 0.
- * sendSame    - If true, will re-send even if the value hasn't changed.
- * received    - mark true if this signal has ever been received.
- * states      - An array of CanSignalState describing the mapping
- *               between numerical and string values for valid states.
- * stateCount  - The length of the states array.
- * writable    - True if the signal is allowed to be written from the USB host
- *               back to CAN. Defaults to false.
- * writeHandler - An optional function to encode a signal value to be written to
- *                CAN into a uint64_t. If null, the default encoder is used.
- * lastValue   - The last received value of the signal. Defaults to undefined.
- * sendClock   - An internal counter value, don't use this.
- */
-struct CanSignal {
-    CanMessage* message;
-    const char* genericName;
-    int bitPosition;
-    int bitSize;
-    float factor;
-    float offset;
-    float minValue;
-    float maxValue;
-    int sendFrequency;
-    bool sendSame;
-    bool received;
-    CanSignalState* states;
-    int stateCount;
-    bool writable;
-    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
-    float lastValue;
-    int sendClock;
-};
-typedef struct CanSignal CanSignal;
 
 /* Public: The function definition for completely custom OpenXC command
  * handlers.

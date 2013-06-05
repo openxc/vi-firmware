@@ -36,6 +36,11 @@ extern void handleCan1Interrupt();
 extern void handleCan2Interrupt();
 #endif // __PIC32__
 
+const int CAN_CONFIGURATION_COUNT = 1;
+CanConfiguration CAN_CONFIGURATIONS[CAN_CONFIGURATION_COUNT] = {
+    { "my-car", CAN_BUSES
+};
+
 // Define the speed of your CAN buses here (these are both 500Kbps buses).
 const int CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[CAN_BUS_COUNT] = {

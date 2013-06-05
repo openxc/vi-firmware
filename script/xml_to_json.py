@@ -3,7 +3,32 @@
 import sys
 import argparse
 import json
-from lxml import etree
+
+try:
+  from lxml import etree
+  print("running with lxml.etree")
+except ImportError:
+  try:
+    # Python 2.5
+    import xml.etree.cElementTree as etree
+    print("running with cElementTree on Python 2.5+")
+  except ImportError:
+    try:
+      # Python 2.5
+      import xml.etree.ElementTree as etree
+      print("running with ElementTree on Python 2.5+")
+    except ImportError:
+      try:
+        # normal cElementTree install
+        import cElementTree as etree
+        print("running with cElementTree")
+      except ImportError:
+        try:
+          # normal ElementTree install
+          import elementtree.ElementTree as etree
+          print("running with ElementTree")
+        except ImportError:
+          print("Failed to import ElementTree from any known place")
 
 from generate_code import Signal
 
@@ -21,7 +46,7 @@ class Network(object):
 
         for message_id, message in all_messages.items():
             message_id = int(message_id, 0)
-            query = "/Node/TxMessage[ID=\"0x%s\"]"
+            query = "./Node/TxMessage[ID=\"0x%s\"]"
             # Search for both lower and upper case hex
             for attr_value in ["%X", "%x"]:
                 node = tree.find(query % (attr_value % message_id))

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import collections
 import itertools
 import operator
 from collections import defaultdict
@@ -9,22 +8,13 @@ import sys
 import argparse
 import os
 
+from common import warning, fatal_error, Signal, SignalState, Message, \
+        Command, merge, valid_buses, all_messages, find_file
 
-# Only works with 2 CAN buses since we are limited by 2 CAN controllers,
-# and we want to be a little careful that we always expect 0x101 to be
-# plugged into the CAN1 controller and 0x102 into CAN2.
-VALID_BUS_ADDRESSES = (1, 2)
+
 MAX_SIGNAL_STATES = 12
 DEFAULT_SEARCH_PATH = "."
 
-def fatal_error(message):
-    # TODO add red color
-    sys.stderr.write("ERROR: %s\n" % message)
-    sys.exit(1)
-
-def warning(message):
-    # TODO add yellow color
-    sys.stderr.write("WARNING: %s\n" % message)
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Generate C++ source code "
@@ -56,194 +46,6 @@ def parse_options():
     return arguments
 
 
-def quacks_like_dict(object):
-    """Check if object is dict-like"""
-    return isinstance(object, collections.Mapping)
-
-
-def merge(a, b):
-    """Merge two deep dicts non-destructively
-
-    Uses a stack to avoid maximum recursion depth exceptions
-
-    >>> a = {'a': 1, 'b': {1: 1, 2: 2}, 'd': 6}
-    >>> b = {'c': 3, 'b': {2: 7}, 'd': {'z': [1, 2, 3]}}
-    >>> c = merge(a, b)
-    >>> from pprint import pprint; pprint(c)
-    {'a': 1, 'b': {1: 1, 2: 7}, 'c': 3, 'd': {'z': [1, 2, 3]}}
-    """
-    assert quacks_like_dict(a), quacks_like_dict(b)
-    dst = a.copy()
-
-    stack = [(dst, b)]
-    while stack:
-        current_dst, current_src = stack.pop()
-        for key in current_src:
-            if key not in current_dst:
-                current_dst[key] = current_src[key]
-            else:
-                if (quacks_like_dict(current_src[key]) and
-                        quacks_like_dict(current_dst[key])):
-                    stack.append((current_dst[key], current_src[key]))
-                else:
-                    current_dst[key] = current_src[key]
-    return dst
-
-
-class Command(object):
-    def __init__(self, generic_name, handler=None):
-        self.generic_name = generic_name
-        self.handler = handler
-
-    def __str__(self):
-        return "{ \"%s\", %s }," % (self.generic_name, self.handler)
-
-
-class Message(object):
-    def __init__(self, buses, bus_name, id, name, handler=None):
-        self.bus_name = bus_name
-        self.buses = buses
-        self.id = int(id, 0)
-        self.name = name
-        self.handler = handler
-        self.signals = []
-
-    def __str__(self):
-        bus_index = self._lookup_bus_index(self.buses, self.bus_name)
-        if bus_index is not None:
-            return "{&CAN_BUSES[%d], %d}, // %s" % (bus_index, self.id,
-                    self.name)
-        else:
-            warning("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
-                    (self.bus_name, VALID_BUS_ADDRESSES, self.id))
-        return ""
-
-    @staticmethod
-    def _lookup_bus_index(buses, bus_name):
-        if bus_name in buses and 'controller' in buses[bus_name]:
-            for index, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
-                if candidate_bus_address == buses[bus_name]['controller']:
-                    return index
-        return None
-
-
-def all_messages(buses):
-    for _, bus in valid_buses(buses):
-        for message in bus['messages']:
-            yield message
-
-
-def valid_buses(buses):
-    for bus_name, bus in sorted(buses.items(), key=operator.itemgetter(0)):
-        if bus['controller'] in VALID_BUS_ADDRESSES:
-            yield bus['controller'], bus
-
-
-class Signal(object):
-    def __init__(self, buses=None, message=None, name=None,
-            generic_name=None, position=None, length=None, factor=1, offset=0,
-            min_value=0.0, max_value=0.0, handler=None, ignore=False,
-            states=None, send_frequency=0, send_same=True,
-            writable=False, write_handler=None):
-        self.buses = buses
-        self.message = message
-        self.name = name
-        self.generic_name = generic_name
-        self.position = position
-        self.length = length
-        self.factor = factor
-        self.offset = offset
-        self.min_value = min_value
-        self.max_value = max_value
-        self.handler = handler
-        self.writable = writable
-        self.write_handler = write_handler
-        if ignore:
-            self.handler = "ignoreHandler"
-        self.array_index = 0
-        # the frequency determines how often the message should be propagated. a
-        # frequency of 1 means that every time the signal it is received we will
-        # try to handle it. a frequency of 2 means that every other signal
-        # will be handled (and the other half is ignored). This is useful for
-        # trimming down the data rate of the stream over USB.
-        self.send_frequency = send_frequency
-        self.send_same = send_same
-        self.states = states or []
-        if len(self.states) > 0 and self.handler is None:
-            self.handler = "stateHandler"
-
-    # Construct a Signal instance from an XML node exported from a Vector CANoe
-    # .dbc file.
-    @classmethod
-    def from_xml_node(cls, node):
-        signal = Signal(name=node.find("Name").text,
-                position=int(node.find("Bitposition").text),
-                length=int(node.find("Bitsize").text),
-                factor=float(node.find("Factor").text),
-                offset=float(node.find("Offset").text),
-                min_value=float(node.find("Minimum").text),
-                max_value=float(node.find("Maximum").text))
-
-        # Invert the bit index to match the Excel mapping.
-        signal.position = Signal._invert_bit_index(signal.position,
-                signal.length)
-        return signal
-
-    def to_dict(self):
-        return {"generic_name": self.generic_name,
-                "bit_position": self.position,
-                "bit_size": self.length,
-                "factor": self.factor,
-                "offset": self.offset,
-                "min_value": self.min_value,
-                "max_value": self.max_value}
-
-    def validate(self):
-        if self.position == None or self.length == None:
-            warning("%s (generic name: %s) is incomplete\n" %
-                    (self.name, self.generic_name))
-            return False
-        return True
-
-    @classmethod
-    def _invert_bit_index(cls, i, l):
-        (b, r) = divmod(i, 8)
-        end = (8 * b) + (7 - r)
-        return(end - l + 1)
-
-    @staticmethod
-    def _lookupMessageIndex(buses, message):
-        for i, candidate in enumerate(all_messages(buses)):
-            if candidate.id == message.id:
-                return i
-
-    def __str__(self):
-        result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
-                    "%d, %s, false, " % (
-                self._lookupMessageIndex(self.buses, self.message),
-                self.generic_name, self.position, self.length, self.factor,
-                self.offset, self.min_value, self.max_value,
-                self.send_frequency, str(self.send_same).lower()))
-        if len(self.states) > 0:
-            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
-                    len(self.states))
-        else:
-            result += "NULL, 0"
-        result += ", %s, %s" % (str(self.writable).lower(),
-                self.write_handler or "NULL")
-        result += "}, // %s" % self.name
-        return result
-
-
-class SignalState(object):
-    def __init__(self, value, name):
-        self.value = value
-        self.name = name
-
-    def __str__(self):
-        return "{%d, \"%s\"}" % (self.value, self.name)
-
-
 class Parser(object):
     def __init__(self, name=None):
         self.name = name
@@ -259,38 +61,14 @@ class Parser(object):
         raise NotImplementedError
 
     def print_header(self):
-        print("#ifndef CAN_EMULATOR")
-        print("#include \"can/canread.h\"")
-        print("#include \"can/canwrite.h\"")
-        print("#include \"signals.h\"")
-        print("#include \"util/log.h\"")
+        base_path = os.path.dirname(sys.argv[0])
+        with open("%s/signals.cpp.header" % base_path) as header:
+            print(header.read())
+
         if getattr(self, 'uses_custom_handlers', None):
-            print("#include \"shared_handlers.h\"")
             print("#include \"handlers.h\"")
-        print()
-        print("namespace can = openxc::can;")
-        print()
-        print("using openxc::pipeline::Pipeline;")
-        print("using openxc::can::read::booleanHandler;")
-        print("using openxc::can::read::stateHandler;")
-        print("using openxc::can::read::ignoreHandler;")
-        print("using openxc::can::write::booleanWriter;")
-        print("using openxc::can::write::stateWriter;")
-        print("using openxc::can::write::numberWriter;")
         if getattr(self, 'uses_custom_handlers', None):
             print("using namespace openxc::signals::handlers;")
-        print()
-        print("#ifdef __LPC17XX__")
-        print("#define can1 LPC_CAN1")
-        print("#define can2 LPC_CAN2")
-        print("#endif // __LPC17XX__")
-        print()
-        print("#ifdef __PIC32__")
-        print("extern void* can1;")
-        print("extern void* can2;")
-        print("extern void handleCan1Interrupt();")
-        print("extern void handleCan2Interrupt();")
-        print("#endif // __PIC32__")
         print()
 
     def validate_messages(self):
@@ -498,14 +276,6 @@ class Parser(object):
         print("}")
 
 
-def find_file(filename, search_paths):
-    for search_path in search_paths:
-        full_path = "%s/%s" % (search_path, filename)
-        if os.path.exists(full_path):
-            return full_path
-    fatal_error("Unable to find '%s' in search paths (%s)" % (
-            filename, search_paths))
-
 class JsonParser(Parser):
     def __init__(self, search_paths, filenames, name=None):
         super(JsonParser, self).__init__(name)
@@ -532,14 +302,15 @@ class JsonParser(Parser):
                 merged_dict = merge(merged_dict, data)
 
         for parent_filename in merged_dict.get("parents", []):
-            with open(find_file(parent_filename, self.search_paths)) as json_file:
+            with open(find_file(parent_filename, self.search_paths)
+                    ) as json_file:
                 try:
                     parent_data = json.load(json_file)
                 except ValueError as e:
                     fatal_error("%s does not contain valid JSON: \n%s\n" %
                             (parent_filename, e))
+                # Merge merged_dict *into* parents, so we keep any overrides
                 merged_dict = merge(parent_data, merged_dict)
-                found_parent = True
                 break
 
         self.name = self.name or merged_dict.get("name", "generic")
@@ -562,7 +333,8 @@ class JsonParser(Parser):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
 
-            with open(find_file(mapping['mapping'], self.search_paths)) as mapping_file:
+            with open(find_file(mapping['mapping'], self.search_paths)
+                    ) as mapping_file:
                 mapping_data = json.load(mapping_file)
                 messages = mapping_data.get('messages', None)
                 if messages is None:
@@ -592,25 +364,15 @@ class JsonParser(Parser):
                 for name, raw_matches in signal.get('states', {}).items():
                     for raw_match in raw_matches:
                         states.append(SignalState(raw_match, name))
+                signal.pop('states', None)
                 message.signals.append(Signal(
                         self.buses,
                         message,
                         signal_name,
-                        signal.get('generic_name', None),
-                        signal.get('bit_position', None),
-                        signal.get('bit_size', None),
-                        signal.get('factor', 1.0),
-                        signal.get('offset', 0.0),
-                        signal.get('min_value', 0.0),
-                        signal.get('max_value', 0.0),
-                        signal.get('handler', None),
-                        signal.get('ignore', False),
-                        states,
-                        signal.get('send_frequency', 1),
-                        signal.get('send_same', True),
-                        signal.get('writable', False),
-                        signal.get('write_handler', None)))
+                        states=states,
+                        **signal))
             self.buses[message.bus_name]['messages'].append(message)
+
 
 def main():
     arguments = parse_options()

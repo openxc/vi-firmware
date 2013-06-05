@@ -1,0 +1,34 @@
+#ifndef CAN_EMULATOR
+#include \"can/canread.h\"
+#include \"can/canwrite.h\"
+#include \"signals.h\"
+#include \"util/log.h\"
+#include \"shared_handlers.h\"
+
+if getattr(self, 'uses_custom_handlers', None):
+    #include \"handlers.h\"
+
+namespace can = openxc::can;
+
+using openxc::pipeline::Pipeline;
+using openxc::can::read::booleanHandler;
+using openxc::can::read::stateHandler;
+using openxc::can::read::ignoreHandler;
+using openxc::can::write::booleanWriter;
+using openxc::can::write::stateWriter;
+using openxc::can::write::numberWriter;
+
+if getattr(self, 'uses_custom_handlers', None):
+    using namespace openxc::signals::handlers;
+
+#ifdef __LPC17XX__
+#define can1 LPC_CAN1
+#define can2 LPC_CAN2
+#endif // __LPC17XX__
+
+#ifdef __PIC32__
+extern void* can1;
+extern void* can2;
+extern void handleCan1Interrupt();
+extern void handleCan2Interrupt();
+#endif // __PIC32__

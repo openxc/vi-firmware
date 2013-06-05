@@ -16,6 +16,7 @@ using openxc::can::read::ignoreHandler;
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;
 using openxc::can::write::numberWriter;
+using namespace openxc::signals::handlers;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1

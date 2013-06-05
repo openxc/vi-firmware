@@ -190,11 +190,11 @@ def main():
     search_paths = arguments.search_paths
     search_paths.append(DEFAULT_SEARCH_PATH)
 
-    message_sets = []
-    message_sets.extend(arguments.message_sets)
+    message_sets = arguments.message_sets or []
     if arguments.super_set is not None:
         super_set_data = load_json_from_search_path(arguments.super_set,
                 arguments.search_paths)
+        # TODO warn if no message sets found
         message_sets.extend(super_set_data.get('message_sets', []))
 
     generator = CodeGenerator()

@@ -1,12 +1,13 @@
 import sys
 import collections
-import operator
 import os
+import json
 
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
 # plugged into the CAN1 controller and 0x102 into CAN2.
 VALID_BUS_ADDRESSES = (1, 2)
+
 
 def fatal_error(message):
     # TODO add red color
@@ -53,8 +54,6 @@ def merge(a, b):
     return dst
 
 
-
-
 class Command(object):
     def __init__(self, generic_name, handler=None):
         self.generic_name = generic_name
@@ -73,7 +72,7 @@ def find_file(filename, search_paths):
             filename, search_paths))
 
 def load_json_from_search_path(filename, search_paths):
-    with open(find_file(super_set, self.search_paths)) as superset_file:
+    with open(find_file(filename, search_paths)) as json_file:
         try:
             data = json.load(json_file)
         except ValueError as e:
@@ -191,8 +190,9 @@ class Signal(object):
                 return i
 
     def __str__(self):
-        result =  ("{&CAN_MESSAGES[%d], \"%s\", %s, %d, %f, %f, %f, %f, "
+        result =  ("{&CAN_MESSAGES[%d][%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
+                self.message_set_index,
                 self._lookupMessageIndex(self.message_set, self.message),
                 self.generic_name, self.bit_position, self.bit_size,
                 self.factor, self.offset, self.min_value, self.max_value,

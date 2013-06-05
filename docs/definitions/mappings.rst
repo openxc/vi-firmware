@@ -346,6 +346,13 @@ signals that you want to use from the XML file. It pulls the neccessary details
 of the messages (bit position, bit size, offset, etc) and outputs the resulting
 subset as JSON into the output file, ``signals.json``.
 
+Extra Sources
+=============
+
+The ``extra_sources`` key is an optional list of C++ source files that should be
+injected into the generated ``signals.cpp`` file. These may include value
+handlers, message handlers, initializers or custom loopers.
+
 Commands
 ========
 

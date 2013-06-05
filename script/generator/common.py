@@ -72,7 +72,6 @@ def find_file(filename, search_paths):
             filename, search_paths))
 
 
-# TODO make sure we use this when possible
 def load_json_from_search_path(filename, search_paths):
     with open(find_file(filename, search_paths)) as json_file:
         try:

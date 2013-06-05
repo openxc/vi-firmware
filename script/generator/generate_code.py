@@ -94,24 +94,13 @@ class JsonMessageSet(MessageSet):
     def parse(cls, filename, search_paths=None):
         search_paths = search_paths or []
 
-        data = {}
-        with open(find_file(filename, search_paths)) as json_file:
-            try:
-                data = json.load(json_file)
-            except ValueError as e:
-                fatal_error("%s does not contain valid JSON: \n%s\n" %
-                        (filename, e))
+        data = load_json_from_search_path(filename, search_paths)
 
         for parent_filename in data.get('parents', []):
-            with open(find_file(parent_filename, search_paths)
-                    ) as json_file:
-                try:
-                    parent_data = json.load(json_file)
-                except ValueError as e:
-                    fatal_error("%s does not contain valid JSON: \n%s\n" %
-                            (parent_filename, e))
-                # Merge data *into* parents, so we keep any overrides
-                data = merge(parent_data, data)
+            parent_data = load_json_from_search_path(parent_filename,
+                    search_paths)
+            # Merge data *into* parents, so we keep any overrides
+            parent_data = merge(parent_data, data)
 
         message_set = cls(data.get('name', 'generic'))
         message_set.initializers = data.get('initializers', [])
@@ -144,21 +133,20 @@ class JsonMessageSet(MessageSet):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
 
-            with open(find_file(mapping['mapping'], search_paths)
-                    ) as mapping_file:
-                mapping_data = json.load(mapping_file)
-                messages = mapping_data.get('messages', None)
-                if messages is None:
-                    fatal_error("Mapping file '%s' is missing a 'messages' field"
-                            % mapping['mapping'])
+            mapping_data = load_json_from_search_path(mapping['mapping'],
+                    search_paths)
+            messages = mapping_data.get('messages', None)
+            if messages is None:
+                fatal_error("Mapping file '%s' is missing a 'messages' field"
+                        % mapping['mapping'])
 
-                if 'database' in mapping:
-                    messages = merge(merge_database_into_mapping(
-                                find_file(mapping['database'], search_paths),
-                                messages)['messages'],
-                            messages)
+            if 'database' in mapping:
+                messages = merge(merge_database_into_mapping(
+                            find_file(mapping['database'], search_paths),
+                            messages)['messages'],
+                        messages)
 
-                self._parse_messages(messages, mapping['bus'])
+            self._parse_messages(messages, mapping['bus'])
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():

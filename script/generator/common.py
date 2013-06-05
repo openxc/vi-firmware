@@ -71,6 +71,8 @@ def find_file(filename, search_paths):
     fatal_error("Unable to find '%s' in search paths (%s)" % (
             filename, search_paths))
 
+
+# TODO make sure we use this when possible
 def load_json_from_search_path(filename, search_paths):
     with open(find_file(filename, search_paths)) as json_file:
         try:
@@ -198,8 +200,8 @@ class Signal(object):
                 self.factor, self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += "SIGNAL_STATES[%d], %d" % (self.states_index,
-                    len(self.states))
+            result += "SIGNAL_STATES[%d][%d], %d" % (self.message_set_index,
+                    self.states_index, len(self.states))
         else:
             result += "NULL, 0"
         result += ", %s, %s" % (str(self.writable).lower(),

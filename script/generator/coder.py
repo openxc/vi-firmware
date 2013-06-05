@@ -2,13 +2,14 @@ import os
 import sys
 import operator
 
-from common import warning
+from common import warning, find_file
 
 MAX_SIGNAL_STATES = 12
 base_path = os.path.dirname(sys.argv[0])
 
 class CodeGenerator(object):
-    def __init__(self):
+    def __init__(self, search_paths):
+        self.search_paths = search_paths
         self.message_sets = []
 
     def _max_command_count(self):
@@ -24,13 +25,17 @@ class CodeGenerator(object):
                 for message_set in self.message_sets)
 
     def _build_header(self):
-        result = ""
         with open("%s/signals.cpp.header" % base_path) as header:
-            result += header.read()
+            return [header.read()]
 
-        if getattr(self, 'uses_custom_handlers', None):
-            '\n'.join([result, "#include \"handlers.h\""])
-        return result
+    def _build_extra_sources(self):
+        lines = []
+        for i, message_set in enumerate(self.message_sets):
+            for extra_source_filename in message_set.extra_sources:
+                with open(find_file(extra_source_filename, self.search_paths)
+                        ) as extra_source_file:
+                    lines.append(extra_source_file.read())
+        return lines
 
     def _build_message_set(self, index, message_set):
         return "    { %d, \"%s\", %d, %d, %d }," % (index, message_set.name,
@@ -145,10 +150,11 @@ class CodeGenerator(object):
                                     (MAX_SIGNAL_STATES, signal.generic_name))
                             break
 
-                        lines.append("        {", end=' ')
+                        line = "        { "
                         for state in signal.states:
-                            lines.append("%s," % state, end=' ')
-                        lines.append("},")
+                            line += "%s, " % state
+                        line += "},"
+                        lines.append(line)
                         signal.states_index = states_index
                         states_index += 1
             return lines
@@ -288,8 +294,9 @@ class CodeGenerator(object):
         return lines
 
     def build_source(self):
-        lines = [self._build_header()]
-
+        lines = []
+        lines.extend(self._build_header())
+        lines.extend(self._build_extra_sources())
         lines.extend(self._build_message_sets())
         lines.extend(self._build_buses())
         lines.extend(self._build_messages())
@@ -299,7 +306,6 @@ class CodeGenerator(object):
         lines.extend(self._build_loop())
         lines.extend(self._build_commands())
         lines.extend(self._build_decoder())
-        # Create a set of filters.
         lines.extend(self._build_filters())
 
         with open("%s/signals.cpp.footer" % base_path) as footer:

@@ -55,6 +55,7 @@ class MessageSet(object):
         self.initializers = []
         self.loopers = []
         self.commands = []
+        self.extra_sources = []
 
     def valid_buses(self):
         for bus_name, bus in sorted(self.buses.items(), key=operator.itemgetter(0)):
@@ -74,12 +75,8 @@ class MessageSet(object):
     def validate_messages(self):
         valid = True
         for message in self.all_messages():
-            if message.handler is not None:
-                self.uses_custom_handlers = True
             for signal in message.signals:
                 valid = valid and signal.validate()
-                if signal.handler is not None:
-                    self.uses_custom_handlers = True
         return valid
 
     def validate_name(self):
@@ -105,7 +102,7 @@ class JsonMessageSet(MessageSet):
                 fatal_error("%s does not contain valid JSON: \n%s\n" %
                         (filename, e))
 
-        for parent_filename in data.get("parents", []):
+        for parent_filename in data.get('parents', []):
             with open(find_file(parent_filename, search_paths)
                     ) as json_file:
                 try:
@@ -116,10 +113,11 @@ class JsonMessageSet(MessageSet):
                 # Merge data *into* parents, so we keep any overrides
                 data = merge(parent_data, data)
 
-        message_set = cls(data.get("name", "generic"))
-        message_set.initializers = data.get("initializers", [])
-        message_set.loopers = data.get("loopers", [])
+        message_set = cls(data.get('name', 'generic'))
+        message_set.initializers = data.get('initializers', [])
+        message_set.loopers = data.get('loopers', [])
         message_set.buses = cls._parse_buses(data)
+        message_set.extra_sources = data.get('extra_sources', [])
         message_set.commands = cls._parse_commands(data)
         message_set._parse_mappings(data, search_paths)
         message_set._parse_messages(data.get('messages', {}))
@@ -142,7 +140,7 @@ class JsonMessageSet(MessageSet):
         return buses
 
     def _parse_mappings(self, data, search_paths):
-        for mapping in data.get("mappings", []):
+        for mapping in data.get('mappings', []):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
 
@@ -155,9 +153,10 @@ class JsonMessageSet(MessageSet):
                             % mapping['mapping'])
 
                 if 'database' in mapping:
-                    messages = merge_database_into_mapping(
-                            find_file(mapping['database'], search_paths),
-                            messages)['messages']
+                    messages = merge(merge_database_into_mapping(
+                                find_file(mapping['database'], search_paths),
+                                messages)['messages'],
+                            messages)
 
                 self._parse_messages(messages, mapping['bus'])
 
@@ -181,6 +180,9 @@ class JsonMessageSet(MessageSet):
                         signal_name,
                         states=states,
                         **signal))
+            if message.bus_name not in self.buses:
+                fatal_error("Bus '%s' (from message 0x%x) is not defined" %
+                        (message.bus_name, message.id))
             self.buses[message.bus_name]['messages'].append(message)
 
 
@@ -197,7 +199,7 @@ def main():
         # TODO warn if no message sets found
         message_sets.extend(super_set_data.get('message_sets', []))
 
-    generator = CodeGenerator()
+    generator = CodeGenerator(search_paths)
     for filename in message_sets:
         message_set = JsonMessageSet.parse(filename, search_paths=search_paths)
         if not message_set.validate_messages() or not message_set.validate_name():

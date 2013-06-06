@@ -146,7 +146,11 @@ class JsonMessageSet(MessageSet):
                             messages)['messages'],
                         messages)
 
-            self._parse_messages(messages, mapping['bus'])
+            bus = mapping.get('bus', None)
+            if bus is None:
+                warning("No default bus associated with '%s' mapping" %
+                        mapping['mapping'])
+            self._parse_messages(messages, bus)
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():
@@ -156,6 +160,9 @@ class JsonMessageSet(MessageSet):
                     message_id,
                     message_data.get('name', None),
                     message_data.get('handler', None))
+            if message.bus_name is None:
+                fatal_error("No default or explicit bus for message %s" %
+                        message_id)
             for signal_name, signal in message_data['signals'].items():
                 states = []
                 for name, raw_matches in signal.get('states', {}).items():

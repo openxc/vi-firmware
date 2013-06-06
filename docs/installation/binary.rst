@@ -19,7 +19,7 @@ Windows
 1. Install `Cygwin <http://www.cygwin.com>`_ and in the installer, select the
    following packages:
 
-  ``git, curl, libsasl2, ca-certificates``
+  ``git, curl, libsasl2, ca-certificates, patchutils``
 
 2. Start a Cygwin Terminal.
 3. Configure the terminal to ignore Windows-style line endings in scripts:

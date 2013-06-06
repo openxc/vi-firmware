@@ -7,6 +7,7 @@ from common import Signal, fatal_error, warning
 try:
   from lxml import etree
 except ImportError:
+  warning("Install the 'lxml' Python package to speed up CAN database parsing")
   try:
     # Python 2.5
     import xml.etree.cElementTree as etree

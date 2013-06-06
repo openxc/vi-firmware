@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
-import json
 
 from common import Signal, fatal_error, warning
 
@@ -31,7 +29,7 @@ except ImportError:
 class Network(object):
     """Represents all the messages on a single bus."""
 
-    def __init__(self, tree, all_messages):
+    def __init__(self, database_name, tree, all_messages):
         self.messages = {}
 
         for message_id, message in all_messages.items():
@@ -43,7 +41,8 @@ class Network(object):
                 if node is not None:
                     break
             if node is None:
-                warning("Unable to find message ID %s in XML" % message_id)
+                warning("Unable to find message ID 0x%x in %s" % (message_id,
+                  database_name))
             else:
                 self.messages[message_id] = Message(node, message['signals'])
 
@@ -94,4 +93,4 @@ def merge_database_into_mapping(database_filename, messages):
         return {}
     else:
         tree = etree.parse(database_filename)
-        return Network(tree, messages).to_dict()
+        return Network(database_filename, tree, messages).to_dict()

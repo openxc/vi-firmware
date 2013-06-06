@@ -1,3 +1,6 @@
+"""
+C++ source code generator for the vehicle interface firmware.
+"""
 import os
 import sys
 import operator
@@ -7,10 +10,36 @@ from common import warning, find_file
 MAX_SIGNAL_STATES = 12
 base_path = os.path.dirname(sys.argv[0])
 
+
 class CodeGenerator(object):
+    """This class is used to build an implementation of the signals.h functions
+    from one or more CAN message sets. The message sets must already be read
+    into memory and parsed.
+    """
     def __init__(self, search_paths):
         self.search_paths = search_paths
         self.message_sets = []
+
+    def build_source(self):
+        lines = []
+        lines.extend(self._build_header())
+        lines.extend(self._build_extra_sources())
+        lines.extend(self._build_message_sets())
+        lines.extend(self._build_buses())
+        lines.extend(self._build_messages())
+        lines.extend(self._build_signal_states())
+        lines.extend(self._build_signals())
+        lines.extend(self._build_initializers())
+        lines.extend(self._build_loop())
+        lines.extend(self._build_commands())
+        lines.extend(self._build_decoder())
+        lines.extend(self._build_filters())
+
+        with open("%s/signals.cpp.footer" % base_path) as footer:
+            lines.append("")
+            lines.append(footer.read())
+
+        return '\n'.join(lines)
 
     def _max_command_count(self):
         if len(self.message_sets) == 0:
@@ -301,24 +330,3 @@ class CodeGenerator(object):
         lines.append("")
 
         return lines
-
-    def build_source(self):
-        lines = []
-        lines.extend(self._build_header())
-        lines.extend(self._build_extra_sources())
-        lines.extend(self._build_message_sets())
-        lines.extend(self._build_buses())
-        lines.extend(self._build_messages())
-        lines.extend(self._build_signal_states())
-        lines.extend(self._build_signals())
-        lines.extend(self._build_initializers())
-        lines.extend(self._build_loop())
-        lines.extend(self._build_commands())
-        lines.extend(self._build_decoder())
-        lines.extend(self._build_filters())
-
-        with open("%s/signals.cpp.footer" % base_path) as footer:
-            lines.append("")
-            lines.append(footer.read())
-
-        return '\n'.join(lines)

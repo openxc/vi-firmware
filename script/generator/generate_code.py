@@ -130,9 +130,18 @@ class JsonMessageSet(MessageSet):
         return buses
 
     def _parse_mappings(self, data, search_paths):
+        all_messages = {}
         for mapping in data.get('mappings', []):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
+
+            bus_name = mapping.get('bus', None)
+            if bus_name is None:
+                warning("No default bus associated with '%s' mapping" %
+                        mapping['mapping'])
+            elif bus_name not in self.buses:
+                fatal_error("Bus '%s' (from mapping %s) is not defined" %
+                        (bus_name, mapping['mapping']))
 
             mapping_data = load_json_from_search_path(mapping['mapping'],
                     search_paths)
@@ -147,20 +156,18 @@ class JsonMessageSet(MessageSet):
                             messages)['messages'],
                         messages)
 
-            bus_name = mapping.get('bus', None)
-            if bus_name is None:
-                warning("No default bus associated with '%s' mapping" %
-                        mapping['mapping'])
-            elif bus_name not in self.buses:
-                fatal_error("Bus '%s' (from mapping %s) is not defined" %
-                        (bus_name, mapping['mapping']))
-            self._parse_messages(messages, bus_name)
+            for message in messages.values():
+                if 'bus' not in message:
+                    message['bus'] = bus_name
+
+            all_messages = merge(all_messages, messages)
+        self._parse_messages(all_messages)
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():
             self.signal_count += len(message_data['signals'])
             message = Message(self.buses,
-                    message_data.get('bus', None) or default_bus,
+                    message_data.get('bus', None),
                     message_id,
                     message_data.get('name', None),
                     message_data.get('handler', None))

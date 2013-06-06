@@ -55,7 +55,7 @@ def merge(a, b):
                     stack.append((current_dst[key], current_src[key]))
                 elif (quacks_like_list(current_src[key]) and
                         quacks_like_list(current_dst[key])):
-                    current_src[key].append(current_dst[key])
+                    current_dst[key].extend(current_src[key])
                 else:
                     current_dst[key] = current_src[key]
     return dst

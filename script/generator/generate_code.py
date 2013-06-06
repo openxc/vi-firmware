@@ -95,11 +95,13 @@ class JsonMessageSet(MessageSet):
 
         data = load_json_from_search_path(filename, search_paths)
 
-        for parent_filename in data.get('parents', []):
-            parent_data = load_json_from_search_path(parent_filename,
-                    search_paths)
-            # Merge data *into* parents, so we keep any overrides
-            data = merge(parent_data, data)
+        while len(data.get('parents', [])) > 0:
+            for parent_filename in data.get('parents', []):
+                parent_data = load_json_from_search_path(parent_filename,
+                        search_paths)
+                # Merge data *into* parents, so we keep any overrides
+                data = merge(parent_data, data)
+                data['parents'].remove(parent_filename)
 
         message_set = cls(data.get('name', 'generic'))
         message_set.initializers = data.get('initializers', [])

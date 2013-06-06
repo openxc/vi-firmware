@@ -8,17 +8,17 @@ import json
 # plugged into the CAN1 controller and 0x102 into CAN2.
 VALID_BUS_ADDRESSES = (1, 2)
 
+RED = "\x1B[31m"
+GREEN = "\x1B[32m"
+YELLOW = "\x1B[33m"
+RESET = "\033[0m"
 
 def fatal_error(message):
-    # TODO add red color
-    sys.stderr.write("ERROR: %s\n" % message)
+    sys.stderr.write(RED + "ERROR: " + RESET + "%s\n" % message)
     sys.exit(1)
 
-
 def warning(message):
-    # TODO add yellow color
-    sys.stderr.write("WARNING: %s\n" % message)
-
+    sys.stderr.write(YELLOW + "WARNING: " + RESET + "%s\n" % message)
 
 def quacks_like_dict(object):
     """Check if object is dict-like"""

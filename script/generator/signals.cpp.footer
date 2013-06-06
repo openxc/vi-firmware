@@ -19,7 +19,7 @@ CanBus* openxc::signals::getCanBuses() {
 }
 
 int openxc::signals::getCanBusCount() {
-    return getActiveMessageSet()->busCount;;
+    return getActiveMessageSet()->busCount;
 }
 
 CanMessageSet* openxc::signals::getActiveMessageSet() {
@@ -30,5 +30,3 @@ CanMessageSet* openxc::signals::getActiveMessageSet() {
 CanMessageSet* openxc::signals::getMessageSets() {
     return MESSAGE_SETS;
 }
-
-#endif // CAN_EMULATOR

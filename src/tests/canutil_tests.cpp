@@ -7,6 +7,9 @@
 
 namespace can = openxc::can;
 
+using openxc::can::lookupSignal;
+using openxc::can::lookupSignalState;
+
 CanMessage MESSAGES[3] = {
     {NULL, 0},
     {NULL, 1},

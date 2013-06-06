@@ -1,4 +1,3 @@
-#ifndef CAN_EMULATOR
 #include "can/canread.h"
 #include "can/canwrite.h"
 #include "signals.h"

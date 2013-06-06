@@ -87,6 +87,7 @@ class CodeGenerator(object):
         for i, message_set in enumerate(self.message_sets):
             lines.append(self._build_message_set(i, message_set))
         lines.append("};")
+        lines.append("")
         return lines
 
     def _build_buses(self):
@@ -317,6 +318,7 @@ class CodeGenerator(object):
         lines.extend(self._build_filters())
 
         with open("%s/signals.cpp.footer" % base_path) as footer:
+            lines.append("")
             lines.append(footer.read())
 
         return '\n'.join(lines)

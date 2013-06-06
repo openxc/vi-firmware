@@ -10,7 +10,6 @@
 #include "can/canwrite.h"
 #include "signals.h"
 #include "util/log.h"
-#include "handlers.h"
 #include "shared_handlers.h"
 
 using openxc::can::read::can::read::passthroughMessage;

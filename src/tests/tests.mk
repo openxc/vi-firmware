@@ -22,6 +22,7 @@ TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)
 TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 
+GENERATOR = ../script/generator/generate_code.py
 .PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
 RED="$${txtbld}$$(tput setaf 1)"
@@ -77,6 +78,7 @@ unit_tests: $(TESTS)
 
 emulator_test:
 	@echo -n "Testing CAN emulator build for chipKIT..."
+	@make clean
 	@make -j4 emulator
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
@@ -116,30 +118,27 @@ mapped_lpc17xx_compile_test: mapped_code_generation_test
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 ford_test:
-	@echo -n "Testing Ford board build with example vehicle signals..."
-	@PLATFORM=FORDBOARD make -j4 emulator
+	@echo -n "Testing Ford board build with emulator..."
 	@make clean
+	@PLATFORM=FORDBOARD make -j4 emulator
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+example_signals_test:
+	@echo -n "Testing example signals definitions in repo..."
+	@make clean
+	@cp signals.cpp.example signals.cpp
+	@PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 code_generation_test:
 	@make clean
-	@mkdir -p $(TEST_OBJDIR)
-	../script/generate_code.py --json signals.json.example > $(TEST_OBJDIR)/signals.cpp
-	# Ideally we would symlink these files, but symlinks don't work well in Cygwin
-	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
-	@rm -f handlers.h handlers.cpp
-	@cp handlers.cpp.example handlers.cpp
-	@cp handlers.h.example handlers.h
+	@echo -n "Testing code generation from a non-mapped signals file..."
+	$(GENERATOR) -m signals.json.example > signals.cpp
 
 mapped_code_generation_test:
 	@make clean
-	@mkdir -p $(TEST_OBJDIR)
-	../script/generate_code.py --json mapped_signal_set.json.example > $(TEST_OBJDIR)/signals.cpp
-	# Ideally we would symlink these files, but symlinks don't work well in Cygwin
-	@cp $(TEST_OBJDIR)/signals.cpp signals.cpp
-	@rm -f handlers.h handlers.cpp
-	@cp handlers.cpp.example handlers.cpp
-	@cp handlers.h.example handlers.h
+	@echo -n "Testing code generation from a mapped signals file..."
+	$(GENERATOR) -m mapped_signal_set.json.example > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
 COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)

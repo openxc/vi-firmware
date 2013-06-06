@@ -96,7 +96,7 @@ class Message(object):
     def __str__(self):
         bus_index = self._lookup_bus_index(self.buses, self.bus_name)
         if bus_index is not None:
-            return "{&CAN_BUSES[%d][%d], %d}, // %s" % (self.message_set_index,
+            return "{&CAN_BUSES[%d][%d], 0x%x}, // %s" % (self.message_set_index,
                     bus_index, self.id, self.name)
         else:
             warning("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %

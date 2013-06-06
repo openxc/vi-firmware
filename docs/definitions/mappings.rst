@@ -243,14 +243,9 @@ wheel angle value. Modify the input JSON file to set the ``value_handler``
 attribute for the steering wheel angle signal to
 ``handleSteeringWheelAngle``.
 
-``handlers.h``:
-
-.. code-block:: c
-
-    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-            int signalCount, float value, bool* send);
-
-``handlers.cpp``:
+Add this to the top of ``signals.cpp`` (or if using the mapping file, add it to
+a separate ``.cpp`` file and then add that filename to the ``extra_sources``
+field):
 
 .. code-block:: c
 

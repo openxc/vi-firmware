@@ -84,4 +84,4 @@ custom_all: custom_all_prefix all
 	@echo ".$(COLOR_RESET)"
 
 clean::
-	rm -rf $(OBJDIR_ROOT)/* signals.cpp
+	rm -rf $(OBJDIR_ROOT)/*

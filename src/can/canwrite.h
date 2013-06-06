@@ -3,8 +3,6 @@
 
 #include "can/canutil.h"
 
-using openxc::can::CanSignal;
-using openxc::can::CanSignalState;
 using openxc::can::CanCommand;
 
 namespace openxc {

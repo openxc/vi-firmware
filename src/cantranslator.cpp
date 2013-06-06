@@ -23,10 +23,11 @@ namespace lights = openxc::lights;
 namespace can = openxc::can;
 namespace platform = openxc::platform;
 namespace time = openxc::util::time;
+namespace signals = openxc::signals;
 
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
-using openxc::signals::initializeSignals;
+using openxc::signals::initialize;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCommands;
@@ -46,7 +47,7 @@ void updateDataLights();
 
 void setup() {
     initializeAllCan();
-    initializeSignals();
+    signals::initialize();
 }
 
 void loop() {

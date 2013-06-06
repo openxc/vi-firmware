@@ -4,11 +4,8 @@ JSON Mapping Format
 
 The code generation script (to generate ``signals.cpp``) requires a JSON file of
 a specific format as input. The input format is a JSON object like the one found
-in `sample.json
+in `signals.json.example
 <https://github.com/openxc/cantranslator/blob/master/src/signals.json.example>`_.
-
-JSON Format
-============
 
 The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
 message IDs to CAN message objects in each bus, and CAN signal name to signal
@@ -16,8 +13,25 @@ object within each message. Other top-level sections are available to list
 one-time initialization functions and to list arbitrary functions that should be
 added to the main loop.
 
+In all cases when we refer to a "path," either an absolute or relative
+path will work. If you use relative paths, however, they must be relative
+to the root of wherever you run the build scripts.
+
+Signal Set Name
+===============
+
+Each JSON mapping file defines a "signal set," and it should have a name.
+Typically this identifies a particular model year vehicle, or possibly a broader
+vehicle platform. The ``name`` field is required.
+
+Parent Signal Sets
+==================
+
+Signal sets are composable - you can extend a set by adding a path to the
+parent(s) to the ``parents`` key.
+
 Initializers
-------------
+============
 
 The key ``initializers`` should have as its value an array of strings. Each
 string should be the name of a function with the type signature:
@@ -30,7 +44,7 @@ These functions will be called once at the beginning of execution, before
 reading any CAN messages.
 
 Loopers
---------
+=======
 
 The key ``loopers`` should have as its value an array of strings. Each
 string should be the name of a function with the type signature:
@@ -43,48 +57,85 @@ These functions will be called once each time through the main loop function,
 after reading and processing any CAN messages.
 
 CAN Buses
----------
+=========
 
-The object key for a CAN bus is a hex address that identifies which CAN
-controller on the microcontroller is attached to the bus. The platforms we are
-using now only have 2 CAN controllers, but by convention they are identified
-with ``0x101`` and ``0x102`` - these are the only acceptable bus addresses.
+The key ``buses`` must be an object, where each field is a CAN bus uses by this
+signal set, and which CAN controllers are attached on the microcontroller. The
 
-``speed`` - The CAN bus speed in Kbps.
+``controller`` - The integer ID of the CAN controller to which this bus is
+attached. The platforms we are using now only have 2 CAN controllers, identified
+here by ``1`` and ``2`` - these are the only acceptable bus addresses. If this
+field is not defined, the bus and any messages associated with it will be
+ignored (but it won't cause an error, so you can swap between buses very
+quickly).
 
-``messages`` - A mapping of CAN message objects that are on this bus,
-the key being the message ID in hex as a string (e.g. ``0x90``).
+``speed`` - The CAN bus speed in Kbps, most often 125000 or 500000.
 
-``commands`` - A mapping of CAN command objects that should be sent on
-this bus that should be sent on this bus. The key is the name that will
-be used over the OpenXC interface.
+.. _messages:
 
-Command
--------
+Messages
+========
 
-The attributes of a ``command`` object are:
-
-``handler`` - The name of a custom command handler function that should
-be called with the data when the named command arrives over
-USB/Bluetooth/etc.
+The ``messages`` key is a object with fields mapping from CAN message IDs
+to signal definitions. The fields must be hex IDs of CAN messages as
+strings (e.g. ``0x90``).
 
 Message
 -------
 
-The attributes of a ``message`` object are:
+The attributes of each message object are:
 
-``name`` - The name of the CAN message. Optional - just used to be able
-to reference the original documentation from the mappings file.
 
-``handler`` - The name of a function that will be compiled with the
-sketch and should be applied to the entire raw message value. No other
-operations are performed on the data if this type of handler is used.
-Optional - see the "Custom Handlers" section for more.
+``bus`` - The name of one of the previously defined CAN buses where this message
+can be found.
 
-``signals`` - A list of CAN signal objects that are in this message,
-with the official name of the signal as the key. If merging with
-automatically generated JSON from another database, this value must
-match exactly - otherwise, it's an arbitrary name.
+``signals`` - A list of CAN signal objects (described in the :ref:`signal`
+section) that are in this message, with the name of the signal as the key. If
+this is a database-backed mappping, this value must match the signal name in the
+database exactly - otherwise, it's an arbitrary name.
+
+``name`` - (optional) The name of the CAN message - this is not required and has
+no meaning in code, it can just be handy to be able to refer back to an original
+CAN message definition in another document.
+
+``handler`` - (optional) The name of a function that will be compiled with the
+firmware and should be applied to the entire raw message value (see
+:ref:`message-handlers`).
+
+.. _message-handlers:
+
+Message Handlers
+----------------
+
+If you need additional control, you can provide a custom handler for the
+entire message to combine multiple signals into a single value (or any
+other arbitrary processing). You can generate 0, 1 or many translated
+messages from one call to your handler function.
+
+.. code-block:: c
+
+    void handleSteeringWheelMessage(int messageId, uint64_t data,
+            CanSignal* signals, int signalCount, Pipeline* pipeline);
+        float steeringWheelAngle = decodeCanSignal(&signals[1], data);
+        float steeringWheelSign = decodeCanSignal(&signals[2], data);
+
+        float finalValue = steeringWheelAngle;
+        if(steeringWheelSign == 0) {
+            // left turn
+            finalValue *= -1;
+        }
+
+        char* message = generateJson(signals[1], finalValue);
+        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
+    }
+
+Using a custom message handler will not automatically stop the normal
+translation workflow for individual signals. To mute them (but still store
+their values in ``signal->lastvalue``), specify ``ignoreHandler`` as the
+``value_handler``. This is not done by default because not every signal in
+a message is always handled by a message handler.
+
+.. _signal:
 
 Signal
 -------
@@ -98,109 +149,82 @@ to the output bus. This is handy for combining the value of multiple
 signals into a composite measurement such as steering wheel angle with
 its sign.
 
-``bit_position`` - The staring bit position of this signal within the
-message.
+``bit_position`` - (required only if not a database-backed mapping) The staring
+bit position of this signal within the message.
 
-``bit_size`` - The width in bits of the signal.
+``bit_size`` - (required only if not a database-backed mapping) The width in
+bits of the signal.
 
-``factor`` - The signal value is multiplied by this if set. Optional.
+``factor`` - (required only if not a database-backed mapping) The signal value
+is multiplied by this if set. Optional.
 
-``offset`` - This is added to the signal value if set. Optional.
+``offset`` - (required only if not a database-backed mapping) This is added to
+the signal value if set. Optional.
 
-``value_handler`` - The return type and name of a function that will be
-compiled with the sketch and should be applied to the signal's value
-after the normal translation. Optional - see the "Custom Handlers"
-section for more.
+``handler`` - (optional) The name of a function that will be compiled with the
+firmware and should be applied to the signal's value after the normal
+translation. See the :ref:`value-handlers` section for details.
 
-``ignore`` - Setting this to ``true`` on a signal will silence output of
-that signal. The translator will not monitor the signal nor store any of
-its values. This is useful if you are using a custom handler for an
-entire message, want to silence the normal output of the signals it
-handles, and you don't need the translator to keep track of the values
-of any of the signals separately. If you need to use the previously
-stored values of any of the signals, you can use the ``ignoreHandler``
-as a value handler for the signal.
+``ignore`` - (default: false) Setting this to ``true`` on a signal will silence
+output of the signal. The VI will not monitor the signal nor store any of its
+values. This is useful if you are using a custom handler for an entire message,
+want to silence the normal output of the signals it handles, *and* you don't
+need the VI to keep track of the values of any of the signals separately (in the
+``lastValue`` field). If you need to use the previously stored values of any of
+the signals, you can use the ``ignoreHandler`` as a value handler for the
+signal.
 
-``states`` - For state values, this is a mapping between the desired
-descriptive enum states (e.g. ``off``) and a list of the corresponding
-raw state values from the CAN bus (usually an integer). The raw values
-are specified as a list to accommodate multiple raw states being
-coalesced into a single final state (e.g. key off and key removed both
-mapping to just "off").
+``states`` - (required only for state-based signals) This is a mapping between
+the desired descriptive states (e.g. ``off``) and the corresponding numerical
+values from the CAN message (usually an integer). The raw values are specified
+as a list to accommodate multiple raw states being coalesced into a single final
+state (e.g. key off and key removed both mapping to just "off").
 
-``send_frequency`` - Some CAN signals are sent at a very high frequency,
-likely more often than will ever be useful to an application. This
-attribute defaults to ``1`` meaning that ``1/1`` (i.e. 100%) of the
-values for this signal will be processed and sent over USB. Increasing
-the value will reduce the number of messages that are sent - a value of
-``10`` means that only ``1/10`` messages (i.e. every 10th message) is
-processed. You don't want to combine this attribute with ``send_same``
-or else you risk missing a status change message if wasn't one of the
-messages the translator decided to let through.
+``send_frequency`` - (default: 1) Some CAN signals are sent at a very high
+frequency, likely more often than will ever be useful to an application. The
+value of this attribute is used as the denominator in the ratio ``1/x`` to
+determine the percentage of the signals that will be let through. The default
+value (``1``) means that ``1/1`` (i.e. 100%) of the signal values received will
+be translated. Increasing the value will reduce the number of messages that are
+sent - a value of ``10`` means that only ``1/10`` messages (i.e. every 10th
+message) is processed. You don't want to combine this attribute with
+``send_same`` or else you risk missing a status change message if wasn't one of
+the messages the VI decided to let through.
 
-``send_same`` - By default, all signals are process and sent over USB
-every time they are received on the CAN bus. By setting this to
-``false``, you can force a signal to be sent only if the value has
-actually changed. This works best with boolean and state based signals.
+``send_same`` - (default: ``true``) By default, all signals are translated every
+time they are received from the CAN bus. By setting this to ``false``, you can
+force a signal to be sent only if the value has actually changed. This works
+best with boolean and state based signals.
 
-``writable`` - The only signals read through the ``OUT`` channel of the
-USB device (i.e. from the host device back to the CAN translator) that
-are actually encoded and written back to the CAN bus are those marked
-with this flag true. By default, the value will be interpreted as a
-floating point number.
+``writable`` - (default: ``false``) Set this attribute to ``true`` to allow this
+signal to be written back to the CAN bus by an application. OpenXC
+JSON-formatted messages sent back to the VI that are writable are translated
+back into raw CAN messages and written to the bus. By default, the value will be
+interpreted as a floating point number.
 
-``write_handler`` - If the signal is writable and is not a plain
-floating point number (i.e. it is a boolean or state value), you can
-specify a custom function here to encode the value for a CAN messages.
-This is only necessary for boolean types at the moment - if your signal
-has states defined, we assume you need to encode a string state value
+``write_handler`` - (optional, default is a numerical handler) If the signal is
+writable and is not a plain floating point number (i.e. it is a boolean or state
+value), you can specify a custom function here to encode the value for a CAN
+messages. This is only necessary for boolean types at the moment - if your
+signal has states defined, we assume you need to encode a string state value
 back to its original numerical value.
 
-Device to Vehicle Commands
-===========================
-
-Optionally, you can specify completely custom handler functions to
-process incoming OpenXC messages from the USB host. In the ``commands``
-section of the JSON object, you can specify the generic name of the
-OpenXC command and an associated function that matches the
-``CommandHandler`` function prototype (from ``canutil.h``):
-
-.. code-block:: c
-
-    bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
-            CanSignal* signals, int signalCount);
-
-Any message received from the USB host with that name will be passed to
-your handler - this is useful for situations where there isn't a 1 to 1
-mapping between OpenXC command and CAN signal, e.g. if the left and
-right turn signal are split into two signals instead of the 1
-state-based signal used by OpenXC. You can use the ``sendCanSignal``
-function in ``canwrite.h`` to do the actual data sending on the CAN bus.
-
-Value & Message Handlers
-========================
-
-There are two levels of custom handlers:
-
--  Message handlers - use these for custom processing of the entire CAN
-   message.
--  Value handlers - use these for making non-standard transformations to
-   a signal value
+.. _value-handlers:
 
 Value Handlers
----------------
+--------------
 
-The default value handler for each signal is a simple passthrough, translating
-the signal's ID to an abstracted name (e.g. ``SteeringWheelAngle``) and its
-value from engineering units to something more usable. Some signals require
-additional processing that you may wish to do within the translator and not on
-the host device. Other signals may need to be combined to make a composite
-signal that's more meaningful to developers.
+The default value handler for each signal is a simple passthrough,
+translating the signal's value from engineering units to something more
+usable (using the defined factor and offset). Some signals require
+additional processing that you may wish to do within the VI and
+not on the host device. Other signals may need to be combined to make a
+composite signal that's more meaningful to developers.
 
 An good example is steering wheel angle. For an app developer to get a
 value that ranges from e.g. -350 to +350, we need to combine two
 different signals - the angle and the sign. If you want to make this
-combination happen inside the translator, you can use a custom handler.
+combination happen inside the VI, you can use a custom handler.
 
 You may also need a custom handler to return a value of a type other
 than float. A handler is provided for dealing with boolean values, the
@@ -210,24 +234,18 @@ than float. A handler is provided for dealing with boolean values, the
 string names (for parsing as an enum, for example) you will need to
 write a value handler that returns a ``char*``.
 
-For this example, we want to modify the value of ``SteeringWheelAngle``
+For this example, we want to modify the value of ``steering_wheel_angle``
 by setting the sign positive or negative based on the value of the other
-signal (``StrAnglSign``). Every time a CAN signal is received, the new
-value is stored in memory. Our custom handler
+signal (``steering_angle_sign``). Every time a CAN signal is received, the
+new value is stored in memory. Our custom handler
 ``handleSteeringWheelAngle`` will use that to adjust the raw steering
-wheel angle value. Modify the input JSON file to set the
-``value_handler`` attribute for the steering wheel angle signal to
-``handleSteeringWheelAngle``. If you're using ``generate_code.py``, the
-handlers should be saved in ``src/handlers.h`` and ``src/handlers.cpp``:
+wheel angle value. Modify the input JSON file to set the ``value_handler``
+attribute for the steering wheel angle signal to
+``handleSteeringWheelAngle``.
 
-``src/handlers.h``:
-
-.. code-block:: c
-
-    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-            int signalCount, float value, bool* send);
-
-``src/handlers.cpp``:
+Add this to the top of ``signals.cpp`` (or if using the mapping file, add it to
+a separate ``.cpp`` file and then add that filename to the ``extra_sources``
+field):
 
 .. code-block:: c
 
@@ -263,75 +281,95 @@ The ``bool* send`` parameter is a pointer to a ``bool`` you can flip to
 ``false`` if this signal value need not be sent over USB. This can be
 useful if you don't want to keep notifying the same status over and over
 again, but only in the event of a change in value (you can use the
-``lastValue`` field on the CanSignal object to determine if this is
-true). It's also good practice to inspect the value of ``send`` when your custom
-handler is called - the normal translation stack may have decided the data
-shouldn't be sent (e.g. the value hasn't changed and ``sendSame == false``).
-Handlers are called every time a signal is received, even if ``send == false``,
-so that you have the flexibility to implement custom processing that depends on
-receiving every data point.
+``lastValue`` field on the CanSignal object to determine if this is true).
+It's also good practice to inspect the value of ``send`` when your custom
+handler is called - the normal translation workflow may have decided the
+data shouldn't be sent (e.g. the value hasn't changed and ``sendSame ==
+false``). Handlers are called every time a signal is received, even if
+``send == false``, so that you have the flexibility to implement custom
+processing that depends on receiving every data point.
 
 A known issue with this method is that there is no guarantee that the
 last value of another signal arrived in the message or before/after the
 value you're current modifying. For steering wheel angle, that's
 probably OK - for other signals, not so much.
 
-Message Handlers
-----------------
+Mappings
+========
 
-If you need greater precision, you can provide a custom handler for the
-entire message to guarantee they arrived together. You can generate 0, 1
-or many translated messages from one call to your handler function.
+The ``mappings`` field is an optional field allows you to move the definitions
+from the ``messages`` list to separate files for improved composability and
+readability.
+
+For an example of a signal set using mappings, see the
+`mapped-signals.json.example
+<https://github.com/openxc/cantranslator/blob/master/src/mapped-signals.json.example>`_
+file in the repository.
+
+The ``mappings`` field must be a list of JSON objects with:
+
+``mapping`` - a path to a JSON file containing a single object with the key
+``messages``, containing objects formatted as the :ref:`Messages` section
+documents. In short, you can pull out the ``messages`` key from the main file
+and throw it into a separate file and link it in here.
+
+``bus`` - (optional) The name of one of the defined CAN buses where these
+messages can be found - this value will be set for all of the messages contained
+the mapping file, but can be overriden by setting ``bus`` again in an individual
+message.
+
+``database`` - (optional) a path to
+a CAN message database associated with these mappings. Right now, XML exported
+from Vector CANdb++ is supported. If this is defined, you can leave the bit
+position, bit size, factor, offset, max and min values out of the ``mapping``
+file - they will be picked up automatically from the database.
+
+Database-backed Mappings
+-------------------------------------------------
+
+If you use Vector DBC files to store your "gold standard" CAN signal
+definitions, you can save some effort by using the static CAN messages
+definition from the database instead of repeating it in JSON.
+
+In the database ``mapping`` file referred to earlier, you only need to define
+(at minimum) the generic name for each signal in the message.
+
+The code generation script merges your JSON mapping with an XML version of the
+dtabase. It pulls the neccessary details of the messages from the database (bit
+position, bit size, offset, etc), saving you from defining the tedius and
+error-prone parts in multiple places.
+
+Extra Sources
+=============
+
+The ``extra_sources`` key is an optional list of C++ source files that should be
+injected into the generated ``signals.cpp`` file. These may include value
+handlers, message handlers, initializers or custom loopers.
+
+Commands
+========
+
+The ``commands`` field is a mapping of arbitrary command names to functions that
+should be called to run arbitrary code in the VI on-demand (e.g. sending
+multiple CAN signals at once). The value of this attribute is a list of objects
+with these attributes:
+
+``name`` - The name of the command to be recognized on the OpenXC translated
+interface.
+
+``handler`` - The name of a custom command handler function (that matches the
+``CommandHandler`` function prototype from ``canutil.h``) that should
+be called when the named command arrives over the translated VI interface (e.g.
+USB or Bluetooth).
 
 .. code-block:: c
 
-    void handleSteeringWheelMessage(int messageId, uint64_t data,
-            CanSignal* signals, int signalCount, Pipeline* pipeline);
-        float steeringWheelAngle = decodeCanSignal(&signals[1], data);
-        float steeringWheelSign = decodeCanSignal(&signals[2], data);
+    bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
+            CanSignal* signals, int signalCount);
 
-        float finalValue = steeringWheelAngle;
-        if(steeringWheelSign == 0) {
-            // left turn
-            finalValue *= -1;
-        }
-
-        char* message = generateJson(signals[1], finalValue);
-        sendMessage(usbDevice, (uint64_t*) message, strlen(message));
-    }
-
-Using a custom message handler will not stop individual messages for
-each signal from being output. To silence them but still store their
-values in ``signal->lastvalue`` as they come in, specify the special
-``ignoreHandler`` as the ``value_handler`` for signals don't want to
-double send. The reason we don't do this automatically is that not all
-signals in a message are always handled by the same message handler.
-
-Generating JSON from Vector CANoe Database
-============================================
-
-If you use Canoe to store your "gold standard" CAN signal definitions,
-you may be able to use the included ``xml_to_json.py`` script to make
-your JSON for you. First, export the Canoe .dbc file as XML - you can do
-this with Vector CANdb++. Next, create a JSON file according to the format
-defined above, but only define:
-
-* CAN bus
-* CAN messages
-* Name of CAN signals within messages and their ``generic_name``
-* Any custom handlers or commands
-
-Assuming the data exported from Vector is in ``signals.xml`` and your minimal
-mapping file is ``mapping.json``, run the script:
-
-.. code-block:: sh
-
-    $ ./xml_to_json.py signals.xml mapping.json signals.json
-
-The script scans ``mapping.json`` to identify the CAN messages and
-signals that you want to use from the XML file. It pulls the neccessary details
-of the messages (bit position, bit size, offset, etc) and outputs the resulting
-subset as JSON into the output file, ``signals.json``.
-
-The resulting file together with ``mapping.json`` will work as input to the code
-generation script.
+Any message received from the USB host with that given command name will be
+passed to your handler. This is useful for situations where there isn't a 1 to
+1 mapping between OpenXC command and CAN signal, e.g. if the left and right turn
+signal are split into two signals instead of the 1 state-based signal used by
+OpenXC. You can use the ``sendCanSignal`` function in ``canwrite.h`` to do the
+actual data sending on the CAN bus.

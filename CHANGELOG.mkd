@@ -2,7 +2,7 @@
 
 ## v4.0-dev
 
-* BREAKING CHANGE: Add initializeSignals() function to signals.h, must be
+* BREAKING CHANGE: Add initialize() function to signals.h, must be
   implemented by vehicle platforms. generate_signals.py supports calling
   multiple initialization functions inside this method.
 * BREAKING CHANGE (for hardware): chipKIT uses same baud as LPC17xx for UART,
@@ -16,6 +16,7 @@
 * BREAKING CHANGE: Remove UART compile-time flag in favor of setting UART status
   via an external pin. This allows you to dynamically control sending over UART
   when a Bluetooth module actually is attached and has a connected host.
+* BREAKING CHANGE: Major refactor of the JSON "mapping" code generation system.
 * PIC32-based VI will now go into low power mode if no CAN activity is detected
   for 30 seconds, and will wake up when CAN activity resumes. There is a ~5
   second timeout in the chipKIT bootloader that will cause the first 5 seconds

@@ -10,7 +10,6 @@
 #include "can/canwrite.h"
 #include "signals.h"
 #include "util/log.h"
-#include "handlers.h"
 #include "shared_handlers.h"
 
 using openxc::can::read::can::read::passthroughMessage;
@@ -41,7 +40,7 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
     },
 };
 
-void openxc::signals::initializeSignals() { }
+void openxc::signals::initialize() { }
 
 const int SIGNAL_COUNT = 0;
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {

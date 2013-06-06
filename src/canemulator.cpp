@@ -55,7 +55,7 @@ const char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
     "ignition_status",
 };
 
-const char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
+const char* EMULATED_SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
     { "neutral", "first", "second" },
     { "off", "run", "accessory" },
 };
@@ -95,7 +95,7 @@ void loop() {
 
         int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
         sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-                SIGNAL_STATES[stateSignalIndex][rand() % 3], &pipeline);
+                EMULATED_SIGNAL_STATES[stateSignalIndex][rand() % 3], &pipeline);
 
         int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
         Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
@@ -109,8 +109,13 @@ void loop() {
 
 void reset() { }
 
-const char* openxc::signals::getMessageSet() {
-    return "emulator";
+const int MESSAGE_SET_COUNT = 1;
+CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+    { 0, "emulator", 0, 0, 0 }
+};
+
+CanMessageSet* openxc::signals::getActiveMessageSet() {
+    return &MESSAGE_SETS[0];
 }
 
 #endif // CAN_EMULATOR

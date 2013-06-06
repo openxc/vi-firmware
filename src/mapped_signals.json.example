@@ -1,33 +1,7 @@
-{   "name": "example_messages",
-    "extra_sources": [
-        "handlers.cpp.example"
-    ],
-    "initializers": [
-        "initializeMyStuff",
-        "initializeOtherStuff"
-    ],
-    "loopers": [
-        "myLooper"
-    ],
-    "buses": {
-        "hs": {
-            "controller": 1,
-            "speed": 500000
-        },
-        "ms": {
-            "controller": 2,
-            "speed": 125000
-        }
-    },
-    "commands": [
-        { "name": "turn_signal_status",
-            "handler": "handleTurnSignalCommand"
-        }
-    ],
+{
     "messages": {
         "0x128": {
             "name": "ECM_z_5D2",
-            "bus": "hs",
             "signals": {
                 "StrAnglAct": {
                     "generic_name": "SteeringWheelAngle",
@@ -69,7 +43,6 @@
         },
         "0x49": {
             "name": "BrkSt",
-            "bus": "hs",
             "signals": {
                 "BrakePedalPosition": {
                     "generic_name": "brake_pedal_status",
@@ -82,7 +55,6 @@
         },
         "0x121": {
             "name": "Cluster",
-            "bus": "hs",
             "signals": {
                 "TurnSignalLeft": {
                     "generic_name": "turn_signal_left",

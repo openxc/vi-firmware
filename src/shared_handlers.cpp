@@ -21,6 +21,7 @@ using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
 using openxc::can::write::booleanWriter;
 using openxc::can::write::sendSignal;
+using openxc::can::lookupSignal;
 
 const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
 const float openxc::signals::handlers::LITERS_PER_UL = .000001;

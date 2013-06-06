@@ -141,14 +141,18 @@ class Signal(object):
         # trimming down the data rate of the stream over USB.
         self.send_frequency = send_frequency
         self.send_same = send_same
+
+        if self.send_same is False and self.send_frequency != 1:
+            warning("Signal %s combines send_same and " % self.generic_name +
+                    "send_frequency - this is not recommended")
         self.states = states or []
         if len(self.states) > 0 and self.handler is None:
             self.handler = "stateHandler"
 
-    # Construct a Signal instance from an XML node exported from a Vector CANoe
-    # .dbc file.
     @classmethod
     def from_xml_node(cls, node):
+        """Construct a Signal instance from an XML node exported from a Vector
+        CANoe .dbc file."""
         signal = Signal(name=node.find("Name").text,
                 bit_position=int(node.find("Bitposition").text),
                 bit_size=int(node.find("Bitsize").text),

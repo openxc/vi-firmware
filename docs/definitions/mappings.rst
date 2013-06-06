@@ -20,7 +20,7 @@ to the root of wherever you run the build scripts.
 Signal Set Name
 ===============
 
-Each JSON mapping file defins a "signal set," and it should have a name.
+Each JSON mapping file defines a "signal set," and it should have a name.
 Typically this identifies a particular model year vehicle, or possibly a broader
 vehicle platform. The ``name`` field is required.
 

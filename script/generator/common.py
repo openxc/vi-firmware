@@ -24,6 +24,10 @@ def quacks_like_dict(object):
     """Check if object is dict-like"""
     return isinstance(object, collections.Mapping)
 
+def quacks_like_list(object):
+    """Check if object is list-like"""
+    return hasattr(object, '__iter__') and hasattr(object, 'append')
+
 
 def merge(a, b):
     """Merge two deep dicts non-destructively
@@ -49,6 +53,9 @@ def merge(a, b):
                 if (quacks_like_dict(current_src[key]) and
                         quacks_like_dict(current_dst[key])):
                     stack.append((current_dst[key], current_src[key]))
+                elif (quacks_like_list(current_src[key]) and
+                        quacks_like_list(current_dst[key])):
+                    current_src[key].append(current_dst[key])
                 else:
                     current_dst[key] = current_src[key]
     return dst

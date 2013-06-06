@@ -11,6 +11,7 @@
  * The signals defined in this file are for demonstration purposes only - the
  * message formats are not real, and won't work on any car.
  */
+#ifndef CAN_EMULATOR
 
 #include "can/canread.h"
 #include "can/canwrite.h"
@@ -215,3 +216,4 @@ int openxc::signals::getCanBusCount() {
     return getActiveMessageSet()->busCount;;
 }
 
+#endif // CAN_EMULATOR

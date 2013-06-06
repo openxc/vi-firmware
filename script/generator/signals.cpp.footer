@@ -30,3 +30,5 @@ CanMessageSet* openxc::signals::getActiveMessageSet() {
 CanMessageSet* openxc::signals::getMessageSets() {
     return MESSAGE_SETS;
 }
+
+#endif // CAN_EMULATOR

@@ -14,8 +14,8 @@
 
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
-// TODO CanMessage and CanBus are temporarily defined outside of the openxc::can
-// namespace because we're not able to used namespaced types with emqueue.
+// TODO These structs are defined outside of the openxc::can namespace because
+// we're not able to used namespaced types with emqueue.
 
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.
@@ -123,6 +123,19 @@ struct CanBus {
 };
 typedef struct CanBus CanBus;
 
+/** Public: A parent wrapper for a particular set of CAN messages and associated
+ *  CAN buses(e.g. a vehicle or program).
+ *
+ *  index - A numerical ID for the message set, ideally the index in an array
+ *      for fast lookup
+ *  name - The name of the message set.
+ *  busCount - The number of CAN buses defined for this message set.
+ *  messageCount - The number of CAN messages (across all buses) defined for
+ *      this message set.
+ *  signalCount - The number of CAN signals (across all messages) defined for
+ *      this message set.
+ *  commandCount - The number of CanCommmands defined for this message set.
+ */
 typedef struct {
     int index;
     const char* name;

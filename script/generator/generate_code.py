@@ -5,7 +5,6 @@ from collections import defaultdict
 import sys
 import argparse
 import operator
-import json
 
 from coder import CodeGenerator
 from xml_to_json import merge_database_into_mapping
@@ -146,11 +145,14 @@ class JsonMessageSet(MessageSet):
                             messages)['messages'],
                         messages)
 
-            bus = mapping.get('bus', None)
-            if bus is None:
+            bus_name = mapping.get('bus', None)
+            if bus_name is None:
                 warning("No default bus associated with '%s' mapping" %
                         mapping['mapping'])
-            self._parse_messages(messages, bus)
+            elif bus_name not in self.buses:
+                fatal_error("Bus '%s' (from mapping %s) is not defined" %
+                        (bus_name, mapping['mapping']))
+            self._parse_messages(messages, bus_name)
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():

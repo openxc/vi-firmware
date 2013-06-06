@@ -26,7 +26,7 @@ int getConfigurationCount();
  *
  * TODO should this also be called when the configuration is switched?
  */
-void initializeSignals();
+void initialize();
 
 /* Public: Any additional processing that should happen each time through the
  * main firmware loop, in addition to the built-in CAN message handling. This

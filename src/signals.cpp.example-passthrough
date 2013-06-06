@@ -40,7 +40,7 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
     },
 };
 
-void openxc::signals::initializeSignals() { }
+void openxc::signals::initialize() { }
 
 const int SIGNAL_COUNT = 0;
 CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {

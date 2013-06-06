@@ -222,7 +222,7 @@ class CodeGenerator(object):
 
     def _build_initializers(self):
         lines = []
-        lines.append("void openxc::signals::initializeSignals() {")
+        lines.append("void openxc::signals::initialize() {")
 
         def block(message_set_index, message_set):
             return ["        %s();" % initializer

@@ -4,7 +4,7 @@ JSON Mapping Format
 
 The code generation script (to generate ``signals.cpp``) requires a JSON file of
 a specific format as input. The input format is a JSON object like the one found
-in `sample.json
+in `signals.json.example
 <https://github.com/openxc/cantranslator/blob/master/src/signals.json.example>`_.
 
 The root level JSON object maps CAN bus addresses to CAN bus objects,  CAN
@@ -298,8 +298,15 @@ Mappings
 ========
 
 The ``mappings`` field is an optional field allows you to move the definitions
-from the ``messages`` list to separate files for improved composability. This
-field must be a list of JSON objects with:
+from the ``messages`` list to separate files for improved composability and
+readability.
+
+For an example of a signal set using mappings, see the
+`mapped-signals.json.example
+<https://github.com/openxc/cantranslator/blob/master/src/mapped-signals.json.example>`_
+file in the repository.
+
+The ``mappings`` field must be a list of JSON objects with:
 
 ``mapping`` - a path to a JSON file containing a single object with the key
 ``messages``, containing objects formatted as the :ref:`Messages` section
@@ -327,19 +334,10 @@ definition from the database instead of repeating it in JSON.
 In the database ``mapping`` file referred to earlier, you only need to define
 (at minimum) the generic name for each signal in the message.
 
-If you're not using the full build system in OpenXC, you can also use the
-XML/JSON combiner tool manually. Assuming the data exported from Vector is in
-``signals.xml`` and your minimal mapping file is ``mapping.json``, run the
-script:
-
-.. code-block:: sh
-
-    cantranslator/ $ script/xml_to_json.py signals.xml mapping.json signals.json
-
-The script scans ``mapping.json`` to identify the CAN messages and
-signals that you want to use from the XML file. It pulls the neccessary details
-of the messages (bit position, bit size, offset, etc) and outputs the resulting
-subset as JSON into the output file, ``signals.json``.
+The code generation script merges your JSON mapping with an XML version of the
+dtabase. It pulls the neccessary details of the messages from the database (bit
+position, bit size, offset, etc), saving you from defining the tedius and
+error-prone parts in multiple places.
 
 Extra Sources
 =============

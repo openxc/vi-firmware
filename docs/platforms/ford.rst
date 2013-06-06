@@ -34,7 +34,7 @@ bootloader:
 .. code-block:: sh
 
    $ make clean
-   $ PLATFORM=BLUEBOARD BOOTLOADER=1 make -j4
+   $ PLATFORM=FORDBOARD BOOTLOADER=1 make -j4
 
 The compiled firmware will be located at
 ``build/lpc17xx/cantranslator-lpc17xx.bin``. See the :doc:`bootloaders
@@ -49,8 +49,8 @@ JTAG adapter to your computer and the CAN translator, then compile and flash:
 .. code-block:: sh
 
     $ make clean
-    $ PLATFORM=BLUEBOARD make -j4
-    $ PLATFORM=BLUEBOARD make flash
+    $ PLATFORM=FORDBOARD make -j4
+    $ PLATFORM=FORDBOARD make flash
 
 The config files in this repository assume your JTAG adapter is the
 Olimex ARM-USB-OCD unit. If you have a different unit, modify the

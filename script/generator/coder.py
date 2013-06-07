@@ -41,6 +41,10 @@ class CodeGenerator(object):
 
         return '\n'.join(lines)
 
+    @property
+    def sorted_message_sets(self):
+        return sorted(self.message_sets, key=operator.attrgetter('name'))
+
     def _max_command_count(self):
         if len(self.message_sets) == 0:
             return 0
@@ -67,7 +71,7 @@ class CodeGenerator(object):
 
     def _build_extra_sources(self):
         lines = []
-        for i, message_set in enumerate(self.message_sets):
+        for i, message_set in enumerate(self.sorted_message_sets):
             for extra_source_filename in message_set.extra_sources:
                 with open(find_file(extra_source_filename, self.search_paths)
                         ) as extra_source_file:
@@ -113,7 +117,7 @@ class CodeGenerator(object):
         lines.append("const int MESSAGE_SET_COUNT = %d;" %
                 len(self.message_sets))
         lines.append("CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {")
-        for i, message_set in enumerate(self.message_sets):
+        for i, message_set in enumerate(self.sorted_message_sets):
             lines.append(self._build_message_set(i, message_set))
         lines.append("};")
         lines.append("")
@@ -157,7 +161,8 @@ class CodeGenerator(object):
             for bus_address, bus in message_set.valid_buses():
                 lines.append("        case %s:" % bus_address)
                 lines.append("            *count = %d;" % len(bus['messages']))
-                for i, message in enumerate(bus['messages']):
+                for i, message in enumerate(sorted(bus['messages'],
+                        key=operator.attrgetter('id'))):
                     lines.append("            FILTERS[%d] = {%d, 0x%x, %d};" % (
                             i, i, message.id, 1))
                 lines.append("            break;")
@@ -180,21 +185,20 @@ class CodeGenerator(object):
         def block(message_set, **kwargs):
             states_index = 0
             lines = []
-            for message in message_set.all_messages():
-                for signal in message.signals:
-                    if len(signal.states) > 0:
-                        if states_index >= MAX_SIGNAL_STATES:
-                            warning("Ignoring anything beyond %d states for %s" %
-                                    (MAX_SIGNAL_STATES, signal.generic_name))
-                            break
+            for signal in message_set.all_signals():
+                if len(signal.states) > 0:
+                    if states_index >= MAX_SIGNAL_STATES:
+                        warning("Ignoring anything beyond %d states for %s" %
+                                (MAX_SIGNAL_STATES, signal.generic_name))
+                        break
 
-                        line = "        { "
-                        for state in signal.states:
-                            line += "%s, " % state
-                        line += "},"
-                        lines.append(line)
-                        signal.states_index = states_index
-                        states_index += 1
+                    line = "        { "
+                    for state in signal.sorted_states:
+                        line += "%s, " % state
+                    line += "},"
+                    lines.append(line)
+                    signal.states_index = states_index
+                    states_index += 1
             return lines
 
         lines.extend(self._message_set_lister(block))
@@ -207,8 +211,8 @@ class CodeGenerator(object):
     def _message_set_lister(self, block, indent=4):
         lines = []
         whitespace = " " * indent
-        for message_set_index, message_set in enumerate(sorted(
-                    self.message_sets, key=operator.attrgetter('name'))):
+        for message_set_index, message_set in enumerate(
+                self.sorted_message_sets):
             lines.append(whitespace + "{ // message set: %s" % message_set.name)
             lines.extend(block(message_set, message_set_index=message_set_index))
             lines.append(whitespace + "},")
@@ -218,7 +222,7 @@ class CodeGenerator(object):
         lines = []
         whitespace = " " * indent
         lines.append(whitespace + "switch(getConfiguration()->messageSetIndex) {")
-        for message_set_index, message_set in enumerate(self.message_sets):
+        for message_set_index, message_set in enumerate(self.sorted_message_sets):
             lines.append(whitespace + "case %d: // message set: %s" % (
                     message_set_index, message_set.name))
             lines.extend(block(message_set_index, message_set))
@@ -233,14 +237,11 @@ class CodeGenerator(object):
         def block(message_set, message_set_index=None):
             lines = []
             i = 1
-            for message in message_set.all_messages():
-                message.signals = sorted(message.signals,
-                        key=operator.attrgetter('generic_name'))
-                for signal in message.signals:
-                    signal.message_set_index = message_set_index
-                    signal.array_index = i - 1
-                    lines.append("        %s" % signal)
-                    i += 1
+            for signal in message_set.all_signals():
+                signal.message_set_index = message_set_index
+                signal.array_index = i - 1
+                lines.append("        %s" % signal)
+                i += 1
             return lines
 
         lines.extend(self._message_set_lister(block))
@@ -295,13 +296,15 @@ class CodeGenerator(object):
             for bus_address, bus in message_set.valid_buses():
                 lines.append("        case %s:" % bus_address)
                 lines.append("            switch (id) {")
-                for message in bus['messages']:
+                for message in sorted(bus['messages'],
+                        key=operator.attrgetter('id')):
                     lines.append("            case 0x%x: // %s" % (message.id, message.name))
                     if message.handler is not None:
                         lines.append("                %s(id, data, SIGNALS[%d], " % (
                             message.handler, message_set_index) +
                                 "getSignalCount(), pipeline);")
-                    for signal in (s for s in message.signals):
+                    for signal in sorted((s for s in message.signals),
+                            key=operator.attrgetter('generic_name')):
                         if signal.handler:
                             lines.append(("                can::read::translateSignal("
                                     "pipeline, "

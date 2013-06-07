@@ -31,19 +31,19 @@ class MessageSet(object):
 
     def all_messages(self):
         for _, bus in self.valid_buses():
-            for message in bus['messages']:
+            for message in sorted(bus['messages'], key=operator.attrgetter('id')):
                 yield message
 
     def all_signals(self):
         for message in self.all_messages():
-            for signal in message.signals:
+            for signal in sorted(message.signals,
+                    key=operator.attrgetter('generic_name')):
                 yield signal
 
     def validate_messages(self):
         valid = True
-        for message in self.all_messages():
-            for signal in message.signals:
-                valid = valid and signal.validate()
+        for signal in self.all_signals():
+            valid = valid and signal.validate()
         return valid
 
     def validate_name(self):

@@ -2,6 +2,7 @@ import sys
 import collections
 import os
 import json
+import operator
 
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
@@ -172,6 +173,10 @@ class Signal(object):
         signal.bit_position = Signal._invert_bit_index(signal.bit_position,
                 signal.bit_size)
         return signal
+
+    @property
+    def sorted_states(self):
+        return sorted(self.states, key=operator.attrgetter('value'))
 
     def to_dict(self):
         return {"generic_name": self.generic_name,

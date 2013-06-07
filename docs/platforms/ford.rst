@@ -38,7 +38,7 @@ under the bootloader:
 
 The compiled firmware will be located at
 ``build/lpc17xx/cantranslator-lpc17xx.bin``. See the :doc:`bootloaders
-</installation/bootloaders>`_ page for instructions on how to load the firmware.
+</installation/bootloaders>` page for instructions on how to load the firmware.
 
 Bare Metal
 """"""""""

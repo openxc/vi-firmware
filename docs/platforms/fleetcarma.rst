@@ -13,7 +13,7 @@ Assuming your board has already been flashed with the OpenXC fork of the
 you must attach an FTDI between your computer and the device.
 
 FTDI Cable
-^^^^^^^^^
+^^^^^^^^^^
 
 TODO document pins for UART flashing
 
@@ -21,7 +21,7 @@ Uploading Script
 ^^^^^^^^^^^^^^^^
 
 Once you have the FTDI cable attached to your computer and to the FleetCarma
-board, follow the same steps to upload as for the :doc:`chipKIT Max32 <max32`.
+board, follow the same steps to upload as for the :doc:`chipKIT Max32 <max32>`.
 
 Bootloader
 ----------

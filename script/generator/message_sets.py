@@ -77,8 +77,10 @@ class JsonMessageSet(MessageSet):
         message_set.buses = cls._parse_buses(data)
         message_set.extra_sources = data.get('extra_sources', [])
         message_set.commands = cls._parse_commands(data)
-        message_set._parse_mappings(data, search_paths)
-        message_set._parse_messages(data.get('messages', {}))
+
+        raw_messages = message_set._parse_mappings(data, search_paths)
+        raw_messages = merge(raw_messages, data.get('messages', {}))
+        message_set._parse_messages(raw_messages)
 
         return message_set
 
@@ -129,7 +131,7 @@ class JsonMessageSet(MessageSet):
                     message['bus'] = bus_name
 
             all_messages = merge(all_messages, messages)
-        self._parse_messages(all_messages)
+        return all_messages
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():

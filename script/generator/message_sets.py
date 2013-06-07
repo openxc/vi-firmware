@@ -26,7 +26,7 @@ class MessageSet(object):
 
     def valid_buses(self):
         for bus_name, bus in sorted(self.buses.items(), key=operator.itemgetter(0)):
-            if bus['controller'] in VALID_BUS_ADDRESSES:
+            if bus.get('controller', None) in VALID_BUS_ADDRESSES:
                 yield bus['controller'], bus
 
     def all_messages(self):

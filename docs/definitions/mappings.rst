@@ -17,17 +17,21 @@ In all cases when we refer to a "path," either an absolute or relative
 path will work. If you use relative paths, however, they must be relative
 to the root of wherever you run the build scripts.
 
-Signal Set Name
-===============
+Message Set Name
+================
 
-Each JSON mapping file defines a "signal set," and it should have a name.
+Each JSON mapping file defines a "message set," and it should have a name.
 Typically this identifies a particular model year vehicle, or possibly a broader
 vehicle platform. The ``name`` field is required.
 
-Parent Signal Sets
-==================
+``bit_numbering_inverted`` - (optional, ``true`` by default) This flag controls
+the default :ref:`bit numbering <bit-numbering>` for all messages included in this message set.
+You can override the bit numbering for any particular message or mapping, too.
 
-Signal sets are composable - you can extend a set by adding a path to the
+Parent Message Sets
+===================
+
+Message sets are composable - you can extend a set by adding a path to the
 parent(s) to the ``parents`` key.
 
 Initializers
@@ -60,7 +64,7 @@ CAN Buses
 =========
 
 The key ``buses`` must be an object, where each field is a CAN bus uses by this
-signal set, and which CAN controllers are attached on the microcontroller. The
+message set, and which CAN controllers are attached on the microcontroller. The
 
 ``controller`` - The integer ID of the CAN controller to which this bus is
 attached. The platforms we are using now only have 2 CAN controllers, identified
@@ -73,8 +77,8 @@ quickly).
 
 .. _messages:
 
-Messages
-========
+CAN Messages
+============
 
 The ``messages`` key is a object with fields mapping from CAN message IDs
 to signal definitions. The fields must be hex IDs of CAN messages as
@@ -88,6 +92,9 @@ The attributes of each message object are:
 
 ``bus`` - The name of one of the previously defined CAN buses where this message
 can be found.
+
+``bit_numbering_inverted`` - (optional, defaults to the value of the message set)
+This flag controls the default :ref:`bit numbering <bit-numbering>` for the signals in this message.
 
 ``signals`` - A list of CAN signal objects (described in the :ref:`signal`
 section) that are in this message, with the name of the signal as the key. If
@@ -273,7 +280,7 @@ The valid return types for value handlers are ``bool``, ``float`` and
             float value, bool* send);
 
 where ``signal`` is a pointer to the ``CanSignal`` this is handling,
-``signals`` is a an array of all signals, ``value`` is the raw value
+``signals`` is an array of all signals, ``value`` is the raw value
 from CAN and ``send`` is a flag to indicate if this should be sent over
 USB.
 
@@ -301,7 +308,7 @@ The ``mappings`` field is an optional field allows you to move the definitions
 from the ``messages`` list to separate files for improved composability and
 readability.
 
-For an example of a signal set using mappings, see the
+For an example of a message set using mappings, see the
 `mapped-signals.json.example
 <https://github.com/openxc/cantranslator/blob/master/src/mapped-signals.json.example>`_
 file in the repository.
@@ -315,7 +322,7 @@ and throw it into a separate file and link it in here.
 
 ``bus`` - (optional) The name of one of the defined CAN buses where these
 messages can be found - this value will be set for all of the messages contained
-the mapping file, but can be overriden by setting ``bus`` again in an individual
+the mapping file, but can be overridden by setting ``bus`` again in an individual
 message.
 
 ``database`` - (optional) a path to
@@ -324,8 +331,13 @@ from Vector CANdb++ is supported. If this is defined, you can leave the bit
 position, bit size, factor, offset, max and min values out of the ``mapping``
 file - they will be picked up automatically from the database.
 
+``bit_numbering_inverted`` - (optional, defaults to the value of the message set)
+This flag controls the default :ref:`bit numbering <bit-numbering>` for the messages contained in
+this mapping. Messages in the mapping can override the bit numbering by explicitly
+specifying their own value for this flag.
+
 Database-backed Mappings
--------------------------------------------------
+--------------------------
 
 If you use Vector DBC files to store your "gold standard" CAN signal
 definitions, you can save some effort by using the static CAN messages
@@ -335,8 +347,8 @@ In the database ``mapping`` file referred to earlier, you only need to define
 (at minimum) the generic name for each signal in the message.
 
 The code generation script merges your JSON mapping with an XML version of the
-dtabase. It pulls the neccessary details of the messages from the database (bit
-position, bit size, offset, etc), saving you from defining the tedius and
+database. It pulls the necessary details of the messages from the database (bit
+position, bit size, offset, etc.), saving you from defining the tedious and
 error-prone parts in multiple places.
 
 Extra Sources
@@ -373,3 +385,40 @@ passed to your handler. This is useful for situations where there isn't a 1 to
 signal are split into two signals instead of the 1 state-based signal used by
 OpenXC. You can use the ``sendCanSignal`` function in ``canwrite.h`` to do the
 actual data sending on the CAN bus.
+
+.. _bit-numbering:
+
+Bit Numbering
+=============
+
+Because of different software tools and conventions in the industry, there are
+multiple ways to refer to bits within a CAN message. This doesn't change the
+actual data representation (like a different *byte* order would) but it changes
+how you refer to different bit positions for CAN signals.
+
+The vehicle interface C++ source assumes the number of the highest order bit of
+a 64-bit CAN message is 0, and the numbering continuous left to right:
+
+.. code-block:: none
+
+   Hex:         0x83                     46
+   Binary:      10000011              01000110
+   Bit pos:   0 1 2 3 4 5 6 7   8 9 10 11 12 13 14 15 ...etc.
+
+The tool used at Ford to document CAN messages (Vector DBC files) uses an
+"inverted" numbering by default. In each byte of a CAN message, they start
+counting bits from the *rightmost bit*, e.g.:
+
+.. code-block:: none
+
+   Hex:         0x83                     46
+   Binary:      10000011              01000110
+   Bit pos:   7 6 5 4 3 2 1 0   15 14 13 12 11 10 9 8 ...etc.
+
+When building ``CanSignal`` structs manually, you must use the normal,
+non-inverted bit numbering.
+
+When using JSON mapping format and the code generation tools, you can control
+the bit numbering with the ``bit_numbering_inverted`` flag. By default it
+assumes inverted bit ordering (since the most common use case for the mappings
+up until now is the pull data from DBC files).

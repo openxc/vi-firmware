@@ -75,6 +75,8 @@ class JsonMessageSet(MessageSet):
         message_set.initializers = data.get('initializers', [])
         message_set.loopers = data.get('loopers', [])
         message_set.buses = cls._parse_buses(data)
+        message_set.bit_numbering_inverted = data.get(
+                'bit_numbering_inverted', True)
         message_set.extra_sources = data.get('extra_sources', [])
         message_set.commands = cls._parse_commands(data)
 
@@ -120,6 +122,8 @@ class JsonMessageSet(MessageSet):
                 fatal_error("Mapping file '%s' is missing a 'messages' field"
                         % mapping['mapping'])
 
+            bit_numbering_inverted = mapping.get('bit_numbering_inverted',
+                    self.bit_numbering_inverted)
             if 'database' in mapping:
                 messages = merge(merge_database_into_mapping(
                             find_file(mapping['database'], search_paths),
@@ -129,6 +133,8 @@ class JsonMessageSet(MessageSet):
             for message in messages.values():
                 if 'bus' not in message:
                     message['bus'] = bus_name
+                if 'bit_numbering_inverted' not in message:
+                    message['bit_numbering_inverted'] = bit_numbering_inverted
 
             all_messages = merge(all_messages, messages)
         return all_messages
@@ -140,6 +146,8 @@ class JsonMessageSet(MessageSet):
                     message_data.get('bus', None),
                     message_id,
                     message_data.get('name', None),
+                    message_data.get('bit_numbering_inverted',
+                        self.bit_numbering_inverted),
                     message_data.get('handler', None))
             if message.bus_name is None:
                 fatal_error("No default or explicit bus for message %s" %

@@ -92,12 +92,13 @@ def load_json_from_search_path(filename, search_paths):
 
 
 class Message(object):
-    def __init__(self, buses, bus_name, id, name,
+    def __init__(self, buses, bus_name, id, name, bit_numbering_inverted,
             handler=None):
         self.bus_name = bus_name
         self.buses = buses
         self.id = int(id, 0)
         self.name = name
+        self.bit_numbering_inverted = bit_numbering_inverted
         self.handler = handler
         self.signals = []
 
@@ -168,10 +169,6 @@ class Signal(object):
                 offset=float(node.find("Offset").text),
                 min_value=float(node.find("Minimum").text),
                 max_value=float(node.find("Maximum").text))
-
-        # Invert the bit index to match the Excel mapping.
-        signal.bit_position = Signal._invert_bit_index(signal.bit_position,
-                signal.bit_size)
         return signal
 
     @property
@@ -193,6 +190,18 @@ class Signal(object):
                     (self.name, self.generic_name))
             return False
         return True
+
+    @property
+    def bit_position(self):
+        if getattr(self, '_bit_position', None) is not None and getattr(
+                self.message, 'bit_numbering_inverted', False):
+            return self._invert_bit_index(self._bit_position, self.bit_size)
+        else:
+            return self._bit_position
+
+    @bit_position.setter
+    def bit_position(self, value):
+        self._bit_position = value
 
     @classmethod
     def _invert_bit_index(cls, i, l):

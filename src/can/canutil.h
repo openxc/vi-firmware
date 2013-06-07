@@ -33,7 +33,9 @@ typedef struct CanSignalState CanSignalState;
  *
  * message     - The message this signal is a part of.
  * genericName - The name of the signal to be output over USB.
- * bitPosition - The starting bit of the signal in its CAN message.
+ * bitPosition - The starting bit of the signal in its CAN message (assuming
+ *               non-inverted bit numbering, i.e. the most significant bit of
+ *               each byte is 0)
  * bitSize     - The width of the bit field in the CAN message.
  * factor      - The final value will be multiplied by this factor. Use 1 if you
  *               don't need a factor.

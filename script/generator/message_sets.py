@@ -17,28 +17,43 @@ class MessageSet(object):
     def __init__(self, name):
         self.name = name
         self.buses = defaultdict(dict)
-        self.signal_count = 0
-        self.command_count = 0
         self.initializers = []
         self.loopers = []
         self.commands = []
         self.extra_sources = []
 
     def valid_buses(self):
-        for bus_name, bus in sorted(self.buses.items(), key=operator.itemgetter(0)):
+        for bus_name, bus in sorted(self.buses.items(),
+                key=operator.itemgetter(0)):
             if bus.get('controller', None) in VALID_BUS_ADDRESSES:
                 yield bus['controller'], bus
 
+    def active_messages(self):
+        for message in self.all_messages():
+            if message.enabled:
+                yield message
+
     def all_messages(self):
         for _, bus in self.valid_buses():
-            for message in sorted(bus['messages'], key=operator.attrgetter('id')):
+            for message in sorted(bus['messages'],
+                    key=operator.attrgetter('id')):
                 yield message
+
+    def active_signals(self):
+        for signal in self.all_signals():
+            if signal.enabled:
+                yield signal
 
     def all_signals(self):
         for message in self.all_messages():
             for signal in sorted(message.signals,
                     key=operator.attrgetter('generic_name')):
                 yield signal
+
+    def active_commands(self):
+        for command in self.commands:
+            if command.enabled:
+                yield command
 
     def validate_messages(self):
         valid = True
@@ -88,8 +103,8 @@ class JsonMessageSet(MessageSet):
 
     @classmethod
     def _parse_commands(cls, data):
-        return [Command(command['name'], command.get('handler', None))
-                for command in data.get('commands', [])]
+        return [Command(**command_data) for command_data in
+                data.get('commands', [])]
 
     @classmethod
     def _parse_buses(cls, data):
@@ -106,6 +121,11 @@ class JsonMessageSet(MessageSet):
         for mapping in data.get('mappings', []):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
+
+
+            mapping_enabled = mapping.get('enabled', True)
+            if not mapping_enabled:
+                warning("Mapping '%s' is disabled" % mapping['mapping'])
 
             bus_name = mapping.get('bus', None)
             if bus_name is None:
@@ -133,6 +153,8 @@ class JsonMessageSet(MessageSet):
             for message in messages.values():
                 if 'bus' not in message:
                     message['bus'] = bus_name
+                if 'enabled' not in message:
+                    message['enabled'] = mapping_enabled
                 if 'bit_numbering_inverted' not in message:
                     message['bit_numbering_inverted'] = bit_numbering_inverted
 
@@ -141,14 +163,14 @@ class JsonMessageSet(MessageSet):
 
     def _parse_messages(self, messages, default_bus=None):
         for message_id, message_data in messages.items():
-            self.signal_count += len(message_data['signals'])
             message = Message(self.buses,
                     message_data.get('bus', None),
                     message_id,
                     message_data.get('name', None),
                     message_data.get('bit_numbering_inverted',
                         self.bit_numbering_inverted),
-                    message_data.get('handler', None))
+                    message_data.get('handler', None),
+                    message_data.get('enabled', True))
             if message.bus_name is None:
                 fatal_error("No default or explicit bus for message %s" %
                         message_id)

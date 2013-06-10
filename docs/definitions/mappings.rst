@@ -89,7 +89,6 @@ Message
 
 The attributes of each message object are:
 
-
 ``bus`` - The name of one of the previously defined CAN buses where this message
 can be found.
 
@@ -108,6 +107,10 @@ CAN message definition in another document.
 ``handler`` - (optional) The name of a function that will be compiled with the
 firmware and should be applied to the entire raw message value (see
 :ref:`message-handlers`).
+
+``enabled`` - (optional, true by default) Enable or disable all processing of a
+CAN message. By default, a message is enabled. If this flag is false, the CAN
+message and all its signals will be left out of the generated source code.
 
 .. _message-handlers:
 
@@ -215,6 +218,10 @@ value), you can specify a custom function here to encode the value for a CAN
 messages. This is only necessary for boolean types at the moment - if your
 signal has states defined, we assume you need to encode a string state value
 back to its original numerical value.
+
+``enabled`` - (optional, true by default) Enable or disable all processing of a
+CAN signal. By default, a signal is enabled; if this flag is false, the signal
+will be left out of the generated source code.
 
 .. _value-handlers:
 
@@ -331,10 +338,15 @@ from Vector CANdb++ is supported. If this is defined, you can leave the bit
 position, bit size, factor, offset, max and min values out of the ``mapping``
 file - they will be picked up automatically from the database.
 
-``bit_numbering_inverted`` - (optional, defaults to the value of the message set)
-This flag controls the default :ref:`bit numbering <bit-numbering>` for the messages contained in
-this mapping. Messages in the mapping can override the bit numbering by explicitly
-specifying their own value for this flag.
+``bit_numbering_inverted`` - (optional, defaults to the value of the message
+set) This flag controls the default :ref:`bit numbering <bit-numbering>` for the
+messages contained in this mapping. Messages in the mapping can override the bit
+numbering by explicitly specifying their own value for this flag.
+
+``enabled`` - (optional, true by default) Enable or disable all processing of
+the CAN messages in a mapping. By default, a mapping is enabled; if this flag is
+false, all CAN message and signals from the mapping will be excluded from the
+generated source code.
 
 Database-backed Mappings
 --------------------------
@@ -368,6 +380,10 @@ with these attributes:
 
 ``name`` - The name of the command to be recognized on the OpenXC translated
 interface.
+
+``enabled`` - (optional, true by default) Enable or disable all processing of a
+command. By default, a command is enabled. If this flag is false, the command
+will be excluded from the generated source code.
 
 ``handler`` - The name of a custom command handler function (that matches the
 ``CommandHandler`` function prototype from ``canutil.h``) that should

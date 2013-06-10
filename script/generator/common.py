@@ -63,12 +63,13 @@ def merge(a, b):
 
 
 class Command(object):
-    def __init__(self, generic_name, handler=None):
-        self.generic_name = generic_name
+    def __init__(self, name=None, handler=None, enabled=True, **kwargs):
+        self.name = name
         self.handler = handler
+        self.enabled = enabled
 
     def __str__(self):
-        return "{ \"%s\", %s }," % (self.generic_name, self.handler)
+        return "{ \"%s\", %s }," % (self.name, self.handler)
 
 
 def find_file(filename, search_paths):
@@ -93,13 +94,14 @@ def load_json_from_search_path(filename, search_paths):
 
 class Message(object):
     def __init__(self, buses, bus_name, id, name, bit_numbering_inverted,
-            handler=None):
+            handler=None, enabled=True):
         self.bus_name = bus_name
         self.buses = buses
         self.id = int(id, 0)
         self.name = name
         self.bit_numbering_inverted = bit_numbering_inverted
         self.handler = handler
+        self.enabled = enabled
         self.signals = []
 
     def __str__(self):
@@ -126,10 +128,11 @@ class Signal(object):
             generic_name=None, bit_position=None, bit_size=None, factor=1,
             offset=0, min_value=0.0, max_value=0.0, handler=None, ignore=False,
             states=None, send_frequency=1, send_same=True, writable=False,
-            write_handler=None):
+            write_handler=None, enabled=True, **kwargs):
         self.message_set = message_set
         self.message = message
         self.name = name
+        self.enabled = enabled
         self.generic_name = generic_name
         self.bit_position = bit_position
         self.bit_size = bit_size

@@ -50,20 +50,20 @@ class CodeGenerator(object):
         if len(self.message_sets) == 0:
             return 0
 
-        return max(len(message_set.commands)
+        return max(len(list(message_set.active_commands()))
                 for message_set in self.message_sets)
 
     def _max_message_count(self):
         if len(self.message_sets) == 0:
             return 0
-        return max(len(list(message_set.all_messages()))
+        return max(len(list(message_set.active_messages()))
                 for message_set in self.message_sets)
 
     def _max_signal_count(self):
         if len(self.message_sets) == 0:
             return 0
 
-        return max(len(list(message_set.all_signals()))
+        return max(len(list(message_set.active_signals()))
                 for message_set in self.message_sets)
 
     def _build_header(self):
@@ -81,8 +81,8 @@ class CodeGenerator(object):
 
     def _build_message_set(self, index, message_set):
         return "    { %d, \"%s\", %d, %d, %d }," % (index, message_set.name,
-                len(message_set.buses), len(list(message_set.all_messages())),
-                len(list(message_set.all_signals())))
+                len(message_set.buses), len(list(message_set.active_messages())),
+                len(list(message_set.active_signals())))
 
     def _build_bus_struct(self, bus_address, bus, bus_number):
         result = """        {{ {bus_speed}, {bus_address}, can{bus_number},
@@ -102,6 +102,10 @@ class CodeGenerator(object):
         def block(message_set, message_set_index=None):
             lines = []
             for message_index, message in enumerate(message_set.all_messages()):
+                if not message.enabled:
+                    warning("Message %s (0x%x) is disabled, excluding from source" %
+                            (message.name, message.id))
+                    continue
                 message.message_set_index = message_set_index
                 message.array_index = message_index
                 lines.append("        %s" % message)
@@ -186,7 +190,7 @@ class CodeGenerator(object):
         def block(message_set, **kwargs):
             states_index = 0
             lines = []
-            for signal in message_set.all_signals():
+            for signal in message_set.active_signals():
                 if len(signal.states) > 0:
                     if states_index >= MAX_SIGNAL_STATES:
                         warning("Ignoring anything beyond %d states for %s" %
@@ -242,6 +246,11 @@ class CodeGenerator(object):
             lines = []
             i = 1
             for signal in message_set.all_signals():
+                if not signal.enabled:
+                    warning("Signal '%s' (in 0x%x) is disabled, " % (
+                                signal.name, signal.message.id) +
+                            "excluding from source")
+                    continue
                 signal.message_set_index = message_set_index
                 signal.array_index = i - 1
                 lines.append("        %s" % signal)
@@ -282,7 +291,12 @@ class CodeGenerator(object):
                 self._max_command_count())
         lines.append("CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {")
         def block(message_set, **kwargs):
-            return ["        %s" % command for command in message_set.commands]
+            for command in message_set.commands:
+                if not command.enabled:
+                    warning("Command %s is disabled, excluding from source" %
+                            command.name)
+                    continue
+                yield "        %s" % command
         lines.extend(self._message_set_lister(block))
         lines.append("};")
         lines.append("")

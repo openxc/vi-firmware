@@ -45,7 +45,7 @@ Windows
    following packages:
 
   ``gcc4, patchutils, git, unzip, python, python-argparse, check, curl,
-  libsasl2, ca-certificates``
+  libsasl2, ca-certificates, python-setuptools``
 
 2. Start a Cygwin Terminal.
 3. Configure the terminal to ignore Windows-style line endings in scripts:

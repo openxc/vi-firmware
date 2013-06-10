@@ -192,13 +192,12 @@ class CodeGenerator(object):
             lines = []
             for signal in message_set.active_signals():
                 if len(signal.states) > 0:
-                    if states_index >= MAX_SIGNAL_STATES:
-                        warning("Ignoring anything beyond %d states for %s" %
-                                (MAX_SIGNAL_STATES, signal.generic_name))
-                        break
-
                     line = "        { "
-                    for state in signal.sorted_states:
+                    for state_count, state in enumerate(signal.sorted_states):
+                        if state_count >= MAX_SIGNAL_STATES:
+                            warning("Ignoring anything beyond %d states for %s" %
+                                    (MAX_SIGNAL_STATES, signal.generic_name))
+                            break
                         line += "%s, " % state
                     line += "},"
                     lines.append(line)

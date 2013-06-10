@@ -7,6 +7,7 @@ import operator
 
 from common import warning, find_file
 
+GENERATED_CODE_VERSION = "4.0-dev"
 MAX_SIGNAL_STATES = 12
 base_path = os.path.dirname(sys.argv[0])
 
@@ -67,7 +68,7 @@ class CodeGenerator(object):
 
     def _build_header(self):
         with open("%s/signals.cpp.header" % base_path) as header:
-            return [header.read()]
+            return [header.read().format(GENERATED_CODE_VERSION)]
 
     def _build_extra_sources(self):
         lines = []
@@ -152,8 +153,8 @@ class CodeGenerator(object):
         lines.append("CanFilter FILTERS[MAX_MESSAGE_COUNT];")
 
         lines.append("")
-        lines.append("CanFilter* openxc::signals::initializeFilters(uint64_t address, "
-                "int* count) {")
+        lines.append("CanFilter* openxc::signals::initializeFilters("
+                "uint64_t address, int* count) {")
 
         def block(message_set_index, message_set):
             lines = []
@@ -214,15 +215,18 @@ class CodeGenerator(object):
         for message_set_index, message_set in enumerate(
                 self.sorted_message_sets):
             lines.append(whitespace + "{ // message set: %s" % message_set.name)
-            lines.extend(block(message_set, message_set_index=message_set_index))
+            lines.extend(block(message_set,
+                    message_set_index=message_set_index))
             lines.append(whitespace + "},")
         return lines
 
     def _message_set_switcher(self, block, indent=4):
         lines = []
         whitespace = " " * indent
-        lines.append(whitespace + "switch(getConfiguration()->messageSetIndex) {")
-        for message_set_index, message_set in enumerate(self.sorted_message_sets):
+        lines.append(whitespace + "switch(getConfiguration()"
+                "->messageSetIndex) {")
+        for message_set_index, message_set in enumerate(
+                self.sorted_message_sets):
             lines.append(whitespace + "case %d: // message set: %s" % (
                     message_set_index, message_set.name))
             lines.extend(block(message_set_index, message_set))
@@ -287,8 +291,8 @@ class CodeGenerator(object):
 
     def _build_decoder(self):
         lines = []
-        lines.append("void openxc::signals::decodeCanMessage(Pipeline* pipeline, "
-                "CanBus* bus, int id, uint64_t data) {")
+        lines.append("void openxc::signals::decodeCanMessage("
+                "Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {")
 
         def block(message_set_index, message_set):
             lines = []
@@ -298,25 +302,23 @@ class CodeGenerator(object):
                 lines.append("            switch (id) {")
                 for message in sorted(bus['messages'],
                         key=operator.attrgetter('id')):
-                    lines.append("            case 0x%x: // %s" % (message.id, message.name))
+                    lines.append("            case 0x%x: // %s" % (message.id,
+                            message.name))
                     if message.handler is not None:
-                        lines.append("                %s(id, data, SIGNALS[%d], " % (
+                        lines.append(" " * 16 + "%s(id, data, SIGNALS[%d], " % (
                             message.handler, message_set_index) +
                                 "getSignalCount(), pipeline);")
                     for signal in sorted((s for s in message.signals),
                             key=operator.attrgetter('generic_name')):
+                        line = " " * 16
+                        line += ("can::read::translateSignal(pipeline, "
+                                    "&SIGNALS[%d][%d], data, " %
+                                    (message_set_index, signal.array_index))
                         if signal.handler:
-                            lines.append(("                can::read::translateSignal("
-                                    "pipeline, "
-                                    "&SIGNALS[%d][%d], data, " % (message_set_index, signal.array_index) +
-                                    "&%s, SIGNALS[%d], getSignalCount()); // %s" % (
-                                    signal.handler, message_set_index, signal.name)))
-                        else:
-                            lines.append(("                can::read::translateSignal("
-                                    "pipeline, "
-                                    "&SIGNALS[%d][%d], " % (message_set_index, signal.array_index) +
-                                    "data, SIGNALS[%d], getSignalCount()); // %s" %
-                                        (message_set_index, signal.name)))
+                            line += "&%s, " % signal.handler
+                        line += ("SIGNALS[%d], getSignalCount()); // %s" % (
+                            message_set_index, signal.name))
+                        lines.append(line)
                     lines.append("                break;")
                 lines.append("            }")
                 lines.append("            break;")
@@ -326,8 +328,8 @@ class CodeGenerator(object):
         lines.extend(self._message_set_switcher(block))
 
         if self._max_message_count() == 0:
-            lines.append("    openxc::can::read::passthroughMessage(pipeline, id, "
-                    "data);")
+            lines.append("    openxc::can::read::passthroughMessage(pipeline, "
+                    "id, data);")
 
         lines.append("}")
         lines.append("")

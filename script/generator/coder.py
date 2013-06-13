@@ -81,7 +81,8 @@ class CodeGenerator(object):
 
     def _build_message_set(self, index, message_set):
         return "    { %d, \"%s\", %d, %d, %d }," % (index, message_set.name,
-                len(message_set.buses), len(list(message_set.active_messages())),
+                len(list(message_set.valid_buses())),
+                len(list(message_set.active_messages())),
                 len(list(message_set.active_signals())))
 
     def _build_bus_struct(self, bus_address, bus, bus_number):

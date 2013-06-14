@@ -5,7 +5,7 @@ import os
 import sys
 import operator
 
-from common import warning, find_file
+from common import warning, find_file, info
 
 GENERATED_CODE_VERSION = "4.0-dev"
 MAX_SIGNAL_STATES = 12
@@ -80,19 +80,11 @@ class CodeGenerator(object):
         return lines
 
     def _build_message_set(self, index, message_set):
+        info("Added message set '%s'" % message_set.name)
         return "    { %d, \"%s\", %d, %d, %d }," % (index, message_set.name,
                 len(list(message_set.valid_buses())),
                 len(list(message_set.active_messages())),
                 len(list(message_set.active_signals())))
-
-    def _build_bus_struct(self, bus_address, bus, bus_number):
-        result = """        {{ {bus_speed}, {bus_address}, can{bus_number},
-            #ifdef __PIC32__
-            handleCan{bus_number}Interrupt,
-            #endif // __PIC32__
-        }},"""
-        return result.format(bus_speed=bus['speed'], bus_address=bus_address,
-                bus_number=bus_number)
 
     def _build_messages(self):
         lines = []
@@ -104,11 +96,12 @@ class CodeGenerator(object):
             lines = []
             for message_index, message in enumerate(message_set.all_messages()):
                 if not message.enabled:
-                    warning("Message %s (0x%x) is disabled, excluding from source" %
+                    warning("Skipping disabled message %s (0x%x)" %
                             (message.name, message.id))
                     continue
                 message.message_set_index = message_set_index
                 message.array_index = message_index
+                info("Added message '%s'" % message.name)
                 lines.append("        %s" % message)
             return lines
 
@@ -136,10 +129,9 @@ class CodeGenerator(object):
 
         def block(message_set, **kwargs):
             lines = []
-            for bus_number, (bus_address, bus) in enumerate(
-                    message_set.valid_buses()):
-                lines.append(self._build_bus_struct(bus_address, bus,
-                    bus_number + 1))
+            for bus_number, bus in enumerate(message_set.valid_buses()):
+                bus.number = bus_number + 1
+                lines.append(str(bus))
                 lines.append("")
             return lines
 
@@ -164,11 +156,11 @@ class CodeGenerator(object):
         def block(message_set_index, message_set):
             lines = []
             lines.append("        switch(address) {")
-            for bus_address, bus in message_set.valid_buses():
-                lines.append("        case %s:" % bus_address)
-                lines.append("            *count = %d;" % len(bus['messages']))
-                for i, message in enumerate(sorted(bus['messages'],
-                        key=operator.attrgetter('id'))):
+            for bus in message_set.valid_buses():
+                lines.append("        case %s:" % bus.controller)
+                lines.append("            *count = %d;" % len(
+                        list(bus.active_messages())))
+                for i, message in enumerate(bus.active_messages()):
                     lines.append("            FILTERS[%d] = {%d, 0x%x, %d};" % (
                             i, i, message.id, 1))
                 lines.append("            break;")
@@ -247,13 +239,13 @@ class CodeGenerator(object):
             i = 1
             for signal in message_set.all_signals():
                 if not signal.enabled:
-                    warning("Signal '%s' (in 0x%x) is disabled, " % (
-                                signal.name, signal.message.id) +
-                            "excluding from source")
+                    warning("Skipping disabled signal '%s' (in 0x%x)" % (
+                        signal.generic_name, signal.message.id))
                     continue
                 signal.message_set_index = message_set_index
                 signal.array_index = i - 1
                 lines.append("        %s" % signal)
+                info("Added signal '%s'" % signal.generic_name)
                 i += 1
             return lines
 
@@ -293,8 +285,7 @@ class CodeGenerator(object):
         def block(message_set, **kwargs):
             for command in message_set.commands:
                 if not command.enabled:
-                    warning("Command %s is disabled, excluding from source" %
-                            command.name)
+                    warning("Skipping disabled Command %s" % command.name)
                     continue
                 yield "        %s" % command
         lines.extend(self._message_set_lister(block))
@@ -310,13 +301,12 @@ class CodeGenerator(object):
 
         def block(message_set_index, message_set):
             lines = []
-            lines.append("        switch(bus->address) {")
-            for bus_address, bus in message_set.valid_buses():
-                lines.append("        case %s:" % bus_address)
-                lines.append("            switch (id) {")
-                for message in sorted(bus['messages'],
-                        key=operator.attrgetter('id')):
-                    lines.append("            case 0x%x: // %s" % (message.id,
+            lines.append(" " * 8 + "switch(bus->address) {")
+            for bus in message_set.valid_buses():
+                lines.append(" " * 8 + "case %s:" % bus.controller)
+                lines.append(" " * 12 + "switch (id) {")
+                for message in bus.active_messages():
+                    lines.append(" " * 12 + "case 0x%x: // %s" % (message.id,
                             message.name))
                     if message.handler is not None:
                         lines.append(" " * 16 + "%s(id, data, SIGNALS[%d], " % (
@@ -324,6 +314,8 @@ class CodeGenerator(object):
                                 "getSignalCount(), pipeline);")
                     for signal in sorted((s for s in message.signals),
                             key=operator.attrgetter('generic_name')):
+                        if not signal.enabled:
+                            continue
                         line = " " * 16
                         line += ("can::read::translateSignal(pipeline, "
                                     "&SIGNALS[%d][%d], data, " %

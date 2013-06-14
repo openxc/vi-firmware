@@ -21,6 +21,9 @@ def fatal_error(message):
 def warning(message):
     sys.stderr.write(YELLOW + "WARNING: " + RESET + "%s\n" % message)
 
+def info(message):
+    sys.stderr.write(GREEN + "INFO: " + RESET + "%s\n" % message)
+
 def quacks_like_dict(object):
     """Check if object is dict-like"""
     return isinstance(object, collections.Mapping)
@@ -104,6 +107,11 @@ class Message(object):
         self.enabled = enabled
         self.signals = []
 
+    def sorted_signals(self):
+        for signal in sorted(self.signals,
+                key=operator.attrgetter('generic_name')):
+            yield signal
+
     def __str__(self):
         bus_index = self._lookup_bus_index(self.buses, self.bus_name)
         if bus_index is not None:
@@ -116,12 +124,41 @@ class Message(object):
 
     @staticmethod
     def _lookup_bus_index(buses, bus_name):
-        if bus_name in buses and 'controller' in buses[bus_name]:
+        bus = buses.get(bus_name, None)
+        if bus and bus.controller is not None:
             for index, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
-                if candidate_bus_address == buses[bus_name]['controller']:
+                if candidate_bus_address == bus.controller:
                     return index
         return None
 
+class CanBus(object):
+    def __init__(self, name=None, speed=None, messages=None, controller=None,
+            **kwargs):
+        self.name = name
+        self.speed = speed
+        self.messages = messages or []
+        self.controller = controller
+
+    def active_messages(self):
+        for message in self.sorted_messages():
+            if message.enabled:
+                yield message
+
+    def sorted_messages(self):
+        for message in sorted(self.messages, key=operator.attrgetter('id')):
+            yield message
+
+    def add_message(self, message):
+        self.messages.append(message)
+
+    def __str__(self):
+        result = """        {{ {bus_speed}, {controller}, can{bus_number},
+            #ifdef __PIC32__
+            handleCan{bus_number}Interrupt,
+            #endif // __PIC32__
+        }},"""
+        return result.format(bus_speed=self.speed, controller=self.controller,
+                bus_number=self.number)
 
 class Signal(object):
     def __init__(self, message_set=None, message=None, name=None,
@@ -160,6 +197,14 @@ class Signal(object):
         self.states = states or []
         if len(self.states) > 0 and self.handler is None:
             self.handler = "stateHandler"
+
+    @property
+    def enabled(self):
+        return self.message.enabled and getattr(self, '_enabled', True)
+
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
 
     @classmethod
     def from_xml_node(cls, node):

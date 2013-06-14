@@ -10,23 +10,22 @@ import operator
 from xml_to_json import merge_database_into_mapping
 from common import warning, fatal_error, Signal, SignalState, Message, \
         Command, merge, find_file, load_json_from_search_path, \
-        VALID_BUS_ADDRESSES
+        VALID_BUS_ADDRESSES, CanBus
 
 
 class MessageSet(object):
     def __init__(self, name):
         self.name = name
-        self.buses = defaultdict(dict)
+        self.buses = defaultdict(CanBus)
         self.initializers = []
         self.loopers = []
         self.commands = []
         self.extra_sources = []
 
     def valid_buses(self):
-        for bus_name, bus in sorted(self.buses.items(),
-                key=operator.itemgetter(0)):
-            if bus.get('controller', None) in VALID_BUS_ADDRESSES:
-                yield bus['controller'], bus
+        for bus in sorted(self.buses.values(), key=operator.attrgetter('name')):
+            if bus.controller in VALID_BUS_ADDRESSES:
+                yield bus
 
     def active_messages(self):
         for message in self.all_messages():
@@ -34,9 +33,8 @@ class MessageSet(object):
                 yield message
 
     def all_messages(self):
-        for _, bus in self.valid_buses():
-            for message in sorted(bus['messages'],
-                    key=operator.attrgetter('id')):
+        for bus in self.valid_buses():
+            for message in bus.sorted_messages():
                 yield message
 
     def active_signals(self):
@@ -46,8 +44,7 @@ class MessageSet(object):
 
     def all_signals(self):
         for message in self.all_messages():
-            for signal in sorted(message.signals,
-                    key=operator.attrgetter('generic_name')):
+            for signal in message.sorted_signals():
                 yield signal
 
     def active_commands(self):
@@ -108,12 +105,12 @@ class JsonMessageSet(MessageSet):
 
     @classmethod
     def _parse_buses(cls, data):
-        buses = data.get('buses', {})
-        for bus_name, bus in buses.items():
-            if bus.get('speed', None) is None:
+        buses = {}
+        for bus_name, bus_data in data.get('buses', {}).items():
+            buses[bus_name] = CanBus(name=bus_name, **bus_data)
+            if buses[bus_name].speed is None:
                 fatal_error("Bus %s is missing the 'speed' attribute" %
                         bus_name)
-            bus['messages'] = []
         return buses
 
     def _parse_mappings(self, data, search_paths):
@@ -126,6 +123,10 @@ class JsonMessageSet(MessageSet):
             mapping_enabled = mapping.get('enabled', True)
             if not mapping_enabled:
                 warning("Mapping '%s' is disabled" % mapping['mapping'])
+                # TODO we could speed up code generation by just skipping the
+                # mapping here, but that makes this class less useful as a
+                # general parser, since you may want to see which messages are
+                # disabled from code
 
             bus_name = mapping.get('bus', None)
             if bus_name is None:
@@ -189,4 +190,4 @@ class JsonMessageSet(MessageSet):
             if message.bus_name not in self.buses:
                 fatal_error("Bus '%s' (from message 0x%x) is not defined" %
                         (message.bus_name, message.id))
-            self.buses[message.bus_name]['messages'].append(message)
+            self.buses[message.bus_name].add_message(message)

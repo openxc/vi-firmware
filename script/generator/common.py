@@ -259,7 +259,7 @@ class Signal(object):
 
     @staticmethod
     def _lookupMessageIndex(message_set, message):
-        for i, candidate in enumerate(message_set.all_messages()):
+        for i, candidate in enumerate(message_set.active_messages()):
             if candidate.id == message.id:
                 return i
 

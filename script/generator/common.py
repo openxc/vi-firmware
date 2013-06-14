@@ -152,13 +152,13 @@ class CanBus(object):
         self.messages.append(message)
 
     def __str__(self):
-        result = """        {{ {bus_speed}, {controller}, can{bus_number},
+        result = """        {{ {bus_speed}, {controller}, can{controller},
             #ifdef __PIC32__
-            handleCan{bus_number}Interrupt,
+            handleCan{controller}Interrupt,
             #endif // __PIC32__
         }},"""
-        return result.format(bus_speed=self.speed, controller=self.controller,
-                bus_number=self.number)
+        return result.format(bus_speed=self.speed, controller=self.controller)
+
 
 class Signal(object):
     def __init__(self, message_set=None, message=None, name=None,

@@ -23,7 +23,8 @@ class MessageSet(object):
         self.extra_sources = []
 
     def valid_buses(self):
-        for bus in sorted(self.buses.values(), key=operator.attrgetter('name')):
+        for bus in sorted(self.buses.values(),
+                key=operator.attrgetter('controller')):
             if bus.controller in VALID_BUS_ADDRESSES:
                 yield bus
 

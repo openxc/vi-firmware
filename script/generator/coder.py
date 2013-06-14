@@ -129,8 +129,7 @@ class CodeGenerator(object):
 
         def block(message_set, **kwargs):
             lines = []
-            for bus_number, bus in enumerate(message_set.valid_buses()):
-                bus.number = bus_number + 1
+            for bus in message_set.valid_buses():
                 lines.append(str(bus))
                 lines.append("")
             return lines

@@ -222,8 +222,8 @@ interfaces when using flow control.
 
 UART data is sent only if pin A1 is pulled low (to ground). If you are using a
 Bluetooth module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_
-from SparkFun, you need to hard-wire 5v into this pin to actually enabling UART.
-To disable UART, pull A1 high or leave it floating.
+from SparkFun, you need to hard-wire GND into this pin to actually enabling
+UART. To disable UART, pull A1 high (hard-wire to 5v) or leave it floating.
 
 An additional item to consider when using UART: typically you will want to rig
 the chipKIT to be self-powered (either from an external power source or the

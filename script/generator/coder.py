@@ -281,6 +281,7 @@ class CodeGenerator(object):
                 if not command.enabled:
                     warning("Skipping disabled Command %s" % command.name)
                     continue
+                info("Added command '%s'" % command.name)
                 yield "        %s" % command
         lines.extend(self._message_set_lister(block))
         lines.append("};")

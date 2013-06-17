@@ -228,10 +228,8 @@ class Signal(object):
         self.send_same = True
         self.writable=False
         self.enabled = True
+        self.ignore = False
         self.states = states or []
-        if len(self.states) > 0 and self.handler is None:
-            # TODO when does this happen now?
-            self.handler = "stateHandler"
 
         self.merge_signal(kwargs)
 
@@ -249,14 +247,27 @@ class Signal(object):
         self.writable = data.get('writable', self.writable)
         self.write_handler = data.get('write_handler', self.write_handler)
         self.send_same = data.get('send_same', self.send_same)
-        if data.get('ignore', None) is not None and self.handler is None:
-            self.handler = "ignoreHandler"
+        self.ignore = data.get('ignore', self.ignore)
         # the frequency determines how often the message should be propagated. a
         # frequency of 1 means that every time the signal it is received we will
         # try to handle it. a frequency of 2 means that every other signal
         # will be handled (and the other half is ignored). This is useful for
         # trimming down the data rate of the stream over USB.
         self.send_frequency = data.get('send_frequency', self.send_frequency)
+
+    @property
+    def handler(self):
+        handler = getattr(self, '_handler', None)
+        if handler is None:
+            if self.ignore:
+                handler = "ignoreHandler"
+            if len(self.states) > 0:
+                handler = "stateHandler"
+        return handler
+
+    @handler.setter
+    def handler(self, value):
+        self._handler = value
 
     @property
     def enabled(self):

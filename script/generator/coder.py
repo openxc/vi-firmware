@@ -95,6 +95,7 @@ class CodeGenerator(object):
         def block(message_set):
             lines = []
             for message_index, message in enumerate(message_set.all_messages()):
+                message.validate()
                 if not message.enabled:
                     warning("Skipping disabled message %s (0x%x)" %
                             (message.name, message.id))

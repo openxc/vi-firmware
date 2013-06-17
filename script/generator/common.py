@@ -148,12 +148,11 @@ class Message(object):
                 states=states,
                 **signal))
 
-    def validate(self, buses):
-        # TODO call this when printing
+    def validate(self):
         if self.bus_name is None:
             fatal_error("No default or explicit bus for message %s" % self.id)
 
-        if self.bus_name not in buses:
+        if self.bus_name not in self.message_set.buses:
             fatal_error("Bus '%s' (from message 0x%x) is not defined" %
                     (self.bus_name, self.id))
 

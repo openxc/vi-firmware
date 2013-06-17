@@ -220,7 +220,7 @@ class Signal(object):
         self.handler = None
         self.write_handler = None
         self.factor = 1
-        self.offset = 1
+        self.offset = 0
         self.min_value = 0.0
         self.max_value = 0.0
         self.ignore = False

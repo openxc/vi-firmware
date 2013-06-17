@@ -105,7 +105,7 @@ class Message(object):
         self.bit_numbering_inverted = bit_numbering_inverted
         self.handler = handler
         self.enabled = enabled
-        self.signals = []
+        self.signals = defaultdict(Signal)
 
     @property
     def id(self):
@@ -134,30 +134,35 @@ class Message(object):
             self.merge_signals(data['signals'])
 
     def merge_signals(self, data):
-        for signal_name, signal in data.items():
+        for signal_name, signal_data in data.items():
             states = []
-            for name, raw_matches in signal.get('states', {}).items():
+            for name, raw_matches in signal_data.get('states', {}).items():
                 for raw_match in raw_matches:
                     states.append(SignalState(raw_match, name))
-            signal.pop('states', None)
-            # TODO merge
-            self.signals.append(Signal(
-                self.message_set,
-                self,
-                signal_name,
-                states=states,
-                **signal))
+            signal_data.pop('states', None)
+
+            signal = self.signals[signal_name]
+            signal.name = signal_name
+            signal.message_set = self.message_set
+            signal.message = self
+            # TODO this will clobber existing states but I don't have a really
+            # obvious clean solution to it at the moment
+            signal.states = states
+            signal.merge_signal(signal_data)
 
     def validate(self):
         if self.bus_name is None:
-            fatal_error("No default or explicit bus for message %s" % self.id)
+            warning("No default or explicit bus for message %s" % self.id)
+            return False
 
         if self.bus_name not in self.message_set.buses:
-            fatal_error("Bus '%s' (from message 0x%x) is not defined" %
+            warning("Bus '%s' (from message 0x%x) is not defined" %
                     (self.bus_name, self.id))
+            return False
+        return True
 
     def sorted_signals(self):
-        for signal in sorted(self.signals,
+        for signal in sorted(self.signals.values(),
                 key=operator.attrgetter('generic_name')):
             yield signal
 
@@ -204,45 +209,61 @@ class CanBus(object):
 
 
 class Signal(object):
-    def __init__(self, message_set=None, message=None, name=None,
-            generic_name=None, bit_position=None, bit_size=None, factor=1,
-            offset=0, min_value=0.0, max_value=0.0, handler=None, ignore=False,
-            states=None, send_frequency=1, send_same=True, writable=False,
-            write_handler=None, enabled=True, **kwargs):
+    def __init__(self, message_set=None, message=None, states=None, **kwargs):
         self.message_set = message_set
         self.message = message
-        self.name = name
-        self.enabled = enabled
-        self.generic_name = generic_name
-        self.bit_position = bit_position
-        self.bit_size = bit_size
-        self.factor = factor
-        self.offset = offset
-        self.min_value = min_value
-        self.max_value = max_value
-        self.handler = handler
-        self.writable = writable
-        self.write_handler = write_handler
-        if ignore:
+
+        self.name = None
+        self.generic_name = None
+        self.bit_position = None
+        self.bit_size = None
+        self.handler = None
+        self.write_handler = None
+        self.factor = 1
+        self.offset = 1
+        self.min_value = 0.0
+        self.max_value = 0.0
+        self.ignore = False
+        self.send_frequency = 1
+        self.send_same = True
+        self.writable=False
+        self.enabled = True
+        self.states = states or []
+        if len(self.states) > 0 and self.handler is None:
+            # TODO when does this happen now?
+            self.handler = "stateHandler"
+
+        self.merge_signal(kwargs)
+
+    def merge_signal(self, data):
+        self.name = data.get('name', self.name)
+        self.enabled = data.get('enabled', self.enabled)
+        self.generic_name = data.get('generic_name', self.generic_name)
+        self.bit_position = data.get('bit_position', self.bit_position)
+        self.bit_size = data.get('bit_size', self.bit_size)
+        self.factor = data.get('factor', self.factor)
+        self.offset = data.get('offset', self.offset)
+        self.min_value = data.get('min_value', self.min_value)
+        self.max_value = data.get('max_value', self.max_value)
+        self.handler = data.get('handler', self.handler)
+        self.writable = data.get('writable', self.writable)
+        self.write_handler = data.get('write_handler', self.write_handler)
+        self.send_same = data.get('send_same', self.send_same)
+        if data.get('ignore', None) is not None and self.handler is None:
             self.handler = "ignoreHandler"
         # the frequency determines how often the message should be propagated. a
         # frequency of 1 means that every time the signal it is received we will
         # try to handle it. a frequency of 2 means that every other signal
         # will be handled (and the other half is ignored). This is useful for
         # trimming down the data rate of the stream over USB.
-        self.send_frequency = send_frequency
-        self.send_same = send_same
-
-        if self.send_same is False and self.send_frequency != 1:
-            warning("Signal %s combines send_same and " % self.generic_name +
-                    "send_frequency - this is not recommended")
-        self.states = states or []
-        if len(self.states) > 0 and self.handler is None:
-            self.handler = "stateHandler"
+        self.send_frequency = data.get('send_frequency', self.send_frequency)
 
     @property
     def enabled(self):
-        return self.message.enabled and getattr(self, '_enabled', True)
+        signal_enabled = getattr(self, '_enabled', True)
+        if self.message is not None:
+            return self.message.enabled and signal_enabled
+        return signal_enabled
 
     @enabled.setter
     def enabled(self, value):
@@ -275,6 +296,9 @@ class Signal(object):
                 "max_value": self.max_value}
 
     def validate(self):
+        if self.send_same is False and self.send_frequency != 1:
+            warning("Signal %s combines send_same and " % self.generic_name +
+                    "send_frequency - this is not recommended")
         if self.bit_position == None or self.bit_size == None:
             warning("%s (generic name: %s) is incomplete\n" %
                     (self.name, self.generic_name))

@@ -54,6 +54,8 @@ class MessageSet(object):
 
     def validate_messages(self):
         valid = True
+        for message in self.all_messages():
+            valid = valid and message.validate()
         for signal in self.all_signals():
             valid = valid and signal.validate()
         return valid

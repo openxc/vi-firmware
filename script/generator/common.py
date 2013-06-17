@@ -3,6 +3,7 @@ import collections
 import os
 import json
 import operator
+from collections import defaultdict
 
 # Only works with 2 CAN buses since we are limited by 2 CAN controllers,
 # and we want to be a little careful that we always expect 0x101 to be
@@ -96,16 +97,65 @@ def load_json_from_search_path(filename, search_paths):
 
 
 class Message(object):
-    def __init__(self, buses, bus_name, id, name, bit_numbering_inverted,
-            handler=None, enabled=True):
+    def __init__(self, bus_name=None, id=None, name=None,
+            bit_numbering_inverted=None, handler=None, enabled=True):
         self.bus_name = bus_name
-        self.buses = buses
-        self.id = int(id, 0)
+        self.id = id
         self.name = name
         self.bit_numbering_inverted = bit_numbering_inverted
         self.handler = handler
         self.enabled = enabled
         self.signals = []
+
+    @property
+    def id(self):
+        return getattr(self, '_id', None)
+
+    @id.setter
+    def id(self, value):
+        if value is not None:
+            if not isinstance(value, int):
+                value = int(value, 0)
+            self._id = value
+
+    def merge_message(self, data):
+        self.bus_name = self.bus_name or data.get('bus', None)
+        self.id = self.id or data.get('id')
+        self.name = self.name or data.get('name', None)
+        self.bit_numbering_inverted = (self.bit_numbering_inverted or
+                data.get('bit_numbering_inverted', None))
+        self.handler = self.handler or data.get('handler', None)
+        if self.enabled is None:
+            self.enabled = data.get('enabled', True)
+        else:
+            self.enabled = data.get('enabled', self.enabled)
+
+        if 'signals' in data:
+            self.merge_signals(data['signals'])
+
+    def merge_signals(self, data):
+        for signal_name, signal in data.items():
+            states = []
+            for name, raw_matches in signal.get('states', {}).items():
+                for raw_match in raw_matches:
+                    states.append(SignalState(raw_match, name))
+            signal.pop('states', None)
+            # TODO merge
+            self.signals.append(Signal(
+                self.message_set,
+                self,
+                signal_name,
+                states=states,
+                **signal))
+
+    def validate(self, buses):
+        # TODO call this when printing
+        if self.bus_name is None:
+            fatal_error("No default or explicit bus for message %s" % self.id)
+
+        if self.bus_name not in buses:
+            fatal_error("Bus '%s' (from message 0x%x) is not defined" %
+                    (self.bus_name, self.id))
 
     def sorted_signals(self):
         for signal in sorted(self.signals,
@@ -113,30 +163,20 @@ class Message(object):
             yield signal
 
     def __str__(self):
-        bus_index = self._lookup_bus_index(self.buses, self.bus_name)
+        bus_index = self.message_set.lookup_bus_index(self.bus_name)
         if bus_index is not None:
-            return "{&CAN_BUSES[%d][%d], 0x%x}, // %s" % (self.message_set_index,
-                    bus_index, self.id, self.name)
+            return "{&CAN_BUSES[%d][%d], 0x%x}, // %s" % (
+                    self.message_set.index, bus_index, self.id, self.name)
         else:
             warning("Bus address '%s' is invalid, only %s are allowed - message 0x%x will be disabled\n" %
                     (self.bus_name, VALID_BUS_ADDRESSES, self.id))
         return ""
 
-    @staticmethod
-    def _lookup_bus_index(buses, bus_name):
-        bus = buses.get(bus_name, None)
-        if bus and bus.controller is not None:
-            for index, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
-                if candidate_bus_address == bus.controller:
-                    return index
-        return None
-
 class CanBus(object):
-    def __init__(self, name=None, speed=None, messages=None, controller=None,
-            **kwargs):
+    def __init__(self, name=None, speed=None, controller=None, **kwargs):
         self.name = name
         self.speed = speed
-        self.messages = messages or []
+        self.messages = defaultdict(Message)
         self.controller = controller
 
     def active_messages(self):
@@ -145,8 +185,12 @@ class CanBus(object):
                 yield message
 
     def sorted_messages(self):
-        for message in sorted(self.messages, key=operator.attrgetter('id')):
+        for message in sorted(self.messages.values(),
+                key=operator.attrgetter('id')):
             yield message
+
+    def get_or_create_message(self, message_id):
+        return self.messages[message_id]
 
     def add_message(self, message):
         self.messages.append(message)
@@ -182,7 +226,6 @@ class Signal(object):
         self.write_handler = write_handler
         if ignore:
             self.handler = "ignoreHandler"
-        self.array_index = 0
         # the frequency determines how often the message should be propagated. a
         # frequency of 1 means that every time the signal it is received we will
         # try to handle it. a frequency of 2 means that every other signal
@@ -257,22 +300,17 @@ class Signal(object):
         end = (8 * b) + (7 - r)
         return(end - l + 1)
 
-    @staticmethod
-    def _lookupMessageIndex(message_set, message):
-        for i, candidate in enumerate(message_set.active_messages()):
-            if candidate.id == message.id:
-                return i
 
     def __str__(self):
         result =  ("{&CAN_MESSAGES[%d][%d], \"%s\", %s, %d, %f, %f, %f, %f, "
                     "%d, %s, false, " % (
-                self.message_set_index,
-                self._lookupMessageIndex(self.message_set, self.message),
+                self.message_set.index,
+                self.message_set.lookup_message_index(self.message),
                 self.generic_name, self.bit_position, self.bit_size,
                 self.factor, self.offset, self.min_value, self.max_value,
                 self.send_frequency, str(self.send_same).lower()))
         if len(self.states) > 0:
-            result += "SIGNAL_STATES[%d][%d], %d" % (self.message_set_index,
+            result += "SIGNAL_STATES[%d][%d], %d" % (self.message_set.index,
                     self.states_index, len(self.states))
         else:
             result += "NULL, 0"

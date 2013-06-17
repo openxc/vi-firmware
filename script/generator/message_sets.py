@@ -8,9 +8,8 @@ from collections import defaultdict
 import operator
 
 from xml_to_json import merge_database_into_mapping
-from common import warning, fatal_error, Signal, SignalState, Message, \
-        Command, merge, find_file, load_json_from_search_path, \
-        VALID_BUS_ADDRESSES, CanBus
+from common import warning, fatal_error, Command, merge, find_file, \
+        load_json_from_search_path, VALID_BUS_ADDRESSES, CanBus
 
 
 class MessageSet(object):
@@ -65,6 +64,19 @@ class MessageSet(object):
             return False
         return True
 
+    def lookup_message_index(self, message):
+        for i, candidate in enumerate(self.active_messages()):
+            if candidate.id == message.id:
+                return i
+
+    def lookup_bus_index(self, bus_name):
+        bus = self.buses.get(bus_name, None)
+        if bus and bus.controller is not None:
+            for index, candidate_bus_address in enumerate(VALID_BUS_ADDRESSES):
+                if candidate_bus_address == bus.controller:
+                    return index
+        return None
+
     def _message_count(self):
         return len(list(self.all_messages()))
 
@@ -94,7 +106,9 @@ class JsonMessageSet(MessageSet):
         message_set.commands = cls._parse_commands(data)
 
         raw_messages = message_set._parse_mappings(data, search_paths)
-        raw_messages = merge(raw_messages, data.get('messages', {}))
+        for message_id, message in data.get('messages', {}).items():
+            message['id'] = message_id
+            raw_messages.append(message)
         message_set._parse_messages(raw_messages)
 
         return message_set
@@ -115,7 +129,7 @@ class JsonMessageSet(MessageSet):
         return buses
 
     def _parse_mappings(self, data, search_paths):
-        all_messages = {}
+        all_messages = []
         for mapping in data.get('mappings', []):
             if 'mapping' not in mapping:
                 fatal_error("Mapping is missing the mapping file path")
@@ -152,7 +166,8 @@ class JsonMessageSet(MessageSet):
                             messages)['messages'],
                         messages)
 
-            for message in messages.values():
+            for message_id, message in messages.items():
+                message['id'] = message_id
                 if 'bus' not in message:
                     message['bus'] = bus_name
                 if 'enabled' not in message:
@@ -160,35 +175,15 @@ class JsonMessageSet(MessageSet):
                 if 'bit_numbering_inverted' not in message:
                     message['bit_numbering_inverted'] = bit_numbering_inverted
 
-            all_messages = merge(all_messages, messages)
+            all_messages.extend(messages.values())
         return all_messages
 
     def _parse_messages(self, messages, default_bus=None):
-        for message_id, message_data in messages.items():
-            message = Message(self.buses,
-                    message_data.get('bus', None),
-                    message_id,
-                    message_data.get('name', None),
-                    message_data.get('bit_numbering_inverted',
-                        self.bit_numbering_inverted),
-                    message_data.get('handler', None),
-                    message_data.get('enabled', True))
-            if message.bus_name is None:
-                fatal_error("No default or explicit bus for message %s" %
-                        message_id)
-            for signal_name, signal in message_data['signals'].items():
-                states = []
-                for name, raw_matches in signal.get('states', {}).items():
-                    for raw_match in raw_matches:
-                        states.append(SignalState(raw_match, name))
-                signal.pop('states', None)
-                message.signals.append(Signal(
-                        self,
-                        message,
-                        signal_name,
-                        states=states,
-                        **signal))
-            if message.bus_name not in self.buses:
-                fatal_error("Bus '%s' (from message 0x%x) is not defined" %
-                        (message.bus_name, message.id))
-            self.buses[message.bus_name].add_message(message)
+        for message_data in messages:
+            message = self.buses[message_data['bus']].get_or_create_message(
+                    message_data['id'])
+            message.message_set = self
+            message.merge_message(message_data)
+            # TODO if we update message on the previous line, do we need to
+            # re-add it or is it a pointer?
+            #self.buses[message.bus_name].add_message(message)

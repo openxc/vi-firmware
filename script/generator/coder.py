@@ -92,15 +92,13 @@ class CodeGenerator(object):
                 self._max_message_count())
         lines.append("CanMessage CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {")
 
-        def block(message_set, message_set_index=None):
+        def block(message_set):
             lines = []
             for message_index, message in enumerate(message_set.all_messages()):
                 if not message.enabled:
                     warning("Skipping disabled message %s (0x%x)" %
                             (message.name, message.id))
                     continue
-                message.message_set_index = message_set_index
-                message.array_index = message_index
                 info("Added message '%s'" % message.name)
                 lines.append("        %s" % message)
             return lines
@@ -117,6 +115,7 @@ class CodeGenerator(object):
                 len(self.message_sets))
         lines.append("CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {")
         for i, message_set in enumerate(self.sorted_message_sets):
+            message_set.index = i
             lines.append(self._build_message_set(i, message_set))
         lines.append("};")
         lines.append("")
@@ -152,7 +151,7 @@ class CodeGenerator(object):
         lines.append("CanFilter* openxc::signals::initializeFilters("
                 "uint64_t address, int* count) {")
 
-        def block(message_set_index, message_set):
+        def block(message_set):
             lines = []
             lines.append("        switch(address) {")
             for bus in message_set.valid_buses():
@@ -207,11 +206,9 @@ class CodeGenerator(object):
     def _message_set_lister(self, block, indent=4):
         lines = []
         whitespace = " " * indent
-        for message_set_index, message_set in enumerate(
-                self.sorted_message_sets):
+        for message_set in self.sorted_message_sets:
             lines.append(whitespace + "{ // message set: %s" % message_set.name)
-            lines.extend(block(message_set,
-                    message_set_index=message_set_index))
+            lines.extend(block(message_set))
             lines.append(whitespace + "},")
         return lines
 
@@ -220,11 +217,10 @@ class CodeGenerator(object):
         whitespace = " " * indent
         lines.append(whitespace + "switch(getConfiguration()"
                 "->messageSetIndex) {")
-        for message_set_index, message_set in enumerate(
-                self.sorted_message_sets):
+        for message_set in self.sorted_message_sets:
             lines.append(whitespace + "case %d: // message set: %s" % (
-                    message_set_index, message_set.name))
-            lines.extend(block(message_set_index, message_set))
+                    message_set.index, message_set.name))
+            lines.extend(block(message_set))
             lines.append(whitespace * 2 + "break;")
             lines.append(whitespace + "}")
         return lines
@@ -233,7 +229,7 @@ class CodeGenerator(object):
         lines = []
         lines.append("CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {")
 
-        def block(message_set, message_set_index=None):
+        def block(message_set):
             lines = []
             i = 1
             for signal in message_set.all_signals():
@@ -241,7 +237,6 @@ class CodeGenerator(object):
                     warning("Skipping disabled signal '%s' (in 0x%x)" % (
                         signal.generic_name, signal.message.id))
                     continue
-                signal.message_set_index = message_set_index
                 signal.array_index = i - 1
                 lines.append("        %s" % signal)
                 info("Added signal '%s'" % signal.generic_name)
@@ -258,7 +253,7 @@ class CodeGenerator(object):
         lines = []
         lines.append("void openxc::signals::initialize() {")
 
-        def block(message_set_index, message_set):
+        def block(message_set):
             return ["        %s();" % initializer
                 for initializer in message_set.initializers]
         lines.extend(self._message_set_switcher(block))
@@ -269,7 +264,7 @@ class CodeGenerator(object):
     def _build_loop(self):
         lines = []
         lines.append("void openxc::signals::loop() {")
-        def block(message_set_index, message_set):
+        def block(message_set):
             return ["        %s();" % looper for looper in message_set.loopers]
         lines.extend(self._message_set_switcher(block))
         lines.append("}")
@@ -298,7 +293,7 @@ class CodeGenerator(object):
         lines.append("void openxc::signals::decodeCanMessage("
                 "Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {")
 
-        def block(message_set_index, message_set):
+        def block(message_set):
             lines = []
             lines.append(" " * 8 + "switch(bus->address) {")
             for bus in message_set.valid_buses():
@@ -309,7 +304,7 @@ class CodeGenerator(object):
                             message.name))
                     if message.handler is not None:
                         lines.append(" " * 16 + "%s(id, data, SIGNALS[%d], " % (
-                            message.handler, message_set_index) +
+                            message.handler, message_set.index) +
                                 "getSignalCount(), pipeline);")
                     for signal in sorted((s for s in message.signals),
                             key=operator.attrgetter('generic_name')):
@@ -318,11 +313,11 @@ class CodeGenerator(object):
                         line = " " * 16
                         line += ("can::read::translateSignal(pipeline, "
                                     "&SIGNALS[%d][%d], data, " %
-                                    (message_set_index, signal.array_index))
+                                    (message_set.index, signal.array_index))
                         if signal.handler:
                             line += "&%s, " % signal.handler
                         line += ("SIGNALS[%d], getSignalCount()); // %s" % (
-                            message_set_index, signal.name))
+                            message_set.index, signal.name))
                         lines.append(line)
                     lines.append("                break;")
                 lines.append("            }")

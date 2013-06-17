@@ -81,10 +81,11 @@ class CodeGenerator(object):
 
     def _build_message_set(self, index, message_set):
         info("Added message set '%s'" % message_set.name)
-        return "    { %d, \"%s\", %d, %d, %d }," % (index, message_set.name,
+        return "    { %d, \"%s\", %d, %d, %d, %d }," % (index, message_set.name,
                 len(list(message_set.valid_buses())),
                 len(list(message_set.active_messages())),
-                len(list(message_set.active_signals())))
+                len(list(message_set.active_signals())),
+                len(list(message_set.active_commands())))
 
     def _build_messages(self):
         lines = []
@@ -277,7 +278,7 @@ class CodeGenerator(object):
                 self._max_command_count())
         lines.append("CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {")
         def block(message_set, **kwargs):
-            for command in message_set.commands:
+            for command in message_set.all_commands():
                 if not command.enabled:
                     warning("Skipping disabled Command %s" % command.name)
                     continue

@@ -42,6 +42,15 @@ class MessageSet(object):
             if signal.enabled:
                 yield signal
 
+    def active_commands(self):
+        for command in self.all_commands():
+            if command.enabled:
+                yield command
+
+    def all_commands(self):
+        for command in sorted(self.commands, key=operator.attrgetter('name')):
+            yield command
+
     def all_signals(self):
         for message in self.all_messages():
             for signal in message.sorted_signals():
@@ -138,10 +147,10 @@ class JsonMessageSet(MessageSet):
 
     def _parse_mappings(self, data, search_paths):
         all_messages = []
-        commands = []
-        extra_sources = []
-        initializers = []
-        loopers = []
+        all_commands = []
+        all_extra_sources = []
+        all_initializers = []
+        all_loopers = []
 
         for mapping in data.get('mappings', []):
             if 'mapping' not in mapping:
@@ -166,10 +175,16 @@ class JsonMessageSet(MessageSet):
             mapping_data = load_json_from_search_path(mapping['mapping'],
                     search_paths)
 
-            commands.extend(mapping_data.get('commands', []))
-            initializers.extend(mapping_data.get('initializers', []))
-            loopers.extend(mapping_data.get('loopers', []))
-            extra_sources.extend(mapping_data.get('extra_sources', []))
+            commands = mapping_data.get('commands', [])
+            if not mapping_enabled:
+                for command in commands:
+                    command['enabled'] = False
+            all_commands.extend(commands)
+
+            if mapping_enabled:
+                all_initializers.extend(mapping_data.get('initializers', []))
+                all_loopers.extend(mapping_data.get('loopers', []))
+                all_extra_sources.extend(mapping_data.get('extra_sources', []))
 
             messages = mapping_data.get('messages', [])
             if len(messages) == 0:
@@ -184,17 +199,15 @@ class JsonMessageSet(MessageSet):
 
             for message_id, message in messages.items():
                 message['id'] = message_id
-                if 'bus' not in message:
-                    message['bus'] = bus_name
-                if 'enabled' not in message:
-                    message['enabled'] = mapping_enabled
+                message.setdefault('bus', bus_name)
+                message.setdefault('enabled', mapping_enabled)
             all_messages.extend(messages.values())
 
         return {'messages': all_messages,
-                'commands': commands,
-                'initializers': initializers,
-                'extra_sources': extra_sources,
-                'loopers': loopers}
+                'commands': all_commands,
+                'initializers': all_initializers,
+                'extra_sources': all_extra_sources,
+                'loopers': all_loopers}
 
     def _parse_messages(self, messages, default_bus=None):
         for message_data in messages:

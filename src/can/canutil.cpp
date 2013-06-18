@@ -10,7 +10,7 @@ using openxc::util::log::debugNoNewline;
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
 
 void openxc::can::initializeCommon(CanBus* bus) {
-    debugNoNewline("Initializing CAN node 0x%2x...", bus->address);
+    debugNoNewline("Initializing CAN node %d...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendMessage;

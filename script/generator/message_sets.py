@@ -22,10 +22,9 @@ class MessageSet(object):
         self.extra_sources = []
 
     def valid_buses(self):
-        for bus in sorted(self.buses.values(),
-                key=operator.attrgetter('controller')):
-            if bus.controller in VALID_BUS_ADDRESSES:
-                yield bus
+        valid_buses = [bus for bus in self.buses.values()
+                if bus.controller in VALID_BUS_ADDRESSES]
+        return sorted(valid_buses, key=operator.attrgetter('controller'))
 
     def active_messages(self):
         for message in self.all_messages():

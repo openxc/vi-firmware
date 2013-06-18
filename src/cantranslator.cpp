@@ -87,8 +87,10 @@ void updateDataLights() {
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
+#ifndef __DEBUG__
         busWasActive = false;
         platform::suspend(&pipeline);
+#endif
 #endif
     }
 }

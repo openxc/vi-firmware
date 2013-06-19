@@ -93,7 +93,7 @@ class MessageSet(object):
 
 class JsonMessageSet(MessageSet):
     @classmethod
-    def parse(cls, filename, search_paths=None):
+    def parse(cls, filename, search_paths=None, skip_disabled_mappings=False):
         search_paths = search_paths or []
 
         data = load_json_from_search_path(filename, search_paths)
@@ -116,7 +116,8 @@ class JsonMessageSet(MessageSet):
                 'bit_numbering_inverted', True)
         message_set.extra_sources = data.get('extra_sources', [])
 
-        mapping_config = message_set._parse_mappings(data, search_paths)
+        mapping_config = message_set._parse_mappings(data, search_paths,
+                skip_disabled_mappings)
         message_set.initializers.extend(mapping_config['initializers'])
         message_set.loopers.extend(mapping_config['loopers'])
         message_set.extra_sources.extend(mapping_config['extra_sources'])
@@ -144,7 +145,7 @@ class JsonMessageSet(MessageSet):
                         bus_name)
         return buses
 
-    def _parse_mappings(self, data, search_paths):
+    def _parse_mappings(self, data, search_paths, skip_disabled_mappings):
         all_messages = []
         all_commands = []
         all_extra_sources = []
@@ -158,10 +159,8 @@ class JsonMessageSet(MessageSet):
             mapping_enabled = mapping.get('enabled', True)
             if not mapping_enabled:
                 warning("Mapping '%s' is disabled" % mapping['mapping'])
-                # TODO we could speed up code generation by just skipping the
-                # mapping here, but that makes this class less useful as a
-                # general parser, since you may want to see which messages are
-                # disabled from code
+                if skip_disabled_mappings:
+                    continue
 
             bus_name = mapping.get('bus', None)
             if bus_name is None:

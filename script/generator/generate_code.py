@@ -67,7 +67,8 @@ def main():
 
     generator = CodeGenerator(search_paths)
     for filename in message_sets:
-        message_set = JsonMessageSet.parse(filename, search_paths=search_paths)
+        message_set = JsonMessageSet.parse(filename, search_paths=search_paths,
+                skip_disabled_mappings=True)
         if not message_set.validate_messages() or not message_set.validate_name():
             fatal_error("unable to generate code")
         generator.message_sets.append(message_set)

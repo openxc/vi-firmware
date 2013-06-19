@@ -19,7 +19,7 @@ class MessageSet(object):
         self.initializers = []
         self.loopers = []
         self.commands = []
-        self.extra_sources = []
+        self.extra_sources = set()
 
     def valid_buses(self):
         valid_buses = [bus for bus in self.buses.values()
@@ -114,13 +114,13 @@ class JsonMessageSet(MessageSet):
         message_set.buses = cls._parse_buses(data)
         message_set.bit_numbering_inverted = data.get(
                 'bit_numbering_inverted', True)
-        message_set.extra_sources = data.get('extra_sources', [])
+        message_set.extra_sources = set(data.get('extra_sources', set()))
 
         mapping_config = message_set._parse_mappings(data, search_paths,
                 skip_disabled_mappings)
         message_set.initializers.extend(mapping_config['initializers'])
         message_set.loopers.extend(mapping_config['loopers'])
-        message_set.extra_sources.extend(mapping_config['extra_sources'])
+        message_set.extra_sources.update(mapping_config['extra_sources'])
         for message_id, message in data.get('messages', {}).items():
             message['id'] = message_id
             mapping_config['messages'].append(message)
@@ -148,7 +148,7 @@ class JsonMessageSet(MessageSet):
     def _parse_mappings(self, data, search_paths, skip_disabled_mappings):
         all_messages = []
         all_commands = []
-        all_extra_sources = []
+        all_extra_sources = set()
         all_initializers = []
         all_loopers = []
 
@@ -182,7 +182,8 @@ class JsonMessageSet(MessageSet):
             if mapping_enabled:
                 all_initializers.extend(mapping_data.get('initializers', []))
                 all_loopers.extend(mapping_data.get('loopers', []))
-                all_extra_sources.extend(mapping_data.get('extra_sources', []))
+                all_extra_sources.update(
+                        set(mapping_data.get('extra_sources', set())))
 
             messages = mapping_data.get('messages', [])
             if len(messages) == 0:

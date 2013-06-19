@@ -16,105 +16,74 @@ void checkWritePermission(CanSignal* signal, bool* send) {
 
 uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, bool value, bool* send) {
-    return booleanWriter(signal, signals, signalCount, value, send, 0);
-}
-
-uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send, uint64_t data) {
     checkWritePermission(signal, send);
-    return encodeSignal(signal, value, data);
+    return encodeSignal(signal, value);
 }
 
 uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
-    return booleanWriter(signal, signals, signalCount, value, send, 0);
-}
-
-uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send, uint64_t data) {
     int intValue = 0;
     if(value->type == cJSON_False) {
         intValue = 0;
     } else if(value->type == cJSON_True) {
         intValue = 1;
     }
-    return booleanWriter(signal, signals, signalCount, intValue, send, 0);
+    return booleanWriter(signal, signals, signalCount, intValue, send);
 }
 
 uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, double value, bool* send) {
-    return numberWriter(signal, signals, signalCount, value, send, 0);
-}
-
-uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, double value, bool* send, uint64_t data) {
     checkWritePermission(signal, send);
-    return encodeSignal(signal, value, data);
+    return encodeSignal(signal, value);
 }
 
 uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
-    return numberWriter(signal, signals, signalCount, value, send, 0);
-}
-
-uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send, uint64_t data) {
-    return numberWriter(signal, signals, signalCount, value->valuedouble,
-            send, 0);
+    return numberWriter(signal, signals, signalCount, value->valuedouble, send);
 }
 
 uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send, uint64_t data) {
+        int signalCount, const char* value, bool* send) {
+    uint64_t result = 0;
     if(value == NULL) {
         debug("Can't write state of NULL -- not sending");
+        *send = false;
     } else {
         CanSignalState* signalState = lookupSignalState(value, signal, signals,
                 signalCount);
         if(signalState != NULL) {
             checkWritePermission(signal, send);
-            return encodeSignal(signal, signalState->value, data);
+            result = encodeSignal(signal, signalState->value);
         } else {
             debug("Couldn't find a valid signal state for \"%s\"", value);
+            *send = false;
         }
     }
-    *send = false;
-    return 0;
-}
-
-uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send) {
-    return stateWriter(signal, signals, signalCount, value, send, 0);
-}
-
-uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send, uint64_t data) {
-    if(value == NULL) {
-        debug("Can't write state of NULL -- not sending");
-    } else {
-        return stateWriter(signal, signals, signalCount, value->valuestring, send,
-                data);
-    }
-    *send = false;
-    return 0;
+    return result;
 }
 
 uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send) {
-    return stateWriter(signal, signals, signalCount, value, send, 0);
+    uint64_t result = 0;
+    if(value == NULL) {
+        debug("Can't write state of NULL -- not sending");
+        *send = false;
+    } else {
+        result = stateWriter(signal, signals, signalCount, value->valuestring,
+                send);
+    }
+    return result;
 }
 
 uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
-    return encodeSignal(signal, value, 0);
-}
-
-uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value, uint64_t data) {
     float rawValue = (value - signal->offset) / signal->factor;
     if(rawValue > 0) {
         // round up to avoid losing precision when we cast to an int
         rawValue += 0.5;
     }
-    setBitField(&data, rawValue, signal->bitPosition, signal->bitSize);
-    return data;
+    uint64_t result = 0;
+    setBitField(&result, rawValue, signal->bitPosition, signal->bitSize);
+    return result;
 }
 
 void openxc::can::write::enqueueMessage(CanMessage* message, uint64_t data) {

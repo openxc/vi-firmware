@@ -78,8 +78,7 @@ START_TEST (test_button_event_handler)
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
-    data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
-            &send, data);
+    data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -92,8 +91,7 @@ START_TEST (test_button_event_handler_bad_type)
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "bad",
             &send);
-    data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
-            &send, data);
+    data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -106,8 +104,7 @@ START_TEST (test_button_event_handler_correct_types)
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
-    data = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck",
-            &send, data);
+    data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -128,7 +125,7 @@ START_TEST (test_button_event_handler_bad_state)
     bool send = true;
     uint64_t data = stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
-    data = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 11, &send, data);
+    data += numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 11, &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -182,8 +179,7 @@ START_TEST (test_occupancy_handler_child)
     bool send = true;
     uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
             &send);
-    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
-            &send, data);
+    data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -203,8 +199,7 @@ START_TEST (test_occupancy_handler_adult)
     bool send = true;
     uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, true,
             &send);
-    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, true,
-            &send, data);
+    data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, true, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -224,8 +219,7 @@ START_TEST (test_occupancy_handler_empty)
     bool send = true;
     uint64_t data = booleanWriter(&SIGNALS[11], SIGNALS, SIGNAL_COUNT, false,
             &send);
-    data = booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false,
-            &send, data);
+    data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));

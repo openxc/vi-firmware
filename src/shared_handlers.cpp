@@ -304,13 +304,17 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
         signal = lookupSignal("turn_signal_right", signals, signalCount);
     }
 
+    bool sent = true;
     if(signal != NULL) {
-        return can::write::sendSignal(signal, cJSON_CreateBool(true),
-                booleanWriter, signals, signalCount, true);
+        cJSON* boolObject = cJSON_CreateBool(true);
+        can::write::sendSignal(signal, cJSON_CreateBool(true), booleanWriter,
+                signals, signalCount, true);
+        cJSON_Delete(boolObject);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
+        sent = false;
     }
-    return false;
+    return sent;
 }
 
 void sendOccupancyStatus(const char* seatId, uint64_t data,

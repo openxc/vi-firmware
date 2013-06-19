@@ -46,7 +46,7 @@ END_TEST
 START_TEST (test_full_network)
 {
     pipeline.network = &networkDevice;
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &pipeline.network->sendQueue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &pipeline.network->sendQueue));
@@ -59,7 +59,7 @@ END_TEST
 START_TEST (test_full_uart)
 {
     pipeline.uart = &uartDevice;
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &pipeline.uart->sendQueue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &pipeline.uart->sendQueue));
@@ -71,7 +71,7 @@ END_TEST
 
 START_TEST (test_full_usb)
 {
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &pipeline.usb->sendQueue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->sendQueue));

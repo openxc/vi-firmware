@@ -72,7 +72,7 @@ END_TEST
 
 START_TEST (test_full_clears)
 {
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
@@ -102,7 +102,7 @@ END_TEST
 
 START_TEST (test_enqueue_full)
 {
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
@@ -127,7 +127,7 @@ END_TEST
 
 START_TEST (test_enqueue_no_room_for_crlf)
 {
-    for(int i = 0; i < 503; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 9; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
 

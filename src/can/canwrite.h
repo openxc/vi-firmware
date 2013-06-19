@@ -44,6 +44,10 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 
 /* Public: Interpret the JSON value as a double, then do the same as
  * numberWriter(CanSignal*, CanSignal*, int, double, bool*).
+ *
+ * Be aware that this function is not responsible for any memory allocated for
+ * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
+ * this function if you created it with one of the cJSON_Create*() functions.
  */
 uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
@@ -67,6 +71,10 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
 
 /* Public: Interpret the JSON value as a string, then do the same as
  * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
+ *
+ * Be aware that this function is not responsible for any memory allocated for
+ * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
+ * this function if you created it with one of the cJSON_Create*() functions.
  */
 uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
@@ -89,6 +97,10 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
 
 /* Public: Interpret the JSON value as a boolean, then do the same as
  * numberWriter(CanSignal*, CanSignal*, int, bool, bool*).
+ *
+ * Be aware that this function is not responsible for any memory allocated for
+ * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
+ * this function if you created it with one of the cJSON_Create*() functions.
  */
 uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, cJSON* value, bool* send);
@@ -109,6 +121,10 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  * signalCount - The size of the signals array.
  * force - true if the signals should be sent regardless of the writable status
  *         in the CAN message structure.
+ *
+ * Be aware that this function is not responsible for any memory allocated for
+ * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
+ * this function if you created it with one of the cJSON_Create*() functions.
  *
  * Returns true if the message was sent successfully.
  */

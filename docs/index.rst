@@ -4,7 +4,7 @@ OpenXC CAN Translator
 
 .. image:: /_static/logo.png
 
-:Version: 4.0-dev
+:Version: 4.0
 :Web: http://openxcplatform.com
 :Documentation: http://openxcplatform.com/cantranslator/
 :Source: http://github.com/openxc/cantranslator

@@ -1,6 +1,6 @@
 # OpenXC CAN Translator Changelog
 
-## v4.0-dev
+## v4.0
 
 * BREAKING CHANGE: Add initialize() function to signals.h, must be
   implemented by vehicle platforms. generate_signals.py supports calling

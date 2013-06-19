@@ -36,7 +36,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "4.0-dev";
+const char* VERSION = "4.0";
 
 UartDevice UART_DEVICE;
 NetworkDevice NETWORK_DEVICE;

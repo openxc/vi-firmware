@@ -49,22 +49,22 @@ UART_BAUDRATE = 115200
 
 OSTYPE := $(shell uname)
 
-ifndef UART_PORT
+ifndef SERIAL_PORT
 	# Backwards compatibility with people using old name for this
 	ifdef ARDUINO_PORT
-		UART_PORT := $(ARDUINO_PORT)
+		SERIAL_PORT := $(ARDUINO_PORT)
 	endif
 endif
 
-ifndef UART_PORT
+ifndef SERIAL_PORT
 	ifeq ($(OSTYPE),Darwin)
-		UART_PORT = /dev/tty.usbserial*
+		SERIAL_PORT = /dev/tty.usbserial*
 	else
 		OSTYPE := $(shell uname -o)
 		ifeq ($(OSTYPE),Cygwin)
-			UART_PORT = com3
+			SERIAL_PORT = com3
 		else
-			UART_PORT = /dev/ttyUSB*
+			SERIAL_PORT = /dev/ttyUSB*
 		endif
 	endif
 endif

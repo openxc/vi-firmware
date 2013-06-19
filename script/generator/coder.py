@@ -7,7 +7,7 @@ import operator
 
 from common import warning, find_file, info
 
-GENERATED_CODE_VERSION = "4.0"
+GENERATED_CODE_VERSION = "4.1-dev"
 MAX_SIGNAL_STATES = 12
 base_path = os.path.dirname(sys.argv[0])
 

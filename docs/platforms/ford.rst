@@ -76,7 +76,8 @@ Logging will be on UART0, which is exposed on the bottom of the board at J3, a
 LED Lights
 ----------
 
-The Ford prototype has 2 RGB LEDs.
+The Ford prototype has 2 RGB LEDs. If the LEDs are a dim green and red, then the
+firmware was not flashed properly and the board is not running.
 
 **LED A**
 

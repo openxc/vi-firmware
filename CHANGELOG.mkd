@@ -1,5 +1,9 @@
 # OpenXC CAN Translator Changelog
 
+## v4.0.1-dev
+
+* Fix FleetCarma build and issues with PIC32 USB interface
+
 ## v4.0
 
 * BREAKING CHANGE: Add initialize() function to signals.h, must be

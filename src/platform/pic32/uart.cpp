@@ -50,7 +50,6 @@
 
 namespace gpio = openxc::gpio;
 
-using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::util::bytebuffer::processQueue;
 
 extern HardwareSerial Serial;
@@ -94,7 +93,8 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     // bit of a mess.
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
 
-    gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN, GPIO_DIRECTION_INPUT);
+    gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
+            gpio::GPIO_DIRECTION_INPUT);
 
     debug("Done.");
 }
@@ -126,12 +126,12 @@ bool openxc::interface::uart::connected(UartDevice* device) {
 #else
 
     bool status = false;
-    GpioValue value = gpio::getValue(UART_STATUS_PORT, UART_STATUS_PIN);
+    gpio::GpioValue value = gpio::getValue(UART_STATUS_PORT, UART_STATUS_PIN);
     switch(value) {
-        case GPIO_VALUE_HIGH:
+        case gpio::GPIO_VALUE_HIGH:
             status = UART_STATUS_PIN_POLARITY ? true : false;
             break;
-        case GPIO_VALUE_LOW:
+        case gpio::GPIO_VALUE_LOW:
             status = UART_STATUS_PIN_POLARITY ? false : true;
             break;
          default:

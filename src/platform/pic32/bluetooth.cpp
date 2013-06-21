@@ -5,6 +5,10 @@
 namespace gpio = openxc::gpio;
 
 using openxc::gpio::GpioValue;
+using openxc::gpio::GPIO_DIRECTION_OUTPUT;
+using openxc::gpio::GPIO_DIRECTION_INPUT;
+using openxc::gpio::GPIO_VALUE_HIGH;
+using openxc::gpio::GPIO_VALUE_LOW;
 
 #if defined(FLEETCARMA)
 
@@ -22,10 +26,10 @@ using openxc::gpio::GpioValue;
 
 void setBluetoothStatus(bool enabled) {
 #ifdef BLUETOOTH_SUPPORT
-    GpioValue value = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
-
+    enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
     debug("Turning Bluetooth %s", enabled ? "on" : "off");
-    gpio::setValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN, value);
+    gpio::setValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
+            enabled ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
 #endif
 }
 
@@ -36,8 +40,6 @@ void openxc::bluetooth::initialize() {
     // initialize bluetooth enable and status pins
     gpio::setDirection(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
             GPIO_DIRECTION_OUTPUT);
-    gpio::setDirection(BLUETOOTH_STATUS_PORT, BLUETOOTH_STATUS_PIN,
-            GPIO_DIRECTION_INPUT);
 
     setBluetoothStatus(true);
 

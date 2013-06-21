@@ -30,7 +30,9 @@ GREEN="$${txtbld}$$(tput setaf 2)"
 COLOR_RESET=$$(tput sgr0)
 
 test: unit_tests
-	@make pic32_compile_test
+	@make default_pic32_compile_test
+	@make chipkit_compile_test
+	@make fleetcarma_compile_test
 	@make lpc17xx_compile_test
 	@make ford_test
 	@make emulator_test
@@ -99,9 +101,21 @@ network_compile_test: code_generation_test
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
-pic32_compile_test: code_generation_test
-	@echo -n "Testing chipKIT build with example vehicle signals..."
+default_pic32_compile_test: code_generation_test
+	@echo -n "Testing default platform build (chipKIT) with example vehicle signals..."
 	@make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+chipkit_compile_test: code_generation_test
+	@echo -n "Testing chipKIT build with example vehicle signals..."
+	@PLATFORM=CHIPKIT make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+fleetcarma_compile_test: code_generation_test
+	@echo -n "Testing FleetCarma build with example vehicle signals..."
+	@PLATFORM=FLEETCARMA make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

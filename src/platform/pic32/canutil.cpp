@@ -15,6 +15,9 @@ namespace gpio = openxc::gpio;
 using openxc::gpio::GpioValue;
 using openxc::util::log::debugNoNewline;
 using openxc::signals::initializeFilters;
+using openxc::gpio::GPIO_VALUE_LOW;
+using openxc::gpio::GPIO_VALUE_HIGH;
+using openxc::gpio::GPIO_DIRECTION_OUTPUT;
 
 CAN can1Actual(CAN::CAN1);
 CAN can2Actual(CAN::CAN2);

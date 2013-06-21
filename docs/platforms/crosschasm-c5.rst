@@ -39,9 +39,12 @@ The C5 units offered directly from the [CrossChasm
 website](http://crosschasm.com/SolutionCenter/OpenXC.aspx) are pre-programmed
 with the bootloader.
 
-If you need to reflash the bootloader yourself, you will need to install MPLAB
-X, open the bootloader project, compile and flash the C5 via ICSP. We've tested
-this from Windows and Linux using the Microchip PICkit 3 programmer.
+If you need to reflash the bootloader yourself, a ready-to-go .hex file is
+available in the [GitHub
+repository](https://raw.github.com/openxc/PIC32-avrdude-bootloader/master/bootloaders/CrossChasm-C5-USB.hex)
+and you can flash it with MPLAB IDE/IPE and an ICSP programmer like the
+Microchip PICkit 3. You can also build it from source in MPLAB by using the
+`CrossChasm C5` configuration.
 
 Compiling
 ---------

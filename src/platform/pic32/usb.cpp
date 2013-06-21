@@ -3,7 +3,12 @@
 #include "util/log.h"
 #include "gpio.h"
 
+#ifdef CHIPKIT
+
 #define USB_VBUS_ANALOG_INPUT A0
+
+#endif
+
 #define USB_HANDLE_MAX_WAIT_COUNT 35000
 
 namespace gpio = openxc::gpio;
@@ -46,7 +51,11 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 }
 
 bool vbusEnabled() {
+#ifdef USB_VBUS_ANALOG_INPUT
     return analogRead(USB_VBUS_ANALOG_INPUT) < 100;
+#else
+    return true;
+#endif
 }
 
 bool waitForHandle(UsbDevice* usbDevice) {
@@ -126,7 +135,9 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
+#ifdef USB_VBUS_ANALOG_INPUT
     gpio::setDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
+#endif
     debug("Done.");
 }
 

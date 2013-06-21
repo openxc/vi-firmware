@@ -52,7 +52,7 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 
 bool vbusEnabled() {
 #ifdef USB_VBUS_ANALOG_INPUT
-    return analogRead(USB_VBUS_ANALOG_INPUT) < 100;
+    return analogRead(USB_VBUS_ANALOG_INPUT) > 100;
 #else
     return true;
 #endif
@@ -82,10 +82,7 @@ bool waitForHandle(UsbDevice* usbDevice) {
 
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
-    if(usbDevice->configured && vbusEnabled()) {
-        // if there's nothing attached to the analog input it floats at ~828, so
-        // if we're powering the board from micro-USB (and the jumper is going
-        // to 5v and not the analog input), this is still OK.
+    if(usbDevice->configured && !vbusEnabled()) {
         debug("USB no longer detected - marking unconfigured");
         usbDevice->configured = false;
     }

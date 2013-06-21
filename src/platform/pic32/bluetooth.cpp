@@ -10,7 +10,7 @@ using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 
-#ifdef FLEETCARMA
+#ifdef CROSSCHASM_C5
 
     #define BLUETOOTH_SUPPORT
 

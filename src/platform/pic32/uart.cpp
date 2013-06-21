@@ -27,7 +27,7 @@
 #include "gpio.h"
 #include "WProgram.h"
 
-#if defined(FLEETCARMA)
+#if defined(CROSSCHASM_C5)
 
     #define UART_STATUS_PORT 0
     #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)

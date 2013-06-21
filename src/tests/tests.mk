@@ -32,7 +32,7 @@ COLOR_RESET=$$(tput sgr0)
 test: unit_tests
 	@make default_pic32_compile_test
 	@make chipkit_compile_test
-	@make fleetcarma_compile_test
+	@make c5_compile_test
 	@make lpc17xx_compile_test
 	@make ford_test
 	@make emulator_test
@@ -113,9 +113,9 @@ chipkit_compile_test: code_generation_test
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
-fleetcarma_compile_test: code_generation_test
-	@echo -n "Testing FleetCarma build with example vehicle signals..."
-	@PLATFORM=FLEETCARMA make -j4
+c5_compile_test: code_generation_test
+	@echo -n "Testing CrossChasm C5 build with example vehicle signals..."
+	@PLATFORM=CROSSCHASM_C5 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

@@ -20,7 +20,7 @@ PIC32
 Two PIC32 boards are supported:
 
 * :doc:`Digilent chipKIT Max32 <max32>`
-* :doc:`FleetCarma Data Logger <fleetcarma>`
+* :doc:`CrossChasm C5 OBD Interface <crosschasm-c5>`
 
 Troubleshooting PIC32 Boards
 ----------------------------

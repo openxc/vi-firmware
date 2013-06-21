@@ -1,7 +1,7 @@
 #include "lights.h"
 #include "gpio.h"
 
-#if defined(FLEETCARMA)
+#if defined(CROSSCHASM_C5)
 
     #define USER_LED_A_SUPPORT
     #define USER_LED_A_POLARITY 0 // turn on LED = drive pin low

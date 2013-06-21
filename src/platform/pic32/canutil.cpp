@@ -4,7 +4,7 @@
 #include "util/log.h"
 #include "gpio.h"
 
-#if defined(FLEETCARMA)
+#if defined(CROSSCHASM_C5)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
     #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)

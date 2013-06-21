@@ -2,7 +2,8 @@
 
 ## v4.0.1-dev
 
-* Fix FleetCarma build and issues with PIC32 USB interface
+* Rename FleetCarma to CrossChasm C5 (to reflect true product name)
+* Fix build and issues with PIC32 USB interface, including C5
 
 ## v4.0
 

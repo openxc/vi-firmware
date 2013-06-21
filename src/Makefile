@@ -30,7 +30,7 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD FLEETCARMA
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
 ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
@@ -50,7 +50,7 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
-else ifeq ($(PLATFORM), FLEETCARMA)
+else ifeq ($(PLATFORM), CROSSCHASM_C5)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk

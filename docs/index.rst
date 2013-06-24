@@ -6,7 +6,7 @@ OpenXC CAN Translator
 
 :Version: 4.0
 :Web: http://openxcplatform.com
-:Documentation: http://openxcplatform.com/cantranslator/
+:Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/cantranslator
 
 About

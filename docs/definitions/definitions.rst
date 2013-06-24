@@ -57,26 +57,20 @@ functions from ``signals.h``:
 You have three options to get a working vehicle interface:
 
 * Use a :doc:`pre-built binary firmware </installation/binary>` from an automaker
-* Create a :doc:`JSON message mapping <mappings>` and use the provided scripts
-  to auto-generate an implementation of ``signals.h``. Knowledge of the vehicle's
-  CAN message is also required for this method.
+* Create a message set mapping and use the `OpenXC Python library
+  <http://python.openxcplatform.com>`_ to auto-generate an implementation of
+  ``signals.h``. Knowledge of the vehicle's CAN message is required for this
+  method.
 * Implement the ``signals.h`` functions manually
 
 Auto-generated from Mapping
 ===========================
 
-The code auto-generation script accepts a :doc:`JSON input file <mappings>` that
-defines the CAN buses, message and signals of interest and outputs an
-implementation of the ``signals.h`` functions that can understand and translate
-that vehicle data. This is the recommended approach if you have custom CAN
-messages - it's much nicer than implementing a ``signals.cpp`` file by hand.
-
-You must know the CAN message formats of the vehicle you want to use with the
-vehicle interface, as you cannot create these input files without that
-knowledge.
+The code generation tools are documented in the `code generation input
+definitions <http://python.openxcplatform.com/code-generation.html>`_.
 
 Once you've defined your message set in a JSON file, install the `OpenXC Python
-library <http://python.openxcplatform.com`_, then run the
+library <http://python.openxcplatform.com>`_, then run the
 `openxc-generate-firmware-code` tool to create an implementation of
 ``signals.cpp``:
 
@@ -86,7 +80,7 @@ library <http://python.openxcplatform.com`_, then run the
 
 The firmware should now :doc:`compile </installation/compiling>`! Don't modify
 the ``signals.cpp`` file manually, since it's generated you should expect it to
-be wiped and recreated at any time. Always make changes to the JSON instead.
+be wiped and recreated at any time; always make changes to the JSON instead.
 
 Manual Implementation
 =====================

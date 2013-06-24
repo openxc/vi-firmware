@@ -6,6 +6,7 @@ dependencies:
 
 * Git
 * ``cantranslator`` :ref:`source code <source>` cloned with Git - not from a .zip file
+* `OpenXC Python library <http://python.openxcplatform.com>`_
 * :ref:`MPIDE <mpidedep>`
 * Digilent's USB and CAN :ref:`libraries for the chipKIT <chipkit-libs>`
 * :ref:`FTDI driver <ftdi>`

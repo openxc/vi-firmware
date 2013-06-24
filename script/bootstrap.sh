@@ -22,8 +22,7 @@ if ! command -v make >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "make"
     elif [ $OS == "mac" ]; then
-            echo "Missing 'make' - install the Xcode CLI tools"
-	    die
+            die "Missing 'make' - install the Xcode CLI tools"
     else
         if [ $DISTRO == "arch" ]; then
             sudo pacman -S base-devel
@@ -277,6 +276,19 @@ if ! python -c "import argparse"; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "python-argparse"
     fi
+fi
+
+if ! command -v pip >/dev/null 2>&1; then
+    echo "Installing Python..."
+    if ! command -v easy_install >/dev/null 2>&1; then
+        die "easy_install not available, can't install pip"
+    fi
+    # TODO root may not be required here for some people
+    sudo easy_install pip
+fi
+
+if ! python -c "import openxc"; then
+    pip install openxc
 fi
 
 popd

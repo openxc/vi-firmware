@@ -75,12 +75,14 @@ You must know the CAN message formats of the vehicle you want to use with the
 vehicle interface, as you cannot create these input files without that
 knowledge.
 
-Once you've defined your message set in a JSON file, run the
-``generate_code.py`` script to create an implementation of ``signals.cpp``:
+Once you've defined your message set in a JSON file, install the `OpenXC Python
+library <http://python.openxcplatform.com`_, then run the
+`openxc-generate-firmware-code` tool to create an implementation of
+``signals.cpp``:
 
 .. code-block:: sh
 
-    cantranslator/ $ script/generator/generate_code.py --message-set mycar.json > src/signals.cpp
+    cantranslator/ $ openxc-generate-firmware-code --message-set mycar.json > src/signals.cpp
 
 The firmware should now :doc:`compile </installation/compiling>`! Don't modify
 the ``signals.cpp`` file manually, since it's generated you should expect it to

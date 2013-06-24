@@ -22,7 +22,7 @@ TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)
 TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 
-GENERATOR = ../script/generator/generate_code.py
+GENERATOR = openxc-generate-firmware-code
 .PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
 RED="$${txtbld}$$(tput setaf 1)"

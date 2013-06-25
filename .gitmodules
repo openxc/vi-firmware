@@ -16,3 +16,6 @@
 [submodule "src/libs/emqueue"]
 	path = src/libs/emqueue
 	url = https://github.com/openxc/emqueue
+[submodule "src/libs/AT-commander"]
+	path = src/libs/AT-commander
+	url = https://github.com/openxc/AT-commander

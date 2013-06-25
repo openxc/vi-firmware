@@ -8,6 +8,7 @@ namespace interface {
 namespace uart {
 
 extern const int MAX_MESSAGE_SIZE;
+extern const int BAUD_RATE;
 
 /* Public: A container for a UART connection with queues for both input and
  * output.
@@ -42,6 +43,10 @@ void initializeCommon(UartDevice* device);
  * the receive buffer.
  */
 void initialize(UartDevice* device);
+
+/* Public: Common procedures to run after initializing UART.
+ */
+void postInitializeCommon(UartDevice* device);
 
 /* Public: Send any bytes in the outgoing data queue out over the UART
  * connection.

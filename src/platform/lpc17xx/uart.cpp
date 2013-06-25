@@ -9,7 +9,6 @@
 
 // Only UART1 supports hardware flow control, so this has to be UART1
 #define UART1_DEVICE (LPC_UART_TypeDef*)LPC_UART1
-#define UART_BAUDRATE 230000
 
 #define UART_STATUS_PORT 0
 #define UART_STATUS_PIN 18

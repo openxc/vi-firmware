@@ -15,6 +15,7 @@ LIBS_PATH = libs
 CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
 INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
+				-I./$(LIBS_PATH)/AT-commander/atcommander \
 				-I./$(LIBS_PATH)/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
 ifeq ($(BOOTLOADER), 1)
@@ -57,8 +58,6 @@ LIB_C_SRCS += $(wildcard $(LIBS_PATH)/BSP/LPCXpressoBase_RevB/*.c)
 LIB_C_SRCS += $(CMSIS_PATH)/src/core_cm3.c
 LIB_C_SRCS += $(CMSIS_PATH)/src/system_LPC17xx.c
 LIB_C_SRCS += $(wildcard $(DRIVER_PATH)/src/*.c)
-LIB_C_SRCS += $(LIBS_PATH)/cJSON/cJSON.o
-LIB_C_SRCS += $(LIBS_PATH)/emqueue/emqueue.o
 ARM_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/lpc17xx/*.cpp)
 ARM_OBJ_FILES = $(ARM_C_SRCS:.c=.o) $(ARM_CPP_SRCS:.cpp=.o) $(LIB_C_SRCS:.c=.o)
 OBJECTS = $(patsubst %,$(OBJDIR)/%,$(ARM_OBJ_FILES))

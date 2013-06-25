@@ -8,9 +8,7 @@ ifndef JTAG_INTERFACE
 	JTAG_INTERFACE = olimex-arm-usb-ocd
 endif
 
-OBJDIR = build/lpc17xx
 OPENOCD_CONF_BASE = ../conf/openocd
-TARGET = $(BASE_TARGET)-lpc17xx
 LIBS_PATH = libs
 CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib

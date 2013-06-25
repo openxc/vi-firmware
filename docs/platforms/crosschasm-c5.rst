@@ -4,10 +4,10 @@ CrossChasm C5 Interface
 CrossChasm's C5 OBD interface is compatible with the OpenXC cantranslator
 firmware. To build for the C5, compile with the flag ``PLATFORM=CROSSCHASM_C5``.
 
-CrossChasm has made the C5 [available for
-purchase](http://crosschasm.com/SolutionCenter/OpenXC.aspx) from their website,
-and it comes pre-loaded with the correct bootloader, so you don't need any
-additional hardware to load the OpenXC firmware.
+CrossChasm has made the C5 `available for purchase
+<http://crosschasm.com/SolutionCenter/OpenXC.aspx>`_ from their website, and it
+comes pre-loaded with the correct bootloader, so you don't need any additional
+hardware to load the OpenXC firmware.
 
 Flashing a Pre-compiled Firmware
 --------------------------------

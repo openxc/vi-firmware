@@ -1,6 +1,6 @@
 # OpenXC CAN Translator Changelog
 
-## v4.0.1-dev
+## v4.0.1
 
 * Rename FleetCarma to CrossChasm C5 (to reflect true product name)
 * Fix build and issues with PIC32 USB interface, including C5

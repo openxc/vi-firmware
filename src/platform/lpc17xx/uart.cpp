@@ -225,8 +225,8 @@ void configureUart(int baud) {
     UART_Init(UART1_DEVICE, &UARTConfigStruct);
 
     configureFifo();
-    configureFlowControl();
     configureInterrupts();
+    configureFlowControl();
 
     TRANSMIT_INTERRUPT_STATUS = RESET;
 }
@@ -262,9 +262,6 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             GpioDirection::GPIO_DIRECTION_INPUT);
 
-    configureUartPins();
-    configureUart(BAUD_RATE);
-
     AtCommanderConfig config = {AT_PLATFORM_RN42};
 
     config.baud_rate_initializer = configureUart;
@@ -273,7 +270,8 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     config.delay_function = delay;
     config.log_function = debugNoNewline;
 
-    delayMs(1000);
+    configureUartPins();
+
     if(at_commander_set_baud(&config, BAUD_RATE)) {
         debug("Successfully set baud rate");
         at_commander_reboot(&config);

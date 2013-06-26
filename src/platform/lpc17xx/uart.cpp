@@ -181,7 +181,10 @@ void configureFlowControl() {
     UART_IntConfig(UART1_DEVICE, UART1_INTCFG_MS, ENABLE);
     // Enable CTS1 signal transition interrupt
     UART_IntConfig(UART1_DEVICE, UART1_INTCFG_CTS, ENABLE);
-    resumeReceive();
+
+    // TODO why is this neccessary? what aren't we doing correctly with flow
+    // controlled receive?
+    UART_FullModemConfigMode(LPC_UART1, UART1_MODEM_MODE_AUTO_RTS, ENABLE);
 }
 
 void configureUartPins() {
@@ -278,6 +281,10 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     } else {
         debug("Unable to set baud rate of attached UART device");
     }
+
+    // TODO
+    QUEUE_INIT(uint8_t, &device->receiveQueue);
+    UART_FullModemConfigMode(LPC_UART1, UART1_MODEM_MODE_AUTO_RTS, DISABLE);
 
     debug("Done.");
 }

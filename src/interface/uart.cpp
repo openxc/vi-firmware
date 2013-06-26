@@ -2,7 +2,7 @@
 #include "util/log.h"
 #include <stddef.h>
 
-const int openxc::interface::uart::BAUD_RATE = 230000;
+const int openxc::interface::uart::BAUD_RATE = 230400;
 const int openxc::interface::uart::MAX_MESSAGE_SIZE = 128;
 
 using openxc::util::log::debugNoNewline;

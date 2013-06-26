@@ -210,19 +210,25 @@ void configureFifo() {
     UART_FIFOConfig(UART1_DEVICE, &fifoConfig);
 }
 
-void configureUart(int baud) {
-    UART_CFG_Type UARTConfigStruct;
-    UART_ConfigStructInit(&UARTConfigStruct);
-    UARTConfigStruct.Baud_rate = baud;
-    UART_Init(UART1_DEVICE, &UARTConfigStruct);
-}
-
 void configureInterrupts() {
     UART_IntConfig(UART1_DEVICE, UART_INTCFG_RBR, ENABLE);
     enableTransmitInterrupt();
     /* preemption = 1, sub-priority = 1 */
     NVIC_SetPriority(UART1_IRQn, ((0x01<<3)|0x01));
     NVIC_EnableIRQ(UART1_IRQn);
+}
+
+void configureUart(int baud) {
+    UART_CFG_Type UARTConfigStruct;
+    UART_ConfigStructInit(&UARTConfigStruct);
+    UARTConfigStruct.Baud_rate = baud;
+    UART_Init(UART1_DEVICE, &UARTConfigStruct);
+
+    configureFifo();
+    configureFlowControl();
+    configureInterrupts();
+
+    TRANSMIT_INTERRUPT_STATUS = RESET;
 }
 
 void writeByte(uint8_t byte) {
@@ -248,14 +254,6 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     }
     initializeCommon(device);
 
-    configureUartPins();
-    configureUart(BAUD_RATE);
-    configureFifo();
-    configureFlowControl();
-    configureInterrupts();
-
-    TRANSMIT_INTERRUPT_STATUS = RESET;
-
     // Configure P0.18 as an input, pulldown
     LPC_PINCON->PINMODE1 |= (1 << 5);
     // Ensure BT reset line is held high.
@@ -264,6 +262,9 @@ void openxc::interface::uart::initialize(UartDevice* device) {
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             GpioDirection::GPIO_DIRECTION_INPUT);
+
+    configureUartPins();
+    configureUart(BAUD_RATE);
 
     AtCommanderConfig config = {AT_PLATFORM_RN42};
 

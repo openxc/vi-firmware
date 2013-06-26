@@ -1,5 +1,4 @@
 BOARD_TAG = mega_pic32
-TARGET = $(BASE_TARGET)-pic32
 
 ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue AT-commander/atcommander
 ifdef NETWORK
@@ -43,7 +42,6 @@ endif
 
 NO_CORE_MAIN_FUNCTION = 1
 SKIP_SUFFIX_CHECK = 1
-OBJDIR = build/pic32
 
 UART_BAUDRATE = 115200
 

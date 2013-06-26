@@ -35,6 +35,9 @@ ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
+OBJDIR = build/$(PLATFORM)
+TARGET = $(BASE_TARGET)-$(PLATFORM)
+
 CROSSPLATFORM_C_SRCS = $(wildcard *.c)
 CROSSPLATFORM_C_SRCS += $(wildcard can/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard interface/*.c)

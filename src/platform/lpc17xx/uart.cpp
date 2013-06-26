@@ -43,6 +43,7 @@
 namespace gpio = openxc::gpio;
 
 using openxc::util::time::delayMs;
+using openxc::util::log::debugNoNewline;
 using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GpioValue;
@@ -270,10 +271,11 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     config.write_function = writeByte;
     config.read_function = readByte;
     config.delay_function = delay;
-    config.log_function = NULL;
+    config.log_function = debugNoNewline;
 
     delayMs(1000);
     if(at_commander_set_baud(&config, BAUD_RATE)) {
+        debug("Successfully set baud rate");
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

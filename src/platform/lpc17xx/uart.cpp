@@ -259,7 +259,6 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     LPC_PINCON->PINMODE1 |= (1 << 5);
     // Ensure BT reset line is held high.
     LPC_GPIO1->FIODIR |= (1 << 17);
-    LPC_GPIO1->FIOPIN |= (1 << 17);
     debug("Done.");
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,

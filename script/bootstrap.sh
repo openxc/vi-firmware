@@ -288,7 +288,7 @@ if ! command -v pip >/dev/null 2>&1; then
 fi
 
 if ! python -c "import openxc"; then
-    pip install openxc
+    pip install -U openxc
 fi
 
 popd

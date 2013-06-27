@@ -1,7 +1,7 @@
 #include "util/timer.h"
 #include "WProgram.h"
 
-void openxc::util::time::delayMs(int delayInMs) {
+void openxc::util::time::delayMs(unsigned long delayInMs) {
     delay(delayInMs);
 }
 

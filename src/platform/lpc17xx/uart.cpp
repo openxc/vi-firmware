@@ -244,11 +244,6 @@ int readByte() {
     return -1;
 }
 
-// TODO this is stupid, fix the at-commander API
-void delay(long unsigned int delayInMs) {
-    delayMs(delayInMs);
-}
-
 void openxc::interface::uart::initialize(UartDevice* device) {
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
@@ -269,7 +264,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     config.baud_rate_initializer = configureUart;
     config.write_function = writeByte;
     config.read_function = readByte;
-    config.delay_function = delay;
+    config.delay_function = delayMs;
     config.log_function = debugNoNewline;
 
     configureUartPins();

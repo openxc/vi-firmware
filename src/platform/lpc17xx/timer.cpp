@@ -15,7 +15,7 @@ void SysTick_Handler() {
 
 }
 
-void openxc::util::time::delayMs(int delayInMs) {
+void openxc::util::time::delayMs(unsigned long delayInMs) {
     TIM_TIMERCFG_Type delayTimerConfig;
     TIM_ConfigStructInit(TIM_TIMER_MODE, &delayTimerConfig);
     TIM_Init(DELAY_TIMER, TIM_TIMER_MODE, &delayTimerConfig);

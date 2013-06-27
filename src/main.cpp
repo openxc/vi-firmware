@@ -37,8 +37,9 @@ extern void setup();
 extern void loop();
 
 const char* VERSION = "4.0.1";
+const int UART_BAUD_RATE = 230400;
 
-UartDevice UART_DEVICE;
+UartDevice UART_DEVICE = {UART_BAUD_RATE};
 NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {

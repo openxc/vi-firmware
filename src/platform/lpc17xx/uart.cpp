@@ -275,7 +275,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     configureUartPins();
 
     delayMs(500);
-    if(at_commander_set_baud(&config, BAUD_RATE)) {
+    if(at_commander_set_baud(&config, device->baudRate)) {
         debug("Successfully set baud rate");
         at_commander_reboot(&config);
     } else {

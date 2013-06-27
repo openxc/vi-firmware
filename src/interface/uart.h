@@ -19,6 +19,7 @@ extern const int BAUD_RATE;
  * device - A pointer to the hardware UART device to use for OpenXC messages.
  */
 typedef struct {
+    int baudRate;
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
     // host to device

@@ -81,12 +81,12 @@ static openxc::interface::uart::UartDevice* UART_DEVICE;
  * irrelevant.
  */
 void setBaudRate(int baud) {
-    ((HardwareSerial*)UART_DEVICE->controller)->begin(openxc::interface::uart::BAUD_RATE);
+    ((HardwareSerial*)UART_DEVICE->controller)->begin(baud);
     // Override baud rate setup to allow baud rates 200000 (see
     // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
     // eventually make it into the MPIDE toolchain)
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 /
-            openxc::interface::uart::BAUD_RATE) - 1);
+            baud) - 1);
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
             (1 << _UARTMODE_BRGH);
 }
@@ -122,7 +122,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     initializeCommon(device);
     device->controller = &Serial;
     UART_DEVICE = device;
-    setBaudRate(BAUD_RATE);
+    setBaudRate(device->baudRate);
     enableFlowControl(device);
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
@@ -136,7 +136,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     config.log_function = NULL;
 
     if(connected(device)) {
-        if(at_commander_set_baud(&config, BAUD_RATE)) {
+        if(at_commander_set_baud(&config, device->baudRate)) {
             at_commander_reboot(&config);
         } else {
             debug("Unable to set baud rate of external UART device");

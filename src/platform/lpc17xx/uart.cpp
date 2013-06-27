@@ -231,6 +231,8 @@ void configureUart(int baud) {
     configureInterrupts();
     configureFlowControl();
 
+    resumeReceive();
+
     TRANSMIT_INTERRUPT_STATUS = RESET;
 }
 

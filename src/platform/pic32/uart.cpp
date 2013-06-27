@@ -72,16 +72,11 @@ void openxc::interface::uart::read(UartDevice* device,
     }
 }
 
-// the AT-commander functions need a reference to the device but it's not passed
-// in as an argument
-// TODO modify AT-commander API to send a void* that may be the device
-static openxc::interface::uart::UartDevice* UART_DEVICE;
-
 /*TODO this is hard coded for UART1 anyway, so the argument is kind of
  * irrelevant.
  */
-void setBaudRate(int baud) {
-    ((HardwareSerial*)UART_DEVICE->controller)->begin(baud);
+void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
+    ((HardwareSerial*)device->controller)->begin(baud);
     // Override baud rate setup to allow baud rates 200000 (see
     // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
     // eventually make it into the MPIDE toolchain)
@@ -98,19 +93,19 @@ void setBaudRate(int baud) {
  * this, and the alternative UART libraries provided by Microchip are a
  * bit of a mess.
  *
- * TODO this is hard coded for UART1 anyway, so the argument is kind of
- * irrelevant
+ * This is hard coded for UART1 anyway, so the 'device' argument is kind of
+ * irrelevant.
  */
 void enableFlowControl(openxc::interface::uart::UartDevice* device) {
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
 }
 
-void writeByte(uint8_t byte) {
-    ((HardwareSerial*)UART_DEVICE->controller)->write(byte);
+void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte) {
+    ((HardwareSerial*)device->controller)->write(byte);
 }
 
-int readByte() {
-    return ((HardwareSerial*)UART_DEVICE->controller)->read();
+int openxc::interface::uart::readByte(UartDevice* device) {
+    return ((HardwareSerial*)device->controller)->read();
 }
 
 void openxc::interface::uart::initialize(UartDevice* device) {
@@ -121,27 +116,11 @@ void openxc::interface::uart::initialize(UartDevice* device) {
 
     initializeCommon(device);
     device->controller = &Serial;
-    UART_DEVICE = device;
-    setBaudRate(device->baudRate);
+    changeBaudRate(device, device->baudRate);
     enableFlowControl(device);
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             gpio::GPIO_DIRECTION_INPUT);
-
-    AtCommanderConfig config = {AT_PLATFORM_RN42};
-    config.baud_rate_initializer = setBaudRate;
-    config.write_function = writeByte;
-    config.read_function = readByte;
-    config.delay_function = delay;
-    config.log_function = NULL;
-
-    if(connected(device)) {
-        if(at_commander_set_baud(&config, device->baudRate)) {
-            at_commander_reboot(&config);
-        } else {
-            debug("Unable to set baud rate of external UART device");
-        }
-    }
 
     debug("Done.");
 }

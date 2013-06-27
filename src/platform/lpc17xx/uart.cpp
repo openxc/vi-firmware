@@ -3,10 +3,8 @@
 #include "lpc17xx_uart.h"
 #include "interface/uart.h"
 #include "pipeline.h"
-#include "atcommander.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
-#include "util/timer.h"
 #include "gpio.h"
 
 // Only UART1 supports hardware flow control, so this has to be UART1
@@ -42,14 +40,11 @@
 
 namespace gpio = openxc::gpio;
 
-using openxc::util::time::delayMs;
-using openxc::util::log::debugNoNewline;
 using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GpioValue;
 using openxc::gpio::GpioDirection;
 
-extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern Pipeline pipeline;
 
 __IO int32_t RTS_STATE;
@@ -217,7 +212,7 @@ void configureInterrupts() {
     NVIC_EnableIRQ(UART1_IRQn);
 }
 
-void configureUart(int baud) {
+void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
     UART_CFG_Type UARTConfigStruct;
     UART_ConfigStructInit(&UARTConfigStruct);
     UARTConfigStruct.Baud_rate = baud;
@@ -233,13 +228,13 @@ void configureUart(int baud) {
     resumeReceive();
 }
 
-void writeByte(uint8_t byte) {
+void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte) {
     UART_SendByte(UART1_DEVICE, byte);
 }
 
-int readByte() {
-    if(!QUEUE_EMPTY(uint8_t, &pipeline.uart->receiveQueue)) {
-        return QUEUE_POP(uint8_t, &pipeline.uart->receiveQueue);
+int openxc::interface::uart::readByte(UartDevice* device) {
+    if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
+        return QUEUE_POP(uint8_t, &device->receiveQueue);
     }
     return -1;
 }
@@ -259,24 +254,8 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             GpioDirection::GPIO_DIRECTION_INPUT);
 
-    AtCommanderConfig config = {AT_PLATFORM_RN42};
-
-    config.baud_rate_initializer = configureUart;
-    config.write_function = writeByte;
-    config.read_function = readByte;
-    config.delay_function = delayMs;
-    config.log_function = debugNoNewline;
-
     configureUartPins();
-
-    delayMs(500);
-    if(at_commander_set_baud(&config, device->baudRate)) {
-        debug("Successfully set baud rate");
-        at_commander_reboot(&config);
-    } else {
-        debug("Unable to set baud rate of attached UART device");
-    }
-    delayMs(500);
+    changeBaudRate(device, device->baudRate);
 
     debug("Done.");
 }

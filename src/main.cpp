@@ -76,9 +76,9 @@ int main(void) {
     power::initialize();
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
+    bluetooth::initialize(pipeline.uart);
     network::initialize(pipeline.network);
     lights::initialize();
-    bluetooth::initialize();
 
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();

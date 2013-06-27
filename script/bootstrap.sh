@@ -293,7 +293,7 @@ if ! command -v pip >/dev/null 2>&1; then
     $SUDO_CMD easy_install pip
 fi
 
-if ! python -c "import openxc"; then
+if ! python -c "import openxc" || ! command -v openxc-generate-firmware-code >/dev/null 2>&1; then
     pip install -U openxc
 fi
 

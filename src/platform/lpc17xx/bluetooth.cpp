@@ -21,6 +21,8 @@ void setBluetoothStatus(bool enabled) {
 
 void openxc::bluetooth::initialize() {
     debug("Initializing Bluetooth...");
+    // be aware that setting the direction here will default it to the off
+    // state, so the Bluetooth module will go *off* and then back *on*
     gpio::setDirection(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
             GPIO_DIRECTION_OUTPUT);
     setBluetoothStatus(true);

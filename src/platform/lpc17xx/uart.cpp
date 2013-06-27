@@ -281,6 +281,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     } else {
         debug("Unable to set baud rate of attached UART device");
     }
+    delayMs(500);
 
     debug("Done.");
 }

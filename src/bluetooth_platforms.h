@@ -1,13 +1,17 @@
-#include "bluetooth.h"
-#include "gpio.h"
-#include "util/log.h"
-#include "interface/uart.h"
 
-#ifdef CROSSCHASM_C5
+#if defined(FORDBOARD)
 
     #define BLUETOOTH_SUPPORT
 
     #define BLUETOOTH_ENABLE_PIN_POLARITY 1 // drive high == power on
+    #define BLUETOOTH_ENABLE_PORT 0
+    #define BLUETOOTH_ENABLE_PIN 17
+
+#elif defined(CROSSCHASM_C5)
+
+    #define BLUETOOTH_SUPPORT
+
+    #define BLUETOOTH_ENABLE_PIN_POLARITY 1
     #define BLUETOOTH_ENABLE_PORT 0
     #define BLUETOOTH_ENABLE_PIN 32 // PORTE BIT5 (RE5)
 

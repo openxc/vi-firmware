@@ -1,4 +1,5 @@
 #include "bluetooth.h"
+#include "bluetooth_platforms.h"
 #include "interface/uart.h"
 #include "util/log.h"
 #include "interface/uart.h"
@@ -53,6 +54,15 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
     }
 }
 
+void setStatus(bool enabled) {
+#ifdef BLUETOOTH_SUPPORT
+    enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
+    debug("Turning Bluetooth %s", enabled ? "on" : "off");
+    gpio::setValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
+            enabled ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
+#endif
+}
+
 void openxc::bluetooth::initialize(UartDevice* device) {
 #ifdef BLUETOOTH_SUPPORT
     debug("Initializing Bluetooth...");
@@ -64,16 +74,9 @@ void openxc::bluetooth::initialize(UartDevice* device) {
 
     setStatus(true);
 
-    debug("Done.");
-#endif
-}
+    configureExternalModule(device);
 
-void setStatus(bool enabled) {
-#ifdef BLUETOOTH_SUPPORT
-    enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
-    debug("Turning Bluetooth %s", enabled ? "on" : "off");
-    gpio::setValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
-            enabled ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW);
+    debug("Done.");
 #endif
 }
 

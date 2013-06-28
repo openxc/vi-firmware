@@ -1,8 +1,13 @@
 Digilent chipKIT Max32
 =======================
 
-To build for the chipKIT Max32, compile with the flag ``PLATFORM=CHIPKIT``. The
-chipKIT is also the default platform, so the flag is optional.
+To build for the `chipKIT-based Vehicle Interface
+<http://chipkit-vi.openxcplatform.com/>`_, compile with the flag
+``PLATFORM=CHIPKIT``. The chipKIT is also the default platform, so the flag is
+optional.
+
+The chipKIT VI supports up to 2 of the CAN1, CAN2-1 or CAN2-2 buses
+simultaneously.
 
 Flashing a Pre-compiled Firmware
 --------------------------------

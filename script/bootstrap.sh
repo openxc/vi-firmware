@@ -283,11 +283,17 @@ if ! command -v pip >/dev/null 2>&1; then
     if ! command -v easy_install >/dev/null 2>&1; then
         die "easy_install not available, can't install pip"
     fi
-    # TODO root may not be required here for some people
-    sudo easy_install pip
+
+    # TODO this is kind of a hacky way of determining if root is required -
+    # ideally we wouuld set up a little virtualenv in the dependencies folder
+    SUDO_CMD=
+    if command -v sudo >/dev/null 2>&1; then
+        SUDO_CMD=sudo
+    fi
+    $SUDO_CMD easy_install pip
 fi
 
-if ! python -c "import openxc"; then
+if ! python -c "import openxc" || ! command -v openxc-generate-firmware-code >/dev/null 2>&1; then
     pip install -U openxc
 fi
 

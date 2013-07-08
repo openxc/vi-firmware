@@ -9,6 +9,10 @@ CrossChasm has made the C5 `available for purchase
 comes pre-loaded with the correct bootloader, so you don't need any additional
 hardware to load the OpenXC firmware.
 
+The C5 connects to the `CAN1 bus pins
+<http://openxcplatform.com/vehicle-interface/#obd-pins>`_ on the OBD-II
+connector.
+
 Flashing a Pre-compiled Firmware
 --------------------------------
 

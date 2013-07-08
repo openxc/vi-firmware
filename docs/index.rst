@@ -121,3 +121,6 @@ License
 Copyright (c) 2012-2013 Ford Motor Company
 
 Licensed under the BSD license.
+
+This software depends on other open source projects, and a binary distribution
+may contain code covered by :doc:`other licenses <license-disclosure>`.

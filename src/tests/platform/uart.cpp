@@ -21,3 +21,11 @@ bool openxc::interface::uart::connected(UartDevice* device) {
     return device != NULL;
 }
 
+void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte) {
+}
+
+int openxc::interface::uart::readByte(UartDevice* device) {
+}
+
+void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
+}

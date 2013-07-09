@@ -67,7 +67,7 @@ Auto-generated from Mapping
 ===========================
 
 The code generation tools are documented in the `code generation input
-definitions <http://python.openxcplatform.com/code-generation.html>`_.
+definitions <http://python.openxcplatform.com/en/latest/code-generation.html>`_.
 
 Once you've defined your message set in a JSON file, install the `OpenXC Python
 library <http://python.openxcplatform.com>`_, then run the

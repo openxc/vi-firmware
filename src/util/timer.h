@@ -7,7 +7,7 @@ namespace time {
 
 /* Public: Delay execution by the given number of milliseconds.
  */
-void delayMs(int delayInMs);
+void delayMs(unsigned long delayInMs);
 
 /* Public: Return the current system time in milliseconds.
  */

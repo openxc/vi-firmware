@@ -23,6 +23,7 @@
 #include "interface/uart.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include "atcommander.h"
 #include "HardwareSerial.h"
 #include "gpio.h"
 #include "WProgram.h"
@@ -40,7 +41,6 @@
 
 #endif
 
-#define UART_BAUDRATE 230000
 
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
@@ -52,6 +52,7 @@ namespace gpio = openxc::gpio;
 
 using openxc::util::bytebuffer::processQueue;
 
+extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern HardwareSerial Serial;
 
 // TODO see if we can do this with interrupts on the chipKIT
@@ -71,6 +72,42 @@ void openxc::interface::uart::read(UartDevice* device,
     }
 }
 
+/*TODO this is hard coded for UART1 anyway, so the argument is kind of
+ * irrelevant.
+ */
+void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
+    ((HardwareSerial*)device->controller)->begin(baud);
+    // Override baud rate setup to allow baud rates 200000 (see
+    // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
+    // eventually make it into the MPIDE toolchain)
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 /
+            baud) - 1);
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
+            (1 << _UARTMODE_BRGH);
+}
+
+/* Private: Manually enable RTS/CTS hardware flow control using the UART2
+ * register.
+ *
+ * The chipKIT uart library doesn't have an interface to do
+ * this, and the alternative UART libraries provided by Microchip are a
+ * bit of a mess.
+ *
+ * This is hard coded for UART1 anyway, so the 'device' argument is kind of
+ * irrelevant.
+ */
+void enableFlowControl(openxc::interface::uart::UartDevice* device) {
+    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
+}
+
+void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte) {
+    ((HardwareSerial*)device->controller)->write(byte);
+}
+
+int openxc::interface::uart::readByte(UartDevice* device) {
+    return ((HardwareSerial*)device->controller)->read();
+}
+
 void openxc::interface::uart::initialize(UartDevice* device) {
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
@@ -79,19 +116,8 @@ void openxc::interface::uart::initialize(UartDevice* device) {
 
     initializeCommon(device);
     device->controller = &Serial;
-    ((HardwareSerial*)device->controller)->begin(UART_BAUDRATE);
-    // Override baud rate setup to allow baud rates 200000 (see
-    // http://www.chipkit.org/forum/viewtopic.php?f=19&t=711, this should
-    // eventually make it into the MPIDE toolchain)
-    ((p32_uart*)_UART1_BASE_ADDRESS)->uxBrg.reg = ((__PIC32_pbClk / 4 /
-            UART_BAUDRATE) - 1);
-    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
-            (1 << _UARTMODE_BRGH);
-    // Manually enable RTS/CTS hardware flow control using the UART2
-    // register. The chipKIT uart library doesn't have an interface to do
-    // this, and the alternative UART libraries provided by Microchip are a
-    // bit of a mess.
-    ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg |= 2 << _UARTMODE_FLOWCONTROL;
+    changeBaudRate(device, device->baudRate);
+    enableFlowControl(device);
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             gpio::GPIO_DIRECTION_INPUT);

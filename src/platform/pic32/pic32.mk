@@ -1,6 +1,6 @@
 BOARD_TAG = mega_pic32
 
-ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue
+ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue AT-commander/atcommander
 ifdef NETWORK
 ARDUINO_LIBS += chipKITNetwork chipKITNetwork/utility
 endif

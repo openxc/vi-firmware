@@ -37,8 +37,9 @@ extern void setup();
 extern void loop();
 
 const char* VERSION = "4.0.1";
+const int UART_BAUD_RATE = 230400;
 
-UartDevice UART_DEVICE;
+UartDevice UART_DEVICE = {UART_BAUD_RATE};
 NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
@@ -75,9 +76,9 @@ int main(void) {
     power::initialize();
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
+    bluetooth::initialize(pipeline.uart);
     network::initialize(pipeline.network);
     lights::initialize();
-    bluetooth::initialize();
 
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();

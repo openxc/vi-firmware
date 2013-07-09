@@ -8,6 +8,8 @@ namespace interface {
 namespace uart {
 
 extern const int MAX_MESSAGE_SIZE;
+extern const int BAUD_RATE;
+
 
 /* Public: A container for a UART connection with queues for both input and
  * output.
@@ -18,12 +20,28 @@ extern const int MAX_MESSAGE_SIZE;
  * device - A pointer to the hardware UART device to use for OpenXC messages.
  */
 typedef struct {
+    int baudRate;
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
     // host to device
     QUEUE_TYPE(uint8_t) receiveQueue;
     void* controller;
 } UartDevice;
+
+/* Public: The lowest-level function write a single byte to UART. This function
+ * may block if the UART receiver is not ready (TODO confirm this).
+ */
+void writeByte(UartDevice* device, uint8_t byte);
+
+/* Public: The lowest-level function to read a single byte from UART.
+ *
+ * Returns -1 if no byte is available.
+ */
+int readByte(UartDevice* device);
+
+/* Public: The lowest-level function to change the baud rate and re-initialize.
+ */
+void changeBaudRate(UartDevice* device, int baud);
 
 /* Public: Try to read a message from the UART device (or grab data that's
  * already been received and queued in the receiveQueue) and process it using
@@ -42,6 +60,10 @@ void initializeCommon(UartDevice* device);
  * the receive buffer.
  */
 void initialize(UartDevice* device);
+
+/* Public: Common procedures to run after initializing UART.
+ */
+void postInitializeCommon(UartDevice* device);
 
 /* Public: Send any bytes in the outgoing data queue out over the UART
  * connection.

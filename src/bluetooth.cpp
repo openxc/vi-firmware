@@ -7,6 +7,8 @@
 #include "util/timer.h"
 #include "gpio.h"
 
+#define BLUETOOTH_DEVICE_NAME "OpenXC-VI"
+
 namespace gpio = openxc::gpio;
 namespace uart = openxc::interface::uart;
 
@@ -48,6 +50,11 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
     delayMs(1000);
     if(at_commander_set_baud(&config, device->baudRate)) {
         debug("Successfully set baud rate");
+        if(at_commander_set_name(&config, BLUETOOTH_DEVICE_NAME, true)) {
+            debug("Successfully set Bluetooth device name");
+        } else {
+            debug("Unable to set Bluetooth device name - rebooting anyway");
+        }
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

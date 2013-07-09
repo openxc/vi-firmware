@@ -52,6 +52,9 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard platform/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 
+INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
+				-I./$(LIBS_PATH)/AT-commander/atcommander
+
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)

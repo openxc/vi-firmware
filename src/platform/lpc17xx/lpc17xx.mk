@@ -12,9 +12,7 @@ OPENOCD_CONF_BASE = ../conf/openocd
 LIBS_PATH = libs
 CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
-INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
-				-I./$(LIBS_PATH)/AT-commander/atcommander \
-				-I./$(LIBS_PATH)/nxpUSBlib/Drivers \
+INCLUDE_PATHS += -I./$(LIBS_PATH)/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
 ifeq ($(BOOTLOADER), 1)
 LINKER_SCRIPT = platform/lpc17xx/LPC17xx-bootloader.ld

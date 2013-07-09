@@ -10,7 +10,6 @@ LIBS_PATH = libs
 TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
-INCLUDE_PATHS += -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue
 
 NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp cantranslator.cpp \
 		    canemulator.cpp platform/platform.cpp

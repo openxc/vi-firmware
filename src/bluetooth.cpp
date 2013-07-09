@@ -62,7 +62,7 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 }
 
 void setStatus(bool enabled) {
-#ifdef BLUETOOTH_SUPPORT
+#ifdef BLUETOOTH_ENABLE_SUPPORT
     enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
     debug("Turning Bluetooth %s", enabled ? "on" : "off");
     gpio::setValue(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
@@ -74,12 +74,13 @@ void openxc::bluetooth::initialize(UartDevice* device) {
 #ifdef BLUETOOTH_SUPPORT
     debug("Initializing Bluetooth...");
 
+#ifdef BLUETOOTH_ENABLE_SUPPORT
     // be aware that setting the direction here will default it to the off
     // state, so the Bluetooth module will go *off* and then back *on*
     gpio::setDirection(BLUETOOTH_ENABLE_PORT, BLUETOOTH_ENABLE_PIN,
             GPIO_DIRECTION_OUTPUT);
-
     setStatus(true);
+#endif
 
     configureExternalModule(device);
 

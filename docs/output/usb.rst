@@ -54,7 +54,7 @@ larger sized request will allow more messages to be batched together
 into one USB request and give high overall throughput (with the downside
 of introducing delay depending on the size of the request).
 
-Endpoint 2 OUT
+Endpoint 1 OUT
 ==============
 
 OpenXC JSON messages created by the host to send to the vehicle (i.e. to

@@ -65,7 +65,7 @@
                     "bit_size": 12
                 }
             },
-            "handler": "handleSteeringWheelMessage"
+            "handlers": ["handleSteeringWheelMessage"]
         },
         "0x49": {
             "name": "BrkSt",

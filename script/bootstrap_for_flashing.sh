@@ -69,7 +69,7 @@ _install() {
         brew install $1
         set -e
     else
-        if ! command -v lsb_release >/dev/null 2>&1; then
+        if [ -z $DISTRO ]; then
             echo
             echo "Missing $1 - install it using your distro's package manager or build from source"
             _wait

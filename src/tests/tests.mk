@@ -24,10 +24,6 @@ TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 GENERATOR = openxc-generate-firmware-code
 .PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
-RED="$${txtbld}$$(tput setaf 1)"
-GREEN="$${txtbld}$$(tput setaf 2)"
-COLOR_RESET=$$(tput sgr0)
-
 test: unit_tests
 	@make default_pic32_compile_test
 	@make chipkit_compile_test

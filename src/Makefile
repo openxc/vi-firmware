@@ -1,8 +1,13 @@
 SYMBOLS =
 SHELL := /bin/bash
 
+COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
+ifeq ($(COLORS_AVAILABLE),0)
+RED="$${txtbld}$$(tput setaf 1)"
 GREEN="$${txtbld}$$(tput setaf 2)"
 COLOR_RESET=$$(tput sgr0)
+endif
+
 
 BASE_TARGET = cantranslator
 OBJDIR_ROOT = build

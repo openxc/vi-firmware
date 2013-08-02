@@ -37,13 +37,16 @@ _cygwin_error() {
     die
 }
 
-if [ $OS == "cygwin" ] && ! command -v tput >/dev/null 2>&1; then
-    _cygwin_error "ncurses"
+if ! command -v tput >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        echo "OPTIONAL: Install the \"ncurses\" package in Cygwin to get colored shell output"
+    fi
+else
+    txtrst=$(tput sgr0) # reset
+    bldred=${txtbld}$(tput setaf 1)
+    bldgreen=${txtbld}$(tput setaf 2)
 fi
 
-txtrst=$(tput sgr0) # reset
-bldred=${txtbld}$(tput setaf 1)
-bldgreen=${txtbld}$(tput setaf 2)
 
 _pushd() {
     pushd $1 > /dev/null

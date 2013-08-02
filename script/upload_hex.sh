@@ -10,7 +10,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KERNEL=`uname`
-HEX_FILE="$1"
+HEX_FILE=`realpath --relative-to=$DIR/.. "$1"`
 PORT=$2
 
 source $DIR/bootstrap_for_flashing.sh
@@ -30,7 +30,7 @@ if [ -z $PORT ]; then
 fi
 
 if [ -z "$MPIDE_DIR" ]; then
-    MPIDE_DIR="$DEPENDENCIES_FOLDER/mpide"
+    MPIDE_DIR="$DIR/../$DEPENDENCIES_FOLDER/mpide"
 fi
 
 if ! [ -d "$MPIDE_DIR" ]; then
@@ -101,6 +101,13 @@ if [ $OS != "windows" ] && [ $OS != "cygwin" ]; then
     reset
 fi
 
+# avrdude in cygwin expects windows style paths, so we have to use a relative
+# path to the avrdude.conf and must run from a predictable directory
+pushd $DIR/..
+pwd
+
 echo "Flashing $HEX_FILE to device at port $PORT in $OS"
 upload
 echo "${bldgreen}Flashing completed successfully${txtrst}"
+
+popd

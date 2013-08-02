@@ -2,7 +2,7 @@
 OpenXC CAN Translator
 =================================
 
-.. image:: /_static/logo.png
+.. image:: /docs/_static/logo.png
 
 :Version: 4.0.1
 :Web: http://openxcplatform.com

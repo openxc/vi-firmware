@@ -32,12 +32,19 @@ Bootloader
 The C5 can be flashed with the same `PIC32 avrdude bootloader
 <https://github.com/openxc/PIC32-avrdude-bootloader>`_, as the chipKIT.
 
-The OpenXC fork (the previous link) defines a `CROSSCHASM_C5` configuration that
-works as a USB bootloader for this unit. Once the bootloader is flashed, there
-is a 5 second window when the unit powers on when it listens for avrdude
-commands via a CDC modem interface exposed over USB (e.g. in Linux it may show
-up as something like `/dev/ACM0`, and you can treat this just as if it were a
-serial device).
+The OpenXC fork of the bootloader (the previous link) defines a `CROSSCHASM_C5` configuration that
+exposes a CDC/ACM serial port function over USB. Once the bootloader is flashed, there
+is a 5 second window when the unit powers on when it will accept bootloader
+commands.
+
+In Linux and OS X it will show up as something like `/dev/ACM0`, and you can treat this
+just as if it were a serial device.
+
+In Windows, you will need to install the `stk500v2.inf
+<https://raw.github.com/openxc/PIC32-avrdude-bootloader/master/Stk500v2.inf>`
+driver before the CDC/ACM modem will show up - download that file, right click
+and choose Install. The C5 should now show up as a COM port for for 5 seconds on
+bootup.
 
 The C5 units offered directly from the `CrossChasm website
 <http://crosschasm.com/SolutionCenter/OpenXC.aspx>`_ are pre-programmed with the

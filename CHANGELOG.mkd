@@ -1,5 +1,12 @@
 # OpenXC CAN Translator Changelog
 
+## v4.1
+
+* Automatically configure name and baud rate of an attached RN-4x Bluetooth
+  module (this adds a few seconds of delay on bootup if nothing is attached)
+* Cygwin: fix some building and flashing issues with the latest version of
+  Cygwin and all associated packages.
+
 ## v4.0.1
 
 * Rename FleetCarma to CrossChasm C5 (to reflect true product name)

@@ -16,6 +16,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define BUS_STATS_LOG_FREQUENCY_S 5
+#define CAN_MESSAGE_TOTAL_BIT_SIZE (64 + 11)
+
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
@@ -44,6 +47,7 @@ void receiveCan(Pipeline*, CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
+void logBusStatistics();
 
 void setup() {
     initializeAllCan();
@@ -65,6 +69,26 @@ void loop() {
 
     updateDataLights();
     openxc::signals::loop();
+    logBusStatistics();
+}
+
+void logBusStatistics() {
+    static unsigned long lastTimeLogged;
+    if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
+        for(int i = 0; i < getCanBusCount(); i++) {
+            CanBus* bus = &getCanBuses()[i];
+            float totalDataKB = bus->messagesReceived *
+                    CAN_MESSAGE_TOTAL_BIT_SIZE / 8192;
+            debug("CAN messages received since startup on bus %d: %d",
+                    bus->address, bus->messagesReceived);
+            debug("Data received on bus %d since startup: %f KB", bus->address,
+                    totalDataKB);
+            debug("Aggregate throughput on bus %d since startup: %f KB / s",
+                    bus->address, totalDataKB / (time::uptimeMs() / 1000));
+        }
+
+        lastTimeLogged = time::systemTimeMs();
+    }
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -72,7 +96,6 @@ void loop() {
  * main program loop.
  */
 void updateDataLights() {
-    static unsigned long startupTime = time::systemTimeMs();
     static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -83,7 +106,7 @@ void updateDataLights() {
         debug("CAN woke up - enabling LED");
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         busWasActive = true;
-    } else if(!busActive && (busWasActive || time::systemTimeMs() - startupTime >
+    } else if(!busActive && (busWasActive || time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
 #ifndef TRANSMITTER
@@ -178,6 +201,8 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(pipeline, bus, message.id, message.data);
         bus->lastMessageReceived = time::systemTimeMs();
+
+        ++bus->messagesReceived;
     }
 }
 

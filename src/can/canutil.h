@@ -119,6 +119,7 @@ struct CanBus {
     void (*interruptHandler)();
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;
+    unsigned int messagesReceived;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;

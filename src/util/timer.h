@@ -18,6 +18,13 @@ unsigned long systemTimeMs();
  */
 void initialize();
 
+/* Public: Return the system time in milliseconds when the code started to run.
+ */
+unsigned long startupTimeMs();
+
+/* Public: Return the uptime of the code in milliseconds. */
+unsigned long uptimeMs();
+
 } // namespace time
 } // namespace util
 } // namespace openxc

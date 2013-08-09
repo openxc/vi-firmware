@@ -40,6 +40,7 @@ void CAN_IRQHandler() {
                 //
                 // debug("Dropped CAN message with ID 0x%02x -- queue is full",
                 // message.id);
+                ++bus->messagesDropped;
             }
         }
     }

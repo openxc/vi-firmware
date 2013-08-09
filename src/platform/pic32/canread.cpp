@@ -54,6 +54,7 @@ void handleCanInterrupt(CanBus* bus) {
             //
             // debug("Dropped CAN message with ID 0x%02x -- queue is full with %d",
                     // message.id, QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
+            ++bus->messagesDropped;
         }
 
         /* Call the CAN::updateChannel() function to let the CAN module know

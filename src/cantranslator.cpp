@@ -75,17 +75,28 @@ void loop() {
 void logBusStatistics() {
     static unsigned long lastTimeLogged;
     if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
+        unsigned int totalMessagesReceived = 0;
+        float totalDataKB = 0;
         for(int i = 0; i < getCanBusCount(); i++) {
             CanBus* bus = &getCanBuses()[i];
-            float totalDataKB = bus->messagesReceived *
+            float busTotalDataKB = bus->messagesReceived *
                     CAN_MESSAGE_TOTAL_BIT_SIZE / 8192;
             debug("CAN messages received since startup on bus %d: %d",
                     bus->address, bus->messagesReceived);
             debug("Data received on bus %d since startup: %f KB", bus->address,
-                    totalDataKB);
+                    busTotalDataKB);
             debug("Aggregate throughput on bus %d since startup: %f KB / s",
-                    bus->address, totalDataKB / (time::uptimeMs() / 1000));
+                    bus->address, busTotalDataKB / (time::uptimeMs() / 1000));
+            totalMessagesReceived += bus->messagesReceived;
+            totalDataKB += busTotalDataKB;
         }
+
+        debug("Total CAN messages received since startup on all buses: %d",
+                totalMessagesReceived);
+        debug("Aggregate message rate across all buses since startup: %d msgs / s",
+                totalMessagesReceived / (time::uptimeMs() / 1000));
+            debug("Aggregate throughput across all buses since startup: %f KB / s",
+                    totalDataKB / (time::uptimeMs() / 1000));
 
         lastTimeLogged = time::systemTimeMs();
     }

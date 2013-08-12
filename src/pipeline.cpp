@@ -5,7 +5,7 @@
 #include "util/bytebuffer.h"
 #include "lights.h"
 
-#define DROPPED_MESSAGE_LOGGING_THRESHOLD 100
+#define PIPELINE_ENDPOINT_COUNT 3
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
@@ -26,8 +26,9 @@ const char messageTypeNames[][9] = {
     "Network",
 };
 
-int droppedMessages[3];
-int sentMessages[3];
+unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
+unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
+unsigned int dataSent[PIPELINE_ENDPOINT_COUNT];
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize) {
     if(pipeline->usb->configured) {
@@ -36,6 +37,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int mes
             ++droppedMessages[USB];
         } else {
             ++sentMessages[USB];
+            dataSent[USB] += messageSize;
         }
     }
 
@@ -45,6 +47,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int mes
             ++droppedMessages[UART];
         } else {
             ++sentMessages[UART];
+            dataSent[UART] += messageSize;
         }
     }
 
@@ -54,6 +57,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int mes
             ++droppedMessages[NETWORK];
         } else {
             ++sentMessages[NETWORK];
+            dataSent[NETWORK] += messageSize;
         }
     }
 }
@@ -72,11 +76,22 @@ void openxc::pipeline::process(Pipeline* pipeline) {
 }
 
 void openxc::pipeline::logStatistics(Pipeline* pipeline) {
-    debug("USB messages sent: %d", sentMessages[USB]);
-    debug("USB messages dropped: %d", droppedMessages[USB]);
-    float droppedRatio = droppedMessages[USB] / (float)(droppedMessages[USB] +
-            sentMessages[USB]);
-    debug("USB message drop ratio: %f", droppedRatio);
-    debug("Aggregate USB sent message rate since startup: %f msgs / s",
-            sentMessages[USB] / (time::uptimeMs() / 1000.0));
+    for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
+        const char* interfaceName = messageTypeNames[i];
+        debug("%s messages sent: %d", interfaceName, sentMessages[i]);
+        debug("%s messages dropped: %d", interfaceName, droppedMessages[i]);
+        float droppedRatio = 0;
+        if(droppedMessages[i] > 0) {
+            droppedRatio = droppedMessages[i] / (float)(droppedMessages[i] +
+                    sentMessages[i]);
+        }
+        debug("%s message drop ratio: %f", interfaceName, droppedRatio);
+        debug("Aggregate %s sent message rate since startup: %f msgs / s",
+                interfaceName, sentMessages[i] / (time::uptimeMs() / 1000.0));
+        // TODO this isn't that accurate if the interface was dropping messages
+        // when it wasn't connected - it would be more useful if it was "time
+        // since connected"
+        debug("Average %s data rate since startup: %f KB / s",
+                interfaceName, dataSent[i] / 1024 / (time::uptimeMs() / 1000.0));
+    }
 }

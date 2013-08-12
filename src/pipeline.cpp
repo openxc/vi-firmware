@@ -30,7 +30,8 @@ unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int dataSent[PIPELINE_ENDPOINT_COUNT];
 
-void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize) {
+void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
+        int messageSize) {
     if(pipeline->usb->configured) {
         if(!conditionalEnqueue(&pipeline->usb->sendQueue, message,
                 messageSize)) {

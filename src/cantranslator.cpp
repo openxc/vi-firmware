@@ -220,7 +220,7 @@ bool receiveWriteRequest(uint8_t* message) {
  */
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     // TODO what happens if we process until the queue is empty?
-    if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
+    while(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(pipeline, bus, message.id, message.data);
         bus->lastMessageReceived = time::systemTimeMs();

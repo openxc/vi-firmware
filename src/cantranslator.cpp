@@ -89,7 +89,7 @@ void logBusStatistics() {
             debug("Data received on bus %d since startup: %f KB", bus->address,
                     busTotalDataKB);
             debug("Aggregate throughput on bus %d since startup: %f KB / s",
-                    bus->address, busTotalDataKB / (time::uptimeMs() / 1000));
+                    bus->address, busTotalDataKB / (time::uptimeMs() / 1000.0));
             totalMessagesReceived += bus->messagesReceived;
             totalMessagesDropped += bus->messagesDropped;
             totalDataKB += busTotalDataKB;
@@ -98,13 +98,13 @@ void logBusStatistics() {
         debug("Total CAN messages dropped since startup on all buses: %d",
                 totalMessagesDropped);
         debug("Aggregate message drop rate across all buses since startup: %d msgs / s",
-                totalMessagesDropped / (time::uptimeMs() / 1000));
+                totalMessagesDropped / (time::uptimeMs() / 1000.0));
         debug("Total CAN messages received since startup on all buses: %d",
                 totalMessagesReceived);
         debug("Aggregate message rate across all buses since startup: %d msgs / s",
-                totalMessagesReceived / (time::uptimeMs() / 1000));
-            debug("Aggregate throughput across all buses since startup: %f KB / s",
-                    totalDataKB / (time::uptimeMs() / 1000));
+                totalMessagesReceived / (time::uptimeMs() / 1000.0));
+        debug("Aggregate throughput across all buses since startup: %f KB / s",
+                totalDataKB / (time::uptimeMs() / 1000.0));
 
         lastTimeLogged = time::systemTimeMs();
     }

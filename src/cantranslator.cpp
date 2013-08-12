@@ -108,6 +108,8 @@ void logBusStatistics() {
         debug("Aggregate throughput across all buses since startup: %f KB / s",
                 totalDataKB / (time::uptimeMs() / 1000.0));
 
+        openxc::pipeline::logStatistics(&pipeline);
+
         lastTimeLogged = time::systemTimeMs();
     }
 }

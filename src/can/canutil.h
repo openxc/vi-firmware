@@ -43,9 +43,11 @@ typedef struct CanSignalState CanSignalState;
  *               don't need an offset.
  * minValue    - The minimum value for the processed signal.
  * maxValue    - The maximum value for the processed signal.
- * sendFrequency - How often to pass along this message when received. To
- *              process every value, set this to 0.
+ * maxFrequency - The maximum frequency of this signal to process and send (Hz).
+ *              To process every value, set this to 0 (the default).
  * sendSame    - If true, will re-send even if the value hasn't changed.
+ * forceSendChanged - If true, regardless of the frequency, it will send the
+ *              value if it has changed.
  * received    - mark true if this signal has ever been received.
  * states      - An array of CanSignalState describing the mapping
  *               between numerical and string values for valid states.
@@ -55,7 +57,8 @@ typedef struct CanSignalState CanSignalState;
  * writeHandler - An optional function to encode a signal value to be written to
  *                CAN into a uint64_t. If null, the default encoder is used.
  * lastValue   - The last received value of the signal. Defaults to undefined.
- * sendClock   - An internal counter value, don't use this.
+ * lastSendTime - An internal timestamp of the last time the signal was
+ *              processed, to determine if the frequency is correct.
  */
 struct CanSignal {
     struct CanMessage* message;
@@ -66,15 +69,16 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
-    int sendFrequency;
+    int maxFrequency;
     bool sendSame;
+    bool forceSendChanged;
     bool received;
     CanSignalState* states;
     int stateCount;
     bool writable;
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
     float lastValue;
-    int sendClock;
+    unsigned long lastSendTime;
 };
 typedef struct CanSignal CanSignal;
 

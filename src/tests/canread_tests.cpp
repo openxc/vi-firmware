@@ -34,12 +34,13 @@ CanSignalState SIGNAL_STATES[1][10] = {
 
 const int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, 1, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
-        false, false, NULL, 0, true},
+    {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
+        -5000.000000, 33522.000000, 1, false, false, false, NULL, 0, true},
+    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
+        0.000000, 0.000000, 1, false, false, false, SIGNAL_STATES[0], 6, true,
+        NULL, 4.0},
+    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, 1, false, false, false, NULL, 0, true},
 };
 
 const int COMMAND_COUNT = 1;
@@ -57,8 +58,7 @@ void setup() {
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;
         SIGNALS[i].sendSame = true;
-        SIGNALS[i].sendFrequency = 1;
-        SIGNALS[i].sendClock = 0;
+        SIGNALS[i].maxFrequency = 0;
     }
 }
 
@@ -75,7 +75,8 @@ END_TEST
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
-    ck_assert_int_eq(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 42.0, &send), 42.0);
+    ck_assert_int_eq(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT,
+                42.0, &send), 42.0);
     fail_unless(send);
 }
 END_TEST
@@ -134,7 +135,8 @@ START_TEST (test_preserve_float_precision)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42.500000}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":42.500000}\r\n");
 }
 END_TEST
 
@@ -147,7 +149,8 @@ START_TEST (test_send_boolean)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":false}\r\n");
 }
 END_TEST
 
@@ -160,7 +163,8 @@ START_TEST (test_send_string)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"string\"}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":\"string\"}\r\n");
 }
 END_TEST
 
@@ -173,7 +177,8 @@ START_TEST (test_send_evented_boolean)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
 }
 END_TEST
 
@@ -186,7 +191,8 @@ START_TEST (test_send_evented_string)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
 }
 END_TEST
 
@@ -199,7 +205,8 @@ START_TEST (test_send_evented_float)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
 }
 END_TEST
 
@@ -212,7 +219,8 @@ START_TEST (test_passthrough_message)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
 }
 END_TEST
 
@@ -223,14 +231,15 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_default_handler)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
 }
 END_TEST
 
@@ -248,12 +257,12 @@ bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_respects_send_value)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, ignoreHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            ignoreHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, noSendStringHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            noSendStringHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
@@ -264,50 +273,49 @@ END_TEST
 
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            floatHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
 }
 END_TEST
 
 int frequencyTestCounter = 0;
-float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
     frequencyTestCounter++;
     return 42;
 }
 
 START_TEST (test_translate_float_handler_called_every_time)
 {
-    SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            floatHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            floatHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
 
-bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
     frequencyTestCounter++;
     return true;
 }
 
 START_TEST (test_translate_bool_handler_called_every_time)
 {
-    SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            boolHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            boolHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -320,12 +328,11 @@ const char* strHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_str_handler_called_every_time)
 {
-    SIGNALS[0].sendFrequency = 2;
     frequencyTestCounter = 0;
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            strHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            strHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -337,14 +344,15 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, stringHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            stringHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
 }
 END_TEST
 
@@ -355,37 +363,59 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA, booleanTranslateHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
+            booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
 }
 END_TEST
 
 START_TEST (test_always_send_first)
 {
-    SIGNALS[0].sendFrequency = 5;
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+}
+END_TEST
+
+START_TEST (test_unlimited_frequency)
+{
+    SIGNALS[0].maxFrequency = 0;
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
 END_TEST
 
 START_TEST (test_limited_frequency)
 {
-    SIGNALS[0].sendFrequency = 5;
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    SIGNALS[0].maxFrequency = 1;
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    // mock waiting 1 second
+    SIGNALS[0].lastSendTime -= 1000;
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
 END_TEST
@@ -397,18 +427,20 @@ float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_preserve_last_value)
 {
-    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+            SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
 
-    can::read::translateSignal(&pipeline, &SIGNALS[0], 0x1234123000000000, preserveHandler, SIGNALS,
-            SIGNAL_COUNT);
+    can::read::translateSignal(&pipeline, &SIGNALS[0], 0x1234123000000000,
+            preserveHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
 }
 END_TEST
 
@@ -422,7 +454,8 @@ START_TEST (test_dont_send_same)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
+    ck_assert_str_eq((char*)snapshot,
+            "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
 
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
     can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
@@ -460,12 +493,14 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_translate_string);
     tcase_add_test(tc_translate, test_translate_bool);
     tcase_add_test(tc_translate, test_limited_frequency);
+    tcase_add_test(tc_translate, test_unlimited_frequency);
     tcase_add_test(tc_translate, test_always_send_first);
     tcase_add_test(tc_translate, test_preserve_last_value);
     tcase_add_test(tc_translate, test_default_handler);
     tcase_add_test(tc_translate, test_dont_send_same);
     tcase_add_test(tc_translate, test_translate_respects_send_value);
-    tcase_add_test(tc_translate, test_translate_float_handler_called_every_time);
+    tcase_add_test(tc_translate,
+            test_translate_float_handler_called_every_time);
     tcase_add_test(tc_translate, test_translate_bool_handler_called_every_time);
     tcase_add_test(tc_translate, test_translate_str_handler_called_every_time);
     suite_add_tcase(s, tc_translate);

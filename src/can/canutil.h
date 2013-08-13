@@ -48,7 +48,6 @@ typedef struct CanSignalState CanSignalState;
  * sendSame    - If true, will re-send even if the value hasn't changed.
  * forceSendChanged - If true, regardless of the frequency, it will send the
  *              value if it has changed.
- * received    - mark true if this signal has ever been received.
  * states      - An array of CanSignalState describing the mapping
  *               between numerical and string values for valid states.
  * stateCount  - The length of the states array.
@@ -56,6 +55,7 @@ typedef struct CanSignalState CanSignalState;
  *               back to CAN. Defaults to false.
  * writeHandler - An optional function to encode a signal value to be written to
  *                CAN into a uint64_t. If null, the default encoder is used.
+ * received    - Marked true if this signal has ever been received.
  * lastValue   - The last received value of the signal. Defaults to undefined.
  * lastSendTime - An internal timestamp of the last time the signal was
  *              processed, to determine if the frequency is correct.
@@ -72,11 +72,11 @@ struct CanSignal {
     int maxFrequency;
     bool sendSame;
     bool forceSendChanged;
-    bool received;
     CanSignalState* states;
     int stateCount;
     bool writable;
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
+    bool received;
     float lastValue;
     unsigned long lastSendTime;
 };

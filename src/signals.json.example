@@ -43,7 +43,7 @@
                     "bit_size": 12},
                 "EngSpd": {
                     "generic_name": "engine_speed",
-                    "send_frequency": 15,
+                    "max_frequency": 15,
                     "bit_position": 12,
                     "bit_size": 8},
                 "GrshftPos": {

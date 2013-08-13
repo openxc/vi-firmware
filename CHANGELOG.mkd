@@ -1,5 +1,13 @@
 # OpenXC CAN Translator Changelog
 
+## v5.0-dev
+
+* BREAKING CHANGE: Remove the sendFrequency flag for a CanSignal and replace it
+  with a maximumFrequency attribute that controls the maximum number of times
+  per second a signal will be sent.
+* An optional forceSendChanged attributed is added to CanSignal - if this is
+  true, a changed value will be sent regardless of the maximum frequency.
+
 ## v4.1
 
 * Automatically configure name and baud rate of an attached RN-4x Bluetooth

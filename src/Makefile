@@ -20,6 +20,10 @@ else
 SYMBOLS += NDEBUG
 endif
 
+ifdef LOG_STATS
+SYMBOLS += __LOG_STATS__
+endif
+
 ifdef NETWORK
 SYMBOLS += __USE_NETWORK__
 endif

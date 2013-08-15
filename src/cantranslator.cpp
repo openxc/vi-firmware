@@ -74,6 +74,7 @@ void loop() {
 
 // TODO move this to the CAN bus modules
 void logBusStatistics() {
+#ifdef __LOG_STATS__
     static unsigned long lastTimeLogged;
     if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
         unsigned int totalMessagesReceived = 0;
@@ -117,6 +118,7 @@ void logBusStatistics() {
 
         lastTimeLogged = time::systemTimeMs();
     }
+#endif // __LOG_STATS__
 }
 
 /* Public: Update the color and status of a board's light that shows the status

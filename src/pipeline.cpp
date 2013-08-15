@@ -77,6 +77,7 @@ void openxc::pipeline::process(Pipeline* pipeline) {
 }
 
 void openxc::pipeline::logStatistics(Pipeline* pipeline) {
+#ifdef __LOG_STATS__
     for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
         const char* interfaceName = messageTypeNames[i];
         debug("%s messages sent: %d", interfaceName, sentMessages[i]);
@@ -95,4 +96,5 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
         debug("Average %s data rate since startup: %f KB / s",
                 interfaceName, dataSent[i] / 1024 / (time::uptimeMs() / 1000.0));
     }
+#endif // __LOG_STATS__
 }

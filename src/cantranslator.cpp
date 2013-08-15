@@ -226,7 +226,6 @@ bool receiveWriteRequest(uint8_t* message) {
  * the packet payload to the uart monitor.
  */
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
-    // TODO what happens if we process until the queue is empty?
     while(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(pipeline, bus, message.id, message.data);

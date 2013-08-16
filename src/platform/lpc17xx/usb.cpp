@@ -190,6 +190,7 @@ void openxc::interface::usb::read(UsbDevice* usbDevice, bool (*callback)(uint8_t
             }
         }
         processQueue(&usbDevice->receiveQueue, callback);
+        Endpoint_ClearOUT();
     }
     Endpoint_SelectEndpoint(previousEndpoint);
 }

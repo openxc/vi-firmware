@@ -111,7 +111,6 @@ const char* openxc::can::read::stateHandler(CanSignal* signal, CanSignal* signal
     if(signalState != NULL) {
         return signalState->name;
     }
-    debug("No signal state found for value %d", value);
     *send = false;
     return NULL;
 }
@@ -193,10 +192,7 @@ void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
     float value = preTranslate(signal, data, &send);
     const char* stringValue = handler(signal, signals, signalCount, value,
             &send);
-    if(stringValue == NULL) {
-        debug("No valid string returned from handler for %s",
-                signal->genericName);
-    } else if(send) {
+    if(stringValue != NULL && send) {
         sendStringMessage(signal->genericName, stringValue, pipeline);
     }
     postTranslate(signal, value);

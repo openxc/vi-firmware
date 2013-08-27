@@ -1,5 +1,5 @@
 /* This is an example implementation of the functions defined in signals.h that
- * are required to compile and deploy to the OpenXC CAN translator. This general
+ * are required to compile and deploy to the OpenXC VI. This general
  * implementation style is created by the generate_source.py script if you
  * provide it with the JSON input file format described in the README.
  *

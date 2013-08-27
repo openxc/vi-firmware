@@ -81,18 +81,18 @@ All Platforms
     $ export http_proxy=<your proxy>
     $ export https_proxy=<your proxy>
 
-2. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
+2. Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_
    repository:
 
   .. code-block:: sh
 
-    $ git clone https://github.com/openxc/cantranslator
+    $ git clone https://github.com/openxc/vi-firmware
 
 3. Run the ``bootstrap.sh`` script:
 
   .. code-block:: sh
 
-    $ cd cantranslator
+    $ cd vi-firmware
     $ script/bootstrap.sh
 
 4. If there were no errors, you are ready to :doc:`compile <compiling>`. If

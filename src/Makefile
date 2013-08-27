@@ -9,7 +9,7 @@ COLOR_RESET=$$(tput sgr0)
 endif
 
 
-BASE_TARGET = cantranslator
+BASE_TARGET = vi-firmware
 OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
@@ -82,7 +82,7 @@ transmitter: SYMBOLS += TRANSMITTER
 transmitter: custom_all
 
 emulator: SYMBOLS += CAN_EMULATOR
-emulator: BASE_TARGET = canemulator
+emulator: BASE_TARGET = emulator
 emulator: custom_all
 
 .DEFAULT_GOAL = custom_all

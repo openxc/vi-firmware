@@ -1,6 +1,6 @@
 /* UART interface for PIC32.
  *
- * On the PIC32, the CAN translator uses uart from the chipKIT library's
+ * On the PIC32, the VI uses uart from the chipKIT library's
  * HardwareSerial interface for vehicle data. This is equivalent to UART1A or
  * U1A. Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low
  * by the receiving device before data will be sent.

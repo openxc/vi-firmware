@@ -5,25 +5,24 @@ USB Device Driver
 Most users do not need to know the details of the device driver, but for
 reference it is documented here.
 
-The CAN translator initializes its USB 2.0 controller as a USB device with three
+The VI initializes its USB 2.0 controller as a USB device with three
 endpoints. The Android tablet or computer you connect to the translator acts as
 the USB host, and must initiate all transfers.
 
 Endpoint 0
 ===========
 
-This is the standard USB control transfer endpoint. The CAN transalator
-has a few control commands:
+This is the standard USB control transfer endpoint. The VI has a few control
+commands:
 
 Version
 -------
 
 Version control command: ``0x80``
 
-The host can retrieve the version of the CAN translator using the
-``0x80`` control request. The data returned is a string containing the
-software version of the firmware and the configured vehicle platform in
-the format:
+The host can retrieve the version of the VI using the ``0x80`` control request.
+The data returned is a string containing the software version of the firmware
+and the configured vehicle platform in the format:
 
 ::
 
@@ -37,11 +36,11 @@ Reset
 
 Reset control command: ``0x81``
 
-The CAN transceivers can be re-initialized by sending the ``0x81``
-control request. This command was introduced to work around a bug that
-caused the CAN translator to periodically stop responding. The bug still
-exists, but there are now workarounds in the code to automatically
-re-initialize the transceivers if they stop receiving messages.
+The CAN transceivers can be re-initialized by sending the ``0x81`` control
+request. This command was introduced to work around a bug that caused the VI to
+periodically stop responding. The bug still exists, but there are now
+workarounds in the code to automatically re-initialize the transceivers if they
+stop receiving messages.
 
 Endpoint 1 IN
 =============
@@ -67,7 +66,7 @@ There is no special demarcation on these messages to indicate they are writes -
 the fact that they are written in the ``OUT`` direction is sufficient. Write
 messages must be no more than 4 USB packets in size, i.e. 4 \* 64 = 256 bytes.
 
-In the same way the CAN translator is pre-configured with a list of CAN
-signals to read and parse from the CAN bus, it is configured with a
-whitelist of messages and signals for which to accept writes from the
-host. If a message is sent with an unlisted ID it is silently ignored.
+In the same way the VI is pre-configured with a list of CAN signals to read and
+parse from the CAN bus, it is configured with a whitelist of messages and
+signals for which to accept writes from the host. If a message is sent with an
+unlisted ID it is silently ignored.

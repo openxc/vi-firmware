@@ -13,7 +13,7 @@ void openxc::power::initialize() {
  *
  * TODO: This function could be a centralized location for putting peripherals
  * in low power or OFF states. Right now that is done by the caller
- * (cantranslator.cpp). This is easy to do via direct manipulation of the
+ * (vi-firmware.cpp). This is easy to do via direct manipulation of the
  * peripheral control registers (SFRs), but skips over the peripheral libraries.
  * Using the existing C++ libraries here isn't always possible, however, since
  * they can use overloaded functions, which gcc won't allow.

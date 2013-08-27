@@ -1,4 +1,4 @@
-# OpenXC CAN Translator Changelog
+# OpenXC Vehicle Interface Firmware Changelog
 
 ## v5.0-dev
 

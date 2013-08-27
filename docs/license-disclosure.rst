@@ -7,7 +7,7 @@ depends on a few other open source projects. If you are building from source, or
 have downloaded a pre-compiled binary firmware, the result may contain source
 code covered by the following licenses:
 
-`cantranslator <https://github.com/openxc/cantranslator>`_
+`vi-firmware <https://github.com/openxc/vi-firmware`_
 
 Copyright (c) 2012 Ford Motor Company
 All rights reserved.

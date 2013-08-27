@@ -37,14 +37,14 @@ under the bootloader:
    $ PLATFORM=FORDBOARD BOOTLOADER=1 make -j4
 
 The compiled firmware will be located at
-``build/lpc17xx/cantranslator-lpc17xx.bin``. See the :doc:`bootloaders
+``build/lpc17xx/vi-firmware-lpc17xx.bin``. See the :doc:`bootloaders
 </installation/bootloaders>` page for instructions on how to load the firmware.
 
 Bare Metal
 """"""""""
 
 Once the :doc:`dependencies </installation/installation>` are installed, attach a
-JTAG adapter to your computer and the CAN translator, then compile and flash:
+JTAG adapter to your computer and the VI, then compile and flash:
 
 .. code-block:: sh
 

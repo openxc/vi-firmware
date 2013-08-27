@@ -2,7 +2,7 @@
 Flashing a Pre-compiled Binary
 ==============================
 
-Updates to the CAN translator firmware may be distributed as
+Updates to the VI firmware may be distributed as
 pre-compiled binaries, e.g. if they are distributed by an OEM who does
 not wish to make the CAN signals public. A binary firmware may be distributed
 either as a ``.hex`` or ``.bin`` file.
@@ -74,12 +74,12 @@ All Platforms
     $ export http_proxy=<your proxy>
     $ export https_proxy=<your proxy>
 
-2. Clone the `cantranslator <https://github.com/openxc/cantranslator>`_
+2. Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_
    repository:
 
   .. code-block:: sh
 
-    $ git clone https://github.com/openxc/cantranslator
+    $ git clone https://github.com/openxc/vi-firmware
 
 3. Continue on to :doc:`platform specific documentation </platforms/platforms>`.
 

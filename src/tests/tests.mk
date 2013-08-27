@@ -11,8 +11,8 @@ TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
-NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp cantranslator.cpp \
-		    canemulator.cpp platform/platform.cpp
+NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp vi_firmware.cpp \
+		    emulator.cpp platform/platform.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c)
 TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)
@@ -157,7 +157,7 @@ coverage:
 	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
 	@lcov --remove $(COVERAGE_INFO_PATH) "$(LIBS_PATH)/*" -o $(COVERAGE_INFO_PATH)
 	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
-	@genhtml -o $(TEST_OBJDIR)/coverage -t "cantranslator test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
+	@genhtml -o $(TEST_OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
 	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
 	@echo "$(GREEN)Coverage information generated in $(TEST_OBJDIR)/coverage/index.html.$(COLOR_RESET)"
 

@@ -26,7 +26,7 @@
 
 #else
 
-// Ford OpenXC CAN Translator Prototype
+// Ford OpenXC VI Prototype
 #define UART1_FUNCNUM 1
 #define UART1_PORTNUM 0
 #define UART1_TX_PINNUM 15

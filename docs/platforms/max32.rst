@@ -27,12 +27,12 @@ of the `OpenXC website`_ to make sure you have the correct cable attached.
 Uploading Script
 ^^^^^^^^^^^^^^^^
 
-Open a terminal run the ``upload_hex.sh`` script from the ``cantranslator``
+Open a terminal run the ``upload_hex.sh`` script from the ``vi-firmware``
 directory, passing it the path to the ``.hex`` file you downloaded:
 
 .. code-block:: sh
 
-   $ cd cantranslator
+   $ cd vi-firmware
    $ script/upload_hex.sh <firmware file you downloaded>.hex
 
 The ``upload_hex.sh`` script attempts to install all required dependencies
@@ -88,7 +88,7 @@ separately from `FTDI <http://www.ftdichip.com/Drivers/VCP.htm>`_.
 
 AVR Programmer
 """"""""""""""
-In order to program the CAN translator, you need to install an AVR programmer.
+In order to program the VI, you need to install an AVR programmer.
 There are a number of free options that will work.
 
 *With MPIDE*
@@ -96,7 +96,7 @@ There are a number of free options that will work.
 If you have `MPIDE`_ installed, that already includes a version of avrdude. You
 need to set the ``MPIDE_DIR`` environment variable in your terminal to point to
 the folder where you installed MPIDE. Once set, you should be able to use
-`upload\_hex.sh <https://github.com/openxc/cantranslator/blob/master/script/upload_hex.sh>`_.
+`upload\_hex.sh <https://github.com/openxc/vi-firmware/blob/master/script/upload_hex.sh>`_.
 
 *Without MPIDE*
 
@@ -162,7 +162,7 @@ project.
 -  Install Eclipse with the `CDT project <http://www.eclipse.org/cdt/>`_
 -  In Eclipse, go to
    ``File -> Import -> C/C++ -> Existing Code as Makefile Project`` and
-   then select the ``cantranslator/src`` folder.
+   then select the ``vi-firmware/src`` folder.
 -  In the project's properties, under
    ``C/C++ General -> Paths and Symbols``, add these to the include
    paths for C and C++:

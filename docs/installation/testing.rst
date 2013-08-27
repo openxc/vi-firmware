@@ -5,9 +5,9 @@ Testing
 Windows USB Device Driver
 =========================
 
-On Windows, a driver is required to use the CAN translator's USB interface. A
+On Windows, a driver is required to use the VI's USB interface. A
 driver is available in the `conf/windows-driver
-<https://github.com/openxc/cantranslator/tree/master/conf/windows-driver>`_
+<https://github.com/openxc/vi-firmware/tree/master/conf/windows-driver>`_
 folder. The driver supports both 32- and 64-bit Windows. The driver is generated
 using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
 project.
@@ -16,7 +16,7 @@ Python Library
 ==============
 
 The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
-useful for testing the CAN translator with a regular computer, to verify the
+useful for testing the VI with a regular computer, to verify the
 data received from a vehicle before introducing an Android device. Documentation
 for this tool (and the list of required dependencies) is available on the OpenXC
 `vehicle interface testing`_ page.
@@ -77,7 +77,7 @@ Running the Suite
 
 .. code-block:: sh
 
-    cantranslator/src $ make clean && make test -s
+    vi-firmware/src $ make clean && make test -s
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
 

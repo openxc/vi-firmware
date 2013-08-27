@@ -68,7 +68,7 @@ CanBus* getCanBuses();
  * units to something more human readable, and send the resulting value over USB
  * as an OpenXC-style JSON message.
  *
- * This is the main workhorse function of the CAN translator. Every time a new
+ * This is the main workhorse function of the VI. Every time a new
  * CAN message is received that matches one of the signals in the list returend
  * by getSignals(), this function is called with the message ID and 64-bit data
  * field.

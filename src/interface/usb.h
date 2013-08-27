@@ -17,7 +17,7 @@ namespace openxc {
 namespace interface {
 namespace usb {
 
-/* Public: a container for a CAN translator USB device and associated metadata.
+/* Public: a container for a VI USB device and associated metadata.
  *
  * inEndpoint - The address of the endpoint to use for IN transfers, i.e. device
  *      to host.

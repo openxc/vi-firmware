@@ -80,7 +80,7 @@ void openxc::power::handleWake() {
     // TODO This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
     // only have to worry about initialization of core peripherals in one spot,
-    // setup() in cantranslator.cpp and main.cpp. I'll leave this for now and we
+    // setup() in vi_firmware.cpp and main.cpp. I'll leave this for now and we
     // can revisit it if there is some reason we need to keep state between CAN
     // wakeup events (e.g. fine_odometer_since_restart could be more persistant,
     // but then it actually might be more confusing since it'd be

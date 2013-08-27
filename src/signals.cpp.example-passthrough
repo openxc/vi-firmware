@@ -1,5 +1,5 @@
 /* This is an example implementation of the functions defined in signals.h that
-* are required to compile and deploy to the OpenXC CAN translator. This file is
+* are required to compile and deploy to the OpenXC VI. This file is
 * different from signals.cpp.example in that it does not define any CAN messages
 * to be translated, and instead uses the can::read::passthroughMessage function to spit
 * out raw CAN data from the bus over USB and UART.

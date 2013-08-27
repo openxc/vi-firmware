@@ -1,11 +1,11 @@
 Dependencies
 ============
 
-In order to build the CAN translator firmware from source, you need a few
+In order to build the VI firmware from source, you need a few
 dependencies:
 
 * Git
-* ``cantranslator`` :ref:`source code <source>` cloned with Git - not from a .zip file
+* ``vi-firmware`` :ref:`source code <source>` cloned with Git - not from a .zip file
 * `OpenXC Python library <http://python.openxcplatform.com>`_
 * :ref:`MPIDE <mpidedep>`
 * Digilent's USB and CAN :ref:`libraries for the chipKIT <chipkit-libs>`
@@ -22,8 +22,8 @@ NXP LPC1768/69), instead of MPIDE you will need:
 
 The easiest way to install these dependencies is to use the
 `script/bootstrap.sh
-<https://github.com/openxc/cantranslator/blob/master/script/bootstrap.sh>`_
-script in the ``cantranslator`` repository. Run the script in Linux, Cygwin in
+<https://github.com/openxc/vi-firmware/blob/master/script/bootstrap.sh>`_
+script in the ``vi-firmware`` repository. Run the script in Linux, Cygwin in
 Windows or OS X and if there are no errors you should be ready to go:
 
 .. code-block:: sh
@@ -42,7 +42,7 @@ Clone the repository from GitHub:
 
 .. code-block:: sh
 
-   $ git clone https://github.com/openxc/cantranslator
+   $ git clone https://github.com/openxc/vi-firmware
 
 Some of the library dependencies are included in this repository as git
 submodules, so before you go further run:
@@ -60,7 +60,7 @@ The zip file is missing all of the git metadata, so submodules will not work.
 MPIDE
 -----
 
-Building the source for the CAN translator for the chipKIT microcontroller
+Building the source for the VI for the chipKIT microcontroller
 requires `MPIDE <https://github.com/chipKIT32/chipKIT32-MAX/downloads>`_ (the
 development environment and compiler toolchain for chipKIT provided by
 Digilent). Installing MPIDE can be a bit quirky on some platforms, so if you're
@@ -110,7 +110,7 @@ directory in this project. It should look like this:
 
 .. code-block:: sh
 
-    - /Users/me/projects/cantranslator/
+    - /Users/me/projects/vi-firmware/
     ---- libs/
     -------- chipKITUSBDevice/
              chipKitCAN/

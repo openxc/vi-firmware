@@ -23,7 +23,7 @@ if [ -z $PORT ]; then
         if [ -z $PORT ]; then
             PORT=`ls /dev/tty.usbserial* 2> /dev/null | head -n 1`
             if [ -z $PORT ]; then
-                die "No CAN translator found - is it plugged in?"
+                die "No VI found - is it plugged in?"
             fi
         fi
     fi

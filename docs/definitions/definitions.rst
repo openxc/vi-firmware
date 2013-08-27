@@ -13,34 +13,34 @@ functions from ``signals.h``:
 
 .. code-block:: sh
 
-  build/pic32/cantranslator.o: In function `updateDataLights()':
-  cantranslator.cpp:(.text._Z16updateDataLightsv+0x20): undefined reference to `openxc::signals::getCanBusCount()'
-  cantranslator.cpp:(.text._Z16updateDataLightsv+0x48): undefined reference to `openxc::signals::getCanBusCount()'
-  cantranslator.cpp:(.text._Z16updateDataLightsv+0xd4): undefined reference to `openxc::signals::getCanBuses()'
-  build/pic32/cantranslator.o: In function `initializeAllCan()':
-  cantranslator.cpp:(.text._Z16initializeAllCanv+0x1c): undefined reference to `openxc::signals::getCanBuses()'
-  cantranslator.cpp:(.text._Z16initializeAllCanv+0x30): undefined reference to `openxc::signals::getCanBusCount()'
-  build/pic32/cantranslator.o: In function `setup':
-  cantranslator.cpp:(.text.setup+0x14): undefined reference to `openxc::signals::initialize()'
-  build/pic32/cantranslator.o: In function `receiveRawWriteRequest(cJSON*, cJSON*)':
-  cantranslator.cpp:(.text._Z22receiveRawWriteRequestP5cJSONS0_+0x3c): undefined reference to `openxc::signals::getCanBuses()'
-  build/pic32/cantranslator.o: In function `receiveTranslatedWriteRequest(cJSON*, cJSON*)':
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x44): undefined reference to `openxc::signals::getSignals()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x4c): undefined reference to `openxc::signals::getSignalCount()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x78): undefined reference to `openxc::signals::getSignals()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x80): undefined reference to `openxc::signals::getSignalCount()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0xe4): undefined reference to `openxc::signals::getCommands()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0xec): undefined reference to `openxc::signals::getCommandCount()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x10c): undefined reference to `openxc::signals::getSignals()'
-  cantranslator.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x114): undefined reference to `openxc::signals::getSignalCount()'
-  build/pic32/cantranslator.o: In function `receiveCan(openxc::pipeline::Pipeline*, CanBus*)':
-  cantranslator.cpp:(.text._Z10receiveCanPN6openxc8pipeline8PipelineEP6CanBus+0x54): undefined reference to `openxc::signals::decodeCanMessage(openxc::pipeline::Pipeline*, CanBus*, int, unsigned long long)'
-  build/pic32/cantranslator.o: In function `loop':
-  cantranslator.cpp:(.text.loop+0x2c): undefined reference to `openxc::signals::getCanBuses()'
-  cantranslator.cpp:(.text.loop+0x44): undefined reference to `openxc::signals::getCanBusCount()'
-  cantranslator.cpp:(.text.loop+0x90): undefined reference to `openxc::signals::getCanBuses()'
-  cantranslator.cpp:(.text.loop+0xa4): undefined reference to `openxc::signals::getCanBusCount()'
-  cantranslator.cpp:(.text.loop+0xd4): undefined reference to `openxc::signals::loop()'
+  build/pic32/firmware.o: In function `updateDataLights()':
+  firmware.cpp:(.text._Z16updateDataLightsv+0x20): undefined reference to `openxc::signals::getCanBusCount()'
+  firmware.cpp:(.text._Z16updateDataLightsv+0x48): undefined reference to `openxc::signals::getCanBusCount()'
+  firmware.cpp:(.text._Z16updateDataLightsv+0xd4): undefined reference to `openxc::signals::getCanBuses()'
+  build/pic32/firmware.o: In function `initializeAllCan()':
+  firmware.cpp:(.text._Z16initializeAllCanv+0x1c): undefined reference to `openxc::signals::getCanBuses()'
+  firmware.cpp:(.text._Z16initializeAllCanv+0x30): undefined reference to `openxc::signals::getCanBusCount()'
+  build/pic32/firmware.o: In function `setup':
+  firmware.cpp:(.text.setup+0x14): undefined reference to `openxc::signals::initialize()'
+  build/pic32/firmware.o: In function `receiveRawWriteRequest(cJSON*, cJSON*)':
+  firmware.cpp:(.text._Z22receiveRawWriteRequestP5cJSONS0_+0x3c): undefined reference to `openxc::signals::getCanBuses()'
+  build/pic32/firmware.o: In function `receiveTranslatedWriteRequest(cJSON*, cJSON*)':
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x44): undefined reference to `openxc::signals::getSignals()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x4c): undefined reference to `openxc::signals::getSignalCount()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x78): undefined reference to `openxc::signals::getSignals()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x80): undefined reference to `openxc::signals::getSignalCount()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0xe4): undefined reference to `openxc::signals::getCommands()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0xec): undefined reference to `openxc::signals::getCommandCount()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x10c): undefined reference to `openxc::signals::getSignals()'
+  firmware.cpp:(.text._Z29receiveTranslatedWriteRequestP5cJSONS0_+0x114): undefined reference to `openxc::signals::getSignalCount()'
+  build/pic32/firmware.o: In function `receiveCan(openxc::pipeline::Pipeline*, CanBus*)':
+  firmware.cpp:(.text._Z10receiveCanPN6openxc8pipeline8PipelineEP6CanBus+0x54): undefined reference to `openxc::signals::decodeCanMessage(openxc::pipeline::Pipeline*, CanBus*, int, unsigned long long)'
+  build/pic32/firmware.o: In function `loop':
+  firmware.cpp:(.text.loop+0x2c): undefined reference to `openxc::signals::getCanBuses()'
+  firmware.cpp:(.text.loop+0x44): undefined reference to `openxc::signals::getCanBusCount()'
+  firmware.cpp:(.text.loop+0x90): undefined reference to `openxc::signals::getCanBuses()'
+  firmware.cpp:(.text.loop+0xa4): undefined reference to `openxc::signals::getCanBusCount()'
+  firmware.cpp:(.text.loop+0xd4): undefined reference to `openxc::signals::loop()'
   build/pic32/main.o: In function `main':
   main.cpp:(.text.main+0x60): undefined reference to `openxc::signals::getActiveMessageSet()'
   build/pic32/main.o: In function `handleControlRequest(unsigned char)':
@@ -52,7 +52,7 @@ functions from ``signals.h``:
   platform.cpp:(.text._ZN6openxc8platform7suspendEPNS_8pipeline8PipelineE+0x3c): undefined reference to `openxc::signals::getCanBuses()'
   platform.cpp:(.text._ZN6openxc8platform7suspendEPNS_8pipeline8PipelineE+0x50): undefined reference to `openxc::signals::getCanBusCount()'
   collect2: ld returned 1 exit status
-  make: *** [build/pic32/cantranslator-pic32.elf] Error
+  make: *** [build/pic32/vi-firmware-pic32.elf] Error
 
 You have three options to get a working vehicle interface:
 
@@ -76,7 +76,7 @@ library <http://python.openxcplatform.com>`_, then run the
 
 .. code-block:: sh
 
-    cantranslator/ $ openxc-generate-firmware-code --message-set mycar.json > src/signals.cpp
+    vi-firmware $ openxc-generate-firmware-code --message-set mycar.json > src/signals.cpp
 
 The firmware should now :doc:`compile </installation/compiling>`! Don't modify
 the ``signals.cpp`` file manually, since it's generated you should expect it to

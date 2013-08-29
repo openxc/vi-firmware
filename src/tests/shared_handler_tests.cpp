@@ -136,7 +136,7 @@ START_TEST (test_tire_pressure_handler)
     bool send = true;
     uint64_t data = numberWriter(&SIGNALS[7], SIGNALS, SIGNAL_COUNT, 23.1,
             &send);
-    sendTirePressure("foo", __builtin_bswap64(data), &SIGNALS[7], SIGNALS,
+    sendTirePressure("foo", __builtin_bswap64(data), 1, &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 

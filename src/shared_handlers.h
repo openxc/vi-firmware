@@ -237,20 +237,23 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
 
 /* Decode a numerical signal (the pressure of the tire in question) and
  * send an OpenXC JSON message with the value (tire ID) and event (tire
- * pressure) filled in.
+ * pressure in psi) filled in.
  *
  * This function doesn't match the signature required to be used directly as a
  * message or value handler, but it can be called from another handler.
  *
  * tireId - The name of the tire, e.g. rear_left.
  * data - The incoming CAN message data that contains the signal.
+ * conversionFactor - any conversion factor to convert the value from the bus to
+ *      psi.
  * signal - The CAN signal for tire pressure.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * pipeline - The pipeline that wraps the output devices.
  */
-void sendTirePressure(const char* tireId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline);
+void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
+       CanSignal* signal, CanSignal* signals, int signalCount,
+       Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
@@ -266,9 +269,22 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
 void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
-/** Handle a CAN message that contains the pressure of all tires.
+/**
+ * Parse 4 tire pressure signals from a single message send each as an evented
+ * OpenXC message, with the value in psi e.g.:
+ *
+ *      {"name": "tire_pressure", "value": "front_left", "event": 32.1}
+ *
+ * This assumes the value on the bus for each pressure is psi.
  */
-void handleTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+void handlePsiTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Pipeline* pipeline);
+
+/**
+ * The same as handlePsiTirePressureMessage, but assumes the value on the bus is
+ * in kilpascals and converts to psi before sending the messages.
+ */
+void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
 /* Combine the values from two sensors in each seat to determine if there is

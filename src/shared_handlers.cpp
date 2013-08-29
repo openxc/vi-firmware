@@ -3,6 +3,7 @@
 #include "util/log.h"
 
 #define OCCUPANCY_STATUS_GENERIC_NAME "occupancy_status"
+#define PSI_PER_KPA 0.145037738
 
 float rotationsSinceRestart = 0;
 float rollingOdometerSinceRestart = 0;
@@ -76,7 +77,7 @@ void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
 }
 
 void openxc::signals::handlers::sendTirePressure(const char* tireId,
-        uint64_t data, CanSignal* signal, CanSignal* signals,
+        uint64_t data, float conversionFactor, CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline) {
     if(signal == NULL) {
         debug("Specific tire signal for ID %s is NULL, vehicle may not support",
@@ -86,7 +87,7 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId,
 
     bool send = true;
     // TODO use preTranslate for sendDoorStatus, too
-    float pressure = preTranslate(signal, data, &send);
+    float pressure = preTranslate(signal, data, &send) * conversionFactor;
     if(send) {
         sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
                 pipeline);
@@ -94,21 +95,35 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId,
     postTranslate(signal, pressure);
 }
 
-void openxc::signals::handlers::handleTirePressureMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+void handleTirePressureMessage(int messageId,
+        uint64_t data, int conversionFactor, CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
-    sendTirePressure("front_left", data,
+    openxc::signals::handlers::sendTirePressure("front_left", data, conversionFactor,
             lookupSignal("tire_pressure_front_left", signals, signalCount),
             signals, signalCount, pipeline);
-    sendTirePressure("front_right", data,
+    openxc::signals::handlers::sendTirePressure("front_right", data, conversionFactor,
             lookupSignal("tire_pressure_front_right", signals, signalCount),
             signals, signalCount, pipeline);
-    sendTirePressure("rear_right", data,
+    openxc::signals::handlers::sendTirePressure("rear_right", data, conversionFactor,
             lookupSignal("tire_pressure_rear_right", signals, signalCount),
             signals, signalCount, pipeline);
-    sendTirePressure("rear_left", data,
+    openxc::signals::handlers::sendTirePressure("rear_left", data, conversionFactor,
             lookupSignal("tire_pressure_rear_left", signals, signalCount),
             signals, signalCount, pipeline);
+}
+
+void openxc::signals::handlers::handlePsiTirePressureMessage(int messageId,
+        uint64_t data, CanSignal* signals, int signalCount,
+        Pipeline* pipeline) {
+    handleTirePressureMessage(messageId, data, 1, signals, signalCount,
+            pipeline);
+}
+
+void openxc::signals::handlers::handleKpaTirePressureMessage(int messageId,
+        uint64_t data, CanSignal* signals, int signalCount,
+        Pipeline* pipeline) {
+    handleTirePressureMessage(messageId, data, PSI_PER_KPA, signals, signalCount,
+            pipeline);
 }
 
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {

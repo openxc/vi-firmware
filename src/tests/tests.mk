@@ -30,6 +30,7 @@ test: unit_tests
 	@make c5_compile_test
 	@make lpc17xx_compile_test
 	@make ford_test
+	@make example_signals_test
 	@make emulator_test
 	@make debug_compile_test
 	@make network_compile_test

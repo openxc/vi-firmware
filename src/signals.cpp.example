@@ -110,7 +110,7 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
             4.5923, // value offset
             0, // minimum value after applying factor, offset and any handlers
             100, // maximum value after apply factor, offset and any handlers
-            0, // send frequency, set to 0 to process every message
+            {0}, // frequency clock, set frequency to 0 to always send
             true,  // send the value even if it hasn't changed (sendSame)
             false, // this is marked true if the signal has ever been received
             NULL, // an optional list of signal states. this doesn't use states.
@@ -118,9 +118,9 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
             false,  // this signal is NOT writable
             NULL // signal is NOT writable, so no custom writer necessary
             },
-        {&CAN_MESSAGES[0][0], "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, 0, true, false, NULL, 0, false, NULL},
-        {&CAN_MESSAGES[0][1], "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, 0, false, false, SIGNAL_STATES[0][0], 7, false, NULL},
-        {&CAN_MESSAGES[0][2], "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, true, false, NULL, 0, false, NULL},
+        {&CAN_MESSAGES[0][0], "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, {0}, true, false, NULL, 0, false, NULL},
+        {&CAN_MESSAGES[0][1], "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, {0}, false, false, SIGNAL_STATES[0][0], 7, false, NULL},
+        {&CAN_MESSAGES[0][2], "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, {0}, true, false, NULL, 0, false, NULL},
     },
 };
 

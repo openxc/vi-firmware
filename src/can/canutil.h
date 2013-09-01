@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "util/bitfield.h"
+#include "util/timer.h"
 #include "emqueue.h"
 #include "cJSON.h"
 
@@ -43,7 +44,11 @@ typedef struct CanSignalState CanSignalState;
  *               don't need an offset.
  * minValue    - The minimum value for the processed signal.
  * maxValue    - The maximum value for the processed signal.
- * maxFrequency - The maximum frequency of this signal to process and send (Hz).
+ * frequencyClock - A FrequencyClock struct to control the maximum frequency to
+ *              process and send this signal. To process every value, set the
+ *              clock's frequency to 0.
+ * the signal
+ * The maximum frequency of this signal to process and send (Hz).
  *              To process every value, set this to 0 (the default).
  * sendSame    - If true, will re-send even if the value hasn't changed.
  * forceSendChanged - If true, regardless of the frequency, it will send the
@@ -57,8 +62,6 @@ typedef struct CanSignalState CanSignalState;
  *                CAN into a uint64_t. If null, the default encoder is used.
  * received    - Marked true if this signal has ever been received.
  * lastValue   - The last received value of the signal. Defaults to undefined.
- * lastSendTime - An internal timestamp of the last time the signal was
- *              processed, to determine if the frequency is correct.
  */
 struct CanSignal {
     struct CanMessage* message;
@@ -69,7 +72,7 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
-    int maxFrequency;
+    openxc::util::time::FrequencyClock frequencyClock;
     bool sendSame;
     bool forceSendChanged;
     CanSignalState* states;
@@ -78,7 +81,6 @@ struct CanSignal {
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
     bool received;
     float lastValue;
-    unsigned long lastSendTime;
 };
 typedef struct CanSignal CanSignal;
 

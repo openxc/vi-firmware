@@ -3,7 +3,6 @@
 #include "util/log.h"
 #include "util/timer.h"
 
-#define MS_PER_SECOND 1000
 
 using openxc::util::bitfield::getBitField;
 
@@ -52,18 +51,10 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     sendJSON(root, pipeline);
 }
 
-/* Private: Return the period in ms given the frequency in hertz.
- */
-float frequencyToPeriod(float frequency) {
-    return 1 / frequency * MS_PER_SECOND;
-}
-
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* send) {
     float value = decodeSignal(signal, data);
 
-    float timeSinceSend = time::systemTimeMs() - signal->lastSendTime;
-    if(!signal->received || signal->maxFrequency == 0 ||
-            timeSinceSend >= frequencyToPeriod(signal->maxFrequency) ||
+    if(time::shouldTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {
         if(send && (!signal->received || signal->sendSame ||
                     value != signal->lastValue)) {
@@ -71,7 +62,6 @@ float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* se
         } else {
             *send = false;
         }
-        signal->lastSendTime = time::systemTimeMs();
     } else {
         *send = false;
     }

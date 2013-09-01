@@ -35,12 +35,12 @@ CanSignalState SIGNAL_STATES[1][10] = {
 const int SIGNAL_COUNT = 3;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
-        -5000.000000, 33522.000000, 1, false, false, NULL, 0, true},
+        -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
     {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
-        0.000000, 0.000000, 1, false, false, SIGNAL_STATES[0], 6, true,
+        0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true,
         NULL, 4.0},
     {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, false, false, NULL, 0, true},
+        0.000000, {0}, false, false, NULL, 0, true},
 };
 
 const int COMMAND_COUNT = 1;
@@ -58,7 +58,7 @@ void setup() {
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;
         SIGNALS[i].sendSame = true;
-        SIGNALS[i].maxFrequency = 0;
+        SIGNALS[i].frequencyClock = {0};
     }
 }
 
@@ -385,7 +385,6 @@ END_TEST
 
 START_TEST (test_unlimited_frequency)
 {
-    SIGNALS[0].maxFrequency = 0;
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
@@ -396,15 +395,24 @@ START_TEST (test_unlimited_frequency)
 }
 END_TEST
 
+static unsigned long fakeTime = 0;
+
+unsigned long timeMock() {
+    return fakeTime;
+}
+
 START_TEST (test_limited_frequency)
 {
-    SIGNALS[0].maxFrequency = 1;
+    SIGNALS[0].frequencyClock.frequency = 1;
+    SIGNALS[0].frequencyClock.timeFunction = timeMock;
+    fakeTime = 2000;
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
+    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
@@ -413,7 +421,7 @@ START_TEST (test_limited_frequency)
             SIGNALS, SIGNAL_COUNT);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     // mock waiting 1 second
-    SIGNALS[0].lastSendTime -= 1000;
+    fakeTime += 1000;
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));

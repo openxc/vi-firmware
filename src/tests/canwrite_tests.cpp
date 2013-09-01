@@ -25,14 +25,15 @@ CanSignalState SIGNAL_STATES[1][10] = {
 
 const int SIGNAL_COUNT = 4;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 6, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, 1, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
-        false, false, NULL, 0, true},
+    {&MESSAGES[0], "torque_at_transmission", 2, 6, 1001.0, -30000.000000,
+        -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
+    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
+        0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true, NULL,
+        4.0},
+    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
+        0.000000, {0}, false, false, NULL, 0, true},
     {&MESSAGES[3], "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
-        0, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
+        {0}, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
 };
 
 const int COMMAND_COUNT = 1;
@@ -45,7 +46,7 @@ void setup() {
         SIGNALS[i].writable = true;
         SIGNALS[i].received = false;
         SIGNALS[i].sendSame = true;
-        SIGNALS[i].maxFrequency = 0;
+        SIGNALS[i].frequencyClock = {0};
     }
     QUEUE_INIT(CanMessage, &bus.sendQueue);
 }
@@ -157,16 +158,18 @@ START_TEST (test_send_with_null_writer)
 {
     fail_unless(can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
                 NULL, SIGNALS, SIGNAL_COUNT));
-    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    CanMessage queuedMessage = QUEUE_POP(CanMessage,
+            &SIGNALS[0].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x1e);
 }
 END_TEST
 
 START_TEST (test_send_using_default)
 {
-    fail_unless(can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-                SIGNAL_COUNT));
-    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[0].message->bus->sendQueue);
+    fail_unless(can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
+                SIGNALS, SIGNAL_COUNT));
+    CanMessage queuedMessage = QUEUE_POP(CanMessage,
+            &SIGNALS[0].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x1e);
 }
 END_TEST
@@ -176,7 +179,8 @@ START_TEST (test_send_with_custom_with_states)
     fail_unless(can::write::sendSignal(&SIGNALS[1],
                 cJSON_CreateString(SIGNAL_STATES[0][1].name), SIGNALS,
                 SIGNAL_COUNT));
-    CanMessage queuedMessage = QUEUE_POP(CanMessage, &SIGNALS[1].message->bus->sendQueue);
+    CanMessage queuedMessage = QUEUE_POP(CanMessage,
+            &SIGNALS[1].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x20);
 }
 END_TEST
@@ -201,7 +205,8 @@ START_TEST (test_force_send)
     fail_if(can::write::sendSignal(&SIGNALS[1],
                 cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
                 SIGNALS, SIGNAL_COUNT, true));
-    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage,
+                &SIGNALS[1].message->bus->sendQueue));
 }
 END_TEST
 
@@ -213,7 +218,8 @@ END_TEST
 
 START_TEST (test_no_write_handler)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+            SIGNAL_COUNT);
     bus.writeHandler = NULL;
     can::write::processWriteQueue(&bus);
     fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
@@ -226,7 +232,8 @@ bool writeHandler(CanBus* bus, CanMessage message) {
 
 START_TEST (test_failed_write_handler)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+            SIGNAL_COUNT);
     bus.writeHandler = writeHandler;
     can::write::processWriteQueue(&bus);
     fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
@@ -235,7 +242,8 @@ END_TEST
 
 START_TEST (test_successful_write)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+            SIGNAL_COUNT);
     can::write::processWriteQueue(&bus);
     fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
 }
@@ -243,8 +251,10 @@ END_TEST
 
 START_TEST (test_write_multiples)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS, SIGNAL_COUNT);
+    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+            SIGNAL_COUNT);
+    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
+            SIGNAL_COUNT);
     can::write::processWriteQueue(&bus);
     fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
 }

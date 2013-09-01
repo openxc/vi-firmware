@@ -24,13 +24,13 @@ CanSignalState SIGNAL_STATES[1][10] = {
 const int SIGNAL_COUNT = 5;
 CanSignal SIGNALS[SIGNAL_COUNT] = {
     {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, 1, false, false, NULL, 0, true},
+        33522.000000, {0}, false, false, NULL, 0, true},
     {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, 1, false, false, SIGNAL_STATES[0], 6, true, NULL, false, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
+        0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true, NULL, false, 4.0},
+    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
         false, false, NULL, 0, true},
-    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1},
-    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 1,
+    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000},
+    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
         false, false, NULL, 0, true},
 };
 

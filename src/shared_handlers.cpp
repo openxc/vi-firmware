@@ -29,8 +29,10 @@ const float openxc::signals::handlers::LITERS_PER_UL = .000001;
 const float openxc::signals::handlers::KM_PER_MILE = 1.609344;
 const float openxc::signals::handlers::KM_PER_M = .001;
 const char* openxc::signals::handlers::DOOR_STATUS_GENERIC_NAME = "door_status";
-const char* openxc::signals::handlers::BUTTON_EVENT_GENERIC_NAME = "button_event";
-const char* openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME = "tire_pressure";
+const char* openxc::signals::handlers::BUTTON_EVENT_GENERIC_NAME =
+        "button_event";
+const char* openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME =
+        "tire_pressure";
 
 #ifndef __PIC32__
 const float openxc::signals::handlers::PI = 3.14159265;
@@ -45,18 +47,15 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId,
         return;
     }
 
-    float rawAjarStatus = can::read::decodeSignal(signal, data);
     bool send = true;
-    bool ajarStatus = booleanHandler(NULL, signals, signalCount, rawAjarStatus,
-            &send);
-
-    if(send && (signal->sendSame || !signal->received ||
-                rawAjarStatus != signal->lastValue)) {
-        signal->received = true;
+    float rawAjarStatus = preTranslate(signal, data, &send);
+    bool ajarStatus = booleanHandler(signal, signals, signalCount,
+            rawAjarStatus, &send);
+    if(send) {
         sendEventedBooleanMessage(DOOR_STATUS_GENERIC_NAME, doorId, ajarStatus,
                 pipeline);
     }
-    signal->lastValue = rawAjarStatus;
+    postTranslate(signal, rawAjarStatus);
 }
 
 void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
@@ -77,8 +76,8 @@ void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
 }
 
 void openxc::signals::handlers::sendTirePressure(const char* tireId,
-        uint64_t data, float conversionFactor, CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline) {
+        uint64_t data, float conversionFactor, CanSignal* signal,
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(signal == NULL) {
         debug("Specific tire signal for ID %s is NULL, vehicle may not support",
                 tireId);
@@ -86,28 +85,32 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId,
     }
 
     bool send = true;
-    // TODO use preTranslate for sendDoorStatus, too
-    float pressure = preTranslate(signal, data, &send) * conversionFactor;
+    float rawPressure = preTranslate(signal, data, &send);
+    float pressure = rawPressure * conversionFactor;
     if(send) {
         sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
                 pipeline);
     }
-    postTranslate(signal, pressure);
+    postTranslate(signal, rawPressure);
 }
 
 void handleTirePressureMessage(int messageId,
-        uint64_t data, int conversionFactor, CanSignal* signals, int signalCount,
-        Pipeline* pipeline) {
-    openxc::signals::handlers::sendTirePressure("front_left", data, conversionFactor,
+        uint64_t data, int conversionFactor, CanSignal* signals,
+        int signalCount, Pipeline* pipeline) {
+    openxc::signals::handlers::sendTirePressure("front_left", data,
+            conversionFactor,
             lookupSignal("tire_pressure_front_left", signals, signalCount),
             signals, signalCount, pipeline);
-    openxc::signals::handlers::sendTirePressure("front_right", data, conversionFactor,
+    openxc::signals::handlers::sendTirePressure("front_right", data,
+            conversionFactor,
             lookupSignal("tire_pressure_front_right", signals, signalCount),
             signals, signalCount, pipeline);
-    openxc::signals::handlers::sendTirePressure("rear_right", data, conversionFactor,
+    openxc::signals::handlers::sendTirePressure("rear_right", data,
+            conversionFactor,
             lookupSignal("tire_pressure_rear_right", signals, signalCount),
             signals, signalCount, pipeline);
-    openxc::signals::handlers::sendTirePressure("rear_left", data, conversionFactor,
+    openxc::signals::handlers::sendTirePressure("rear_left", data,
+            conversionFactor,
             lookupSignal("tire_pressure_rear_left", signals, signalCount),
             signals, signalCount, pipeline);
 }
@@ -122,8 +125,8 @@ void openxc::signals::handlers::handlePsiTirePressureMessage(int messageId,
 void openxc::signals::handlers::handleKpaTirePressureMessage(int messageId,
         uint64_t data, CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
-    handleTirePressureMessage(messageId, data, PSI_PER_KPA, signals, signalCount,
-            pipeline);
+    handleTirePressureMessage(messageId, data, PSI_PER_KPA, signals,
+            signalCount, pipeline);
 }
 
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
@@ -207,35 +210,62 @@ float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
 
 void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data,
         CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    float latitudeDegrees = can::read::decodeSignal(
-            lookupSignal("latitude_degrees", signals, signalCount), data);
-    float latitudeMinutes = can::read::decodeSignal(
-            lookupSignal("latitude_minutes", signals, signalCount), data);
-    float latitudeMinuteFraction = can::read::decodeSignal(
-            lookupSignal("latitude_minute_fraction", signals, signalCount),
-            data);
-    float longitudeDegrees = can::read::decodeSignal(
-            lookupSignal("longitude_degrees", signals, signalCount), data);
-    float longitudeMinutes = can::read::decodeSignal(
-            lookupSignal("longitude_minutes", signals, signalCount), data);
-    float longitudeMinuteFraction = can::read::decodeSignal(
-            lookupSignal("longitude_minute_fraction", signals, signalCount),
-            data);
+    bool send = true;
+    CanSignal* latitudeDegreesSignal =
+        lookupSignal("latitude_degrees", signals, signalCount);
+    CanSignal* latitudeMinutesSignal =
+        lookupSignal("latitude_minutes", signals, signalCount);
+    CanSignal* latitudeMinuteFractionSignal =
+        lookupSignal("latitude_minute_fraction", signals, signalCount);
+    CanSignal* longitudeDegreesSignal =
+        lookupSignal("longitude_degrees", signals, signalCount);
+    CanSignal* longitudeMinutesSignal =
+        lookupSignal("longitude_minutes", signals, signalCount);
+    CanSignal* longitudeMinuteFractionSignal =
+        lookupSignal("longitude_minute_fraction", signals, signalCount);
 
-    latitudeMinutes = (latitudeMinutes + latitudeMinuteFraction) / 60.0;
-    if(latitudeDegrees < 0) {
-        latitudeMinutes *= -1;
+    if(latitudeDegreesSignal == NULL ||
+            latitudeMinutesSignal == NULL ||
+            latitudeMinuteFractionSignal == NULL ||
+            longitudeDegreesSignal == NULL ||
+            longitudeMinutesSignal == NULL ||
+            longitudeMinuteFractionSignal == NULL) {
+        debug("One or more GPS signals are missing, no GPS");
+        return;
     }
-    latitudeDegrees += latitudeMinutes;
 
-    longitudeMinutes = (longitudeMinutes + longitudeMinuteFraction) / 60.0;
-    if(longitudeDegrees < 0) {
-        longitudeMinutes *= -1;
+    float latitudeDegrees = preTranslate(latitudeDegreesSignal, data, &send);
+    float latitudeMinutes = preTranslate(latitudeMinutesSignal, data, &send);
+    float latitudeMinuteFraction = preTranslate(
+            latitudeMinuteFractionSignal, data, &send);
+    float longitudeDegrees = preTranslate(longitudeDegreesSignal, data, &send);
+    float longitudeMinutes = preTranslate(longitudeMinutesSignal, data, &send);
+    float longitudeMinuteFraction = preTranslate(
+            longitudeMinuteFractionSignal, data, &send);
+
+    if(send) {
+        float latitude = (latitudeMinutes + latitudeMinuteFraction) / 60.0;
+        if(latitudeDegrees < 0) {
+            latitude *= -1;
+        }
+        latitude += latitudeDegrees;
+
+        float longitude = (longitudeMinutes + longitudeMinuteFraction) / 60.0;
+        if(longitudeDegrees < 0) {
+            longitude *= -1;
+        }
+        longitude += longitudeDegrees;
+
+        sendNumericalMessage("latitude", latitude, pipeline);
+        sendNumericalMessage("longitude", longitude, pipeline);
     }
-    longitudeDegrees += longitudeMinutes;
 
-    sendNumericalMessage("latitude", latitudeDegrees, pipeline);
-    sendNumericalMessage("longitude", longitudeDegrees, pipeline);
+    postTranslate(latitudeDegreesSignal, latitudeDegrees);
+    postTranslate(latitudeMinutesSignal, latitudeMinutes);
+    postTranslate(latitudeMinuteFractionSignal, latitudeMinuteFraction);
+    postTranslate(longitudeDegreesSignal, longitudeDegrees);
+    postTranslate(longitudeMinutesSignal, longitudeMinutes);
+    postTranslate(longitudeMinuteFractionSignal, longitudeMinuteFraction);
 }
 
 bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
@@ -285,28 +315,28 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId,
         return;
     }
 
-    float rawButtonType = can::read::decodeSignal(buttonTypeSignal, data);
-    float rawButtonState = can::read::decodeSignal(buttonStateSignal, data);
-
     bool send = true;
+    float rawButtonType = preTranslate(buttonTypeSignal, data, &send);
+    float rawButtonState = preTranslate(buttonStateSignal, data, &send);
+
     const char* buttonType = stateHandler(buttonTypeSignal, signals,
             signalCount, rawButtonType, &send);
     if(!send || buttonType == NULL) {
         debug("Unable to find button type corresponding to %f",
                 rawButtonType);
-        return;
+    } else {
+        const char* buttonState = stateHandler(buttonStateSignal, signals,
+                signalCount, rawButtonState, &send);
+        if(!send || buttonState == NULL) {
+            debug("Unable to find button state corresponding to %f",
+                    rawButtonState);
+        } else {
+            sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
+                    buttonState, pipeline);
+        }
     }
-
-    const char* buttonState = stateHandler(buttonStateSignal, signals,
-            signalCount, rawButtonState, &send);
-    if(!send || buttonState == NULL) {
-        debug("Unable to find button state corresponding to %f",
-                rawButtonState);
-        return;
-    }
-
-    sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
-            buttonState, pipeline);
+    postTranslate(buttonTypeSignal, rawButtonType);
+    postTranslate(buttonStateSignal, rawButtonState);
 }
 
 bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
@@ -341,26 +371,30 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
         return;
     }
 
-    float rawLowerStatus = can::read::decodeSignal(lowerSignal, data);
-    float rawUpperStatus = can::read::decodeSignal(upperSignal, data);
-
     bool send = true;
+    float rawLowerStatus = preTranslate(lowerSignal, data, &send);
+    float rawUpperStatus = preTranslate(upperSignal, data, &send);
+
     bool lowerStatus = booleanHandler(NULL, signals, signalCount,
             rawLowerStatus, &send);
     bool upperStatus = booleanHandler(NULL, signals, signalCount,
             rawUpperStatus, &send);
-    if(lowerStatus) {
-        if(upperStatus) {
-            sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                    "adult", pipeline);
+    if(send) {
+        if(lowerStatus) {
+            if(upperStatus) {
+                sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
+                        "adult", pipeline);
+            } else {
+                sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
+                        "child", pipeline);
+            }
         } else {
             sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                    "child", pipeline);
+                    "empty", pipeline);
         }
-    } else {
-        sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                "empty", pipeline);
     }
+    postTranslate(lowerSignal, rawLowerStatus);
+    postTranslate(upperSignal, rawUpperStatus);
 }
 
 void openxc::signals::handlers::handleOccupancyMessage(int messageId,

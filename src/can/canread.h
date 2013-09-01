@@ -24,12 +24,16 @@ extern const char* EVENT_FIELD_NAME;
  * this function every time decodeCanMessage is called and you will get a full
  * CAN message stream.
  *
- * pipeline - The pipeline to send the raw message over as an integer ID
- *      and hex data as an ASCII encoded string.
  * id - the ID of the CAN message.
  * data - 64 bits of data from the message.
+ * messages - the list of all CAN messages - if NULL or of length zero, will
+ * process all messages.
+ * messageCount - the length of the messages array.
+ * pipeline - The pipeline to send the raw message over as an integer ID
+ *      and hex data as an ASCII encoded string.
  */
-void passthroughMessage(Pipeline* pipeline, int id, uint64_t data);
+void passthroughMessage(uint32_t id, uint64_t data, CanMessage* messages,
+                int messageCount, Pipeline* pipeline);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the pipeline;

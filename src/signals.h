@@ -18,8 +18,8 @@ CanMessageSet* getActiveMessageSet();
  */
 CanMessageSet* getMessageSets();
 
-/** Public: Return the length of the array returned by getConfigurations() */
-int getConfigurationCount();
+/** Public: Return the length of the array returned by getMessageSets() */
+int getMessageSetCount();
 
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
@@ -40,6 +40,11 @@ void loop();
  */
 int getCanBusCount();
 
+/* Public: Return an array of all CAN messages to be processed in the active
+ * configuration.
+ */
+CanMessage* getMessages();
+
 /* Public: Return an array of all CAN signals to be processed in the active
  * configuration.
  */
@@ -58,6 +63,9 @@ int getCommandCount();
 
 /* Public: Return the length of the array returned by getSignals(). */
 int getSignalCount();
+
+/* Public: Return the length of the array returned by getMessages(). */
+int getMessageCount();
 
 /* Public: Return an array of the metadata for the 2 CAN buses you want to
  * monitor. The size of this array is fixed at 2.

@@ -7,10 +7,12 @@
 
 namespace can = openxc::can;
 
+using openxc::can::lookupMessage;
 using openxc::can::lookupSignal;
 using openxc::can::lookupSignalState;
 
-CanMessage MESSAGES[3] = {
+const int MESSAGE_COUNT = 3;
+CanMessage MESSAGES[MESSAGE_COUNT] = {
     {NULL, 0},
     {NULL, 1},
     {NULL, 2},
@@ -63,6 +65,16 @@ START_TEST (test_can_signal_states)
     ck_assert_int_eq(signal.stateCount, 6);
     ck_assert_int_eq(signal.states[0].value, 1);
     ck_assert_str_eq(signal.states[0].name, "reverse");
+}
+END_TEST
+
+START_TEST (test_lookup_message)
+{
+    fail_unless(lookupMessage(42, MESSAGES, MESSAGE_COUNT) == NULL);
+    fail_unless(lookupMessage(0, MESSAGES, MESSAGE_COUNT)
+            == &MESSAGES[0]);
+    fail_unless(lookupMessage(1, MESSAGES, MESSAGE_COUNT)
+            == &MESSAGES[1]);
 }
 END_TEST
 
@@ -131,6 +143,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_initialize);
     tcase_add_test(tc_core, test_can_signal_struct);
     tcase_add_test(tc_core, test_can_signal_states);
+    tcase_add_test(tc_core, test_lookup_message);
     tcase_add_test(tc_core, test_lookup_signal);
     tcase_add_test(tc_core, test_lookup_writable_signal);
     tcase_add_test(tc_core, test_lookup_signal_state_by_name);

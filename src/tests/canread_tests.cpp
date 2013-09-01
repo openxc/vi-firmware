@@ -213,7 +213,7 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::passthroughMessage(&pipeline, 42, 0x123456789ABCDEF1LLU);
+    can::read::passthroughMessage(42, 0x123456789ABCDEF1LLU, NULL, 0, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];

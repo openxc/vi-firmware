@@ -10,9 +10,11 @@
 #include "can/canwrite.h"
 #include "signals.h"
 #include "util/log.h"
+#include "config.h"
 #include "shared_handlers.h"
 
-using openxc::can::read::can::read::passthroughMessage;
+using openxc::can::read::passthroughMessage;
+using openxc::config::getConfiguration;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
@@ -38,6 +40,11 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
         handleCan2Interrupt,
 #endif // __PIC32__
     },
+};
+
+const int MESSAGE_SET_COUNT = 1;
+CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+    { 0, "passthrough", 0, 0, 0 },
 };
 
 void openxc::signals::initialize() { }
@@ -77,12 +84,23 @@ int openxc::signals::getCanBusCount() {
     return CAN_BUS_COUNT;
 }
 
-const char* openxc::signals::getMessageSet() {
-    return "passthrough-2012";
+CanMessageSet* openxc::signals::getMessageSets() {
+    return MESSAGE_SETS;
 }
 
+CanMessage* openxc::signals::getMessages() {
+    return NULL;
+}
+
+int openxc::signals::getMessageCount() {
+    return 0;
+}
+
+void openxc::signals::loop() { }
+
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
-    can::read::passthroughMessage(pipeline, id, data);
+    can::read::passthroughMessage(id, data, getMessages(), getMessageCount(),
+            pipeline);
 }
 
 CanFilter FILTERS[0];
@@ -90,6 +108,10 @@ CanFilter FILTERS[0];
 CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
     *count = 0;
     return FILTERS;
+}
+
+CanMessageSet* openxc::signals::getActiveMessageSet() {
+    return &MESSAGE_SETS[getConfiguration()->messageSetIndex];
 }
 
 #endif // CAN_EMULATOR

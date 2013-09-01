@@ -31,6 +31,7 @@ test: unit_tests
 	@make lpc17xx_compile_test
 	@make ford_test
 	@make example_signals_test
+	@make example_passthrough_test
 	@make emulator_test
 	@make debug_compile_test
 	@make network_compile_test
@@ -137,6 +138,13 @@ example_signals_test:
 	@echo -n "Testing example signals definitions in repo..."
 	@make clean
 	@cp signals.cpp.example signals.cpp
+	@PLATFORM=FORDBOARD make -j4
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+example_passthrough_test:
+	@echo -n "Testing example passthrough config in repo..."
+	@make clean
+	@cp signals.cpp.example-passthrough signals.cpp
 	@PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

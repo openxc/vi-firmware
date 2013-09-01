@@ -3,8 +3,8 @@
 #include "util/log.h"
 #include "util/timer.h"
 
-
 using openxc::util::bitfield::getBitField;
+using openxc::can::lookupMessage;
 
 namespace time = openxc::util::time;
 
@@ -78,8 +78,8 @@ float openxc::can::read::decodeSignal(CanSignal* signal, uint64_t data) {
     return rawValue * signal->factor + signal->offset;
 }
 
-float openxc::can::read::passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+float openxc::can::read::passthroughHandler(CanSignal* signal,
+        CanSignal* signals, int signalCount, float value, bool* send) {
     return value;
 }
 
@@ -136,29 +136,40 @@ void openxc::can::read::sendEventedStringMessage(const char* name, const char* v
             pipeline);
 }
 
-void openxc::can::read::passthroughMessage(Pipeline* pipeline, int id, uint64_t data) {
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
+void openxc::can::read::passthroughMessage(uint32_t id, uint64_t data,
+        CanMessage* messages, int messageCount, Pipeline* pipeline) {
+    bool send = true;
+    if(messageCount > 0 && messages != NULL) {
+        CanMessage* message = lookupMessage(id, messages, messageCount);
+        if(!time::shouldTick(&message->frequencyClock)) {
+            send = false;
+        }
+    }
 
-    char encodedData[67];
-    union {
-        uint64_t whole;
-        uint8_t bytes[8];
-    } combined;
-    combined.whole = data;
+    if(send) {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
 
-    sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
-            combined.bytes[0],
-            combined.bytes[1],
-            combined.bytes[2],
-            combined.bytes[3],
-            combined.bytes[4],
-            combined.bytes[5],
-            combined.bytes[6],
-            combined.bytes[7]);
-    cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
+        char encodedData[67];
+        union {
+            uint64_t whole;
+            uint8_t bytes[8];
+        } combined;
+        combined.whole = data;
 
-    sendJSON(root, pipeline);
+        sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
+                combined.bytes[0],
+                combined.bytes[1],
+                combined.bytes[2],
+                combined.bytes[3],
+                combined.bytes[4],
+                combined.bytes[5],
+                combined.bytes[6],
+                combined.bytes[7]);
+        cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
+
+        sendJSON(root, pipeline);
+    }
 }
 
 void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,

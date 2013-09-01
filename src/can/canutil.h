@@ -89,11 +89,15 @@ typedef struct CanSignal CanSignal;
  * bus - A pointer to the bus this message is on.
  * id - The ID of the message.
  * data  - The message's data field.
+ * frequencyClock - an optional frequency clock to control the output of this
+ *      message, if sent raw, or simply to mark the max frequency for custom
+ *      handlers to retrieve.
  */
 struct CanMessage {
     struct CanBus* bus;
     uint32_t id;
     uint64_t data;
+    openxc::util::time::FrequencyClock frequencyClock;
 };
 typedef struct CanMessage CanMessage;
 
@@ -231,6 +235,16 @@ void initializeCommon(CanBus* bus);
  * CAN_ACTIVE_TIMEOUT_S seconds.
  */
 bool busActive(CanBus* bus);
+
+/* Public: Look up the CanMessage representation of a message based on its ID.
+ *
+ * id - The ID of the CAN message.
+ * messages - The list of all CAN messages.
+ * messageCount - The length of the messages array.
+ *
+ * Returns a pointer to the CanMessage if found, otherwise NULL.
+ */
+CanMessage* lookupMessage(int id, CanMessage* messages, int messageCount);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

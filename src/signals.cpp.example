@@ -44,11 +44,6 @@ float handleInvertedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
     return value * -1;
 }
 
-const int MESSAGE_SET_COUNT = 1;
-CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
-    { 0, "my-car", 2, 4, 7 },
-};
-
 const int MAX_CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
     { // message set: my-car
@@ -134,6 +129,11 @@ CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {
     },
 };
 
+const int MESSAGE_SET_COUNT = 1;
+CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+    { 0, "my-car", 2, 4, 7 },
+};
+
 /* See signals.h for full documentation on this method.
  *
  * This approach to processing CAN messages switches on the ID of the message
@@ -200,12 +200,20 @@ int openxc::signals::getCommandCount() {
     return getActiveMessageSet()->commandCount;
 }
 
+CanMessage* openxc::signals::getMessages() {
+    return CAN_MESSAGES[getActiveMessageSet()->index];
+}
+
 CanSignal* openxc::signals::getSignals() {
     return SIGNALS[getActiveMessageSet()->index];
 }
 
 int openxc::signals::getSignalCount() {
     return getActiveMessageSet()->signalCount;
+}
+
+int openxc::signals::getMessageCount() {
+    return getActiveMessageSet()->messageCount;
 }
 
 CanBus* openxc::signals::getCanBuses() {

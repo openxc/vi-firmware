@@ -92,12 +92,17 @@ typedef struct CanSignal CanSignal;
  * frequencyClock - an optional frequency clock to control the output of this
  *      message, if sent raw, or simply to mark the max frequency for custom
  *      handlers to retrieve.
+ * forceSendChanged - If true, regardless of the frequency, it will send CAN
+ *      message if it has changed when using raw passthrough.
+ * lastValue - The last received value of the message. Defaults to undefined.
  */
 struct CanMessage {
     struct CanBus* bus;
     uint32_t id;
     uint64_t data;
     openxc::util::time::FrequencyClock frequencyClock;
+    bool forceSendChanged;
+    uint64_t lastValue;
 };
 typedef struct CanMessage CanMessage;
 

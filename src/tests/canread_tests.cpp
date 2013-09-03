@@ -21,10 +21,11 @@ using openxc::can::read::sendStringMessage;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
-CanMessage MESSAGES[3] = {
-    {NULL, 0},
-    {NULL, 1},
-    {NULL, 2},
+const int MESSAGE_COUNT = 3;
+CanMessage MESSAGES[MESSAGE_COUNT] = {
+    {NULL, 0, 0},
+    {NULL, 1, 0, {10}},
+    {NULL, 2, 0, {1}, true},
 };
 
 CanSignalState SIGNAL_STATES[1][10] = {
@@ -51,7 +52,14 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 Pipeline pipeline;
 UsbDevice usbDevice;
 
+static unsigned long fakeTime = 0;
+
+unsigned long timeMock() {
+    return fakeTime;
+}
+
 void setup() {
+    fakeTime = 0;
     pipeline.usb = &usbDevice;
     usb::initialize(&usbDevice);
     pipeline.usb->configured = true;
@@ -207,6 +215,40 @@ START_TEST (test_send_evented_float)
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
+}
+END_TEST
+
+START_TEST (test_passthrough_force_send_changed)
+{
+    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    can::read::passthroughMessage(MESSAGES[2].id, 0x1234, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
+    can::read::passthroughMessage(MESSAGES[2].id, 0x1234, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    can::read::passthroughMessage(MESSAGES[2].id, 0x5678, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+}
+END_TEST
+
+START_TEST (test_passthrough_limited_frequency)
+{
+    MESSAGES[1].frequencyClock.timeFunction = timeMock;
+    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
+    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fakeTime += 2000;
+    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+            MESSAGE_COUNT, &pipeline);
+    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
 END_TEST
 
@@ -395,12 +437,6 @@ START_TEST (test_unlimited_frequency)
 }
 END_TEST
 
-static unsigned long fakeTime = 0;
-
-unsigned long timeMock() {
-    return fakeTime;
-}
-
 START_TEST (test_limited_frequency)
 {
     SIGNALS[0].frequencyClock.frequency = 1;
@@ -493,6 +529,8 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_sending, test_send_evented_string);
     tcase_add_test(tc_sending, test_send_evented_float);
     tcase_add_test(tc_sending, test_passthrough_message);
+    tcase_add_test(tc_sending, test_passthrough_limited_frequency);
+    tcase_add_test(tc_sending, test_passthrough_force_send_changed);
     suite_add_tcase(s, tc_sending);
 
     TCase *tc_translate = tcase_create("translate");

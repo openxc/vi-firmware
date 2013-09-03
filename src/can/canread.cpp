@@ -138,12 +138,16 @@ void openxc::can::read::sendEventedStringMessage(const char* name, const char* v
 
 void openxc::can::read::passthroughMessage(uint32_t id, uint64_t data,
         CanMessage* messages, int messageCount, Pipeline* pipeline) {
-    bool send = true;
+    bool send = false;
+    CanMessage* message = NULL;
     if(messageCount > 0 && messages != NULL) {
-        CanMessage* message = lookupMessage(id, messages, messageCount);
-        if(!time::shouldTick(&message->frequencyClock)) {
-            send = false;
+        message = lookupMessage(id, messages, messageCount);
+        if(message != NULL && (time::shouldTick(&message->frequencyClock) ||
+                (data != message->lastValue && message->forceSendChanged))) {
+            send = true;
         }
+    } else {
+        send = true;
     }
 
     if(send) {
@@ -169,6 +173,10 @@ void openxc::can::read::passthroughMessage(uint32_t id, uint64_t data,
         cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
 
         sendJSON(root, pipeline);
+    }
+
+    if(message != NULL) {
+        message->lastValue = data;
     }
 }
 

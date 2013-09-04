@@ -128,10 +128,14 @@ struct CanBus {
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;
+#ifdef __LOG_STATS__
     openxc::util::statistics::DeltaStatistic totalMessageStats;
     openxc::util::statistics::DeltaStatistic droppedMessageStats;
     openxc::util::statistics::DeltaStatistic receivedMessageStats;
     openxc::util::statistics::DeltaStatistic receivedDataStats;
+    openxc::util::statistics::Statistic sendQueueStats;
+    openxc::util::statistics::Statistic receiveQueueStats;
+#endif // __LOG_STATS__
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;

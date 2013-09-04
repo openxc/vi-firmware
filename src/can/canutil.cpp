@@ -25,6 +25,8 @@ void openxc::can::initializeCommon(CanBus* bus) {
     statistics::initialize(&bus->droppedMessageStats);
     statistics::initialize(&bus->receivedMessageStats);
     statistics::initialize(&bus->receivedDataStats);
+    statistics::initialize(&bus->sendQueueStats);
+    statistics::initialize(&bus->receiveQueueStats);
 }
 
 bool openxc::can::busActive(CanBus* bus) {
@@ -146,6 +148,29 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
             statistics::update(&bus->receivedMessageStats,
                     bus->messagesReceived);
             statistics::update(&bus->droppedMessageStats, bus->messagesDropped);
+
+            statistics::update(&bus->sendQueueStats,
+                    QUEUE_LENGTH(CanMessage, &bus->sendQueue));
+            statistics::update(&bus->receiveQueueStats,
+                    QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
+
+            debug("Average CAN message send queue fill percent on bus %d: %f",
+                    bus->address,
+                    statistics::exponentialMovingAverage(&bus->sendQueueStats)
+                        / QUEUE_MAX_LENGTH(CanMessage) * 100);
+            debug("CAN message send queue max fill percent on bus %d: %f",
+                    bus->address,
+                    (float)statistics::maximum(&bus->sendQueueStats) /
+                            QUEUE_MAX_LENGTH(CanMessage) * 100)
+
+            debug("Average CAN message receive queue fill percent on bus %d: %f",
+                    bus->address,
+                    statistics::exponentialMovingAverage(&bus->receiveQueueStats)
+                        / QUEUE_MAX_LENGTH(CanMessage) * 100);
+            debug("CAN message receive queue max fill percent on bus %d: %f",
+                    bus->address,
+                    (float) statistics::maximum(&bus->receiveQueueStats) /
+                            QUEUE_MAX_LENGTH(CanMessage) * 100);
 
             debug("CAN messages received on bus %d: %d",
                     bus->address, bus->totalMessageStats.total);

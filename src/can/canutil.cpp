@@ -154,8 +154,8 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
             debug("CAN messages dropped on bus %d: %d",
                     bus->address, bus->droppedMessageStats.total);
             if(bus->droppedMessageStats.total > 0) {
-                debug("Overall dropped message ratio: %f (%d / %d)",
-                        bus->droppedMessageStats.total / bus->totalMessageStats.total,
+                debug("Overall dropped message percent: %f (%d / %d)",
+                        (float)bus->droppedMessageStats.total / bus->totalMessageStats.total * 100,
                         bus->droppedMessageStats.total,
                         bus->totalMessageStats.total);
             }
@@ -165,9 +165,9 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
                     statistics::exponentialMovingAverage(&bus->receivedDataStats)
                         / BUS_STATS_LOG_FREQUENCY_S);
             if(bus->droppedMessageStats.total > 0) {
-                debug("Average dropped message ratio on bus %d: %f", bus->address,
+                debug("Average dropped message percent on bus %d: %f", bus->address,
                         statistics::exponentialMovingAverage(&bus->droppedMessageStats) /
-                        statistics::exponentialMovingAverage(&bus->totalMessageStats));
+                        statistics::exponentialMovingAverage(&bus->totalMessageStats) * 100);
             }
 
             totalMessages += bus->totalMessageStats.total;
@@ -185,8 +185,8 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
         debug("Average message drop rate across all buses: %d msgs / s",
                 (int)(statistics::exponentialMovingAverage(&droppedMessageStats)
                     / BUS_STATS_LOG_FREQUENCY_S));
-        debug("Dropped message ratio across all buses: %f (%d / %d)",
-                droppedMessageStats.total / totalMessageStats.total,
+        debug("Dropped message percent across all buses: %f (%d / %d)",
+                (float)droppedMessageStats.total / totalMessageStats.total * 100,
                 droppedMessageStats.total, totalMessageStats.total);
         debug("Total CAN messages received since startup on all buses: %d",
                 totalMessageStats.total);
@@ -196,9 +196,9 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
         debug("Aggregate throughput across all buses since startup: %fKB / s",
                 statistics::exponentialMovingAverage(&recevedDataStats)
                     / BUS_STATS_LOG_FREQUENCY_S);
-        debug("Average dropped message ratio across all buses: %f",
+        debug("Average dropped message percent across all buses: %f",
                 statistics::exponentialMovingAverage(&droppedMessageStats) /
-                statistics::exponentialMovingAverage(&totalMessageStats));
+                statistics::exponentialMovingAverage(&totalMessageStats) * 100);
 
         lastTimeLogged = time::systemTimeMs();
     }

@@ -4,6 +4,7 @@
 #include "util/statistics.h"
 
 using openxc::util::statistics::Statistic;
+using openxc::util::statistics::DeltaStatistic;
 
 namespace statistics = openxc::util::statistics;
 
@@ -20,7 +21,7 @@ START_TEST (test_update_sets_min)
     statistics::update(&stat, 1);
     statistics::update(&stat, 2);
     statistics::update(&stat, 3);
-    ck_assert(stat.min == 1.0);
+    ck_assert_int_eq(statistics::minimum(&stat), 1);
 }
 END_TEST
 
@@ -32,7 +33,7 @@ START_TEST (test_update_sets_max)
     statistics::update(&stat, 2);
     statistics::update(&stat, 3);
     statistics::update(&stat, 0);
-    ck_assert(stat.max == 3.0);
+    ck_assert_int_eq(statistics::maximum(&stat), 3);
 }
 END_TEST
 
@@ -50,7 +51,31 @@ START_TEST (test_exponential_moving_average)
     statistics::update(&stat, 8);
     statistics::update(&stat, 9);
     statistics::update(&stat, 10);
-    ck_assert_int_eq(stat.movingAverage, 4);
+    ck_assert_int_eq(statistics::exponentialMovingAverage(&stat), 4);
+}
+END_TEST
+
+START_TEST (test_delta_stat_min_max)
+{
+    DeltaStatistic stat;
+    statistics::initialize(&stat);
+    statistics::update(&stat, 1);
+    statistics::update(&stat, 2);
+    statistics::update(&stat, 10);
+    ck_assert_int_eq(statistics::minimum(&stat), 1);
+    ck_assert_int_eq(statistics::maximum(&stat), 8);
+}
+END_TEST
+
+START_TEST (test_delta_stat_exponential_average)
+{
+    DeltaStatistic stat;
+    statistics::initialize(&stat);
+    for(int i = 0; i < 100; i++) {
+        statistics::update(&stat, i * 5);
+    }
+    statistics::update(&stat, 506);
+    ck_assert_int_eq(statistics::exponentialMovingAverage(&stat), 5);
 }
 END_TEST
 
@@ -61,6 +86,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_update_sets_min);
     tcase_add_test(tc_core, test_update_sets_max);
     tcase_add_test(tc_core, test_exponential_moving_average);
+    tcase_add_test(tc_core, test_delta_stat_min_max);
+    tcase_add_test(tc_core, test_delta_stat_exponential_average);
     suite_add_tcase(s, tc_core);
 
     return s;

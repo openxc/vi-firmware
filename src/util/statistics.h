@@ -20,22 +20,41 @@ typedef struct {
     float alpha;
 } Statistic;
 
+
+typedef struct {
+    float total;
+    Statistic statistic;
+} DeltaStatistic;
+
 /* Public: Initialize a new Statistic.
  *
  * stat - the Statistic to initialize.
  */
 void initialize(Statistic* stat);
 
+void initialize(DeltaStatistic* stat);
+
 /* Public: Update the statistic with a new observed value.
- *
- * This will update the min, max and movingAverage fields on the struct - it's
- * not great encapsulation, but you can just access those fields directly after
- * calling this function.
  *
  * stat - the Statistic object to update.
  * newValue - the newly observed value.
  */
 void update(Statistic* stat, float newValue);
+
+void update(DeltaStatistic* stat, float newValue);
+
+float exponentialMovingAverage(const Statistic* stat);
+
+float exponentialMovingAverage(const DeltaStatistic* stat);
+
+float minimum(const Statistic* stat);
+
+float minimum(const DeltaStatistic* stat);
+
+float maximum(const Statistic* stat);
+
+float maximum(const DeltaStatistic* stat);
+
 
 } // namespace statistics
 } // namespace util

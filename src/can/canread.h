@@ -10,11 +10,11 @@ namespace openxc {
 namespace can {
 namespace read {
 
-extern const char* ID_FIELD_NAME;
-extern const char* DATA_FIELD_NAME;
-extern const char* NAME_FIELD_NAME;
-extern const char* VALUE_FIELD_NAME;
-extern const char* EVENT_FIELD_NAME;
+extern const char ID_FIELD_NAME[];
+extern const char DATA_FIELD_NAME[];
+extern const char NAME_FIELD_NAME[];
+extern const char VALUE_FIELD_NAME[];
+extern const char EVENT_FIELD_NAME[];
 
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a JSON message with "id" and "data" attributes and send it out to the

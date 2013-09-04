@@ -8,11 +8,11 @@ using openxc::util::bitfield::getBitField;
 
 namespace time = openxc::util::time;
 
-const char* openxc::can::read::ID_FIELD_NAME = "id";
-const char* openxc::can::read::DATA_FIELD_NAME = "data";
-const char* openxc::can::read::NAME_FIELD_NAME = "name";
-const char* openxc::can::read::VALUE_FIELD_NAME = "value";
-const char* openxc::can::read::EVENT_FIELD_NAME = "event";
+const char openxc::can::read::ID_FIELD_NAME[] = "id";
+const char openxc::can::read::DATA_FIELD_NAME[] = "data";
+const char openxc::can::read::NAME_FIELD_NAME[] = "name";
+const char openxc::can::read::VALUE_FIELD_NAME[] = "value";
+const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
 
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it to the pipeline.

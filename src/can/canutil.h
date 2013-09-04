@@ -297,6 +297,13 @@ CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
 CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
+/* Public: Log transfer statistics about all active CAN buses to the debug log.
+ *
+ * buses - an array of active CAN buses.
+ * busCount - the length of the buses array.
+ */
+void logBusStatistics(CanBus* buses, const int busCount);
+
 } // can
 } // openxc
 

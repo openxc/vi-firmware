@@ -47,7 +47,6 @@ void receiveCan(Pipeline*, CanBus*);
 void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
-void logBusStatistics();
 
 void setup() {
     initializeAllCan();
@@ -69,56 +68,7 @@ void loop() {
 
     updateDataLights();
     openxc::signals::loop();
-    logBusStatistics();
-}
-
-// TODO move this to the CAN bus modules
-void logBusStatistics() {
-#ifdef __LOG_STATS__
-    static unsigned long lastTimeLogged;
-    if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
-        unsigned int totalMessagesReceived = 0;
-        unsigned int totalMessagesDropped = 0;
-        float totalDataKB = 0;
-        for(int i = 0; i < getCanBusCount(); i++) {
-            CanBus* bus = &getCanBuses()[i];
-            float busTotalDataKB = bus->messagesReceived *
-                    CAN_MESSAGE_TOTAL_BIT_SIZE / 8192;
-            debug("CAN messages received on bus %d: %d",
-                    bus->address, bus->messagesReceived + bus->messagesDropped);
-            debug("CAN messages processed on bus %d: %d",
-                    bus->address, bus->messagesReceived);
-            debug("CAN messages dropped on bus %d: %d",
-                    bus->address, bus->messagesDropped);
-            debug("Dropped message ratio: %f%%",
-                    bus->messagesDropped / (float)(bus->messagesDropped + bus->messagesReceived));
-            debug("Data received on bus %d: %f KB", bus->address,
-                    busTotalDataKB);
-            debug("Aggregate throughput on bus %d: %f KB / s", bus->address,
-                    busTotalDataKB / (time::uptimeMs() / 1000.0));
-            totalMessagesReceived += bus->messagesReceived;
-            totalMessagesDropped += bus->messagesDropped;
-            totalDataKB += busTotalDataKB;
-        }
-
-        debug("Total CAN messages dropped since startup on all buses: %d",
-                totalMessagesDropped);
-        debug("Aggregate message drop rate across all buses since startup: %f msgs / s",
-                totalMessagesDropped / (time::uptimeMs() / 1000.0));
-        debug("Dropped message ratio on all buses since startup: %f%%",
-                totalMessagesDropped / (float)(totalMessagesDropped + totalMessagesReceived));
-        debug("Total CAN messages received since startup on all buses: %d",
-                totalMessagesReceived);
-        debug("Aggregate message rate across all buses since startup: %f msgs / s",
-                totalMessagesReceived / (time::uptimeMs() / 1000.0));
-        debug("Aggregate throughput across all buses since startup: %f KB / s",
-                totalDataKB / (time::uptimeMs() / 1000.0));
-
-        openxc::pipeline::logStatistics(&pipeline);
-
-        lastTimeLogged = time::systemTimeMs();
-    }
-#endif // __LOG_STATS__
+    can::logBusStatistics(getCanBuses(), getCanBusCount());
 }
 
 /* Public: Update the color and status of a board's light that shows the status

@@ -65,8 +65,8 @@ START_TEST (test_non_zero_frequency_waits)
 }
 END_TEST
 
-Suite* buffersSuite(void) {
-    Suite* s = suite_create("buffers");
+Suite* suite(void) {
+    Suite* s = suite_create("timer");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture (tc_core, setup, teardown);
     tcase_add_test(tc_core, test_no_time_function_uses_default);
@@ -79,7 +79,7 @@ Suite* buffersSuite(void) {
 
 int main(void) {
     int numberFailed;
-    Suite* s = buffersSuite();
+    Suite* s = suite();
     SRunner *sr = srunner_create(s);
     // Don't fork so we can actually use gdb
     srunner_set_fork_status(sr, CK_NOFORK);

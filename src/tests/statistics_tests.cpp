@@ -1,0 +1,79 @@
+#include <check.h>
+#include <stdint.h>
+
+#include "util/statistics.h"
+
+using openxc::util::statistics::Statistic;
+
+namespace statistics = openxc::util::statistics;
+
+void setup() {
+}
+
+void teardown() {
+}
+
+START_TEST (test_update_sets_min)
+{
+    Statistic stat;
+    statistics::initialize(&stat);
+    statistics::update(&stat, 1);
+    statistics::update(&stat, 2);
+    statistics::update(&stat, 3);
+    ck_assert(stat.min == 1.0);
+}
+END_TEST
+
+START_TEST (test_update_sets_max)
+{
+    Statistic stat;
+    statistics::initialize(&stat);
+    statistics::update(&stat, 1);
+    statistics::update(&stat, 2);
+    statistics::update(&stat, 3);
+    statistics::update(&stat, 0);
+    ck_assert(stat.max == 3.0);
+}
+END_TEST
+
+START_TEST (test_exponential_moving_average)
+{
+    Statistic stat;
+    statistics::initialize(&stat);
+    statistics::update(&stat, 1);
+    statistics::update(&stat, 2);
+    statistics::update(&stat, 3);
+    statistics::update(&stat, 4);
+    statistics::update(&stat, 5);
+    statistics::update(&stat, 6);
+    statistics::update(&stat, 7);
+    statistics::update(&stat, 8);
+    statistics::update(&stat, 9);
+    statistics::update(&stat, 10);
+    ck_assert_int_eq(stat.movingAverage, 4);
+}
+END_TEST
+
+Suite* suite(void) {
+    Suite* s = suite_create("statistics");
+    TCase *tc_core = tcase_create("core");
+    tcase_add_checked_fixture (tc_core, setup, teardown);
+    tcase_add_test(tc_core, test_update_sets_min);
+    tcase_add_test(tc_core, test_update_sets_max);
+    tcase_add_test(tc_core, test_exponential_moving_average);
+    suite_add_tcase(s, tc_core);
+
+    return s;
+}
+
+int main(void) {
+    int numberFailed;
+    Suite* s = suite();
+    SRunner *sr = srunner_create(s);
+    // Don't fork so we can actually use gdb
+    srunner_set_fork_status(sr, CK_NOFORK);
+    srunner_run_all(sr, CK_NORMAL);
+    numberFailed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    return (numberFailed == 0) ? 0 : 1;
+}

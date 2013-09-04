@@ -26,7 +26,7 @@ typedef struct {
     RGB white;
 } Palette;
 
-extern Palette COLORS;
+extern const Palette COLORS;
 
 void initialize();
 

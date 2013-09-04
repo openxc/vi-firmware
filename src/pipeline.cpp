@@ -6,6 +6,7 @@
 #include "lights.h"
 
 #define PIPELINE_ENDPOINT_COUNT 3
+#define PIPELINE_STATS_LOG_FREQUENCY_S 5
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
@@ -78,23 +79,28 @@ void openxc::pipeline::process(Pipeline* pipeline) {
 
 void openxc::pipeline::logStatistics(Pipeline* pipeline) {
 #ifdef __LOG_STATS__
-    for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
-        const char* interfaceName = messageTypeNames[i];
-        debug("%s messages sent: %d", interfaceName, sentMessages[i]);
-        debug("%s messages dropped: %d", interfaceName, droppedMessages[i]);
-        float droppedRatio = 0;
-        if(droppedMessages[i] > 0) {
-            droppedRatio = droppedMessages[i] / (float)(droppedMessages[i] +
-                    sentMessages[i]);
+    static unsigned long lastTimeLogged;
+
+    if(time::systemTimeMs() - lastTimeLogged > PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
+        for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
+            const char* interfaceName = messageTypeNames[i];
+            debug("%s messages sent: %d", interfaceName, sentMessages[i]);
+            debug("%s messages dropped: %d", interfaceName, droppedMessages[i]);
+            float droppedRatio = 0;
+            if(droppedMessages[i] > 0) {
+                droppedRatio = droppedMessages[i] / (float)(droppedMessages[i] +
+                        sentMessages[i]);
+            }
+            debug("%s message drop ratio: %f", interfaceName, droppedRatio);
+            debug("Aggregate %s sent message rate since startup: %f msgs / s",
+                    interfaceName, sentMessages[i] / (time::uptimeMs() / 1000.0));
+            // TODO this isn't that accurate if the interface was dropping messages
+            // when it wasn't connected - it would be more useful if it was "time
+            // since connected"
+            debug("Average %s data rate since startup: %fKB / s",
+                    interfaceName, dataSent[i] / 1024 / (time::uptimeMs() / 1000.0));
+            lastTimeLogged = time::systemTimeMs();
         }
-        debug("%s message drop ratio: %f", interfaceName, droppedRatio);
-        debug("Aggregate %s sent message rate since startup: %f msgs / s",
-                interfaceName, sentMessages[i] / (time::uptimeMs() / 1000.0));
-        // TODO this isn't that accurate if the interface was dropping messages
-        // when it wasn't connected - it would be more useful if it was "time
-        // since connected"
-        debug("Average %s data rate since startup: %f KB / s",
-                interfaceName, dataSent[i] / 1024 / (time::uptimeMs() / 1000.0));
     }
 #endif // __LOG_STATS__
 }

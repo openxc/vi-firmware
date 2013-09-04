@@ -16,8 +16,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define BUS_STATS_LOG_FREQUENCY_S 5
-#define CAN_MESSAGE_TOTAL_BIT_SIZE (64 + 11)
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -69,6 +67,7 @@ void loop() {
     updateDataLights();
     openxc::signals::loop();
     can::logBusStatistics(getCanBuses(), getCanBusCount());
+    openxc::pipeline::logStatistics(&pipeline);
 }
 
 /* Public: Update the color and status of a board's light that shows the status

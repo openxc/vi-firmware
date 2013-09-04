@@ -6,6 +6,7 @@
 #include <string.h>
 #include "util/bitfield.h"
 #include "util/timer.h"
+#include "util/statistics.h"
 #include "emqueue.h"
 #include "cJSON.h"
 
@@ -127,6 +128,10 @@ struct CanBus {
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;
+    openxc::util::statistics::DeltaStatistic totalMessageStats;
+    openxc::util::statistics::DeltaStatistic droppedMessageStats;
+    openxc::util::statistics::DeltaStatistic receivedMessageStats;
+    openxc::util::statistics::DeltaStatistic receivedDataStats;
     uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;

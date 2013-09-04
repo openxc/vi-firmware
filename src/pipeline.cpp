@@ -101,6 +101,7 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             const char* interfaceName = messageTypeNames[i];
             statistics::update(&sentMessageStats[i], sentMessages[i]);
             statistics::update(&droppedMessageStats[i], droppedMessages[i]);
+            statistics::update(&dataSentStats[i], dataSent[i]);
 
             debug("%s messages sent: %d", interfaceName,
                     sentMessageStats[i].total);

@@ -14,15 +14,15 @@ namespace statistics {
  *      the window size. The default is .1.
  */
 typedef struct {
-    float min;
-    float max;
+    int min;
+    int max;
     float movingAverage;
     float alpha;
 } Statistic;
 
 
 typedef struct {
-    float total;
+    int total;
     Statistic statistic;
 } DeltaStatistic;
 
@@ -39,21 +39,21 @@ void initialize(DeltaStatistic* stat);
  * stat - the Statistic object to update.
  * newValue - the newly observed value.
  */
-void update(Statistic* stat, float newValue);
+void update(Statistic* stat, int newValue);
 
-void update(DeltaStatistic* stat, float newValue);
+void update(DeltaStatistic* stat, int newValue);
 
 float exponentialMovingAverage(const Statistic* stat);
 
 float exponentialMovingAverage(const DeltaStatistic* stat);
 
-float minimum(const Statistic* stat);
+int minimum(const Statistic* stat);
 
-float minimum(const DeltaStatistic* stat);
+int minimum(const DeltaStatistic* stat);
 
-float maximum(const Statistic* stat);
+int maximum(const Statistic* stat);
 
-float maximum(const DeltaStatistic* stat);
+int maximum(const DeltaStatistic* stat);
 
 
 } // namespace statistics

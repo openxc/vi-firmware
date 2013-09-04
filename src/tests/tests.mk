@@ -33,6 +33,7 @@ test: unit_tests
 	@make example_signals_test
 	@make emulator_test
 	@make debug_compile_test
+	@make stats_compile_test
 	@make network_compile_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
@@ -82,6 +83,12 @@ emulator_test:
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 	@echo -n "Testing CAN emulator build for Blueboard ARM board..."
 	@PLATFORM=BLUEBOARD make -j4 emulator
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+stats_compile_test: code_generation_test
+	@echo -n "Testing build with LOG_STATS=1 flag..."
+	@DEBUG=1 LOG_STATS=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

@@ -3,7 +3,7 @@
 
 #include "emqueue.h"
 
-QUEUE_DECLARE(uint8_t, 1024)
+QUEUE_DECLARE(uint8_t, 128)
 
 namespace openxc {
 namespace util {
@@ -33,6 +33,17 @@ void processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*));
  */
 bool conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,
         int messageSize);
+
+/* Public: Check if a message plus a CRLF will fit in the byte queue.
+ *
+ * queue - The queue to add the message.
+ * message - The message to check for a good fit.
+ * messageSize - The length of the message.
+ *
+ * Returns true if the message will able to fit in the queue.
+ * Returns false otherwise, or if queue is NULL.
+ */
+bool messageFits(QUEUE_TYPE(uint8_t)* queue, uint8_t* message, int messageSize);
 
 } // namespace bytebuffer
 } // namespace util

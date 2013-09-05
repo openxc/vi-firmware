@@ -8,6 +8,7 @@
 
 #define PIPELINE_ENDPOINT_COUNT 3
 #define PIPELINE_STATS_LOG_FREQUENCY_S 5
+#define QUEUE_FLUSH_MAX_TRIES 500
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
@@ -16,6 +17,7 @@ namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
 
 using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::util::bytebuffer::messageFits;
 using openxc::util::statistics::DeltaStatistic;
 
 typedef enum {
@@ -39,6 +41,12 @@ unsigned int receiveQueueLength[PIPELINE_ENDPOINT_COUNT];
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize) {
     if(pipeline->usb->configured) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->usb->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(&pipeline->usb->sendQueue, message,
                 messageSize)) {
             ++droppedMessages[USB];
@@ -51,6 +59,12 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     }
 
     if(uart::connected(pipeline->uart)) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->uart->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(&pipeline->uart->sendQueue, message,
                 messageSize)) {
             ++droppedMessages[UART];
@@ -63,6 +77,12 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     }
 
     if(pipeline->network != NULL) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->network->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(
                 &pipeline->network->sendQueue, message, messageSize)) {
             ++droppedMessages[NETWORK];

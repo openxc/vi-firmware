@@ -66,8 +66,8 @@ typedef struct CanSignalState CanSignalState;
 struct CanSignal {
     struct CanMessage* message;
     const char* genericName;
-    int bitPosition;
-    int bitSize;
+    uint8_t bitPosition;
+    uint8_t bitSize;
     float factor;
     float offset;
     float minValue;
@@ -76,7 +76,7 @@ struct CanSignal {
     bool sendSame;
     bool forceSendChanged;
     const CanSignalState* states;
-    int stateCount;
+    uint8_t stateCount;
     bool writable;
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
     bool received;
@@ -119,7 +119,7 @@ QUEUE_DECLARE(CanMessage, 64);
  */
 struct CanBus {
     unsigned int speed;
-    int address;
+    short address;
     void* controller;
     void (*interruptHandler)();
     bool (*writeHandler)(CanBus*, CanMessage);
@@ -153,12 +153,12 @@ typedef struct CanBus CanBus;
  *  commandCount - The number of CanCommmands defined for this message set.
  */
 typedef struct {
-    int index;
+    uint8_t index;
     const char* name;
-    int busCount;
-    int messageCount;
-    int signalCount;
-    int commandCount;
+    uint8_t busCount;
+    unsigned short messageCount;
+    unsigned short signalCount;
+    unsigned short commandCount;
 } CanMessageSet;
 
 namespace openxc {
@@ -174,9 +174,9 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
  *           channel 1 is for RX.
  */
 typedef struct {
-    int number;
-    int value;
-    int channel;
+    uint8_t number;
+    uint32_t value;
+    uint8_t channel;
 } CanFilter;
 
 /* Public: The function definition for completely custom OpenXC command

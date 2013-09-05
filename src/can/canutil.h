@@ -14,7 +14,6 @@
 #include "platform/lpc17xx/canutil_lpc17xx.h"
 #endif // __LPC17XX__
 
-#define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 // TODO These structs are defined outside of the openxc::can namespace because
 // we're not able to used namespaced types with emqueue.
@@ -114,7 +113,6 @@ QUEUE_DECLARE(CanMessage, 64);
  *      CAN interface (implementation is platform specific);
  * lastMessageReceived - the time (in ms) when the last CAN message was
  *      received. If no message has been received, it should be 0.
- * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be
  *      translated.
@@ -136,7 +134,6 @@ struct CanBus {
     openxc::util::statistics::Statistic sendQueueStats;
     openxc::util::statistics::Statistic receiveQueueStats;
 #endif // __LOG_STATS__
-    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
 };

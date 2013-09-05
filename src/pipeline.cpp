@@ -2,17 +2,23 @@
 #include "pipeline.h"
 #include "util/log.h"
 #include "util/timer.h"
+#include "util/statistics.h"
 #include "util/bytebuffer.h"
 #include "lights.h"
 
 #define PIPELINE_ENDPOINT_COUNT 3
+#define PIPELINE_STATS_LOG_FREQUENCY_S 5
+#define QUEUE_FLUSH_MAX_TRIES 500
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
 namespace network = openxc::interface::network;
 namespace time = openxc::util::time;
+namespace statistics = openxc::util::statistics;
 
 using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::util::bytebuffer::messageFits;
+using openxc::util::statistics::DeltaStatistic;
 
 typedef enum {
     USB = 0,
@@ -29,10 +35,18 @@ const char messageTypeNames[][9] = {
 unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int dataSent[PIPELINE_ENDPOINT_COUNT];
+unsigned int sendQueueLength[PIPELINE_ENDPOINT_COUNT];
+unsigned int receiveQueueLength[PIPELINE_ENDPOINT_COUNT];
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize) {
     if(pipeline->usb->configured) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->usb->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(&pipeline->usb->sendQueue, message,
                 messageSize)) {
             ++droppedMessages[USB];
@@ -40,9 +54,17 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             ++sentMessages[USB];
             dataSent[USB] += messageSize;
         }
+        sendQueueLength[USB] = QUEUE_LENGTH(uint8_t, &pipeline->usb->sendQueue);
+        receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t, &pipeline->usb->receiveQueue);
     }
 
     if(uart::connected(pipeline->uart)) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->uart->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(&pipeline->uart->sendQueue, message,
                 messageSize)) {
             ++droppedMessages[UART];
@@ -50,9 +72,17 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             ++sentMessages[UART];
             dataSent[UART] += messageSize;
         }
+        sendQueueLength[UART] = QUEUE_LENGTH(uint8_t, &pipeline->uart->sendQueue);
+        receiveQueueLength[UART] = QUEUE_LENGTH(uint8_t, &pipeline->uart->receiveQueue);
     }
 
     if(pipeline->network != NULL) {
+        int timeout = QUEUE_FLUSH_MAX_TRIES;
+        while(timeout > 0 && !messageFits(&pipeline->network->sendQueue, message, messageSize)) {
+            process(pipeline);
+            --timeout;
+        }
+
         if(!conditionalEnqueue(
                 &pipeline->network->sendQueue, message, messageSize)) {
             ++droppedMessages[NETWORK];
@@ -60,6 +90,8 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             ++sentMessages[NETWORK];
             dataSent[NETWORK] += messageSize;
         }
+        sendQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t, &pipeline->network->sendQueue);
+        receiveQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t, &pipeline->network->receiveQueue);
     }
 }
 
@@ -78,23 +110,72 @@ void openxc::pipeline::process(Pipeline* pipeline) {
 
 void openxc::pipeline::logStatistics(Pipeline* pipeline) {
 #ifdef __LOG_STATS__
-    for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
-        const char* interfaceName = messageTypeNames[i];
-        debug("%s messages sent: %d", interfaceName, sentMessages[i]);
-        debug("%s messages dropped: %d", interfaceName, droppedMessages[i]);
-        float droppedRatio = 0;
-        if(droppedMessages[i] > 0) {
-            droppedRatio = droppedMessages[i] / (float)(droppedMessages[i] +
-                    sentMessages[i]);
+    static unsigned long lastTimeLogged;
+    static DeltaStatistic droppedMessageStats[PIPELINE_ENDPOINT_COUNT];
+    static DeltaStatistic sentMessageStats[PIPELINE_ENDPOINT_COUNT];
+    static DeltaStatistic dataSentStats[PIPELINE_ENDPOINT_COUNT];
+    static DeltaStatistic sendQueueStats[PIPELINE_ENDPOINT_COUNT];
+    static DeltaStatistic receiveQueueStats[PIPELINE_ENDPOINT_COUNT];
+    static bool initializedStats = false;
+    if(!initializedStats) {
+        for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
+            statistics::initialize(&droppedMessageStats[i]);
+            statistics::initialize(&sentMessageStats[i]);
+            statistics::initialize(&dataSentStats[i]);
+            statistics::initialize(&sendQueueStats[i]);
+            statistics::initialize(&receiveQueueStats[i]);
         }
-        debug("%s message drop ratio: %f", interfaceName, droppedRatio);
-        debug("Aggregate %s sent message rate since startup: %f msgs / s",
-                interfaceName, sentMessages[i] / (time::uptimeMs() / 1000.0));
-        // TODO this isn't that accurate if the interface was dropping messages
-        // when it wasn't connected - it would be more useful if it was "time
-        // since connected"
-        debug("Average %s data rate since startup: %f KB / s",
-                interfaceName, dataSent[i] / 1024 / (time::uptimeMs() / 1000.0));
+        initializedStats = true;
+    }
+
+    if(time::systemTimeMs() - lastTimeLogged > PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
+        for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
+            const char* interfaceName = messageTypeNames[i];
+            statistics::update(&sentMessageStats[i], sentMessages[i]);
+            statistics::update(&droppedMessageStats[i], droppedMessages[i]);
+            statistics::update(&dataSentStats[i], dataSent[i]);
+            statistics::update(&dataSentStats[i], dataSent[i]);
+
+            statistics::update(&sendQueueStats[i], sendQueueLength[i]);
+            statistics::update(&receiveQueueStats[i], receiveQueueLength[i]);
+
+            debug("Average %s receive queue fill percent: %f",
+                    interfaceName,
+                    statistics::exponentialMovingAverage(&receiveQueueStats[i])
+                        / QUEUE_MAX_LENGTH(uint8_t) * 100);
+            debug("%s receive queue max fill percent: %f",
+                    interfaceName,
+                    (float) statistics::maximum(&receiveQueueStats[i]) /
+                            QUEUE_MAX_LENGTH(uint8_t) * 100);
+            debug("Average %s send queue fill percent: %f",
+                    interfaceName,
+                    statistics::exponentialMovingAverage(&sendQueueStats[i])
+                        / QUEUE_MAX_LENGTH(uint8_t) * 100);
+            debug("%s send queue max fill percent: %f",
+                    interfaceName,
+                    (float) statistics::maximum(&sendQueueStats[i]) /
+                            QUEUE_MAX_LENGTH(uint8_t) * 100);
+
+            debug("%s messages sent: %d", interfaceName,
+                    sentMessageStats[i].total);
+            debug("%s messages dropped: %d", interfaceName,
+                    droppedMessageStats[i].total);
+            if(droppedMessages[i] > 0) {
+                debug("%s message drop percent: %f", interfaceName,
+                        (float)droppedMessageStats[i].total /
+                            (sentMessageStats[i].total +
+                            droppedMessageStats[i].total) * 100);
+            }
+            debug("Average %s sent message rate: %f msgs / s",
+                    interfaceName,
+                    statistics::exponentialMovingAverage(&sentMessageStats[i])
+                        / PIPELINE_STATS_LOG_FREQUENCY_S);
+            debug("Average %s data rate: %fKB / s",
+                    interfaceName,
+                    statistics::exponentialMovingAverage(&dataSentStats[i])
+                        / 1024.0 / PIPELINE_STATS_LOG_FREQUENCY_S);
+            lastTimeLogged = time::systemTimeMs();
+        }
     }
 #endif // __LOG_STATS__
 }

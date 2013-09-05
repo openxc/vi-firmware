@@ -6,6 +6,7 @@
 #include <string.h>
 #include "util/bitfield.h"
 #include "util/timer.h"
+#include "util/statistics.h"
 #include "emqueue.h"
 #include "cJSON.h"
 
@@ -13,7 +14,6 @@
 #include "platform/lpc17xx/canutil_lpc17xx.h"
 #endif // __LPC17XX__
 
-#define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
 
 // TODO These structs are defined outside of the openxc::can namespace because
 // we're not able to used namespaced types with emqueue.
@@ -25,7 +25,7 @@
  * name  - The corresponding string name for the state in OpenXC.
  */
 struct CanSignalState {
-    int value;
+    const int value;
     const char* name;
 };
 typedef struct CanSignalState CanSignalState;
@@ -66,8 +66,8 @@ typedef struct CanSignalState CanSignalState;
 struct CanSignal {
     struct CanMessage* message;
     const char* genericName;
-    int bitPosition;
-    int bitSize;
+    uint8_t bitPosition;
+    uint8_t bitSize;
     float factor;
     float offset;
     float minValue;
@@ -75,8 +75,8 @@ struct CanSignal {
     openxc::util::time::FrequencyClock frequencyClock;
     bool sendSame;
     bool forceSendChanged;
-    CanSignalState* states;
-    int stateCount;
+    const CanSignalState* states;
+    uint8_t stateCount;
     bool writable;
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
     bool received;
@@ -122,21 +122,27 @@ QUEUE_DECLARE(CanMessage, 64);
  *      CAN interface (implementation is platform specific);
  * lastMessageReceived - the time (in ms) when the last CAN message was
  *      received. If no message has been received, it should be 0.
- * buffer - message area for 2 channels to store 8 16 byte messages.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be
  *      translated.
  */
 struct CanBus {
     unsigned int speed;
-    int address;
+    uint8_t address;
     void* controller;
     void (*interruptHandler)();
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;
-    uint8_t buffer[BUS_MEMORY_BUFFER_SIZE];
+#ifdef __LOG_STATS__
+    openxc::util::statistics::DeltaStatistic totalMessageStats;
+    openxc::util::statistics::DeltaStatistic droppedMessageStats;
+    openxc::util::statistics::DeltaStatistic receivedMessageStats;
+    openxc::util::statistics::DeltaStatistic receivedDataStats;
+    openxc::util::statistics::Statistic sendQueueStats;
+    openxc::util::statistics::Statistic receiveQueueStats;
+#endif // __LOG_STATS__
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
 };
@@ -156,12 +162,12 @@ typedef struct CanBus CanBus;
  *  commandCount - The number of CanCommmands defined for this message set.
  */
 typedef struct {
-    int index;
+    uint8_t index;
     const char* name;
-    int busCount;
-    int messageCount;
-    int signalCount;
-    int commandCount;
+    uint8_t busCount;
+    unsigned short messageCount;
+    unsigned short signalCount;
+    unsigned short commandCount;
 } CanMessageSet;
 
 namespace openxc {
@@ -177,9 +183,9 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
  *           channel 1 is for RX.
  */
 typedef struct {
-    int number;
-    int value;
-    int channel;
+    uint8_t number;
+    uint32_t value;
+    uint8_t channel;
 } CanFilter;
 
 /* Public: The function definition for completely custom OpenXC command
@@ -298,7 +304,7 @@ CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCou
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
+const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its numerical value.
@@ -313,8 +319,15 @@ CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(int value, CanSignal* signal,
+const CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
+
+/* Public: Log transfer statistics about all active CAN buses to the debug log.
+ *
+ * buses - an array of active CAN buses.
+ * busCount - the length of the buses array.
+ */
+void logBusStatistics(CanBus* buses, const int busCount);
 
 } // can
 } // openxc

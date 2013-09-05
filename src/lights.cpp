@@ -5,7 +5,7 @@
 
 namespace time = openxc::util::time;
 
-openxc::lights::Palette openxc::lights::COLORS = {
+const openxc::lights::Palette openxc::lights::COLORS = {
     {255, 0, 0}, // red
     {0, 255, 0}, // green
     {0, 0, 255}, // blue

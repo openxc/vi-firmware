@@ -49,7 +49,7 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
         debug("Can't write state of NULL -- not sending");
         *send = false;
     } else {
-        CanSignalState* signalState = lookupSignalState(value, signal, signals,
+        const CanSignalState* signalState = lookupSignalState(value, signal, signals,
                 signalCount);
         if(signalState != NULL) {
             checkWritePermission(signal, send);

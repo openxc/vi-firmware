@@ -115,7 +115,7 @@ END_TEST
 
 START_TEST (test_enqueue_just_enough_room)
 {
-    for(int i = 0; i < 501; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 11; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
 

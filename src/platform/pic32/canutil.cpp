@@ -10,6 +10,8 @@
     #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)
 #endif
 
+#define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
+
 namespace gpio = openxc::gpio;
 
 using openxc::gpio::GpioValue;
@@ -19,11 +21,18 @@ using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
 
+
 CAN can1Actual(CAN::CAN1);
 CAN can2Actual(CAN::CAN2);
 CAN* can1 = &can1Actual;
 CAN* can2 = &can2Actual;
 
+/* Private:  A message area for 2 channels to store 8 16 byte messages - rqeuired
+ * by the PIC32 CAN library. We could add this to the CanBus struct, but the
+ * PIC32 has way more memory than some of our other supported platforms so I
+ * don't want to burden them unnecessarily.
+ */
+uint8_t CAN_CONTROLLER_BUFFER[BUS_MEMORY_BUFFER_SIZE];
 
 /* Private: Initializes message filters on the CAN controller.
  *
@@ -109,7 +118,7 @@ void openxc::can::initialize(CanBus* bus) {
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    CAN_CONTROLLER(bus)->assignMemoryBuffer(bus->buffer,
+    CAN_CONTROLLER(bus)->assignMemoryBuffer(CAN_CONTROLLER_BUFFER,
             BUS_MEMORY_BUFFER_SIZE);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit

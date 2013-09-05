@@ -17,7 +17,7 @@ using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
 using openxc::util::log::debugNoNewline;
 
-uint32_t DISABLED_PERIPHERALS[] = {
+const uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
     CLKPWR_PCONP_PCTIM1,
     CLKPWR_PCONP_PCSPI,

@@ -33,10 +33,10 @@ namespace usb {
  * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
-    int inEndpoint;
-    int inEndpointSize;
-    int outEndpoint;
-    int outEndpointSize;
+    uint8_t inEndpoint;
+    uint8_t inEndpointSize;
+    uint8_t outEndpoint;
+    uint8_t outEndpointSize;
     bool configured;
     QUEUE_TYPE(uint8_t) sendQueue;
     QUEUE_TYPE(uint8_t) receiveQueue;

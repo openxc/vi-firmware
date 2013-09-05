@@ -21,12 +21,14 @@ void openxc::can::initializeCommon(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;
+#ifdef __LOG_STATS__
     statistics::initialize(&bus->totalMessageStats);
     statistics::initialize(&bus->droppedMessageStats);
     statistics::initialize(&bus->receivedMessageStats);
     statistics::initialize(&bus->receivedDataStats);
     statistics::initialize(&bus->sendQueueStats);
     statistics::initialize(&bus->receiveQueueStats);
+#endif // __LOG_STATS__
 }
 
 bool openxc::can::busActive(CanBus* bus) {

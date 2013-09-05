@@ -186,7 +186,7 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
                         bus->droppedMessageStats.total,
                         bus->totalMessageStats.total);
             }
-            debug("Overall data received on bus %d: %fKB", bus->address,
+            debug("Overall data received on bus %d: %dKB", bus->address,
                     bus->receivedDataStats.total);
             debug("Average throughput on bus %d: %fKB / s", bus->address,
                     statistics::exponentialMovingAverage(&bus->receivedDataStats)

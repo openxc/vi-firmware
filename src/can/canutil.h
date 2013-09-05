@@ -25,7 +25,7 @@
  * name  - The corresponding string name for the state in OpenXC.
  */
 struct CanSignalState {
-    int value;
+    const int value;
     const char* name;
 };
 typedef struct CanSignalState CanSignalState;
@@ -75,7 +75,7 @@ struct CanSignal {
     openxc::util::time::FrequencyClock frequencyClock;
     bool sendSame;
     bool forceSendChanged;
-    CanSignalState* states;
+    const CanSignalState* states;
     int stateCount;
     bool writable;
     uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
@@ -285,7 +285,7 @@ CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCou
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
+const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its numerical value.
@@ -300,7 +300,7 @@ CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-CanSignalState* lookupSignalState(int value, CanSignal* signal,
+const CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
 /* Public: Log transfer statistics about all active CAN buses to the debug log.

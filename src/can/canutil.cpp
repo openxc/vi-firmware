@@ -51,7 +51,7 @@ bool signalStateNameComparator(void* name, int index, void* states) {
     return !strcmp((const char*)name, ((CanSignalState*)states)[index].name);
 }
 
-CanSignalState* openxc::can::lookupSignalState(const char* name, CanSignal* signal,
+const CanSignalState* openxc::can::lookupSignalState(const char* name, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     int index = lookup((void*)name, signalStateNameComparator,
             (void*)signal->states, signal->stateCount);
@@ -66,7 +66,7 @@ bool signalStateValueComparator(void* value, int index, void* states) {
     return (*(int*)value) == ((CanSignalState*)states)[index].value;
 }
 
-CanSignalState* openxc::can::lookupSignalState(int value, CanSignal* signal,
+const CanSignalState* openxc::can::lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount) {
     int index = lookup((void*)&value, signalStateValueComparator,
             (void*)signal->states, signal->stateCount);

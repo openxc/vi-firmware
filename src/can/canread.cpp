@@ -96,7 +96,7 @@ float openxc::can::read::ignoreHandler(CanSignal* signal, CanSignal* signals, in
 
 const char* openxc::can::read::stateHandler(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send) {
-    CanSignalState* signalState = lookupSignalState(value, signal, signals,
+    const CanSignalState* signalState = lookupSignalState(value, signal, signals,
             signalCount);
     if(signalState != NULL) {
         return signalState->name;

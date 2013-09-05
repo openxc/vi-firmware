@@ -169,12 +169,12 @@ CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
     switch(getConfiguration()->messageSetIndex) {
     case 0: // message set: my-car
         switch(address) {
-        case 0x101:
+        case 1:
             *count = 2;
             FILTERS[0] = {0, 0x29, 1};
             FILTERS[1] = {1, 0x52, 1};
             break;
-        case 0x102:
+        case 2:
             *count = 1;
             FILTERS[0] = {2, 0x65, 1};
             break;

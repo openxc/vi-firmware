@@ -295,14 +295,12 @@ if ! command -v pip >/dev/null 2>&1; then
 fi
 
 if ! python -c "import openxc" || ! command -v openxc-generate-firmware-code >/dev/null 2>&1; then
-    if [ -z $CI ]; then
+    if [[ -z $CI ]] || [[ $TRAVIS_BRANCH == "master" ]]; then
         $SUDO_CMD pip install -U openxc
     else
-        if [[ $TRAVIS_BRANCH == "master" ]] || [[ $TRAVIS_BRANCH == "next" ]]; then
-            $SUDO_CMD pip install git+https://github.com/openxc/openxc-python@$TRAVIS_BRANCH
-        else
-            $SUDO_CMD pip install -U openxc
-        fi
+        # grab the development version of the python library, you probably need
+        # if it this build isn't the master branch
+        $SUDO_CMD pip install git+https://github.com/openxc/openxc-python@next
     fi
 fi
 

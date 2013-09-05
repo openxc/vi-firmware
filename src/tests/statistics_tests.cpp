@@ -51,7 +51,9 @@ START_TEST (test_exponential_moving_average)
     statistics::update(&stat, 8);
     statistics::update(&stat, 9);
     statistics::update(&stat, 10);
-    ck_assert_int_eq(statistics::exponentialMovingAverage(&stat), 4);
+    float average = statistics::exponentialMovingAverage(&stat);
+    ck_assert(average > 4);
+    ck_assert(average < 4.5);
 }
 END_TEST
 
@@ -75,7 +77,9 @@ START_TEST (test_delta_stat_exponential_average)
         statistics::update(&stat, i * 5);
     }
     statistics::update(&stat, 506);
-    ck_assert_int_eq(statistics::exponentialMovingAverage(&stat), 5);
+    float average = statistics::exponentialMovingAverage(&stat);
+    ck_assert(average > 5);
+    ck_assert(average < 6);
 }
 END_TEST
 

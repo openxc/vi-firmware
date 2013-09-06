@@ -24,6 +24,41 @@ website`_ or the `vehicle interface documentation`_.
 .. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
 .. _`vehicle interface documentation`: http://vi-firmware.openxcplatform.com
 
+Quick Start
+===========
+
+For the full build instructions, see the `documentation
+<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`.
+
+The basics to compile the firmware from source:
+
+Clone the `vi-firmware <https://github.com/openxc/vi-firmware>` repository
+(don't download the ZIP file, it won't work):
+
+  .. code-block:: sh
+
+    $ git clone https://github.com/openxc/cantranslator
+
+Run the ``bootstrap.sh`` script:
+
+  .. code-block:: sh
+
+    $ cd vi-firmware
+    cantranslator/ $ script/bootstrap.sh
+
+Copy the example "CAN passthrough" implementation of ``signals.h`` to
+``signals.cpp``:
+
+  .. code-block:: sh
+
+    cantranslator/ $ cp signals.cpp.example-passthrough signals.cpp
+
+Compile it! By default this will compile for the chipKIT vehicle interface:
+
+  .. code-block:: sh
+
+    cantranslator/ $ make
+
 License
 =======
 

@@ -28,11 +28,11 @@ Quick Start
 ===========
 
 For the full build instructions, see the `documentation
-<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`.
+<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`_.
 
 The basics to compile the firmware from source:
 
-Clone the `vi-firmware <https://github.com/openxc/vi-firmware>` repository
+Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_ repository
 (don't download the ZIP file, it won't work):
 
   .. code-block:: sh

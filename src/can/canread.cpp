@@ -47,12 +47,16 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     using openxc::can::read::EVENT_FIELD_NAME;
 
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-    cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
-    if(event != NULL) {
-        cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
+    if(root != NULL) {
+        cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
+        cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
+        if(event != NULL) {
+            cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
+        }
+        sendJSON(root, pipeline);
+    } else {
+        debug("Unable to allocate a cJSON object - probably OOM");
     }
-    sendJSON(root, pipeline);
 }
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* send) {

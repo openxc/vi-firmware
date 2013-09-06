@@ -37,6 +37,16 @@ START_TEST (test_update_sets_max)
 }
 END_TEST
 
+START_TEST (test_average_starts_at_first_value)
+{
+    Statistic stat;
+    statistics::initialize(&stat);
+    statistics::update(&stat, 500);
+    float average = statistics::exponentialMovingAverage(&stat);
+    ck_assert(average == 500);
+}
+END_TEST
+
 START_TEST (test_exponential_moving_average)
 {
     Statistic stat;
@@ -92,6 +102,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_exponential_moving_average);
     tcase_add_test(tc_core, test_delta_stat_min_max);
     tcase_add_test(tc_core, test_delta_stat_exponential_average);
+    tcase_add_test(tc_core, test_average_starts_at_first_value);
     suite_add_tcase(s, tc_core);
 
     return s;

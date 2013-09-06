@@ -17,11 +17,15 @@ void openxc::util::statistics::initialize(Statistic* stat) {
 }
 
 void openxc::util::statistics::update(Statistic* stat, int newValue) {
+    if(stat->min == INT_MAX && stat->max == INT_MIN) {
+        stat->movingAverage = newValue;
+    } else {
+        stat->movingAverage = (stat->alpha * newValue) +
+                (1.0 - stat->alpha) * stat->movingAverage;
+    }
+
     stat->min = std::min(newValue, stat->min);
     stat->max = std::max(newValue, stat->max);
-
-    stat->movingAverage = (stat->alpha * newValue) +
-            (1.0 - stat->alpha) * stat->movingAverage;
 }
 
 void openxc::util::statistics::update(DeltaStatistic* stat, int newValue) {

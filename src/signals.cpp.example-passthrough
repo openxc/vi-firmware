@@ -88,7 +88,7 @@ CanMessageSet* openxc::signals::getMessageSets() {
     return MESSAGE_SETS;
 }
 
-CanMessage* openxc::signals::getMessages() {
+CanMessageDefinition* openxc::signals::getMessages() {
     return NULL;
 }
 

@@ -119,11 +119,11 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands, i
 }
 
 bool messageComparator(void* id, int index, void* messages) {
-    return *((unsigned int*)id) == ((CanMessage*)messages)[index].id;
+    return *((unsigned int*)id) == ((CanMessageDefinition*)messages)[index].id;
 }
 
-CanMessage* openxc::can::lookupMessage(int id, CanMessage* messages,
-        int messageCount) {
+CanMessageDefinition* openxc::can::lookupMessage(int id, 
+        CanMessageDefinition* messages, int messageCount) {
     int index = lookup((void*)&id, messageComparator, (void*)messages,
             messageCount);
     if(index != -1) {

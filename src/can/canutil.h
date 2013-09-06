@@ -64,7 +64,7 @@ typedef struct CanSignalState CanSignalState;
  * lastValue   - The last received value of the signal. Defaults to undefined.
  */
 struct CanSignal {
-    struct CanMessage* message;
+    struct CanMessageDefinition* message;
     const char* genericName;
     uint8_t bitPosition;
     uint8_t bitSize;
@@ -84,11 +84,12 @@ struct CanSignal {
 };
 typedef struct CanSignal CanSignal;
 
-/* Public: A CAN message, particularly for writing to CAN.
+/* Public: The definition of a CAN message. This includes a lot of metadata, so
+ * to save memory this struct should not be used for storing incoming and
+ * outgoing CAN messages.
  *
  * bus - A pointer to the bus this message is on.
  * id - The ID of the message.
- * data  - The message's data field.
  * frequencyClock - an optional frequency clock to control the output of this
  *      message, if sent raw, or simply to mark the max frequency for custom
  *      handlers to retrieve.
@@ -96,13 +97,24 @@ typedef struct CanSignal CanSignal;
  *      message if it has changed when using raw passthrough.
  * lastValue - The last received value of the message. Defaults to undefined.
  */
-struct CanMessage {
+struct CanMessageDefinition {
     struct CanBus* bus;
     uint32_t id;
-    uint64_t data;
     openxc::util::time::FrequencyClock frequencyClock;
     bool forceSendChanged;
     uint64_t lastValue;
+};
+typedef struct CanMessageDefinition CanMessageDefinition;
+
+/* A compact representation of a single CAN message, meant to be used in in/out
+ * buffers.
+ *
+ * id - The ID of the message.
+ * data  - The message's data field.
+ */
+struct CanMessage {
+    uint32_t id;
+    uint64_t data;
 };
 typedef struct CanMessage CanMessage;
 
@@ -255,7 +267,8 @@ bool busActive(CanBus* bus);
  *
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
-CanMessage* lookupMessage(int id, CanMessage* messages, int messageCount);
+CanMessageDefinition* lookupMessage(int id, CanMessageDefinition* messages,
+        int messageCount);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be

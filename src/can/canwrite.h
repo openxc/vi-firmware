@@ -163,10 +163,11 @@ bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
  * of the data is swapped, but otherwise this function queues the data to write
  * out to CAN without any additional processing.
  *
- * message - the CAN message this data should be sent in.
- * data - the data for the CAN message, byte order will be reversed.
+ * bus - the bus to send the message.
+ * message - the CAN message this data should be sent in. The byte order of the
+ *      data will be reversed.
  */
-void enqueueMessage(CanMessage* message, uint64_t data);
+void enqueueMessage(CanBus* bus, CanMessage* message);
 
 /* Public: Write any queued outgoing messages to the CAN bus.
  *

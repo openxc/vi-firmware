@@ -22,10 +22,10 @@ using openxc::can::read::sendStringMessage;
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 const int MESSAGE_COUNT = 3;
-CanMessage MESSAGES[MESSAGE_COUNT] = {
-    {NULL, 0, 0},
-    {NULL, 1, 0, {10}},
-    {NULL, 2, 0, {1}, true},
+CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
+    {NULL, 0},
+    {NULL, 1, {10}},
+    {NULL, 2, {1}, true},
 };
 
 CanSignalState SIGNAL_STATES[1][10] = {

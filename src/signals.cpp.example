@@ -63,7 +63,7 @@ CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
 };
 
 const int MAX_MESSAGE_COUNT = 3;
-CanMessage CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
+CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
     { // message set: my-car
         {&CAN_BUSES[0][0], 0x29},
         {&CAN_BUSES[0][0], 0x52},
@@ -200,7 +200,7 @@ int openxc::signals::getCommandCount() {
     return getActiveMessageSet()->commandCount;
 }
 
-CanMessage* openxc::signals::getMessages() {
+CanMessageDefinition* openxc::signals::getMessages() {
     return CAN_MESSAGES[getActiveMessageSet()->index];
 }
 

@@ -32,8 +32,8 @@ extern const char EVENT_FIELD_NAME[];
  * pipeline - The pipeline to send the raw message over as an integer ID
  *      and hex data as an ASCII encoded string.
  */
-void passthroughMessage(uint32_t id, uint64_t data, CanMessage* messages,
-                int messageCount, Pipeline* pipeline);
+void passthroughMessage(uint32_t id, uint64_t data, 
+        CanMessageDefinition* messages, int messageCount, Pipeline* pipeline);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the pipeline;

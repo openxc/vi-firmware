@@ -12,7 +12,7 @@ using openxc::can::write::stateWriter;
 
 CanBus bus = {115200, 0x101};
 
-CanMessage MESSAGES[3] = {
+CanMessageDefinition MESSAGES[3] = {
     {&bus, 0},
     {&bus, 1},
     {&bus, 2},
@@ -137,19 +137,19 @@ END_TEST
 
 START_TEST (test_enqueue)
 {
-    CanMessage message = {&bus, 42};
-    can::write::enqueueMessage(&message, 0x123456);
+    CanMessage message = {42, 0x123456};
+    can::write::enqueueMessage(&bus, &message);
 
-    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &message.bus->sendQueue));
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &bus.sendQueue));
 }
 END_TEST
 
 START_TEST (test_swaps_byte_order)
 {
-    CanMessage message = {&bus, 42};
-    can::write::enqueueMessage(&message, 0x123456);
+    CanMessage message = {42, 0x123456};
+    can::write::enqueueMessage(&bus, &message);
 
-    CanMessage queuedMessage = QUEUE_POP(CanMessage, &message.bus->sendQueue);
+    CanMessage queuedMessage = QUEUE_POP(CanMessage, &bus.sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x5634120000000000LLU);
 }
 END_TEST

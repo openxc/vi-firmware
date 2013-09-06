@@ -12,7 +12,7 @@ using openxc::can::lookupSignal;
 using openxc::can::lookupSignalState;
 
 const int MESSAGE_COUNT = 3;
-CanMessage MESSAGES[MESSAGE_COUNT] = {
+CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
     {NULL, 0},
     {NULL, 1},
     {NULL, 2},

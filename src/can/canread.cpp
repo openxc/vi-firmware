@@ -145,9 +145,9 @@ void openxc::can::read::sendEventedStringMessage(const char* name, const char* v
 }
 
 void openxc::can::read::passthroughMessage(uint32_t id, uint64_t data,
-        CanMessage* messages, int messageCount, Pipeline* pipeline) {
+        CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
     bool send = false;
-    CanMessage* message = NULL;
+    CanMessageDefinition* message = NULL;
     if(messageCount > 0 && messages != NULL) {
         message = lookupMessage(id, messages, messageCount);
         if(message != NULL && (time::shouldTick(&message->frequencyClock) ||

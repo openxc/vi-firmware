@@ -43,7 +43,7 @@ int getCanBusCount();
 /* Public: Return an array of all CAN messages to be processed in the active
  * configuration.
  */
-CanMessage* getMessages();
+CanMessageDefinition* getMessages();
 
 /* Public: Return an array of all CAN signals to be processed in the active
  * configuration.

@@ -113,9 +113,9 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
+    CanMessage message = {id, strtoull(dataString, &end, 16)};
     // TODO hard coding bus 0 right now, but it should support sending on either
-    CanMessage message = {&getCanBuses()[0], id};
-    can::write::enqueueMessage(&message, strtoull(dataString, &end, 16));
+    can::write::enqueueMessage(&getCanBuses()[0], &message);
 }
 
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {

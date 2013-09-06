@@ -113,6 +113,7 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
     static unsigned long lastTimeLogged;
     static DeltaStatistic droppedMessageStats[PIPELINE_ENDPOINT_COUNT];
     static DeltaStatistic sentMessageStats[PIPELINE_ENDPOINT_COUNT];
+    static DeltaStatistic totalMessageStats[PIPELINE_ENDPOINT_COUNT];
     static DeltaStatistic dataSentStats[PIPELINE_ENDPOINT_COUNT];
     static DeltaStatistic sendQueueStats[PIPELINE_ENDPOINT_COUNT];
     static DeltaStatistic receiveQueueStats[PIPELINE_ENDPOINT_COUNT];
@@ -121,6 +122,7 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
         for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
             statistics::initialize(&droppedMessageStats[i]);
             statistics::initialize(&sentMessageStats[i]);
+            statistics::initialize(&totalMessageStats[i]);
             statistics::initialize(&dataSentStats[i]);
             statistics::initialize(&sendQueueStats[i]);
             statistics::initialize(&receiveQueueStats[i]);
@@ -133,47 +135,53 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             const char* interfaceName = messageTypeNames[i];
             statistics::update(&sentMessageStats[i], sentMessages[i]);
             statistics::update(&droppedMessageStats[i], droppedMessages[i]);
+            statistics::update(&totalMessageStats[i],
+                    sentMessages[i] + droppedMessages[i]);
             statistics::update(&dataSentStats[i], dataSent[i]);
             statistics::update(&dataSentStats[i], dataSent[i]);
 
             statistics::update(&sendQueueStats[i], sendQueueLength[i]);
             statistics::update(&receiveQueueStats[i], receiveQueueLength[i]);
 
-            debug("Average %s receive queue fill percent: %f",
-                    interfaceName,
-                    statistics::exponentialMovingAverage(&receiveQueueStats[i])
-                        / QUEUE_MAX_LENGTH(uint8_t) * 100);
-            debug("%s receive queue max fill percent: %f",
-                    interfaceName,
-                    (float) statistics::maximum(&receiveQueueStats[i]) /
-                            QUEUE_MAX_LENGTH(uint8_t) * 100);
-            debug("Average %s send queue fill percent: %f",
-                    interfaceName,
-                    statistics::exponentialMovingAverage(&sendQueueStats[i])
-                        / QUEUE_MAX_LENGTH(uint8_t) * 100);
-            debug("%s send queue max fill percent: %f",
-                    interfaceName,
-                    (float) statistics::maximum(&sendQueueStats[i]) /
-                            QUEUE_MAX_LENGTH(uint8_t) * 100);
+            if(totalMessageStats[i].total > 0) {
+                debug("Average %s receive queue fill percent: %f",
+                        interfaceName,
+                        statistics::exponentialMovingAverage(&receiveQueueStats[i])
+                            / QUEUE_MAX_LENGTH(uint8_t) * 100);
+                debug("%s receive queue max fill percent: %f",
+                        interfaceName,
+                        (float) statistics::maximum(&receiveQueueStats[i]) /
+                                QUEUE_MAX_LENGTH(uint8_t) * 100);
+                debug("Average %s send queue fill percent: %f",
+                        interfaceName,
+                        statistics::exponentialMovingAverage(&sendQueueStats[i])
+                            / QUEUE_MAX_LENGTH(uint8_t) * 100);
+                debug("%s send queue max fill percent: %f",
+                        interfaceName,
+                        (float) statistics::maximum(&sendQueueStats[i]) /
+                                QUEUE_MAX_LENGTH(uint8_t) * 100);
 
-            debug("%s messages sent: %d", interfaceName,
-                    sentMessageStats[i].total);
-            debug("%s messages dropped: %d", interfaceName,
-                    droppedMessageStats[i].total);
-            if(droppedMessages[i] > 0) {
-                debug("%s message drop percent: %f", interfaceName,
-                        (float)droppedMessageStats[i].total /
-                            (sentMessageStats[i].total +
-                            droppedMessageStats[i].total) * 100);
+                debug("%s messages sent: %d", interfaceName,
+                        sentMessageStats[i].total);
+                debug("%s messages dropped: %d", interfaceName,
+                        droppedMessageStats[i].total);
+                if(droppedMessages[i] > 0) {
+                    debug("%s message drop percent: %f", interfaceName,
+                            (float)droppedMessageStats[i].total /
+                                (sentMessageStats[i].total +
+                                droppedMessageStats[i].total) * 100);
+                }
+                debug("Average %s sent message rate: %f msgs / s",
+                        interfaceName,
+                        statistics::exponentialMovingAverage(&sentMessageStats[i])
+                            / PIPELINE_STATS_LOG_FREQUENCY_S);
+                debug("Average %s data rate: %fKB / s",
+                        interfaceName,
+                        statistics::exponentialMovingAverage(&dataSentStats[i])
+                            / 1024.0 / PIPELINE_STATS_LOG_FREQUENCY_S);
+            } else {
+                debug("No messages have been sent over %s", interfaceName)
             }
-            debug("Average %s sent message rate: %f msgs / s",
-                    interfaceName,
-                    statistics::exponentialMovingAverage(&sentMessageStats[i])
-                        / PIPELINE_STATS_LOG_FREQUENCY_S);
-            debug("Average %s data rate: %fKB / s",
-                    interfaceName,
-                    statistics::exponentialMovingAverage(&dataSentStats[i])
-                        / 1024.0 / PIPELINE_STATS_LOG_FREQUENCY_S);
             lastTimeLogged = time::systemTimeMs();
         }
     }

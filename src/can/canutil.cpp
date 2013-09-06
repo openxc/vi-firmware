@@ -135,42 +135,43 @@ CanMessageDefinition* openxc::can::lookupMessage(int id,
 
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
 #ifdef __LOG_STATS__
+    static DeltaStatistic totalMessageStats;
+    static DeltaStatistic receivedMessageStats;
+    static DeltaStatistic droppedMessageStats;
+    static DeltaStatistic recevedDataStats;
     static unsigned long lastTimeLogged;
+    static bool initializedStats = false;
+    if(!initializedStats) {
+        statistics::initialize(&totalMessageStats);
+        statistics::initialize(&receivedMessageStats);
+        statistics::initialize(&droppedMessageStats);
+        statistics::initialize(&recevedDataStats);
+        initializedStats = true;
+    }
 
-    if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
-        static DeltaStatistic totalMessageStats;
-        static DeltaStatistic receivedMessageStats;
-        static DeltaStatistic droppedMessageStats;
-        static DeltaStatistic recevedDataStats;
-        static bool initializedStats = false;
-        if(!initializedStats) {
-            statistics::initialize(&totalMessageStats);
-            statistics::initialize(&receivedMessageStats);
-            statistics::initialize(&droppedMessageStats);
-            statistics::initialize(&recevedDataStats);
-            initializedStats = true;
-        }
+    int totalMessages = 0;
+    int messagesReceived = 0;
+    int messagesDropped = 0;
+    int dataReceived = 0;
+    bool timeToLog = time::systemTimeMs() - lastTimeLogged >
+            BUS_STATS_LOG_FREQUENCY_S * 1000;
+    for(int i = 0; i < busCount; i++) {
+        CanBus* bus = &buses[i];
 
-        int totalMessages = 0;
-        int messagesReceived = 0;
-        int messagesDropped = 0;
-        int dataReceived = 0;
-        for(int i = 0; i < busCount; i++) {
-            CanBus* bus = &buses[i];
+        statistics::update(&bus->receivedDataStats,
+                bus->messagesReceived * CAN_MESSAGE_TOTAL_BIT_SIZE / 8192);
+        statistics::update(&bus->totalMessageStats,
+                bus->messagesReceived + bus->messagesDropped);
+        statistics::update(&bus->receivedMessageStats,
+                bus->messagesReceived);
+        statistics::update(&bus->droppedMessageStats, bus->messagesDropped);
 
-            statistics::update(&bus->receivedDataStats,
-                    bus->messagesReceived * CAN_MESSAGE_TOTAL_BIT_SIZE / 8192);
-            statistics::update(&bus->totalMessageStats,
-                    bus->messagesReceived + bus->messagesDropped);
-            statistics::update(&bus->receivedMessageStats,
-                    bus->messagesReceived);
-            statistics::update(&bus->droppedMessageStats, bus->messagesDropped);
+        statistics::update(&bus->sendQueueStats,
+                QUEUE_LENGTH(CanMessage, &bus->sendQueue));
+        statistics::update(&bus->receiveQueueStats,
+                QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
 
-            statistics::update(&bus->sendQueueStats,
-                    QUEUE_LENGTH(CanMessage, &bus->sendQueue));
-            statistics::update(&bus->receiveQueueStats,
-                    QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
-
+        if(timeToLog) {
             if(bus->totalMessageStats.total > 0) {
                 debug("Average CAN message send queue fill percent on bus %d: %f",
                         bus->address,
@@ -215,17 +216,19 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
             } else {
                 debug("No messages received on bus %d", bus->address);
             }
-
-            totalMessages += bus->totalMessageStats.total;
-            messagesReceived += bus->messagesReceived;
-            messagesDropped += bus->messagesDropped;
-            dataReceived += bus->receivedDataStats.total;
         }
-        statistics::update(&totalMessageStats, totalMessages);
-        statistics::update(&receivedMessageStats, messagesReceived);
-        statistics::update(&droppedMessageStats, messagesDropped);
-        statistics::update(&recevedDataStats, dataReceived);
 
+        totalMessages += bus->totalMessageStats.total;
+        messagesReceived += bus->messagesReceived;
+        messagesDropped += bus->messagesDropped;
+        dataReceived += bus->receivedDataStats.total;
+    }
+    statistics::update(&totalMessageStats, totalMessages);
+    statistics::update(&receivedMessageStats, messagesReceived);
+    statistics::update(&droppedMessageStats, messagesDropped);
+    statistics::update(&recevedDataStats, dataReceived);
+
+    if(timeToLog) {
         if(totalMessageStats.total > 0) {
             debug("Total CAN messages dropped on all buses: %d",
                     droppedMessageStats.total);

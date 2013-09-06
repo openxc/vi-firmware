@@ -7,7 +7,7 @@
 #include "lights.h"
 
 #define PIPELINE_ENDPOINT_COUNT 3
-#define PIPELINE_STATS_LOG_FREQUENCY_S 5
+#define PIPELINE_STATS_LOG_FREQUENCY_S 15
 #define QUEUE_FLUSH_MAX_TRIES 500
 
 namespace uart = openxc::interface::uart;

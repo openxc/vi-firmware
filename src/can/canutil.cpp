@@ -4,7 +4,7 @@
 #include "util/statistics.h"
 #include "util/log.h"
 
-#define BUS_STATS_LOG_FREQUENCY_S 5
+#define BUS_STATS_LOG_FREQUENCY_S 15
 #define CAN_MESSAGE_TOTAL_BIT_SIZE 128
 
 namespace time = openxc::util::time;

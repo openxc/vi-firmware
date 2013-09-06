@@ -138,122 +138,93 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
     static DeltaStatistic totalMessageStats;
     static DeltaStatistic receivedMessageStats;
     static DeltaStatistic droppedMessageStats;
-    static DeltaStatistic recevedDataStats;
+    static DeltaStatistic receivedDataStats;
     static unsigned long lastTimeLogged;
     static bool initializedStats = false;
     if(!initializedStats) {
         statistics::initialize(&totalMessageStats);
         statistics::initialize(&receivedMessageStats);
         statistics::initialize(&droppedMessageStats);
-        statistics::initialize(&recevedDataStats);
+        statistics::initialize(&receivedDataStats);
         initializedStats = true;
     }
 
-    int totalMessages = 0;
-    int messagesReceived = 0;
-    int messagesDropped = 0;
-    int dataReceived = 0;
-    bool timeToLog = time::systemTimeMs() - lastTimeLogged >
-            BUS_STATS_LOG_FREQUENCY_S * 1000;
-    for(int i = 0; i < busCount; i++) {
-        CanBus* bus = &buses[i];
+    if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
+        unsigned int totalMessages = 0;
+        unsigned int messagesReceived = 0;
+        unsigned int messagesDropped = 0;
+        unsigned int dataReceived = 0;
+        for(int i = 0; i < busCount; i++) {
+            CanBus* bus = &buses[i];
 
-        statistics::update(&bus->receivedDataStats,
-                bus->messagesReceived * CAN_MESSAGE_TOTAL_BIT_SIZE / 8192);
-        statistics::update(&bus->totalMessageStats,
-                bus->messagesReceived + bus->messagesDropped);
-        statistics::update(&bus->receivedMessageStats,
-                bus->messagesReceived);
-        statistics::update(&bus->droppedMessageStats, bus->messagesDropped);
+            statistics::update(&bus->receivedDataStats,
+                    bus->messagesReceived * CAN_MESSAGE_TOTAL_BIT_SIZE / 8192);
+            statistics::update(&bus->totalMessageStats,
+                    bus->messagesReceived + bus->messagesDropped);
+            statistics::update(&bus->receivedMessageStats,
+                    bus->messagesReceived);
+            statistics::update(&bus->droppedMessageStats, bus->messagesDropped);
 
-        statistics::update(&bus->sendQueueStats,
-                QUEUE_LENGTH(CanMessage, &bus->sendQueue));
-        statistics::update(&bus->receiveQueueStats,
-                QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
+            statistics::update(&bus->sendQueueStats,
+                    QUEUE_LENGTH(CanMessage, &bus->sendQueue));
+            statistics::update(&bus->receiveQueueStats,
+                    QUEUE_LENGTH(CanMessage, &bus->receiveQueue));
 
-        if(timeToLog) {
             if(bus->totalMessageStats.total > 0) {
-                debug("Average CAN message send queue fill percent on bus %d: %f",
+                debug("CAN%d Rx queue length: %d, avg: %f percent",
                         bus->address,
-                        statistics::exponentialMovingAverage(&bus->sendQueueStats)
-                            / QUEUE_MAX_LENGTH(CanMessage) * 100);
-                debug("CAN message send queue max fill percent on bus %d: %f",
-                        bus->address,
-                        (float)statistics::maximum(&bus->sendQueueStats) /
-                                QUEUE_MAX_LENGTH(CanMessage) * 100)
-
-                debug("Average CAN message receive queue fill percent on bus %d: %f",
-                        bus->address,
+                        QUEUE_LENGTH(CanMessage, &bus->receiveQueue),
                         statistics::exponentialMovingAverage(&bus->receiveQueueStats)
                             / QUEUE_MAX_LENGTH(CanMessage) * 100);
-                debug("CAN message receive queue max fill percent on bus %d: %f",
+                debug("CAN%d Tx queue length: %d, avg: %f percent",
                         bus->address,
-                        (float) statistics::maximum(&bus->receiveQueueStats) /
-                                QUEUE_MAX_LENGTH(CanMessage) * 100);
-
-                debug("CAN messages received on bus %d: %d",
-                        bus->address, bus->totalMessageStats.total);
-                debug("CAN messages processed on bus %d: %d",
-                        bus->address, bus->receivedMessageStats.total);
-                debug("CAN messages dropped on bus %d: %d",
-                        bus->address, bus->droppedMessageStats.total);
-                if(bus->droppedMessageStats.total > 0) {
-                    debug("Overall dropped message percent: %f (%d / %d)",
-                            (float)bus->droppedMessageStats.total / bus->totalMessageStats.total * 100,
-                            bus->droppedMessageStats.total,
-                            bus->totalMessageStats.total);
-                }
-                debug("Overall data received on bus %d: %dKB", bus->address,
+                        QUEUE_LENGTH(CanMessage, &bus->sendQueue),
+                        statistics::exponentialMovingAverage(&bus->sendQueueStats)
+                            / QUEUE_MAX_LENGTH(CanMessage) * 100);
+                debugNoNewline("CAN%d msgs Rx: %d (%dKB), ",
+                        bus->address, bus->receivedMessageStats.total,
                         bus->receivedDataStats.total);
-                debug("Average throughput on bus %d: %fKB / s", bus->address,
+                debug("dropped: %d (avg %f percent)",
+                        bus->droppedMessageStats.total,
+                        statistics::exponentialMovingAverage(&bus->droppedMessageStats) /
+                            statistics::exponentialMovingAverage(&bus->totalMessageStats) * 100);
+                debug("CAN%d avg throughput: %fKB / s", bus->address,
                         statistics::exponentialMovingAverage(&bus->receivedDataStats)
                             / BUS_STATS_LOG_FREQUENCY_S);
-                if(bus->droppedMessageStats.total > 0) {
-                    debug("Average dropped message percent on bus %d: %f", bus->address,
-                            statistics::exponentialMovingAverage(&bus->droppedMessageStats) /
-                            statistics::exponentialMovingAverage(&bus->totalMessageStats) * 100);
-                }
-            } else {
-                debug("No messages received on bus %d", bus->address);
             }
+
+            totalMessages += bus->totalMessageStats.total;
+            messagesReceived += bus->messagesReceived;
+            messagesDropped += bus->messagesDropped;
+            dataReceived += bus->receivedDataStats.total;
         }
+        statistics::update(&totalMessageStats, totalMessages);
+        statistics::update(&receivedMessageStats, messagesReceived);
+        statistics::update(&droppedMessageStats, messagesDropped);
+        statistics::update(&receivedDataStats, dataReceived);
 
-        totalMessages += bus->totalMessageStats.total;
-        messagesReceived += bus->messagesReceived;
-        messagesDropped += bus->messagesDropped;
-        dataReceived += bus->receivedDataStats.total;
-    }
-    statistics::update(&totalMessageStats, totalMessages);
-    statistics::update(&receivedMessageStats, messagesReceived);
-    statistics::update(&droppedMessageStats, messagesDropped);
-    statistics::update(&recevedDataStats, dataReceived);
-
-    if(timeToLog) {
         if(totalMessageStats.total > 0) {
-            debug("Total CAN messages dropped on all buses: %d",
-                    droppedMessageStats.total);
-            debug("Average message drop rate across all buses: %d msgs / s",
-                    (int)(statistics::exponentialMovingAverage(&droppedMessageStats)
-                        / BUS_STATS_LOG_FREQUENCY_S));
-            debug("Dropped message percent across all buses: %f (%d / %d)",
-                    (float)droppedMessageStats.total / totalMessageStats.total * 100,
-                    droppedMessageStats.total, totalMessageStats.total);
-            debug("Total CAN messages received since startup on all buses: %d",
-                    totalMessageStats.total);
-            debug("Aggregate message rate across all buses since startup: %d msgs / s",
+            debugNoNewline("CAN total msgs Rx: %d (%dKB), ",
+                    receivedMessageStats.total,
+                    receivedDataStats.total);
+            debug("dropped: %d (avg %f percent)",
+                    droppedMessageStats.total,
+                    statistics::exponentialMovingAverage(&droppedMessageStats) /
+                        statistics::exponentialMovingAverage(&totalMessageStats) * 100);
+            debug("CAN avg throughput: %fKB / s, %d msgs / s",
+                    statistics::exponentialMovingAverage(&receivedDataStats)
+                        / BUS_STATS_LOG_FREQUENCY_S,
                     (int)(statistics::exponentialMovingAverage(&totalMessageStats)
                         / BUS_STATS_LOG_FREQUENCY_S));
-            debug("Aggregate throughput across all buses since startup: %fKB / s",
-                    statistics::exponentialMovingAverage(&recevedDataStats)
-                        / BUS_STATS_LOG_FREQUENCY_S);
-            debug("Average dropped message percent across all buses: %f",
-                    statistics::exponentialMovingAverage(&droppedMessageStats) /
-                    statistics::exponentialMovingAverage(&totalMessageStats) * 100);
-        } else {
-            debug("No CAN messages have been received on any bus");
         }
 
         lastTimeLogged = time::systemTimeMs();
+
+        for(int i = 0; i < busCount; i++) {
+            if(QUEUE_LENGTH(CanMessage, &buses[i].receiveQueue) == QUEUE_MAX_LENGTH(CanMessage)) {
+                debug("Dropped CAN messages while running stats on bus %d", i);
+            }
+        }
     }
 #endif // __LOG_STATS__
 }

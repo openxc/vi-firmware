@@ -106,7 +106,7 @@ struct CanMessage {
 };
 typedef struct CanMessage CanMessage;
 
-QUEUE_DECLARE(CanMessage, 64);
+QUEUE_DECLARE(CanMessage, 16);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *

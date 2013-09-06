@@ -118,7 +118,15 @@ struct CanMessage {
 };
 typedef struct CanMessage CanMessage;
 
-QUEUE_DECLARE(CanMessage, 16);
+QUEUE_DECLARE(CanMessage,
+#ifdef __LOG_STATS__
+    // because the stats logging blocks the main loop much longer than normal,
+    // we need to increase the incoming CAN buffer so we don't drop messages
+    40
+#else
+    8
+#endif // __LOG_STATS__
+);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *

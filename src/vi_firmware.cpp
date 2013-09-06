@@ -16,7 +16,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
@@ -175,7 +174,7 @@ bool receiveWriteRequest(uint8_t* message) {
  * the packet payload to the uart monitor.
  */
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
-    while(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
+    if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
         decodeCanMessage(pipeline, bus, message.id, message.data);
         bus->lastMessageReceived = time::systemTimeMs();

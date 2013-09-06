@@ -21,10 +21,14 @@ const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
  * pipeline - The pipeline to send on.
  */
 void sendJSON(cJSON* root, Pipeline* pipeline) {
-    char* message = cJSON_PrintUnformatted(root);
-    sendMessage(pipeline, (uint8_t*) message, strlen(message));
-    cJSON_Delete(root);
-    free(message);
+    if(root == NULL) {
+        debug("JSON object is NULL -- probably OOM");
+    } else {
+        char* message = cJSON_PrintUnformatted(root);
+        sendMessage(pipeline, (uint8_t*) message, strlen(message));
+        cJSON_Delete(root);
+        free(message);
+    }
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to

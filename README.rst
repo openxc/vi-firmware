@@ -37,27 +37,27 @@ Clone the `vi-firmware <https://github.com/openxc/vi-firmware>` repository
 
   .. code-block:: sh
 
-    $ git clone https://github.com/openxc/cantranslator
+    $ git clone https://github.com/openxc/vi-firmware
 
 Run the ``bootstrap.sh`` script:
 
   .. code-block:: sh
 
     $ cd vi-firmware
-    cantranslator/ $ script/bootstrap.sh
+    vi-firmware $ script/bootstrap.sh
 
 Copy the example "CAN passthrough" implementation of ``signals.h`` to
 ``signals.cpp``:
 
   .. code-block:: sh
 
-    cantranslator/ $ cp signals.cpp.example-passthrough signals.cpp
+    vi-firmware $ cp signals.cpp.example-passthrough signals.cpp
 
 Compile it! By default this will compile for the chipKIT vehicle interface:
 
   .. code-block:: sh
 
-    cantranslator/ $ make
+    vi-firmware $ make
 
 License
 =======

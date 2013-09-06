@@ -2,11 +2,20 @@
 
 ## v5.0-dev
 
+* Rename project from "CAN Translator Firmware" to "Vehicle Interface Firmware"
 * BREAKING CHANGE: Remove the sendFrequency flag for a CanSignal and replace it
-  with a maximumFrequency attribute that controls the maximum number of times
-  per second a signal will be sent.
+  with a FrequencyClock attribute that controls the maximum number of times per
+  second a signal will be sent.
+* BREAKING CHANGE: Add frequency control to CAN messages to allow rate limiting.
+* BREAKING CHANGE: Decrease memory footprint by change some data types to const,
+  splitting up CanMessage into 2 variants and optimizing all queue sizes.
 * An optional forceSendChanged attributed is added to CanSignal - if this is
   true, a changed value will be sent regardless of the maximum frequency.
+* Add CAN and output interface statistics logging (behind the `__LOG_STATS__`
+  compile-time flag.
+* Fix receiving data over USB from some devices, e.g. Android.
+* Fix processing CAN messages with many CAN signals (15+) by flushing the
+  pipeline mid-translation.
 
 ## v4.1
 

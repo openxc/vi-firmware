@@ -44,8 +44,7 @@ Windows
 1. Install `Cygwin <http://www.cygwin.com>`_ and in the installer, select the
    following packages:
 
-  ``gcc, patchutils, git, unzip, python, check, curl,
-  libsasl2, python-setuptools``
+  ``make, gcc, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools``
 
 2. Start a Cygwin Terminal.
 3. Configure the terminal to ignore Windows-style line endings in scripts:

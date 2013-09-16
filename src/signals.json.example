@@ -76,7 +76,7 @@
                     "send_same": false,
                     "handler": "booleanHandler",
                     "bit_position": 0,
-                    "bit_size": 0
+                    "bit_size": 1
                 }
             }
         },
@@ -88,7 +88,7 @@
                     "generic_name": "turn_signal_left",
                     "handler": "booleanHandler",
                     "bit_position": 0,
-                    "bit_size": 0,
+                    "bit_size": 1,
                     "writable": true,
                     "write_handler": "booleanWriter"
                 },
@@ -96,7 +96,7 @@
                     "generic_name": "turn_signal_right",
                     "handler": "booleanHandler",
                     "bit_position": 1,
-                    "bit_size": 0,
+                    "bit_size": 1,
                     "writable": true,
                     "write_handler": "booleanWriter"
                 }

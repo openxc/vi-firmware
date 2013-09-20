@@ -47,9 +47,6 @@ typedef struct CanSignalState CanSignalState;
  * frequencyClock - A FrequencyClock struct to control the maximum frequency to
  *              process and send this signal. To process every value, set the
  *              clock's frequency to 0.
- * the signal
- * The maximum frequency of this signal to process and send (Hz).
- *              To process every value, set this to 0 (the default).
  * sendSame    - If true, will re-send even if the value hasn't changed.
  * forceSendChanged - If true, regardless of the frequency, it will send the
  *              value if it has changed.

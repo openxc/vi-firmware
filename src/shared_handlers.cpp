@@ -173,10 +173,7 @@ float openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal,
 
 bool openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
         CanSignal* signals, int signalCount, float value, bool* send) {
-    if(value != 0) {
-        return true;
-    }
-    return false;
+    return value != 0;
 }
 
 float openxc::signals::handlers::handleFuelFlow(CanSignal* signal,

@@ -13,6 +13,7 @@ using openxc::signals::handlers::sendTirePressure;
 using openxc::signals::handlers::sendDoorStatus;
 using openxc::signals::handlers::handleOccupancyMessage;
 using openxc::signals::handlers::handleFuelFlow;
+using openxc::signals::handlers::handleInverted;
 
 CanMessageDefinition MESSAGES[4] = {
     {NULL, 0},
@@ -70,6 +71,14 @@ void setup() {
         SIGNALS[i].frequencyClock = {0};
     }
 }
+
+START_TEST (test_inverted_handler)
+{
+    bool send = true;
+    float result = handleInverted(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 1, &send);
+    ck_assert(result == -1.0);
+}
+END_TEST
 
 START_TEST (test_button_event_handler)
 {
@@ -300,6 +309,12 @@ END_TEST
 
 Suite* handlerSuite(void) {
     Suite* s = suite_create("shared_handlers");
+
+    TCase *tc_number_handlers = tcase_create("numbers");
+    tcase_add_checked_fixture(tc_number_handlers, setup, NULL);
+    tcase_add_test(tc_number_handlers, test_inverted_handler);
+    suite_add_tcase(s, tc_number_handlers);
+
     TCase *tc_button_handler = tcase_create("button");
     tcase_add_checked_fixture(tc_button_handler, setup, NULL);
     tcase_add_test(tc_button_handler, test_button_event_handler);

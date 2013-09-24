@@ -8,6 +8,7 @@
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "emqueue.h"
+#include "emhashmap.h"
 #include "cJSON.h"
 
 #ifdef __LPC17XX__
@@ -131,6 +132,9 @@ QUEUE_DECLARE(CanMessage,
  * address - The address or ID of this node
  * controller - a reference to the CAN controller in the MCU
  *      (platform dependent, needs to be casted to actual type before use).
+ * maxMessageFrequency - the default maximum frequency for all CAN messages when
+ *      using the raw passthrough mode. To put no limit on the frequency, set
+ *      this to 0.
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC17xx uses the same global
@@ -148,6 +152,8 @@ struct CanBus {
     short address;
     void* controller;
     void (*interruptHandler)();
+    unsigned short maxMessageFrequency;
+    HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
@@ -246,6 +252,8 @@ typedef struct {
  */
 void initialize(CanBus* bus);
 
+void destroy(CanBus* bus);
+
 /* Public: De-initialize the CAN controller.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
@@ -263,17 +271,6 @@ void initializeCommon(CanBus* bus);
  * CAN_ACTIVE_TIMEOUT_S seconds.
  */
 bool busActive(CanBus* bus);
-
-/* Public: Look up the CanMessage representation of a message based on its ID.
- *
- * id - The ID of the CAN message.
- * messages - The list of all CAN messages.
- * messageCount - The length of the messages array.
- *
- * Returns a pointer to the CanMessage if found, otherwise NULL.
- */
-CanMessageDefinition* lookupMessage(int id, CanMessageDefinition* messages,
-        int messageCount);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name. The signal may or may not be writable - the first result will be
@@ -339,6 +336,27 @@ const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  */
 const CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
+
+/* Public: Look up the CanMessage representation of a message based on its ID.
+ *
+ * id - The ID of the CAN message.
+ * messages - The list of all CAN messages.
+ * messageCount - The length of the messages array.
+ *
+ * TODO mention dynamic messages, update docs
+ *
+ * Returns a pointer to the CanMessage if found, otherwise NULL.
+ */
+CanMessageDefinition* lookupMessage(int id, CanMessageDefinition* messages,
+        int messageCount);
+
+CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageDefinition* predefinedMessages,
+        int predefinedMessageCount);
+
+bool registerMessageDefinition(CanBus* bus, uint32_t id);
+
+bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
 
 /* Public: Log transfer statistics about all active CAN buses to the debug log.
  *

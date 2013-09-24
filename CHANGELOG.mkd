@@ -16,6 +16,8 @@
 * Fix receiving data over USB from some devices, e.g. Android.
 * Fix processing CAN messages with many CAN signals (15+) by flushing the
   pipeline mid-translation.
+* Add emlist and emhashmap dependencies
+* Add rate control for CAN messages not predefined.
 
 ## v4.1
 

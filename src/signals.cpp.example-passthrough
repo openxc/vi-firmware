@@ -99,7 +99,7 @@ int openxc::signals::getMessageCount() {
 void openxc::signals::loop() { }
 
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
-    can::read::passthroughMessage(id, data, getMessages(), getMessageCount(),
+    can::read::passthroughMessage(bus, id, data, getMessages(), getMessageCount(),
             pipeline);
 }
 

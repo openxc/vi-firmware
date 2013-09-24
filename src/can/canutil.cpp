@@ -6,6 +6,7 @@
 
 #define BUS_STATS_LOG_FREQUENCY_S 15
 #define CAN_MESSAGE_TOTAL_BIT_SIZE 128
+#define DYNAMIC_MESSAGE_MAP_CAPACITY 25
 
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
@@ -21,6 +22,8 @@ void openxc::can::initializeCommon(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;
+    // TODO could create this on the fly since most of the time we won't use it
+    bus->dynamicMessages = emhashmap_create(DYNAMIC_MESSAGE_MAP_CAPACITY);
 #ifdef __LOG_STATS__
     statistics::initialize(&bus->totalMessageStats);
     statistics::initialize(&bus->droppedMessageStats);
@@ -29,6 +32,11 @@ void openxc::can::initializeCommon(CanBus* bus) {
     statistics::initialize(&bus->sendQueueStats);
     statistics::initialize(&bus->receiveQueueStats);
 #endif // __LOG_STATS__
+}
+
+void openxc::can::destroy(CanBus* bus) {
+    // TODO destroy elements
+    emhashmap_destroy(bus->dynamicMessages);
 }
 
 bool openxc::can::busActive(CanBus* bus) {
@@ -118,19 +126,42 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands, i
     }
 }
 
-bool messageComparator(void* id, int index, void* messages) {
-    return *((unsigned int*)id) == ((CanMessageDefinition*)messages)[index].id;
+CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
+        CanMessageDefinition* messages, int messageCount) {
+    CanMessageDefinition* message = NULL;
+    for(int i = 0; i < messageCount; i++) {
+        if(messages[i].bus == bus && messages[i].id == id) {
+            message = &messages[i];
+        }
+    }
+    return message;
 }
 
-CanMessageDefinition* openxc::can::lookupMessage(int id,
-        CanMessageDefinition* messages, int messageCount) {
-    int index = lookup((void*)&id, messageComparator, (void*)messages,
-            messageCount);
-    if(index != -1) {
-        return &messages[index];
-    } else {
-        return NULL;
+CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
+        uint32_t id, CanMessageDefinition* predefinedMessages,
+        int predefinedMessageCount) {
+    CanMessageDefinition* message = lookupMessage(bus, id,
+            predefinedMessages, predefinedMessageCount);
+    if(message == NULL) {
+        message = (CanMessageDefinition*)emhashmap_get(bus->dynamicMessages, id);
     }
+    return message;
+}
+
+bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id) {
+    CanMessageDefinition* message = new CanMessageDefinition();
+    if(message != NULL) {
+        message->bus = bus;
+        message->id = id;
+        message->frequencyClock = {bus->maxMessageFrequency};
+
+        emhashmap_put(bus->dynamicMessages, id, message);
+    }
+    return message != NULL;
+}
+
+bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
+    return emhashmap_remove(bus->dynamicMessages, id);
 }
 
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {

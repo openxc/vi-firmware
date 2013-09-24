@@ -21,11 +21,17 @@ using openxc::can::read::sendStringMessage;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
+const int CAN_BUS_COUNT = 2;
+CanBus CAN_BUSES[CAN_BUS_COUNT] = {
+    { },
+    { }
+};
+
 const int MESSAGE_COUNT = 3;
 CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
-    {NULL, 0},
-    {NULL, 1, {10}},
-    {NULL, 2, {1}, true},
+    {&CAN_BUSES[0], 0},
+    {&CAN_BUSES[0], 1, {10}},
+    {&CAN_BUSES[0], 2, {1}, true},
 };
 
 CanSignalState SIGNAL_STATES[1][10] = {
@@ -221,14 +227,14 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::passthroughMessage(MESSAGES[2].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
-    can::read::passthroughMessage(MESSAGES[2].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::passthroughMessage(MESSAGES[2].id, 0x5678, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x5678, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
@@ -238,15 +244,15 @@ START_TEST (test_passthrough_limited_frequency)
 {
     MESSAGES[1].frequencyClock.timeFunction = timeMock;
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
-    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
     fakeTime += 2000;
-    can::read::passthroughMessage(MESSAGES[1].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 }
@@ -255,7 +261,7 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    can::read::passthroughMessage(42, 0x123456789ABCDEF1LLU, NULL, 0, &pipeline);
+    can::read::passthroughMessage(&CAN_BUSES[0], 42, 0x123456789ABCDEF1LLU, NULL, 0, &pipeline);
     fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];

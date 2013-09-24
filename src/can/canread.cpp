@@ -4,7 +4,6 @@
 #include "util/timer.h"
 
 using openxc::util::bitfield::getBitField;
-using openxc::can::lookupMessage;
 
 namespace time = openxc::util::time;
 
@@ -144,14 +143,17 @@ void openxc::can::read::sendEventedStringMessage(const char* name, const char* v
             pipeline);
 }
 
-void openxc::can::read::passthroughMessage(uint32_t id, uint64_t data,
-        CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
+void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
+        uint64_t data, CanMessageDefinition* messages, int messageCount,
+        Pipeline* pipeline) {
     bool send = false;
     CanMessageDefinition* message = NULL;
     if(messageCount > 0 && messages != NULL) {
-        message = lookupMessage(id, messages, messageCount);
-        if(message != NULL && (time::shouldTick(&message->frequencyClock) ||
-                (data != message->lastValue && message->forceSendChanged))) {
+        message = lookupMessageDefinition(bus, id, messages, messageCount);
+        if(message == NULL) {
+            send = registerMessageDefinition(bus, id);
+        } else if(time::shouldTick(&message->frequencyClock) ||
+                (data != message->lastValue && message->forceSendChanged)) {
             send = true;
         }
     } else {

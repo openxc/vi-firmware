@@ -45,8 +45,8 @@ echo "Updating Git submodules..."
 
 # git submodule update is a shell script and expects some lines to fail
 set +e
-if ! git submodule update --init --quiet; then
-    echo "Unable to update git submodules - try running \"git submodule update\" to see the full error"
+if ! git submodule update --init --recursive --quiet; then
+    echo "Unable to update git submodules - try running \"git submodule update --init --recursive\" to see the full error"
     echo "If git complains that it \"Needed a single revision\", run \"rm -rf src/libs\" and then try the bootstrap script again"
     if [ $OS == "cygwin" ]; then
         echo "In Cygwin this may be true (ignore if you know ca-certifications is installed:"

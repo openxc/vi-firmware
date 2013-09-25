@@ -39,7 +39,7 @@ void openxc::can::destroy(CanBus* bus) {
         MapIterator iterator = emhashmap_iterator(bus->dynamicMessages);
         MapEntry* next = NULL;
         while((next = emhashmap_iterator_next(&iterator)) != NULL) {
-            delete next->value;
+            delete (CanMessageDefinition*)next->value;
         }
         emhashmap_destroy(bus->dynamicMessages);
     }

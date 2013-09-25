@@ -40,5 +40,5 @@ void openxc::util::time::initializeClock(FrequencyClock* clock) {
     clock->lastTick = -1;
     clock->frequency = 0;
     clock->timeFunction = systemTimeMs;
-
+    clock->started = false;
 }

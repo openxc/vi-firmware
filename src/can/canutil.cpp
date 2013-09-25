@@ -35,8 +35,14 @@ void openxc::can::initializeCommon(CanBus* bus) {
 }
 
 void openxc::can::destroy(CanBus* bus) {
-    // TODO destroy elements
-    emhashmap_destroy(bus->dynamicMessages);
+    if(bus->dynamicMessages != NULL) {
+        MapIterator iterator = emhashmap_iterator(bus->dynamicMessages);
+        MapEntry* next = NULL;
+        while((next = emhashmap_iterator_next(&iterator)) != NULL) {
+            delete next->value;
+        }
+        emhashmap_destroy(bus->dynamicMessages);
+    }
 }
 
 bool openxc::can::busActive(CanBus* bus) {
@@ -148,20 +154,31 @@ CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
     return message;
 }
 
-bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id) {
-    CanMessageDefinition* message = new CanMessageDefinition();
-    if(message != NULL) {
-        message->bus = bus;
-        message->id = id;
-        message->frequencyClock = {bus->maxMessageFrequency};
+bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
+    CanMessageDefinition* message = lookupMessageDefinition(bus, id, NULL, 0);
+    if(message == NULL) {
+        message = new CanMessageDefinition();
+        if(message != NULL) {
+            message->bus = bus;
+            message->id = id;
+            message->frequencyClock = {bus->maxMessageFrequency};
 
-        emhashmap_put(bus->dynamicMessages, id, message);
+            emhashmap_put(bus->dynamicMessages, id, message);
+        }
     }
     return message != NULL;
 }
 
 bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
-    return emhashmap_remove(bus->dynamicMessages, id);
+    CanMessageDefinition* message = (CanMessageDefinition*) emhashmap_remove(
+            bus->dynamicMessages, id);
+    if(message != NULL) {
+        delete message;
+    } else {
+        return false;
+    }
+    return true;
 }
 
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {

@@ -354,7 +354,9 @@ CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
-bool registerMessageDefinition(CanBus* bus, uint32_t id);
+bool registerMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageDefinition* predefinedMessages,
+        int predefinedMessageCount);
 
 bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
 

@@ -151,7 +151,7 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
     if(messageCount > 0 && messages != NULL) {
         message = lookupMessageDefinition(bus, id, messages, messageCount);
         if(message == NULL) {
-            send = registerMessageDefinition(bus, id);
+            send = registerMessageDefinition(bus, id, messages, messageCount);
         } else if(time::shouldTick(&message->frequencyClock) ||
                 (data != message->lastValue && message->forceSendChanged)) {
             send = true;

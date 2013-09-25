@@ -148,6 +148,7 @@ START_TEST (test_initialize)
 {
     CanBus bus = {500, 0x101};
     can::initializeCommon(&bus);
+    can::destroy(&bus);
 }
 END_TEST
 
@@ -169,7 +170,7 @@ END_TEST
 
 START_TEST (test_register_can_message)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
     CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
             MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
     ck_assert(message != NULL);
@@ -180,8 +181,8 @@ END_TEST
 
 START_TEST (test_register_can_message_twice)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
     CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
             MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
     ck_assert(message != NULL);
@@ -192,8 +193,8 @@ END_TEST
 
 START_TEST (test_register_can_message_diff_bus)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
-    ck_assert(registerMessageDefinition(&CAN_BUSES[1], MESSAGE_ID));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[1], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
     CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
             MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
     ck_assert(message != NULL);
@@ -210,7 +211,7 @@ END_TEST
 
 START_TEST (test_unregister_can_message)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
     ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
             MESSAGES, MESSAGE_COUNT) != NULL);
     ck_assert(unregisterMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
@@ -221,7 +222,7 @@ END_TEST
 
 START_TEST (test_unregister_can_message_not_registered)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
+    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
     ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
             MESSAGES, MESSAGE_COUNT) != NULL);
     ck_assert(unregisterMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));

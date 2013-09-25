@@ -146,18 +146,18 @@ void openxc::can::read::sendEventedStringMessage(const char* name, const char* v
 void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
         uint64_t data, CanMessageDefinition* messages, int messageCount,
         Pipeline* pipeline) {
-    bool send = false;
-    CanMessageDefinition* message = NULL;
-    if(messageCount > 0 && messages != NULL) {
-        message = lookupMessageDefinition(bus, id, messages, messageCount);
-        if(message == NULL) {
-            send = registerMessageDefinition(bus, id, messages, messageCount);
-        } else if(time::shouldTick(&message->frequencyClock) ||
-                (data != message->lastValue && message->forceSendChanged)) {
-            send = true;
-        }
-    } else {
+    bool send = true;
+    CanMessageDefinition* message = lookupMessageDefinition(bus, id, messages,
+            messageCount);
+    if(message == NULL) {
+        debug("Adding new message definition for message %d on bus %d",
+                id, bus->address);
+        send = registerMessageDefinition(bus, id, messages, messageCount);
+    } else if(time::shouldTick(&message->frequencyClock) ||
+            (data != message->lastValue && message->forceSendChanged)) {
         send = true;
+    } else {
+        send = false;
     }
 
     if(send) {

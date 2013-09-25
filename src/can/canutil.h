@@ -151,8 +151,8 @@ struct CanBus {
     unsigned int speed;
     short address;
     void* controller;
-    void (*interruptHandler)();
     unsigned short maxMessageFrequency;
+    void (*interruptHandler)();
     HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;

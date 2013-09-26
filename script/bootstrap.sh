@@ -294,6 +294,7 @@ if ! command -v pip >/dev/null 2>&1; then
     $SUDO_CMD easy_install pip
 fi
 
+$SUDO_CMD pip install -U pip
 $SUDO_CMD pip install --pre -Ur script/pip-requirements.txt
 
 popd

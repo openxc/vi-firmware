@@ -17,7 +17,7 @@ using openxc::util::statistics::DeltaStatistic;
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
 
 void openxc::can::initializeCommon(CanBus* bus) {
-    debugNoNewline("Initializing CAN node %d...", bus->address);
+    debug("Initializing CAN node %d...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendMessage;

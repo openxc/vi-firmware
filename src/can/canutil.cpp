@@ -183,6 +183,15 @@ bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
     return true;
 }
 
+bool openxc::can::signalsWritable(CanBus* bus, CanSignal* signals, int signalCount) {
+    for(int i = 0; i < signalCount; i++) {
+        if(bus == signals[i].message->bus && signals[i].writable) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
 #ifdef __LOG_STATS__
     static DeltaStatistic totalMessageStats;

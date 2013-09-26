@@ -64,7 +64,7 @@ bool CAN_CONTROLLER_INITIALIZED = false;
 
 void openxc::can::deinitialize(CanBus* bus) { }
 
-void openxc::can::initialize(CanBus* bus) {
+void openxc::can::initialize(CanBus* bus, bool writable) {
     can::initializeCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
@@ -78,7 +78,15 @@ void openxc::can::initialize(CanBus* bus) {
         }
         CAN_CONTROLLER_INITIALIZED = true;
     }
-    CAN_ModeConfig(CAN_CONTROLLER(bus), CAN_OPERATING_MODE, ENABLE);
+
+    CAN_MODE_Type mode = CAN_LISTENONLY_MODE;
+    if(writable) {
+        debug("Initializing bus %d in writable mode", bus->address);
+        mode = CAN_OPERATING_MODE;
+    } else {
+        debug("Initializing bus %d in listen only mode", bus->address);
+    }
+    CAN_ModeConfig(CAN_CONTROLLER(bus), mode, ENABLE);
 
     // enable receiver interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_RIE, ENABLE);

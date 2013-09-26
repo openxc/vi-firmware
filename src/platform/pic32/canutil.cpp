@@ -94,7 +94,7 @@ void openxc::can::deinitialize(CanBus* bus) {
     #endif
 }
 
-void openxc::can::initialize(CanBus* bus) {
+void openxc::can::initialize(CanBus* bus, bool writable) {
     can::initializeCommon(bus);
     GpioValue value;
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
@@ -157,8 +157,15 @@ void openxc::can::initialize(CanBus* bus) {
     #endif
 
     // move CAN module to OPERATIONAL state (go on bus)
-    CAN_CONTROLLER(bus)->setOperatingMode(CAN::NORMAL_OPERATION);
-    while(CAN_CONTROLLER(bus)->getOperatingMode() != CAN::NORMAL_OPERATION);
+    OP_MODE mode = LISTEN_ONLY;
+    if(writable) {
+        debug("Initializing bus %d in writable mode", bus->address);
+        mode = NORMAL_OPERATION;
+    } else {
+        debug("Initializing bus %d in listen only mode", bus->address);
+    }
+    CAN_CONTROLLER(bus)->setOperatingMode(mode);
+    while(CAN_CONTROLLER(bus)->getOperatingMode() != mode);
 
     CAN_CONTROLLER(bus)->attachInterrupt(bus->interruptHandler);
 

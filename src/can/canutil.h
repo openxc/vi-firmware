@@ -135,6 +135,9 @@ QUEUE_DECLARE(CanMessage,
  * maxMessageFrequency - the default maximum frequency for all CAN messages when
  *      using the raw passthrough mode. To put no limit on the frequency, set
  *      this to 0.
+ * writable - True if this CAN bus connection should allow raw CAN messages
+ *      writes. This is independent from the CanSignal 'writable' option, which
+ *      allows writing only a translated signal back to the bus.
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC17xx uses the same global
@@ -152,6 +155,7 @@ struct CanBus {
     short address;
     void* controller;
     unsigned short maxMessageFrequency;
+    bool writable;
     void (*interruptHandler)();
     HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);
@@ -245,13 +249,21 @@ typedef struct {
     CommandHandler handler;
 } CanCommand;
 
-/* Public: Initialize the CAN controller. See inline comments for description of
- * the process.
+/* Public: Initialize the CAN controller.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
+ * writable - configure the controller in a writable mode. If False, it will be
+ *      configured as "listen only" and will not allow writes or even CAN ACKs.
  */
-void initialize(CanBus* bus);
+void initialize(CanBus* bus, bool writable);
 
+/* Public: Free any memory associated with the CanBus.
+ *
+ * This doesn't run any deinit routines, just frees memory if you need to
+ * re-initialize at runtime.
+ *
+ * bus - The bus to destroy.
+ */
 void destroy(CanBus* bus);
 
 /* Public: De-initialize the CAN controller.
@@ -359,6 +371,14 @@ bool registerMessageDefinition(CanBus* bus, uint32_t id,
         int predefinedMessageCount);
 
 bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
+
+/* Public: Check if any CAN signals are configured as writable.
+ *
+ * bus - make sure the signals is found on this bus.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ */
+bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
 
 /* Public: Log transfer statistics about all active CAN buses to the debug log.
  *

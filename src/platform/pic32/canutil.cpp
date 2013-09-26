@@ -157,10 +157,10 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
     #endif
 
     // move CAN module to OPERATIONAL state (go on bus)
-    OP_MODE mode = LISTEN_ONLY;
+    CAN::OP_MODE mode = CAN::LISTEN_ONLY;
     if(writable) {
         debug("Initializing bus %d in writable mode", bus->address);
-        mode = NORMAL_OPERATION;
+        mode = CAN::NORMAL_OPERATION;
     } else {
         debug("Initializing bus %d in listen only mode", bus->address);
     }

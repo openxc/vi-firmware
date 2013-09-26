@@ -68,6 +68,8 @@ ifndef SERIAL_PORT
 endif
 
 EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS)
+# bump the head up to 32K from the default
+EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 

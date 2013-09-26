@@ -17,7 +17,7 @@ using openxc::util::statistics::DeltaStatistic;
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
 
 void openxc::can::initializeCommon(CanBus* bus) {
-    debugNoNewline("Initializing CAN node %d...", bus->address);
+    debug("Initializing CAN node %d...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
     bus->writeHandler = openxc::can::write::sendMessage;
@@ -181,6 +181,15 @@ bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
         return false;
     }
     return true;
+}
+
+bool openxc::can::signalsWritable(CanBus* bus, CanSignal* signals, int signalCount) {
+    for(int i = 0; i < signalCount; i++) {
+        if(bus == signals[i].message->bus && signals[i].writable) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {

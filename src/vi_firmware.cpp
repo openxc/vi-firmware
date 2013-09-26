@@ -98,7 +98,14 @@ void updateDataLights() {
 
 void initializeAllCan() {
     for(int i = 0; i < getCanBusCount(); i++) {
-        can::initialize(&(getCanBuses()[i]));
+        CanBus* bus = &(getCanBuses()[i]);
+
+        bool writable = bus->writable ||
+            can::signalsWritable(bus, getSignals(), getSignalCount());
+#if defined(TRANSMITTER) || defined(__DEBUG__)
+        writable = true;
+#endif
+        can::initialize(bus, writable);
     }
 }
 

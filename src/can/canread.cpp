@@ -7,6 +7,7 @@ using openxc::util::bitfield::getBitField;
 
 namespace time = openxc::util::time;
 
+const char openxc::can::read::BUS_FIELD_NAME[] = "bus";
 const char openxc::can::read::ID_FIELD_NAME[] = "id";
 const char openxc::can::read::DATA_FIELD_NAME[] = "data";
 const char openxc::can::read::NAME_FIELD_NAME[] = "name";
@@ -162,6 +163,7 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
 
     if(send) {
         cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, BUS_FIELD_NAME, bus->address);
         cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
 
         char encodedData[67];

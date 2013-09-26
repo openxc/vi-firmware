@@ -10,6 +10,7 @@ namespace openxc {
 namespace can {
 namespace read {
 
+extern const char BUS_FIELD_NAME[];
 extern const char ID_FIELD_NAME[];
 extern const char DATA_FIELD_NAME[];
 extern const char NAME_FIELD_NAME[];

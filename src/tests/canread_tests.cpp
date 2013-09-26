@@ -268,7 +268,7 @@ START_TEST (test_passthrough_message)
     QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
+            "{\"bus\":0,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
 }
 END_TEST
 

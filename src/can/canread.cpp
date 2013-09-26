@@ -25,7 +25,11 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
         debug("JSON object is NULL -- probably OOM");
     } else {
         char* message = cJSON_PrintUnformatted(root);
-        sendMessage(pipeline, (uint8_t*) message, strlen(message));
+        if(message != NULL) {
+            sendMessage(pipeline, (uint8_t*) message, strlen(message));
+        } else {
+            debug("Converting JSON to string failed -- probably OOM");
+        }
         cJSON_Delete(root);
         free(message);
     }

@@ -117,11 +117,32 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
         return;
     }
 
+    cJSON* busObject = cJSON_GetObjectItem(root, "bus");
+    if(busObject == NULL) {
+        // debug("Raw write request missing bus", id);
+    }
+
+    CanBus* matchingBus = NULL;
+    if(busObject != NULL) {
+        int busAddress = busObject->valueint;
+        for(int i = 0; i < getCanBusCount(); i++) {
+            CanBus* candidateBus = &(getCanBuses()[i]);
+            if(candidateBus->address == busAddress) {
+                matchingBus = candidateBus;
+                break;
+            }
+        }
+    }
+
+    if(matchingBus == NULL) {
+        // debug("No matching active bus for requested address: %d", busAddress);
+        matchingBus = &getCanBuses()[0];
+    }
+
     char* dataString = dataObject->valuestring;
     char* end;
     CanMessage message = {id, strtoull(dataString, &end, 16)};
-    // TODO hard coding bus 0 right now, but it should support sending on either
-    can::write::enqueueMessage(&getCanBuses()[0], &message);
+    can::write::enqueueMessage(matchingBus, &message);
 }
 
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {

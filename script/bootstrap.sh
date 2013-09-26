@@ -282,7 +282,7 @@ fi
 # ideally we wouuld set up a little virtualenv in the dependencies folder
 SUDO_CMD=
 if command -v sudo >/dev/null 2>&1; then
-    SUDO_CMD=sudo
+    SUDO_CMD="sudo -E"
 fi
 
 if ! command -v pip >/dev/null 2>&1; then

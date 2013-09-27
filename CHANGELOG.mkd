@@ -1,6 +1,6 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v5.0-dev
+## v5.0
 
 * Rename project from "CAN Translator Firmware" to "Vehicle Interface Firmware"
 * BREAKING CHANGE: Remove the sendFrequency flag for a CanSignal and replace it
@@ -16,8 +16,9 @@
 * Fix receiving data over USB from some devices, e.g. Android.
 * Fix processing CAN messages with many CAN signals (15+) by flushing the
   pipeline mid-translation.
-* Add emlist and emhashmap dependencies
-* Add rate control for CAN messages not predefined.
+* Add emhashmap as a dependency (script/bootstrap.sh will take care of it)
+* Add frequency control for CAN messages that aren't pre-defined in the
+  signals.h implementation
 
 ## v4.1
 

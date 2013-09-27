@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v5.0.1-dev
+
 ## v5.0
 
 * Rename project from "CAN Translator Firmware" to "Vehicle Interface Firmware"

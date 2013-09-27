@@ -65,7 +65,12 @@ def make_tag():
         print(green("Using latest tag %(tag)s" % env))
     return env.tag
 
+@task
+def test():
+    with(lcd("src")):
+        local("make -j4 test")
 
 @task
 def release():
+    test()
     tag = make_tag()

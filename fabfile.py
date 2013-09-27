@@ -72,5 +72,6 @@ def test():
 
 @task
 def release():
+    local("script/bootstrap.sh")
     test()
     tag = make_tag()

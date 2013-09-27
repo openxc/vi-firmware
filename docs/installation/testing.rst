@@ -105,3 +105,29 @@ When compiled with ``DEBUG=1``, two things happen:
 
 View this output using an FTDI cable and any of the many available serial
 terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
+
+CAN Bench Testing
+=====================
+
+Normally, the CAN controllers are initialized in a "listen only" mode. They are
+configured as writable only if using raw CAN passthrough with a CanBus that is
+marked "writable" or if a CanSignal is "writable".
+
+This works fine in a vehicle, but when testing on a bench with a simulated CAN
+network (e.g. another VI sending CAN messages directly to your VI under test),
+there's a problem - every CAN message must be acknowledged by the controller,
+and in "listen only" mode it does not send these ACKs. With nobody ACKing on the
+bus, the messages never propagate up from the network layer to the VI firmware.
+
+When bench testing, use the ``BENCHTEST`` flag to make sure CAN messages are
+ACked:
+
+.. code-block:: sh
+
+    $ make clean
+    $ BENCHTEST=1 make
+    $ make flash
+
+The CAN controllers will also be configured as writable if you use the ``DEBUG``
+flag, or the ``transmitter`` Makefile target. The ``BENCHTEST`` flag is useful
+if you want to bench test normal, non-debug operation.

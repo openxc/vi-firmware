@@ -14,6 +14,10 @@ OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
+ifdef BENCHTEST
+SYMBOLS += __BENCHTEST__
+endif
+
 ifdef DEBUG
 SYMBOLS += __DEBUG__
 else

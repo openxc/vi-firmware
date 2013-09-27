@@ -22,6 +22,10 @@ These options are passed as shell environment variables to the Makefile, e.g.
       debug logging. See the :doc:`platform docs </platforms/platforms>` for
       details on how to read this output.
 
+``BENCHTEST`` - Set to ``1`` to enable write mode on the CAN controllers so
+      messages are ACKed. SEe the :doc:`testing section </installation/testing>`
+      for more details.
+
 ``PLATFORM`` - Select the target :doc:`microcontroller platform </platforms/platforms>`
    (see the platform specific pages for valid options).
 

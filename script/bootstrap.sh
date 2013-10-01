@@ -25,10 +25,10 @@ if ! command -v make >/dev/null 2>&1; then
             die "Missing 'make' - install the Xcode CLI tools"
     else
         if [ $DISTRO == "arch" ]; then
-            sudo pacman -S base-devel
+            $SUDO_CMD pacman -S base-devel
         elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install build-essential -y
+            $SUDO_CMD apt-get update -qq
+            $SUDO_CMD apt-get install build-essential -y
         fi
     fi
 fi
@@ -68,8 +68,8 @@ if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
             echo "Missing lcov - install from the AUR."
             _wait
         elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install lcov -y
+            $SUDO_CMD apt-get update -qq
+            $SUDO_CMD apt-get install lcov -y
         fi
     fi
 fi
@@ -247,13 +247,13 @@ fi
 FTDI_USB_DRIVER_PLIST=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
 if [ -z $CI ]  && [ $OS == "mac" ] && [ -e $FTDI_USB_DRIVER_PLIST ]; then
     if grep -q "Olimex OpenOCD JTAG A" $FTDI_USB_DRIVER_PLIST; then
-        sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
+        $SUDO_CMD sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
         FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
         # Driver may not be loaded yet, but that's OK - don't exit on error.
         set +e
-        sudo kextunload $FTDI_USB_DRIVER_MODULE
+        $SUDO_CMD kextunload $FTDI_USB_DRIVER_MODULE
         set -e
-        sudo kextload $FTDI_USB_DRIVER_MODULE
+        $SUDO_CMD kextload $FTDI_USB_DRIVER_MODULE
     fi
 fi
 
@@ -276,13 +276,6 @@ if ! python -c "import argparse"; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "python-argparse"
     fi
-fi
-
-# TODO this is kind of a hacky way of determining if root is required -
-# ideally we wouuld set up a little virtualenv in the dependencies folder
-SUDO_CMD=
-if command -v sudo >/dev/null 2>&1; then
-    SUDO_CMD="sudo -E"
 fi
 
 if ! command -v pip >/dev/null 2>&1; then

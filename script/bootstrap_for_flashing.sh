@@ -5,6 +5,16 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd $DIR/..
 
+# TODO this is kind of a hacky way of determining if root is required -
+# ideally we wouuld set up a little virtualenv in the dependencies folder
+SUDO_CMD=
+if command -v sudo >/dev/null 2>&1; then
+    SUDO_CMD="sudo -E"
+
+    echo "The bootstrap script needs to install a few packages to your system as an admin, and we will use the 'sudo' command - enter your password to continue"
+    $SUDO_CMD ls
+fi
+
 KERNEL=`uname`
 if [ ${KERNEL:0:7} == "MINGW32" ]; then
     OS="windows"
@@ -17,7 +27,7 @@ else
     if ! command -v lsb_release >/dev/null 2>&1; then
         # Arch Linux
         if command -v pacman>/dev/null 2>&1; then
-            sudo pacman -S lsb-release
+            $SUDO_CMD pacman -S lsb-release
         fi
     fi
 
@@ -78,10 +88,10 @@ _install() {
             _wait
         else
             if [ $DISTRO == "arch" ]; then
-                sudo pacman -S $1
+                $SUDO_CMD pacman -S $1
             elif [ $DISTRO == "Ubuntu" ]; then
-                sudo apt-get update -qq
-                sudo apt-get install $1 -y
+                $SUDO_CMD apt-get update -qq
+                $SUDO_CMD apt-get install $1 -y
             else
                 echo
                 echo "Missing $1 - install it using your distro's package manager or build from source"
@@ -149,7 +159,7 @@ if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
         elif [ $OS == "mac" ]; then
             hdiutil attach $FTDI_DRIVER_FILE
             FTDI_VOLUME="/Volumes/FTDIUSBSerialDriver_v2_2_18"
-            sudo installer -pkg $FTDI_VOLUME/FTDIUSBSerialDriver_10_4_10_5_10_6_10_7.mpkg -target /
+            $SUDO_CMD installer -pkg $FTDI_VOLUME/FTDIUSBSerialDriver_10_4_10_5_10_6_10_7.mpkg -target /
             hdiutil detach $FTDI_VOLUME
         fi
     fi

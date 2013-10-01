@@ -66,6 +66,7 @@ unsigned long timeMock() {
 
 void setup() {
     fakeTime = 0;
+    pipeline.outputFormat = openxc::pipeline::JSON;
     pipeline.usb = &usbDevice;
     usb::initialize(&usbDevice);
     pipeline.usb->configured = true;

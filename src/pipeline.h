@@ -12,6 +12,11 @@ using openxc::interface::network::NetworkDevice;
 namespace openxc {
 namespace pipeline {
 
+typedef enum {
+    JSON,
+    PROTO
+} OutputFormat;
+
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
  *
@@ -25,6 +30,7 @@ namespace pipeline {
  * sendQueues?
  */
 typedef struct {
+    OutputFormat outputFormat;
     UsbDevice* usb;
     UartDevice* uart;
     NetworkDevice* network;

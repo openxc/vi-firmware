@@ -69,7 +69,8 @@ ifndef SERIAL_PORT
 	endif
 endif
 
-EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS)
+EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS) \
+				  -I $(OBJDIR)/proto
 # bump the head up to 32K from the default
 EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
 

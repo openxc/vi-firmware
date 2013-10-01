@@ -1,2 +1,2 @@
 protobuf==2.5.0
--e git+https://github.com/openxc/openxc-python.git@next#egg=openxc
+-e git+https://github.com/openxc/openxc-python.git@binary-encoding#egg=openxc

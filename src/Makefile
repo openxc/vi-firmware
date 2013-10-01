@@ -49,6 +49,7 @@ PLATFORM = CHIPKIT
 endif
 
 OBJDIR = build/$(PLATFORM)
+LIBS_PATH = libs
 TARGET = $(BASE_TARGET)-$(PLATFORM)
 
 CROSSPLATFORM_C_SRCS = $(wildcard *.c)
@@ -61,6 +62,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcomma
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/emlist/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/*.c)
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
@@ -69,7 +71,8 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 
 INCLUDE_PATHS = -I. -I./$(LIBS_PATH)/cJSON -I./$(LIBS_PATH)/emqueue \
 				-I./$(LIBS_PATH)/emlist -I./$(LIBS_PATH)/emhashmap \
-				-I./$(LIBS_PATH)/AT-commander/atcommander
+				-I./$(LIBS_PATH)/AT-commander/atcommander \
+				-I./$(LIBS_PATH)/nanopb
 
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
@@ -94,10 +97,18 @@ emulator: custom_all
 
 .DEFAULT_GOAL = custom_all
 
+$(OBJDIR)/proto/openxc.pb: libs/openxc-message-format/openxc.proto
+	@mkdir -p $(dir $@)
+	protoc -o$@ $?
+
+$(OBJDIR)/proto/openxc.pb.h: $(OBJDIR)/proto/openxc.pb
+	@mkdir -p $(dir $@)
+	python libs/nanopb/generator/nanopb_generator.py $?
+
 custom_all_prefix:
 	@echo "Compiling for $(PLATFORM)..."
 
-custom_all: custom_all_prefix all
+custom_all: custom_all_prefix $(OBJDIR)/proto/openxc.pb.h all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
 	@if [[ $(BOOTLOADER) == 1 ]]; then \
 		echo -n " running under a bootloader"; \

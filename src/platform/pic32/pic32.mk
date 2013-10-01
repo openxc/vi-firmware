@@ -1,6 +1,8 @@
 BOARD_TAG = mega_pic32
 
-ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue emhashmap/emlist emhashmap AT-commander/atcommander
+ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue \
+			   emhashmap/emlist emhashmap AT-commander/atcommander \
+			   nanopb
 ifdef NETWORK
 ARDUINO_LIBS += chipKITNetwork chipKITNetwork/utility
 endif
@@ -73,14 +75,14 @@ EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 
-EXPECTED_USB_LIBRARY_PATH = ./libs/chipKITUSBDevice
+EXPECTED_USB_LIBRARY_PATH = $(LIBS_PATH)/chipKITUSBDevice
 MICROCHIP_USB_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_USB_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - run "script/bootstrap.sh" to download)
 endif
 
 ifndef CAN_EMULATOR
-EXPECTED_CAN_LIBRARY_PATH = ./libs/chipKITCAN
+EXPECTED_CAN_LIBRARY_PATH = $(LIBS_PATH)/chipKITCAN
 MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_CAN_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_CAN_LIBRARY_EXISTS),0)
 $(error chipKIT CAN library missing - run "script/bootstrap.sh" to download)
@@ -88,20 +90,20 @@ endif
 endif
 
 ifdef NETWORK
-EXPECTED_ETHERNET_LIBRARY_PATH = ./libs/chipKITNetwork
+EXPECTED_ETHERNET_LIBRARY_PATH = $(LIBS_PATH)/chipKITNetwork
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
 $(error chipKIT Network library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
-ARDUINO_MK_EXISTS = $(shell test -e libs/arduino.mk/chipKIT.mk; echo $$?)
+ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/chipKIT.mk; echo $$?)
 ifneq ($(ARDUINO_MK_EXISTS),0)
 $(error arduino.mk library missing - run "script/bootstrap.sh")
 endif
 
-USER_LIB_PATH = ./libs
-ARDUINO_MAKEFILE_HOME = libs/arduino.mk
+USER_LIB_PATH = $(LIBS_PATH)
+ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)

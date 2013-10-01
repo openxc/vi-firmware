@@ -9,7 +9,6 @@ ifndef JTAG_INTERFACE
 endif
 
 OPENOCD_CONF_BASE = ../conf/openocd
-LIBS_PATH = libs
 CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
 INCLUDE_PATHS += -I./$(LIBS_PATH)/nxpUSBlib/Drivers \

@@ -301,7 +301,11 @@ if ! command -v protoc >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "protobuf"
     elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
-        _install protobuf
+        if [ $DISTRO == "Ubuntu" ]; then
+            _install protobuf-compiler
+        else
+            _install protobuf
+        fi
     fi
 fi
 

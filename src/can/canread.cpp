@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "util/log.h"
 #include "util/timer.h"
+#include "openxc.pb.h"
+#include "pb_encode.h"
 
 using openxc::util::bitfield::getBitField;
 
@@ -14,25 +16,20 @@ const char openxc::can::read::NAME_FIELD_NAME[] = "name";
 const char openxc::can::read::VALUE_FIELD_NAME[] = "value";
 const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
 
-/* Private: Serialize the root JSON object to a string (ending with a newline)
+/* Private: Serialize the object to a string/protobuf
  * and send it to the pipeline.
  *
- * root - The JSON object to send.
+ * message - The message to send, in a struct.
  * pipeline - The pipeline to send on.
  */
-void sendJSON(cJSON* root, Pipeline* pipeline) {
-    if(root == NULL) {
-        debug("JSON object is NULL -- probably OOM");
-    } else {
-        char* message = cJSON_PrintUnformatted(root);
-        if(message != NULL) {
-            sendMessage(pipeline, (uint8_t*) message, strlen(message));
-        } else {
-            debug("Converting JSON to string failed -- probably OOM");
-        }
-        cJSON_Delete(root);
-        free(message);
+void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
+    if(message == NULL) {
+        debug("Message object is NULL");
+        return;
     }
+    uint8_t buffer[100];
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+    pb_encode(&stream, openxc_VehicleMessage_fields, &message);
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to
@@ -57,7 +54,13 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
         if(event != NULL) {
             cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
         }
-        sendJSON(root, pipeline);
+        openxc_VehicleMessage message;
+        // TODO need to get actual type, likely have the caller send this in
+        message.type = openxc_VehicleMessage_Type_NUM;
+        strcpy(message.numerical_message.name, name);
+        // TOOD this is wrong
+        message.numerical_message.value = value->valueint;
+        sendMessage(&message, pipeline);
     } else {
         debug("Unable to allocate a cJSON object - probably OOM");
     }
@@ -166,29 +169,11 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
     }
 
     if(send) {
-        cJSON *root = cJSON_CreateObject();
-        cJSON_AddNumberToObject(root, BUS_FIELD_NAME, bus->address);
-        cJSON_AddNumberToObject(root, ID_FIELD_NAME, id);
-
-        char encodedData[67];
-        union {
-            uint64_t whole;
-            uint8_t bytes[8];
-        } combined;
-        combined.whole = data;
-
-        sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
-                combined.bytes[0],
-                combined.bytes[1],
-                combined.bytes[2],
-                combined.bytes[3],
-                combined.bytes[4],
-                combined.bytes[5],
-                combined.bytes[6],
-                combined.bytes[7]);
-        cJSON_AddStringToObject(root, DATA_FIELD_NAME, encodedData);
-
-        sendJSON(root, pipeline);
+        openxc_VehicleMessage message;
+        message.type = openxc_VehicleMessage_Type_RAW;
+        message.raw_message.message_id = id;
+        message.raw_message.data = data;
+        sendMessage(&message, pipeline);
     }
 
     if(message != NULL) {

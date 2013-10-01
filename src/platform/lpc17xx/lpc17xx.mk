@@ -9,10 +9,10 @@ ifndef JTAG_INTERFACE
 endif
 
 OPENOCD_CONF_BASE = ../conf/openocd
-CMSIS_PATH = ./$(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
-DRIVER_PATH = ./$(LIBS_PATH)/CDL/LPC17xxLib
-INCLUDE_PATHS += -I./$(LIBS_PATH)/nxpUSBlib/Drivers \
-				-I$(DRIVER_PATH)/inc -I./$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
+CMSIS_PATH = $(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
+DRIVER_PATH = $(LIBS_PATH)/CDL/LPC17xxLib
+INCLUDE_PATHS += -I$(LIBS_PATH)/nxpUSBlib/Drivers \
+				-I$(DRIVER_PATH)/inc -I$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
 ifeq ($(BOOTLOADER), 1)
 LINKER_SCRIPT = platform/lpc17xx/LPC17xx-bootloader.ld
 else

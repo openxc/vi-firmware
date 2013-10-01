@@ -3,6 +3,7 @@
 
 #include "can/canutil.h"
 #include "pipeline.h"
+#include "openxc.pb.h"
 
 using openxc::pipeline::Pipeline;
 

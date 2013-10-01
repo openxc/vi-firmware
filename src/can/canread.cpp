@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "util/log.h"
 #include "util/timer.h"
-#include "openxc.pb.h"
 #include "pb_encode.h"
 
 using openxc::util::bitfield::getBitField;

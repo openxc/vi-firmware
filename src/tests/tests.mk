@@ -6,7 +6,6 @@ OSTYPE := $(shell uname)
 TEST_DIR = tests
 TEST_OBJDIR = build/$(TEST_DIR)
 
-LIBS_PATH = libs
 TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck

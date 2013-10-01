@@ -6,6 +6,7 @@
 #include "pb_encode.h"
 
 using openxc::util::bitfield::getBitField;
+using openxc::util::log::debugNoNewline;
 
 namespace time = openxc::util::time;
 
@@ -29,7 +30,16 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
     }
     uint8_t buffer[100];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-    pb_encode(&stream, openxc_VehicleMessage_fields, &message);
+    bool status = true;
+    status = pb_encode(&stream, openxc_VehicleMessage_fields, &message);
+    if(status) {
+        debugNoNewline("Serialized to: ");
+        for(unsigned int i = 0; i < stream.bytes_written; i++) {
+            debugNoNewline("%02x ", buffer[i]);
+        }
+        debug("");
+        openxc::pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
+    }
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to
@@ -47,23 +57,13 @@ void sendJSONMessage(const char* name, cJSON* value, cJSON* event,
     using openxc::can::read::VALUE_FIELD_NAME;
     using openxc::can::read::EVENT_FIELD_NAME;
 
-    cJSON *root = cJSON_CreateObject();
-    if(root != NULL) {
-        cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
-        cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
-        if(event != NULL) {
-            cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
-        }
-        openxc_VehicleMessage message;
-        // TODO need to get actual type, likely have the caller send this in
-        message.type = openxc_VehicleMessage_Type_NUM;
-        strcpy(message.numerical_message.name, name);
-        // TOOD this is wrong
-        message.numerical_message.value = value->valueint;
-        sendMessage(&message, pipeline);
-    } else {
-        debug("Unable to allocate a cJSON object - probably OOM");
-    }
+    openxc_VehicleMessage message;
+    // TODO need to get actual type, likely have the caller send this in
+    message.type = openxc_VehicleMessage_Type_NUM;
+    strcpy(message.numerical_message.name, name);
+    // TOOD this is wrong
+    message.numerical_message.value = value->valueint;
+    sendMessage(&message, pipeline);
 }
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data, bool* send) {

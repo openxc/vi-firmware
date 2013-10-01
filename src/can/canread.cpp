@@ -244,6 +244,7 @@ void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
     openxc_VehicleMessage message;
     message.type = openxc_VehicleMessage_Type_RAW;
     message.raw_message.message_id = id;
+    message.raw_message.bus = bus->address;
     message.raw_message.data = data;
     sendProtobuf(&message, pipeline);
 }

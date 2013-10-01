@@ -78,80 +78,80 @@ unit_tests: $(TESTS)
 emulator_test:
 	@echo -n "Testing CAN emulator build for chipKIT..."
 	@make clean
-	@make emulator
+	@make -j4 emulator
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 	@echo -n "Testing CAN emulator build for Blueboard ARM board..."
-	@PLATFORM=BLUEBOARD make emulator
+	@PLATFORM=BLUEBOARD make -j4 emulator
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 stats_compile_test: code_generation_test
 	@echo -n "Testing build with LOG_STATS=1 flag..."
-	@DEBUG=1 LOG_STATS=1 make
+	@DEBUG=1 LOG_STATS=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 debug_compile_test: code_generation_test
 	@echo -n "Testing build with DEBUG=1 flag..."
-	@DEBUG=1 make
+	@DEBUG=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 network_compile_test: code_generation_test
 	@echo -n "Testing build with USE_NETWORK=1 flag..."
-	@USE_NETWORK=1 make
+	@USE_NETWORK=1 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 default_pic32_compile_test: code_generation_test
 	@echo -n "Testing default platform build (chipKIT) with example vehicle signals..."
-	@make
+	@make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 chipkit_compile_test: code_generation_test
 	@echo -n "Testing chipKIT build with example vehicle signals..."
-	@PLATFORM=CHIPKIT make
+	@PLATFORM=CHIPKIT make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 c5_compile_test: code_generation_test
 	@echo -n "Testing CrossChasm C5 build with example vehicle signals..."
-	@PLATFORM=CROSSCHASM_C5 make
+	@PLATFORM=CROSSCHASM_C5 make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 lpc17xx_compile_test: code_generation_test
 	@echo -n "Testing Blueboard board build with example vehicle signals..."
-	@PLATFORM=BLUEBOARD make
+	@PLATFORM=BLUEBOARD make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 mapped_lpc17xx_compile_test: mapped_code_generation_test
 	@echo -n "Testing Blueboard board build with example mapped vehicle signals..."
-	@PLATFORM=BLUEBOARD make
+	@PLATFORM=BLUEBOARD make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 ford_test:
 	@echo -n "Testing Ford board build with emulator..."
 	@make clean
-	@PLATFORM=FORDBOARD make emulator
+	@PLATFORM=FORDBOARD make -j4 emulator
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 example_signals_test:
 	@echo -n "Testing example signals definitions in repo..."
 	@make clean
 	@cp signals.cpp.example signals.cpp
-	@PLATFORM=FORDBOARD make
+	@PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 example_passthrough_test:
 	@echo -n "Testing example passthrough config in repo..."
 	@make clean
 	@cp signals.cpp.example-passthrough signals.cpp
-	@PLATFORM=FORDBOARD make
+	@PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 code_generation_test:

@@ -13,7 +13,8 @@ TEST_LIBS = -lcheck
 NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp vi_firmware.cpp \
 		    emulator.cpp platform/platform.cpp
 
-TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c)
+TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
+			  $(LIBS_PATH)/nanopb/pb_decode.c
 TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)
 TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 

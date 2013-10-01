@@ -12,7 +12,7 @@ if command -v sudo >/dev/null 2>&1; then
     SUDO_CMD="sudo -E"
 
     echo "The bootstrap script needs to install a few packages to your system as an admin, and we will use the 'sudo' command - enter your password to continue"
-    $SUDO_CMD ls
+    $SUDO_CMD ls > /dev/null
 fi
 
 KERNEL=`uname`

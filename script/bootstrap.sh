@@ -279,7 +279,7 @@ if ! python -c "import argparse"; then
 fi
 
 if ! command -v pip >/dev/null 2>&1; then
-    echo "Installing Python..."
+    echo "Installing Pip..."
     if ! command -v easy_install >/dev/null 2>&1; then
         die "easy_install not available, can't install pip"
     fi

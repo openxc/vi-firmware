@@ -36,7 +36,7 @@ fi
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "git"
-    elif [ $OS == "mac" ]; then
+    elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
         _install git
     fi
 fi

@@ -53,10 +53,10 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
         debug("Message object is NULL");
         return;
     }
-    uint8_t buffer[100];
+    uint8_t buffer[openxc_VehicleMessage_size];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
     bool status = true;
-    status = pb_encode(&stream, openxc_VehicleMessage_fields, &message);
+    status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields, message);
     if(status) {
         debugNoNewline("Serialized to: ");
         for(unsigned int i = 0; i < stream.bytes_written; i++) {
@@ -64,6 +64,8 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
         }
         debug("");
         sendMessage(pipeline, buffer, stream.bytes_written);
+    } else {
+        debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }
 }
 
@@ -73,10 +75,15 @@ void sendProtobufMessage(const char* name, cJSON* value, cJSON* event,
     using openxc::can::read::VALUE_FIELD_NAME;
     using openxc::can::read::EVENT_FIELD_NAME;
 
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
     // TODO need to get actual type, likely have the caller send this in
     message.type = openxc_VehicleMessage_Type_NUM;
+    message.has_numerical_message = true;
+    message.numerical_message = {0};
+    message.numerical_message.has_name = true;
     strcpy(message.numerical_message.name, name);
+    message.numerical_message.has_value = true;
     // TODO this is wrong
     message.numerical_message.value = value->valueint;
     sendProtobuf(&message, pipeline);
@@ -241,10 +248,16 @@ void passthroughMessageJson(CanBus* bus, uint32_t id,
 void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
         uint64_t data, CanMessageDefinition* messages, int messageCount,
         Pipeline* pipeline) {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
     message.type = openxc_VehicleMessage_Type_RAW;
+    message.has_raw_message = true;
+    message.raw_message = {0};
+    message.raw_message.has_message_id = true;
     message.raw_message.message_id = id;
+    message.raw_message.has_bus = true;
     message.raw_message.bus = bus->address;
+    message.raw_message.has_data = true;
     message.raw_message.data = data;
     sendProtobuf(&message, pipeline);
 }

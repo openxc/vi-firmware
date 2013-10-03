@@ -1,5 +1,6 @@
 #include <check.h>
 #include <stdint.h>
+#include "util/log.h"
 #include <cJSON.h>
 #include <pb_decode.h>
 
@@ -10,6 +11,7 @@
 namespace usb = openxc::interface::usb;
 namespace can = openxc::can;
 
+using openxc::util::log::debugNoNewline;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::ignoreHandler;
 using openxc::can::read::stateHandler;
@@ -274,8 +276,14 @@ START_TEST (test_passthrough_message)
 
     openxc_VehicleMessage decodedMessage;
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));
-    ck_assert(pb_decode(&stream, openxc_VehicleMessage_fields, &decodedMessage) == true);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
+    bool status = pb_decode_delimited(&stream, openxc_VehicleMessage_fields, &decodedMessage);
+    debugNoNewline("Deserialized: ");
+    for(unsigned int i = 0; i < sizeof(snapshot); i++) {
+        debugNoNewline("%02x ", snapshot[i]);
+    }
+    debug("");
+    ck_assert_msg(status, PB_GET_ERROR(&stream));
+    ck_assert(openxc_VehicleMessage_Type_RAW == decodedMessage.type);
     ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
     ck_assert_int_eq(message.data, decodedMessage.raw_message.data);
 }

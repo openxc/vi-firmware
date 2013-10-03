@@ -55,7 +55,7 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
         debug("Message object is NULL");
         return;
     }
-    uint8_t buffer[openxc_VehicleMessage_size];
+    uint8_t buffer[openxc_VehicleMessage_size + 1];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
     bool status = true;
     status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields, message);
@@ -65,6 +65,11 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
             debugNoNewline("%02x ", buffer[i]);
         }
         debug("");
+        // add a NULL termiantor to help users identify their place in the data
+        // stream
+        if(stream.bytes_written < sizeof(buffer) - 1) {
+            buffer[stream.bytes_written] = NULL;
+        }
         pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));

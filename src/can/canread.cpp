@@ -60,11 +60,6 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
     bool status = true;
     status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields, message);
     if(status) {
-        debugNoNewline("Serialized to: ");
-        for(unsigned int i = 0; i < stream.bytes_written; i++) {
-            debugNoNewline("%02x ", buffer[i]);
-        }
-        debug("");
         // add a NULL termiantor to help users identify their place in the data
         // stream
         if(stream.bytes_written < sizeof(buffer) - 1) {

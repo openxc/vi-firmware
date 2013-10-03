@@ -30,7 +30,7 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
         char* message = cJSON_PrintUnformatted(root);
         char messageWithDelimeter[strlen(message) + 3];
         strncpy(messageWithDelimeter, message, strlen(message));
-        messageWithDelimeter[strlen(message)] = NULL;
+        messageWithDelimeter[strlen(message)] = '\0';
         strncat(messageWithDelimeter, "\r\n", 2);
 
         if(message != NULL) {
@@ -68,7 +68,7 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
         // add a NULL termiantor to help users identify their place in the data
         // stream
         if(stream.bytes_written < sizeof(buffer) - 1) {
-            buffer[stream.bytes_written] = NULL;
+            buffer[stream.bytes_written] = '\0';
         }
         pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
     } else {

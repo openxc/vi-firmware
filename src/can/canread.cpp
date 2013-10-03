@@ -28,8 +28,14 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
         debug("JSON object is NULL -- probably OOM");
     } else {
         char* message = cJSON_PrintUnformatted(root);
+        char messageWithDelimeter[strlen(message) + 3];
+        strncpy(messageWithDelimeter, message, strlen(message));
+        messageWithDelimeter[strlen(message)] = NULL;
+        strncat(messageWithDelimeter, "\r\n", 2);
+
         if(message != NULL) {
-            sendMessage(pipeline, (uint8_t*) message, strlen(message));
+            pipeline::sendMessage(pipeline, (uint8_t*) messageWithDelimeter,
+                    strlen(messageWithDelimeter));
         } else {
             debug("Converting JSON to string failed -- probably OOM");
         }
@@ -40,10 +46,6 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
 
 /* Private: Serialize the object to a string/protobuf
  * and send it to the pipeline.
- *
- * TODO push responsibility for encoding to output formats to the pipeline - we
- * just send along a generic object, the oepnxc_VehicleMessage struct might be a
- * good candidate.
  *
  * message - The message to send, in a struct.
  * pipeline - The pipeline to send on.
@@ -63,31 +65,10 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
             debugNoNewline("%02x ", buffer[i]);
         }
         debug("");
-        sendMessage(pipeline, buffer, stream.bytes_written);
+        pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }
-}
-
-void sendProtobufMessage(const char* name, cJSON* value, cJSON* event,
-        Pipeline* pipeline) {
-    using openxc::can::read::NAME_FIELD_NAME;
-    using openxc::can::read::VALUE_FIELD_NAME;
-    using openxc::can::read::EVENT_FIELD_NAME;
-
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
-    // TODO need to get actual type, likely have the caller send this in
-    message.type = openxc_VehicleMessage_Type_NUM;
-    message.has_numerical_message = true;
-    message.numerical_message = {0};
-    message.numerical_message.has_name = true;
-    strcpy(message.numerical_message.name, name);
-    message.numerical_message.has_value = true;
-    // TODO this is wrong
-    message.numerical_message.value = value->valueint;
-    sendProtobuf(&message, pipeline);
-    // TODO free cJSON
 }
 
 /* Private: Combine the given name and value into a JSON object (conforming to
@@ -118,13 +99,48 @@ void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
     }
 }
 
-
+/*
+ *
+ * TODO push responsibility for encoding to output formats to the pipeline - we
+ * just send along a generic object, the oepnxc_VehicleMessage struct might be a
+ * good candidate.
+ */
 void sendMessage(const char* name, cJSON* value, cJSON* event,
         Pipeline* pipeline) {
-    if(pipeline->outputFormat == pipeline::PROTO) {
-        sendProtobufMessage(name, value, event, pipeline);
-    } else {
+    if(pipeline->outputFormat == pipeline::JSON) {
+        // TODO need to handle evented before we can update the remaining
+        // functions using this version of sendMessage
         sendJsonMessage(name, value, event, pipeline);
+    }
+}
+
+void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
+    if(pipeline->outputFormat == pipeline::PROTO) {
+        sendProtobuf(message, pipeline);
+    } else {
+        // TODO is this the right place to do this?
+        const char* name;
+        cJSON* value;
+        switch(message->type) {
+            case openxc_VehicleMessage_Type_NUM:
+                name = message->numerical_message.name;
+                value = cJSON_CreateNumber(message->numerical_message.value);
+                break;
+            case openxc_VehicleMessage_Type_BOOL:
+                name = message->boolean_message.name;
+                value = cJSON_CreateBool(message->boolean_message.value);
+                break;
+            case openxc_VehicleMessage_Type_STRING:
+                name = message->string_message.name;
+                value = cJSON_CreateString(message->string_message.value);
+                break;
+            default:
+                debug("Unrecognized message type, can't output JSON");
+                // TODO handle raw message type here?
+                break;
+        }
+
+        sendJsonMessage(name, value, NULL, pipeline);
     }
 }
 
@@ -185,35 +201,65 @@ const char* openxc::can::read::stateHandler(CanSignal* signal,
 
 void openxc::can::read::sendNumericalMessage(const char* name, float value,
         Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateNumber(value), NULL, pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_NUM;
+    message.has_numerical_message = true;
+    message.numerical_message = {0};
+    message.numerical_message.has_name = true;
+    strcpy(message.numerical_message.name, name);
+    message.numerical_message.has_value = true;
+    message.numerical_message.value = value;
+
+    sendMessage(&message, pipeline);
 }
 
 void openxc::can::read::sendBooleanMessage(const char* name, bool value,
         Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateBool(value), NULL, pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_BOOL;
+    message.has_boolean_message = true;
+    message.boolean_message = {0};
+    message.boolean_message.has_name = true;
+    strcpy(message.boolean_message.name, name);
+    message.boolean_message.has_value = true;
+    message.boolean_message.value = value;
+
+    sendMessage(&message, pipeline);
 }
 
 void openxc::can::read::sendStringMessage(const char* name, const char* value,
         Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateString(value), NULL, pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_STRING;
+    message.has_string_message = true;
+    message.string_message = {0};
+    message.string_message.has_name = true;
+    strcpy(message.string_message.name, name);
+    message.string_message.has_value = true;
+    strcpy(message.string_message.value, value);
+
+    sendMessage(&message, pipeline);
 }
 
 void openxc::can::read::sendEventedFloatMessage(const char* name,
         const char* value, float event,
         Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
+    sendMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
             pipeline);
 }
 
 void openxc::can::read::sendEventedBooleanMessage(const char* name,
         const char* value, bool event, Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
+    sendMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
             pipeline);
 }
 
 void openxc::can::read::sendEventedStringMessage(const char* name,
         const char* value, const char* event, Pipeline* pipeline) {
-    sendJsonMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
+    sendMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
             pipeline);
 }
 
@@ -259,6 +305,7 @@ void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
     message.raw_message.bus = bus->address;
     message.raw_message.has_data = true;
     message.raw_message.data = data;
+
     sendProtobuf(&message, pipeline);
 }
 

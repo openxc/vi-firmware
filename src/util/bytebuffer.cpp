@@ -41,8 +41,6 @@ bool openxc::util::bytebuffer::conditionalEnqueue(QUEUE_TYPE(uint8_t)* queue, ui
         for(int i = 0; i < messageSize; i++) {
             QUEUE_PUSH(uint8_t, queue, (uint8_t)message[i]);
         }
-        QUEUE_PUSH(uint8_t, queue, (uint8_t)'\r');
-        QUEUE_PUSH(uint8_t, queue, (uint8_t)'\n');
         return true;
     }
     return false;

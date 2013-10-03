@@ -42,7 +42,8 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize) {
     if(pipeline->usb->configured) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->usb->sendQueue, message, messageSize)) {
+        while(timeout > 0 && !messageFits(&pipeline->usb->sendQueue, message,
+                    messageSize)) {
             process(pipeline);
             --timeout;
         }
@@ -55,12 +56,14 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             dataSent[USB] += messageSize;
         }
         sendQueueLength[USB] = QUEUE_LENGTH(uint8_t, &pipeline->usb->sendQueue);
-        receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t, &pipeline->usb->receiveQueue);
+        receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t,
+                &pipeline->usb->receiveQueue);
     }
 
     if(uart::connected(pipeline->uart)) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->uart->sendQueue, message, messageSize)) {
+        while(timeout > 0 && !messageFits(&pipeline->uart->sendQueue, message,
+                    messageSize)) {
             process(pipeline);
             --timeout;
         }
@@ -72,13 +75,16 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             ++sentMessages[UART];
             dataSent[UART] += messageSize;
         }
-        sendQueueLength[UART] = QUEUE_LENGTH(uint8_t, &pipeline->uart->sendQueue);
-        receiveQueueLength[UART] = QUEUE_LENGTH(uint8_t, &pipeline->uart->receiveQueue);
+        sendQueueLength[UART] = QUEUE_LENGTH(uint8_t,
+                &pipeline->uart->sendQueue);
+        receiveQueueLength[UART] = QUEUE_LENGTH(uint8_t,
+                &pipeline->uart->receiveQueue);
     }
 
     if(pipeline->network != NULL) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->network->sendQueue, message, messageSize)) {
+        while(timeout > 0 && !messageFits(&pipeline->network->sendQueue,
+                    message, messageSize)) {
             process(pipeline);
             --timeout;
         }
@@ -90,8 +96,10 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
             ++sentMessages[NETWORK];
             dataSent[NETWORK] += messageSize;
         }
-        sendQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t, &pipeline->network->sendQueue);
-        receiveQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t, &pipeline->network->receiveQueue);
+        sendQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t,
+                &pipeline->network->sendQueue);
+        receiveQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t,
+                &pipeline->network->receiveQueue);
     }
 }
 
@@ -130,7 +138,8 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
         initializedStats = true;
     }
 
-    if(time::systemTimeMs() - lastTimeLogged > PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
+    if(time::systemTimeMs() - lastTimeLogged > 
+            PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
         for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
             const char* interfaceName = messageTypeNames[i];
             statistics::update(&sentMessageStats[i], sentMessages[i]);
@@ -144,7 +153,8 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             statistics::update(&receiveQueueStats[i], receiveQueueLength[i]);
 
             if(totalMessageStats[i].total > 0) {
-                debug("%s avg queue fill percents, Rx: %f, Tx: %f", interfaceName,
+                debug("%s avg queue fill percents, Rx: %f, Tx: %f",
+                            interfaceName,
                         statistics::exponentialMovingAverage(&receiveQueueStats[i])
                             / QUEUE_MAX_LENGTH(uint8_t) * 100,
                         statistics::exponentialMovingAverage(&sendQueueStats[i])

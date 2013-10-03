@@ -21,8 +21,7 @@ namespace bytebuffer {
  */
 void processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*));
 
-/* Public: Add the message to the byte queue if there is room, including a CRLF
- * that will be appended to the message.
+/* Public: Add the message to the byte queue if there is room.
  *
  * queue - The queue to add the message.
  * message - The message to attempt to enqueue.

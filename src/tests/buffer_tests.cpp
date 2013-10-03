@@ -137,22 +137,6 @@ START_TEST (test_enqueue_no_room_for_crlf)
 }
 END_TEST
 
-START_TEST (test_enqueue_adds_crlf)
-{
-    char* message = "a message";
-    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
-    fail_unless(result);
-    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 11);
-
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &queue)];
-    QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
-    const char* expected = "a message\r\n";
-    for(int i = 0; i < 11; i++) {
-        fail_unless((char)snapshot[i] == expected[i]);
-    }
-}
-END_TEST
-
 Suite* buffersSuite(void) {
     Suite* s = suite_create("buffers");
     TCase *tc_core = tcase_create("core");
@@ -171,7 +155,6 @@ Suite* buffersSuite(void) {
     tcase_add_test(tc_conditional, test_enqueue_empty);
     tcase_add_test(tc_conditional, test_enqueue_full);
     tcase_add_test(tc_conditional, test_enqueue_no_room_for_crlf);
-    tcase_add_test(tc_conditional, test_enqueue_adds_crlf);
     tcase_add_test(tc_conditional, test_enqueue_just_enough_room);
     suite_add_tcase(s, tc_conditional);
 

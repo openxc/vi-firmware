@@ -69,11 +69,11 @@ ifndef SERIAL_PORT
 	endif
 endif
 
+# The Arduino-Makefile project builds libraries in isolation,
+# but the openxc-message-format depends on nanopb - this is a
+# little hack to make sure the header files are always
+# available
 EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS) \
-				  # The Arduino-Makefile project builds libraries in isolation,
-				  # but the openxc-message-format depends on nanopb - this is a
-				  # little hack to make sure the header files are always
-				  # available
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
 				  -I $(LIBS_PATH)/nanopb
 

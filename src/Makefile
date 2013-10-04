@@ -36,6 +36,8 @@ ifndef BOOTLOADER
 BOOTLOADER = 1
 endif
 
+SYMBOLS += PB_FIELD_16BIT
+
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
 
 CJSON_EXISTS = $(shell test -e libs/cJSON/cJSON.h; echo $$?)

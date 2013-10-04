@@ -105,15 +105,6 @@ void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
  * just send along a generic object, the oepnxc_VehicleMessage struct might be a
  * good candidate.
  */
-void sendMessage(const char* name, cJSON* value, cJSON* event,
-        Pipeline* pipeline) {
-    if(pipeline->outputFormat == pipeline::JSON) {
-        // TODO need to handle evented before we can update the remaining
-        // functions using this version of sendMessage
-        sendJsonMessage(name, value, event, pipeline);
-    }
-}
-
 void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
     if(pipeline->outputFormat == pipeline::PROTO) {
         sendProtobuf(message, pipeline);
@@ -121,18 +112,25 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
         // TODO is this the right place to do this?
         const char* name;
         cJSON* value;
+        cJSON* event = NULL;
         switch(message->type) {
-            case openxc_VehicleMessage_Type_NUM:
-                name = message->numerical_message.name;
-                value = cJSON_CreateNumber(message->numerical_message.value);
-                break;
-            case openxc_VehicleMessage_Type_BOOL:
-                name = message->boolean_message.name;
-                value = cJSON_CreateBool(message->boolean_message.value);
-                break;
-            case openxc_VehicleMessage_Type_STRING:
-                name = message->string_message.name;
-                value = cJSON_CreateString(message->string_message.value);
+            case openxc_VehicleMessage_Type_TRANSLATED:
+                name = message->translated_message.name;
+                if(message->translated_message.has_numerical_value) {
+                    value = cJSON_CreateNumber(message->translated_message.numerical_value);
+                } else if(message->translated_message.has_boolean_value) {
+                    value = cJSON_CreateBool(message->translated_message.boolean_value);
+                } else if(message->translated_message.has_string_value) {
+                    value = cJSON_CreateString(message->translated_message.string_value);
+                }
+
+                if(message->translated_message.has_numerical_event) {
+                    event = cJSON_CreateNumber(message->translated_message.numerical_event);
+                } else if(message->translated_message.has_boolean_event) {
+                    event = cJSON_CreateBool(message->translated_message.boolean_event);
+                } else if(message->translated_message.has_string_event) {
+                    event = cJSON_CreateString(message->translated_message.string_event);
+                }
                 break;
             default:
                 debug("Unrecognized message type, can't output JSON");
@@ -140,7 +138,7 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
                 break;
         }
 
-        sendJsonMessage(name, value, NULL, pipeline);
+        sendJsonMessage(name, value, event, pipeline);
     }
 }
 
@@ -203,13 +201,13 @@ void openxc::can::read::sendNumericalMessage(const char* name, float value,
         Pipeline* pipeline) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_NUM;
-    message.has_numerical_message = true;
-    message.numerical_message = {0};
-    message.numerical_message.has_name = true;
-    strcpy(message.numerical_message.name, name);
-    message.numerical_message.has_value = true;
-    message.numerical_message.value = value;
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_numerical_value = true;
+    message.translated_message.numerical_value = value;
 
     sendMessage(&message, pipeline);
 }
@@ -218,13 +216,13 @@ void openxc::can::read::sendBooleanMessage(const char* name, bool value,
         Pipeline* pipeline) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_BOOL;
-    message.has_boolean_message = true;
-    message.boolean_message = {0};
-    message.boolean_message.has_name = true;
-    strcpy(message.boolean_message.name, name);
-    message.boolean_message.has_value = true;
-    message.boolean_message.value = value;
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_boolean_value = true;
+    message.translated_message.boolean_value = value;
 
     sendMessage(&message, pipeline);
 }
@@ -233,13 +231,13 @@ void openxc::can::read::sendStringMessage(const char* name, const char* value,
         Pipeline* pipeline) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_STRING;
-    message.has_string_message = true;
-    message.string_message = {0};
-    message.string_message.has_name = true;
-    strcpy(message.string_message.name, name);
-    message.string_message.has_value = true;
-    strcpy(message.string_message.value, value);
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_string_value = true;
+    strcpy(message.translated_message.string_value, value);
 
     sendMessage(&message, pipeline);
 }
@@ -247,20 +245,53 @@ void openxc::can::read::sendStringMessage(const char* name, const char* value,
 void openxc::can::read::sendEventedFloatMessage(const char* name,
         const char* value, float event,
         Pipeline* pipeline) {
-    sendMessage(name, cJSON_CreateString(value), cJSON_CreateNumber(event),
-            pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_string_value = true;
+    strcpy(message.translated_message.string_value, value);
+    message.translated_message.has_numerical_event = true;
+    message.translated_message.numerical_event = event;
+
+    sendMessage(&message, pipeline);
 }
 
 void openxc::can::read::sendEventedBooleanMessage(const char* name,
         const char* value, bool event, Pipeline* pipeline) {
-    sendMessage(name, cJSON_CreateString(value), cJSON_CreateBool(event),
-            pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_string_value = true;
+    strcpy(message.translated_message.string_value, value);
+    message.translated_message.has_boolean_event = true;
+    message.translated_message.boolean_event = event;
+
+    sendMessage(&message, pipeline);
 }
 
 void openxc::can::read::sendEventedStringMessage(const char* name,
         const char* value, const char* event, Pipeline* pipeline) {
-    sendMessage(name, cJSON_CreateString(value), cJSON_CreateString(event),
-            pipeline);
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_TRANSLATED;
+    message.has_translated_message = true;
+    message.translated_message = {0};
+    message.translated_message.has_name = true;
+    strcpy(message.translated_message.name, name);
+    message.translated_message.has_string_value = true;
+    strcpy(message.translated_message.string_value, value);
+    message.translated_message.has_string_event = true;
+    strcpy(message.translated_message.string_event, event);
+
+    sendMessage(&message, pipeline);
 }
 
 void passthroughMessageJson(CanBus* bus, uint32_t id,

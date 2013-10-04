@@ -70,7 +70,13 @@ ifndef SERIAL_PORT
 endif
 
 EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS) \
-				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp
+				  # The Arduino-Makefile project builds libraries in isolation,
+				  # but the openxc-message-format depends on nanopb - this is a
+				  # little hack to make sure the header files are always
+				  # available
+				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
+				  -I $(LIBS_PATH)/nanopb
+
 # bump the head up to 32K from the default
 EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
 

@@ -65,7 +65,7 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
         if(stream.bytes_written < sizeof(buffer) - 1) {
             buffer[stream.bytes_written] = '\0';
         }
-        pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
+        pipeline::sendMessage(pipeline, buffer, stream.bytes_written + 1);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }

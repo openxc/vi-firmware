@@ -60,12 +60,7 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
     bool status = true;
     status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields, message);
     if(status) {
-        // add a NULL termiantor to help users identify their place in the data
-        // stream
-        if(stream.bytes_written < sizeof(buffer) - 1) {
-            buffer[stream.bytes_written] = '\0';
-        }
-        pipeline::sendMessage(pipeline, buffer, stream.bytes_written + 1);
+        pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }

@@ -30,12 +30,12 @@ extern void handleCan2Interrupt();
 
 const int CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { 500000, 1, can1,
+    { 500000, 1, can1, 0, false,
 #ifdef __PIC32__
         handleCan1Interrupt,
 #endif // __PIC32__
     },
-    { 125000, 2, can2,
+    { 125000, 2, can2, 0, false,
 #ifdef __PIC32__
         handleCan2Interrupt,
 #endif // __PIC32__

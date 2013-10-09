@@ -136,23 +136,37 @@ mapped_lpc17xx_compile_test: mapped_code_generation_test
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 ford_test:
-	@echo -n "Testing Ford board build with emulator..."
+	@echo -n "Testing FORDBOARD build with emulator..."
 	@make clean
 	@PLATFORM=FORDBOARD make -j4 emulator
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
+	@echo -n "Testing CHIPKIT build with emulator..."
+	@make clean
+	@PLATFORM=CHIPKIT make -j4 emulator
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 example_signals_test:
-	@echo -n "Testing example signals definitions in repo..."
+	@echo -n "Testing example signals definitions in repo for FORDBOARD..."
 	@make clean
 	@cp signals.cpp.example signals.cpp
 	@PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
+	@echo -n "Testing example signals definitions in repo for CHIPKIT..."
+	@make clean
+	@cp signals.cpp.example signals.cpp
+	@PLATFORM=CHIPKIT make -j4
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 example_passthrough_test:
-	@echo -n "Testing example passthrough config in repo..."
+	@echo -n "Testing example passthrough config in repo for FORDBOARD..."
 	@make clean
 	@cp signals.cpp.example-passthrough signals.cpp
 	@PLATFORM=FORDBOARD make -j4
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+	@echo -n "Testing example passthrough config in repo for CHIPKIT..."
+	@make clean
+	@cp signals.cpp.example-passthrough signals.cpp
+	@PLATFORM=CHIPKIT make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 code_generation_test:

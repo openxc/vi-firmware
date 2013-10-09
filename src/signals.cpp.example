@@ -47,13 +47,13 @@ float handleInvertedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
 const int MAX_CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
     { // message set: my-car
-        { 500000, 1, can1,
+        { 500000, 1, can1, 0, false,
             #ifdef __PIC32__
             handleCan1Interrupt,
             #endif // __PIC32__
         },
 
-        { 125000, 2, can2,
+        { 125000, 2, can2, 0, false,
             #ifdef __PIC32__
             handleCan2Interrupt,
             #endif // __PIC32__

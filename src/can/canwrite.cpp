@@ -138,7 +138,7 @@ void openxc::can::write::processWriteQueue(CanBus* bus) {
         for(int i = 0; i < 8; i++) {
             debugNoNewline("%02x ", ((uint8_t*)&message.data)[i]);
         }
-        debugNoNewline("\r\n");
+        debug("");
         if(bus->writeHandler == NULL) {
             debug("No function available for writing to CAN -- dropped");
         } else if(!bus->writeHandler(bus, message)) {

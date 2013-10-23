@@ -106,7 +106,7 @@ CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates, ncurses, python-setuptool
 download() {
     url=$1
     filename=$2
-    curl $url -L -O $filename
+    curl $url -L --remote-name $filename
 }
 
 if [ `id -u` == 0 ]; then

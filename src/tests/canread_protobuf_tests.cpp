@@ -119,9 +119,9 @@ START_TEST (test_send_numerical)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_NUM, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.numeric_message.name);
-    ck_assert_int_eq(42, decodedMessage.numeric_message.value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.translated_message.name);
+    ck_assert_int_eq(42, decodedMessage.translated_message.numerical_value);
 }
 END_TEST
 
@@ -133,9 +133,9 @@ START_TEST (test_preserve_float_precision)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_NUM, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.numeric_message.name);
-    ck_assert_int_eq(42.5, decodedMessage.numeric_message.value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.translated_message.name);
+    ck_assert_int_eq(42.5, decodedMessage.translated_message.numerical_value);
 }
 END_TEST
 
@@ -146,9 +146,9 @@ START_TEST (test_send_boolean)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_BOOL, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.boolean_message.name);
-    ck_assert(decodedMessage.boolean_message.value == false);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.translated_message.name);
+    ck_assert(decodedMessage.translated_message.boolean_value == false);
 }
 END_TEST
 
@@ -159,9 +159,9 @@ START_TEST (test_send_string)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_STRING, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.string_message.name);
-    ck_assert_str_eq("string", decodedMessage.string_message.value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.translated_message.name);
+    ck_assert_str_eq("string", decodedMessage.translated_message.string_value);
 }
 END_TEST
 
@@ -179,9 +179,9 @@ START_TEST (test_translate_string)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_STRING, decodedMessage.type);
-    ck_assert_str_eq("transmission_gear_position", decodedMessage.string_message.name);
-    ck_assert_str_eq("foo", decodedMessage.string_message.value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("transmission_gear_position", decodedMessage.translated_message.name);
+    ck_assert_str_eq("foo", decodedMessage.translated_message.string_value);
 }
 END_TEST
 
@@ -197,9 +197,9 @@ START_TEST (test_translate_bool)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_BOOL, decodedMessage.type);
-    ck_assert_str_eq("brake_pedal_status", decodedMessage.boolean_message.name);
-    ck_assert(decodedMessage.boolean_message.value == false);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("brake_pedal_status", decodedMessage.translated_message.name);
+    ck_assert(decodedMessage.translated_message.boolean_value == false);
 }
 END_TEST
 
@@ -215,9 +215,9 @@ START_TEST (test_translate_float)
     fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_NUM, decodedMessage.type);
-    ck_assert_str_eq("torque_at_transmission", decodedMessage.numeric_message.name);
-    ck_assert_int_eq(42, decodedMessage.numeric_message.value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
+    ck_assert_str_eq("torque_at_transmission", decodedMessage.translated_message.name);
+    ck_assert_int_eq(42, decodedMessage.translated_message.numerical_value);
 }
 END_TEST
 

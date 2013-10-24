@@ -112,7 +112,7 @@ START_TEST (test_passthrough_message)
 }
 END_TEST
 
-START_TEST (test_send_numerical)
+START_TEST (test_send_numeric_value)
 {
     fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
     sendNumericalMessage("test", 42, &PIPELINE);
@@ -121,7 +121,7 @@ START_TEST (test_send_numerical)
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42, decodedMessage.translated_message.numerical_value);
+    ck_assert_int_eq(42, decodedMessage.translated_message.numeric_value);
 }
 END_TEST
 
@@ -135,7 +135,7 @@ START_TEST (test_preserve_float_precision)
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42.5, decodedMessage.translated_message.numerical_value);
+    ck_assert_int_eq(42.5, decodedMessage.translated_message.numeric_value);
 }
 END_TEST
 
@@ -217,7 +217,7 @@ START_TEST (test_translate_float)
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("torque_at_transmission", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42, decodedMessage.translated_message.numerical_value);
+    ck_assert_int_eq(42, decodedMessage.translated_message.numeric_value);
 }
 END_TEST
 
@@ -226,7 +226,7 @@ Suite* canreadSuite(void) {
 
     TCase *tc_sending = tcase_create("sending");
     tcase_add_checked_fixture(tc_sending, setup, NULL);
-    tcase_add_test(tc_sending, test_send_numerical);
+    tcase_add_test(tc_sending, test_send_numeric_value);
     tcase_add_test(tc_sending, test_preserve_float_precision);
     tcase_add_test(tc_sending, test_send_boolean);
     tcase_add_test(tc_sending, test_send_string);

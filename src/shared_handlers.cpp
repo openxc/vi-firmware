@@ -73,6 +73,12 @@ void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
     sendDoorStatus("rear_left", data,
             lookupSignal("rear_left_door", signals, signalCount),
             signals, signalCount, pipeline);
+    sendDoorStatus("hood", data,
+            lookupSignal("hood", signals, signalCount),
+            signals, signalCount, pipeline);
+    sendDoorStatus("trunk", data,
+            lookupSignal("trunk", signals, signalCount),
+            signals, signalCount, pipeline);
 }
 
 void openxc::signals::handlers::sendTirePressure(const char* tireId,

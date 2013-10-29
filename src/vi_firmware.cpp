@@ -136,10 +136,12 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
                 break;
             }
         }
+        // if(matchingBus == NULL) {
+            // debug("No matching active bus for requested address: %d", busAddress);
+        // }
     }
 
     if(matchingBus == NULL) {
-        // debug("No matching active bus for requested address: %d", busAddress);
         matchingBus = &getCanBuses()[0];
     }
 

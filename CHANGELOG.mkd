@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v5.1.1-dev
+
 ## v5.1
 
 * Add BENCHTEST flag to permit sending CAN ACKs when in small CAN network.

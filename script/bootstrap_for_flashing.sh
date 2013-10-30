@@ -101,7 +101,7 @@ _install() {
     fi
 }
 
-CYGWIN_PACKAGES="git, curl, libsasl2, ca-certificates, ncurses, python-setuptools"
+CYGWIN_PACKAGES="curl, libsasl2, ca-certificates, ncurses, python-setuptools"
 
 download() {
     url=$1

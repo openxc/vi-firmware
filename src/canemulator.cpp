@@ -1,18 +1,32 @@
 #ifdef CAN_EMULATOR
 
-#include "usbutil.h"
-#include "canread.h"
-#include "serialutil.h"
-#include "ethernetutil.h"
-#include "log.h"
+#include "interface/usb.h"
+#include "can/canread.h"
+#include "interface/uart.h"
+#include "interface/network.h"
+#include "util/log.h"
+#include "util/timer.h"
+#include "signals.h"
 #include <stdlib.h>
 
 #define NUMERICAL_SIGNAL_COUNT 11
 #define BOOLEAN_SIGNAL_COUNT 5
 #define STATE_SIGNAL_COUNT 2
 #define EVENT_SIGNAL_COUNT 1
+#define EMULATOR_SEND_FREQUENCY 1000
 
-extern Listener listener;
+namespace uart = openxc::interface::uart;
+namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
+
+using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::sendBooleanMessage;
+using openxc::can::read::sendStringMessage;
+using openxc::can::read::sendEventedBooleanMessage;
+
+int emulatorRateLimiter = 0;
+
+extern Pipeline pipeline;
 
 const char* NUMERICAL_SIGNALS[NUMERICAL_SIGNAL_COUNT] = {
     "steering_wheel_angle",
@@ -41,7 +55,7 @@ const char* STATE_SIGNALS[STATE_SIGNAL_COUNT] = {
     "ignition_status",
 };
 
-const char* SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
+const char* EMULATED_SIGNAL_STATES[STATE_SIGNAL_COUNT][3] = {
     { "neutral", "first", "second" },
     { "off", "run", "accessory" },
 };
@@ -64,34 +78,44 @@ void setup() {
 }
 
 bool usbWriteStub(uint8_t* buffer) {
-    debug("Ignoring write request -- running an emulator\r\n");
+    debug("Ignoring write request -- running an emulator");
     return true;
 }
 
 void loop() {
-    sendNumericalMessage(
-            NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
-            rand() % 50 + rand() % 100 * .1, &listener);
-    sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
-            rand() % 2 == 1 ? true : false, &listener);
+    ++emulatorRateLimiter;
+    if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY / 2) {
+        sendNumericalMessage(
+                NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
+                rand() % 50 + rand() % 100 * .1, &pipeline);
+        sendBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
+                rand() % 2 == 1 ? true : false, &pipeline);
+    } else if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY) {
+        emulatorRateLimiter = 0;
 
-    int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
-    sendStringMessage(STATE_SIGNALS[stateSignalIndex],
-            SIGNAL_STATES[stateSignalIndex][rand() % 3], &listener);
+        int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
+        sendStringMessage(STATE_SIGNALS[stateSignalIndex],
+                EMULATED_SIGNAL_STATES[stateSignalIndex][rand() % 3], &pipeline);
 
-    int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
-    Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
-    sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
-            randomEvent.value, randomEvent.event, &listener);
+        int eventSignalIndex = rand() % EVENT_SIGNAL_COUNT;
+        Event randomEvent = EVENT_SIGNAL_STATES[eventSignalIndex][rand() % 3];
+        sendEventedBooleanMessage(EVENT_SIGNALS[eventSignalIndex],
+                randomEvent.value, randomEvent.event, &pipeline);
+    }
 
-    readFromHost(listener.usb, usbWriteStub);
-    readFromSerial(listener.serial, usbWriteStub);
+    usb::read(pipeline.usb, usbWriteStub);
+    uart::read(pipeline.uart, usbWriteStub);
 }
 
 void reset() { }
 
-const char* getMessageSet() {
-    return "emulator";
+const int MESSAGE_SET_COUNT = 1;
+CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+    { 0, "emulator", 0, 0, 0 }
+};
+
+CanMessageSet* openxc::signals::getActiveMessageSet() {
+    return &MESSAGE_SETS[0];
 }
 
 #endif // CAN_EMULATOR

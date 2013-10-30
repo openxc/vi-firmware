@@ -1,0 +1,78 @@
+{
+    "messages": {
+        "0x128": {
+            "name": "ECM_z_5D2",
+            "signals": {
+                "StrAnglAct": {
+                    "generic_name": "SteeringWheelAngle",
+                    "bit_position": 52,
+                    "bit_size": 12,
+                    "factor": 0.15392,
+                    "offset": 0,
+                    "handler": "handleInvertedSteeringWheel"},
+                "StrAnglSign": {
+                    "generic_name": "steering_angle_sign",
+                    "handler": "ignoreHandler",
+                    "bit_position": 52,
+                    "bit_size": 12},
+                "EngSpd": {
+                    "generic_name": "engine_speed",
+                    "send_frequency": 15,
+                    "bit_position": 12,
+                    "bit_size": 8},
+                "GrshftPos": {
+                    "generic_name": "GearshiftPosition",
+                    "bit_position": 41,
+                    "bit_size": 3,
+                    "states": {
+                        "FIRST": [1],
+                        "SECOND": [2],
+                        "THIRD": [3],
+                        "FOURTH": [4],
+                        "REVERSE": [5],
+                        "NEUTRAL": [6]}
+                    },
+                "StrAnglErr": {
+                    "handler": "ignoreHandler",
+                    "generic_name": "steering_wheel_angle_error",
+                    "bit_position": 44,
+                    "bit_size": 12
+                }
+            },
+            "handler": "handleSteeringWheelMessage"
+        },
+        "0x49": {
+            "name": "BrkSt",
+            "signals": {
+                "BrakePedalPosition": {
+                    "generic_name": "brake_pedal_status",
+                    "send_same": false,
+                    "handler": "booleanHandler",
+                    "bit_position": 0,
+                    "bit_size": 0
+                }
+            }
+        },
+        "0x121": {
+            "name": "Cluster",
+            "signals": {
+                "TurnSignalLeft": {
+                    "generic_name": "turn_signal_left",
+                    "handler": "booleanHandler",
+                    "bit_position": 0,
+                    "bit_size": 0,
+                    "writable": true,
+                    "write_handler": "booleanWriter"
+                },
+                "TurnSignalRight": {
+                    "generic_name": "turn_signal_right",
+                    "handler": "booleanHandler",
+                    "bit_position": 1,
+                    "bit_size": 0,
+                    "writable": true,
+                    "write_handler": "booleanWriter"
+                }
+            }
+        }
+    }
+}

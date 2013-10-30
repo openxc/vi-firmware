@@ -1,8 +1,11 @@
 #include <check.h>
 #include <stdint.h>
-#include "buffers.h"
+#include "util/bytebuffer.h"
 
-ByteQueue queue;
+using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::util::bytebuffer::processQueue;
+
+QUEUE_TYPE(uint8_t) queue;
 bool called;
 bool callbackStatus;
 
@@ -69,7 +72,7 @@ END_TEST
 
 START_TEST (test_full_clears)
 {
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
@@ -99,7 +102,7 @@ END_TEST
 
 START_TEST (test_enqueue_full)
 {
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
@@ -112,7 +115,7 @@ END_TEST
 
 START_TEST (test_enqueue_just_enough_room)
 {
-    for(int i = 0; i < 501; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 11; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
 
@@ -124,29 +127,13 @@ END_TEST
 
 START_TEST (test_enqueue_no_room_for_crlf)
 {
-    for(int i = 0; i < 503; i++) {
+    for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 9; i++) {
         QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
     }
 
     char* message = "a message";
     bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
     fail_if(result);
-}
-END_TEST
-
-START_TEST (test_enqueue_adds_crlf)
-{
-    char* message = "a message";
-    bool result = conditionalEnqueue(&queue, (uint8_t*)message, 9);
-    fail_unless(result);
-    ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 11);
-
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &queue)];
-    QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
-    const char* expected = "a message\r\n";
-    for(int i = 0; i < 11; i++) {
-        fail_unless((char)snapshot[i] == expected[i]);
-    }
 }
 END_TEST
 
@@ -168,7 +155,6 @@ Suite* buffersSuite(void) {
     tcase_add_test(tc_conditional, test_enqueue_empty);
     tcase_add_test(tc_conditional, test_enqueue_full);
     tcase_add_test(tc_conditional, test_enqueue_no_room_for_crlf);
-    tcase_add_test(tc_conditional, test_enqueue_adds_crlf);
     tcase_add_test(tc_conditional, test_enqueue_just_enough_room);
     suite_add_tcase(s, tc_conditional);
 

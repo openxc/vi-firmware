@@ -13,3 +13,18 @@
 [submodule "src/libs/arduino.mk"]
 	path = src/libs/arduino.mk
 	url = https://github.com/peplin/arduino.mk
+[submodule "src/libs/emqueue"]
+	path = src/libs/emqueue
+	url = https://github.com/openxc/emqueue
+[submodule "src/libs/AT-commander"]
+	path = src/libs/AT-commander
+	url = https://github.com/openxc/AT-commander
+[submodule "src/libs/emhashmap"]
+	path = src/libs/emhashmap
+	url = https://github.com/openxc/emhashmap.git
+[submodule "src/libs/nanopb"]
+	path = src/libs/nanopb
+	url = https://code.google.com/p/nanopb/
+[submodule "src/libs/openxc-message-format"]
+	path = src/libs/openxc-message-format
+	url = https://github.com/openxc/openxc-message-format

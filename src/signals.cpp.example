@@ -1,5 +1,5 @@
 /* This is an example implementation of the functions defined in signals.h that
- * are required to compile and deploy to the OpenXC CAN translator. This general
+ * are required to compile and deploy to the OpenXC VI. This general
  * implementation style is created by the generate_source.py script if you
  * provide it with the JSON input file format described in the README.
  *
@@ -11,18 +11,21 @@
  * The signals defined in this file are for demonstration purposes only - the
  * message formats are not real, and won't work on any car.
  */
-
-// Skip this file when building the emulator
 #ifndef CAN_EMULATOR
 
-#include "canread.h"
-#include "canwrite.h"
+#include "can/canread.h"
+#include "can/canwrite.h"
 #include "signals.h"
-#include "log.h"
-#include "handlers.h"
+#include "util/log.h"
+#include "config.h"
 #include "shared_handlers.h"
 
-extern Listener listener;
+namespace can = openxc::can;
+
+using openxc::pipeline::Pipeline;
+using openxc::config::getConfiguration;
+using openxc::can::read::stateHandler;
+using namespace openxc::signals::handlers;
 
 #ifdef __LPC17XX__
 #define can1 LPC_CAN1
@@ -36,18 +39,35 @@ extern void handleCan1Interrupt();
 extern void handleCan2Interrupt();
 #endif // __PIC32__
 
-// Define the speed of your CAN buses here (these are both 500Kbps buses).
-const int CAN_BUS_COUNT = 2;
-CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { 500000, 0x102, can1,
-#ifdef __PIC32__
-        handleCan1Interrupt,
-#endif // __PIC32__
+float handleInvertedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    return value * -1;
+}
+
+const int MAX_CAN_BUS_COUNT = 2;
+CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
+    { // message set: my-car
+        { 500000, 1, can1, 0, false,
+            #ifdef __PIC32__
+            handleCan1Interrupt,
+            #endif // __PIC32__
+        },
+
+        { 125000, 2, can2, 0, false,
+            #ifdef __PIC32__
+            handleCan2Interrupt,
+            #endif // __PIC32__
+        },
+
     },
-    { 500000, 0x101, can2,
-#ifdef __PIC32__
-        handleCan2Interrupt,
-#endif // __PIC32__
+};
+
+const int MAX_MESSAGE_COUNT = 3;
+CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
+    { // message set: my-car
+        {&CAN_BUSES[0][0], 0x29},
+        {&CAN_BUSES[0][0], 0x52},
+        {&CAN_BUSES[0][1], 0x65},
     },
 };
 
@@ -56,9 +76,12 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
 // messages, we convert those to human readable strings. Use this array to
 // define the mapping between numbers and strings for any signals that require
 // it.
-const int SIGNAL_COUNT = 3;
-CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
-    { {1, "first"}, {2, "second"}, {3, "third"}, {4, "fourth"}, {5, "reverse"}, {6, "park"}, {7, "neutral"}, },
+const int MAX_SIGNAL_STATES = 7;
+const int MAX_SIGNAL_COUNT = 4;
+CanSignalState SIGNAL_STATES[][MAX_SIGNAL_COUNT][MAX_SIGNAL_STATES] = {
+    { // message set: my-car
+        { {1, "first"}, {2, "second"}, {3, "third"}, {4, "fourth"}, {5, "reverse"}, {6, "park"}, {7, "neutral"}, },
+    },
 };
 
 // The getSignals() function below needs to return an array of all of the CAN
@@ -72,60 +95,44 @@ CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
 // look a little terse. There are a bunch of extra comments on the first item to
 // give you a point of reference, but check the documentation in canutil.h for a
 // complete explanation of each field.
-CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&CAN_BUSES[0], // the bus to look for this signal on (effects filter setup)
-        0x29, // the message ID
-        "fuel_level",  // the generic name for OpenXC messages
-        0,  // starting bit (in the 64-bit CAN message)
-        16, // bit length of the signal's field
-        0.512, // value multiplying factor
-        4.5923, // value offset
-        0, // minimum value after applying factor, offset and any handlers
-        100, // maximum value after apply factor, offset and any handlers
-        0, // send frequency, set to 0 to process every message
-        true,  // send the value even if it hasn't changed (sendSame)
-        false, // this is marked true if the signal has ever been received
-        NULL, // an optional list of signal states. this doesn't use states.
-        0,  // number of signal states.
-        false,  // this signal is NOT writable
-        NULL // signal is NOT writable, so no custom writer necessary
-        },
-    {&CAN_BUSES[0], 0x29, "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, 0, true, false, NULL, 0, false, NULL},
-    {&CAN_BUSES[0], 0x52, "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, 0, false, false, SIGNAL_STATES[0], 7, false, NULL},
-    {&CAN_BUSES[1], 0x65, "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, 0, true, false, NULL, 0, false, NULL},
+CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
+    { // message set: my-car
+        {&CAN_MESSAGES[0][0], // the message that contains this signal
+            "fuel_level",  // the generic name for OpenXC messages
+            0,  // starting bit (in the 64-bit CAN message)
+            16, // bit length of the signal's field
+            0.512, // value multiplying factor
+            4.5923, // value offset
+            0, // minimum value after applying factor, offset and any handlers
+            100, // maximum value after apply factor, offset and any handlers
+            {0}, // frequency clock, set frequency to 0 to always send
+            true,  // send the value even if it hasn't changed (sendSame)
+            false, // this is marked true if the signal has ever been received
+            NULL, // an optional list of signal states. this doesn't use states.
+            0,  // number of signal states.
+            false,  // this signal is NOT writable
+            NULL // signal is NOT writable, so no custom writer necessary
+            },
+        {&CAN_MESSAGES[0][0], "steering_wheel_angle", 16, 16, 1.2, -1000, -400, 400, {0}, true, false, NULL, 0, false, NULL},
+        {&CAN_MESSAGES[0][1], "transmission_gear_position", 12, 4, 1.0, 0.0, 0.0, 15.0, {0}, false, false, SIGNAL_STATES[0][0], 7, false, NULL},
+        {&CAN_MESSAGES[0][2], "vehicle_speed", 4, 16, 0.150, -15.50, -100.0, 400.000, {0}, true, false, NULL, 0, false, NULL},
+    },
 };
 
-const int COMMAND_COUNT = 0;
-CanCommand COMMANDS[COMMAND_COUNT] = {
+void openxc::signals::initialize() { }
+
+void openxc::signals::loop() { }
+
+const int MAX_COMMAND_COUNT = 0;
+CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {
+    { // message set: my-car
+    },
 };
 
-CanCommand* getCommands() {
-    return COMMANDS;
-}
-
-int getCommandCount() {
-    return COMMAND_COUNT;
-}
-
-CanSignal* getSignals() {
-    return SIGNALS;
-}
-
-int getSignalCount() {
-    return SIGNAL_COUNT;
-}
-
-CanBus* getCanBuses() {
-    return CAN_BUSES;
-}
-
-int getCanBusCount() {
-    return CAN_BUS_COUNT;
-}
-
-const char* getMessageSet() {
-    return "example-2012";
-}
+const int MESSAGE_SET_COUNT = 1;
+CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+    { 0, "my-car", 2, 4, 7 },
+};
 
 /* See signals.h for full documentation on this method.
  *
@@ -133,49 +140,88 @@ const char* getMessageSet() {
  * coming in, and processes all CAN signals that are in that message. There are
  * many utility functions in canutil.h and canread.h to do this work, so you
  * probably don't need to do much in this function besides call the
- * translateCanSignal function that matches your desired output format (float,
+ * can::read::translateSignal function that matches your desired output format (float,
  * bool or string).
  */
-void decodeCanMessage(int id, uint64_t data) {
+void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data) {
     switch (id) {
     case 0x29:
-        translateCanSignal(&listener, &SIGNALS[4], data, SIGNALS, SIGNAL_COUNT);
-        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &handleInvertedSteeringWheelAngle, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[0][0], data, SIGNALS[0], getSignalCount());
+        can::read::translateSignal(pipeline, &SIGNALS[0][1], data, &handleInvertedSteeringWheelAngle, SIGNALS[0], getSignalCount());
         break;
     case 0x52:
-        translateCanSignal(&listener, &SIGNALS[SIGNAL_COUNT], data, &stateHandler, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[0][2], data, &stateHandler, SIGNALS[0], getSignalCount());
         break;
     case 0x65:
-        translateCanSignal(&listener, &SIGNALS[13], data, SIGNALS, SIGNAL_COUNT);
+        can::read::translateSignal(pipeline, &SIGNALS[0][3], data, SIGNALS[0], getSignalCount());
         break;
     }
 }
 
-CanFilter FILTERS[15];
+CanFilter FILTERS[MAX_MESSAGE_COUNT];
 
 /* See signals.h for full documentation. Depending on the address of the bus in
  * parameter, we either create an array of filters for the 0x29 and 0x52
  * messages, or one including just the 0x65 message (because that's on a
  * different bus, the one attached to the 2nd CAN module).
  */
-CanFilter* initializeFilters(uint64_t address, int* count) {
-    Serial.println("Initializing filters...");
-    switch(address) {
-    case 0x101:
-        *count = 2;
-        FILTERS = {
-            {0, 0x29, 1, 0},
-            {1, 0x52, 1, 0},
-        };
-        break;
-    case 0x102:
-        *count = 1;
-        FILTERS = {
-            {2, 0x65, 1, 0},
-        };
+CanFilter* openxc::signals::initializeFilters(uint64_t address, int* count) {
+    switch(getConfiguration()->messageSetIndex) {
+    case 0: // message set: my-car
+        switch(address) {
+        case 1:
+            *count = 2;
+            FILTERS[0] = {0, 0x29, 1};
+            FILTERS[1] = {1, 0x52, 1};
+            break;
+        case 2:
+            *count = 1;
+            FILTERS[0] = {2, 0x65, 1};
+            break;
+        }
         break;
     }
     return FILTERS;
+}
+
+CanMessageSet* openxc::signals::getActiveMessageSet() {
+    return &MESSAGE_SETS[getConfiguration()->messageSetIndex];
+}
+
+CanMessageSet* openxc::signals::getMessageSets() {
+    return MESSAGE_SETS;
+}
+
+CanCommand* openxc::signals::getCommands() {
+    return COMMANDS[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getCommandCount() {
+    return getActiveMessageSet()->commandCount;
+}
+
+CanMessageDefinition* openxc::signals::getMessages() {
+    return CAN_MESSAGES[getActiveMessageSet()->index];
+}
+
+CanSignal* openxc::signals::getSignals() {
+    return SIGNALS[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getSignalCount() {
+    return getActiveMessageSet()->signalCount;
+}
+
+int openxc::signals::getMessageCount() {
+    return getActiveMessageSet()->messageCount;
+}
+
+CanBus* openxc::signals::getCanBuses() {
+    return CAN_BUSES[getActiveMessageSet()->index];
+}
+
+int openxc::signals::getCanBusCount() {
+    return getActiveMessageSet()->busCount;;
 }
 
 #endif // CAN_EMULATOR

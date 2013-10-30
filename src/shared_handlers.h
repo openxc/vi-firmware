@@ -2,16 +2,24 @@
 #ifndef _SHARED_HANDLERS_H_
 #define _SHARED_HANDLERS_H_
 
-#include "canread.h"
-#include "usbutil.h"
+#include "can/canread.h"
+#include "interface/usb.h"
 
-#define LITERS_PER_GALLON 3.78541178
-#define LITERS_PER_UL .000001
-#define KM_PER_MILE 1.609344
-#define KM_PER_M .001
-#define PI 3.14159265
-#define DOOR_STATUS_GENERIC_NAME "door_status"
-#define BUTTON_EVENT_GENERIC_NAME "button_event"
+namespace openxc {
+namespace signals {
+namespace handlers {
+
+extern const float LITERS_PER_GALLON;
+extern const float LITERS_PER_UL;
+extern const float KM_PER_MILE;
+extern const float KM_PER_M;
+extern const char DOOR_STATUS_GENERIC_NAME[];
+extern const char BUTTON_EVENT_GENERIC_NAME[];
+extern const char TIRE_PRESSURE_GENERIC_NAME[];
+
+#ifndef __PIC32__
+extern const float PI;
+#endif
 
 /* Interpret the given signal as a wheel rotation counter, and transform it to
  * an absolute distance travelled since the car was started.
@@ -29,9 +37,11 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
         CanSignal* signals, int signalCount, float value, bool* send,
         float wheelRadius);
 
-/* Interpret the given signal as a rolling counter of kilometers travelled, but
- * keep a log of the values and output the total km travelled since the car was
- * started.
+/* Interpret the given signal as a rolling counter of km travelled, but keep
+ * a log of the values and output the total km travelled since the car was
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -41,12 +51,14 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
+float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
- * started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -61,7 +73,9 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
- * car was started.
+ * started. If a total odometer signal is available, take the first known value
+ * of that as the baseline to give a master odometer value with higher
+ * resolution
  *
  * signal - The rolling odometer signal.
  * signals - The list of all signals.
@@ -117,6 +131,22 @@ float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
 float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
         int signalCount, float value, bool* send);
 
+/* Keep track of a rolling fuel flow counter signal to obtain a
+ * total since the vehicle started, and multiply the results by the given
+ * multiplier to obtain liters.
+ *
+ * signal - The rolling fuel flow signal.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * value - Microliters of fuel used since the last rollover.
+ * send - (output) Flip this to false if the message should not be sent.
+ * multiplier - factor necessary to convert the input units to liters.
+ *
+ * Returns the total fuel consumed since the vehicle started in liters.
+ */
+float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+        float value, bool* send, float multiplier);
+
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
  * the left and positive to the right, but the CAN signal is the opposite.
  *
@@ -164,15 +194,15 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal,
  *
  * This is a message handler, and takes care of sending the JSON messages.
  *
- * messageId - The ID of the GPS CAN message for this dat.
+ * messageId - The ID of the GPS CAN message.
  * data - The CAN message data containing all GPS information.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * send - (output) Flip this to false if the message should not be sent.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Listener* listener);
+        int signalCount, Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
  * combine the result into a single OpenXC JSON with both a value (the button
@@ -183,10 +213,10 @@ void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
  * send - (output) Flip this to false if the message should not be sent.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void handleButtonEventMessage(int messageId, uint64_t data,
-        CanSignal* signals, int signalCount, Listener* listener);
+        CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /* Decode a boolean signal (the door ajar status for the door in question) and
  * send an OpenXC JSON message with the value (door ID) and event (ajar status)
@@ -200,10 +230,30 @@ void handleButtonEventMessage(int messageId, uint64_t data,
  * signal - The CAN signal for door status.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * listener - The listener that wraps the output devices.
+ * pipeline - The pipeline that wraps the output devices.
  */
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Listener* listener);
+        CanSignal* signals, int signalCount, Pipeline* pipeline);
+
+/* Decode a numerical signal (the pressure of the tire in question) and
+ * send an OpenXC JSON message with the value (tire ID) and event (tire
+ * pressure in psi) filled in.
+ *
+ * This function doesn't match the signature required to be used directly as a
+ * message or value handler, but it can be called from another handler.
+ *
+ * tireId - The name of the tire, e.g. rear_left.
+ * data - The incoming CAN message data that contains the signal.
+ * conversionFactor - any conversion factor to convert the value from the bus to
+ *      psi.
+ * signal - The CAN signal for tire pressure.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * pipeline - The pipeline that wraps the output devices.
+ */
+void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
+       CanSignal* signal, CanSignal* signals, int signalCount,
+       Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
@@ -211,7 +261,56 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
 bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
             int signalCount, float value, bool* send);
 
-bool handleTurnSignalCommand(char* name, cJSON* value, CanSignal* signals,
-        int signalCount);
+bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
+        CanSignal* signals, int signalCount);
+
+/** Handle a CAN message that contains the ajar status of all doors.
+ */
+void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Pipeline* pipeline);
+
+/**
+ * Parse 4 tire pressure signals from a single message send each as an evented
+ * OpenXC message, with the value in psi e.g.:
+ *
+ *      {"name": "tire_pressure", "value": "front_left", "event": 32.1}
+ *
+ * This assumes the value on the bus for each pressure is psi.
+ */
+void handlePsiTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Pipeline* pipeline);
+
+/**
+ * The same as handlePsiTirePressureMessage, but assumes the value on the bus is
+ * in kilpascals and converts to psi before sending the messages.
+ */
+void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+        int signalCount, Pipeline* pipeline);
+
+/* Combine the values from two sensors in each seat to determine if there is
+ * actually an occupant, and if so their general size (child or adult).
+ *
+ * The following signals must be defined in the signal array, and they must all
+ * be contained in the same CAN message:
+ *
+ *      * passenger_occupancy_lower
+ *      * passenger_occupancy_upper
+ *      * TODO add more seats
+ *
+ * This is a message handler, and takes care of sending the JSON messages.
+ *
+ * messageId - The ID of the occupant sensor CAN message.
+ * data - The CAN message data containing all occupancy information.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
+ * send - (output) Flip this to false if the message should not be sent.
+ * pipeline - The pipeline that wraps the output devices.
+ */
+void handleOccupancyMessage(int messageId, uint64_t data,
+              CanSignal* signals, int signalCount, Pipeline* pipeline);
+
+} // namespace handlers
+} // namespace signals
+} // namespace openxc
 
 #endif // _SHARED_HANDLERS_H_

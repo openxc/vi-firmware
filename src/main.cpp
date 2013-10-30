@@ -1,9 +1,15 @@
-#include "serialutil.h"
-#include "usbutil.h"
-#include "ethernetutil.h"
-#include "listener.h"
+#include <stdlib.h>
+#include "interface/uart.h"
+#include "interface/usb.h"
+#include "interface/network.h"
+#include "pipeline.h"
 #include "signals.h"
-#include "log.h"
+#include "util/log.h"
+#include "lights.h"
+#include "util/timer.h"
+#include "bluetooth.h"
+#include "power.h"
+#include "platform/platform.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -13,14 +19,28 @@
 #define DATA_IN_ENDPOINT 1
 #define DATA_OUT_ENDPOINT 2
 
+namespace uart = openxc::interface::uart;
+namespace network = openxc::interface::network;
+namespace usb = openxc::interface::usb;
+namespace bluetooth = openxc::bluetooth;
+namespace lights = openxc::lights;
+namespace platform = openxc::platform;
+namespace power = openxc::power;
+namespace time = openxc::util::time;
+
+using openxc::interface::uart::UartDevice;
+using openxc::interface::usb::sendControlMessage;
+using openxc::signals::getActiveMessageSet;
+
 extern void reset();
 extern void setup();
 extern void loop();
 
-const char* VERSION = "2.1";
+const char VERSION[] = "5.1.1-dev";
+const int UART_BAUD_RATE = 230400;
 
-SerialDevice SERIAL_DEVICE;
-EthernetDevice ETHERNET_DEVICE;
+UartDevice UART_DEVICE = {UART_BAUD_RATE};
+NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
     DATA_IN_ENDPOINT,
@@ -28,63 +48,81 @@ UsbDevice USB_DEVICE = {
     DATA_OUT_ENDPOINT,
     MAX_USB_PACKET_SIZE_BYTES};
 
-Listener listener = {&USB_DEVICE,
-#ifdef __USE_UART__
-    &SERIAL_DEVICE,
-#else
-    NULL,
-#endif // __USE_UART__
-#ifdef __USE_ETHERNET__
-    &ETHERNET_DEVICE
-#endif // __USE_ETHERNET__
+Pipeline pipeline = {
+    openxc::pipeline::JSON,
+    &USB_DEVICE,
+    &UART_DEVICE,
+#ifdef __USE_NETWORK__
+    &NETWORK_DEVICE
+#endif // __USE_NETWORK__
 };
 
+/* Public: Update the color and status of a board's light that shows the output
+ * interface status. This function is intended to be called each time through
+ * the main program loop.
+ */
+void updateInterfaceLight() {
+    if(uart::connected(pipeline.uart)) {
+        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
+    } else if(USB_DEVICE.configured) {
+        lights::enable(lights::LIGHT_B, lights::COLORS.green);
+    } else {
+        lights::disable(lights::LIGHT_B);
+    }
+}
+
 int main(void) {
-#ifdef __PIC32__
-    init();
-#endif // __PIC32__
+    platform::initialize();
+    openxc::util::log::initialize();
+    time::initialize();
+    power::initialize();
+    usb::initialize(pipeline.usb);
+    uart::initialize(pipeline.uart);
+    bluetooth::initialize(pipeline.uart);
+    network::initialize(pipeline.network);
+    lights::initialize();
 
-    initializeLogging();
-    initializeUsb(listener.usb);
-    initializeSerial(listener.serial);
-    initializeEthernet(listener.ethernet);
-
-    debug("Initializing as %s\r\n", getMessageSet());
+    debug("Initializing as %s", getActiveMessageSet()->name);
     setup();
 
     for (;;) {
         loop();
-        processListenerQueues(&listener);
+        process(&pipeline);
+        updateInterfaceLight();
     }
 
     return 0;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+/* Private: Handle an incoming USB control request.
+ *
+ * There are two accepted control requests:
+ *
+ *  - VERSION_CONTROL_COMMAND - return the version of the firmware as a string,
+ *      including the vehicle it is built to translate.
+ *  - RESET_CONTROL_COMMAND - reset the device.
+ *
+ *  TODO This function is defined in main.cpp because it needs to reference the
+ *  version and message set, which aren't declared in any header files at the
+ *  moment. Ripe for refactoring!
+ */
 bool handleControlRequest(uint8_t request) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:
     {
         char combinedVersion[strlen(VERSION) +
-                strlen(getMessageSet()) + 4];
-        sprintf(combinedVersion, "%s (%s)", VERSION, getMessageSet());
-        debug("Version: %s\r\n", combinedVersion);
+                strlen(getActiveMessageSet()->name) + 4];
+        sprintf(combinedVersion, "%s (%s)", VERSION, getActiveMessageSet()->name);
+        debug("Version: %s", combinedVersion);
 
-        sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
+        usb::sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     }
     case RESET_CONTROL_COMMAND:
-        debug("Resetting...\r\n");
+        debug("Resetting...");
         reset();
         return true;
     default:
         return false;
     }
 }
-
-#ifdef __cplusplus
-}
-#endif

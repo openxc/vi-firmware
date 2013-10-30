@@ -57,6 +57,7 @@ def make_tag():
         prompt("New release tag in the format vX.Y[.Z]?", 'tag',
                 validate=VERSION_PATTERN)
         local('git tag -as %(tag)s' % env)
+        local('git push origin', capture=True)
         local('git push --tags origin', capture=True)
         local('git fetch --tags origin', capture=True)
     else:
@@ -64,26 +65,13 @@ def make_tag():
         print(green("Using latest tag %(tag)s" % env))
     return env.tag
 
-
-@task(default=True)
-def docs(clean='no', browse_='no'):
-    with lcd('docs'):
-        local('make clean html')
-    temp_path = "/tmp/docs"
-    docs_path = "%s/docs/_build/html" % local("pwd", capture=True)
-    local('rm -rf %s' % temp_path)
-    os.makedirs(temp_path)
-    with lcd(temp_path):
-        local('cp -R %s %s' % (docs_path, temp_path))
-    local('git checkout gh-pages')
-    local('cp -R %s/html/* .' % temp_path)
-    local('touch .nojekyll')
-    local('git add -A')
-    local('git commit -m "Update Sphinx docs."')
-    local('git push')
-    local('git checkout master')
-
+@task
+def test():
+    with(lcd("src")):
+        local("make -j4 test")
 
 @task
 def release():
+    local("script/bootstrap.sh")
+    test()
     tag = make_tag()

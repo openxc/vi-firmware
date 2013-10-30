@@ -1,6 +1,137 @@
-# OpenXC CAN Translator Changelog
+# OpenXC Vehicle Interface Firmware Changelog
 
-## v2.1-dev
+## v5.1.1-dev
+
+## v5.1
+
+* Add BENCHTEST flag to permit sending CAN ACKs when in small CAN network.
+* Add an optional binary output format (experimental)
+
+## v5.0
+
+* Rename project from "CAN Translator Firmware" to "Vehicle Interface Firmware"
+* BREAKING CHANGE: Remove the sendFrequency flag for a CanSignal and replace it
+  with a FrequencyClock attribute that controls the maximum number of times per
+  second a signal will be sent.
+* BREAKING CHANGE: Add frequency control to CAN messages to allow rate limiting.
+* BREAKING CHANGE: Decrease memory footprint by change some data types to const,
+  splitting up CanMessage into 2 variants and optimizing all queue sizes.
+* An optional forceSendChanged attributed is added to CanSignal - if this is
+  true, a changed value will be sent regardless of the maximum frequency.
+* Add CAN and output interface statistics logging (behind the `__LOG_STATS__`
+  compile-time flag.
+* Fix receiving data over USB from some devices, e.g. Android.
+* Fix processing CAN messages with many CAN signals (15+) by flushing the
+  pipeline mid-translation.
+* Add emhashmap as a dependency (script/bootstrap.sh will take care of it)
+* Add frequency control for CAN messages that aren't pre-defined in the
+  signals.h implementation
+
+## v4.1
+
+* Automatically configure name and baud rate of an attached RN-4x Bluetooth
+  module (this adds a few seconds of delay on bootup if nothing is attached)
+* Cygwin: fix some building and flashing issues with the latest version of
+  Cygwin and all associated packages.
+
+## v4.0.1
+
+* Rename FleetCarma to CrossChasm C5 (to reflect true product name)
+* Fix build and issues with PIC32 USB interface, including C5
+
+## v4.0
+
+* BREAKING CHANGE: Add initialize() function to signals.h, must be
+  implemented by vehicle platforms. generate_signals.py supports calling
+  multiple initialization functions inside this method.
+* BREAKING CHANGE (for hardware): chipKIT uses same baud as LPC17xx for UART,
+  RN-42 modules will need to be updated.
+* BREAKING CHANGE: Moved .h files into subdirectories to minimize the number of
+  files at the top level.
+* BREAKING CHANGE: Moved almost all functions and data structures inside C++
+  namespaces - all code is now compiled with g++.
+* BREAKING CHANGE: Renamed many functions to avoid duplicating new namespace
+  name in function
+* BREAKING CHANGE: Remove UART compile-time flag in favor of setting UART status
+  via an external pin. This allows you to dynamically control sending over UART
+  when a Bluetooth module actually is attached and has a connected host.
+* BREAKING CHANGE: Major refactor of the JSON "mapping" code generation system.
+* PIC32-based VI will now go into low power mode if no CAN activity is detected
+  for 30 seconds, and will wake up when CAN activity resumes. There is a ~5
+  second timeout in the chipKIT bootloader that will cause the first 5 seconds
+  of CAN traffic after a wakeup to be missed.
+* Added support for FleetCarma data logger (a PIC32 device).
+
+## v3.2.1
+
+* Increase reliability of UART on LPC17xx.
+* Decrease data rate of emulator to more closely match a real vehicle (this
+  fixes issues with Bluetooth dropouts when using the emulator firmware).
+* Ensure consistent CAN message ordering when using the code generation tools.
+
+## v3.2
+
+* Support building to run under a USB bootloader on the LPC17xx.
+* Bug fix: custom value handlers are now called every time a signal is received,
+  regardless of the value of `send_same` and `send_frequency`.
+
+## v3.1
+
+* Minor improvements to bootstrap scripts for greater compatibility.
+* Add LED indicator module and some feedback when I/O interfaces are active.
+  * (PIC32) Flash user LED on chipKIT when CAN is active.
+  * (LPC17xx) Control 2 RGB LEDs based on CAN activity and I/O interface
+    activity.
+* Add microcontroller power control to enable sleeping when CAN is active.
+  * (LPC17xx) Put the micro into low power mode when CAN is quiet, wake with CAN
+    activity. Turn off Bluetooth module on Ford prototype board, 12v power
+    passthrough and all other peripherals.
+* Monitor VBUS of micro-USB port to improve performance when USB is disconnected
+  * (PIC32) If micro-USB VBUS is patched into analog input 0 on the chipKIT,
+    read true USB status from that pin.
+  * (LPC17xx) Read VBUS status from LPC17xx VBUS input.
+* Pull C queue implementation out to an independent library,
+  [emqueue](https://github.com/openxc/emqueue).
+
+## v3.0
+
+* BREAKING CHANGE: Combine `odometer` and `fine_odometer_since` restart into a
+  single high-precision signal, `odometer`. There is no more
+  fine_odometer_since_restart signal.
+* BREAKING CHANGE: `decodeCanMessage` in signals.h now is pass the `CanBus` the
+  message was received on; signals.cpp files will need to be updated.
+* PIC32: UART output at high baud rates (i.e. above 115200).
+* PIC32: Detect if USB is actually attached to avoid wasting time - speeds up
+  UART dramatically if micro-USB 5v line connected to Analog Input 0 instead of
+  5v port on chipKIT Network Shield.
+* Slow down emulator to better match a real vehicle's throughput.
+* For mappings with "ignore" flag, code generator for signals.cpp will set
+  signals handlers to `ignoreHandler` instead of skipping entirely.
+* CAN messages with identical IDs can now exist on both CAN1 and CAN2.
+
+## v2.1.3
+
+* Remove custom protocol for "binary" transfers - use "passthrough" JSON style.
+* Fix a NULL pointer dereference in the button handler that caused hard crashes
+  when CAN2 was connected.
+* Calculate correct value for rolling fuel consumed value, it incremented too
+  fast previously in some vehicles.
+
+## v2.1.2
+
+* Use bootstrap script when flashing binary firmware.
+* Refactor some custom message handlers
+* Avoid using cJSON in API for test suite
+
+## v2.1.1
+
+* Add bootstrap script to help new developers set up the build environment.
+* Add support for building from source in Windows (with Cygwin)
+* Support scripts in root directory are not moved to `script` subdirectory
+* JSON mapping format now expects message ID in hex (e.g. "0x80") instead of
+  decimal.
+
+## v2.1
 
 * Add Ethernet support on the chipKIT (thanks Ewgenij!)
 

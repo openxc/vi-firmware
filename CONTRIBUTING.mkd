@@ -30,13 +30,13 @@ top of things.
 * Make sure your commit messages are in the [proper format](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 * Make sure you have added the necessary tests for your changes in the
   `openxc-it` sub-project
-* Run the [full test suite](https://github.com/openxc/cantranslator/blob/master/README_developers.mkd) to assure nothing else was accidentally broken.
+* Run the [full test suite](https://github.com/openxc/vi-firmware/blob/master/README_developers.mkd) to assure nothing else was accidentally broken.
 
 ## Submitting Changes
 
-TODO add contributor license agreement
-
 * Push your changes to a topic branch in your fork of the repository.
+* Sign the [Contributor License
+  Agreement](http://openxcplatform.com/contributor-license-agreement.html) (CLA)
 * Submit a pull request to the repository in the openxc organization.
 
 # Additional Resources
@@ -44,4 +44,4 @@ TODO add contributor license agreement
 * [General GitHub documentation](http://help.github.com/)
 * [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
 
-[gh-issues]: https://github.com/openxc/cantranslator/issues
+[gh-issues]: https://github.com/openxc/vi-firmware/issues

@@ -3,10 +3,10 @@ compiler:
   - gcc
 script: make test
 before_install:
+    - sudo apt-get update -qq
+    - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs ia32-libs-multiarch; fi
     - script/bootstrap.sh
     - cd src
-env:
-  global:
-    - secure: "KjpqzIbc/kpciyNB7M/Aec2w2BpHQ4F/zVwtvFpOyBNjDPu2HzHeWD7p1A0U\n7+bWR1bb6CppEaS6kxnMmEW4Ff11NM9Wt+OehWtN2zZ63N36arkPLMq+KZi5\ndMhrPnbvSNS3QWB6NYvXv6jrJdHQFunn+EVCLMPba8k6J4ftqVA="
 notifications:
-  hipchat: <%= ENV['HIPCHAT_TOKEN'] %>@Ford
+  hipchat:
+    - secure: "ZO/hEAoOTZ4FJytMW0m4LZrsdFVM1/V0Hu13zfj8mdcHkf2MyfxthPDecnn5\naZVn4P8mSSwpp39EnAfa9fBcWcDESnKM1YQKPPGkoxZZHIOd2rYhRv34XfpE\n5qNLkQ/lEPQCBEmvIQ5ZJxsiZjGhO7KxWvdNdruH6cdVCYSh4Xo="

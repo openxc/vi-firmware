@@ -1,8 +1,33 @@
-{"0x102": {
-    "speed": 500000,
+{   "name": "example_messages",
+    "extra_sources": [
+        "handlers.cpp.example"
+    ],
+    "initializers": [
+        "initializeMyStuff",
+        "initializeOtherStuff"
+    ],
+    "loopers": [
+        "myLooper"
+    ],
+    "buses": {
+        "hs": {
+            "controller": 1,
+            "speed": 500000
+        },
+        "ms": {
+            "controller": 2,
+            "speed": 125000
+        }
+    },
+    "commands": [
+        { "name": "turn_signal_status",
+            "handler": "handleTurnSignalCommand"
+        }
+    ],
     "messages": {
-        "128": {
+        "0x128": {
             "name": "ECM_z_5D2",
+            "bus": "hs",
             "signals": {
                 "StrAnglAct": {
                     "generic_name": "SteeringWheelAngle",
@@ -10,15 +35,15 @@
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "value_handler": "handleInvertedSteeringWheel"},
+                    "handler": "handleInvertedSteeringWheel"},
                 "StrAnglSign": {
                     "generic_name": "steering_angle_sign",
-                    "value_handler": "ignoreHandler",
+                    "handler": "ignoreHandler",
                     "bit_position": 52,
                     "bit_size": 12},
                 "EngSpd": {
                     "generic_name": "engine_speed",
-                    "send_frequency": 15,
+                    "max_frequency": 15,
                     "bit_position": 12,
                     "bit_size": 8},
                 "GrshftPos": {
@@ -34,51 +59,48 @@
                         "NEUTRAL": [6]}
                     },
                 "StrAnglErr": {
-                    "value_handler": "ignoreHandler",
+                    "handler": "ignoreHandler",
                     "generic_name": "steering_wheel_angle_error",
                     "bit_position": 44,
                     "bit_size": 12
                 }
             },
-            "handler": "handleSteeringWheelMessage"
+            "handlers": ["handleSteeringWheelMessage"]
         },
-        "49": {
+        "0x49": {
             "name": "BrkSt",
+            "bus": "hs",
             "signals": {
                 "BrakePedalPosition": {
                     "generic_name": "brake_pedal_status",
                     "send_same": false,
-                    "value_handler": "booleanHandler",
+                    "handler": "booleanHandler",
                     "bit_position": 0,
-                    "bit_size": 0
+                    "bit_size": 1
                 }
             }
         },
-        "121": {
+        "0x121": {
             "name": "Cluster",
+            "bus": "hs",
             "signals": {
                 "TurnSignalLeft": {
                     "generic_name": "turn_signal_left",
-                    "value_handler": "booleanHandler",
+                    "handler": "booleanHandler",
                     "bit_position": 0,
-                    "bit_size": 0,
+                    "bit_size": 1,
                     "writable": true,
                     "write_handler": "booleanWriter"
                 },
                 "TurnSignalRight": {
                     "generic_name": "turn_signal_right",
-                    "value_handler": "booleanHandler",
+                    "handler": "booleanHandler",
                     "bit_position": 1,
-                    "bit_size": 0,
+                    "bit_size": 1,
                     "writable": true,
                     "write_handler": "booleanWriter"
                 }
             }
         }
-    },
-    "commands": {
-        "turn_signal_status": {
-            "handler": "handleTurnSignalCommand"
-        }
     }
-}}
+}

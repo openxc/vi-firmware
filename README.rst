@@ -1,28 +1,63 @@
 =================================
-OpenXC CAN Translator
+OpenXC Vehicle Interface Firmware
 =================================
 
-.. image:: /_static/logo.png
+.. image:: /docs/_static/logo.png
 
-:Version: 2.1
+:Version: 5.1.1-dev
 :Web: http://openxcplatform.com
-:Documentation: http://openxcplatform.com/cantranslator
-:Source: http://github.com/openxc/cantranslator
+:Documentation: http://vi-firmware.openxcplatform.com
+:Source: http://github.com/openxc/vi-firmware
 :Keywords: vehicle, openxc, embedded
 
 --
 
-The CAN translation module code runs on an Arduino-compatible microcontroller
-connected to one or more CAN buses. It receives either all CAN messages or a
-filtered subset, performs any unit conversion or factoring required and outputs
-a generic version to a USB interface.
+The OpenXC vehicle interface (VI) firmware runs on an Arduino-compatible
+microcontroller connected to one or more CAN buses. It receives either all CAN
+messages or a filtered subset, performs any unit conversion or factoring
+required and outputs a generic version to a USB interface.
 
 For more documentation, see the `vehicle interface`_ section on the `OpenXC
-website`_ or the `CAN translator documentation`_.
+website`_ or the `vehicle interface documentation`_.
 
 .. _`OpenXC website`: http://openxcplatform.com
 .. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
-.. _`CAN translator documentation`: http://openxcplatform.com/cantranslator
+.. _`vehicle interface documentation`: http://vi-firmware.openxcplatform.com
+
+Quick Start
+===========
+
+For the full build instructions, see the `documentation
+<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`_.
+
+The basics to compile the firmware from source:
+
+Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_ repository
+(don't download the ZIP file, it won't work):
+
+  .. code-block:: sh
+
+    $ git clone https://github.com/openxc/vi-firmware
+
+Run the ``bootstrap.sh`` script:
+
+  .. code-block:: sh
+
+    $ cd vi-firmware
+    vi-firmware $ script/bootstrap.sh
+
+Copy the example "CAN passthrough" implementation of ``signals.h`` to
+``signals.cpp``:
+
+  .. code-block:: sh
+
+    vi-firmware $ cp signals.cpp.example-passthrough signals.cpp
+
+Compile it! By default this will compile for the chipKIT vehicle interface:
+
+  .. code-block:: sh
+
+    vi-firmware $ make
 
 License
 =======
@@ -30,3 +65,11 @@ License
 Copyright (c) 2012-2013 Ford Motor Company
 
 Licensed under the BSD license.
+
+The Windows driver for the VI and its installer available in
+`conf/windows-driver` is licensed under the GPL. The installer for the driver
+is licensed under the LGPL.
+
+This repository includes links to other source code repositories (as git
+submodules) that may be distributed under different licenses. See those
+individual repositories for more details.

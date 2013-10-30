@@ -14,4 +14,4 @@ do
     fi
 done
 
-echo ""
+echo "${txtbld}$(tput setaf 2)All unit tests passed.$(tput sgr0)"

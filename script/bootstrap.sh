@@ -2,64 +2,33 @@
 
 set -e
 
-die() {
-    echo >&2 "$@"
-    exit 1
-}
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR/..
 
-_pushd() {
-    pushd $1 > /dev/null
-}
+source $DIR/bootstrap_for_flashing.sh
 
-_popd() {
-    popd > /dev/null
-}
+CYGWIN_PACKAGES="make, gcc, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools"
 
-_wait() {
-    if [ -z $CI ]; then
-        echo "Press Enter when done"
-        read
-    fi
-}
-
-_cygwin_error() {
-    echo
-    echo "Missing \"$1\" - run the Cygwin installer again and select the base package set:"
-    echo "    gcc4, patchutils, git, unzip, python, python-argparse, check, curl, libsasl2, ca-certificates"
-    die
-}
-
-KERNEL=`uname`
-if [ ${KERNEL:0:7} == "MINGW32" ]; then
-    die "Sorry, the bootstrap script doesn't support Windows - try Cygwin."
-elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
-    OS="cygwin"
-elif [ $KERNEL == "Darwin" ]; then
-    OS="mac"
-else
-    OS="linux"
-    DISTRO=`lsb_release -si`
+if [ $OS == "windows" ]; then
+    die "Sorry, the bootstrap script for compiling from source doesn't support the Windows console - try Cygwin."
 fi
 
-download() {
-    url=$1
-    filename=$2
-    curl $url -L --O $filename
-}
-
-if [ $OS == "cygwin" ] && ! command -v curl >/dev/null 2>&1; then
-    _cygwin_error "curl"
+if [ $OS == "mac" ] && ! command -v brew >/dev/null 2>&1; then
+    echo "Installing Homebrew..."
+    ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
 fi
 
 if ! command -v make >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "make"
+    elif [ $OS == "mac" ]; then
+            die "Missing 'make' - install the Xcode CLI tools"
     else
         if [ $DISTRO == "arch" ]; then
-            sudo pacman -S base-devel
+            $SUDO_CMD pacman -S base-devel
         elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install build-essential
+            $SUDO_CMD apt-get update -qq
+            $SUDO_CMD apt-get install build-essential -y
         fi
     fi
 fi
@@ -67,79 +36,69 @@ fi
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         _cygwin_error "git"
-    elif [ $OS == "mac" ]; then
-        brew install git
-    else
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S git
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install git
-        fi
+    elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
+        _install git
     fi
 fi
 
 echo "Updating Git submodules..."
 
-git submodule update --init --quiet
+# git submodule update is a shell script and expects some lines to fail
+set +e
+if ! git submodule update --init --recursive --quiet; then
+    echo "Unable to update git submodules - try running \"git submodule update --init --recursive\" to see the full error"
+    echo "If git complains that it \"Needed a single revision\", run \"rm -rf src/libs\" and then try the bootstrap script again"
+    if [ $OS == "cygwin" ]; then
+        echo "In Cygwin this may be true (ignore if you know ca-certifications is installed:"
+        _cygwin_error "ca-certificates"
+    fi
+    die
+fi
+set -e
 
-echo "Storing all downloaded dependencies in the \"dependencies\" folder"
+echo "Installing dependencies for running test suite..."
 
-DEPENDENCIES_FOLDER="dependencies"
-mkdir -p $DEPENDENCIES_FOLDER
+if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
+    elif [ $OS == "mac" ]; then
+        brew install lcov
+    else
+        if [ $DISTRO == "arch" ]; then
+            echo "Missing lcov - install from the AUR."
+            _wait
+        elif [ $DISTRO == "Ubuntu" ]; then
+            $SUDO_CMD apt-get update -qq
+            $SUDO_CMD apt-get install lcov -y
+        fi
+    fi
+fi
+
+if [ $OS == "mac" ]; then
+    _pushd $DEPENDENCIES_FOLDER
+    LLVM_BASENAME=clang+llvm-3.2-x86_64-apple-darwin11
+    LLVM_FILE=$LLVM_BASENAME.tar.gz
+    LLVM_URL=http://llvm.org/releases/3.2/$LLVM_FILE
+
+    if ! test -e $LLVM_FILE
+    then
+        echo "Downloading LLVM 3.2..."
+        download $LLVM_URL $LLVM_FILE
+    fi
+
+    if ! test -d $LLVM_BASENAME
+    then
+        echo "Installing LLVM 3.2 to local folder..."
+        tar -xzf $LLVM_FILE
+        echo "LLVM 3.2 installed"
+    fi
+
+    _popd
+fi
 
 echo "Installing dependencies for building for chipKIT Max32 platform"
 
-if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR; then
-
-    if [ $OS == "cygwin" ]; then
-        MPIDE_BASENAME="mpide-0023-windows-20120903"
-        MPIDE_FILE="$MPIDE_BASENAME".zip
-        EXTRACT_COMMAND="unzip -q"
-        if ! command -v unzip >/dev/null 2>&1; then
-            _cygwin_error "unzip"
-        fi
-    elif [ $OS == "mac" ]; then
-        MPIDE_BASENAME=mpide-0023-macosx-20120903
-        MPIDE_FILE="$MPIDE_BASENAME".dmg
-    else
-        MPIDE_BASENAME=mpide-0023-linux-20120903
-        MPIDE_FILE="$MPIDE_BASENAME".tgz
-        EXTRACT_COMMAND="tar -xzf"
-    fi
-
-    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/$MPIDE_FILE
-
-    _pushd $DEPENDENCIES_FOLDER
-    if ! test -e $MPIDE_FILE
-    then
-        echo "Downloaded MPIDE..."
-        download $MPIDE_URL $MPIDE_FILE
-    fi
-
-    if ! test -d mpide
-    then
-        echo "Installing MPIDE to local folder..."
-        if [ $OS == "mac" ]; then
-            hdiutil attach $MPIDE_FILE
-            cp -R /Volumes/Mpide/Mpide.app/Contents/Resources/Java $MPIDE_BASENAME
-            hdiutil detach /Volumes/Mpide
-        else
-            $EXTRACT_COMMAND $MPIDE_FILE
-        fi
-        mv $MPIDE_BASENAME mpide
-        echo "MPIDE installed"
-    fi
-
-    if [ $OS == "cygwin" ]; then
-        chmod a+x mpide/hardware/pic32/compiler/pic32-tools/bin/*
-        chmod a+x -R mpide/hardware/pic32/compiler/pic32-tools/pic32mx/
-    fi
-    _popd
-
-fi
-
-## chipKIT libraries for USB, CAN and Ethernet
+## chipKIT libraries for USB, CAN and Network
 
 CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"
 CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs.zip"
@@ -247,11 +206,11 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
         if ! test -d "$GCC_INNER_DIR"; then
-	    GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
-	    if ! test -d "$GCC_INNER_DIR"; then
-	        die "GCC for ARM isn't installed in the expected location."
-	    fi
-	fi
+            GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
+            if ! test -d "$GCC_INNER_DIR"; then
+                die "GCC for ARM isn't installed in the expected location."
+            fi
+        fi
     fi
 
     if ! test -d arm-none-eabi; then
@@ -271,92 +230,46 @@ if [ -z $CI ] && ! command -v openocd >/dev/null 2>&1; then
 
     echo "Installing OpenOCD..."
     if [ $OS == "linux" ]; then
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S openocd
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install openocd
-        else
-            echo "Missing OpenOCD - install it using your distro's package manager or build from source"
-            _wait
-        fi
-    elif [ $OS == "osx" ]; then
-        OPENOCD_BASENAME="openocd-0.6.1"
-        OPENOCD_FILE="$OPENOCD_BASENAME.tar.bz2"
-        OPENOCD_DOWNLOAD_URL="http://downloads.sourceforge.net/project/openocd/openocd/0.6.1/$OPENOCD_FILE"
-
-        # look for homebrew
-        brew install libftdi libusb
-        download $OPENOCD_DOWNLOAD_URL $OPENOCD_FILE
-        tar -xjf $OPENOCD_FILE
-        _pushd $OPENOCD_BASENAME
-
-        ./configure --enable-ft2232_libftdi
-        make
-        sudo make install
-
-        # TODO modify ftdi kernel module
-        _popd
+        _install "openocd"
+    elif [ $OS == "mac" ]; then
+        _install libftdi
+        _install libusb
+        set +e
+        brew install --enable-ft2232_libftdi open-ocd
+        set -e
     elif [ $OS == "cygwin" ]; then
         echo
-        echo "Missing OpenOCD and it's not trivial to install in Windows - you won't be able to program the ARM platform"
+        echo "Missing OpenOCD and it's not trivial to install in Windows - you won't be able to program the ARM platform (not required for the chipKIT translator)"
     fi
     _popd
+fi
 
+FTDI_USB_DRIVER_PLIST=/System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
+if [ -z $CI ]  && [ $OS == "mac" ] && [ -e $FTDI_USB_DRIVER_PLIST ]; then
+    if grep -q "Olimex OpenOCD JTAG A" $FTDI_USB_DRIVER_PLIST; then
+        $SUDO_CMD sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" $FTDI_USB_DRIVER_PLIST
+        FTDI_USB_DRIVER_MODULE=/System/Library/Extensions/FTDIUSBSerialDriver.kext/
+        # Driver may not be loaded yet, but that's OK - don't exit on error.
+        set +e
+        $SUDO_CMD kextunload $FTDI_USB_DRIVER_MODULE
+        set -e
+        $SUDO_CMD kextload $FTDI_USB_DRIVER_MODULE
+    fi
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then
-    _cygwin_error "ld"
+    _cygwin_error "gcc4"
 fi
 
 if ! ld -lcheck -o /tmp/checkcheck 2>/dev/null; then
-
     echo "Installing the check unit testing library..."
 
-    if [ $OS == "cygwin" ]; then
-        _cygwin_error "check"
-    elif [ $OS == "linux" ]; then
-        if ! command -v lsb_release >/dev/null 2>&1; then
-            echo
-            echo "Missing the 'check' library - install it using your distro's package manager or build from source"
-        else
-            if [ $DISTRO == "arch" ]; then
-                if [ "x86_64" == `uname -m` ]; then
-                    echo
-                    echo "Arch Linux: The 32-bit version of the 'check' library is available from the AUR"
-                else
-                    sudo pacman --needed -S check
-                fi
-            elif [ $DISTRO == "Ubuntu" ]; then
-                sudo apt-get update -qq
-                sudo apt-get install check
-            else
-                echo
-                echo "Missing the 'check' library - install it using your distro's package manager or build from source"
-            fi
-        fi
-    elif [ $OS == "osx" ]; then
-        # brew exists with 1 if it's already installed
-        set +e
-        brew install check
-        set -e
-    fi
+    _install "check"
 fi
 
 if ! command -v python >/dev/null 2>&1; then
     echo "Installing Python..."
-    if [ $OS == "cygwin" ]; then
-        _cygwin_error "python"
-    elif [ $OS == "linux" ]; then
-        if [ $DISTRO == "arch" ]; then
-            sudo pacman -S python
-        elif [ $DISTRO == "Ubuntu" ]; then
-            sudo apt-get install python
-        else
-            echo "Missing Python - install it using your distro's package manager or build from source"
-            _wait
-        fi
-     fi
+    _install "python"
 fi
 
 if ! python -c "import argparse"; then
@@ -365,5 +278,31 @@ if ! python -c "import argparse"; then
     fi
 fi
 
+if ! command -v pip >/dev/null 2>&1; then
+    echo "Installing Pip..."
+    if ! command -v easy_install >/dev/null 2>&1; then
+        die "easy_install not available, can't install pip"
+    fi
+
+    $SUDO_CMD easy_install pip
+fi
+
+$SUDO_CMD pip install -U pip
+$SUDO_CMD pip install --pre -Ur script/pip-requirements.txt
+
+if ! command -v protoc >/dev/null 2>&1; then
+    if [ $OS == "cygwin" ]; then
+        _cygwin_error "protobuf"
+    elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
+        if [ $DISTRO == "Ubuntu" ]; then
+            _install protobuf-compiler
+        else
+            _install protobuf
+        fi
+    fi
+fi
+
+popd
+
 echo
-echo "All mandatory dependencies installed, ready to compile."
+echo "${bldgreen}All developer dependencies installed, ready to compile.$txtrst"

@@ -12,3 +12,5 @@ release
 *.o
 *.bak
 dependencies
+src/libs/chipKIT*
+src/libs/*.zip

@@ -1,6 +1,28 @@
-=========
+=======
 Testing
-=========
+=======
+
+Windows USB Device Driver
+=========================
+
+On Windows, a driver is required to use the VI's USB interface. A
+driver is available in the `conf/windows-driver
+<https://github.com/openxc/vi-firmware/tree/master/conf/windows-driver>`_
+folder. The driver supports both 32- and 64-bit Windows. The driver is generated
+using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
+project.
+
+Python Library
+==============
+
+The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
+useful for testing the VI with a regular computer, to verify the
+data received from a vehicle before introducing an Android device. Documentation
+for this tool (and the list of required dependencies) is available on the OpenXC
+`vehicle interface testing`_ page.
+
+.. _`vehicle interface testing`: http://openxcplatform.com/vehicle-interface/testing.html
+.. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 
 Emulator
 =========
@@ -55,42 +77,57 @@ Running the Suite
 
 .. code-block:: sh
 
-    cantranslator/src $ make clean && make test
+    vi-firmware/src $ make clean && make test -s
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/
 
 Debugging information
-=================
+=====================
 
 Viewing Debugging data
----------------------
+----------------------
 
 To view debugging information, first compile the firmware with the
-debugging flag.
+debugging flag:
 
 .. code-block:: sh
 
     $ make clean
-    $ DEBUG=1 make -j4
+    $ DEBUG=1 make
     $ make flash
 
-To build for a Blueboard, add the Platform flag to your make command:
+When compiled with ``DEBUG=1``, two things happen:
+
+- Debug symbols are available in the .elf file generated in the ``build``
+  directory.
+- Log messages will be output over a UART port (no hardware flow control is
+  required) - see :doc:`supported platforms </platforms/platforms>` for details.
+
+View this output using an FTDI cable and any of the many available serial
+terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
+
+CAN Bench Testing
+=====================
+
+Normally, the CAN controllers are initialized in a "listen only" mode. They are
+configured as writable only if using raw CAN passthrough with a CanBus that is
+marked "writable" or if a CanSignal is "writable".
+
+This works fine in a vehicle, but when testing on a bench with a simulated CAN
+network (e.g. another VI sending CAN messages directly to your VI under test),
+there's a problem - every CAN message must be acknowledged by the controller,
+and in "listen only" mode it does not send these ACKs. With nobody ACKing on the
+bus, the messages never propagate up from the network layer to the VI firmware.
+
+When bench testing, use the ``BENCHTEST`` flag to make sure CAN messages are
+ACked:
 
 .. code-block:: sh
 
-    $ DEBUG=1 PLATFORM=BLUEBOARD make -j4
+    $ make clean
+    $ BENCHTEST=1 make
+    $ make flash
 
-Once the CAN Translator is built with active debugging, the data can
-be viewed via an FTDI cable.  On the chipKit Max32, the debugging
-information is on UART Port 2.  This port's RX is pin 17, and the TX
-is pin 16.  Those are the only two wires that need be connected to
-your FTDI cable.
-
-Once connected, view the traffic on that serial port with the screen
-command at 11520 baud.  On MacOS, the command is:
-
-.. code-block:: sh
-
-    $ screen /dev/tty.usbserial________  115200
-
-Be sure to substitue the actual serial port identifier.
+The CAN controllers will also be configured as writable if you use the ``DEBUG``
+flag, or the ``transmitter`` Makefile target. The ``BENCHTEST`` flag is useful
+if you want to bench test normal, non-debug operation.

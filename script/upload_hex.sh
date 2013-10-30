@@ -2,7 +2,7 @@
 #
 # Upload a PIC32 compatible application compiled to a .hex file to a device.
 #
-#    ./upload_hex.sh <path to hex file>
+#    ./upload_hex.sh <absolute path to hex file>
 #
 # This functionality is mostly copied from the Makefile so normal developers
 # don't need to have that installed.
@@ -10,7 +10,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KERNEL=`uname`
-HEX_FILE=`realpath --relative-to=$DIR/.. "$1"`
+HEX_FILE="$1"
 PORT=$2
 
 source $DIR/bootstrap_for_flashing.sh
@@ -77,7 +77,7 @@ AVRDUDE_COM_OPTS="-q -V -p $MCU"
 AVRDUDE_ARD_OPTS="-c $AVRDUDE_ARD_PROGRAMMER -b $AVRDUDE_ARD_BAUDRATE -P $PORT"
 
 if [ -z "$HEX_FILE" ]; then
-    die "path to hex file is required as a parameter, e.g.: script/upload_hex.sh <path to hex file>"
+    die "path to hex file is required as a parameter, e.g.: script/upload_hex.sh <absolute path to hex file>"
 fi
 
 upload() {

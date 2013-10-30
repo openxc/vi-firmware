@@ -28,12 +28,13 @@ Uploading Script
 ^^^^^^^^^^^^^^^^
 
 Open a terminal run the ``upload_hex.sh`` script from the ``vi-firmware``
-directory, passing it the path to the ``.hex`` file you downloaded:
+directory, passing it the absolute path to the ``.hex`` file you downloaded, for
+example:
 
 .. code-block:: sh
 
    $ cd vi-firmware
-   $ script/upload_hex.sh <firmware file you downloaded>.hex
+   $ script/upload_hex.sh /home/user/downloads/<firmware file you downloaded>.hex
 
 The ``upload_hex.sh`` script attempts to install all required dependencies
 automatically, and it is tested in Cygwin, OS X Mountain Lion, Ubuntu 12.04 and

@@ -36,7 +36,7 @@ extern void reset();
 extern void setup();
 extern void loop();
 
-const char VERSION[] = "5.0.1-dev";
+const char VERSION[] = "5.1";
 const int UART_BAUD_RATE = 230400;
 
 UartDevice UART_DEVICE = {UART_BAUD_RATE};

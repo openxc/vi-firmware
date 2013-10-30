@@ -1,6 +1,6 @@
 import os
 
-from fabric.api import local, task, prompt, env, lcd
+from fabric.api import *
 from fabric.colors import green, yellow
 from fabric.contrib.console import confirm
 
@@ -9,6 +9,13 @@ import re
 
 VERSION_PATTERN = r'^v\d+(\.\d+)+?$'
 env.releases_directory = "release"
+env.temporary_directory = "openxc-translator-firmware"
+env.temporary_path = "/tmp/%(temporary_directory)s" % env
+env.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+env.boards = [{"name": "FORDBOARD", "extension": "bin"},
+    {"name": "CHIPKIT", "extension": "hex"},
+    {"name": "CROSSCHASM_C5", "extension": "hex"}]
 
 def latest_git_tag():
     description = local('git describe master', capture=True).rstrip('\n')
@@ -19,6 +26,13 @@ def latest_git_tag():
     if not re.match(VERSION_PATTERN, latest_tag):
         latest_tag = None
     return latest_tag
+
+def prepare_temp_path():
+    local("rm -rf %(temporary_path)s" % env)
+    local("mkdir -p %(temporary_path)s" % env)
+
+def prepare_releases_path():
+    local("mkdir -p %(releases_directory)s" % env)
 
 
 def compare_versions(x, y):
@@ -65,6 +79,30 @@ def make_tag():
         print(green("Using latest tag %(tag)s" % env))
     return env.tag
 
+
+def release_descriptor(path):
+    with lcd(path):
+        return local('git describe HEAD', capture=True).rstrip("\n")
+
+
+def compile_emulator(target_path):
+    with lcd("src"):
+        local("make clean", capture=True)
+        for board in env.boards:
+            output = local("PLATFORM=%s DEBUG=0 BOOTLOADER=1 make emulator -j4" %
+                    (board['name']), capture=True)
+            if output.failed:
+                puts(output)
+                abort("Building emulator for %s failed" % board['name'])
+            local("cp build/%s/vi-firmware-%s.%s %s/canemulator-%s-ct%s.%s"
+                    % (board['name'], board['name'], board['extension'],
+                        target_path, board['name'], env.firmware_release,
+                        board['extension']))
+
+def compress_release(source, archive_path):
+    with lcd(os.path.dirname(source)):
+        local("zip -r %s %s" % (archive_path, os.path.basename(source)))
+
 @task
 def test():
     with(lcd("src")):
@@ -74,4 +112,16 @@ def test():
 def release():
     local("script/bootstrap.sh")
     test()
-    tag = make_tag()
+    make_tag()
+
+    prepare_temp_path()
+    prepare_releases_path()
+
+    env.firmware_release = release_descriptor(".")
+
+    compile_emulator(env.temporary_path)
+    filename = "openxc-emulator-firmware-%s.zip" % (env.firmware_release)
+    emulator_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory,
+            filename)
+    compress_release("%s/canemulator-*" % env.temporary_path, emulator_archive)
+

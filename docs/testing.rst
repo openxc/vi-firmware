@@ -22,20 +22,11 @@ data received from a vehicle before introducing an Android device. A quick
 <http://openxcplatform.com/python/getting-started.html>`_ for Python developers
 at the OpenXC website.
 
+Keep in mind when bench testing - the VI will go into a low power suspend mode
+if no CAN activity has been detected for 30 seconds. If you compile with the
+`DEBUG` flag, it will not suspend.
+
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
-
-Emulator
-=========
-
-The repository includes a rudimentary vehicle emulator version of the firmware:
-
-::
-
-    $ make clean
-    $ make emulator
-
-The emulator generates fakes values for many OpenXC signals and sends out
-translated OpenXC messages as if it were plugged into a real vehicle.
 
 Debugging information
 =====================
@@ -62,31 +53,18 @@ When compiled with ``DEBUG=1``, two things happen:
 View this output using an FTDI cable and any of the many available serial
 terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
 
-CAN Bench Testing
-=====================
+Emulator
+=========
 
-Normally, the CAN controllers are initialized in a "listen only" mode. They are
-configured as writable only if using raw CAN passthrough with a CanBus that is
-marked "writable" or if a CanSignal is "writable".
+The repository includes a rudimentary vehicle emulator version of the firmware:
 
-This works fine in a vehicle, but when testing on a bench with a simulated CAN
-network (e.g. another VI sending CAN messages directly to your VI under test),
-there's a problem - every CAN message must be acknowledged by the controller,
-and in "listen only" mode it does not send these ACKs. With nobody ACKing on the
-bus, the messages never propagate up from the network layer to the VI firmware.
-
-When bench testing, use the ``BENCHTEST`` flag to make sure CAN messages are
-ACked:
-
-.. code-block:: sh
+::
 
     $ make clean
-    $ BENCHTEST=1 make
-    $ make flash
+    $ make emulator
 
-The CAN controllers will also be configured as writable if you use the ``DEBUG``
-flag, or the ``transmitter`` Makefile target. The ``BENCHTEST`` flag is useful
-if you want to bench test normal, non-debug operation.
+The emulator generates fakes values for many OpenXC signals and sends out
+translated OpenXC messages as if it were plugged into a real vehicle.
 
 Test Suite
 ===========

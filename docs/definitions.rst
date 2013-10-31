@@ -13,7 +13,8 @@ you can either:
 
 * Create a JSON message set configuration and use the `code generation tool
   <http://python.openxcplatform.com/en/latest/code-generation.html>`_ in the
-  OpenXC Python library.
+  OpenXC Python library. The Python library documentation details many use cases
+  and how to configure the firmware for each.
 * Implement the functions in ``signals.h`` manually. Knowledge of the vehicle's
   CAN message is required for this method. The documentation of those functions
   describes the expected effect of each. Implement these in a file called
@@ -22,4 +23,3 @@ you can either:
 Knowledge of the vehicle's CAN messages is required for both options - this is
 advanced territory, and if you're just looking to get some data out of your car
 you most likely want one of the binary firmwares from an automaker
-

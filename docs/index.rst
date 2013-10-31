@@ -50,6 +50,14 @@ The firmware supports :doc:`multiple microcontrollers </platforms/platforms>`.
 
     platforms/platforms
 
+Advanced Firmware Features
+==========================
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    advanced/*
 
 Output Interfaces & Format
 ===========================

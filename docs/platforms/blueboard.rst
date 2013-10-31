@@ -18,7 +18,7 @@ pulled low by the receiving device before data will be sent.
 UART data is sent only if pin 0.18 is pulled high. If you are using a Bluetooth
 module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_ from
 SparkFun, you need to hard-wire 5v into pin 0.18 to actually enabling UART.
-Other hardware implementations (like the :doc:`Ford prototype <ford>`) may be
+Other hardware implementations (like the :doc:`Ford Reference VI <ford>`) may be
 able to hook the Bluetooth connection status to this pin instead, to make the
 status of UART more dynamic.
 

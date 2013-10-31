@@ -42,7 +42,7 @@ LPC176x
 =======
 
 * :doc:`NGX Blueboard LPC1768-H <blueboard>`
-* :doc:`Ford Prototype Vehicle Interface <ford>`
+* :doc:`Ford Reference Vehicle Interface <ford>`
 
 .. toctree::
     :maxdepth: 2

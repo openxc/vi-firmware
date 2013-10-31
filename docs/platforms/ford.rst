@@ -1,7 +1,12 @@
-Ford Prototype Vehicle Interface
+Ford Reference Vehicle interface
 ================================
 
-To build for the Ford prototype, compile with the flag ``PLATFORM=FORDBOARD``.
+The Ford Reference VI is an open source hardware implementation of a VI, and the
+complete documentation is available at `vi.openxcplatform.com
+<http://vi.openxcplatform.com>`_.
+
+To build for the Ford reference VI, compile with the flag
+``PLATFORM=FORDBOARD``.
 
 Flashing a Pre-compiled Firmware
 --------------------------------
@@ -53,7 +58,7 @@ UART
 ----
 
 The software configuration is identical to the :doc:`Blueboard <blueboard>`. The
-Ford prototype includes an RN-41 on the PCB attached to the RX, TX, CTS and RTS
+reference VI includes an RN-41 on the PCB attached to the RX, TX, CTS and RTS
 pins, in addition to the UART status pin.
 
 When a Bluetooth host pairs with the RN-42 and opens an RFCOMM connection, pin
@@ -68,7 +73,7 @@ Logging will be on UART0, which is exposed on the bottom of the board at J3, a
 LED Lights
 ----------
 
-The Ford prototype has 2 RGB LEDs. If the LEDs are a dim green and red, then the
+The reference VI has 2 RGB LEDs. If the LEDs are a dim green and red, then the
 firmware was not flashed properly and the board is not running.
 
 **LED A**

@@ -35,8 +35,8 @@ Setup
 .. toctree::
     :maxdepth: 2
 
-    definitions
     installation
+    definitions
     compiling
     testing
 

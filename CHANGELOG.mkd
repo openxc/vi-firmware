@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v5.1.2-dev
+
 ## v5.1.1
 
 * Fix hex flashing script in Ubuntu

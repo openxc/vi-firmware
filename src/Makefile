@@ -14,25 +14,25 @@ OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
-ifeq ($(BENCHTEST), 1)
+ifeq ("$(BENCHTEST)", "1")
 SYMBOLS += __BENCHTEST__
 endif
 
-ifeq ($(DEBUG), 1)
+ifeq ("$(DEBUG)", "1")
 SYMBOLS += __DEBUG__
 else
 SYMBOLS += NDEBUG
 endif
 
-ifeq ($(LOG_STATS), 1)
+ifeq ("$(LOG_STATS)", "1")
 SYMBOLS += __LOG_STATS__
 endif
 
-ifeq ($(NETWORK), 1)
+ifeq ("$(NETWORK)", "1")
 SYMBOLS += __USE_NETWORK__
 endif
 
-ifeq ($(BOOTLOADER), 1)
+ifeq ("$(BOOTLOADER)", "1")
 BOOTLOADER = 1
 endif
 
@@ -79,13 +79,13 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp
 
-ifeq ($(PLATFORM), CHIPKIT)
+ifeq ("$(PLATFORM)", "CHIPKIT")
 include platform/pic32/pic32.mk
-else ifeq ($(PLATFORM), CROSSCHASM_C5)
+else ifeq ("$(PLATFORM)", "CROSSCHASM_C5")
 include platform/pic32/pic32.mk
-else ifeq ($(PLATFORM), FORDBOARD)
+else ifeq ("$(PLATFORM)", "FORDBOARD")
 include platform/lpc17xx/lpc17xx.mk
-else ifeq ($(PLATFORM), BLUEBOARD)
+else ifeq ("$(PLATFORM)", "BLUEBOARD")
 include platform/lpc17xx/lpc17xx.mk
 else
 $(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")

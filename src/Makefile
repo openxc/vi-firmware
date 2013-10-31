@@ -14,25 +14,25 @@ OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
-ifdef BENCHTEST
+ifeq ($(BENCHTEST), 1)
 SYMBOLS += __BENCHTEST__
 endif
 
-ifdef DEBUG
+ifeq ($(DEBUG), 1)
 SYMBOLS += __DEBUG__
 else
 SYMBOLS += NDEBUG
 endif
 
-ifdef LOG_STATS
+ifeq ($(LOG_STATS), 1)
 SYMBOLS += __LOG_STATS__
 endif
 
-ifdef NETWORK
+ifeq ($(NETWORK), 1)
 SYMBOLS += __USE_NETWORK__
 endif
 
-ifndef BOOTLOADER
+ifeq ($(BOOTLOADER), 1)
 BOOTLOADER = 1
 endif
 

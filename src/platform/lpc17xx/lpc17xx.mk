@@ -60,7 +60,7 @@ OBJECTS = $(patsubst %,$(OBJDIR)/%,$(ARM_OBJ_FILES))
 TARGET_BIN = $(OBJDIR)/$(TARGET).bin
 TARGET_ELF = $(OBJDIR)/$(TARGET).elf
 
-ifdef DEBUG
+ifeq ($(DEBUG), 1)
 CC_FLAGS += -g -ggdb
 else
 CC_FLAGS += -Os -Wno-uninitialized

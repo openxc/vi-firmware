@@ -1,6 +1,9 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v5.1.1-dev
+## v5.1.1
+
+* Fix hex flashing script in Ubuntu
+* Add a Windows .bat file for flashing a with avrdude
 
 ## v5.1
 

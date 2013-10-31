@@ -13,7 +13,7 @@ CMSIS_PATH = $(LIBS_PATH)/CDL/CMSISv2p00_LPC17xx
 DRIVER_PATH = $(LIBS_PATH)/CDL/LPC17xxLib
 INCLUDE_PATHS += -I$(LIBS_PATH)/nxpUSBlib/Drivers \
 				-I$(DRIVER_PATH)/inc -I$(LIBS_PATH)/BSP -I$(CMSIS_PATH)/inc
-ifeq ("$(BOOTLOADER)", 1)
+ifeq ($(BOOTLOADER), 1)
 LINKER_SCRIPT = platform/lpc17xx/LPC17xx-bootloader.ld
 else
 LINKER_SCRIPT = platform/lpc17xx/LPC17xx-baremetal.ld
@@ -29,7 +29,7 @@ ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
 CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
-ifeq ("$(PLATFORM)", BLUEBOARD)
+ifeq ($(PLATFORM), BLUEBOARD)
 CC_SYMBOLS += -DBLUEBOARD
 else
 CC_SYMBOLS += -DFORDBOARD
@@ -60,7 +60,7 @@ OBJECTS = $(patsubst %,$(OBJDIR)/%,$(ARM_OBJ_FILES))
 TARGET_BIN = $(OBJDIR)/$(TARGET).bin
 TARGET_ELF = $(OBJDIR)/$(TARGET).elf
 
-ifeq ("$(DEBUG)", "1")
+ifeq ($(DEBUG), 1)
 CC_FLAGS += -g -ggdb
 else
 CC_FLAGS += -Os -Wno-uninitialized

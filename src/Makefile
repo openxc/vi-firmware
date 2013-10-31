@@ -107,7 +107,7 @@ custom_all_prefix:
 
 custom_all: custom_all_prefix all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
-	@if [[ $(BOOTLOADER) == 1 ]]; then \
+	@if [[ \"$(BOOTLOADER)\" == 1 ]]; then \
 		echo -n " running under a bootloader"; \
 	else \
 		echo -n " running on bare metal"; \

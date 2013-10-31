@@ -2,17 +2,14 @@
 Supported Platforms
 ===================
 
-The firmware supports compiling for the Microchip's PIC32 microcontroller and
-NXP's LPC1768/69 (and possibly other ARM Cortex M3 micros).
+For information on how to add support for another platform, see the :doc:`board
+support </advanced/boardsupport>` section.
 
-The code base is expanding very organically from supporting only one board to
-supporting multiple architectures and board variants. The strategy we have now:
+LPC176x
+=======
 
-* Switch between "platforms" with the PLATFORM flag - a platform encapsulates a
-  micro architecture and a board variant.
-* Implement different architecture-specific code in a subfolder for the micro
-* Switch pins for board variants in in those same architecture-specific files
-  (like in lights.cpp)
+* :doc:`NGX Blueboard LPC1768-H <blueboard>`
+* :doc:`Ford Reference Vehicle Interface <ford>`
 
 PIC32
 =====
@@ -36,17 +33,3 @@ USB data arriving in bursts?
     Are you also reading data over UART, or do you have something pulling the
     UART connect pin high? It's not always possible to read both USB and UART at
     full data rates at the same time.
-
-
-LPC176x
-=======
-
-* :doc:`NGX Blueboard LPC1768-H <blueboard>`
-* :doc:`Ford Reference Vehicle Interface <ford>`
-
-.. toctree::
-    :maxdepth: 2
-    :glob:
-    :hidden:
-
-    *

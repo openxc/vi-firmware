@@ -13,23 +13,14 @@ for `Flashing User Code
 <https://github.com/openxc/openlpc-USB_Bootloader#flashing-user-code>`_ to
 update the vehicle interface.
 
-Bootloader
-----------
-
-The `OpenLPC USB bootloader <https://github.com/openxc/openlpc-USB_Bootloader>`_
-is tested and working, and enables the LPC17xx to appear as a USB drive. See the
-documentation in that repository for instructions on how to flash the bootloader
-(a JTAG programmer is required).
-
 Compiling
 ---------
 
 USB Bootloader
 """"""""""""""
 
-If you are running a :doc:`supported bootloader </installation/bootloaders>`,
-you don't need any special programming hardware. Compile the firmware to run
-under the bootloader:
+If you are running a supported bootloader, you don't need any special
+programming hardware. Compile the firmware to run under the bootloader:
 
 .. code-block:: sh
 
@@ -37,13 +28,14 @@ under the bootloader:
    $ PLATFORM=FORDBOARD BOOTLOADER=1 make -j4
 
 The compiled firmware will be located at
-``build/lpc17xx/vi-firmware-lpc17xx.bin``. See the :doc:`bootloaders
-</installation/bootloaders>` page for instructions on how to load the firmware.
+``build/lpc17xx/vi-firmware-lpc17xx.bin``. See `reference VI programming
+instructions <http://vi.openxcplatform.com/firmware/programming/usb.html>`_ to
+find out how to re-flash the VI.
 
 Bare Metal
 """"""""""
 
-Once the :doc:`dependencies </installation/installation>` are installed, attach a
+Once the :doc:`dependencies </installation>` are installed, attach a
 JTAG adapter to your computer and the VI, then compile and flash:
 
 .. code-block:: sh
@@ -89,3 +81,12 @@ firmware was not flashed properly and the board is not running.
 - USB connected, Bluetooth not connected - Green
 - Bluetooth connected, USB in either state - Blue
 - Neither USB or Bluetooth connected - Off
+
+Bootloader
+----------
+
+The `OpenLPC USB bootloader <https://github.com/openxc/openlpc-USB_Bootloader>`_
+is tested and working, and enables the LPC17xx to appear as a USB drive. See the
+documentation in that repository for instructions on how to flash the bootloader
+(a JTAG programmer is required). The reference VI from Ford is pre-programmed
+with this bootloader.

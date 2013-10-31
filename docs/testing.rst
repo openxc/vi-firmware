@@ -17,69 +17,25 @@ Python Library
 
 The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
 useful for testing the VI with a regular computer, to verify the
-data received from a vehicle before introducing an Android device. Documentation
-for this tool (and the list of required dependencies) is available on the OpenXC
-`vehicle interface testing`_ page.
+data received from a vehicle before introducing an Android device. A quick
+"smoke test" using the Python tools is described in the `Getting Started Guide
+<http://openxcplatform.com/python/getting-started.html>`_ for Python developers
+at the OpenXC website.
 
-.. _`vehicle interface testing`: http://openxcplatform.com/vehicle-interface/testing.html
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 
 Emulator
 =========
 
-The repository includes a rudimentary CAN bus emulator:
+The repository includes a rudimentary vehicle emulator version of the firmware:
 
 ::
 
     $ make clean
     $ make emulator
 
-The emulator generates fakes values for many OpenXC signals and sends
-them over USB as if it were plugged into a live CAN bus.
-
-Test Suite
-===========
-
-The non-embedded platform specific code in this repository includes a unit test
-suite. It's a good idea to run the test suite before committing any changes to
-the git repository.
-
-Dependencies
-------------
-
-The test suite uses the `check <http://check.sourceforge.net>`_ library.
-
-Ubuntu
-~~~~~~~~~~
-
-.. code-block:: sh
-
-    $ sudo apt-get install check
-
-OS X
-~~~~~~~~~~
-
-Install `Homebrew`_, then ``check``:
-
-.. code-block:: sh
-
-    $ brew install check
-
-Arch Linux
-~~~~~~~~~~
-
-.. code-block:: sh
-
-    $ sudo pacman -S check
-
-Running the Suite
------------------
-
-.. code-block:: sh
-
-    vi-firmware/src $ make clean && make test -s
-
-.. _`Homebrew`: http://mxcl.github.com/homebrew/
+The emulator generates fakes values for many OpenXC signals and sends out
+translated OpenXC messages as if it were plugged into a real vehicle.
 
 Debugging information
 =====================
@@ -131,3 +87,47 @@ ACked:
 The CAN controllers will also be configured as writable if you use the ``DEBUG``
 flag, or the ``transmitter`` Makefile target. The ``BENCHTEST`` flag is useful
 if you want to bench test normal, non-debug operation.
+
+Test Suite
+===========
+
+The non-embedded platform specific code in this repository includes a unit test
+suite. It's a good idea to run the test suite before committing any changes to
+the git repository.
+
+Dependencies
+------------
+
+The test suite uses the `check <http://check.sourceforge.net>`_ library.
+
+Ubuntu
+~~~~~~~~~~
+
+.. code-block:: sh
+
+    $ sudo apt-get install check
+
+OS X
+~~~~~~~~~~
+
+Install `Homebrew`_, then ``check``:
+
+.. code-block:: sh
+
+    $ brew install check
+
+Arch Linux
+~~~~~~~~~~
+
+.. code-block:: sh
+
+    $ sudo pacman -S check
+
+Running the Suite
+-----------------
+
+.. code-block:: sh
+
+    vi-firmware/src $ make clean && make test -s
+
+.. _`Homebrew`: http://mxcl.github.com/homebrew/

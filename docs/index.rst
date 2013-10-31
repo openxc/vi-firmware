@@ -17,7 +17,17 @@ microcontroller connected to one or more CAN buses. It receives either all CAN
 messages or a filtered subset, performs any unit conversion or factoring
 required and outputs a generic version to a USB interface.
 
-The firmware supports :doc:`multiple microcontrollers </platforms/platforms>`.
+
+Pre-built Binary Firmware
+=========================
+
+If you've downloaded a pre-built binary firmware for your car, locate your VI in
+the `list of supported interfaces
+<http://openxcplatform.com/vehicle-interface/hardware.html>`_ to find
+instructions for programming it. You don't need anything from the VI firmware
+documentation itself - most users don't need anything in this documentation.
+Here be dragons!
+
 
 Setup
 ======
@@ -25,34 +35,21 @@ Setup
 .. toctree::
     :maxdepth: 2
 
-    installation/installation
-    platforms/platforms
+    definitions
+    installation
+    compiling
+    testing
 
-Pre-built Binary
-================
+Supported Embedded Platforms
+=============================
 
-If you've downloaded a pre-built binary for a specific vehicle, see the
-:doc:`/installation/binary` section for instructions on how to flash your CAN
-translator. Most users do not need to set up the full development described in
-these docs.
-
-A Windows driver for the USB interface is available in the `conf/windows-driver
-<https://github.com/openxc/vi-firmware/tree/master/conf/windows-driver>`_
-folder. The driver supports both 32- and 64-bit Windows. The driver is generated
-using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
-project.
-
-.. _`OpenXC website`: http://openxcplatform.com
-.. _`firmware section`: http://openxcplatform.com/vehicle-interface/firmware.html
-
-CAN Message Definition
-======================
+The firmware supports :doc:`multiple microcontrollers </platforms/platforms>`.
 
 .. toctree::
-    :maxdepth: 1
-    :glob:
+    :maxdepth: 2
 
-    definitions/*
+    platforms/platforms
+
 
 Output Interfaces & Format
 ===========================
@@ -114,6 +111,7 @@ developers. More information on this library is available at in the
 
 .. _`applications`: http://openxcplatform.com/android/index.html
 .. _`OpenXC Android library`: https://github.com/openxc/openxc-android
+.. _`OpenXC website`: http://openxcplatform.com
 
 License
 =======

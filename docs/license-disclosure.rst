@@ -7,7 +7,7 @@ depends on a few other open source projects. If you are building from source, or
 have downloaded a pre-compiled binary firmware, the result may contain source
 code covered by the following licenses:
 
-`vi-firmware <https://github.com/openxc/vi-firmware`_
+`vi-firmware <https://github.com/openxc/vi-firmware>`_
 
 Copyright (c) 2012 Ford Motor Company
 All rights reserved.
@@ -35,7 +35,7 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-`emhashmap <https://github.com/openxc/emhashmap`_
+`emhashmap <https://github.com/openxc/emhashmap>`_
 
 Copyright (c) 2013, Ford Motor Company
 All rights reserved.
@@ -60,7 +60,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-`emlist <https://github.com/openxc/emlist`_
+`emlist <https://github.com/openxc/emlist>`_
 
 Copyright (c) 2013, Ford Motor Company
 All rights reserved.

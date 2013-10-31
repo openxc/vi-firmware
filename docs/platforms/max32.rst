@@ -74,7 +74,7 @@ will be enabled (it's green).
 Compiling
 ---------
 
-Once the :doc:`dependencies </installation/installation>` are installed, attach
+Once the :doc:`dependencies </installation>` are installed, attach
 the chipKIT to your computer with a mini-USB cable, ``cd`` into the ``src``
 subdirectory, build and upload to the device.
 
@@ -98,18 +98,6 @@ and if in Windows it appeared as COM4:
 .. code-block:: sh
 
     $ SERIAL_PORT=com4 make flash
-
-This build process assumes your chipKIT is running the
-:doc:`avrdude bootloader </installation/bootloaders>` - all chipKITs come
-programmed with a compatible bootloader by default.
-
-Bootloader
-----------
-
-All stock chipKITs are programmed with a compatible bootloader at the factory.
-The `PIC32 avrdude bootloader
-<https://github.com/openxc/PIC32-avrdude-bootloader>`_ is also tested and
-working and allows flashing over USB with ``avrdude``.
 
 IDE Support
 -----------
@@ -157,3 +145,12 @@ There will still be some errors in the Eclipse problem detection, e.g.
 it doesn't seem to pick up on the GCC ``__builtin_*`` functions, and
 some of the chipKIT libraries are finicky. This won't have an effect on
 the actual build process, just the error reporting.
+
+Bootloader
+----------
+
+All stock chipKITs are programmed with a compatible bootloader at the factory.
+The `PIC32 avrdude bootloader
+<https://github.com/openxc/PIC32-avrdude-bootloader>`_ is also tested and
+working and allows flashing over USB with ``avrdude``.
+

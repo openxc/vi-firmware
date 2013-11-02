@@ -10,4 +10,4 @@ individual OpenXC interfaces or libraries, in the `OpenXC Message Format
     :maxdepth: 1
     :glob:
 
-    output/*
+    *

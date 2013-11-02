@@ -8,16 +8,20 @@ support </advanced/boardsupport>` section.
 LPC176x
 =======
 
-* :doc:`NGX Blueboard LPC1768-H <blueboard>`
-* :doc:`Ford Reference Vehicle Interface <ford>`
+.. toctree::
+    :maxdepth: 1
+
+    ford
+    blueboard
 
 PIC32
 =====
 
-Two PIC32 boards are supported:
+.. toctree::
+    :maxdepth: 1
 
-* :doc:`Digilent chipKIT Max32 <max32>`
-* :doc:`CrossChasm C5 OBD Interface <crosschasm-c5>`
+    max32
+    crosschasm-c5
 
 Troubleshooting PIC32 Boards
 ----------------------------

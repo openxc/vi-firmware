@@ -355,7 +355,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
     bool sent = true;
     if(signal != NULL) {
         cJSON* boolObject = cJSON_CreateBool(true);
-        can::write::sendSignal(signal, cJSON_CreateBool(true), booleanWriter,
+        can::write::sendSignal(signal, boolObject, booleanWriter,
                 signals, signalCount, true);
         cJSON_Delete(boolObject);
     } else {

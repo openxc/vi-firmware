@@ -105,10 +105,10 @@ END_TEST
 
 START_TEST (test_write_not_allowed)
 {
-    bool send = true;
     SIGNALS[1].writable = false;
-    numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 0x6, &send);
-    fail_if(send);
+    can::write::sendSignal(&SIGNALS[1], cJSON_CreateNumber(0x6),
+            SIGNALS, SIGNAL_COUNT);
+    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
 }
 END_TEST
 

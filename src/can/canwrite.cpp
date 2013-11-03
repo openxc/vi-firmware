@@ -14,9 +14,8 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     }
 }
 
-uint64_t openxc::can::write::booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send) {
-    checkWritePermission(signal, send);
+uint64_t openxc::can::write::booleanWriter(CanSignal* signal,
+        CanSignal* signals, int signalCount, bool value, bool* send) {
     return encodeSignal(signal, value);
 }
 
@@ -33,7 +32,6 @@ uint64_t openxc::can::write::booleanWriter(CanSignal* signal,
 
 uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
         int signalCount, double value, bool* send) {
-    checkWritePermission(signal, send);
     return encodeSignal(signal, value);
 }
 
@@ -52,7 +50,6 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
         const CanSignalState* signalState = lookupSignalState(value, signal,
                 signals, signalCount);
         if(signalState != NULL) {
-            checkWritePermission(signal, send);
             result = encodeSignal(signal, signalState->value);
         } else {
             debug("Couldn't find a valid signal state for \"%s\"", value);
@@ -119,8 +116,9 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
             writer = numberWriter;
         }
     }
-
     bool send = true;
+    checkWritePermission(signal, &send);
+
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(force || send) {
         CanMessage message = {signal->message->id, data};

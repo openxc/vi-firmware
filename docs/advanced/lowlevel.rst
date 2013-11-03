@@ -52,6 +52,30 @@ ID's you want:
 
 This will read and send the message with ID ``0x21`` only.
 
+The ``raw_can_mode`` flag can be applied to all active CAN buses at once by
+defining it at the top level of the configuration. For example, this
+configuration will enable unfiltered raw CAN output from 2 buses simultaneously:
+
+.. code-block:: js
+
+  {   "name": "passthrough",
+      "raw_can_mode": "filtered",
+      "buses": {
+          "hs": {
+              "controller": 1,
+              "speed": 500000
+          },
+          "ms": {
+              "controller": 2,
+              "speed": 125000
+          }
+      }
+  }
+
+When defined at the top level, the ``raw_can_mode`` can be overridden by any of
+the individual buses (e.g. ``hs`` could inherit the ``unfiltered`` setting but
+``ms`` could override and set it to ``filtered``).
+
 There are yet more ways to configure and control the low-level output (e.g.
 limiting the data rate as to not overwhelm the VI's output channels) - see the
 `code generation docs

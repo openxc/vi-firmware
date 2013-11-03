@@ -9,17 +9,17 @@ can configure the VI firmware to output raw CAN messages using this format.
 For example, this JSON configuration will output all CAN messages received on a
 high speed bus connecetd to the CAN1 controller:
 
-  .. code-block:: js
+.. code-block:: js
 
-    {   "name": "passthrough",
-        "buses": {
-            "hs": {
-                "controller": 1,
-                "raw_can_mode": "unfiltered",
-                "speed": 500000
-            }
-        }
-    }
+  {   "name": "passthrough",
+      "buses": {
+          "hs": {
+              "controller": 1,
+              "raw_can_mode": "unfiltered",
+              "speed": 500000
+          }
+      }
+  }
 
 The only change from a typical configuration is the addition of the
 ``raw_can_mode`` attribute to the bus, set to ``unfiltered``. When using the raw
@@ -33,22 +33,22 @@ If you're only interested in a few CAN messages, you can send a filtered set of
 raw messages. Change the ``raw_can_mode`` to ``filtered`` and add the messages
 ID's you want:
 
-  .. code-block:: js
+.. code-block:: js
 
-    {   "name": "passthrough",
-        "buses": {
-            "hs": {
-                "controller": 1,
-                "raw_can_mode": "filtered",
-                "speed": 500000
-            }
-        },
-        "messages": {
-          "0x21": {
-            "bus": "hs"
+  {   "name": "passthrough",
+      "buses": {
+          "hs": {
+              "controller": 1,
+              "raw_can_mode": "filtered",
+              "speed": 500000
           }
+      },
+      "messages": {
+        "0x21": {
+          "bus": "hs"
         }
-    }
+      }
+  }
 
 This will read and send the message with ID ``0x21`` only.
 
@@ -66,18 +66,18 @@ mode - they won't even send ACK frames. If you configure one of the buses to be
 ``raw_writable`` in the firmware configuration, the controller will be
 write-enabled for raw CAN messages, e.g.:
 
-  .. code-block:: js
+.. code-block:: js
 
-    {   "name": "passthrough",
-        "buses": {
-            "hs": {
-                "controller": 1,
-                "raw_can_mode": "unfiltered",
-                "raw_writable": true,
-                "speed": 500000
-            }
-        }
-    }
+  {   "name": "passthrough",
+      "buses": {
+          "hs": {
+              "controller": 1,
+              "raw_can_mode": "unfiltered",
+              "raw_writable": true,
+              "speed": 500000
+          }
+      }
+  }
 
 With a writable bus, you can send CAN messages (in the OpenXC "raw" message JSON
 format) to the VI's input interfaces (e.g. USB, Bluetooth) and they'll be

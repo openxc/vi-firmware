@@ -4,7 +4,7 @@ ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue \
 			   emhashmap/emlist emhashmap AT-commander/atcommander \
 			   nanopb
 ifeq ($(NETWORK), 1)
-ARDUINO_LIBS += chipKITNetwork chipKITNetwork/utility
+ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
 DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
@@ -73,7 +73,7 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D$(PLATFORM) $(CC_SYMBOLS) \
+EXTRA_CPPFLAGS += -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
 				  -I $(LIBS_PATH)/nanopb
 
@@ -97,7 +97,7 @@ endif
 endif
 
 ifdef NETWORK
-EXPECTED_ETHERNET_LIBRARY_PATH = $(LIBS_PATH)/chipKITNetwork
+EXPECTED_ETHERNET_LIBRARY_PATH = $(LIBS_PATH)/chipKITEthernet
 MICROCHIP_ETHERNET_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_ETHERNET_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_ETHERNET_LIBRARY_EXISTS),0)
 $(error chipKIT Network library missing - run "script/bootstrap.sh" to download)

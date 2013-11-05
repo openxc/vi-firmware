@@ -13,6 +13,8 @@
 #define DEFAULT_MAC_ADDRESS {0, 0, 0, 0, 0, 0}
 #define DEFAULT_IP_ADDRESS {192, 168, 1, 100}
 
+using openxc::util::bytebuffer::processQueue;
+
 Server server = Server(DEFAULT_NETWORK_PORT);
 
 void openxc::interface::network::initialize(NetworkDevice* device) {
@@ -22,9 +24,9 @@ void openxc::interface::network::initialize(NetworkDevice* device) {
         device->ipAddress = DEFAULT_IP_ADDRESS;
         device->server = &server;
 #ifdef USE_DHCP
-        Network.begin();
+        server.begin();
 #else
-        Network.begin(device->macAddress, device->ipAddress);
+        server.begin(device->macAddress, device->ipAddress);
 #endif
         device->server->begin();
         debug("Done.");

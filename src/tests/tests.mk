@@ -24,22 +24,38 @@ TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 GENERATOR = openxc-generate-firmware-code
 .PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
+define COMPILE_TEST_TEMPLATE
+$1: $3
+	@make clean > /dev/null
+	$2 make -j4 $4 > /dev/null
+	@echo "$$(GREEN)Passed.$$(COLOR_RESET)"
+endef
+
+PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5
+define ALL_PLATFORMS_TEST_TEMPLATE
+$(foreach platform, $(PLATFORMS), \
+	$(eval $(call COMPILE_TEST_TEMPLATE, $(1)-$(platform)-bootloader,$(2) BOOTLOADER=1 PLATFORM=$(platform), $(3))) \
+)
+$(foreach platform, $(PLATFORMS), \
+	$(eval $(call COMPILE_TEST_TEMPLATE, $(1)-$(platform),$(2) BOOTLOADER=0 PLATFORM=$(platform), $(3))) \
+)
+$1: $(foreach platform, $(PLATFORMS), $1-$(platform)) $(foreach platform, $(PLATFORMS), $1-$(platform)-bootloader)
+endef
+
 test: unit_tests
-	@make default_pic32_compile_test
-	@make chipkit_compile_test
-	@make c5_compile_test
-	@make lpc17xx_compile_test
-	@make ford_test
-	@make example_signals_test
-	@make example_passthrough_test
-	@make emulator_test
+	@make default_compile_test
 	@make debug_compile_test
+	@make mapped_compile_test
+	@make passthrough_compile_test
+	@make emulator_compile_test
+	@make example_signals_compile_test
 	@make stats_compile_test
+	@make debug_stats_compile_test
 	@make network_compile_test
-	@make network_raw_write_flag_test
-	@make usb_raw_write_flag_test
-	@make bluetooth_raw_write_flag_test
-	@make binary_output_test
+	@make network_raw_write_compile_test
+	@make usb_raw_write_compile_test
+	@make bluetooth_raw_write_compile_test
+	@make binary_output_compile_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
@@ -80,136 +96,36 @@ unit_tests: $(TESTS)
 	@export SHELLOPTS
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
-emulator_test:
-	@echo -n "Testing CAN emulator build for chipKIT..."
-	@make clean
-	@make -j4 emulator
-	@make clean
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-	@echo -n "Testing CAN emulator build for Blueboard ARM board..."
-	@PLATFORM=BLUEBOARD make -j4 emulator
-	@make clean
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, , code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, , mapped_code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, , copy_passthrough_signals))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, , , emulator))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, example_signals_compile_test, , copy_example_signals))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_compile_test, NETWORK=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, NETWORK_ALLOW_RAW_WRITE=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, USB_ALLOW_RAW_WRITE=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, BINARY_OUTPUT=1, code_generation_test))
 
-stats_compile_test: code_generation_test
-	@echo -n "Testing build with LOG_STATS=1 flag..."
-	@make clean
-	@DEBUG=1 LOG_STATS=1 make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-debug_compile_test: code_generation_test
-	@echo -n "Testing build with DEBUG=1 flag..."
-	@make clean
-	@DEBUG=1 make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-network_compile_test: code_generation_test
-	@echo -n "Testing build with USE_NETWORK=1 flag..."
-	@make clean
-	@USE_NETWORK=1 make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-network_raw_write_flag_test: TEST_FLAGS=NETWORK_ALLOW_RAW_WRITE=1
-network_raw_write_flag_test: code_generation_test
-	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@make clean
-	@$(TEST_FLAGS) make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-usb_raw_write_flag_test: TEST_FLAGS=USB_ALLOW_RAW_WRITE=1
-usb_raw_write_flag_test: code_generation_test
-	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@make clean
-	@$(TEST_FLAGS) make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-bluetooth_raw_write_flag_test: TEST_FLAGS=BLUETOOTH_ALLOW_RAW_WRITE=1
-bluetooth_raw_write_flag_test: code_generation_test
-	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@make clean
-	@$(TEST_FLAGS) make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-binary_output_test: TEST_FLAGS=BINARY_OUTPUT=1
-binary_output_test: code_generation_test
-	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@make clean
-	@$(TEST_FLAGS) make -j4
-	@$(TEST_FLAGS) PLATFORM=FORDBOARD make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-default_pic32_compile_test: code_generation_test
-	@echo -n "Testing default platform build (chipKIT) with example vehicle signals..."
-	@make clean
-	@make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-chipkit_compile_test: code_generation_test
-	@echo -n "Testing chipKIT build with example vehicle signals..."
-	@make clean
-	@PLATFORM=CHIPKIT make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-c5_compile_test: code_generation_test
-	@echo -n "Testing CrossChasm C5 build with example vehicle signals..."
-	@make clean
-	@PLATFORM=CROSSCHASM_C5 make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-lpc17xx_compile_test: code_generation_test
-	@echo -n "Testing Blueboard board build with example vehicle signals..."
-	@make clean
-	@PLATFORM=BLUEBOARD make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-mapped_lpc17xx_compile_test: mapped_code_generation_test
-	@echo -n "Testing Blueboard board build with example mapped vehicle signals..."
-	@make clean
-	@PLATFORM=BLUEBOARD make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-ford_test:
-	@echo -n "Testing FORDBOARD build with emulator..."
-	@make clean
-	@PLATFORM=FORDBOARD make -j4 emulator
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-	@echo -n "Testing CHIPKIT build with emulator..."
-	@make clean
-	@PLATFORM=CHIPKIT make -j4 emulator
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-
-example_signals_test:
-	@echo -n "Testing example signals definitions in repo for FORDBOARD..."
-	@make clean
+copy_example_signals:
+	@echo "Testing example signals definitions in repo for FORDBOARD..."
 	@cp signals.cpp.example signals.cpp
-	@PLATFORM=FORDBOARD make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-	@echo -n "Testing example signals definitions in repo for CHIPKIT..."
-	@make clean
-	@cp signals.cpp.example signals.cpp
-	@PLATFORM=CHIPKIT make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
-example_passthrough_test:
-	@echo -n "Testing example passthrough config in repo for FORDBOARD..."
-	@make clean
+copy_passthrough_signals:
+	@echo "Testing example passthrough config in repo for FORDBOARD..."
 	@cp signals.cpp.example-passthrough signals.cpp
-	@PLATFORM=FORDBOARD make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
-	@echo -n "Testing example passthrough config in repo for CHIPKIT..."
-	@make clean
-	@cp signals.cpp.example-passthrough signals.cpp
-	@PLATFORM=CHIPKIT make -j4
-	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 code_generation_test:
 	@make clean
-	@echo -n "Testing code generation from a non-mapped signals file..."
+	@echo "Testing code generation from a non-mapped signals file..."
 	$(GENERATOR) -m signals.json.example > signals.cpp
 
 mapped_code_generation_test:
 	@make clean
-	@echo -n "Testing code generation from a mapped signals file..."
+	@echo "Testing code generation from a mapped signals file..."
 	$(GENERATOR) -m mapped_signal_set.json.example > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info

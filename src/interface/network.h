@@ -1,7 +1,7 @@
 #ifndef _NETWORKUTIL_H_
 #define _NETWORKUTIL_H_
 
-#ifdef __USE_NETWORK__
+#if defined(__PIC32__) && defined(__USE_NETWORK__)
 #include "chipKITEthernet.h"
 #endif // __USE_NETWORK__
 
@@ -38,7 +38,7 @@ typedef struct {
     QUEUE_TYPE(uint8_t) sendQueue;
     // host to device
     QUEUE_TYPE(uint8_t) receiveQueue;
-#ifdef __USE_NETWORK__
+#if defined(__PIC32__) && defined(__USE_NETWORK__)
     Server* server;
 #endif // __USE_NETWORK__
 } NetworkDevice;

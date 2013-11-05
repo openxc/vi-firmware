@@ -3,6 +3,9 @@
         "initializeMyStuff",
         "initializeOtherStuff"
     ],
+    "extra_sources": [
+        "handlers.cpp.example"
+    ],
     "loopers": [
         "myLooper"
     ],

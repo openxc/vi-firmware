@@ -2,11 +2,15 @@
 Installation
 ============
 
+Pre-built Binary Firmware
+=========================
+
 If you've downloaded a pre-built binary firmware for your car, locate your VI in
 the `list of supported interfaces
 <http://openxcplatform.com/vehicle-interface/hardware.html>`_ to find
 instructions for programming it. You don't need anything from the VI firmware
 documentation itself - most users don't need anything in this documentation.
+Really, you can stop here!
 
 Quick Start
 ============

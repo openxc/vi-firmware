@@ -9,44 +9,22 @@ OpenXC Vehicle Interface Firmware
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
 
+The OpenXC vehicle interface (VI) firmware runs on a microcontroller connected
+to one or more CAN buses. It receives either all CAN messages or a filtered
+subset, performs any unit conversion or factoring required and outputs a generic
+version to a USB, Bluetooth or network interface.
 
 .. WARNING::
-   Warning: This portion of the site covers advanced topics such as writing
-   and compiling your own firmware from source. These steps are NOT required
-   for flashing a pre-compiled binary firmware. 
-   
-   If you're looking for instructions on flashing a pre-compiled binary firmware, 
-   go to the `Vehicle Interfaces <http://openxcplatform.com/vehicle-interface/hardware.html>`_
-   page, find your vehicle interace, and follow the link for the firmware instructions.
+   This portion of the site covers advanced topics such as writing and compiling
+   your own firmware from source. These steps are NOT required for flashing a
+   pre-compiled binary firmware.
 
-
-About
-=====
-
-The OpenXC vehicle interface (VI) firmware runs on an Arduino-compatible
-microcontroller connected to one or more CAN buses. It receives either all CAN
-messages or a filtered subset, performs any unit conversion or factoring
-required and outputs a generic version to a USB interface.
-
-
-Pre-built Binary Firmware
-=========================
-
-If you've downloaded a pre-built binary firmware for your car, locate your VI in
-the `list of supported interfaces
-<http://openxcplatform.com/vehicle-interface/hardware.html>`_ to find
-instructions for programming it. You don't need anything from the VI firmware
-documentation itself - most users don't need anything in this documentation.
-Here be dragons!
-
-Contributing
-============
-
-.. toctree::
-    :maxdepth: 0
-    :glob:
-
-    contributing
+   If you've downloaded a pre-built binary firmware for your car, locate your VI
+   in the `list of supported interfaces
+   <http://openxcplatform.com/vehicle-interface/hardware.html>`_ to find
+   instructions for programming it. You don't need anything from the VI firmware
+   documentation itself - most users don't need anything in this documentation.
+   Here be dragons!
 
 Installation
 ============
@@ -79,9 +57,17 @@ Advanced Documentation
     advanced/advanced
     output/output
 
+Contributing
+============
+
+.. toctree::
+    :maxdepth: 0
+    :glob:
+
+    contributing
 
 License
-=======
+-------
 
 Copyright (c) 2012-2013 Ford Motor Company
 

@@ -93,79 +93,79 @@ emulator_test:
 
 stats_compile_test: code_generation_test
 	@echo -n "Testing build with LOG_STATS=1 flag..."
-	@DEBUG=1 LOG_STATS=1 make -j4
 	@make clean
+	@DEBUG=1 LOG_STATS=1 make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 debug_compile_test: code_generation_test
 	@echo -n "Testing build with DEBUG=1 flag..."
-	@DEBUG=1 make -j4
 	@make clean
+	@DEBUG=1 make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 network_compile_test: code_generation_test
 	@echo -n "Testing build with USE_NETWORK=1 flag..."
-	@USE_NETWORK=1 make -j4
 	@make clean
+	@USE_NETWORK=1 make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 network_raw_write_flag_test: TEST_FLAGS=NETWORK_ALLOW_RAW_WRITE=1
 network_raw_write_flag_test: code_generation_test
 	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@$(TEST_FLAGS) make -j4
 	@make clean
+	@$(TEST_FLAGS) make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 usb_raw_write_flag_test: TEST_FLAGS=USB_ALLOW_RAW_WRITE=1
 usb_raw_write_flag_test: code_generation_test
 	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@$(TEST_FLAGS) make -j4
 	@make clean
+	@$(TEST_FLAGS) make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 bluetooth_raw_write_flag_test: TEST_FLAGS=BLUETOOTH_ALLOW_RAW_WRITE=1
 bluetooth_raw_write_flag_test: code_generation_test
 	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@$(TEST_FLAGS) make -j4
 	@make clean
+	@$(TEST_FLAGS) make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 binary_output_test: TEST_FLAGS=BINARY_OUTPUT=1
 binary_output_test: code_generation_test
 	@echo -n "Testing build with $(TEST_FLAGS) flag..."
-	@$(TEST_FLAGS) make -j4
 	@make clean
+	@$(TEST_FLAGS) make -j4
 	@$(TEST_FLAGS) PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 default_pic32_compile_test: code_generation_test
 	@echo -n "Testing default platform build (chipKIT) with example vehicle signals..."
-	@make -j4
 	@make clean
+	@make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 chipkit_compile_test: code_generation_test
 	@echo -n "Testing chipKIT build with example vehicle signals..."
-	@PLATFORM=CHIPKIT make -j4
 	@make clean
+	@PLATFORM=CHIPKIT make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 c5_compile_test: code_generation_test
 	@echo -n "Testing CrossChasm C5 build with example vehicle signals..."
-	@PLATFORM=CROSSCHASM_C5 make -j4
 	@make clean
+	@PLATFORM=CROSSCHASM_C5 make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 lpc17xx_compile_test: code_generation_test
 	@echo -n "Testing Blueboard board build with example vehicle signals..."
-	@PLATFORM=BLUEBOARD make -j4
 	@make clean
+	@PLATFORM=BLUEBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 mapped_lpc17xx_compile_test: mapped_code_generation_test
 	@echo -n "Testing Blueboard board build with example mapped vehicle signals..."
-	@PLATFORM=BLUEBOARD make -j4
 	@make clean
+	@PLATFORM=BLUEBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 ford_test:

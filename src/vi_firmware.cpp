@@ -100,7 +100,7 @@ void initializeAllCan() {
     for(int i = 0; i < getCanBusCount(); i++) {
         CanBus* bus = &(getCanBuses()[i]);
 
-        bool writable = bus->writable ||
+        bool writable = bus->rawWritable ||
             can::signalsWritable(bus, getSignals(), getSignalCount());
 #if defined(TRANSMITTER) || defined(__DEBUG__) || defined(__BENCHTEST__)
         // if we are bench testing with only 2 CAN nodes connected to one

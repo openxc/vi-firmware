@@ -135,9 +135,9 @@ QUEUE_DECLARE(CanMessage,
  * maxMessageFrequency - the default maximum frequency for all CAN messages when
  *      using the raw passthrough mode. To put no limit on the frequency, set
  *      this to 0.
- * writable - True if this CAN bus connection should allow raw CAN messages
+ * rawWritable - True if this CAN bus connection should allow raw CAN messages
  *      writes. This is independent from the CanSignal 'writable' option, which
- *      allows writing only a translated signal back to the bus.
+ *      can be set to still allow translated writes back to this bus.
  * interruptHandler - a function to call by the Interrupt Service Routine when
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC17xx uses the same global
@@ -155,7 +155,7 @@ struct CanBus {
     short address;
     void* controller;
     unsigned short maxMessageFrequency;
-    bool writable;
+    bool rawWritable;
     void (*interruptHandler)();
     HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);

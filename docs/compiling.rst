@@ -12,7 +12,7 @@ Ubuntu), OS X and Cygwin in Windows. For documentation on how to build for each
 platform, see the :doc:`supported platform details </platforms/platforms>`.
 
 Before you can compile, you will need to define your CAN messages :doc:`define
-your CAN messages </definitions>`. When compiling you need to specify which
+your CAN messages </config/config>`. When compiling you need to specify which
 board you are compiling for with the ``PLATFORM`` flag. All other flags are
 optional.
 
@@ -82,4 +82,4 @@ If the compilation didn't work:
    are stored as git submodules and do not work when using the zip file.
 -  If you get a lot of errors about ``undefined reference to getSignals()'`` and
    other functions, you need to make sure you defined your CAN messages - read
-   through :doc:`/definitions` before trying to compile.
+   through :doc:`/config/config` before trying to compile.

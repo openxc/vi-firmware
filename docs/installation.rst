@@ -43,7 +43,7 @@ with development tools like Git and shell scripts.
     $ script/bootstrap.sh
 
 4. If there were no errors, you are ready to :doc:`define your CAN messages
-   </definitions>` and then :doc:`compile </compiling>`. If there are
+   </config/config>` and then :doc:`compile </compiling>`. If there are
    errors, follow the recommendations in the error messages. You may need to
    manually install the dependencies if your environment is not in a predictable
    state.

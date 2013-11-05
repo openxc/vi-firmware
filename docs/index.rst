@@ -43,7 +43,7 @@ Configuring, Compiling and Testing
     :glob:
 
     platforms/platforms
-    definitions
+    config/config
     compiling
     testing
 

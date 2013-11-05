@@ -1,5 +1,5 @@
 ======================
-CAN Message Definition
+Firmware Configuration
 ======================
 
 The open source repository does not include the implementation of the functions
@@ -23,3 +23,9 @@ you can either:
 Knowledge of the vehicle's CAN messages is required for both options - this is
 advanced territory, and if you're just looking to get some data out of your car
 you most likely want one of the binary firmwares from an automaker
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    faq

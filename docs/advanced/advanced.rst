@@ -6,4 +6,7 @@ Advanced Firmware Features
     :maxdepth: 1
     :glob:
 
-    *
+    lowlevel
+    binary
+    benchtesting
+    boardsupport

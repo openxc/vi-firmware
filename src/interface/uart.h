@@ -14,6 +14,10 @@ extern const int BAUD_RATE;
 /* Public: A container for a UART connection with queues for both input and
  * output.
  *
+ * baudRate - the desired baud rate for the interface.
+ * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
+ *      true, accept raw write requests from the USB interface.
+ *
  * sendQueue - A queue of bytes that need to be sent out over UART.
  * receiveQueue - A queue of bytes that have been received via UART but not yet
  *      processed.
@@ -21,6 +25,7 @@ extern const int BAUD_RATE;
  */
 typedef struct {
     int baudRate;
+    bool allowRawWrites;
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
     // host to device

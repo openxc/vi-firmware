@@ -12,5 +12,13 @@ void openxc::interface::uart::initializeCommon(UartDevice* device) {
         debugNoNewline("Initializing UART.....");
         QUEUE_INIT(uint8_t, &device->receiveQueue);
         QUEUE_INIT(uint8_t, &device->sendQueue);
+
+        device->allowRawWrites =
+#ifdef UART_ALLOW_RAW_WRITE
+            true
+#else
+            false
+#endif
+            ;
     }
 }

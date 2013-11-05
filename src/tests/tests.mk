@@ -36,6 +36,9 @@ test: unit_tests
 	@make debug_compile_test
 	@make stats_compile_test
 	@make network_compile_test
+	@make network_raw_write_flag_test
+	@make usb_raw_write_flag_test
+	@make bluetooth_raw_write_flag_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
@@ -102,6 +105,27 @@ debug_compile_test: code_generation_test
 network_compile_test: code_generation_test
 	@echo -n "Testing build with USE_NETWORK=1 flag..."
 	@USE_NETWORK=1 make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+network_raw_write_flag_test: TEST_FLAGS=NETWORK_ALLOW_RAW_WRITE=1
+network_raw_write_flag_test: code_generation_test
+	@echo -n "Testing build with $(TEST_FLAGS) flag..."
+	@$(TEST_FLAGS) make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+usb_raw_write_flag_test: TEST_FLAGS=USB_ALLOW_RAW_WRITE=1
+usb_raw_write_flag_test: code_generation_test
+	@echo -n "Testing build with $(TEST_FLAGS) flag..."
+	@$(TEST_FLAGS) make -j4
+	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+bluetooth_raw_write_flag_test: TEST_FLAGS=BLUETOOTH_ALLOW_RAW_WRITE=1
+bluetooth_raw_write_flag_test: code_generation_test
+	@echo -n "Testing build with $(TEST_FLAGS) flag..."
+	@$(TEST_FLAGS) make -j4
 	@make clean
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 

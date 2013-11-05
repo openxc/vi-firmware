@@ -39,10 +39,21 @@ These options are passed as shell environment variables to the Makefile, e.g.
       messages are ACKed. SEe the :doc:`testing section </testing>`
       for more details.
 
-
 ``NETWORK`` - By default, TCP output of OpenXC vehicle data is disabled. Set
 this to ``1`` to enable TCP output on boards that have an Network interface (only
 the chipKIT Max32 right now).
+
+``NETWORK_ALLOW_RAW_WRITE`` - By default, raw CAN message write requests are not
+allowed from the network interface even if the CAN bus is configured to allow
+raw writes - set this to ``1`` to accept them.
+
+``BLUETOOTH_ALLOW_RAW_WRITE`` - By default, raw CAN message write requests are
+not allowed from the Bluetooth interface even if the CAN bus is configured to
+allow raw writes - set this to ``1`` to accept them.
+
+``USB_ALLOW_RAW_WRITE`` - By default, raw CAN message write requests *are*
+allowed from the wired USB interface (if the CAN bus is also configured to allow
+raw writes) - set this to ``0`` to block them.
 
 ``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
 with a bootloader (if one is available for the selected platform), allowing you

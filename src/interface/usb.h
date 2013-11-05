@@ -28,6 +28,9 @@ namespace usb {
  * configured - A flag that indicates if the USB interface has been configured
  *      by a host. Once true, this will not be set to false until the board is
  *      reset.
+ * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
+ *      true, accept raw write requests from the USB interface.
+ *
  * sendQueue - A queue of bytes to send over the IN endpoint.
  * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
  * device - The UsbDevice attached to the host - only used on PIC32.
@@ -38,6 +41,7 @@ typedef struct {
     uint8_t outEndpoint;
     uint8_t outEndpointSize;
     bool configured;
+    bool allowRawWrites;
     QUEUE_TYPE(uint8_t) sendQueue;
     QUEUE_TYPE(uint8_t) receiveQueue;
     // This buffer MUST be non-local, so it doesn't get invalidated when it

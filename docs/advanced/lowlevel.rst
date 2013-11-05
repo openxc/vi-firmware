@@ -114,10 +114,11 @@ writes.
 
 For additional security, by default the firmware will not accept raw CAN write
 requests from remote interfaces even if ``raw_writable`` is true. Write requests
-from Bluetooth and network connections will be ignored - only USB is allowed. I
-you wish to write raw CAN messages wirelessly (and understand that those words
-make security engineers queasy), compile with the ``ALLOW_REMOTE_RAW_WRITES``
-flag (see :doc:`all compile-time flags </compiling>`).
+from Bluetooth and network connections will be ignored - only USB is allowed by
+default. If you wish to write raw CAN messages wirelessly (and understand that
+those words make security engineers queasy), compile with the
+``NETWORK_ALLOW_RAW_WRITE`` or ``BLUETOOTH_ALLOW_RAW_WRITE`` flags (see
+:doc:`all compile-time flags </compiling>`).
 
 The raw CAN write support is intended soley for protoyping and advanced
 development work - for any sort of consumer-level app, it's much better to use

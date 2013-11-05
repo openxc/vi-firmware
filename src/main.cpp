@@ -49,7 +49,11 @@ UsbDevice USB_DEVICE = {
     MAX_USB_PACKET_SIZE_BYTES};
 
 Pipeline pipeline = {
+#ifdef USE_BINARY_OUTPUT
+    openxc::pipeline::PROTO,
+#else
     openxc::pipeline::JSON,
+#endif
     &USB_DEVICE,
     &UART_DEVICE,
 #ifdef __USE_NETWORK__

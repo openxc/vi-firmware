@@ -39,6 +39,7 @@ test: unit_tests
 	@make network_raw_write_flag_test
 	@make usb_raw_write_flag_test
 	@make bluetooth_raw_write_flag_test
+	@make binary_output_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
@@ -127,6 +128,14 @@ bluetooth_raw_write_flag_test: code_generation_test
 	@echo -n "Testing build with $(TEST_FLAGS) flag..."
 	@$(TEST_FLAGS) make -j4
 	@make clean
+	@echo "$(GREEN)passed.$(COLOR_RESET)"
+
+binary_output_test: TEST_FLAGS=BINARY_OUTPUT=1
+binary_output_test: code_generation_test
+	@echo -n "Testing build with $(TEST_FLAGS) flag..."
+	@$(TEST_FLAGS) make -j4
+	@make clean
+	@$(TEST_FLAGS) PLATFORM=FORDBOARD make -j4
 	@echo "$(GREEN)passed.$(COLOR_RESET)"
 
 default_pic32_compile_test: code_generation_test

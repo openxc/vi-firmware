@@ -55,6 +55,9 @@ allow raw writes - set this to ``1`` to accept them.
 allowed from the wired USB interface (if the CAN bus is also configured to allow
 raw writes) - set this to ``0`` to block them.
 
+``BINARY_OUTPUT`` - By default, the output format is JSON. Set this to ``1`` to
+use a binary output format, described more in :doc:`/advanced/binary`.
+
 ``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
 with a bootloader (if one is available for the selected platform), allowing you
 to update the firmware without specialized hardware. If you want to build to run

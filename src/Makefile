@@ -18,6 +18,10 @@ ifeq ($(BENCHTEST), 1)
 SYMBOLS += __BENCHTEST__
 endif
 
+ifeq ($(BINARY_OUTPUT), 1)
+SYMBOLS += USE_BINARY_OUTPUT
+endif
+
 ifndef USB_ALLOW_RAW_WRITE
 USB_ALLOW_RAW_WRITE = 1
 endif

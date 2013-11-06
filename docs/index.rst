@@ -26,14 +26,14 @@ version to a USB, Bluetooth or network interface.
    documentation itself - most users don't need anything in this documentation.
    Here be dragons!
 
-Installation
-============
+Getting Started
+===============
 
 .. toctree::
     :maxdepth: 2
-    :glob:
 
-    installation
+    config/getting-started.rst
+    config/getting-started-compiling.rst
 
 Configuring, Compiling and Testing
 ==================================

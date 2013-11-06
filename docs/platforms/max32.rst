@@ -71,12 +71,11 @@ LED Lights
 The chipKIT has 1 user controllable LED. When CAN activity is detected, the LED
 will be enabled (it's green).
 
-Compiling
----------
+Compiling and Flashing
+----------------------
 
-Once the :doc:`dependencies </installation>` are installed, attach
-the chipKIT to your computer with a mini-USB cable, ``cd`` into the ``src``
-subdirectory, build and upload to the device.
+Attach the chipKIT to your computer with a mini-USB cable, ``cd`` into the
+``src`` subdirectory, build and upload to the device.
 
 .. code-block:: sh
 

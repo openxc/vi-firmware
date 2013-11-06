@@ -40,8 +40,7 @@ find out how to re-flash the VI.
 Bare Metal
 """"""""""
 
-Once the :doc:`dependencies </installation>` are installed, attach a
-JTAG adapter to your computer and the VI, then compile and flash:
+Attach a JTAG adapter to your computer and the VI, then compile and flash:
 
 .. code-block:: sh
 

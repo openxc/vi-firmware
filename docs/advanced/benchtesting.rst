@@ -35,16 +35,20 @@ from a vehicle and do all of your work inside where it's warm and comfortable.
 Requirements
 ````````````
 
-* 2 VIs
-* A female-female OBD-II cable, or whatever combination of cable ends you need
+- 2 VIs
+
+- A female-female OBD-II cable, or whatever combination of cable ends you need
   to connect one VI directly to another
-* 120 ohm resistors across the H/L CAN wires in that cable or...
-    * If one VI is a chipKIT, there are jumpers you can flip to enable 120 ohm
-      resistors on each CAN controller (only one of the VIs needs the resistors)
-    * If one VI is a Ford prototype, that has the termination resistors enabled
-      by default on version 1.0. In an updated version that may change, as this
-      is actually a mistake - they should have been only available if you short
-      a solder jumper.
+
+- 120 ohm resistors across the H/L CAN wires in that cable or...
+
+  - If one VI is a chipKIT, there are jumpers you can flip to enable 120 ohm
+    resistors on each CAN controller (only one of the VIs needs the resistors)
+
+  - If one VI is a Ford prototype, that has the termination resistors enabled by
+    default on version 1.0. In an updated version that may change, as this is
+    actually a mistake - they should have been only available if you short a
+    solder jumper.
 
 We recommend building your own cable with `female OBD-II connectors from Molex
 <http://www.digikey.com/product-search/en?mpart=0511151601&vendor=900>`_ (with

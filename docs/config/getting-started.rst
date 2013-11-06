@@ -2,14 +2,6 @@
 Getting Started with VI Configuration
 =====================================
 
-.. WARNING::
-    If you've downloaded a pre-built binary firmware for your car, locate your VI in
-    the `list of supported interfaces
-    <http://openxcplatform.com/vehicle-interface/hardware.html>`_ to find
-    instructions for programming it. You don't need anything from the VI firmware
-    documentation itself - most users don't need anything in this documentation.
-    Really, you can stop here!
-
 In this example, we'll pick a simple use case and walk through how to
 configure and compile the firmware. You'll need to be comfortable
 getting around at the command line, but you don't need to know any C++.
@@ -154,4 +146,4 @@ That's it - the configuration is finished. When we compile the VI
 firmware with this configuration, it will read our CAN message from the
 bus, parse and translate it into a JSON output message with a ``name``
 and ``value``, and send it out over USB and Bluetooth. Next, we'll :doc:`walk
-through how to do the compilation </config/getting-started-compiling>`.
+through how to do the compilation </compile/getting-started>`.

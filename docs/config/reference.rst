@@ -2,18 +2,6 @@
 Configuration Options
 ======================
 
-The code generation utilities in the OpenXC Python library are intended to
-generate a valid ``signals.cpp`` file for the `OpenXC vehicle interface firmware
-<http://vi-firmware.openxcplatform.com>`_. Instead of implementing all of the
-boilerplate C++ and C-structs by hand, you can maintain the CAN message
-definitions in a much easier to read and modify JSON format. The input format is
-a JSON object like the one found in `signals.json.example
-<https://github.com/openxc/vi-firmware/blob/master/src/signals.json.example>`_.
-
-You must know the CAN message formats of the vehicle you want to use with the
-vehicle interface, as you cannot create these input files without that
-knowledge.
-
 There are many configuration options - we recommend looking for your use case in
 the list of :doc:`read <examples>` or :doc:`write <write-examples>` to find a
 starting point, and refer to this section as a reference on particular
@@ -30,7 +18,8 @@ path will work. If you use relative paths, however, they must be relative
 to the root of wherever you run the build scripts.
 
 Once you've defined your message set in a JSON file, run the
-``openxc-generate-firmware-code`` tool to create an implementation of
+``openxc-generate-firmware-code`` tool from the `OpenXC Python library
+<http://python.openxcplatform.com>`_ to create an implementation of
 ``signals.cpp``:
 
 .. code-block:: sh

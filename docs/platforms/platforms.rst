@@ -5,21 +5,11 @@ Supported Platforms
 For information on how to add support for another platform, see the :doc:`board
 support </advanced/boardsupport>` section.
 
-LPC176x
-=======
-
 .. toctree::
     :maxdepth: 1
 
     ford
     blueboard
-
-PIC32
-=====
-
-.. toctree::
-    :maxdepth: 1
-
     max32
     crosschasm-c5
 

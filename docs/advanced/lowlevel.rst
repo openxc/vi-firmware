@@ -118,7 +118,7 @@ from Bluetooth and network connections will be ignored - only USB is allowed by
 default. If you wish to write raw CAN messages wirelessly (and understand that
 those words make security engineers queasy), compile with the
 ``NETWORK_ALLOW_RAW_WRITE`` or ``BLUETOOTH_ALLOW_RAW_WRITE`` flags (see
-:doc:`all compile-time flags </compiling>`).
+:doc:`all compile-time flags </compile/makefile-opts>`).
 
 The raw CAN write support is intended soley for protoyping and advanced
 development work - for any sort of consumer-level app, it's much better to use

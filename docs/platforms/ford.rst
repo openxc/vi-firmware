@@ -12,7 +12,7 @@ Flashing a Pre-compiled Firmware
 --------------------------------
 
 Pre-compiled binaries (built with the ``BOOTLOADER`` flag enabled, see all
-`compiler flags <compiling>`_) are compatible with the `OpenLPC USB bootloader
+:doc:`compiler flags </compile/makefile-opts>`) are compatible with the `OpenLPC USB bootloader
 <https://github.com/openxc/openlpc-USB_Bootloader>`_  - follow the instructions
 for `Flashing User Code
 <https://github.com/openxc/openlpc-USB_Bootloader#flashing-user-code>`_ to

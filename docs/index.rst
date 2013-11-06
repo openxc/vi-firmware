@@ -32,19 +32,17 @@ Getting Started
 .. toctree::
     :maxdepth: 2
 
-    config/getting-started.rst
-    config/getting-started-compiling.rst
+    getting-started
 
 Configuring, Compiling and Testing
 ==================================
 
 .. toctree::
     :maxdepth: 2
-    :glob:
 
-    platforms/platforms
     config/config
-    compiling
+    compile/compiling
+    platforms/platforms
     testing
 
 Advanced Documentation
@@ -52,7 +50,6 @@ Advanced Documentation
 
 .. toctree::
     :maxdepth: 2
-    :glob:
 
     advanced/advanced
     output/output
@@ -62,7 +59,6 @@ Contributing
 
 .. toctree::
     :maxdepth: 0
-    :glob:
 
     contributing
 

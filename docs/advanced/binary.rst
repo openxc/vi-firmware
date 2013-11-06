@@ -31,7 +31,7 @@ Compiling with Binary Output
 ============================
 
 To use the binary output format, compile with the ``BINARY_OUTPUT`` flag
-(see :doc:`all compile-time flags </compiling>`).
+(see :doc:`all compile-time flags </compile/makefile-opts>`).
 
 Motivation
 ===========

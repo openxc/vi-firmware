@@ -26,9 +26,6 @@ version to a USB, Bluetooth or network interface.
    documentation itself - most users don't need anything in this documentation.
    Here be dragons!
 
-Getting Started
-===============
-
 .. toctree::
     :maxdepth: 2
 
@@ -45,7 +42,7 @@ Configuring, Compiling and Testing
     platforms/platforms
     testing
 
-Advanced Documentation
+Advanced Reference
 ======================
 
 .. toctree::

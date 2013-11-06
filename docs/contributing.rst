@@ -22,6 +22,14 @@ to our issue tracker at http://github.com/openxc/vi-firmware/issues/
 
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 
+Authors and Contributors
+------------------------
+
+A `complete list
+<https://github.com/openxc/openxc-python/blob/master/CONTRIBUTORS>`_ of all
+authors is stored in the repository - thanks to everyone for the great
+contributions.
+
 Related Projects
 ================
 
@@ -47,4 +55,3 @@ developers. More information on this library is available at in the
 .. _`applications`: http://openxcplatform.com/android/index.html
 .. _`OpenXC Android library`: https://github.com/openxc/openxc-android
 .. _`OpenXC website`: http://openxcplatform.com
-

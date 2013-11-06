@@ -1,6 +1,11 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v5.1.2-dev
+## v5.1.2
+
+* Add BINARY_OUTPUT flag
+* Add compile-time flags to control if raw CAN writes are allowed from various
+  interfaces
+* Refactored documentation.
 
 ## v5.1.1
 

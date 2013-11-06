@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v5.1.3-dev
+
 ## v5.1.2
 
 * Add BINARY_OUTPUT flag

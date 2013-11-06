@@ -78,9 +78,7 @@ the individual buses (e.g. ``hs`` could inherit the ``unfiltered`` setting but
 
 There are yet more ways to configure and control the low-level output (e.g.
 limiting the data rate as to not overwhelm the VI's output channels) - see the
-`code generation docs
-<http://python.openxcplatform.com/en/latest/code-generation.html>`_ for complete
-information.
+:ref:`raw configuration examples <unfiltered-raw>` for more information.
 
 Writing to CAN
 ==============

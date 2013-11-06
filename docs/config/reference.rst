@@ -50,6 +50,8 @@ Parent Message Sets
 Message sets are composable - you can extend a set by adding a path to the
 parent(s) to the ``parents`` key.
 
+.. _initializer:
+
 Initializers
 ============
 
@@ -62,6 +64,8 @@ string should be the name of a function with the type signature:
 
 These functions will be called once at the beginning of execution, before
 reading any CAN messages.
+
+.. _looper:
 
 Loopers
 =======

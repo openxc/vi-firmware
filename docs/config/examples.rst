@@ -422,9 +422,9 @@ handler to make the transformation. Here's the JSON configuration:
    }
 
 We set the ``handler`` for the signal to ``ourRoundingHandler``, and we'll
-define that in a separate file named ``my_handlers.cpp``. The ``extra_sources``
-field is also set, meaning that our custom C/C++ code will be included with the
-firmware build.
+define that in a separate file named ``my_handlers.cpp``. We also added the
+``extra_sources`` field, which is a list of the names of C++ source files on our
+path to be included with the generated firmware code.
 
 In ``my_handlers.cpp``:
 
@@ -834,16 +834,111 @@ message co-exist peacefully. If we set ``raw_can_mode`` to ``filtered``, it
 would only send the raw message for ``0x102``, where we're getting the numeric
 signal.
 
-.. _initializer:
+.. _initializer-example:
 
 Initializer Function
 =====================
 
-TODO
+We want to initialize a counter when the VI powers up that we will use from some
+custom CAN signal handlers.
 
-.. _looper:
+.. code-block:: sh
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "raw_can_mode": "unfiltered",
+               "speed": 500000
+           }
+       },
+       "messages": {
+           "0x102": {
+               "bus": "hs",
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement",
+                       "bit_position": 5,
+                       "bit_size": 7
+                   }
+               }
+           }
+       },
+       "initializers": [
+          "initializeMyCounter"
+       ],
+       "extra_sources": [
+         "my_initializers.cpp"
+       ]
+   }
+
+We added an ``initializers`` field, which is an array containing the names of
+C functions matching the :ref:`initializer type signature <initializer>`.
+
+In ``my_initializers.cpp``:
+
+.. code-block:: cpp
+
+   int MY_COUNTER;
+   void initializeMyCounter() {
+      MY_COUNTER = 42;
+   }
+
+This isn't a very useful initializer, but there much more you could do - you'll
+want to look into the lowest level APIs in the `firmware source
+<https://github.com/openxc/vi-firmware>`_. Look through the ``.h`` files, where
+most functions are documented.
+
+.. _looper-example:
 
 Looper Function
 ================
 
-TODO
+We want to increment a counter every time through the main loop of the firmware,
+regardless of whatever CAN messages we may have received.
+
+.. code-block:: sh
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "raw_can_mode": "unfiltered",
+               "speed": 500000
+           }
+       },
+       "messages": {
+           "0x102": {
+               "bus": "hs",
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement",
+                       "bit_position": 5,
+                       "bit_size": 7
+                   }
+               }
+           }
+       },
+       "loopers": [
+          "incrementMyCounter"
+       ],
+       "extra_sources": [
+         "my_loopers.cpp"
+       ]
+   }
+
+We added a ``loopers`` field, which is an array containing the names of
+C functions matching the :ref:`looper type signature <looper>`.
+
+In ``my_loopers.cpp``:
+
+.. code-block:: cpp
+
+   void incrementMyCounter() {
+      static int myCounter = 0;
+      ++myCounter;
+   }
+
+As with the :ref:`initializer <initializer-example>`, this isn't a very
+functional example, but there much more you could do - you'll want to look into
+the lowest level APIs in the `firmware source
+<https://github.com/openxc/vi-firmware>`_. Look through the ``.h`` files, where
+most functions are documented.

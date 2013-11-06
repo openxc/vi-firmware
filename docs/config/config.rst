@@ -34,4 +34,5 @@ you most likely want one of the binary firmwares from an automaker
     examples
     write-examples
     faq
+    bit-numbering
     reference

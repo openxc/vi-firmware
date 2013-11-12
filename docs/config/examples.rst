@@ -243,7 +243,7 @@ ID ``0x90``. We want the name of the signal for OpenXC app developers to be
                        "bit_size": 12
                    }
                }
-           }
+           },
            "0x90": {
                "bus": "ms",
                "signals": {

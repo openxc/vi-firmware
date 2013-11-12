@@ -119,6 +119,7 @@ be translated. Modify the file again:
        "messages": {
            "0x102": {
                "name": "Driver_Controls",
+               "bus": "hs",
                "signals": {
                    "Accelerator_Pedal_Pos": {
                        "generic_name": "accelerator_pedal_position",

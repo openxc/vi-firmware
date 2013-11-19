@@ -25,7 +25,7 @@ during the installation process, select these packages:
 
 ::
 
-    make, gcc, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools
+    make, gcc-core, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools
 
 After it's installed, open a new Cygwin terminal and configure it to
 ignore Windows-style line endings in scripts by running this command:

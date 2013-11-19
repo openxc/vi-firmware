@@ -123,7 +123,7 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     cJSON* busObject = cJSON_GetObjectItem(root, "bus");
     if(busObject == NULL) {
-        // debug("Raw write request missing bus", id);
+        debug("Raw write request missing bus", id);
     }
 
     CanBus* matchingBus = NULL;
@@ -136,12 +136,15 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
                 break;
             }
         }
-        // if(matchingBus == NULL) {
-            // debug("No matching active bus for requested address: %d", busAddress);
-        // }
+
+        if(matchingBus == NULL) {
+            debug("No matching active bus for requested address: %d", busAddress);
+        }
     }
 
     if(matchingBus == NULL) {
+        debug("No matching bus for write request, so using the first we find");
+        // TODO kill this...require bus
         matchingBus = &getCanBuses()[0];
     }
 

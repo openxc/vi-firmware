@@ -30,7 +30,7 @@ programming hardware. Compile the firmware to run under the bootloader:
 .. code-block:: sh
 
    $ make clean
-   $ PLATFORM=FORDBOARD BOOTLOADER=1 make -j4
+   $ PLATFORM=FORDBOARD make -j4
 
 The compiled firmware will be located at
 ``build/lpc17xx/vi-firmware-lpc17xx.bin``. See `reference VI programming
@@ -45,8 +45,10 @@ Attach a JTAG adapter to your computer and the VI, then compile and flash:
 .. code-block:: sh
 
     $ make clean
-    $ PLATFORM=FORDBOARD make -j4
-    $ PLATFORM=FORDBOARD make flash
+    $ export PLATFORM=FORDBOARD
+    $ export BOOTLOADER=0
+    $ make -j4
+    $ make flash
 
 The config files in this repository assume your JTAG adapter is the
 Olimex ARM-USB-OCD unit. If you have a different unit, modify the

@@ -290,18 +290,6 @@ fi
 $SUDO_CMD pip install -U pip
 $SUDO_CMD pip install --pre -Ur script/pip-requirements.txt
 
-if ! command -v protoc >/dev/null 2>&1; then
-    if [ $OS == "cygwin" ]; then
-        _cygwin_error "protobuf"
-    elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
-        if [ $DISTRO == "Ubuntu" ]; then
-            _install protobuf-compiler
-        else
-            _install protobuf
-        fi
-    fi
-fi
-
 popd
 
 echo

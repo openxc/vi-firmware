@@ -26,7 +26,7 @@ offset.
 To accomplish this, we need to know a little C - we will write a custom signal
 handler to make the transformation. Here's the JSON configuration:
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -95,7 +95,7 @@ developers with the name ``my_signed_measurement``.
 We will use a custom value handler for the signal to reference the sign
 signal's last value when transforming the absolute value signal.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -191,7 +191,7 @@ controller 1. The three signals:
 - The latitude minute fraction signal starts at bit 24 and is 14 bits wide. The
   value on CAN requires a factor of .0001.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -337,7 +337,7 @@ Initializer Function
 We want to initialize a counter when the VI powers up that we will use from some
 custom CAN signal handlers.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -391,7 +391,7 @@ Looper Function
 We want to increment a counter every time through the main loop of the firmware,
 regardless of whatever CAN messages we may have received.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {

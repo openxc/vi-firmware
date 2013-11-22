@@ -31,7 +31,7 @@ into a CAN signal in a message on a high speed bus attached to controller 1. The
 signal is 7 bits wide, starting from bit 5 in message ID ``0x102``. We want the
 name of the signal that will be sent to the VI to be ``my_openxc_measurement``.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -68,7 +68,7 @@ into a CAN signal in a message on a high speed bus attached to controller 1. The
 signal is 1 bits wide, starting from bit 3 in message ID ``0x201``. We want the
 name of the signal that will be sent to the VI to be ``my_boolean_request``.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -107,7 +107,7 @@ message ID ``0x104``. We want the name of the signal for OpenXC app developers
 to be ``active_state``. There are 6 valid states from 0-5 in the CAN signal, but
 we want the app developer to send the strings ``a`` through ``f`` to the VI.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -154,7 +154,7 @@ below 100 down to 0 before sending (similar to the read-only example
 To accomplish this, we need to know a little C - we will write a custom signal
 handler to make the transformation. Here's the JSON configuration:
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {

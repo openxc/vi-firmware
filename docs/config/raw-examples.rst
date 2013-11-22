@@ -115,7 +115,7 @@ We want to read the same signal as in the :ref:`One Bus, One Numeric Signal
 <onebus-onesignal>` example, but we also want to receive all unfiltered raw CAN
 messages simultaneously.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {

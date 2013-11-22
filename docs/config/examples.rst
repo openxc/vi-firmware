@@ -15,6 +15,10 @@ Bluetooth) and not sending to the CAN bus. For examples of configuring writable
 messages and signals that *do* write back to the CAN bus, see the :doc:`write
 configuration examples <write-examples>`.
 
+.. contents::
+    :local:
+    :depth: 1
+
 .. _onebus-onesignal:
 
 One Bus, One Numeric Signal

@@ -35,7 +35,7 @@ Configuring, Compiling and Testing
 ==================================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     config/config
     compile/compiling
@@ -46,10 +46,10 @@ Advanced Reference
 ======================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     advanced/advanced
-    output/output
+    output
 
 Contributing
 ============

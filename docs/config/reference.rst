@@ -394,10 +394,8 @@ The ``mappings`` field is an optional field allows you to move the definitions
 from the ``messages`` list to separate files for improved composability and
 readability.
 
-For an example of a message set using mappings, see the
-`mapped-signals.json.example
-<https://github.com/openxc/vi-firmware/blob/master/src/mapped-signals.json.example>`_
-file in the repository.
+For an detailed explanation of mapped message sets, see the example of a message
+set using mappings, see the :ref:`mapped` configuration example.
 
 The ``mappings`` field must be a list of JSON objects with:
 
@@ -427,21 +425,6 @@ specifying their own value for this flag.
 the CAN messages in a mapping. By default, a mapping is enabled; if this flag is
 false, all CAN message and signals from the mapping will be excluded from the
 generated source code.
-
-Database-backed Mappings
---------------------------
-
-If you use Vector DBC files to store your "gold standard" CAN signal
-definitions, you can save some effort by using the static CAN messages
-definition from the database instead of repeating it in JSON.
-
-In the database ``mapping`` file referred to earlier, you only need to define
-(at minimum) the generic name for each signal in the message.
-
-The code generation script merges your JSON mapping with an XML version of the
-database. It pulls the necessary details of the messages from the database (bit
-position, bit size, offset, etc.), saving you from defining the tedious and
-error-prone parts in multiple places.
 
 Extra Sources
 =============

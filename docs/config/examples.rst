@@ -29,7 +29,7 @@ The signal is 7 bits wide, starting from bit 5 in message ID ``0x102``. We want
 the name of the signal for OpenXC app developers to be
 ``my_openxc_measurement``.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -62,7 +62,7 @@ and offset before sending it to eh app developer. The value on CAN must be
 multiplied by -1.0 and offset by 1400.
 
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -97,7 +97,7 @@ the name of the signal for OpenXC app developers to be
 ``my_boolean_measurement``. Because it is a boolean type, the value will appear
 as ``true`` or ``false`` in the JSON for app developers.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -138,7 +138,7 @@ the name of the signal for OpenXC app developers to be
 ``active_state``. There are 6 valid states from 0-5, and we want those to
 appears as the state strings ``a`` through ``f`` in the JSON for app developers.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -180,7 +180,7 @@ We want to read the same state-based signal from :ref:`state-based` but we want
 the values 0-3 on the bus to all correspond with state ``a`` and values ``4-5``
 to the string state ``b``.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -210,6 +210,8 @@ Each state string maps to an array - this can seem unnecessary when you only
 have 1 numeric value for each state, but it allows combined mappings as in this
 example.
 
+.. _twobus:
+
 Two Buses, Two Signals
 ======================
 
@@ -225,7 +227,7 @@ The signal on the medium speed bus 14 bits wide, starting from bit 0 in message
 ID ``0x90``. We want the name of the signal for OpenXC app developers to be
 ``my_second_measurement``.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -275,7 +277,7 @@ We want to read the same signal as in the :ref:`One Bus, One Numeric Signal
 want the firmware to pick out messages at a regular period, but we don't care
 which data is dropped in order to stay under the maximum.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -313,7 +315,7 @@ are fairly common in vehicles, where a signal is sent at a steady frequency
 even if the value hasn't changed. For this example, we want to preserve all
 information - if a signal changes, we want to make sure the data is sent.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -350,7 +352,7 @@ We want to limit the rate of a signal as in :ref:`limited-translated-unchanged`,
 but we want to be more strict - the signal should only be translated and sent to
 app developers if it actually changes.
 
-.. code-block:: sh
+.. code-block:: javascript
 
    {   "buses": {
            "hs": {
@@ -381,3 +383,232 @@ to tell the current state of the vehicle on startup - you have to wait for a
 state change before knowing any values. For that reason, we've moved away from
 using this for most firmware (using a combination of a ``max_frequency`` of 1Hz
 and ``force_send_changed == true``) but the option is still available.
+
+.. _mapped:
+
+Separate Files for Message Sets
+===============================
+
+Starting from the :ref:`twobus` example, we want to split up the configuration
+into mutiple files because it's getting too big and hard to follow. This will
+especially be true as we add more message and signals.
+
+Starting from this complete configuration:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           },
+           "ms": {
+               "controller": 2,
+               "speed": 125000
+           }
+       },
+       "messages": {
+           "0x108": {
+               "bus": "hs",
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_first_measurement",
+                       "bit_position": 11,
+                       "bit_size": 12
+                   }
+               }
+           },
+           "0x90": {
+               "bus": "ms",
+               "signals": {
+                   "My_Other_Signal": {
+                       "generic_name": "my_second_measurement",
+                       "bit_position": 0,
+                       "bit_size": 14
+                   }
+               }
+           }
+       }
+   }
+
+we move the messages that we want to read from the ``hs`` bus to the file
+``hs.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x108": {
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_first_measurement",
+                       "bit_position": 11,
+                       "bit_size": 12
+                   }
+               }
+           }
+       }
+   }
+
+and we move the messages that we want to read from the ``ms`` bus to the file
+``ms.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x90": {
+               "signals": {
+                   "My_Other_Signal": {
+                       "generic_name": "my_second_measurement",
+                       "bit_position": 0,
+                       "bit_size": 14
+                   }
+               }
+           }
+       }
+   }
+
+
+Notice in both of these files, the messages no longer have the ``bus`` attribute
+- we're instead going to specify that in the top level configuration:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           },
+           "ms": {
+               "controller": 2,
+               "speed": 125000
+           }
+       },
+       "mappings": [
+           {"mapping": "hs.json", "bus": "hs"},
+           {"mapping": "ms.json", "bus": "ms"}
+       ]
+   }
+
+The primary advantage of using separate files is readability, but it also makes
+the message definitions more re-usable between vehicle platforms and buses. For
+example, we could quickly parse all of the messages from the ``ms.json`` mapping
+file from the ``hs`` bus instead of ``ms`` by flipping the ``bus`` attribute in
+the top-level config file.
+
+Mapped from a DBC File
+=======================
+
+If you use Vector DBC files to store your "gold standard" CAN signal
+definitions, you can save some effort by exporting the DBC to an XML file and
+merging it with your VI configuration file. You won't need to manually copy the
+``bit_position``, ``bit_size``, ``factor`` and ``offset`` attributes.
+
+If we are to implement :ref:`onebus-onesignal` manually, we would use this
+configuration file:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           }
+       },
+       "messages": {
+           "0x102": {
+               "bus": "hs",
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement",
+                       "bit_position": 5,
+                       "bit_size": 7,
+                       "factor": -1.0,
+                       "offset": 1400
+                   }
+               }
+           }
+       }
+   }
+
+If the message and signal is defined in a DBC file, we can save some effort.
+Using a program like Vector CANdb++, export the DBC file to XML. Place the XML
+file in the same directory as your JSON configuration file. We need to first
+split up the configuration into a mapped messages file and a top-level config,
+as in :ref:`mapped` example.
+
+In our ``config.json``:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           }
+       },
+       "mappings": [
+            {"mapping": "hs.json", "bus": "hs"}
+       ]
+   }
+
+and in ``hs.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x102": {
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement",
+                       "bit_position": 5,
+                       "bit_size": 7,
+                       "factor": -1.0,
+                       "offset": 1400
+                   }
+               }
+           }
+       }
+   }
+
+Now that we have the DBC exported to an XML file (we'll assume it's named
+``exported-hs.xml``), we can remove the ``bit_position``, ``bit_size``,
+``factor`` and ``offset`` fields and let them be imported from the XML - the
+only thing required is a ``generic_name``:
+
+In our ``config.json``:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           }
+       },
+       "mappings": [
+            {"mapping": "hs.json", "bus": "hs",
+               "database": "exported-hs.xml"}
+       ]
+   }
+
+and in ``hs.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x102": {
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement"
+                   }
+               }
+           }
+       }
+   }
+
+It's not huge savings for 1 signal, but once you get a dozen it can save a lot
+of effort and opportunities for bugs.

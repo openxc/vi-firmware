@@ -17,6 +17,10 @@ Most of these examples build on configurations started for reading data from the
 bus, so you are strongly encouraged to read, understand and try the
 :doc:`read-only configurations </config/examples>` before continuing.
 
+.. contents::
+    :local:
+    :depth: 1
+
 .. _translated-write:
 
 Translated Numeric Signal Write Request

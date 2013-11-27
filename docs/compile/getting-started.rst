@@ -20,8 +20,8 @@ particular location.
 Windows
 ^^^^^^^
 
-Download `Cygwin <http://www.cygwin.com>`__ and run the installer -
-during the installation process, select these packages:
+Download the 32-bit version of `Cygwin <http://www.cygwin.com>`__ and run the
+installer - during the installation process, select these packages:
 
 ::
 
@@ -93,10 +93,10 @@ Run the ``bootstrap.sh`` script:
    $ cd vi-firmware
    vi-firmware/ $ script/bootstrap.sh
 
-If there were no errors, we are ready to compile. If there are errors,
-try to follow the recommendations in the error messages. You may need to
-:doc:`manually install the dependencies </dependencies>` if your environment is not in a
-predictable state. The ``bootstrap.sh`` script is tested in Cygwin, OS X
+If there were no errors, we are ready to compile. If there are errors, try to
+follow the recommendations in the error messages. You may need to :doc:`manually
+install the dependencies </dependencies>` if your environment is not in a
+predictable state. The ``bootstrap.sh`` script is tested in 32-bit Cygwin, OS X
 Mountain Lion, Ubuntu 12.04 and Arch Linux.
 
 Testing Compilation

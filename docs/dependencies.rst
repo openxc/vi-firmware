@@ -23,10 +23,9 @@ NXP LPC1768/69), instead of MPIDE you will need:
 * JTAG programmer compatible with ``openocd`` - we've tested the Olimex
   ARM-OCD-USB programmer.
 
-The easiest way to install these dependencies is to use the
-`script/bootstrap.sh
-<https://github.com/openxc/vi-firmware/blob/master/script/bootstrap.sh>`_
-script in the ``vi-firmware`` repository. Run the script in Linux, Cygwin in
+The easiest way to install these dependencies is to use the `script/bootstrap.sh
+<https://github.com/openxc/vi-firmware/blob/master/script/bootstrap.sh>`_ script
+in the ``vi-firmware`` repository. Run the script in Linux, 32-bit Cygwin in
 Windows or OS X and if there are no errors you should be ready to go:
 
 .. code-block:: sh

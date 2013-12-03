@@ -172,22 +172,22 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
     echo "Installing MPIDE to get avrdude for flashing chipKIT Max32 platform"
 
     if [ $OS == "cygwin" ]; then
-        MPIDE_BASENAME="mpide-0023-windows-20120903"
+        MPIDE_BASENAME="mpide-0023-windows-20130715"
         MPIDE_FILE="$MPIDE_BASENAME".zip
         EXTRACT_COMMAND="unzip -q"
         if ! command -v unzip >/dev/null 2>&1; then
             _cygwin_error "unzip"
         fi
     elif [ $OS == "mac" ]; then
-        MPIDE_BASENAME=mpide-0023-macosx-20120903
+        MPIDE_BASENAME=mpide-0023-macosx-20130715
         MPIDE_FILE="$MPIDE_BASENAME".dmg
     else
-        MPIDE_BASENAME=mpide-0023-linux-20120903
+        MPIDE_BASENAME=mpide-0023-linux32-20130817-test
         MPIDE_FILE="$MPIDE_BASENAME".tgz
         EXTRACT_COMMAND="tar -xzf"
     fi
 
-    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/$MPIDE_FILE
+    MPIDE_URL=http://chipkit.s3.amazonaws.com/builds/$MPIDE_FILE
 
     _pushd $DEPENDENCIES_FOLDER
     if ! test -e $MPIDE_FILE

@@ -12,7 +12,7 @@
 	url = https://github.com/openxc/nxp-bsp
 [submodule "src/libs/arduino.mk"]
 	path = src/libs/arduino.mk
-	url = https://github.com/peplin/arduino.mk
+	url = https://github.com/peplin/Arduino-Makefile
 [submodule "src/libs/emqueue"]
 	path = src/libs/emqueue
 	url = https://github.com/openxc/emqueue

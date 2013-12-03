@@ -71,7 +71,7 @@ void updateInterfaceLight() {
     } else if(USB_DEVICE.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
-        lights::disable(lights::LIGHT_B);
+        lights::enable(lights::LIGHT_B, lights::COLORS.red);
     }
 }
 
@@ -79,12 +79,14 @@ int main(void) {
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();
+    lights::initialize();
     power::initialize();
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
+    updateInterfaceLight();
+
     bluetooth::initialize(pipeline.uart);
     network::initialize(pipeline.network);
-    lights::initialize();
 
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();

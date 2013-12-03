@@ -86,7 +86,7 @@ firmware was not flashed properly and the board is not running.
 
 - USB connected, Bluetooth not connected - Green
 - Bluetooth connected, USB in either state - Blue
-- Neither USB or Bluetooth connected - Off
+- Neither USB or Bluetooth connected - Orange
 
 Bootloader
 ----------

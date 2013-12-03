@@ -133,6 +133,3 @@ custom_all: custom_all_prefix all
 		echo -n " running on bare metal"; \
 	fi
 	@echo ".$(COLOR_RESET)"
-
-clean::
-	rm -rf $(OBJDIR_ROOT)/*

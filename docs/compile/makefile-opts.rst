@@ -29,7 +29,8 @@ These options are passed as shell environment variables to the Makefile, e.g.
 
 - ``NETWORK`` - By default, TCP output of OpenXC vehicle data is disabled. Set
   this to ``1`` to enable TCP output on boards that have an Network interface
-  (only the chipKIT Max32 right now).
+  (only the chipKIT Max32 right now). (Note that the NETWORK option is broken on
+  the chipKIT Max32 build for the moment, see https://github.com/openxc/vi-firmware/issues/189.
 
 - ``NETWORK_ALLOW_RAW_WRITE`` - By default, raw CAN message write requests are
   not allowed from the network interface even if the CAN bus is configured to

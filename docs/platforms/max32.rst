@@ -84,19 +84,19 @@ Attach the chipKIT to your computer with a mini-USB cable, ``cd`` into the
     $ make flash
 
 If the flash command can't find your chipKIT, you may need to set the
-``SERIAL_PORT`` variable if the serial emulator doesn't show up as
+``MONITOR_PORT`` variable if the serial emulator doesn't show up as
 ``/dev/ttyUSB*`` in Linux, ``/dev/tty.usbserial*`` in Mac OS X or ``com3`` in
 Windows. For example, if the chipKIT shows up as ``/dev/ttyUSB4``:
 
 .. code-block:: sh
 
-    $ SERIAL_PORT=/dev/ttyUSB4 make flash
+    $ MONITOR_PORT=/dev/ttyUSB4 make flash
 
 and if in Windows it appeared as COM4:
 
 .. code-block:: sh
 
-    $ SERIAL_PORT=com4 make flash
+    $ MONITOR_PORT=com4 make flash
 
 IDE Support
 -----------

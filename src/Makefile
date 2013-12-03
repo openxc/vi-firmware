@@ -34,9 +34,9 @@ ifeq ($(BLUETOOTH_ALLOW_RAW_WRITE), 1)
 SYMBOLS += BLUETOOTH_ALLOW_RAW_WRITE
 endif
 
-ifeq ($(NETWORK_ALLOW_RAW_WRITE), 1)
-SYMBOLS += NETWORK_ALLOW_RAW_WRITE
-endif
+# ifeq ($(NETWORK_ALLOW_RAW_WRITE), 1)
+# SYMBOLS += NETWORK_ALLOW_RAW_WRITE
+# endif
 
 ifeq ($(DEBUG), 1)
 SYMBOLS += __DEBUG__
@@ -48,9 +48,10 @@ ifeq ($(LOG_STATS), 1)
 SYMBOLS += __LOG_STATS__
 endif
 
-ifeq ($(NETWORK), 1)
-SYMBOLS += __USE_NETWORK__
-endif
+# TODO see https://github.com/openxc/vi-firmware/issues/189
+# ifeq ($(NETWORK), 1)
+# SYMBOLS += __USE_NETWORK__
+# endif
 
 ifndef BOOTLOADER
 BOOTLOADER = 1

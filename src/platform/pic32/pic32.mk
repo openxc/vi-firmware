@@ -49,22 +49,18 @@ UART_BAUDRATE = 115200
 
 OSTYPE := $(shell uname)
 
-ifndef SERIAL_PORT
-	# Backwards compatibility with people using old name for this
-	ifdef ARDUINO_PORT
-		SERIAL_PORT := $(ARDUINO_PORT)
-	endif
-endif
+# Backwards compatibility with people using old name for this
+MONITOR_PORT ?= $(SERIAL_PORT)
 
-ifndef SERIAL_PORT
+ifndef MONITOR_PORT
 	ifeq ($(OSTYPE),Darwin)
-		SERIAL_PORT = /dev/tty.usbserial*
+		MONITOR_PORT = /dev/tty.usbserial*
 	else
 		OSTYPE := $(shell uname -o)
 		ifeq ($(OSTYPE),Cygwin)
-			SERIAL_PORT = com3
+			MONITOR_PORT = com3
 		else
-			SERIAL_PORT = /dev/ttyUSB*
+			MONITOR_PORT = /dev/ttyUSB*
 		endif
 	endif
 endif
@@ -104,13 +100,13 @@ $(error chipKIT Network library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
-ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/chipKIT.mk; echo $$?)
+ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/arduino-mk/chipKIT.mk; echo $$?)
 ifneq ($(ARDUINO_MK_EXISTS),0)
 $(error arduino.mk library missing - run "script/bootstrap.sh")
 endif
 
 USER_LIB_PATH = $(LIBS_PATH)
-ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
+ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk/arduino-mk
 
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)

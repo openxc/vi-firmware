@@ -80,13 +80,13 @@ firmware was not flashed properly and the board is not running.
 **LED A**
 
 - CAN activity detected - Blue
-- No CAN activity on either bus - Off
+- No CAN activity on either bus - Orange
 
 **LED B**
 
 - USB connected, Bluetooth not connected - Green
 - Bluetooth connected, USB in either state - Blue
-- Neither USB or Bluetooth connected - Orange
+- Neither USB or Bluetooth connected - Off
 
 Bootloader
 ----------

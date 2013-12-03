@@ -71,7 +71,7 @@ void updateInterfaceLight() {
     } else if(USB_DEVICE.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
-        lights::enable(lights::LIGHT_B, lights::COLORS.red);
+        lights::disable(lights::LIGHT_B);
     }
 }
 
@@ -84,6 +84,9 @@ int main(void) {
     usb::initialize(pipeline.usb);
     uart::initialize(pipeline.uart);
     updateInterfaceLight();
+    // give basic power indication ASAP, even if no CAN activity or output
+    // interface attached
+    lights::enable(lights::LIGHT_A, lights::COLORS.red);
 
     bluetooth::initialize(pipeline.uart);
     network::initialize(pipeline.network);

@@ -24,9 +24,8 @@
 #include "util/bytebuffer.h"
 #include "util/log.h"
 #include "atcommander.h"
-#include "HardwareSerial.h"
-#include "gpio.h"
 #include "WProgram.h"
+#include "gpio.h"
 
 #if defined(CROSSCHASM_C5)
 

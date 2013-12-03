@@ -1,7 +1,7 @@
 #include "util/log.h"
-#include "HardwareSerial.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "WProgram.h"
 
 using openxc::util::log::debugNoNewline;
 

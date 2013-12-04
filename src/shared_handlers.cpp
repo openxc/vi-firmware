@@ -42,8 +42,8 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId,
         uint64_t data, CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     if(signal == NULL) {
-        debug("Specific door signal for ID %s is NULL, vehicle may not support",
-                doorId);
+        // debug("Specific door signal for ID %s is NULL, vehicle may not support",
+                // doorId);
         return;
     }
 

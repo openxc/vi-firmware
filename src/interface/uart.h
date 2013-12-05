@@ -3,13 +3,14 @@
 
 #include "util/bytebuffer.h"
 
+#define MAX_DEVICE_ID_LENGTH 17
+
 namespace openxc {
 namespace interface {
 namespace uart {
 
 extern const int MAX_MESSAGE_SIZE;
 extern const int BAUD_RATE;
-
 
 /* Public: A container for a UART connection with queues for both input and
  * output.
@@ -21,7 +22,9 @@ extern const int BAUD_RATE;
  * sendQueue - A queue of bytes that need to be sent out over UART.
  * receiveQueue - A queue of bytes that have been received via UART but not yet
  *      processed.
- * device - A pointer to the hardware UART device to use for OpenXC messages.
+ * controller - A pointer to the hardware UART device to use for OpenXC messages.
+ * deviceId - If applicable, a unique device ID for an attached UART receiver
+ *      (e.g. the MAC of a Bluetooth module)
  */
 typedef struct {
     int baudRate;
@@ -31,6 +34,7 @@ typedef struct {
     // host to device
     QUEUE_TYPE(uint8_t) receiveQueue;
     void* controller;
+    char deviceId[MAX_DEVICE_ID_LENGTH];
 } UartDevice;
 
 /* Public: The lowest-level function write a single byte to UART. This function

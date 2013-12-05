@@ -6,6 +6,7 @@
 #include "atcommander.h"
 #include "util/timer.h"
 #include "gpio.h"
+#include <string.h>
 
 #define BLUETOOTH_DEVICE_NAME "OpenXC-VI"
 
@@ -55,6 +56,14 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
         } else {
             debug("Unable to set Bluetooth device name - rebooting anyway");
         }
+
+        if(at_commander_get_device_id(&config, device->deviceId,
+                    sizeof(device->deviceId)) > 0) {
+            debug("Bluetooth MAC is %s", device->deviceId);
+        } else {
+            debug("Unable to get Bluetooth MAC");
+            device->deviceId[0] = '\0';
+        }
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");
@@ -82,6 +91,7 @@ void openxc::bluetooth::initialize(UartDevice* device) {
     setStatus(true);
 #endif
 
+    strcpy(device->deviceId, "Unknown");
     configureExternalModule(device);
     // re-init to flush any junk in the buffer
     uart::initializeCommon(device);

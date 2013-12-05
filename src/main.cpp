@@ -14,6 +14,7 @@
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
+#define DEVICE_ID_CONTROL_COMMAND 0x82
 
 // USB
 #define DATA_IN_ENDPOINT 1
@@ -131,6 +132,15 @@ bool handleControlRequest(uint8_t request) {
         debug("Resetting...");
         reset();
         return true;
+    case DEVICE_ID_CONTROL_COMMAND:
+    {
+        if(strnlen(UART_DEVICE.deviceId, sizeof(UART_DEVICE.deviceId)) > 0) {
+            debug("Device ID: %s", UART_DEVICE.deviceId);
+            usb::sendControlMessage((uint8_t*)UART_DEVICE.deviceId,
+                    strlen(UART_DEVICE.deviceId));
+        }
+        return true;
+    }
     default:
         return false;
     }

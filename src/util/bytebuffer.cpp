@@ -21,7 +21,7 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*c
     if(callback(snapshot)) {
         QUEUE_INIT(uint8_t, queue);
     } else if(QUEUE_FULL(uint8_t, queue)) {
-        debug("Incoming write is too long");
+        debug("Incoming write is too long - dumping queue");
         QUEUE_INIT(uint8_t, queue);
     } else if(strnchr((const char*)snapshot, sizeof(snapshot) - 1, '\0') != NULL) {
         debug("Incoming buffered write corrupted (%s) -- clearing buffer",

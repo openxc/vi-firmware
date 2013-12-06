@@ -52,6 +52,14 @@ void setup() {
 
 void loop() {
     for(int i = 0; i < getCanBusCount(); i++) {
+        // In normal operation, if no output interface is enabled/attached (e.g.
+        // no USB or Bluetooth, the loop will stall here. Deep down in
+        // receiveCan when it tries to append messages to the queue it will
+        // reach a point where it tries to flush the (full) queue. Since nothing
+        // is attached, that will just keep timing out. Just be aware that if
+        // you need to modify the firmware to not use any interfaces, you'll
+        // have to change that or enable the flush functionality to write to
+        // your desired output interface.
         receiveCan(&pipeline, &getCanBuses()[i]);
     }
 

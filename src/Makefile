@@ -8,6 +8,18 @@ GREEN="$${txtbld}$$(tput setaf 2)"
 COLOR_RESET=$$(tput sgr0)
 endif
 
+# For message printing: pad the right side of the first argument with spaces to
+# the number of bytes indicated by the second argument.
+space_pad_to = $(shell echo $(1) "                                                      " | head -c$(2))
+
+# Call with some text, and a prefix tag if desired (like [AUTODETECTED]),
+show_vi_config_info = $(info - $(call space_pad_to,$(2),4) $(1))
+
+# Call with the name of the variable, a prefix tag if desired (like [AUTODETECTED]),
+# and an explanation if desired (like (found in $$PATH)
+show_vi_config_variable = $(call show_vi_config_info,$(1) = $($(1)) $(3),$(2))
+
+show_separator = $(info -------------------------)
 
 BASE_TARGET = vi-firmware
 OBJDIR_ROOT = build
@@ -18,22 +30,23 @@ ifeq ($(BENCHTEST), 1)
 SYMBOLS += __BENCHTEST__
 endif
 
+BINARY_OUTPUT ?= 0
 ifeq ($(BINARY_OUTPUT), 1)
 SYMBOLS += USE_BINARY_OUTPUT
 endif
 
-ifndef USB_ALLOW_RAW_WRITE
-USB_ALLOW_RAW_WRITE = 1
-endif
+USB_ALLOW_RAW_WRITE ?= 1
 
 ifeq ($(USB_ALLOW_RAW_WRITE), 1)
 SYMBOLS += USB_ALLOW_RAW_WRITE
 endif
 
+BLUETOOTH_ALLOW_RAW_WRITE ?= 0
 ifeq ($(BLUETOOTH_ALLOW_RAW_WRITE), 1)
 SYMBOLS += BLUETOOTH_ALLOW_RAW_WRITE
 endif
 
+NETWORK_ALLOW_RAW_WRITE ?= 0
 # ifeq ($(NETWORK_ALLOW_RAW_WRITE), 1)
 # SYMBOLS += NETWORK_ALLOW_RAW_WRITE
 # endif
@@ -44,6 +57,7 @@ else
 SYMBOLS += NDEBUG
 endif
 
+LOG_STATS ?= 0
 ifeq ($(LOG_STATS), 1)
 SYMBOLS += __LOG_STATS__
 endif
@@ -53,9 +67,7 @@ endif
 # SYMBOLS += __USE_NETWORK__
 # endif
 
-ifndef BOOTLOADER
-BOOTLOADER = 1
-endif
+BOOTLOADER ?= 1
 
 SYMBOLS += PB_FIELD_16BIT
 
@@ -67,9 +79,7 @@ $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
 VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
-ifndef PLATFORM
-PLATFORM = CHIPKIT
-endif
+PLATFORM ?= CHIPKIT
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -112,19 +122,38 @@ else
 $(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")
 endif
 
+define show_options
+	$(call show_vi_config_variable,PLATFORM)
+	$(call show_vi_config_variable,BOOTLOADER)
+	$(call show_vi_config_variable,DEBUG)
+	$(call show_vi_config_variable,BENCHTEST)
+	$(call show_vi_config_variable,LOG_STATS)
+	$(call show_vi_config_variable,BINARY_OUTPUT)
+	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
+	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)
+	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
+	$(call show_vi_config_variable,EMULATOR)
+	$(call show_vi_config_variable,TRANSMITTER)
+	$(call show_separator)
+endef
+
 include tests/tests.mk
 
+TRANSMITTER ?= 0
 transmitter: SYMBOLS += TRANSMITTER
+transmitter: TRANSMITTER = 1
 transmitter: custom_all
 
+EMULATOR ?= 0
 emulator: SYMBOLS += CAN_EMULATOR
-emulator: BASE_TARGET = emulator
+emulator: EMULATOR = 1
 emulator: custom_all
 
 .DEFAULT_GOAL = custom_all
 
 custom_all_prefix:
-	@echo "Compiling for $(PLATFORM)..."
+	$(info Compiling with options:)
+	$(call show_options)
 
 custom_all: custom_all_prefix all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
@@ -134,3 +163,5 @@ custom_all: custom_all_prefix all
 		echo -n " running on bare metal"; \
 	fi
 	@echo ".$(COLOR_RESET)"
+	$(info Compiled with options:)
+	$(call show_options)

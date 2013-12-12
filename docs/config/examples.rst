@@ -612,3 +612,81 @@ and in ``hs.json``:
 
 It's not huge savings for 1 signal, but once you get a dozen it can save a lot
 of effort and opportunities for bugs.
+
+Same Message ID, Two Buses
+===============================
+
+One shortcoming of a single configuration file is that you can't define a CAN
+message with the same ID to exist on two different, buses. For example, this
+isn't value JSON because the ``0x100`` key is repeated:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x100": {
+               "bus": "hs"
+            },
+            "0x100": {
+               "bus": "ms"
+            }
+       }
+   }
+
+Instead, you can use mappings files as in :ref:`mapped` and put the messages
+for each bus in separate files. Here's the main configuration file:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           },
+           "ms": {
+               "controller": 2,
+               "speed": 125000
+           }
+       },
+       "mappings": [
+           {"mapping": "hs.json", "bus": "hs"},
+           {"mapping": "ms.json", "bus": "ms"}
+       ]
+   }
+
+and here's ``hs.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x100": {
+                "My_Signal": {
+                    "generic_name": "my_first_measurement",
+                    "bit_position": 3,
+                    "bit_size": 7
+                }
+           }
+       }
+   }
+
+and finally, ``ms.json``:
+
+.. code-block:: javascript
+
+   {
+       "messages": {
+           "0x100": {
+               "signals": {
+                   "My_Other_Signal": {
+                       "generic_name": "my_second_measurement",
+                       "bit_position": 0,
+                       "bit_size": 14
+                   }
+               }
+           }
+       }
+   }
+
+The two different CAN messages with the same ID can co-exist in these separate
+files, linked as mappings through the main config.

@@ -55,6 +55,9 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
  *
+ * Be aware that the behavior is undefined if there are multiple values assigned
+ * to a single state. See https://github.com/openxc/vi-firmware/issues/185.
+ *
  * signal - The signal associated with the value.
  * signals - An array of all CAN signals.
  * signalCount - The size of the CAN signals array.

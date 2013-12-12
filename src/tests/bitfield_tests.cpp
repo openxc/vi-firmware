@@ -6,6 +6,16 @@ using openxc::util::bitfield::getBitField;
 using openxc::util::bitfield::setBitField;
 using openxc::util::bitfield::nthByte;
 
+START_TEST (test_large_bitmask)
+{
+    // yeah, this isn't a public method but I wanted to unit test it to track
+    // down a bug
+    extern uint64_t bitmask(int numBits);
+    uint64_t result = bitmask(32);
+    fail_if(result != 0xffffffff);
+}
+END_TEST
+
 START_TEST (test_one_bit_not_swapped)
 {
     uint64_t data = 0x80;
@@ -23,7 +33,18 @@ START_TEST (test_one_bit)
 }
 END_TEST
 
-START_TEST (test_full_message)
+START_TEST (test_32_bit_parse)
+{
+    uint64_t data = 0x0402574d555a0401;
+    uint64_t result = getBitField(data, 16, 32, false);
+    uint64_t expectedValue = 0x574d555a;
+    fail_unless(result == expectedValue,
+            "Field retrieved in 0x%X was 0x%X instead of %d", data,
+            result, expectedValue);
+}
+END_TEST
+
+START_TEST (test_16_bit_parse)
 {
     uint64_t data = 0xF34DFCFF00000000;
     uint64_t result = getBitField(data, 16, 16, false);
@@ -176,10 +197,12 @@ END_TEST
 Suite* bitfieldSuite(void) {
     Suite* s = suite_create("bitfield");
     TCase *tc_core = tcase_create("core");
+    tcase_add_test(tc_core, test_large_bitmask);
     tcase_add_test(tc_core, test_one_bit);
     tcase_add_test(tc_core, test_one_bit_not_swapped);
     tcase_add_test(tc_core, test_one_byte);
-    tcase_add_test(tc_core, test_full_message);
+    tcase_add_test(tc_core, test_16_bit_parse);
+    tcase_add_test(tc_core, test_32_bit_parse);
     tcase_add_test(tc_core, test_multi_byte);
     tcase_add_test(tc_core, test_get_multi_byte);
     tcase_add_test(tc_core, test_get_off_byte_boundary);

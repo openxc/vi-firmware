@@ -11,7 +11,7 @@ int findEndBit(int startBit, int numBits) {
 }
 
 uint64_t bitmask(int numBits) {
-    return (0x1 << numBits) - 1;
+    return (uint64_t(0x1) << numBits) - 1;
 }
 
 int startingByte(int startBit) {

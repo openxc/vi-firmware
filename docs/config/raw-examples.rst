@@ -82,8 +82,10 @@ also make sure the transfer is lossless. The ``max_message_frequency`` field
 sets the maximum send frequency for CAN messages that have not changed to 1Hz.
 We also set the ``force_send_changed`` field to ``true``, which will cause a CAN
 message with a new value to be sent to the output interface immediately, even if
-it would go above the 1Hz frequency. The result is that each CAN message is sent
-at a minimum of 1Hz and a maximum of the true rate of change for the message.
+it would go above the 1Hz frequency. The default is ``true``, so we could also
+leave this parameter out for the same effect. The result is that each CAN
+message is sent at a minimum of 1Hz and a maximum of the true rate of change for
+the message.
 
 Unfiltered Raw CAN with Strict, Limited Data Rate
 =================================================
@@ -100,13 +102,14 @@ is the most important thing.
               "controller": 1,
               "speed": 500000,
               "raw_can_mode": "unfiltered",
-              "max_message_frequency": 1
+              "max_message_frequency": 1,
+              "force_send_changed": false.
           }
       }
   }
 
-We left the ``force_send_changed`` field out - by default it is set to ``false``
-and the firmware will strictly enforce the max message frequency.
+We set the ``force_send_changed`` field to false so the firmware will strictly
+enforce the max message frequency.
 
 Translated and Raw CAN Together
 ================================

@@ -76,6 +76,16 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
             .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
             .EndpointSize           = DATA_ENDPOINT_SIZE,
             .PollingIntervalMS      = 0x01 // unused by bulk endpoints
+        },
+
+    .LogEndpoint = {
+            .Header                 = {
+                .Size = sizeof(USB_Descriptor_Endpoint_t),
+                .Type = DTYPE_Endpoint},
+            .EndpointAddress        = (ENDPOINT_DIR_IN | IN_ENDPOINT_NUMBER),
+            .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+            .EndpointSize           = DATA_ENDPOINT_SIZE,
+            .PollingIntervalMS      = 0x01 // unused by bulk endpoints
         }
 };
 

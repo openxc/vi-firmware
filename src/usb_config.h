@@ -43,6 +43,7 @@ typedef struct {
     USB_Descriptor_Interface_t               Interface;
     USB_Descriptor_Endpoint_t                InEndpoint;
     USB_Descriptor_Endpoint_t                OutEndpoint;
+    USB_Descriptor_Endpoint_t                LogEndpoint;
 } USB_Descriptor_Configuration_t;
 
 /** This function is called by the library when in device mode, and must be

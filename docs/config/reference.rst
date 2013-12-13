@@ -258,6 +258,27 @@ need the VI to keep track of the values of any of the signals separately (in the
 the signals, you can use the ``ignoreHandler`` as a value handler for the
 signal.
 
+``enabled`` - (optional, true by default) Enable or disable all processing of a
+CAN signal. By default, a signal is enabled; if this flag is false, the signal
+will be left out of the generated source code.
+
+The difference between ``ignore``, ``enabled`` and using an ``ignoreHandler``
+can be confusing. To summarize the difference:
+
+* The ``enabled`` flag is the master control switch for a signal - when this is
+  false, the signal (or message, or mapping) will not be included in the
+  firmware at all. A common time to use this is if you want to have
+  one configuration file with many options, only a few of which are enabled in
+  any particular build.
+* The ``ignore`` flag will not exclude a signal from the firmware, but it will
+  not include it in the normal message processing pipeline. The most common use
+  case is when you need to reference the bit field information for the signal
+  from a custom handler.
+* Finally, use the ``ignoreHandler`` for your signal's ``handler`` to both
+  include it in the firmware and handle it during the normal message processing
+  pipeline, but just silence its output. This is useful if you need to track the
+  last known value for this signal for a calculation in a custom handler.
+
 ``states`` - (required only for state-based signals) This is a mapping between
 the desired descriptive states (e.g. ``off``) and the corresponding numerical
 values from the CAN message (usually an integer). The raw values are specified
@@ -267,7 +288,7 @@ state (e.g. key off and key removed both mapping to just "off").
 ``max_frequency`` - (default: 0, no limit) Some CAN signals are sent at a very
 high frequency, likely more often than will ever be useful to an application.
 This attribute sets the maximum frequency (Hz) that the signal will be processed
-and let through. The defualt value (``0``) means that all values will be
+and let through. The default value (``0``) means that all values will be
 processed, and there is no limit imposed by the firmware. If you want to make
 sure you don't miss a change in value even when dropping messages, see the
 ``force_send_changed`` attribute. You probably don't want to combine this
@@ -297,10 +318,6 @@ value), you can specify a custom function here to encode the value for a CAN
 messages. This is only necessary for boolean types at the moment - if your
 signal has states defined, we assume you need to encode a string state value
 back to its original numerical value.
-
-``enabled`` - (optional, true by default) Enable or disable all processing of a
-CAN signal. By default, a signal is enabled; if this flag is false, the signal
-will be left out of the generated source code.
 
 .. _value-handlers:
 

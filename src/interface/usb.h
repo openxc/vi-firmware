@@ -80,7 +80,7 @@ void initialize(UsbDevice*);
  */
 void read(UsbDevice* device, bool (*callback)(uint8_t*));
 
-void read(UsbEndpoint* endpoint, bool (*callback)(uint8_t*));
+void read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*));
 
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
  * host.

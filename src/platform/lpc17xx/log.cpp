@@ -2,12 +2,16 @@
 #include "interface/usb.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "interface/usb.h"
 
 extern "C" {
 #include "debug_frmwrk.h"
 }
 
 using openxc::util::bytebuffer::conditionalEnqueue;
+using openxc::interface::usb::UsbDevice;
+
+extern UsbDevice USB_DEVICE;
 
 void openxc::util::log::debugNoNewline(const char* format, ...) {
 #ifdef __DEBUG__
@@ -19,10 +23,10 @@ void openxc::util::log::debugNoNewline(const char* format, ...) {
 
     _printf(buffer);
 
-    // TOOD
+    // TODO
     conditionalEnqueue(
-            &pipeline->usb->endpoints[LOG_ENDPOINT_NUMBER - 1].sendQueue,
-            buffer, strnlen(buffer, MAX_LOG_LINE_LENGTH));
+            &USB_DEVICE.endpoints[LOG_ENDPOINT_NUMBER - 1].sendQueue,
+            (uint8_t*) buffer, strnlen(buffer, MAX_LOG_LINE_LENGTH));
 
     va_end(args);
 #endif // __DEBUG__

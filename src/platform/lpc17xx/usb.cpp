@@ -28,6 +28,7 @@ extern "C" {
 namespace gpio = openxc::gpio;
 
 using openxc::interface::usb::UsbDevice;
+using openxc::interface::usb::UsbEndpoint;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
@@ -37,7 +38,7 @@ extern bool handleControlRequest(uint8_t);
 
 void configureEndpoints() {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
-        UsbEndpoint* endpoint = USB_DEVICE.endpoints[i];
+        UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
         Endpoint_ConfigureEndpoint(endpoint->address,
                 EP_TYPE_BULK,
                 endpoint->directionOut ? ENDPOINT_DIR_OUT : ENDPOINT_DIR_IN,
@@ -70,7 +71,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 }
 
 /* Private: Flush any queued data out to the USB host. */
-static void flushQueueToHost(UsbEndpoint* endpointNumber) {
+static void flushQueueToHost(UsbEndpoint* endpoint) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);
     if(!Endpoint_IsINReady() || QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
@@ -165,8 +166,8 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
                 || !vbusDetected() || !usbHostDetected())) {
         EVENT_USB_Device_Disconnect();
     } else {
-        for(int i = 0; i < usbDevice->endpointCount; i++) {
-            UsbEndpoint* endpoint = usbDevice->endpoints[i];
+        for(int i = 0; i < ENDPOINT_COUNT; i++) {
+            UsbEndpoint* endpoint = &usbDevice->endpoints[i];
             if(!endpoint->directionOut) {
                 flushQueueToHost(endpoint);
             }
@@ -183,7 +184,7 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     debug("Done.");
 }
 
-void openxc::interface::usb::read(UsbEndpoint* endpoint,
+void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         bool (*callback)(uint8_t*)) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);

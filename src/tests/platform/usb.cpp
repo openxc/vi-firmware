@@ -12,4 +12,4 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
 }
 
-void openxc::interface::usb::read(UsbEndpoint* endpoint, bool (*callback)(uint8_t*)) { }
+void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*)) { }

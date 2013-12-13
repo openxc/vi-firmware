@@ -23,12 +23,12 @@ void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {
     usbDevice->configured = false;
 }
 
-void openxc::interface::usb::read(UsbDevice* usbDevice,
+void openxc::interface::usb::read(UsbDevice* device,
         bool (*callback)(uint8_t*)) {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
-        UsbEndpoint* endpoint = &usbDevice->endpoints[i];
+        UsbEndpoint* endpoint = &device->endpoints[i];
         if(endpoint->directionOut) {
-            read(endpoint, callback);
+            read(device, endpoint, callback);
         }
     }
 }

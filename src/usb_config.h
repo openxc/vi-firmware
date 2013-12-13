@@ -15,8 +15,9 @@ extern "C" {
 // directions of an endpoint share a single buffer, so this is broken.
 #define IN_ENDPOINT_NUMBER 1
 #define OUT_ENDPOINT_NUMBER 2
+#define LOG_ENDPOINT_NUMBER 3
 #define INTERFACE_COUNT 1
-#define ENDPOINT_COUNT 2
+#define ENDPOINT_COUNT 3
 #define CONTROL_ENDPOINT_SIZE 64
 #define DATA_ENDPOINT_SIZE 64
 

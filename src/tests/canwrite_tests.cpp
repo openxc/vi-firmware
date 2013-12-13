@@ -18,7 +18,7 @@ CanMessageDefinition MESSAGES[3] = {
     {&bus, 2},
 };
 
-CanSignalState SIGNAL_STATES[1][10] = {
+CanSignalState SIGNAL_STATES[1][6] = {
     { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
         {5, "neutral"}, {6, "second"}, },
 };

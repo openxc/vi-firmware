@@ -24,8 +24,8 @@ CanMessageDefinition MESSAGES[4] = {
 
 const int SIGNAL_COUNT = 13;
 
-CanSignalState SIGNAL_STATES[SIGNAL_COUNT][12] = {
-    { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, },
+CanSignalState SIGNAL_STATES[2][6] = {
+    { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, {6, "foo"}},
     { {1, "idle"}, {2, "stuck"}, {3, "held_short"}, {4, "pressed"},
         {5, "held_long"}, {6, "released"}, },
 };
@@ -62,6 +62,10 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
 Pipeline pipeline;
 UsbDevice usbDevice;
 
+bool queueEmpty() {
+    return QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+}
+
 void setup() {
     pipeline.usb = &usbDevice;
     usb::initialize(&usbDevice);
@@ -83,43 +87,43 @@ END_TEST
 
 START_TEST (test_button_event_handler)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
     data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_button_event_handler_bad_type)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "bad",
             &send);
     data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_button_event_handler_correct_types)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
     bool send = true;
     uint64_t data =  stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
     data += stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "event") == NULL);
     fail_if(strstr((char*)snapshot, "value") == NULL);
@@ -130,14 +134,14 @@ END_TEST
 
 START_TEST (test_button_event_handler_bad_state)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
     bool send = true;
     uint64_t data = stateWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, "down",
             &send);
     data += numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 11, &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), SIGNALS, SIGNAL_COUNT,
             &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 
@@ -148,10 +152,10 @@ START_TEST (test_tire_pressure_handler)
             &send);
     sendTirePressure("foo", __builtin_bswap64(data), 1, &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }
@@ -164,7 +168,7 @@ START_TEST (test_send_invalid_tire)
             &send);
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 
@@ -175,11 +179,11 @@ START_TEST (test_send_same_tire_pressure)
             &send);
     sendDoorStatus("front_left", __builtin_bswap64(data), &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
+    fail_if(queueEmpty());
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
     sendDoorStatus("front_left", __builtin_bswap64(data), &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 
@@ -191,10 +195,10 @@ START_TEST (test_occupancy_handler_child)
     data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "child") == NULL);
@@ -211,10 +215,10 @@ START_TEST (test_occupancy_handler_adult)
     data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, true, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "adult") == NULL);
@@ -231,10 +235,10 @@ START_TEST (test_occupancy_handler_empty)
     data += booleanWriter(&SIGNALS[12], SIGNALS, SIGNAL_COUNT, false, &send);
     handleOccupancyMessage(SIGNALS[11].message->id, __builtin_bswap64(data),
             SIGNALS, SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "empty") == NULL);
@@ -273,10 +277,10 @@ START_TEST (test_door_handler)
             &send);
     sendDoorStatus("foo", __builtin_bswap64(data), &SIGNALS[2], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }
@@ -289,7 +293,7 @@ START_TEST (test_send_invalid_door_status)
             &send);
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 
@@ -300,11 +304,11 @@ START_TEST (test_send_same_door_status)
             &send);
     sendDoorStatus("driver", __builtin_bswap64(data), &SIGNALS[2], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_if(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
-    QUEUE_INIT(uint8_t, &pipeline.usb->sendQueue);
+    fail_if(queueEmpty());
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
     sendDoorStatus("driver", __builtin_bswap64(data), &SIGNALS[2], SIGNALS,
             SIGNAL_COUNT, &pipeline);
-    fail_unless(QUEUE_EMPTY(uint8_t, &pipeline.usb->sendQueue));
+    fail_unless(queueEmpty());
 }
 END_TEST
 

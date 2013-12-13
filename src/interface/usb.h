@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "usb_config.h"
 #include "util/bytebuffer.h"
 
 #define USB_BUFFER_SIZE 64
@@ -17,14 +18,25 @@ namespace openxc {
 namespace interface {
 namespace usb {
 
+typedef struct {
+    uint8_t address;
+    uint8_t size;
+    bool directionOut;
+    QUEUE_TYPE(uint8_t) sendQueue;
+    QUEUE_TYPE(uint8_t) receiveQueue;
+    // This buffer MUST be non-local, so it doesn't get invalidated when it
+    // falls off the stack
+    uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
+#ifdef __PIC32__
+    char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
+    USB_HANDLE deviceToHostHandle;
+    USB_HANDLE hostToDeviceHandle;
+#endif // __PIC32__
+} UsbEndpoint;
+
 /* Public: a container for a VI USB device and associated metadata.
  *
- * inEndpoint - The address of the endpoint to use for IN transfers, i.e. device
- *      to host.
- * inEndpointSize - The packet size of the IN endpoint.
- * outEndpoint - The address of the endpoint to use for out transfers, i.e. host
- *      to device.
- * outEndpointSize - The packet size of the IN endpoint.
+ * endpoints - An array of addresses for the endpoints to use.
  * configured - A flag that indicates if the USB interface has been configured
  *      by a host. Once true, this will not be set to false until the board is
  *      reset.
@@ -36,22 +48,13 @@ namespace usb {
  * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
-    uint8_t inEndpoint;
-    uint8_t inEndpointSize;
-    uint8_t outEndpoint;
-    uint8_t outEndpointSize;
+    // TODO what if we had two UsbEndpoint types, one for in and one for out?
+    // how would we index into the array?
+    UsbEndpoint endpoints[ENDPOINT_COUNT];
     bool configured;
     bool allowRawWrites;
-    QUEUE_TYPE(uint8_t) sendQueue;
-    QUEUE_TYPE(uint8_t) receiveQueue;
-    // This buffer MUST be non-local, so it doesn't get invalidated when it
-    // falls off the stack
-    uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];
 #ifdef __PIC32__
-    char receiveBuffer[MAX_USB_PACKET_SIZE_BYTES];
     USBDevice device;
-    USB_HANDLE deviceToHostHandle;
-    USB_HANDLE hostToDeviceHandle;
 #endif // __PIC32__
 } UsbDevice;
 
@@ -77,6 +80,8 @@ void initialize(UsbDevice*);
  */
 void read(UsbDevice* device, bool (*callback)(uint8_t*));
 
+void read(UsbEndpoint* endpoint, bool (*callback)(uint8_t*));
+
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
  * host.
  *
@@ -97,6 +102,10 @@ void sendControlMessage(uint8_t* data, uint8_t length);
  *           (minimal power draw).
  */
 void deinitialize(UsbDevice*);
+
+/* Public: Perform platform-agnostic USB de-initialization.
+ */
+void deinitializeCommon(UsbDevice*);
 
 } // namespace usb
 } // namespace interface

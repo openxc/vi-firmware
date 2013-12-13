@@ -42,22 +42,25 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize) {
     if(pipeline->usb->configured) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->usb->sendQueue, message,
-                    messageSize)) {
+        QUEUE_TYPE(uint8_t)* sendQueue =
+                &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue;
+        while(timeout > 0 && !messageFits(sendQueue, message, messageSize)) {
             process(pipeline);
             --timeout;
         }
 
-        if(!conditionalEnqueue(&pipeline->usb->sendQueue, message,
+        if(!conditionalEnqueue(sendQueue, message,
                 messageSize)) {
             ++droppedMessages[USB];
         } else {
             ++sentMessages[USB];
             dataSent[USB] += messageSize;
         }
-        sendQueueLength[USB] = QUEUE_LENGTH(uint8_t, &pipeline->usb->sendQueue);
+        sendQueueLength[USB] = QUEUE_LENGTH(uint8_t, sendQueue);
+
+        // TODO This may not belong here after USB refactoring
         receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t,
-                &pipeline->usb->receiveQueue);
+                &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].receiveQueue);
     }
 
     if(uart::connected(pipeline->uart)) {
@@ -138,7 +141,7 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
         initializedStats = true;
     }
 
-    if(time::systemTimeMs() - lastTimeLogged > 
+    if(time::systemTimeMs() - lastTimeLogged >
             PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
         for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
             const char* interfaceName = messageTypeNames[i];

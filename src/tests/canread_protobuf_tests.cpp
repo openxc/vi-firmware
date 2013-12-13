@@ -38,7 +38,7 @@ CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
     {&CAN_BUSES[0], 2, {1}, true},
 };
 
-CanSignalState SIGNAL_STATES[1][10] = {
+CanSignalState SIGNAL_STATES[1][6] = {
     { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
         {5, "neutral"}, {6, "second"}, },
 };
@@ -64,6 +64,10 @@ UsbDevice usbDevice;
 
 static unsigned long fakeTime = 0;
 
+bool queueEmpty() {
+    return QUEUE_EMPTY(uint8_t, &PIPELINE.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+}
+
 unsigned long timeMock() {
     return fakeTime;
 }
@@ -82,8 +86,8 @@ void setup() {
 }
 
 openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
 
     openxc_VehicleMessage decodedMessage;
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));
@@ -99,11 +103,11 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
 
 START_TEST (test_passthrough_message)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_unless(queueEmpty());
     CanMessage message = {42, 0x123456789ABCDEF1LLU};
     can::read::passthroughMessage(&CAN_BUSES[0], message.id, message.data,
             NULL, 0, &PIPELINE);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
@@ -114,9 +118,9 @@ END_TEST
 
 START_TEST (test_send_numeric_value)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_unless(queueEmpty());
     sendNumericalMessage("test", 42, &PIPELINE);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -127,10 +131,10 @@ END_TEST
 
 START_TEST (test_preserve_float_precision)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_unless(queueEmpty());
     float value = 42.5;
     sendNumericalMessage("test", value, &PIPELINE);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -141,9 +145,9 @@ END_TEST
 
 START_TEST (test_send_boolean)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_unless(queueEmpty());
     sendBooleanMessage("test", false, &PIPELINE);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -154,9 +158,9 @@ END_TEST
 
 START_TEST (test_send_string)
 {
-    fail_unless(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_unless(queueEmpty());
     sendStringMessage("test", "string", &PIPELINE);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -176,7 +180,7 @@ START_TEST (test_translate_string)
 {
     can::read::translateSignal(&PIPELINE, &SIGNALS[1], BIG_ENDIAN_TEST_DATA,
             stringHandler, SIGNALS, SIGNAL_COUNT);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -194,7 +198,7 @@ START_TEST (test_translate_bool)
 {
     can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
             booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
@@ -212,7 +216,7 @@ START_TEST (test_translate_float)
 {
     can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             floatHandler, SIGNALS, SIGNAL_COUNT);
-    fail_if(QUEUE_EMPTY(uint8_t, &PIPELINE.usb->sendQueue));
+    fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);

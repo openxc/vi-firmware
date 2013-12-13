@@ -48,7 +48,6 @@ test: unit_tests
 	@make mapped_compile_test
 	@make passthrough_compile_test
 	@make emulator_compile_test
-	@make example_signals_compile_test
 	@make stats_compile_test
 	@make debug_stats_compile_test
 	# TODO see https://github.com/openxc/vi-firmware/issues/189
@@ -102,7 +101,6 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_gen
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, , mapped_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, , copy_passthrough_signals))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, , , emulator))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, example_signals_compile_test, , copy_example_signals))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
 # TODO see https://github.com/openxc/vi-firmware/issues/189
@@ -112,13 +110,9 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, USB_ALLOW
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, BINARY_OUTPUT=1, code_generation_test))
 
-copy_example_signals:
-	@echo "Testing example signals definitions in repo for FORDBOARD..."
-	@cp signals.cpp.example signals.cpp
-
 copy_passthrough_signals:
 	@echo "Testing example passthrough config in repo for FORDBOARD..."
-	@cp signals.cpp.example-passthrough signals.cpp
+	$(GENERATOR) -m passthrough.json > signals.cpp
 
 code_generation_test:
 	@make clean

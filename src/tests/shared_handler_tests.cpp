@@ -75,7 +75,8 @@ void setup() {
 START_TEST (test_inverted_handler)
 {
     bool send = true;
-    float result = handleInverted(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 1, &send);
+    float result = handleInverted(&SIGNALS[0], SIGNALS, SIGNAL_COUNT,
+            &pipeline, 1, &send);
     ck_assert(result == -1.0);
 }
 END_TEST

@@ -18,6 +18,10 @@ extern const char NAME_FIELD_NAME[];
 extern const char VALUE_FIELD_NAME[];
 extern const char EVENT_FIELD_NAME[];
 
+typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
+typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
+typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
+
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a JSON message with "id" and "data" attributes and send it out to the
  * pipelines.
@@ -58,10 +62,8 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data,
-        float (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
+        NumericalHandler handler, CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and (expecting the float value to be 0 or 1) convert it to a
@@ -74,10 +76,8 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data,
-        bool (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
+        BooleanHandler handler, CanSignal* signals, int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and also runs the float value through the handler function to
@@ -94,10 +94,8 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal,
  * signals - An array of all active signals.
  * signalCount - The length of the signals array>
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data,
-        const char* (*handler)(CanSignal*, CanSignal*, int, float, bool*),
-        CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
+        StringHandler handler, CanSignal* signals, int signalCount);
 
 /* Public: Send the given name and value out to the pipeline in an OpenXC JSON
  * message followed by a newline.
@@ -175,6 +173,8 @@ float decodeSignal(CanSignal* signal, uint64_t data);
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals.
  * signalCount - the length of the signals array.
+ * pipeline - The pipeline for outgoing message, to optionally kick off your own
+ *      output.
  * value   - The numerical value that maps to a state.
  * send    - An output argument that will be set to false if the value should
  *     not be sent for any reason.
@@ -184,13 +184,15 @@ float decodeSignal(CanSignal* signal, uint64_t data);
  * to false.
  */
 const char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Public: Coerces a numerical value to a boolean.
  *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals
  * signalCount - The length of the signals array
+ * pipeline - The pipeline for outgoing message, to optionally kick off your own
+ *      output.
  * value   - The numerical value that will be converted to a boolean.
  * send    - An output argument that will be set to false if the value should
  *     not be sent for any reason.
@@ -199,7 +201,7 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  * changed.
  */
 bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Public: Store the value of a signal, but flip the send flag to false.
  *
@@ -213,13 +215,15 @@ bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns the original value unmodified and sets send to false;
  */
 float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Public: Store the value of a signal, but flip the send flag to false.
  *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
+ * pipeline - The pipeline for outgoing message, to optionally kick off your own
+ *      output.
  * value   - The numerical value that will be converted to a boolean.
  * send    - An output argument that will be set to false if the value should
  *     not be sent for any reason.
@@ -227,7 +231,7 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns the original value unmodified and doesn't modify send.
  */
 float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Public: Determine if the received signal should be sent out and update
  * signal metadata.

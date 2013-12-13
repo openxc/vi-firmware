@@ -34,8 +34,8 @@ extern const float PI;
  * Returns the absolute distance travelled since the car started.
  */
 float handleMultisizeWheelRotationCount(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send,
-        float wheelRadius);
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send, float wheelRadius);
 
 /* Interpret the given signal as a rolling counter of km travelled, but keep
  * a log of the values and output the total km travelled since the car was
@@ -52,7 +52,7 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send);
+       int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
@@ -69,7 +69,7 @@ float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send);
+       int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
@@ -86,7 +86,7 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send);
+       int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the signal as a "strict" boolean - anything besides 0 is true.
  *
@@ -99,7 +99,7 @@ float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
  * Returns false if value is 0, otherwise true.
  */
 bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in gallons) to obtain a
  * total since the vehicle started, and convert the result from gallons to
@@ -114,7 +114,7 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns the total fuel consumed since the vehicle started in liters.
  */
 float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send);
+        int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in uL) to obtain a
  * total since the vehicle started, and convert the result from uL to
@@ -129,7 +129,7 @@ float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
  * Returns the total fuel consumed since the vehicle started in liters.
  */
 float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send);
+        int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal to obtain a
  * total since the vehicle started, and multiply the results by the given
@@ -144,8 +144,8 @@ float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send, float multiplier);
+float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount, 
+              float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
  * the left and positive to the right, but the CAN signal is the opposite.
@@ -159,7 +159,7 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns value with the sign flipped.
  */
 float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send);
+        Pipeline* pipeline, float value, bool* send);
 
 /* Change the sign of the steering wheel angle value depending on the value of
  * another CAN signal, "steering_wheel_angle_sign".
@@ -175,8 +175,8 @@ float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns a signed steering wheel angle value.
  */
-float handleUnsignedSteeringWheelAngle(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send);
+float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
+              int signalCount, Pipeline* pipeline, float value, bool* send);
 
 /* Combine latitude and longitude signals split into their components (degrees,
  * minutes and fractional minutes) into 2 output message: latitude and longitude
@@ -259,7 +259,7 @@ void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
  * We consider dipped beam or auto to be lights on.
  */
 bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
-            int signalCount, float value, bool* send);
+            int signalCount, Pipeline* pipeline, float value, bool* send);
 
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         CanSignal* signals, int signalCount);

@@ -49,7 +49,7 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId,
 
     bool send = true;
     float rawAjarStatus = preTranslate(signal, data, &send);
-    bool ajarStatus = booleanHandler(signal, signals, signalCount,
+    bool ajarStatus = booleanHandler(signal, signals, signalCount, pipeline,
             rawAjarStatus, &send);
     if(send) {
         sendEventedBooleanMessage(DOOR_STATUS_GENERIC_NAME, doorId, ajarStatus,
@@ -147,7 +147,8 @@ float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
 }
 
 float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send, float factor) {
+       int signalCount, float value, bool* send,
+       float factor) {
     if(value < signal->lastValue) {
         rollingOdometerSinceRestart += signal->maxValue - signal->lastValue
             + value;
@@ -160,31 +161,34 @@ float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
 }
 
 float openxc::signals::handlers::handleRollingOdometerKilometers(
-        CanSignal* signal, CanSignal* signals, int signalCount, float value,
-        bool* send) {
+        CanSignal* signal, CanSignal* signals, int signalCount,
+        Pipeline* pipeline, float value, bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send, 1);
 }
 
 float openxc::signals::handlers::handleRollingOdometerMiles(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
             KM_PER_MILE);
 }
 
 float openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
             KM_PER_M);
 }
 
 bool openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return value != 0;
 }
 
 float openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send,
-        float multiplier) {
+        CanSignal* signals, int signalCount, float value,
+        bool* send, float multiplier) {
     if(value < signal->lastValue) {
         value = signal->maxValue - signal->lastValue + value;
     } else {
@@ -195,19 +199,21 @@ float openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
 }
 
 float openxc::signals::handlers::handleFuelFlowGallons(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);
 }
 
 float openxc::signals::handlers::handleFuelFlowMicroliters(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_UL);
 }
 
 float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
-        signals, int signalCount, float value, bool* send) {
+        signals, int signalCount, Pipeline* pipeline, float value, bool* send) {
     return value * -1;
 }
 
@@ -272,12 +278,14 @@ void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data,
 }
 
 bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return value == 2 || value == 3;
 }
 
 float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal*
-        signal, CanSignal* signals, int signalCount, float value, bool* send) {
+        signal, CanSignal* signals, int signalCount, Pipeline* pipeline,
+        float value, bool* send) {
     CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
             signals, signalCount);
 
@@ -294,8 +302,8 @@ float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal*
 }
 
 float openxc::signals::handlers::handleMultisizeWheelRotationCount(
-        CanSignal* signal, CanSignal* signals, int signalCount, float value,
-        bool* send, float wheelRadius) {
+        CanSignal* signal, CanSignal* signals, int signalCount,
+        Pipeline* pipeline, float value, bool* send, float wheelRadius) {
     if(value < signal->lastValue) {
         rotationsSinceRestart += signal->maxValue - signal->lastValue + value;
     } else {
@@ -323,13 +331,13 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId,
     float rawButtonState = preTranslate(buttonStateSignal, data, &send);
 
     const char* buttonType = stateHandler(buttonTypeSignal, signals,
-            signalCount, rawButtonType, &send);
+            signalCount, pipeline, rawButtonType, &send);
     if(!send || buttonType == NULL) {
         debug("Unable to find button type corresponding to %f",
                 rawButtonType);
     } else {
         const char* buttonState = stateHandler(buttonStateSignal, signals,
-                signalCount, rawButtonState, &send);
+                signalCount, pipeline, rawButtonState, &send);
         if(!send || buttonState == NULL) {
             debug("Unable to find button state corresponding to %f",
                     rawButtonState);
@@ -379,9 +387,9 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
     float rawUpperStatus = preTranslate(upperSignal, data, &send);
 
     bool lowerStatus = booleanHandler(NULL, signals, signalCount,
-            rawLowerStatus, &send);
+            pipeline, rawLowerStatus, &send);
     bool upperStatus = booleanHandler(NULL, signals, signalCount,
-            rawUpperStatus, &send);
+            pipeline, rawUpperStatus, &send);
     if(send) {
         if(lowerStatus) {
             if(upperStatus) {

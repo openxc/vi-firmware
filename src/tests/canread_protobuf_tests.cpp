@@ -168,7 +168,7 @@ END_TEST
 // TODO we can't handle evented measurements...would be too many sub-types
 
 const char* stringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return "foo";
 }
 
@@ -186,7 +186,7 @@ START_TEST (test_translate_string)
 END_TEST
 
 bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return false;
 }
 
@@ -204,7 +204,7 @@ START_TEST (test_translate_bool)
 END_TEST
 
 float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+        Pipeline* pipeline, float value, bool* send) {
     return 42;
 }
 

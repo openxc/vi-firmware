@@ -1,10 +1,13 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v5.1.3-dev
+## v6.0-dev
 
 * Update MPIDE dependency to 2013-08* version.
 * Add new control command to retrive a unique device ID (only works if Bluetooth
   module is installed right now).
+* BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
+  function prototype, to allow triggering arbitrary new output messages without
+  decoding a signal by hand.
 
 ## v5.1.2
 

@@ -91,7 +91,7 @@ START_TEST (test_passthrough_handler)
 {
     bool send = true;
     ck_assert_int_eq(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT,
-                42.0, &send), 42.0);
+                &pipeline, 42.0, &send), 42.0);
     fail_unless(send);
 }
 END_TEST
@@ -99,11 +99,11 @@ END_TEST
 START_TEST (test_boolean_handler)
 {
     bool send = true;
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 1.0, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &pipeline, 1.0, &send));
     fail_unless(send);
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0.5, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &pipeline, 0.5, &send));
     fail_unless(send);
-    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0, &send));
+    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &pipeline, 0, &send));
     fail_unless(send);
 }
 END_TEST
@@ -111,7 +111,7 @@ END_TEST
 START_TEST (test_ignore_handler)
 {
     bool send = true;
-    ignoreHandler(&SIGNALS[0], SIGNALS, 2, 1.0, &send);
+    ignoreHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &pipeline, 1.0, &send);
     fail_if(send);
 }
 END_TEST
@@ -119,10 +119,10 @@ END_TEST
 START_TEST (test_state_handler)
 {
     bool send = true;
-    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, 2, 2, &send),
+    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &pipeline, 2, &send),
             SIGNAL_STATES[0][1].name);
     fail_unless(send);
-    stateHandler(&SIGNALS[1], SIGNALS, 2, 42, &send);
+    stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &pipeline, 42, &send);
     fail_if(send);
 }
 END_TEST
@@ -274,7 +274,7 @@ START_TEST (test_passthrough_message)
 END_TEST
 
 float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+        Pipeline* pipeline, float value, bool* send) {
     return 42;
 }
 
@@ -293,13 +293,13 @@ START_TEST (test_default_handler)
 END_TEST
 
 const char* noSendStringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     *send = false;
     return NULL;
 }
 
 bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     *send = false;
     return false;
 }
@@ -336,7 +336,7 @@ END_TEST
 
 int frequencyTestCounter = 0;
 float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     frequencyTestCounter++;
     return 42;
 }
@@ -353,7 +353,7 @@ START_TEST (test_translate_float_handler_called_every_time)
 END_TEST
 
 bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     frequencyTestCounter++;
     return true;
 }
@@ -370,7 +370,7 @@ START_TEST (test_translate_bool_handler_called_every_time)
 END_TEST
 
 const char* strHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     frequencyTestCounter++;
     return "Dude.";
 }
@@ -387,7 +387,7 @@ START_TEST (test_translate_str_handler_called_every_time)
 END_TEST
 
 const char* stringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return "foo";
 }
 
@@ -406,7 +406,7 @@ START_TEST (test_translate_string)
 END_TEST
 
 bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return false;
 }
 
@@ -472,7 +472,7 @@ START_TEST (test_limited_frequency)
 END_TEST
 
 float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        float value, bool* send) {
+        Pipeline* pipeline, float value, bool* send) {
     return signal->lastValue;
 }
 

@@ -46,12 +46,12 @@ Run the ``bootstrap.sh`` script:
     $ cd vi-firmware
     vi-firmware $ script/bootstrap.sh
 
-Copy the example "CAN passthrough" implementation of ``signals.h`` to
-``signals.cpp``:
+Use the passthrough configuration to generate an implementation of ``signals.h``
+and save it as ``signals.cpp``:
 
   .. code-block:: sh
 
-    vi-firmware $ cp signals.cpp.example-passthrough signals.cpp
+    vi-firmware $ openxc-generate-firmware-code -m passthrough.json > signals.cpp
 
 Compile it! By default this will compile for the chipKIT vehicle interface:
 

@@ -23,7 +23,7 @@ void openxc::util::log::debugNoNewline(const char* format, ...) {
 
     _printf(buffer);
 
-    // TODO
+    // TODO careful these don't log, otherwise we could loop foreeever
     conditionalEnqueue(
             &USB_DEVICE.endpoints[LOG_ENDPOINT_NUMBER - 1].sendQueue,
             (uint8_t*) buffer, strnlen(buffer, MAX_LOG_LINE_LENGTH));

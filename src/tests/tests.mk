@@ -87,7 +87,7 @@ endif
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
-unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage
+unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage -std=c++0x
 unit_tests: CC_SYMBOLS += -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)

@@ -5,3 +5,4 @@ signals.cpp
 .project
 .cproject
 .settings
+openxc-logs-*.txt

@@ -71,7 +71,7 @@ endif
 # available
 EXTRA_CFLAGS += -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
-				  -I $(LIBS_PATH)/nanopb
+				  -I $(LIBS_PATH)/nanopb -std=gnu++0x
 EXTRA_CXXFLAGS += $(EXTRA_CFLAGS)
 
 # bump the head up to 32K from the default

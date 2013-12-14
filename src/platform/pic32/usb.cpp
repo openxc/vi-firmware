@@ -15,6 +15,7 @@ namespace gpio = openxc::gpio;
 
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::usb::UsbEndpoint;
+using openxc::interface::usb::UsbEndpointDirection;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::util::bytebuffer::processQueue;
 

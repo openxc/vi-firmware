@@ -10,5 +10,5 @@ void openxc::util::log::initialize() {
 }
 
 void openxc::util::log::debugUart(const char* message) {
-    Serial2.print(buffer);
+    Serial2.print(message);
 }

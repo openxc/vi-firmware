@@ -74,24 +74,26 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 
 /* Private: Flush any queued data out to the USB host. */
 static void flushQueueToHost(UsbEndpoint* endpoint) {
-    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(endpoint->address);
-    if(!Endpoint_IsINReady() || QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
         return;
     }
 
-    // get bytes from transmit FIFO into intermediate buffer
-    int byteCount = 0;
-    while(!QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)
-            && byteCount < USB_SEND_BUFFER_SIZE) {
-        endpoint->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
-                &endpoint->sendQueue);
-    }
+    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+    Endpoint_SelectEndpoint(endpoint->address);
+    if(Endpoint_IsINReady()) {
+        // get bytes from transmit FIFO into intermediate buffer
+        int byteCount = 0;
+        while(!QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)
+                && byteCount < USB_SEND_BUFFER_SIZE) {
+            endpoint->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
+                    &endpoint->sendQueue);
+        }
 
-    if(byteCount > 0) {
-        Endpoint_Write_Stream_LE(endpoint->sendBuffer, byteCount, NULL);
+        if(byteCount > 0) {
+            Endpoint_Write_Stream_LE(endpoint->sendBuffer, byteCount, NULL);
+        }
+        Endpoint_ClearIN();
     }
-    Endpoint_ClearIN();
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

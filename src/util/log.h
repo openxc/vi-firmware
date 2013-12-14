@@ -30,6 +30,10 @@ void initialize();
  */
 void debugNoNewline(const char* format, ...);
 
+/* Private: Log a completed message to UART.
+ */
+void debugUart(const char* message);
+
 } // namespace log
 } // namespace util
 } // namespace openxc

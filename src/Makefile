@@ -57,6 +57,11 @@ else
 SYMBOLS += NDEBUG
 endif
 
+UART_LOGGING ?= 0
+ifeq ($(UART_LOGGING), 1)
+SYMBOLS += __UART_LOGGING__
+endif
+
 LOG_STATS ?= 0
 ifeq ($(LOG_STATS), 1)
 SYMBOLS += __LOG_STATS__

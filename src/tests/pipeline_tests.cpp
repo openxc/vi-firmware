@@ -11,7 +11,11 @@ namespace usb = openxc::interface::usb;
 using openxc::pipeline::Pipeline;
 
 Pipeline pipeline;
-UsbDevice usbDevice;
+UsbDevice usbDevice = {
+    {
+        {IN_ENDPOINT_NUMBER, MAX_USB_PACKET_SIZE_BYTES, usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
+    }
+};
 UartDevice uartDevice;
 NetworkDevice networkDevice;
 
@@ -37,8 +41,8 @@ START_TEST (test_only_usb)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -72,9 +76,9 @@ END_TEST
 START_TEST (test_full_usb)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue));
 
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8);
@@ -87,8 +91,8 @@ START_TEST (test_with_uart)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
@@ -104,8 +108,8 @@ START_TEST (test_with_uart_and_network)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];

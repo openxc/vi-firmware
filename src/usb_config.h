@@ -13,13 +13,18 @@ extern "C" {
 // for all data. There is a bug in the nxpUSBlib (referenced here:
 // http://lpcware.com/content/forum/problem-and-out-endpoints) where both
 // directions of an endpoint share a single buffer, so this is broken.
-#define IN_ENDPOINT_NUMBER 1
-#define OUT_ENDPOINT_NUMBER 2
-#define LOG_ENDPOINT_NUMBER 3
+#define IN_ENDPOINT_NUMBER 2
+#define OUT_ENDPOINT_NUMBER 5
+#define LOG_ENDPOINT_NUMBER 11
 #define INTERFACE_COUNT 1
 #define ENDPOINT_COUNT 3
 #define CONTROL_ENDPOINT_SIZE 64
 #define DATA_ENDPOINT_SIZE 64
+
+#define IN_ENDPOINT_INDEX 0
+#define OUT_ENDPOINT_INDEX 1
+#define LOG_ENDPOINT_INDEX 2
+
 
 // Ford Motor Company USB Vendor ID
 #define VENDOR_ID 0x1bc4

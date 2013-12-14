@@ -43,7 +43,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     if(pipeline->usb->configured) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
         QUEUE_TYPE(uint8_t)* sendQueue =
-                &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue;
+                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue;
         while(timeout > 0 && !messageFits(sendQueue, message, messageSize)) {
             process(pipeline);
             --timeout;
@@ -60,7 +60,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 
         // TODO This may not belong here after USB refactoring
         receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t,
-                &pipeline->usb->endpoints[IN_ENDPOINT_NUMBER - 1].receiveQueue);
+                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].receiveQueue);
     }
 
     if(uart::connected(pipeline->uart)) {

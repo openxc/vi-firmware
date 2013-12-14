@@ -56,10 +56,14 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 };
 
 Pipeline pipeline;
-UsbDevice usbDevice;
+UsbDevice usbDevice = {
+    {
+        {IN_ENDPOINT_NUMBER, MAX_USB_PACKET_SIZE_BYTES, usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
+    }
+};
 
 bool queueEmpty() {
-    return QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    return QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
 }
 
 static unsigned long fakeTime = 0;
@@ -137,8 +141,8 @@ START_TEST (test_send_numerical)
     sendNumericalMessage("test", 42, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
 }
@@ -151,8 +155,8 @@ START_TEST (test_preserve_float_precision)
     sendNumericalMessage("test", value, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":42.500000}\r\n");
@@ -165,8 +169,8 @@ START_TEST (test_send_boolean)
     sendBooleanMessage("test", false, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":false}\r\n");
@@ -179,8 +183,8 @@ START_TEST (test_send_string)
     sendStringMessage("test", "string", &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"string\"}\r\n");
@@ -193,8 +197,8 @@ START_TEST (test_send_evented_boolean)
     sendEventedBooleanMessage("test", "value", false, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
@@ -207,8 +211,8 @@ START_TEST (test_send_evented_string)
     sendEventedStringMessage("test", "value", "event", &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
@@ -221,8 +225,8 @@ START_TEST (test_send_evented_float)
     sendEventedFloatMessage("test", "value", 43.0, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
@@ -235,7 +239,7 @@ START_TEST (test_passthrough_force_send_changed)
     can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_unless(queueEmpty());
@@ -252,7 +256,7 @@ START_TEST (test_passthrough_limited_frequency)
     can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
             MESSAGE_COUNT, &pipeline);
     fail_unless(queueEmpty());
@@ -269,8 +273,8 @@ START_TEST (test_passthrough_message)
     can::read::passthroughMessage(&CAN_BUSES[0], 42, 0x123456789ABCDEF1LLU, NULL, 0, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"bus\":0,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
@@ -288,8 +292,8 @@ START_TEST (test_default_handler)
             SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
@@ -330,8 +334,8 @@ START_TEST (test_translate_float)
             floatHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
@@ -401,8 +405,8 @@ START_TEST (test_translate_string)
             stringHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
@@ -420,8 +424,8 @@ START_TEST (test_translate_bool)
             booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
@@ -441,7 +445,7 @@ START_TEST (test_unlimited_frequency)
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
@@ -456,7 +460,7 @@ START_TEST (test_limited_frequency)
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_unless(queueEmpty());
@@ -485,14 +489,14 @@ START_TEST (test_preserve_last_value)
     can::read::translateSignal(&pipeline, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
             SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
 
     can::read::translateSignal(&pipeline, &SIGNALS[0], 0x1234123000000000,
             preserveHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
@@ -506,13 +510,13 @@ START_TEST (test_dont_send_same)
             booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
 
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     can::read::translateSignal(&pipeline, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
             booleanHandler, SIGNALS, SIGNAL_COUNT);
     fail_unless(queueEmpty());

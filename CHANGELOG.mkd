@@ -8,6 +8,8 @@
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
   function prototype, to allow triggering arbitrary new output messages without
   decoding a signal by hand.
+* BREAKING CHANGE: Changed USB endpoint numbers to allow for optimal performance
+  and a new logging channel.
 
 ## v5.1.2
 

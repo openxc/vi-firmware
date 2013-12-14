@@ -60,10 +60,14 @@ CanSignal SIGNALS[SIGNAL_COUNT] = {
 };
 
 Pipeline pipeline;
-UsbDevice usbDevice;
+UsbDevice usbDevice = {
+    {
+        {IN_ENDPOINT_NUMBER, MAX_USB_PACKET_SIZE_BYTES, usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
+    }
+};
 
 bool queueEmpty() {
-    return QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    return QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
 }
 
 void setup() {
@@ -122,8 +126,8 @@ START_TEST (test_button_event_handler_correct_types)
             &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "event") == NULL);
     fail_if(strstr((char*)snapshot, "value") == NULL);
@@ -154,8 +158,8 @@ START_TEST (test_tire_pressure_handler)
             SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }
@@ -180,7 +184,7 @@ START_TEST (test_send_same_tire_pressure)
     sendDoorStatus("front_left", __builtin_bswap64(data), &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     sendDoorStatus("front_left", __builtin_bswap64(data), &SIGNALS[7], SIGNALS,
             SIGNAL_COUNT, &pipeline);
     fail_unless(queueEmpty());
@@ -197,8 +201,8 @@ START_TEST (test_occupancy_handler_child)
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "child") == NULL);
@@ -217,8 +221,8 @@ START_TEST (test_occupancy_handler_adult)
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "adult") == NULL);
@@ -237,8 +241,8 @@ START_TEST (test_occupancy_handler_empty)
             SIGNALS, SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "empty") == NULL);
@@ -279,8 +283,8 @@ START_TEST (test_door_handler)
             SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }
@@ -305,7 +309,7 @@ START_TEST (test_send_same_door_status)
     sendDoorStatus("driver", __builtin_bswap64(data), &SIGNALS[2], SIGNALS,
             SIGNAL_COUNT, &pipeline);
     fail_if(queueEmpty());
-    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_NUMBER - 1].sendQueue);
+    QUEUE_INIT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
     sendDoorStatus("driver", __builtin_bswap64(data), &SIGNALS[2], SIGNALS,
             SIGNAL_COUNT, &pipeline);
     fail_unless(queueEmpty());

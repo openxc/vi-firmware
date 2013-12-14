@@ -18,10 +18,15 @@ namespace openxc {
 namespace interface {
 namespace usb {
 
+typedef enum {
+    USB_ENDPOINT_DIRECTION_OUT,
+    USB_ENDPOINT_DIRECTION_IN
+} UsbEndpointDirection;
+
 typedef struct {
     uint8_t address;
     uint8_t size;
-    bool directionOut;
+    UsbEndpointDirection direction;
     QUEUE_TYPE(uint8_t) sendQueue;
     QUEUE_TYPE(uint8_t) receiveQueue;
     // This buffer MUST be non-local, so it doesn't get invalidated when it

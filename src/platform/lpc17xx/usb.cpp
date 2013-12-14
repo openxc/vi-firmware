@@ -29,6 +29,7 @@ namespace gpio = openxc::gpio;
 
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::usb::UsbEndpoint;
+using openxc::interface::usb::UsbEndpointDirection;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
@@ -41,7 +42,8 @@ void configureEndpoints() {
         UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
         Endpoint_ConfigureEndpoint(endpoint->address,
                 EP_TYPE_BULK,
-                endpoint->directionOut ? ENDPOINT_DIR_OUT : ENDPOINT_DIR_IN,
+                endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT ?
+                        ENDPOINT_DIR_OUT : ENDPOINT_DIR_IN,
                 endpoint->size, ENDPOINT_BANK_DOUBLE);
     }
 }
@@ -168,7 +170,7 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     } else {
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
             UsbEndpoint* endpoint = &usbDevice->endpoints[i];
-            if(!endpoint->directionOut) {
+            if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
                 flushQueueToHost(endpoint);
             }
         }

@@ -27,7 +27,7 @@ void openxc::interface::usb::read(UsbDevice* device,
         bool (*callback)(uint8_t*)) {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &device->endpoints[i];
-        if(endpoint->directionOut) {
+        if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
             read(device, endpoint, callback);
         }
     }

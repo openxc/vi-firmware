@@ -37,7 +37,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
             UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
-            if(endpoint->directionOut) {
+            if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
                 USB_DEVICE.device.EnableEndpoint(endpoint->address,
                         USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             } else {

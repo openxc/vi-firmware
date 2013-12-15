@@ -98,6 +98,7 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     if(usbDevice->configured && !vbusEnabled()) {
         debug("USB no longer detected - marking unconfigured");
         usbDevice->configured = false;
+        return;
     }
 
     for(int i = 0; i < ENDPOINT_COUNT; i++) {

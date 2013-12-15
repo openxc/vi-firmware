@@ -117,7 +117,7 @@ bool vbusDetected() {
  * connected. See vbusDetected() for reasons why we need this workaround on the
  * current prototype.
  *
- * Returns true of there is measureable activity on the D- USB line.
+ * Returns true of there is measurable activity on the D- USB line.
  */
 bool usbHostDetected() {
     static int debounce = 0;

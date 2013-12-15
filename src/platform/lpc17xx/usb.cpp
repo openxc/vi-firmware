@@ -20,7 +20,7 @@ extern "C" {
 #define USB_DM_PIN 30
 #define USB_DM_FUNCNUM 1
 
-#define USB_HOST_DETECT_DEBOUNCE_VALUE 10000
+#define USB_HOST_DETECT_DEBOUNCE_VALUE 1000
 
 #define USB_CONNECT_PORT 2
 #define USB_CONNECT_PIN 9
@@ -68,6 +68,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
     configureEndpoints();
     // don't use debug logging in here because if the function doesn't return
     // quick enough, the control transfer can fail because it times out
+    debug("USB Configured");
     USB_DEVICE.configured = true;
 }
 

@@ -23,7 +23,7 @@ ROM USB_DEVICE_DESCRIPTOR device_dsc=
 ROM BYTE configDescriptor1[]={
     sizeof(USB_CONFIGURATION_DESCRIPTOR),
     USB_DESCRIPTOR_CONFIGURATION,                // CONFIGURATION descriptor type
-    0x20,0x00,            // Total length of data for this cfg
+    0x27,0x00,            // Total length of data for this cfg
     INTERFACE_COUNT,                      // Number of interfaces in this cfg
     1,                      // Index value of this configuration
     0,                      // Configuration string index
@@ -54,7 +54,14 @@ ROM BYTE configDescriptor1[]={
     (ENDPOINT_DIR_IN | IN_ENDPOINT_NUMBER),                   // EndpointAddress
     _BULK,                       // Attributes
     DATA_ENDPOINT_SIZE,0x00,
-    1                          // Interval, unused by bulk endpoint
+    1,                         // Interval, unused by bulk endpoint
+
+    sizeof(USB_ENDPOINT_DESCRIPTOR),
+    USB_DESCRIPTOR_ENDPOINT, //Endpoint Descriptor
+    (ENDPOINT_DIR_IN | LOG_ENDPOINT_NUMBER),                   // EndpointAddress
+    _BULK,                       // Attributes
+    DATA_ENDPOINT_SIZE,0x00,
+    1,                         // Interval, unused by bulk endpoint
 };
 
 

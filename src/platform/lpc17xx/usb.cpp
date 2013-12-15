@@ -64,6 +64,7 @@ void EVENT_USB_Device_ControlRequest() {
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
+    USB_DEVICE.configured = false;
     configureEndpoints();
     // don't use debug logging in here because if the function doesn't return
     // quick enough, the control transfer can fail because it times out
@@ -73,8 +74,8 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 }
 
 /* Private: Flush any queued data out to the USB host. */
-static void flushQueueToHost(UsbEndpoint* endpoint) {
-    if(QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
+static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
+    if(!usbDevice->configured || QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
         return;
     }
 
@@ -169,11 +170,11 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
                 || !vbusDetected() || !usbHostDetected())) {
         EVENT_USB_Device_Disconnect();
-    } else {
+    } else if(usbDevice->configured) {
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
             UsbEndpoint* endpoint = &usbDevice->endpoints[i];
             if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
-                flushQueueToHost(endpoint);
+                flushQueueToHost(usbDevice, endpoint);
             }
         }
     }

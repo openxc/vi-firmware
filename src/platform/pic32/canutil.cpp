@@ -80,7 +80,6 @@ void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
  * without disabling the CAN module itself.
  */
 void openxc::can::deinitialize(CanBus* bus) {
-    GpioValue value;
 
     // set the operational mode
     CAN_CONTROLLER(bus)->setOperatingMode(CAN::DISABLE);
@@ -88,7 +87,7 @@ void openxc::can::deinitialize(CanBus* bus) {
 
     // disable off-chip line driver
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
-    value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
+    GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
     gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
     gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
     #endif
@@ -96,7 +95,6 @@ void openxc::can::deinitialize(CanBus* bus) {
 
 void openxc::can::initialize(CanBus* bus, bool writable) {
     can::initializeCommon(bus);
-    GpioValue value;
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
     CAN_CONTROLLER(bus)->enableModule(true);
@@ -151,7 +149,7 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
 
     // switch ON off-chip CAN line drivers (if necessary)
     #if defined(CAN1_TRANSCEIVER_SWITCHED)
-    value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
+    GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
     gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
     gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
     #endif

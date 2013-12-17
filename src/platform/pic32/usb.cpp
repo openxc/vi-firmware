@@ -27,7 +27,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // callback routine.
     USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
 
-    switch(event) {
+    switch(int(event)) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
         USB_DEVICE.configured = true;
@@ -44,6 +44,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     default:
         break;
     }
+    return true;
 }
 
 void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {

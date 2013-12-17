@@ -55,7 +55,6 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     default:
         break;
     }
-    // TODO how'd we get away with not returning a value for so long?
     return true;
 }
 

@@ -87,7 +87,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 
 #define USB_SUPPORT_DEVICE
 
-#define USB_NUM_STRING_DESCRIPTORS 2
+#define USB_NUM_STRING_DESCRIPTORS 3
 
 #define USB_ENABLE_ALL_HANDLERS
 

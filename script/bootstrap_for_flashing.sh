@@ -196,7 +196,7 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
         download $MPIDE_URL $MPIDE_FILE
     fi
 
-    if ! test -d mpide
+    if ! test -d $MPIDE_BASENAME
     then
         echo "Installing MPIDE to local folder..."
         if [ $OS == "mac" ]; then
@@ -206,7 +206,8 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
         else
             $EXTRACT_COMMAND $MPIDE_FILE
         fi
-        mv $MPIDE_BASENAME mpide
+        rm -rf mpide
+        cp -R $MPIDE_BASENAME mpide
         echo "MPIDE installed"
     fi
 

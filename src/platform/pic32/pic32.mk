@@ -23,19 +23,10 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-ifdef MPIDE_DIR
-MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
-
-ifneq ($(MPIDE_EXISTS),0)
-MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
-endif
-else
-MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
-endif
-
+MPIDE_DIR ?= $(DEPENDENCIES_MPIDE_DIR)
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
-$(error MPIDE missing - run "script/bootstrap.sh")
+$(error MPIDE missing from path "$(MPIDE_DIR)" - run "script/bootstrap.sh")
 endif
 
 ifndef CAN_EMULATOR

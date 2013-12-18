@@ -21,7 +21,7 @@ extern "C" {
 // Take note - this is not the *number of endpoints* but the highest endpoint
 // number used, e.g. we have 2 endpoints but one is 5 and the other is 11 - this
 // must be 11!
-#define MAX_ENDPOINT_NUMBER 2
+#define MAX_ENDPOINT_NUMBER 11
 #define CONTROL_ENDPOINT_SIZE 64
 #define DATA_ENDPOINT_SIZE 64
 

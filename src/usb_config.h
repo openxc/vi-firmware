@@ -15,8 +15,12 @@ extern "C" {
 // directions of an endpoint share a single buffer, so this is broken.
 #define IN_ENDPOINT_NUMBER 1
 #define OUT_ENDPOINT_NUMBER 2
-#define INTERFACE_COUNT 1
+#define INTERFACE_COUNT 2
 #define ENDPOINT_COUNT 2
+// Take note - this is not the *number of endpoints* but the highest endpoint
+// number used, e.g. we have 2 endpoints but one is 5 and the other is 11 - this
+// must be 11!
+#define MAX_ENDPOINT_NUMBER 2
 #define CONTROL_ENDPOINT_SIZE 64
 #define DATA_ENDPOINT_SIZE 64
 
@@ -60,7 +64,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 #ifdef __PIC32__
 
 #define USB_MAX_NUM_INT INTERFACE_COUNT
-#define USB_MAX_EP_NUMBER ENDPOINT_COUNT
+#define USB_MAX_EP_NUMBER MAX_ENDPOINT_NUMBER
 #define USB_EP0_BUFF_SIZE CONTROL_ENDPOINT_SIZE
 
 //Device descriptor - if these two definitions are not defined then

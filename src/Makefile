@@ -131,6 +131,7 @@ define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
+	$(call show_vi_config_variable,UART_LOGGING)
 	$(call show_vi_config_variable,BENCHTEST)
 	$(call show_vi_config_variable,LOG_STATS)
 	$(call show_vi_config_variable,BINARY_OUTPUT)

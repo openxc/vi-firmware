@@ -16,10 +16,6 @@
 #define RESET_CONTROL_COMMAND 0x81
 #define DEVICE_ID_CONTROL_COMMAND 0x82
 
-// USB
-#define DATA_IN_ENDPOINT 1
-#define DATA_OUT_ENDPOINT 2
-
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
@@ -44,9 +40,9 @@ UartDevice UART_DEVICE = {UART_BAUD_RATE};
 NetworkDevice NETWORK_DEVICE;
 
 UsbDevice USB_DEVICE = {
-    DATA_IN_ENDPOINT,
+    IN_ENDPOINT_NUMBER,
     MAX_USB_PACKET_SIZE_BYTES,
-    DATA_OUT_ENDPOINT,
+    OUT_ENDPOINT_NUMBER,
     MAX_USB_PACKET_SIZE_BYTES};
 
 Pipeline pipeline = {

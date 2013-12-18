@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "util/bytebuffer.h"
+#include "usb_config.h"
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512

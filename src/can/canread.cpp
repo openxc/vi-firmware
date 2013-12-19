@@ -23,6 +23,8 @@ const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
  *
  * root - The JSON object to send.
  * pipeline - The pipeline to send on.
+ * messageClass - the class of the message, used to decide which endpoints in
+ *      the pipeline receive the message.
  */
 void sendJSON(cJSON* root, Pipeline* pipeline, MessageClass messageClass) {
     if(root == NULL) {
@@ -50,6 +52,8 @@ void sendJSON(cJSON* root, Pipeline* pipeline, MessageClass messageClass) {
  *
  * message - The message to send, in a struct.
  * pipeline - The pipeline to send on.
+ * messageClass - the class of the message, used to decide which endpoints in
+ *      the pipeline receive the message.
  */
 void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline,
         MessageClass messageClass) {
@@ -78,6 +82,8 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline,
  *      OpenXC message.
  * event - (Optional) The event for the event field of the OpenXC message.
  * pipeline - The pipeline to send on.
+ * messageClass - the class of the message, used to decide which endpoints in
+ *      the pipeline receive the message.
  */
 void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
         Pipeline* pipeline, MessageClass messageClass) {

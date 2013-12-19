@@ -24,6 +24,14 @@ typedef enum {
     USB_ENDPOINT_DIRECTION_IN
 } UsbEndpointDirection;
 
+/* Public: a container for a USB endpoint definition - one logical endpoint.
+ *
+ * address - the physical endpoint number.
+ * size - the packet size for the endpoint, e.g. 512.
+ * direction - the direction of the endpoint, IN or OUT.
+ * sendQueue - A queue of bytes to send over the IN endpoint.
+ * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
+ */
 typedef struct {
     uint8_t address;
     uint8_t size;
@@ -49,8 +57,6 @@ typedef struct {
  * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
  *      true, accept raw write requests from the USB interface.
  *
- * sendQueue - A queue of bytes to send over the IN endpoint.
- * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
  * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
@@ -74,11 +80,11 @@ void initializeCommon(UsbDevice*);
  */
 void initialize(UsbDevice*);
 
-/* Public: Pass the next OUT request message to the callback, if available.
+/* Public: Check for and processs OUT requests on any and all OUT endpoints.
  *
- * Checks if the input handle is not busy, indicating the presence of a new OUT
- * request from the host. If a message is available, the callback is notified
- * and the endpoint is re-armed for the next USB transfer.
+ * For each OUT endpoint, checks if the input handle is not busy, indicating the
+ * presence of a new OUT request from the host. If a message is available, the
+ * callback is notified and the endpoint is re-armed for the next USB transfer.
  *
  * device - The CAN USB device to arm the endpoint on.
  * callback - A function that handles USB in requests. The callback should
@@ -86,6 +92,17 @@ void initialize(UsbDevice*);
  */
 void read(UsbDevice* device, bool (*callback)(uint8_t*));
 
+/* Public: Pass the next OUT request message to the callback, if available.
+ *
+ * Checks if the input handle is not busy, indicating the presence of a new OUT
+ * request from the host. If a message is available, the callback is notified
+ * and the endpoint is re-armed for the next USB transfer.
+ *
+ * device - The USB device to arm the endpoint on.
+ * endpoint - The endpoint to read from.
+ * callback - A function that handles USB in requests. The callback should
+ *      return true if a message was properly received and parsed.
+ */
 void read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*));
 
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the

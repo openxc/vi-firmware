@@ -51,6 +51,8 @@ typedef struct {
  * pipeline - Container of all pipelines to send the message on.
  * message - The message data as an array of uint8_t.
  * messageSize - The length of the message's byte array.
+ * messageClass - the class of the message, used to decide which endpoints in
+ *      the pipeline receive the message.
  */
 void sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass);

@@ -76,7 +76,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 
 /* Private: Flush any queued data out to the USB host. */
 static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
-    if(!usbDevice->configured || QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
+    if(!usbDevice->configured || QUEUE_EMPTY(uint8_t, &endpoint->queue)) {
         return;
     }
 
@@ -85,10 +85,10 @@ static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
     if(Endpoint_IsINReady()) {
         // get bytes from transmit FIFO into intermediate buffer
         int byteCount = 0;
-        while(!QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)
+        while(!QUEUE_EMPTY(uint8_t, &endpoint->queue)
                 && byteCount < USB_SEND_BUFFER_SIZE) {
             endpoint->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
-                    &endpoint->sendQueue);
+                    &endpoint->queue);
         }
 
         if(byteCount > 0) {
@@ -197,12 +197,11 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
 
     while(Endpoint_IsOUTReceived()) {
         while(Endpoint_BytesInEndpoint()) {
-            if(!QUEUE_PUSH(uint8_t, &endpoint->receiveQueue,
-                        Endpoint_Read_8())) {
+            if(!QUEUE_PUSH(uint8_t, &endpoint->queue, Endpoint_Read_8())) {
                 debug("Dropped write from host -- queue is full");
             }
         }
-        processQueue(&endpoint->receiveQueue, callback);
+        processQueue(&endpoint->queue, callback);
         Endpoint_ClearOUT();
     }
     Endpoint_SelectEndpoint(previousEndpoint);

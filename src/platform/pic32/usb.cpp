@@ -109,12 +109,12 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
         }
 
         while(usbDevice->configured &&
-                !QUEUE_EMPTY(uint8_t, &endpoint->sendQueue)) {
+                !QUEUE_EMPTY(uint8_t, &endpoint->queue)) {
             int byteCount = 0;
-            while(!QUEUE_EMPTY(uint8_t, &endpoint->sendQueue) &&
+            while(!QUEUE_EMPTY(uint8_t, &endpoint->queue) &&
                     byteCount < USB_SEND_BUFFER_SIZE) {
                 endpoint->sendBuffer[byteCount++] = QUEUE_POP(uint8_t,
-                        &endpoint->sendQueue);
+                        &endpoint->queue);
             }
 
             int nextByteIndex = 0;

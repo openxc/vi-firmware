@@ -68,14 +68,14 @@ void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
     if(pipeline->usb->configured) {
         QUEUE_TYPE(uint8_t)* sendQueue;
         if(messageClass == MessageClass::LOG) {
-            sendQueue = &pipeline->usb->endpoints[LOG_ENDPOINT_INDEX].sendQueue;
+            sendQueue = &pipeline->usb->endpoints[LOG_ENDPOINT_INDEX].queue;
         } else {
-            sendQueue = &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue;
+            sendQueue = &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue;
         }
 
         conditionalFlush(pipeline, sendQueue, message, messageSize);
         sendToEndpoint(USB, sendQueue,
-                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].receiveQueue,
+                &pipeline->usb->endpoints[OUT_ENDPOINT_INDEX].queue,
                 message, messageSize);
     }
 }

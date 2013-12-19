@@ -29,15 +29,14 @@ typedef enum {
  * address - the physical endpoint number.
  * size - the packet size for the endpoint, e.g. 512.
  * direction - the direction of the endpoint, IN or OUT.
- * sendQueue - A queue of bytes to send over the IN endpoint.
- * receiveQueue - A queue of unprocessed bytes received from the OUT endpoint.
+ * queue - A queue of bytes from or for IN or OUT requests, depending on the
+ *      direction.
  */
 typedef struct {
     uint8_t address;
     uint8_t size;
     UsbEndpointDirection direction;
-    QUEUE_TYPE(uint8_t) sendQueue;
-    QUEUE_TYPE(uint8_t) receiveQueue;
+    QUEUE_TYPE(uint8_t) queue;
     // This buffer MUST be non-local, so it doesn't get invalidated when it
     // falls off the stack
     uint8_t sendBuffer[USB_SEND_BUFFER_SIZE];

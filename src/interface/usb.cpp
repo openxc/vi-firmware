@@ -6,8 +6,7 @@ using openxc::util::log::debugNoNewline;
 void openxc::interface::usb::initializeCommon(UsbDevice* usbDevice) {
     debug("Initializing USB.....");
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
-        QUEUE_INIT(uint8_t, &usbDevice->endpoints[i].sendQueue);
-        QUEUE_INIT(uint8_t, &usbDevice->endpoints[i].receiveQueue);
+        QUEUE_INIT(uint8_t, &usbDevice->endpoints[i].queue);
     }
     usbDevice->configured = false;
     usbDevice->allowRawWrites =

@@ -42,10 +42,10 @@ START_TEST (test_log_to_usb)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::LOG);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
-    ck_assert(QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue));
-    ck_assert(!QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].sendQueue));
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
+    ck_assert(QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue));
+    ck_assert(!QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].queue));
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].queue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -55,8 +55,8 @@ START_TEST (test_only_usb)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -90,9 +90,9 @@ END_TEST
 START_TEST (test_full_usb)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue));
 
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
@@ -105,8 +105,8 @@ START_TEST (test_with_uart)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
@@ -122,8 +122,8 @@ START_TEST (test_with_uart_and_network)
     const char* message = "message";
     sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];

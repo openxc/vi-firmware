@@ -189,12 +189,12 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
     if(!device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         if(endpoint->receiveBuffer[0] != '\0') {
             for(int i = 0; i < endpoint->size; i++) {
-                if(!QUEUE_PUSH(uint8_t, &endpoint->receiveQueue,
+                if(!QUEUE_PUSH(uint8_t, &endpoint->queue,
                             endpoint->receiveBuffer[i])) {
                     debug("Dropped write from host -- queue is full");
                 }
             }
-            processQueue(&endpoint->receiveQueue, callback);
+            processQueue(&endpoint->queue, callback);
         }
         armForRead(device, endpoint);
     }

@@ -253,6 +253,10 @@ float preTranslate(CanSignal* signal, uint64_t data, bool* send);
  */
 void postTranslate(CanSignal* signal, float value);
 
+/* Private: Inject a new vehicle data message into the pipeline.
+ */
+void sendVehicleMessage(openxc_VehicleMessage* message, Pipeline* pipeline);
+
 } // namespace read
 } // namespace can
 } // namespace openxc

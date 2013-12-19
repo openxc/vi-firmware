@@ -11,27 +11,25 @@ namespace usb = openxc::interface::usb;
 using openxc::pipeline::Pipeline;
 using openxc::pipeline::MessageClass;
 
-Pipeline pipeline;
-UsbDevice usbDevice = {
-    {
-        {IN_ENDPOINT_NUMBER, MAX_USB_PACKET_SIZE_BYTES, usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
-    }
-};
+extern Pipeline PIPELINE;
+extern UsbDevice USB_DEVICE;
 UartDevice uartDevice;
 NetworkDevice networkDevice;
+
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
 
 extern bool USB_PROCESSED;
 extern bool UART_PROCESSED;
 extern bool NETWORK_PROCESSED;
 
 void setup() {
-    pipeline.usb = &usbDevice;
-    pipeline.uart = NULL;
-    pipeline.network = NULL;
-    usb::initialize(&usbDevice);
+    PIPELINE.usb = &USB_DEVICE;
+    PIPELINE.uart = NULL;
+    PIPELINE.network = NULL;
+    usb::initialize(&USB_DEVICE);
     uart::initialize(&uartDevice);
     network::initialize(&networkDevice);
-    pipeline.usb->configured = true;
+    PIPELINE.usb->configured = true;
     USB_PROCESSED = false;
     UART_PROCESSED = false;
     NETWORK_PROCESSED = false;
@@ -40,12 +38,12 @@ void setup() {
 START_TEST (test_log_to_usb)
 {
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::LOG);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::LOG);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
-    ck_assert(QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue));
-    ck_assert(!QUEUE_EMPTY(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].queue));
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[LOG_ENDPOINT_INDEX].queue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
+    ck_assert(QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE));
+    ck_assert(!QUEUE_EMPTY(uint8_t, &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue));
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -53,92 +51,92 @@ END_TEST
 START_TEST (test_only_usb)
 {
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_full_network)
 {
-    pipeline.network = &networkDevice;
+    PIPELINE.network = &networkDevice;
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &pipeline.network->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &PIPELINE.network->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &pipeline.network->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &PIPELINE.network->sendQueue));
 
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 }
 END_TEST
 
 START_TEST (test_full_uart)
 {
-    pipeline.uart = &uartDevice;
+    PIPELINE.uart = &uartDevice;
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &pipeline.uart->sendQueue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &PIPELINE.uart->sendQueue, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &pipeline.uart->sendQueue));
+    fail_unless(QUEUE_FULL(uint8_t, &PIPELINE.uart->sendQueue));
 
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 }
 END_TEST
 
 START_TEST (test_full_usb)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, OUTPUT_QUEUE, (uint8_t) 128);
     }
-    fail_unless(QUEUE_FULL(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue));
+    fail_unless(QUEUE_FULL(uint8_t, OUTPUT_QUEUE));
 
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 }
 END_TEST
 
 START_TEST (test_with_uart)
 {
-    pipeline.uart = &uartDevice;
+    PIPELINE.uart = &uartDevice;
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.uart->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_with_uart_and_network)
 {
-    pipeline.uart = &uartDevice;
-    pipeline.network = &networkDevice;
+    PIPELINE.uart = &uartDevice;
+    PIPELINE.network = &networkDevice;
     const char* message = "message";
-    sendMessage(&pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.uart->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.uart->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &pipeline.network->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline.network->sendQueue, snapshot);
+    snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.network->sendQueue)];
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.network->sendQueue, snapshot);
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
 
 START_TEST (test_process_usb)
 {
-    process(&pipeline);
+    process(&PIPELINE);
     fail_unless(USB_PROCESSED);
     fail_if(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -147,8 +145,8 @@ END_TEST
 
 START_TEST (test_process_usb_and_uart)
 {
-    pipeline.uart = &uartDevice;
-    process(&pipeline);
+    PIPELINE.uart = &uartDevice;
+    process(&PIPELINE);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_if(NETWORK_PROCESSED);
@@ -157,9 +155,9 @@ END_TEST
 
 START_TEST (test_process_all)
 {
-    pipeline.uart = &uartDevice;
-    pipeline.network = &networkDevice;
-    process(&pipeline);
+    PIPELINE.uart = &uartDevice;
+    PIPELINE.network = &networkDevice;
+    process(&PIPELINE);
     fail_unless(USB_PROCESSED);
     fail_unless(UART_PROCESSED);
     fail_unless(NETWORK_PROCESSED);

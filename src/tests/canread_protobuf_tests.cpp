@@ -64,8 +64,10 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 
 static unsigned long fakeTime = 0;
 
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
+
 bool queueEmpty() {
-    return QUEUE_EMPTY(uint8_t, &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].sendQueue);
+    return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
 }
 
 unsigned long timeMock() {
@@ -86,8 +88,8 @@ void setup() {
 }
 
 openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue) + 1];
-    QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue, snapshot);
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue) + 1];
+    QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot);
 
     openxc_VehicleMessage decodedMessage;
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));

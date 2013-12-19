@@ -37,8 +37,6 @@ void enablePin(openxc::lights::RGB color, int pin, int polarity) {
 }
 
 void openxc::lights::enable(Light light, RGB color) {
-    GpioValue value;
-
     switch(light) {
 #if defined(USER_LED_A_SUPPORT)
         case LIGHT_A:

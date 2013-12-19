@@ -20,6 +20,9 @@ using openxc::util::bytebuffer::conditionalEnqueue;
 using openxc::util::bytebuffer::messageFits;
 using openxc::util::statistics::DeltaStatistic;
 
+using openxc::pipeline::Pipeline;
+using openxc::pipeline::MessageClass;
+
 typedef enum {
     USB = 0,
     UART = 1,
@@ -38,72 +41,70 @@ unsigned int dataSent[PIPELINE_ENDPOINT_COUNT];
 unsigned int sendQueueLength[PIPELINE_ENDPOINT_COUNT];
 unsigned int receiveQueueLength[PIPELINE_ENDPOINT_COUNT];
 
+void conditionalFlush(Pipeline* pipeline,
+        QUEUE_TYPE(uint8_t)* sendQueue, uint8_t* message, int messageSize) {
+    int timeout = QUEUE_FLUSH_MAX_TRIES;
+    while(timeout > 0 && !messageFits(sendQueue, message, messageSize)) {
+        process(pipeline);
+        --timeout;
+    }
+}
+
+void sendToEndpoint(EndpointType endpointType, QUEUE_TYPE(uint8_t)* sendQueue,
+        QUEUE_TYPE(uint8_t)* receiveQueue, uint8_t* message, int messageSize) {
+    if(!conditionalEnqueue(sendQueue, message, messageSize)) {
+        ++droppedMessages[endpointType];
+    } else {
+        ++sentMessages[endpointType];
+        dataSent[endpointType] += messageSize;
+    }
+    sendQueueLength[endpointType] = QUEUE_LENGTH(uint8_t, sendQueue);
+    // TODO This may not belong here after USB refactoring
+    receiveQueueLength[endpointType] = QUEUE_LENGTH(uint8_t, receiveQueue);
+}
+
+void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass) {
+    if(pipeline->usb->configured) {
+        QUEUE_TYPE(uint8_t)* sendQueue;
+        if(messageClass == MessageClass::LOG) {
+            sendQueue = &pipeline->usb->endpoints[LOG_ENDPOINT_INDEX].sendQueue;
+        } else {
+            sendQueue = &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue;
+        }
+
+        conditionalFlush(pipeline, sendQueue, message, messageSize);
+        sendToEndpoint(USB, sendQueue,
+                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].receiveQueue,
+                message, messageSize);
+    }
+}
+
+void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass) {
+    if(uart::connected(pipeline->uart) && messageClass != MessageClass::LOG) {
+        QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->uart->sendQueue;
+        conditionalFlush(pipeline, sendQueue, message, messageSize);
+        sendToEndpoint(UART, sendQueue, &pipeline->uart->receiveQueue, message,
+                messageSize);
+    }
+}
+
+void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass) {
+    if(pipeline->network != NULL && messageClass != MessageClass::LOG) {
+        QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->network->sendQueue;
+        conditionalFlush(pipeline, sendQueue, message, messageSize);
+        sendToEndpoint(NETWORK, sendQueue, &pipeline->network->receiveQueue,
+                message, messageSize);
+    }
+}
+
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize, MessageClass messageClass) {
-    if(pipeline->usb->configured) {
-        int timeout = QUEUE_FLUSH_MAX_TRIES;
-        QUEUE_TYPE(uint8_t)* sendQueue =
-                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].sendQueue;
-        while(timeout > 0 && !messageFits(sendQueue, message, messageSize)) {
-            process(pipeline);
-            --timeout;
-        }
-
-        if(!conditionalEnqueue(sendQueue, message,
-                messageSize)) {
-            ++droppedMessages[USB];
-        } else {
-            ++sentMessages[USB];
-            dataSent[USB] += messageSize;
-        }
-        sendQueueLength[USB] = QUEUE_LENGTH(uint8_t, sendQueue);
-
-        // TODO This may not belong here after USB refactoring
-        receiveQueueLength[USB] = QUEUE_LENGTH(uint8_t,
-                &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].receiveQueue);
-    }
-
-    if(uart::connected(pipeline->uart)) {
-        int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->uart->sendQueue, message,
-                    messageSize)) {
-            process(pipeline);
-            --timeout;
-        }
-
-        if(!conditionalEnqueue(&pipeline->uart->sendQueue, message,
-                messageSize)) {
-            ++droppedMessages[UART];
-        } else {
-            ++sentMessages[UART];
-            dataSent[UART] += messageSize;
-        }
-        sendQueueLength[UART] = QUEUE_LENGTH(uint8_t,
-                &pipeline->uart->sendQueue);
-        receiveQueueLength[UART] = QUEUE_LENGTH(uint8_t,
-                &pipeline->uart->receiveQueue);
-    }
-
-    if(pipeline->network != NULL) {
-        int timeout = QUEUE_FLUSH_MAX_TRIES;
-        while(timeout > 0 && !messageFits(&pipeline->network->sendQueue,
-                    message, messageSize)) {
-            process(pipeline);
-            --timeout;
-        }
-
-        if(!conditionalEnqueue(
-                &pipeline->network->sendQueue, message, messageSize)) {
-            ++droppedMessages[NETWORK];
-        } else {
-            ++sentMessages[NETWORK];
-            dataSent[NETWORK] += messageSize;
-        }
-        sendQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t,
-                &pipeline->network->sendQueue);
-        receiveQueueLength[NETWORK] = QUEUE_LENGTH(uint8_t,
-                &pipeline->network->receiveQueue);
-    }
+    sendToUsb(pipeline, message, messageSize, messageClass);
+    sendToUart(pipeline, message, messageSize, messageClass);
+    sendToNetwork(pipeline, message, messageSize, messageClass);
 }
 
 void openxc::pipeline::process(Pipeline* pipeline) {

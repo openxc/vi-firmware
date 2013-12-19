@@ -66,10 +66,10 @@ periodically stop responding. The bug still exists, but there are now
 workarounds in the code to automatically re-initialize the transceivers if they
 stop receiving messages.
 
-Endpoint 1 IN
--------------
+Endpoint 2 IN - Vehicle Data to Host
+------------------------------------
 
-Endpoint 1 is configured as a bulk transfer endpoint with the ``IN``
+Endpoint 2 is configured as a bulk transfer endpoint with the ``IN``
 direction (device to host). OpenXC JSON messages read from the vehicle
 are sent to the host via ``IN`` transactions. When the host is ready to
 receive, it should issue a request to read data from this endpoint. A
@@ -77,8 +77,8 @@ larger sized request will allow more messages to be batched together
 into one USB request and give high overall throughput (with the downside
 of introducing delay depending on the size of the request).
 
-Endpoint 1 OUT
---------------
+Endpoint 5 OUT - Commands to Vehicle
+------------------------------------
 
 OpenXC JSON messages created by the host to send to the vehicle (i.e. to
 write to the CAN bus) are sent via ``OUT`` transactions. The CAN
@@ -94,3 +94,9 @@ In the same way the VI is pre-configured with a list of CAN signals to read and
 parse from the CAN bus, it is configured with a whitelist of messages and
 signals for which to accept writes from the host. If a message is sent with an
 unlisted ID it is silently ignored.
+
+Endpoint 11 IN - Logging
+------------------------
+
+When compiled with the ``DEBUG`` flag, debug logging will be published to this
+endpoint. The log messages are separated by ``\r\n``.

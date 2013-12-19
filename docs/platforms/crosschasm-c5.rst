@@ -90,6 +90,10 @@ or leave it floating.
 Debug Logging
 -------------
 
+In most cases the logging provided via USB is sufficient, but if you are doing
+low-level development and need the simpler UART interface, you can enable it
+with the ``UART_LOGGING`` Makefile flag.
+
 On the C5, logging is on UART3A at 115200 baud (if the firmware was compiled
 with ``DEBUG=1``).
 

@@ -68,6 +68,10 @@ When a Bluetooth host pairs with the RN-42 and opens an RFCOMM connection, pin
 Debug Logging
 -------------
 
+In most cases the logging provided via USB is sufficient, but if you are doing
+low-level development and need the simpler UART interface, you can enable it
+with the ``UART_LOGGING`` Makefile flag.
+
 Logging will be on UART0, which is exposed on the bottom of the board at J3, a
 5-pin ISP connector.
 

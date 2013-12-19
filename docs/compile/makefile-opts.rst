@@ -17,8 +17,12 @@ These options are passed as shell environment variables to the Makefile, e.g.
   </platforms/platforms>` (see the platform specific pages for valid options).
 
 - ``DEBUG`` - Set to ``1`` to compile with debugging symbols and to enable debug
-  logging. See the :doc:`platform docs </platforms/platforms>` for details on
-  how to read this output.
+  logging. By default the logging will be available via the logging USB
+  endpoint - for UART output, see the ``UART_LOGGING`` flag.
+
+- ``UART_LOGGING`` - When combined with ``DEBUG``, set to ``1`` to enable debug
+  logging via UART. See the :doc:`platform docs </platforms/platforms>` for
+  details on how to read this output.
 
 - ``LOG_STATS`` - Set to ``1`` to enable logging CAN message and output message
   statistics over the normal DEBUG output.

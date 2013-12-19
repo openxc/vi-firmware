@@ -22,8 +22,12 @@ Other hardware implementations (like the :doc:`Ford Reference VI <ford>`) may be
 able to hook the Bluetooth connection status to this pin instead, to make the
 status of UART more dynamic.
 
-Debug Logging
--------------
+UART Debug Logging
+------------------
+
+In most cases the logging provided via USB is sufficient, but if you are doing
+low-level development and need the simpler UART interface, you can enable it
+with the ``UART_LOGGING`` Makefile flag.
 
 On the Blueboard LPC1768H, logging will be on ``UART0`` at ``115200`` baud:
 

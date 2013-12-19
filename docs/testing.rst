@@ -47,11 +47,17 @@ When compiled with ``DEBUG=1``, two things happen:
 
 - Debug symbols are available in the .elf file generated in the ``build``
   directory.
-- Log messages will be output over a UART port (no hardware flow control is
-  required) - see :doc:`supported platforms </platforms/platforms>` for details.
+- Log messages will be output over a separate USB endpoint
+  required) - see :doc:`/output` for details. You can optionally enable logging
+  via UART with the ``UART_LOGGING`` flag, but there may be a performance
+  hit - see the :doc:`/compile/makefile-opts`.
 
-View this output using an FTDI cable and any of the many available serial
-terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
+To view the logs via USB, you can use the command line tools from the OpenXC
+Python library and supply the ``--log-mode`` flag - see the help text for any of
+those tools for more information.
+
+To view UART logs, you can use an FTDI cable and any of the many available
+serial terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
 
 Emulator
 =========

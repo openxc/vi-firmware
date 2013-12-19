@@ -62,6 +62,10 @@ the throughput over UART.
 Debug Logging
 -------------
 
+In most cases the logging provided via USB is sufficient, but if you are doing
+low-level development and need the simpler UART interface, you can enable it
+with the ``UART_LOGGING`` Makefile flag.
+
 On the chipKIT Max32, logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx) at
 115200 baud (if the firmware was compiled with ``DEBUG=1``).
 

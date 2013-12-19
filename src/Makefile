@@ -51,6 +51,7 @@ NETWORK_ALLOW_RAW_WRITE ?= 0
 # SYMBOLS += NETWORK_ALLOW_RAW_WRITE
 # endif
 
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 SYMBOLS += __DEBUG__
 else

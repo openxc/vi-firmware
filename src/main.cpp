@@ -47,7 +47,7 @@ UsbDevice USB_DEVICE = {
     }
 };
 
-Pipeline pipeline = {
+Pipeline PIPELINE = {
 #ifdef USE_BINARY_OUTPUT
     openxc::pipeline::PROTO,
 #else
@@ -65,7 +65,7 @@ Pipeline pipeline = {
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(uart::connected(pipeline.uart)) {
+    if(uart::connected(PIPELINE.uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     } else if(USB_DEVICE.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
@@ -80,22 +80,22 @@ int main(void) {
     time::initialize();
     lights::initialize();
     power::initialize();
-    usb::initialize(pipeline.usb);
-    uart::initialize(pipeline.uart);
+    usb::initialize(PIPELINE.usb);
+    uart::initialize(PIPELINE.uart);
     updateInterfaceLight();
     // give basic power indication ASAP, even if no CAN activity or output
     // interface attached
     lights::enable(lights::LIGHT_A, lights::COLORS.red);
 
-    bluetooth::initialize(pipeline.uart);
-    network::initialize(pipeline.network);
+    bluetooth::initialize(PIPELINE.uart);
+    network::initialize(PIPELINE.network);
 
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();
 
     for (;;) {
         loop();
-        process(&pipeline);
+        process(&PIPELINE);
         updateInterfaceLight();
     }
 

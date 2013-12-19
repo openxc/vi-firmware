@@ -36,7 +36,7 @@ using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 
-extern Pipeline pipeline;
+extern Pipeline PIPELINE;
 
 /* Forward declarations */
 
@@ -60,12 +60,12 @@ void loop() {
         // you need to modify the firmware to not use any interfaces, you'll
         // have to change that or enable the flush functionality to write to
         // your desired output interface.
-        receiveCan(&pipeline, &getCanBuses()[i]);
+        receiveCan(&PIPELINE, &getCanBuses()[i]);
     }
 
-    usb::read(pipeline.usb, receiveWriteRequest);
-    uart::read(pipeline.uart, receiveWriteRequest);
-    network::read(pipeline.network, receiveWriteRequest);
+    usb::read(PIPELINE.usb, receiveWriteRequest);
+    uart::read(PIPELINE.uart, receiveWriteRequest);
+    network::read(PIPELINE.network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         can::write::processWriteQueue(&getCanBuses()[i]);
@@ -74,7 +74,7 @@ void loop() {
     updateDataLights();
     openxc::signals::loop();
     can::logBusStatistics(getCanBuses(), getCanBusCount());
-    openxc::pipeline::logStatistics(&pipeline);
+    openxc::pipeline::logStatistics(&PIPELINE);
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -98,7 +98,7 @@ void updateDataLights() {
 #ifndef TRANSMITTER
 #ifndef __DEBUG__
         busWasActive = false;
-        platform::suspend(&pipeline);
+        platform::suspend(&PIPELINE);
 #endif
 #endif
     }

@@ -119,12 +119,12 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString = {
  * the appropriate string ID is requested, listed in the Device Descriptor.
  */
 const USB_Descriptor_String_t PROGMEM ProductString = {
-    .Header                 = {.Size = USB_STRING_LEN(21), .Type = DTYPE_String},
+    .Header                 = {.Size = USB_STRING_LEN(24), .Type = DTYPE_String},
 
     .UnicodeString          = {
             'O','p','e','n','X','C',' ',
-            'C','A','N',' ',
-            'T','r','a','n','s','l','a','t','o','r'
+            'V','e','h','i','c','l','e',' ',
+            'I','n','t','e','r','f','a','c','e'
     }
 };
 

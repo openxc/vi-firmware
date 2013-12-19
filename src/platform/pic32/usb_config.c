@@ -75,10 +75,10 @@ sizeof(sd001),USB_DESCRIPTOR_STRING,
 {'F','o','r','d',' ','M','o','t','o','r', ' ', 'C','o','m','p','a','n','y'}};
 
 //Product string descriptor
-ROM struct{BYTE bLength;BYTE bDscType;WORD string[21];}sd002={
+ROM struct{BYTE bLength;BYTE bDscType;WORD string[24];}sd002={
 sizeof(sd002),USB_DESCRIPTOR_STRING,
-{'O','p','e','n','X','C',' ','C','A','N',' ',
-    'T','r','a','n','s', 'l','a','t','o','r'}};
+{'O','p','e','n','X','C',' ','V','e','h','i','c','l','e',' ',
+    'I','n','t','e','r','f','a','c','e'}};
 
 //Array of configuration descriptors
 ROM BYTE *ROM USB_CD_Ptr[]=

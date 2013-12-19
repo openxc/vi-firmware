@@ -24,10 +24,6 @@ void openxc::util::log::debugNoNewline(const char* format, ...) {
     char buffer[MAX_LOG_LINE_LENGTH];
     vsnprintf(buffer, MAX_LOG_LINE_LENGTH, format, args);
 
-#ifdef __UART_LOGGING__
-    debugUart(buffer);
-#endif // __UART_LOGGING__
-
     pipeline::sendMessage(&PIPELINE, (uint8_t*) buffer,
             strnlen(buffer, MAX_LOG_LINE_LENGTH), MessageClass::LOG);
 

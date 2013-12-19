@@ -88,6 +88,12 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
         sendToEndpoint(UART, sendQueue, &pipeline->uart->receiveQueue, message,
                 messageSize);
     }
+
+#if defined(__UART_LOGGING__) or defined(__TESTS__)
+    if(messageClass == MessageClass::LOG) {
+        openxc::util::log::debugUart((const char*)message);
+    }
+#endif // __UART_LOGGING__
 }
 
 void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,

@@ -6,6 +6,7 @@
 
 using openxc::util::bitfield::getBitField;
 using openxc::util::log::debugNoNewline;
+using openxc::pipeline::MessageClass;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
@@ -23,7 +24,7 @@ const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
  * root - The JSON object to send.
  * pipeline - The pipeline to send on.
  */
-void sendJSON(cJSON* root, Pipeline* pipeline) {
+void sendJSON(cJSON* root, Pipeline* pipeline, MessageClass messageClass) {
     if(root == NULL) {
         debug("JSON object is NULL -- probably OOM");
     } else {
@@ -35,7 +36,7 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
 
         if(message != NULL) {
             pipeline::sendMessage(pipeline, (uint8_t*) messageWithDelimeter,
-                    strlen(messageWithDelimeter));
+                    strlen(messageWithDelimeter), messageClass);
         } else {
             debug("Converting JSON to string failed -- probably OOM");
         }
@@ -50,7 +51,8 @@ void sendJSON(cJSON* root, Pipeline* pipeline) {
  * message - The message to send, in a struct.
  * pipeline - The pipeline to send on.
  */
-void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
+void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline,
+        MessageClass messageClass) {
     if(message == NULL) {
         debug("Message object is NULL");
         return;
@@ -61,7 +63,8 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
     status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields,
             message);
     if(status) {
-        pipeline::sendMessage(pipeline, buffer, stream.bytes_written);
+        pipeline::sendMessage(pipeline, buffer, stream.bytes_written,
+                messageClass);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }
@@ -77,7 +80,7 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
  * pipeline - The pipeline to send on.
  */
 void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
-        Pipeline* pipeline) {
+        Pipeline* pipeline, MessageClass messageClass) {
     using openxc::can::read::NAME_FIELD_NAME;
     using openxc::can::read::VALUE_FIELD_NAME;
     using openxc::can::read::EVENT_FIELD_NAME;
@@ -89,7 +92,7 @@ void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
         if(event != NULL) {
             cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
         }
-        sendJSON(root, pipeline);
+        sendJSON(root, pipeline, messageClass);
     } else {
         debug("Unable to allocate a cJSON object - probably OOM");
     }
@@ -102,8 +105,10 @@ void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
  * good candidate.
  */
 void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
+    // TODO when this function supports raw messages, set this dynamically
+    MessageClass messageClass = MessageClass::TRANSLATED;
     if(pipeline->outputFormat == pipeline::PROTO) {
-        sendProtobuf(message, pipeline);
+        sendProtobuf(message, pipeline, messageClass);
     } else {
         // TODO is this the right place to do this?
         const char* name;
@@ -137,10 +142,10 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
             default:
                 debug("Unrecognized message type, can't output JSON");
                 // TODO handle raw message type here?
-                break;
+                return;
         }
 
-        sendJsonMessage(name, value, event, pipeline);
+        sendJsonMessage(name, value, event, pipeline, messageClass);
     }
 }
 
@@ -339,7 +344,7 @@ void passthroughMessageJson(CanBus* bus, uint32_t id,
     cJSON_AddStringToObject(root, openxc::can::read::DATA_FIELD_NAME,
             encodedData);
 
-    sendJSON(root, pipeline);
+    sendJSON(root, pipeline, MessageClass::RAW);
 }
 
 void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
@@ -357,7 +362,7 @@ void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
     message.raw_message.has_data = true;
     message.raw_message.data = data;
 
-    sendProtobuf(&message, pipeline);
+    sendProtobuf(&message, pipeline, MessageClass::RAW);
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,

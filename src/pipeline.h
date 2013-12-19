@@ -17,6 +17,12 @@ typedef enum {
     PROTO
 } OutputFormat;
 
+typedef enum {
+    TRANSLATED,
+    RAW,
+    LOG
+} MessageClass;
+
 /* Public: A container for all output devices that want to be notified of new
  *      messages from the CAN bus.
  *
@@ -46,7 +52,8 @@ typedef struct {
  * message - The message data as an array of uint8_t.
  * messageSize - The length of the message's byte array.
  */
-void sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize);
+void sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass);
 
 /* Public: Perform interface-specific functions to flush all message queues out
  *      to their respective physical interfaces.

@@ -24,7 +24,7 @@ typedef enum {
     USB = 0,
     UART = 1,
     NETWORK = 2
-} MessageType;
+} EndpointType;
 
 const char messageTypeNames[][9] = {
     "USB",
@@ -39,7 +39,7 @@ unsigned int sendQueueLength[PIPELINE_ENDPOINT_COUNT];
 unsigned int receiveQueueLength[PIPELINE_ENDPOINT_COUNT];
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
-        int messageSize) {
+        int messageSize, MessageClass messageClass) {
     if(pipeline->usb->configured) {
         int timeout = QUEUE_FLUSH_MAX_TRIES;
         QUEUE_TYPE(uint8_t)* sendQueue =

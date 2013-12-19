@@ -23,6 +23,9 @@ using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendStringMessage;
 
+extern Pipeline PIPELINE;
+extern UsbDevice USB_DEVICE;
+
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 const int CAN_BUS_COUNT = 2;
@@ -59,13 +62,6 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
     {"turn_signal_status", NULL},
 };
 
-Pipeline PIPELINE;
-UsbDevice usbDevice = {
-    {
-        {IN_ENDPOINT_NUMBER, MAX_USB_PACKET_SIZE_BYTES, usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
-    }
-};
-
 static unsigned long fakeTime = 0;
 
 bool queueEmpty() {
@@ -79,8 +75,8 @@ unsigned long timeMock() {
 void setup() {
     fakeTime = 0;
     PIPELINE.outputFormat = openxc::pipeline::PROTO;
-    PIPELINE.usb = &usbDevice;
-    usb::initialize(&usbDevice);
+    PIPELINE.usb = &USB_DEVICE;
+    usb::initialize(&USB_DEVICE);
     PIPELINE.usb->configured = true;
     for(int i = 0; i < SIGNAL_COUNT; i++) {
         SIGNALS[i].received = false;

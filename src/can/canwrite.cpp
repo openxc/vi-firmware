@@ -1,9 +1,9 @@
+#include <canutil/write.h>
 #include "can/canwrite.h"
 #include "util/log.h"
 
 namespace can = openxc::can;
 
-using openxc::util::bitfield::setBitField;
 using openxc::util::log::debugNoNewline;
 
 QUEUE_DEFINE(CanMessage);
@@ -12,6 +12,11 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     if(!signal->writable) {
         *send = false;
     }
+}
+
+uint64_t encodeSignal(CanSignal* signal, float value) {
+    return encodeFloat(value, signal->bitPosition, signal->bitSize,
+            signal->factor, signal->offset);
 }
 
 uint64_t openxc::can::write::booleanWriter(CanSignal* signal,
@@ -69,17 +74,6 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
         result = stateWriter(signal, signals, signalCount, value->valuestring,
                 send);
     }
-    return result;
-}
-
-uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
-    float rawValue = (value - signal->offset) / signal->factor;
-    if(rawValue > 0) {
-        // round up to avoid losing precision when we cast to an int
-        rawValue += 0.5;
-    }
-    uint64_t result = 0;
-    setBitField(&result, rawValue, signal->bitPosition, signal->bitSize);
     return result;
 }
 

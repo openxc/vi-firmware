@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "util/bitfield.h"
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "emqueue.h"
@@ -15,9 +14,6 @@
 #include "platform/lpc17xx/canutil_lpc17xx.h"
 #endif // __LPC17XX__
 
-
-// TODO These structs are defined outside of the openxc::can namespace because
-// we're not able to used namespaced types with emqueue.
 
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.

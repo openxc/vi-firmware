@@ -9,24 +9,6 @@ namespace openxc {
 namespace can {
 namespace write {
 
-/* Public: Encode and store value in a bit field for the given signal.
- *
- * The value is converted to engineering units (i.e. any offset or factor used
- * by the signal are reversed) before being set into a 64-bit chunk at the
- * location determined by the bit field in the signal. All other bit fields in
- * the returend value will be 0, which may or may not interfere with other
- * recipients of the resulting CAN message.
- *
- * signal - The signal associated with the value
- * value - The numerical value to encode. String-ified state values need to be
- *      converted back to their integer equivalents before calling this
- *      function.
- *
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
- */
-uint64_t encodeSignal(CanSignal* signal, float value);
-
 /* Public: Write the given number to the correct bitfield for the given signal.
  *
  * signal - The signal associated with the value.

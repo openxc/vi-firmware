@@ -121,20 +121,6 @@ START_TEST (test_write_unknown_state)
 }
 END_TEST
 
-START_TEST (test_encode_can_signal)
-{
-    uint64_t value = can::write::encodeSignal(&SIGNALS[1], 0);
-    ck_assert_int_eq(value, 0);
-}
-END_TEST
-
-START_TEST (test_encode_can_signal_rounding_precision)
-{
-    uint64_t value = can::write::encodeSignal(&SIGNALS[3], 50);
-    ck_assert_int_eq(value, 0x061a800000000000LLU);
-}
-END_TEST
-
 START_TEST (test_enqueue)
 {
     CanMessage message = {42, 0x123456};
@@ -270,8 +256,6 @@ Suite* canwriteSuite(void) {
     tcase_add_test(tc_core, test_state_writer_null_string);
     tcase_add_test(tc_core, test_write_not_allowed);
     tcase_add_test(tc_core, test_write_unknown_state);
-    tcase_add_test(tc_core, test_encode_can_signal);
-    tcase_add_test(tc_core, test_encode_can_signal_rounding_precision);
     suite_add_tcase(s, tc_core);
 
     TCase *tc_enqueue = tcase_create("enqueue");

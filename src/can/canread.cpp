@@ -1,10 +1,10 @@
-#include "can/canread.h"
 #include <stdlib.h>
+#include <canutil/read.h>
+#include <pb_encode.h>
+#include "can/canread.h"
 #include "util/log.h"
 #include "util/timer.h"
-#include "pb_encode.h"
 
-using openxc::util::bitfield::getBitField;
 using openxc::util::log::debugNoNewline;
 using openxc::pipeline::MessageClass;
 
@@ -76,7 +76,8 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
         bool* send) {
-    float value = decodeSignal(signal, data);
+    float value = parseFloat(data, signal->bitPosition, signal->bitSize,
+            signal->factor, signal->offset);
 
     if(time::shouldTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {
@@ -94,12 +95,6 @@ float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
 
 void openxc::can::read::postTranslate(CanSignal* signal, float value) {
     signal->lastValue = value;
-}
-
-float openxc::can::read::decodeSignal(CanSignal* signal, uint64_t data) {
-    uint64_t rawValue = getBitField(data, signal->bitPosition,
-            signal->bitSize, true);
-    return rawValue * signal->factor + signal->offset;
 }
 
 float openxc::can::read::passthroughHandler(CanSignal* signal,

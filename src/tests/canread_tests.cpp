@@ -83,16 +83,6 @@ void setup() {
     }
 }
 
-START_TEST (test_decode_signal)
-{
-    CanSignal signal = SIGNALS[0];
-    float result = can::read::decodeSignal(&signal, BIG_ENDIAN_TEST_DATA);
-    float correctResult = 0xA * 1001.0 - 30000.0;
-    fail_unless(result == correctResult,
-            "decode is incorrect: %f but should be %f", result, correctResult);
-}
-END_TEST
-
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
@@ -525,7 +515,6 @@ Suite* canreadSuite(void) {
     Suite* s = suite_create("canread");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_decode_signal);
     tcase_add_test(tc_core, test_passthrough_handler);
     tcase_add_test(tc_core, test_boolean_handler);
     tcase_add_test(tc_core, test_ignore_handler);

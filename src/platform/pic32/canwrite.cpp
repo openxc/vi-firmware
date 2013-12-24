@@ -1,6 +1,5 @@
 #include "can/canwrite.h"
 #include "canutil_pic32.h"
-#include "util/bitfield.h"
 #include "util/log.h"
 
 /* Private: Copy message data to destination buffer as big endian, as opposed to the

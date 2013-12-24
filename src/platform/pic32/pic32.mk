@@ -2,7 +2,7 @@ BOARD_TAG = mega_pic32
 
 ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue \
 			   emhashmap/emlist emhashmap AT-commander/atcommander \
-			   nanopb
+			   nanopb canutil/src
 ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif

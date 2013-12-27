@@ -1,4 +1,4 @@
-#include <canutil/bitfield/bitfield.h>
+#include <bitfield/bitfield.h>
 #include "can/canutil.h"
 #include "can/canwrite.h"
 #include "util/log.h"

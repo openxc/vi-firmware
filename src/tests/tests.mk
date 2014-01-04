@@ -87,7 +87,8 @@ endif
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
-unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage -std=gnu++0x
+unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage
+unit_tests: C_FLAGS = $(CC_FLAGS)
 unit_tests: CC_SYMBOLS += -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
@@ -142,7 +143,7 @@ $(TEST_OBJDIR)/%.o: %.cpp
 
 $(TEST_OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(C_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)

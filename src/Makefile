@@ -118,6 +118,10 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
 				-I$(LIBS_PATH)/bitfield-c/src
 
+# the PIC32 can't build with gnu99, so we have to leave it out
+ONLY_C_FLAGS =
+ONLY_CPP_FLAGS = -std=gnu++0x
+
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)

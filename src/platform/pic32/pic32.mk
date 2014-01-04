@@ -60,10 +60,11 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-EXTRA_CFLAGS += -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
+EXTRA_BOTH_FLAGS = -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
-				  -I $(LIBS_PATH)/nanopb -std=gnu++0x
-EXTRA_CXXFLAGS += $(EXTRA_CFLAGS)
+				  -I $(LIBS_PATH)/nanopb
+EXTRA_CFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_C_FLAGS)
+EXTRA_CXXFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_CPP_FLAGS)
 
 # bump the head up to 32K from the default
 EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768

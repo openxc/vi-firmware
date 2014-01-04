@@ -15,7 +15,7 @@ void checkWritePermission(CanSignal* signal, bool* send) {
 }
 
 uint64_t encodeSignal(CanSignal* signal, float value) {
-    return bitfield_encode_float(value, signal->bitPosition, signal->bitSize,
+    return eightbyte_encode_float(value, signal->bitPosition, signal->bitSize,
             signal->factor, signal->offset);
 }
 

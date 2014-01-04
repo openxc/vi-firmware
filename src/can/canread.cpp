@@ -76,8 +76,8 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
         bool* send) {
-    float value = parseFloat(data, signal->bitPosition, signal->bitSize,
-            signal->factor, signal->offset);
+    float value = bitfield_parse_float(data, signal->bitPosition,
+            signal->bitSize, signal->factor, signal->offset);
 
     if(time::shouldTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {

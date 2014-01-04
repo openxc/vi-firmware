@@ -101,7 +101,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcomma
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/emlist/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/canutil/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
@@ -116,7 +116,7 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
 				-I$(LIBS_PATH)/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
-				-I$(LIBS_PATH)/canutil/src
+				-I$(LIBS_PATH)/bitfield-c/src
 
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk

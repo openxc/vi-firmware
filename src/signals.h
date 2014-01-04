@@ -83,9 +83,9 @@ CanBus* getCanBuses();
  *
  * bus - The CAN bus this message was received on.
  * id - The 11-bit ID of the incoming CAN message.
- * data - The 64-bit data field of the CAN message.
+ * data - The 8 byte data field of the CAN messages.
  */
-void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
+void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint8_t data[]);
 
 /* Public: Initialize an array of the CAN message filters that should be set for
  * the CAN module with the given address, given the currently active
@@ -101,7 +101,7 @@ void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
  * Returns an array of CanFilters that should be initialized on the CAN
  * module with the given address.
  */
-CanFilter* initializeFilters(uint64_t address, int* count);
+CanFilter* initializeFilters(uint8_t address, int* count);
 
 } // namespace signals
 } // namespace openxc

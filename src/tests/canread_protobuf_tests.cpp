@@ -26,7 +26,7 @@ using openxc::can::read::sendStringMessage;
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
 
-const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
+const uint8_t TEST_DATA[8] = {0xEB};
 
 const int CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[CAN_BUS_COUNT] = {
@@ -106,7 +106,7 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42, 0x123456789ABCDEF1LLU};
+    CanMessage message = {42, {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF1}};
     can::read::passthroughMessage(&CAN_BUSES[0], message.id, message.data,
             NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
@@ -114,7 +114,9 @@ START_TEST (test_passthrough_message)
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
     ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
-    ck_assert_int_eq(message.data, decodedMessage.raw_message.data);
+    for(int i = 0; i < 8; i++) {
+        ck_assert_int_eq(message.data[i], decodedMessage.raw_message.data.bytes[i]);
+    }
 }
 END_TEST
 
@@ -180,7 +182,7 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[1], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&PIPELINE, &SIGNALS[1], TEST_DATA,
             stringHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
@@ -198,7 +200,7 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&PIPELINE, &SIGNALS[2], TEST_DATA,
             booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 
@@ -216,7 +218,7 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&PIPELINE, &SIGNALS[0], TEST_DATA,
             floatHandler, SIGNALS, SIGNAL_COUNT);
     fail_if(queueEmpty());
 

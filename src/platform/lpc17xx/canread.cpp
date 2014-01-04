@@ -10,15 +10,9 @@ CanMessage receiveCanMessage(CanBus* bus) {
     CAN_ReceiveMsg(CAN_CONTROLLER(bus), &message);
 
     CanMessage result = {message.id};
-    result.data = message.dataA[0];
-    result.data |= (((uint64_t)message.dataA[1]) << 8);
-    result.data |= (((uint64_t)message.dataA[2]) << 16);
-    result.data |= (((uint64_t)message.dataA[3]) << 24);
-    result.data |= (((uint64_t)message.dataB[0]) << 32);
-    result.data |= (((uint64_t)message.dataB[1]) << 40);
-    result.data |= (((uint64_t)message.dataB[2]) << 48);
-    result.data |= (((uint64_t)message.dataB[3]) << 56);
-
+    // TODO is this backwards?
+    memcpy(result.data, message->dataB, 4);
+    memcpy(result.data[3], message->dataA, 4);
     return result;
 }
 

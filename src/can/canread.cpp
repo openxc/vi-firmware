@@ -74,10 +74,11 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
     }
 }
 
-float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
+float openxc::can::read::preTranslate(CanSignal* signal, const uint8_t data[],
         bool* send) {
-    float value = bitfield_parse_float(data, signal->bitPosition,
-            signal->bitSize, signal->factor, signal->offset);
+    float value = bitfield_parse_float(data, CAN_MESSAGE_SIZE,
+            signal->bitPosition, signal->bitSize, signal->factor,
+            signal->offset);
 
     if(time::shouldTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {
@@ -285,21 +286,15 @@ void sendRawJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
             message->raw_message.message_id);
 
     char encodedData[67];
-    union {
-        uint64_t whole;
-        uint8_t bytes[8];
-    } combined;
-    combined.whole = message->raw_message.data;
-
     sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
-            combined.bytes[0],
-            combined.bytes[1],
-            combined.bytes[2],
-            combined.bytes[3],
-            combined.bytes[4],
-            combined.bytes[5],
-            combined.bytes[6],
-            combined.bytes[7]);
+            message->raw_message.data.bytes[0],
+            message->raw_message.data.bytes[1],
+            message->raw_message.data.bytes[2],
+            message->raw_message.data.bytes[3],
+            message->raw_message.data.bytes[4],
+            message->raw_message.data.bytes[5],
+            message->raw_message.data.bytes[6],
+            message->raw_message.data.bytes[7]);
     cJSON_AddStringToObject(root, openxc::can::read::DATA_FIELD_NAME,
             encodedData);
 
@@ -333,7 +328,7 @@ void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message, Pipel
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
-        uint64_t data, CanMessageDefinition* messages, int messageCount,
+        uint8_t data[], CanMessageDefinition* messages, int messageCount,
         Pipeline* pipeline) {
     bool send = true;
     CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus, id,
@@ -361,19 +356,20 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
         message.raw_message.has_bus = true;
         message.raw_message.bus = bus->address;
         message.raw_message.has_data = true;
-        message.raw_message.data = data;
+        memcpy(message.raw_message.data.bytes, data, CAN_MESSAGE_SIZE);
 
         sendVehicleMessage(&message, pipeline);
     }
 
     if(messageDefinition != NULL) {
-        messageDefinition->lastValue = data;
+        memcpy(messageDefinition->lastValue, data, CAN_MESSAGE_SIZE);
     }
 }
 
-void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, NumericalHandler handler, CanSignal* signals,
-        int signalCount) {
+void openxc::can::read::translateSignal(Pipeline* pipeline,
+        CanSignal* signal, const uint8_t data[],
+        const NumericalHandler handler, CanSignal* signals,
+        const int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
     float processedValue = handler(signal, signals, signalCount, pipeline,
@@ -384,9 +380,10 @@ void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, StringHandler handler, CanSignal* signals,
-        int signalCount) {
+void openxc::can::read::translateSignal(Pipeline* pipeline,
+        CanSignal* signal, const uint8_t data[],
+        const StringHandler handler, CanSignal* signals,
+        const int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
     const char* stringValue = handler(signal, signals, signalCount, pipeline,
@@ -397,9 +394,10 @@ void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, BooleanHandler handler, CanSignal* signals,
-        int signalCount) {
+void openxc::can::read::translateSignal(Pipeline* pipeline,
+        CanSignal* signal, const uint8_t data[],
+        const BooleanHandler handler, CanSignal* signals,
+        const int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
     bool booleanValue = handler(signal, signals, signalCount, pipeline, value,
@@ -410,8 +408,9 @@ void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
     postTranslate(signal, value);
 }
 
-void openxc::can::read::translateSignal(Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, CanSignal* signals, int signalCount) {
+void openxc::can::read::translateSignal(Pipeline* pipeline,
+        CanSignal* signal,
+        const uint8_t data[], CanSignal* signals, const int signalCount) {
     translateSignal(pipeline, signal, data, passthroughHandler, signals,
             signalCount);
 }

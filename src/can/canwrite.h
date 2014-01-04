@@ -21,8 +21,8 @@ namespace write {
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, double value, bool* send);
+void numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, double value, uint8_t destination[], bool* send);
 
 /* Public: Interpret the JSON value as a double, then do the same as
  * numberWriter(CanSignal*, CanSignal*, int, double, bool*).
@@ -31,8 +31,8 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
  * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
  * this function if you created it with one of the cJSON_Create*() functions.
  */
-uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
+void numberWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, uint8_t destination[],  bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
@@ -51,8 +51,8 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send);
+void stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, const char* value, uint8_t destination[], bool* send);
 
 /* Public: Interpret the JSON value as a string, then do the same as
  * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
@@ -61,8 +61,8 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
  * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
  * this function if you created it with one of the cJSON_Create*() functions.
  */
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
+void stateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, uint8_t destination[], bool* send);
 
 /* Public: Write the given boolean value to the correct bitfield for the given
  * signal. This will write either a 0 or 1.
@@ -77,8 +77,8 @@ uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send);
+void booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, bool value, uint8_t destination[], bool* send);
 
 /* Public: Interpret the JSON value as a boolean, then do the same as
  * numberWriter(CanSignal*, CanSignal*, int, bool, bool*).
@@ -87,21 +87,20 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
  * this function if you created it with one of the cJSON_Create*() functions.
  */
-uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
+void booleanWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, cJSON* value, uint8_t destination[], bool* send);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
  * Using the provided CanSignal and writer function, convert the cJSON value
  * into a numerical value appropriate for the CAN signal. This may include
  * converting a string state value to its numerical equivalent, for example. The
- * writer function must know how to do this conversion (and return a fully
- * filled out uint64_t).
+ * writer function must know how to do this conversion.
  *
  * signal - The CanSignal to send.
  * value - The value to send in the signal. This could be a boolean, number or
  *         string (i.e. a state value).
- * writer - A function to convert from the cJSON value to an encoded uint64_t.
+ * writer - A function to convert from the cJSON value to an encoded byte array.
  * signals - An array of all CAN signals.
  * signalCount - The size of the signals array.
  * force - true if the signals should be sent regardless of the writable status
@@ -114,7 +113,7 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  * Returns true if the message was sent successfully.
  */
 bool sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        void (*writer)(CanSignal*, CanSignal*, int, cJSON*, uint8_t[], bool*),
         CanSignal* signals, int signalCount, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
@@ -123,7 +122,7 @@ bool sendSignal(CanSignal* signal, cJSON* value,
  * to false.
  */
 bool sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
+        void (*writer)(CanSignal*, CanSignal*, int, cJSON*, uint8_t[], bool*),
         CanSignal* signals, int signalCount);
 
 /* Public: Write a CAN signal with the given value to the bus.

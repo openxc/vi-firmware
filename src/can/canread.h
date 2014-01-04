@@ -18,7 +18,7 @@ extern const char NAME_FIELD_NAME[];
 extern const char VALUE_FIELD_NAME[];
 extern const char EVENT_FIELD_NAME[];
 
-typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
+typedef float (*NumericalHandler)(CanSignal*, CanSignal*, const int, Pipeline*, float, bool*);
 typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
 typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, Pipeline*, float, bool*);
 
@@ -38,7 +38,7 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, Pipeline*, flo
  * pipeline - The pipeline to send the raw message over as an integer ID
  *      and hex data as an ASCII encoded string.
  */
-void passthroughMessage(CanBus* bus, uint32_t id, uint64_t data,
+void passthroughMessage(CanBus* bus, uint32_t id, uint8_t data[],
         CanMessageDefinition* messages, int messageCount, Pipeline* pipeline);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
@@ -48,8 +48,8 @@ void passthroughMessage(CanBus* bus, uint32_t id, uint64_t data,
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
-        CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
+        const uint8_t data[], CanSignal* signals, const int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and also run the final float value through the handler
@@ -62,8 +62,9 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
-        NumericalHandler handler, CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
+        const uint8_t data[], const NumericalHandler handler,
+        CanSignal* signals, const int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and (expecting the float value to be 0 or 1) convert it to a
@@ -76,8 +77,9 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
  * signals - an array of all active signals.
  * signalCount - The length of the signals array
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
-        BooleanHandler handler, CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
+        const uint8_t data[], const BooleanHandler handler,
+        CanSignal* signals, const int signalCount);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and also runs the float value through the handler function to
@@ -94,8 +96,9 @@ void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
  * signals - An array of all active signals.
  * signalCount - The length of the signals array>
  */
-void translateSignal(Pipeline* pipeline, CanSignal* signal, uint64_t data,
-        StringHandler handler, CanSignal* signals, int signalCount);
+void translateSignal(Pipeline* pipeline, CanSignal* signal,
+        const uint8_t data[], const StringHandler handler,
+        CanSignal* signals, const int signalCount);
 
 /* Public: Send the given name and value out to the pipeline in an OpenXC JSON
  * message followed by a newline.
@@ -233,7 +236,7 @@ float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns the float value of the signal decoded from the data.
  */
-float preTranslate(CanSignal* signal, uint64_t data, bool* send);
+float preTranslate(CanSignal* signal, const uint8_t data[], bool* send);
 
 /* Public: Update signal metadata after translating and sending.
  *

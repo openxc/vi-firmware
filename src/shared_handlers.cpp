@@ -39,7 +39,7 @@ const float openxc::signals::handlers::PI = 3.14159265;
 #endif
 
 void openxc::signals::handlers::sendDoorStatus(const char* doorId,
-        uint64_t data, CanSignal* signal, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     if(signal == NULL) {
         // debug("Specific door signal for ID %s is NULL, vehicle may not support",
@@ -59,7 +59,7 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId,
 }
 
 void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     sendDoorStatus("driver", data,
             lookupSignal("driver_door", signals, signalCount),
@@ -82,7 +82,7 @@ void openxc::signals::handlers::handleDoorStatusMessage(int messageId,
 }
 
 void openxc::signals::handlers::sendTirePressure(const char* tireId,
-        uint64_t data, float conversionFactor, CanSignal* signal,
+        uint8_t data[], float conversionFactor, CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(signal == NULL) {
         debug("Specific tire signal for ID %s is NULL, vehicle may not support",
@@ -101,7 +101,7 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId,
 }
 
 void handleTirePressureMessage(int messageId,
-        uint64_t data, int conversionFactor, CanSignal* signals,
+        uint8_t data[], int conversionFactor, CanSignal* signals,
         int signalCount, Pipeline* pipeline) {
     openxc::signals::handlers::sendTirePressure("front_left", data,
             conversionFactor,
@@ -122,14 +122,14 @@ void handleTirePressureMessage(int messageId,
 }
 
 void openxc::signals::handlers::handlePsiTirePressureMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     handleTirePressureMessage(messageId, data, 1, signals, signalCount,
             pipeline);
 }
 
 void openxc::signals::handlers::handleKpaTirePressureMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     handleTirePressureMessage(messageId, data, PSI_PER_KPA, signals,
             signalCount, pipeline);
@@ -217,7 +217,7 @@ float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
     return value * -1;
 }
 
-void openxc::signals::handlers::handleGpsMessage(int messageId, uint64_t data,
+void openxc::signals::handlers::handleGpsMessage(int messageId, uint8_t data[],
         CanSignal* signals, int signalCount, Pipeline* pipeline) {
     bool send = true;
     CanSignal* latitudeDegreesSignal =
@@ -314,7 +314,7 @@ float openxc::signals::handlers::handleMultisizeWheelRotationCount(
 }
 
 void openxc::signals::handlers::handleButtonEventMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     CanSignal* buttonTypeSignal = lookupSignal("button_type", signals,
             signalCount);
@@ -373,7 +373,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
     return sent;
 }
 
-void sendOccupancyStatus(const char* seatId, uint64_t data,
+void sendOccupancyStatus(const char* seatId, uint8_t data[],
         CanSignal* lowerSignal, CanSignal* upperSignal,
         CanSignal* signals, int signalCount, Pipeline* pipeline) {
     if(lowerSignal == NULL || upperSignal == NULL) {
@@ -409,7 +409,7 @@ void sendOccupancyStatus(const char* seatId, uint64_t data,
 }
 
 void openxc::signals::handlers::handleOccupancyMessage(int messageId,
-        uint64_t data, CanSignal* signals, int signalCount,
+        uint8_t data[], CanSignal* signals, int signalCount,
         Pipeline* pipeline) {
     sendOccupancyStatus("driver", data,
             lookupSignal("driver_occupancy_lower", signals, signalCount),

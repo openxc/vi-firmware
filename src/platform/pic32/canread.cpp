@@ -13,16 +13,7 @@ CanMessage receiveCanMessage(CanBus* bus) {
             CAN::CHANNEL1);
 
     CanMessage result = {message->msgSID.SID};
-    // Copy incoming data, flipping byte order to little-endian storage (can't
-    // just use memcpy).
-    result.data = message->data[0];
-    result.data |= (((uint64_t)message->data[1]) << 8);
-    result.data |= (((uint64_t)message->data[2]) << 16);
-    result.data |= (((uint64_t)message->data[3]) << 24);
-    result.data |= (((uint64_t)message->data[4]) << 32);
-    result.data |= (((uint64_t)message->data[5]) << 40);
-    result.data |= (((uint64_t)message->data[6]) << 48);
-    result.data |= (((uint64_t)message->data[7]) << 56);
+    memcpy(result.data, message->data, 8);
     return result;
 }
 

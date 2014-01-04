@@ -14,6 +14,7 @@
 #include "platform/lpc17xx/canutil_lpc17xx.h"
 #endif // __LPC17XX__
 
+#define CAN_MESSAGE_SIZE 8
 
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.
@@ -53,7 +54,7 @@ typedef struct CanSignalState CanSignalState;
  * writable    - True if the signal is allowed to be written from the USB host
  *               back to CAN. Defaults to false.
  * writeHandler - An optional function to encode a signal value to be written to
- *                CAN into a uint64_t. If null, the default encoder is used.
+ *                CAN into a byte array. If null, the default encoder is used.
  * received    - Marked true if this signal has ever been received.
  * lastValue   - The last received value of the signal. Defaults to undefined.
  */
@@ -72,7 +73,8 @@ struct CanSignal {
     const CanSignalState* states;
     uint8_t stateCount;
     bool writable;
-    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
+    void (*writeHandler)(struct CanSignal*, struct CanSignal*, const int, cJSON*,
+            uint8_t[], bool*);
     bool received;
     float lastValue;
 };
@@ -96,7 +98,7 @@ struct CanMessageDefinition {
     uint32_t id;
     openxc::util::time::FrequencyClock frequencyClock;
     bool forceSendChanged;
-    uint64_t lastValue;
+    uint8_t lastValue[CAN_MESSAGE_SIZE];
 };
 typedef struct CanMessageDefinition CanMessageDefinition;
 
@@ -108,7 +110,7 @@ typedef struct CanMessageDefinition CanMessageDefinition;
  */
 struct CanMessage {
     uint32_t id;
-    uint64_t data;
+    uint8_t data[CAN_MESSAGE_SIZE];
 };
 typedef struct CanMessage CanMessage;
 

@@ -144,7 +144,7 @@ float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount, 
+float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
               float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
@@ -201,7 +201,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
+void handleGpsMessage(int messageId, uint8_t data[], CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
@@ -215,7 +215,7 @@ void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleButtonEventMessage(int messageId, uint64_t data,
+void handleButtonEventMessage(int messageId, uint8_t data[],
         CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /* Decode a boolean signal (the door ajar status for the door in question) and
@@ -232,7 +232,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
  * signalCount - The length of the signals array.
  * pipeline - The pipeline that wraps the output devices.
  */
-void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
+void sendDoorStatus(const char* doorId, uint8_t data[], CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 /* Decode a numerical signal (the pressure of the tire in question) and
@@ -251,7 +251,7 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
  * signalCount - The length of the signals array.
  * pipeline - The pipeline that wraps the output devices.
  */
-void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
+void sendTirePressure(const char* tireId, uint8_t data[], float conversionFactor,
        CanSignal* signal, CanSignal* signals, int signalCount,
        Pipeline* pipeline);
 
@@ -266,7 +266,7 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
 
 /** Handle a CAN message that contains the ajar status of all doors.
  */
-void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
+void handleDoorStatusMessage(int messageId, uint8_t data[], CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
 /**
@@ -277,14 +277,14 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
  *
  * This assumes the value on the bus for each pressure is psi.
  */
-void handlePsiTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+void handlePsiTirePressureMessage(int messageId, uint8_t data[], CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
 /**
  * The same as handlePsiTirePressureMessage, but assumes the value on the bus is
  * in kilpascals and converts to psi before sending the messages.
  */
-void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
+void handleKpaTirePressureMessage(int messageId, uint8_t data[], CanSignal* signals,
         int signalCount, Pipeline* pipeline);
 
 /* Combine the values from two sensors in each seat to determine if there is
@@ -306,7 +306,7 @@ void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signa
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleOccupancyMessage(int messageId, uint64_t data,
+void handleOccupancyMessage(int messageId, uint8_t data[],
               CanSignal* signals, int signalCount, Pipeline* pipeline);
 
 } // namespace handlers

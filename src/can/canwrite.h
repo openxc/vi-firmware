@@ -162,14 +162,24 @@ void processWriteQueue(CanBus* bus);
 
 /* Public: Write a CAN message with the given data and node ID to the bus.
  *
- * Defined per-platform.
- *
  * bus - The CAN bus to send the message on.
- * request - the CanMessage requested to send.
+ * request - the CanMessage message to send.
  *
  * Returns true if the message was sent successfully.
  */
-bool sendMessage(CanBus* bus, CanMessage request);
+bool sendCanMessage(const CanBus* bus, const CanMessage* request);
+
+/* Private: Actually, finally write a CAN message with the given data and node
+ * ID to the bus.
+ *
+ * Defined per-platform. Users should use sendCanMessage instead.
+ *
+ * bus - The CAN bus to send the message on.
+ * request - the CanMessage message to send.
+ *
+ * Returns true if the message was sent successfully.
+ */
+bool sendMessage(const CanBus* bus, const CanMessage* request);
 
 } // namespace write
 } // namespace can

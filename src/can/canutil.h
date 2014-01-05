@@ -154,7 +154,7 @@ struct CanBus {
     bool rawWritable;
     void (*interruptHandler)();
     HashMap* dynamicMessages;
-    bool (*writeHandler)(CanBus*, CanMessage);
+    bool (*writeHandler)(const CanBus*, const CanMessage*);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;

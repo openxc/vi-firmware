@@ -126,17 +126,25 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
 
 void openxc::can::write::processWriteQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
-        CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
-        debugNoNewline("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
-                bus->address, message.id);
-        for(int i = 0; i < 8; i++) {
-            debugNoNewline("%02x ", ((uint8_t*)&message.data)[i]);
-        }
-        debug("");
-        if(bus->writeHandler == NULL) {
-            debug("No function available for writing to CAN -- dropped");
-        } else if(!bus->writeHandler(bus, message)) {
-            debug("Unable to send CAN message with id = 0x%x", message.id);
-        }
+        const CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
+        sendCanMessage(bus, &message);
     }
+}
+
+bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
+    debugNoNewline("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
+            bus->address, message->id);
+    for(int i = 0; i < 8; i++) {
+        debugNoNewline("%02x ", ((uint8_t*)&message->data)[i]);
+    }
+    debug("");
+    bool status = true;
+    if(bus->writeHandler == NULL) {
+        debug("No function available for writing to CAN -- dropped");
+        status = false;
+    } else if(!bus->writeHandler(bus, message)) {
+        debug("Unable to send CAN message with id = 0x%x", message->id);
+        status = false;
+    }
+    return status;
 }

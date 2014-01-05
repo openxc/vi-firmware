@@ -11,13 +11,13 @@ void copyToMessageBuffer(uint64_t source, uint8_t* a, uint8_t* b) {
     }
 }
 
-bool openxc::can::write::sendMessage(CanBus* bus, CanMessage request) {
+bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* request) {
     CAN_MSG_Type message;
-    message.id =  request.id;
+    message.id =  request->id;
     message.len = 8;
     message.type = DATA_FRAME;
     message.format = STD_ID_FORMAT;
-    copyToMessageBuffer(request.data, message.dataA, message.dataB);
+    copyToMessageBuffer(request->data, message.dataA, message.dataB);
 
     return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
 }

@@ -102,6 +102,8 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/emlist/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/obd2-c/src/**/*.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
@@ -116,7 +118,9 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
 				-I$(LIBS_PATH)/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
-				-I$(LIBS_PATH)/bitfield-c/src
+				-I$(LIBS_PATH)/bitfield-c/src \
+				-I$(LIBS_PATH)/isotp-c/src \
+				-I$(LIBS_PATH)/obd2-c/src
 
 # the PIC32 can't build with gnu99, so we have to leave it out
 ONLY_C_FLAGS =

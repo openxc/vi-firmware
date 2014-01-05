@@ -31,3 +31,9 @@
 [submodule "src/libs/bitfield-c"]
 	path = src/libs/bitfield-c
 	url = https://github.com/openxc/bitfield-c
+[submodule "src/libs/isotp-c"]
+	path = src/libs/isotp-c
+	url = https://github.com/openxc/isotp-c
+[submodule "src/libs/obd2-c"]
+	path = src/libs/obd2-c
+	url = https://github.com/openxc/obd2-c

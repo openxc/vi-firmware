@@ -80,7 +80,7 @@ void loop() {
         receiveCan(&PIPELINE, &getCanBuses()[i]);
     }
 
-    if(true || DIAG_HANDLE.completed) {
+    if(DIAG_HANDLE.completed) {
         // throttle position
         DIAG_HANDLE = diagnostic_request_pid(&SHIMS,
             DIAGNOSTIC_STANDARD_PID, 0x7df, 0x11, NULL);

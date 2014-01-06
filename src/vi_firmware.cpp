@@ -18,6 +18,7 @@
 #include <obd2/obd2.h>
 #include <bitfield/bitfield.h>
 #include "can/canwrite.h"
+#include <limits.h>
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -54,7 +55,8 @@ DiagnosticRequestHandle DIAG_HANDLE;
 bool send_can_message(const uint16_t arbitration_id, const uint8_t* data,
         const uint8_t size) {
     const CanBus* bus = &getCanBuses()[0];
-    const CanMessage message = {arbitration_id, get_bitfield(data, size, 0, 64)};
+    const CanMessage message = {arbitration_id, get_bitfield(data, size, 0,
+            size * CHAR_BIT)};
     return openxc::can::write::sendCanMessage(bus, &message);
 }
 
@@ -248,13 +250,10 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
         ++bus->messagesReceived;
 
         if(!DIAG_HANDLE.completed) {
-            union {
-                uint64_t whole;
-                uint8_t bytes[sizeof(uint64_t)];
-            } combined;
             // TODO could we put this union in CanMessage? may not be necessary
             // if we migrate way from uint64_t but i don't think it would
             // negatively impact memory
+            ArrayOrBytes combined;
             combined.whole = message.data;
             DiagnosticResponse response = diagnostic_receive_can_frame(&SHIMS,
                     &DIAG_HANDLE, message.id, combined.bytes,
@@ -262,9 +261,6 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
             if(response.completed && DIAG_HANDLE.completed) {
                 if(DIAG_HANDLE.success) {
                   if(response.success) {
-                      // The request was sent successfully, the response was
-                      // received successfully, and it was a positive response - we
-                      // got back some data!
                       debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, \
                               pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x%02x, size: %d",
                               response.arbitration_id,

@@ -212,7 +212,7 @@ START_TEST (test_no_write_handler)
 }
 END_TEST
 
-bool writeHandler(CanBus* bus, CanMessage message) {
+bool writeHandler(const CanBus* bus, const CanMessage* message) {
     return false;
 }
 

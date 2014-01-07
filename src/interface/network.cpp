@@ -2,6 +2,8 @@
 #include "util/log.h"
 #include <stddef.h>
 
+using openxc::util::log::debug;
+
 void openxc::interface::network::initializeCommon(NetworkDevice* device) {
     if(device != NULL) {
         debug("Initializing Network...");

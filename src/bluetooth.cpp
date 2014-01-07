@@ -20,7 +20,7 @@ using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::util::time::delayMs;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 
@@ -44,7 +44,7 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
     config.write_function = writeByte;
     config.read_function = readByte;
     config.delay_function = delayMs;
-    config.log_function = debugNoNewline;
+    config.log_function = debug;
 
     // we most likely just power cycled the RN-42 to make sure it was on, so
     // wait for it to boot up

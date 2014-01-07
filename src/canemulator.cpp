@@ -19,6 +19,7 @@ namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
 
+using openxc::util::log::debug;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendStringMessage;

@@ -4,7 +4,7 @@
 namespace can = openxc::can;
 
 using openxc::util::bitfield::setBitField;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 QUEUE_DEFINE(CanMessage);
 
@@ -133,12 +133,8 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
 void openxc::can::write::processWriteQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
-        debugNoNewline("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
-                bus->address, message.id);
-        for(int i = 0; i < 8; i++) {
-            debugNoNewline("%02x ", ((uint8_t*)&message.data)[i]);
-        }
-        debug("");
+        debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0%02llx",
+                bus->address, message.id, message.data);
         if(bus->writeHandler == NULL) {
             debug("No function available for writing to CAN -- dropped");
         } else if(!bus->writeHandler(bus, message)) {

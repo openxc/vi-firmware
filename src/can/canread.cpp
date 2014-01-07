@@ -5,7 +5,7 @@
 #include "pb_encode.h"
 
 using openxc::util::bitfield::getBitField;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
 
 namespace time = openxc::util::time;

@@ -40,7 +40,6 @@
 
 #endif
 
-
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
 
@@ -49,6 +48,7 @@
 
 namespace gpio = openxc::gpio;
 
+using openxc::util::log::debug;
 using openxc::util::bytebuffer::processQueue;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;

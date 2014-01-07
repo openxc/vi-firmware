@@ -2,6 +2,8 @@
 #include "util/log.h"
 #include <plib.h>
 
+using openxc::util::log::debug;
+
 void openxc::power::initialize() {
 }
 

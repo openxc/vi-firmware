@@ -1,7 +1,7 @@
 #include "interface/usb.h"
 #include "util/log.h"
 
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 void openxc::interface::usb::initializeCommon(UsbDevice* usbDevice) {
     debug("Initializing USB.....");

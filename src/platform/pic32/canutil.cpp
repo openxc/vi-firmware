@@ -15,12 +15,11 @@
 namespace gpio = openxc::gpio;
 
 using openxc::gpio::GpioValue;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 using openxc::signals::initializeFilters;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
-
 
 CAN can1Actual(CAN::CAN1);
 CAN can2Actual(CAN::CAN2);
@@ -42,7 +41,7 @@ uint8_t CAN_CONTROLLER_BUFFER[BUS_MEMORY_BUFFER_SIZE];
  */
 void configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debugNoNewline("Configuring %d filters...", filterCount);
+        debug("Configuring %d filters...", filterCount);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
                 CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
         for(int i = 0; i < filterCount; i++) {

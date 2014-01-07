@@ -25,6 +25,7 @@ namespace platform = openxc::platform;
 namespace time = openxc::util::time;
 namespace signals = openxc::signals;
 
+using openxc::util::log::debug;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
 using openxc::signals::initialize;

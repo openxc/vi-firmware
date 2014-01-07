@@ -15,11 +15,11 @@
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::signals::initializeFilters;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
     if(filterCount > 0) {
-        debugNoNewline("Configuring %d filters...", filterCount);
+        debug("Configuring %d filters...", filterCount);
         CAN_SetAFMode(LPC_CANAF, CAN_Normal);
         CAN_ERROR result = CAN_OK;
         for(int i = 0; i < filterCount; i++) {

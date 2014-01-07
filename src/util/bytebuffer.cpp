@@ -4,6 +4,8 @@
 
 QUEUE_DEFINE(uint8_t)
 
+using openxc::util::log::debug;
+
 void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*)) {
     int length = QUEUE_LENGTH(uint8_t, queue);
     if(length == 0) {

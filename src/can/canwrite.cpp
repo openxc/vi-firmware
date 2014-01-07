@@ -133,7 +133,7 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
 void openxc::can::write::processWriteQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
-        debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0%02llx",
+        debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02llx",
                 bus->address, message.id, message.data);
         if(bus->writeHandler == NULL) {
             debug("No function available for writing to CAN -- dropped");

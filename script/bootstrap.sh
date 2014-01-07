@@ -7,7 +7,7 @@ pushd $DIR/..
 
 source $DIR/bootstrap_for_flashing.sh
 
-CYGWIN_PACKAGES="make, gcc-core, patchutils, unzip, python, check, curl, libsasl2, python-setuptools"
+CYGWIN_PACKAGES="make, gcc-core, patch, unzip, python, check, curl, libsasl2, python-setuptools"
 
 if [ $OS == "windows" ]; then
     die "Sorry, the bootstrap script for compiling from source doesn't support the Windows console - try Cygwin."

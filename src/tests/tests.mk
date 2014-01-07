@@ -100,19 +100,19 @@ unit_tests: $(TESTS)
 	@export SHELLOPTS
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, , code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, DEBUG=0, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, , mapped_code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, , copy_passthrough_signals))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, , , emulator))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, DEBUG=0, mapped_code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, DEBUG=0, copy_passthrough_signals))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, DEBUG=0, , emulator))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1 DEBUG=0, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_compile_test, NETWORK=1, code_generation_test))
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, NETWORK_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, USB_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, BINARY_OUTPUT=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, DEBUG=0 USB_ALLOW_RAW_WRITE=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, DEBUG=0 BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, DEBUG=0 BINARY_OUTPUT=1, code_generation_test))
 
 copy_passthrough_signals:
 	@echo "Testing example passthrough config in repo for FORDBOARD..."

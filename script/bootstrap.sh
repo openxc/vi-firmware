@@ -159,7 +159,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
     echo "Installing GCC for ARM Embedded..."
 
-    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_7-2013q3-20130916"
+    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_8-2013q4-20131204"
     if [ $OS == "linux" ]; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-linux.tar.bz2"
     elif [ $OS == "mac" ]; then
@@ -168,7 +168,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-win32.exe"
     fi
 
-    GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q3-update/+download/$GCC_ARM_FILE"
+    GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.8/4.8-2013-q4-major/+download/$GCC_ARM_FILE"
     GCC_ARM_DIR="gcc-arm-embedded"
 
     _pushd $DEPENDENCIES_FOLDER
@@ -185,13 +185,13 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         PROGRAM_FILES_BASE="/cygdrive/c/"
         PROGRAM_FILES="Program Files"
         PROGRAM_FILES_64="Program Files (x86)"
-        TRAILING_DIRNAME="GNU Tools ARM Embedded/4.7 2013q3/"
+        TRAILING_DIRNAME="GNU Tools ARM Embedded/4.8 2013q4/"
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
         if ! test -d "$GCC_INNER_DIR"; then
             GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
         fi
     else
-        GCC_INNER_DIR="gcc-arm-none-eabi-4_7-2013q3"
+        GCC_INNER_DIR="gcc-arm-none-eabi-4_8-2013q4"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"
     fi
 

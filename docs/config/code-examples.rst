@@ -437,3 +437,53 @@ functional example, but there much more you could do - you'll want to look into
 the lowest level APIs in the `firmware source
 <https://github.com/openxc/vi-firmware>`_. Look through the ``.h`` files, where
 most functions are documented.
+
+Ignore Depending on Value
+==========================
+
+We want to ignore a signal (and not translate it and send over USB/Bluetooth) if
+the value matches certain critera. We'll use a custom handler as in
+:ref:`custom-transformed` but instead of modifying the value of the signal,
+we'll use the ``send`` flag to tell the VI if it should process the value or
+not.
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "speed": 500000
+           }
+       },
+       "messages": {
+           "0x102": {
+               "bus": "hs",
+               "signals": {
+                   "My_Signal": {
+                       "generic_name": "my_openxc_measurement",
+                       "bit_position": 5,
+                       "bit_size": 7,
+                       "factor": -1.0,
+                       "offset": 1400,
+                       "handler": "ourFilteringHandler"
+                   }
+               }
+           }
+       },
+       "extra_sources": [
+         "my_handlers.cpp"
+       ]
+   }
+
+In ``my_handlers.cpp``:
+
+.. code-block:: cpp
+
+   /* Ignore the signal if the value is less than 100 */
+   float ourFilteringHandler(CanSignal* signal, CanSignal* signals,
+         int signalCount, float value, bool* send) {
+      if(value < 100) {
+         *send = false;
+      }
+      return value;
+   }

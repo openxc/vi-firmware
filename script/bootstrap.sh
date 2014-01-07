@@ -7,7 +7,7 @@ pushd $DIR/..
 
 source $DIR/bootstrap_for_flashing.sh
 
-CYGWIN_PACKAGES="make, gcc-core, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools"
+CYGWIN_PACKAGES="make, gcc-core, patchutils, unzip, python, check, curl, libsasl2, python-setuptools"
 
 if [ $OS == "windows" ]; then
     die "Sorry, the bootstrap script for compiling from source doesn't support the Windows console - try Cygwin."
@@ -35,7 +35,7 @@ fi
 
 if ! command -v git >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
-        _cygwin_error "git"
+        die "You need to install Git for Windows from http://git-scm.com/ and select the option to \"Run Git from the Windows Command Prompt\" during the installation."
     elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
         _install git
     fi

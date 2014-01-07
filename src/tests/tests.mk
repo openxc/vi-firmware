@@ -84,11 +84,14 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
+C_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
+CC_SUPRESSED_ERRORS = $(C_SUPRESSED_ERRORS) -Wno-conversion-null
+
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
-unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage
-unit_tests: C_FLAGS = $(CC_FLAGS)
+unit_tests: C_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage $(C_SUPRESSED_ERRORS)
+unit_tests: CC_FLAGS =  $(C_FLAGS) $(CC_SUPRESSED_ERRORS)
 unit_tests: CC_SYMBOLS += -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)

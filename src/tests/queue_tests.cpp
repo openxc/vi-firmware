@@ -7,10 +7,10 @@
 // definitions of the byte queue
 #include "util/bytebuffer.h"
 
-typedef struct test_t {
+typedef struct {
     int i;
     char bytes[8];
-};
+} test_t;
 
 QUEUE_DECLARE(test_t, 10);
 QUEUE_DEFINE(test_t);
@@ -36,7 +36,6 @@ START_TEST (test_push)
 {
     QUEUE_TYPE(uint8_t) queue;
     QUEUE_INIT(uint8_t, &queue);
-    int length = QUEUE_LENGTH(uint8_t, &queue);
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
     fail_unless(QUEUE_PUSH(uint8_t, &queue, 0xEF));
     ck_assert_int_eq(QUEUE_LENGTH(uint8_t, &queue), 1);

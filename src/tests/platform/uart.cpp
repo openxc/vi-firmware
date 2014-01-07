@@ -25,6 +25,7 @@ void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte) {
 }
 
 int openxc::interface::uart::readByte(UartDevice* device) {
+    return 0;
 }
 
 void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {

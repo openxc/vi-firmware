@@ -72,6 +72,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_no_time_function_uses_default);
     tcase_add_test(tc_core, test_zero_frequency_always_ticks);
     tcase_add_test(tc_core, test_non_zero_frequency_waits);
+    tcase_add_test(tc_core, test_first_tick_always_true);
     suite_add_tcase(s, tc_core);
 
     return s;

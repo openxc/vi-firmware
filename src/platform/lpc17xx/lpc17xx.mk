@@ -22,12 +22,13 @@ endif
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
 AS_FLAGS = -c -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
-ONLY_C_FLAGS += -std=gnu99
 SUPRESSED_ERRORS = -Wno-aggressive-loop-optimizations -Wno-char-subscripts \
 				   -Wno-unused-but-set-variable
 CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
-		   -Werror $(SUPRESSED_ERRORS)
+		   $(SUPRESSED_ERRORS) -Werror
+ONLY_C_FLAGS += -std=gnu99
+ONLY_CPP_FLAGS += -std=gnu++0x
 CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
 ifeq ($(PLATFORM), BLUEBOARD)

@@ -19,7 +19,7 @@ namespace statistics = openxc::util::statistics;
 using openxc::util::bytebuffer::conditionalEnqueue;
 using openxc::util::bytebuffer::messageFits;
 using openxc::util::statistics::DeltaStatistic;
-
+using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::pipeline::MessageClass;
 

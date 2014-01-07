@@ -40,6 +40,7 @@
 
 namespace gpio = openxc::gpio;
 
+using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GpioValue;

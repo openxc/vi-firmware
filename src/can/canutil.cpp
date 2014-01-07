@@ -11,7 +11,7 @@
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
 
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 using openxc::util::statistics::DeltaStatistic;
 
 const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
@@ -240,7 +240,7 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
                         QUEUE_LENGTH(CanMessage, &bus->sendQueue),
                         statistics::exponentialMovingAverage(&bus->sendQueueStats)
                             / QUEUE_MAX_LENGTH(CanMessage) * 100);
-                debugNoNewline("CAN%d msgs Rx: %d (%dKB), ",
+                debug("CAN%d msgs Rx: %d (%dKB)",
                         bus->address, bus->receivedMessageStats.total,
                         bus->receivedDataStats.total);
                 debug("dropped: %d (avg %f percent)",
@@ -263,7 +263,7 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
         statistics::update(&receivedDataStats, dataReceived);
 
         if(totalMessageStats.total > 0) {
-            debugNoNewline("CAN total msgs Rx: %d (%dKB), ",
+            debug("CAN total msgs Rx: %d (%dKB)",
                     receivedMessageStats.total,
                     receivedDataStats.total);
             debug("dropped: %d (avg %f percent)",

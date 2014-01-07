@@ -11,7 +11,7 @@
 namespace usb = openxc::interface::usb;
 namespace can = openxc::can;
 
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::ignoreHandler;
 using openxc::can::read::stateHandler;
@@ -95,9 +95,9 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));
     bool status = pb_decode_delimited(&stream, openxc_VehicleMessage_fields, &decodedMessage);
     ck_assert_msg(status, PB_GET_ERROR(&stream));
-    debugNoNewline("Deserialized: ");
+    debug("Deserialized: ");
     for(unsigned int i = 0; i < sizeof(snapshot); i++) {
-        debugNoNewline("%02x ", snapshot[i]);
+        debug("%02x", snapshot[i]);
     }
     debug("");
     return decodedMessage;

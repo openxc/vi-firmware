@@ -6,6 +6,7 @@
 
 namespace power = openxc::power;
 
+using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 
 CanMessage receiveCanMessage(CanBus* bus) {

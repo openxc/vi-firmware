@@ -12,6 +12,7 @@ float fuelConsumedSinceRestartLiters = 0;
 
 namespace can = openxc::can;
 
+using openxc::util::log::debug;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::stateHandler;
 using openxc::can::read::sendEventedBooleanMessage;

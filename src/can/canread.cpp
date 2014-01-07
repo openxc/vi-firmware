@@ -5,7 +5,7 @@
 #include "util/log.h"
 #include "util/timer.h"
 
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
 
 namespace time = openxc::util::time;

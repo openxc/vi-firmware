@@ -15,7 +15,7 @@ namespace gpio = openxc::gpio;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 const uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
@@ -31,7 +31,7 @@ const uint32_t DISABLED_PERIPHERALS[] = {
 
 void setPowerPassthroughStatus(bool enabled) {
     int pinStatus;
-    debugNoNewline("Switching 12v power passthrough ");
+    debug("Switching 12v power passthrough ");
     if(enabled) {
         debug("on");
         pinStatus = 0;
@@ -59,7 +59,7 @@ void openxc::power::initialize() {
 
     debug("Done.");
 
-    debugNoNewline("Turning off unused peripherals...");
+    debug("Turning off unused peripherals...");
     for(unsigned int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
             sizeof(DISABLED_PERIPHERALS[0]); i++) {
         CLKPWR_ConfigPPWR(DISABLED_PERIPHERALS[i], DISABLE);

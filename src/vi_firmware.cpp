@@ -29,6 +29,7 @@ namespace platform = openxc::platform;
 namespace time = openxc::util::time;
 namespace signals = openxc::signals;
 
+using openxc::util::log::debug;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
 using openxc::signals::initialize;
@@ -63,7 +64,7 @@ bool send_can_message(const uint16_t arbitration_id, const uint8_t* data,
 void setup() {
     initializeAllCan();
     signals::initialize();
-    SHIMS = diagnostic_init_shims(openxc::util::log::debugNoNewline, send_can_message, NULL);
+    SHIMS = diagnostic_init_shims(openxc::util::log::debug, send_can_message, NULL);
     DIAG_HANDLE.completed = true;
 }
 

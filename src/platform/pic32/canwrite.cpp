@@ -2,6 +2,8 @@
 #include "canutil_pic32.h"
 #include "util/log.h"
 
+using openxc::util::log::debug;
+
 /* Private: Copy message data to destination buffer as big endian, as opposed to the
  * micro's little endian (hence we can't just use memcpy).
  *

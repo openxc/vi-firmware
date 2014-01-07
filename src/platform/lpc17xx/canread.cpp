@@ -2,6 +2,7 @@
 #include "signals.h"
 #include "util/log.h"
 
+using openxc::util::log::debug;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 

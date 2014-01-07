@@ -132,8 +132,8 @@ void openxc::can::write::processWriteQueue(CanBus* bus) {
 }
 
 bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
-        debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0%02llx",
-                bus->address, message->id, message->data);
+    debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02llx",
+            bus->address, message->id, message->data);
     bool status = true;
     if(bus->writeHandler == NULL) {
         debug("No function available for writing to CAN -- dropped");

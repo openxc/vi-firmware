@@ -5,15 +5,26 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
+using openxc::diagnostics::ActiveRequestList;
+using openxc::diagnostics::ActiveDiagnosticRequest;
+using openxc::diagnostics::ActiveRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 
 DiagnosticRequestHandle DIAG_HANDLE;
 
+static ActiveRequestListEntry* popListEntry(ActiveRequestList* list) {
+    ActiveRequestListEntry* result = list->lh_first;
+    if(result != NULL) {
+        LIST_REMOVE(list->lh_first, entries);
+    }
+    return result;
+}
+
 static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
         const uint8_t* data, const uint8_t size) {
-    // TODO right now this doens't support sending requests on anything but bus
+    // TODO right now this doesn't support sending requests on anything but bus
     // 1. a few things need to change to support uses bus 2, or using different
     // buses for different requests.
     //
@@ -35,40 +46,21 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager) {
 
     LIST_INIT(&manager->activeRequests);
     LIST_INIT(&manager->freeActiveRequests);
-    LIST_INIT(&manager->recurringRequests);
-    LIST_INIT(&manager->freeRecurringRequests);
 
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
         LIST_INSERT_HEAD(&manager->freeActiveRequests,
                 &manager->activeListEntries[i], entries);
     }
-
-    for(int i = 0; i < MAX_RECURRING_DIAG_REQUESTS; i++) {
-        LIST_INSERT_HEAD(&manager->freeRecurringRequests,
-                &manager->recurringListEntries[i], entries);
-    }
-
-    // for(ListEntry* entry = head.lh_first; entry != NULL; entry = entry->entries.le_next) {
-    // }
-
-    // while(head.lh_first != NULL) {
-        // LIST_REMOVE(head.lh_first, entries);
-    // }
 }
 
-// TODO when deciding to send requests
-//     is last request completed, or is it a broadcast request (and thus
-//     doesn't ever complete?)
-//      if yes, is the clock ticked to request again?
-//
-// when adding a new diag request, if the list is full
-//  find first broadcast, non-recurring request and delete it - keeps single use
-//  braodcast around as long as possible to collect responses
-
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
-    if(DIAG_HANDLE.completed) {
-        DIAG_HANDLE = diagnostic_request_pid(&manager->shims,
-            DIAGNOSTIC_STANDARD_PID, 0x7df, 0x11, NULL);
+    for(ActiveRequestListEntry* activeRequest = manager->activeRequests.lh_first;
+            activeRequest != NULL; activeRequest = activeRequest->entries.le_next) {
+        // TODO
+        // is it recurring?
+        // is it completed?
+        // is the clock ticked?
+        //      send again!
     }
 }
 
@@ -109,4 +101,73 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             }
         }
     }
+}
+
+static void cleanupActiveRequests(DiagnosticsManager* manager) {
+    // clean up the active request list, move as many to the free list as
+    // possible
+    for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
+            entry != NULL; entry = entry->entries.le_next) {
+        ActiveDiagnosticRequest* request = &entry->request;
+        if(request->handle.completed && !request->recurring) {
+            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
+            LIST_REMOVE(entry, entries);
+        }
+    }
+
+}
+
+/* Public:
+ *
+ * frequencyHz - a value of 0 means it's a non-recurring request.
+ */
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequestHandle* handle, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
+
+    ActiveRequestListEntry* newEntry = popListEntry(
+            &manager->freeActiveRequests);
+    if(newEntry == NULL) {
+        cleanupActiveRequests(manager);
+        newEntry = popListEntry(&manager->freeActiveRequests);
+    }
+
+    if(newEntry == NULL) {
+        debug("Unable to allocate space for a new diagnostic request");
+        // TODO at the moment we're *never* deleting requests that were going to
+        // the broadcast address, because they're never "completed" unless we
+        // time them out while waiting for response from multiple modules
+        return false;
+    }
+
+    newEntry->request.handle = *handle;
+    strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
+    newEntry->request.decoder = decoder;
+    newEntry->request.recurring = frequencyHz != 0;
+    if(newEntry->request.recurring) {
+        newEntry->request.frequencyClock = {0};
+        newEntry->request.frequencyClock.frequency = frequencyHz;
+    }
+
+    return true;
+}
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequestHandle* handle, const char* genericName,
+        const DiagnosticResponseDecoder decoder) {
+    return addDiagnosticRequest(manager, handle, genericName, decoder, 0);
+}
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequest* request, const char* genericName,
+        const DiagnosticResponseDecoder decoder) {
+    return addDiagnosticRequest(manager, request, genericName, decoder, 0);
+}
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequest* request, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
+    DiagnosticRequestHandle handle = diagnostic_request(&manager->shims, request, NULL);
+    return addDiagnosticRequest(manager, &handle, genericName, decoder,
+            frequencyHz);
 }

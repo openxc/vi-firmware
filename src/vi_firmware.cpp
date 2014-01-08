@@ -51,6 +51,13 @@ void setup() {
     initializeAllCan();
     signals::initialize();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER);
+
+    DiagnosticRequest request = {
+        arbitration_id: 0x7df,
+        mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST
+    };
+    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &request, NULL, NULL, 1);
 }
 
 void loop() {

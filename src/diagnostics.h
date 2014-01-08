@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
-#define MAX_RECURRING_DIAG_REQUESTS 10
+#define MAX_GENERIC_NAME_LENGTH 40
 
 namespace openxc {
 namespace diagnostics {
@@ -22,49 +22,48 @@ namespace diagnostics {
  */
 typedef struct {
     DiagnosticRequestHandle handle;
-    const char* genericName;
+    char genericName[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;
-} ActiveDiagnosticRequest;
-
-typedef struct {
-    ActiveDiagnosticRequest request;
+    bool recurring;
     openxc::util::time::FrequencyClock frequencyClock;
-} RecurringDiagnosticRequest;
+} ActiveDiagnosticRequest;
 
 struct ActiveRequestListEntry {
     ActiveDiagnosticRequest request;
     LIST_ENTRY(ActiveRequestListEntry) entries;
 };
 
-struct RecurringRequestListEntry {
-    RecurringDiagnosticRequest request;
-    LIST_ENTRY(RecurringRequestListEntry) entries;
-};
+LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
 
 typedef struct {
     DiagnosticShims shims;
-    LIST_HEAD(ActiveRequestListHead, ActiveRequestListEntry) activeRequests;
-    ActiveRequestListHead freeActiveRequests;
-    LIST_HEAD(RecurringRequestListHead, RecurringRequestListEntry) recurringRequests;
-    RecurringRequestListHead freeRecurringRequests;
+    ActiveRequestList activeRequests;
+    ActiveRequestList freeActiveRequests;
     ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
-    RecurringRequestListEntry recurringListEntries[MAX_RECURRING_DIAG_REQUESTS];
 } DiagnosticsManager;
 
 void initialize(DiagnosticsManager* manager);
 
-void addDiagnosticRequest(DiagnosticRequest* request, const char* genericName,
+bool addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequestHandle* handle, const char* genericName,
         const DiagnosticResponseDecoder decoder);
 
-void addRecurringDiagnosticRequest(DiagnosticRequest* request,
-        const char* genericName, const DiagnosticResponseDecoder decoder);
+bool addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequest* request, const char* genericName,
+        const DiagnosticResponseDecoder decoder);
 
-void sendRequests(DiagnosticsManager* manager);
+bool addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequestHandle* handle, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+
+bool addDiagnosticRequest(DiagnosticsManager* manager,
+        DiagnosticRequest* request, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanMessage* message);
 
-// TODO need an internal linked list (static allocation, please) of active
-// requests and another list of active, recurring requests.
+// TODO we do need this - it's responsible for re-sending recurring requests
+void sendRequests(DiagnosticsManager* manager);
 
 } // namespace diagnnostics
 } // namespace openxc

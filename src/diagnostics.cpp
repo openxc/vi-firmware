@@ -15,8 +15,6 @@ using openxc::util::log::debug;
 
 namespace time = openxc::util::time;
 
-DiagnosticRequestHandle DIAG_HANDLE;
-
 static ActiveRequestListEntry* popListEntry(ActiveRequestList* list) {
     ActiveRequestListEntry* result = list->lh_first;
     if(result != NULL) {
@@ -78,35 +76,37 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanMessage* message) {
-    if(!DIAG_HANDLE.completed) {
-        ArrayOrBytes combined;
-        combined.whole = message->data;
-        DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
-                &DIAG_HANDLE, message->id, combined.bytes,
-                sizeof(combined.bytes));
-        if(response.completed && DIAG_HANDLE.completed) {
-            if(DIAG_HANDLE.success) {
-                if(response.success) {
-                    debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x%02x, size: %d",
-                            response.arbitration_id,
-                            response.mode,
-                            response.pid,
-                            response.payload[0],
-                            response.payload[1],
-                            response.payload[2],
-                            response.payload[3],
-                            response.payload[4],
-                            response.payload[5],
-                            response.payload[6],
-                            response.payload[7],
-                            response.payload_length);
+    for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
+            entry != NULL; entry = entry->entries.le_next) {
+        if(!entry->request.handle.completed) {
+            ArrayOrBytes combined;
+            combined.whole = message->data;
+            DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
+                    &entry->request.handle, message->id, combined.bytes,
+                    sizeof(combined.bytes));
+            if(response.completed && entry->request.handle.completed) {
+                if(entry->request.handle.success) {
+                    if(response.success) {
+                        debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
+                                response.arbitration_id,
+                                response.mode,
+                                response.pid,
+                                response.payload[0],
+                                response.payload[1],
+                                response.payload[2],
+                                response.payload[3],
+                                response.payload[4],
+                                response.payload[5],
+                                response.payload[6],
+                                response.payload_length);
 
+                    } else {
+                        debug("Negative diagnostic response received, NRC: 0x%x",
+                                response.negative_response_code);
+                    }
                 } else {
-                    debug("Negative diagnostic response received, NRC: 0x%x",
-                            response.negative_response_code);
+                    debug("Fatal error when sending or receiving diagnostic request");
                 }
-            } else {
-                debug("Fatal error wen sending or receiving diagnostic request");
             }
         }
     }

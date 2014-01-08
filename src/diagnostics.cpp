@@ -32,6 +32,28 @@ static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
 void openxc::diagnostics::initialize(DiagnosticsManager* manager) {
     manager->shims = diagnostic_init_shims(openxc::util::log::debug,
                        sendDiagnosticCanMessage, NULL);
+
+    LIST_INIT(&manager->activeRequests);
+    LIST_INIT(&manager->freeActiveRequests);
+    LIST_INIT(&manager->recurringRequests);
+    LIST_INIT(&manager->freeRecurringRequests);
+
+    for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
+        LIST_INSERT_HEAD(&manager->freeActiveRequests,
+                &manager->activeListEntries[i], entries);
+    }
+
+    for(int i = 0; i < MAX_RECURRING_DIAG_REQUESTS; i++) {
+        LIST_INSERT_HEAD(&manager->freeRecurringRequests,
+                &manager->recurringListEntries[i], entries);
+    }
+
+    // for(ListEntry* entry = head.lh_first; entry != NULL; entry = entry->entries.le_next) {
+    // }
+
+    // while(head.lh_first != NULL) {
+        // LIST_REMOVE(head.lh_first, entries);
+    // }
 }
 
 // TODO when deciding to send requests

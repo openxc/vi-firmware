@@ -8,14 +8,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
+#define MAX_RECURRING_DIAG_REQUESTS 10
+
 namespace openxc {
 namespace diagnostics {
-
-typedef struct {
-    DiagnosticShims shims;
-} DiagnosticsManager;
-
-void initialize(DiagnosticsManager* manager);
 
 /* Public:
  *
@@ -26,13 +23,35 @@ void initialize(DiagnosticsManager* manager);
 typedef struct {
     DiagnosticRequestHandle handle;
     const char* genericName;
-    const DiagnosticResponseDecoder decoder;
+    DiagnosticResponseDecoder decoder;
 } ActiveDiagnosticRequest;
 
 typedef struct {
     ActiveDiagnosticRequest request;
     openxc::util::time::FrequencyClock frequencyClock;
 } RecurringDiagnosticRequest;
+
+struct ActiveRequestListEntry {
+    ActiveDiagnosticRequest request;
+    LIST_ENTRY(ActiveRequestListEntry) entries;
+};
+
+struct RecurringRequestListEntry {
+    RecurringDiagnosticRequest request;
+    LIST_ENTRY(RecurringRequestListEntry) entries;
+};
+
+typedef struct {
+    DiagnosticShims shims;
+    LIST_HEAD(ActiveRequestListHead, ActiveRequestListEntry) activeRequests;
+    ActiveRequestListHead freeActiveRequests;
+    LIST_HEAD(RecurringRequestListHead, RecurringRequestListEntry) recurringRequests;
+    RecurringRequestListHead freeRecurringRequests;
+    ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    RecurringRequestListEntry recurringListEntries[MAX_RECURRING_DIAG_REQUESTS];
+} DiagnosticsManager;
+
+void initialize(DiagnosticsManager* manager);
 
 void addDiagnosticRequest(DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder);

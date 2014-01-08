@@ -44,25 +44,20 @@ typedef struct {
 
 void initialize(DiagnosticsManager* manager);
 
+/* Public:
+ *
+ * frequencyHz - a value of 0 means it's a non-recurring request.
+ */
 bool addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequestHandle* handle, const char* genericName,
-        const DiagnosticResponseDecoder decoder);
+        DiagnosticRequest* request, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager,
         DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder);
-
-bool addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequestHandle* handle, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
-
-bool addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanMessage* message);
 
-// TODO we do need this - it's responsible for re-sending recurring requests
 void sendRequests(DiagnosticsManager* manager);
 
 } // namespace diagnnostics

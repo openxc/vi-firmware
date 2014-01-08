@@ -2,6 +2,7 @@
 #include "signals.h"
 #include "can/canwrite.h"
 #include "util/log.h"
+#include "util/timer.h"
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
@@ -11,6 +12,8 @@ using openxc::diagnostics::ActiveRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
+
+namespace time = openxc::util::time;
 
 DiagnosticRequestHandle DIAG_HANDLE;
 
@@ -53,23 +56,29 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager) {
     }
 }
 
+static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
+    // TODO do we want to check if the previous request has been completed? if
+    // we wait for that, it's possible we could get stuck - if we made the
+    // request while the CAN bus wasn't up, we're not going to get a response.
+    // unless the frequency is > 10Hz, there's little chance that we wouldn't
+    // have receive the response by the next tick, so if it isn't completed it
+    // likely means we're not going to hear back. for now, let's try again.
+    return request->recurring && time::shouldTick(&request->frequencyClock);
+}
+
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
-    for(ActiveRequestListEntry* activeRequest = manager->activeRequests.lh_first;
-            activeRequest != NULL; activeRequest = activeRequest->entries.le_next) {
-        // TODO
-        // is it recurring?
-        // is it completed?
-        // is the clock ticked?
-        //      send again!
+    for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
+            entry != NULL; entry = entry->entries.le_next) {
+        if(requestShouldRecur(&entry->request)) {
+            entry->request.handle = diagnostic_request(&manager->shims,
+                    &entry->request.handle.request, NULL);
+        }
     }
 }
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanMessage* message) {
     if(!DIAG_HANDLE.completed) {
-        // TODO could we put this union in CanMessage? may not be necessary
-        // if we migrate way from uint64_t but i don't think it would
-        // negatively impact memory
         ArrayOrBytes combined;
         combined.whole = message->data;
         DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
@@ -117,12 +126,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
 
 }
 
-/* Public:
- *
- * frequencyHz - a value of 0 means it's a non-recurring request.
- */
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequestHandle* handle, const char* genericName,
+        DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
 
     ActiveRequestListEntry* newEntry = popListEntry(
@@ -140,34 +145,26 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         return false;
     }
 
-    newEntry->request.handle = *handle;
+    // TODO before making request, set up CAN AF
+    // can::addFilter(CanFilter* filter);
+
+    newEntry->request.handle = diagnostic_request(&manager->shims, request, NULL);
     strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
     newEntry->request.decoder = decoder;
     newEntry->request.recurring = frequencyHz != 0;
-    if(newEntry->request.recurring) {
-        newEntry->request.frequencyClock = {0};
-        newEntry->request.frequencyClock.frequency = frequencyHz;
-    }
+    // TODO we could (ab)use the frequency clock for non-recurring requests and
+    // use it as a timeout - if we set the frequency to 1Hz, when it "should
+    // tick" and it's not yet completed, we know a response hasn't been received
+    // in 1 second and we should either kill it or retry
+    newEntry->request.frequencyClock = {0};
+    newEntry->request.frequencyClock.frequency =
+            newEntry->request.recurring ? frequencyHz : 1;
 
     return true;
-}
-
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequestHandle* handle, const char* genericName,
-        const DiagnosticResponseDecoder decoder) {
-    return addDiagnosticRequest(manager, handle, genericName, decoder, 0);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder) {
     return addDiagnosticRequest(manager, request, genericName, decoder, 0);
-}
-
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
-    DiagnosticRequestHandle handle = diagnostic_request(&manager->shims, request, NULL);
-    return addDiagnosticRequest(manager, &handle, genericName, decoder,
-            frequencyHz);
 }

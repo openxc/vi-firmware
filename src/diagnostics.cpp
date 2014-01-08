@@ -159,6 +159,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     newEntry->request.frequencyClock = {0};
     newEntry->request.frequencyClock.frequency =
             newEntry->request.recurring ? frequencyHz : 1;
+    LIST_INSERT_HEAD(&manager->activeRequests, newEntry, entries);
 
     return true;
 }

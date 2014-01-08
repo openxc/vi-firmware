@@ -13,12 +13,7 @@
 #include "power.h"
 #include "bluetooth.h"
 #include "platform/platform.h"
-#include <stdint.h>
-#include <stdlib.h>
-#include <obd2/obd2.h>
-#include <bitfield/bitfield.h>
-#include "can/canwrite.h"
-#include <limits.h>
+#include "diagnostics.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -28,6 +23,7 @@ namespace can = openxc::can;
 namespace platform = openxc::platform;
 namespace time = openxc::util::time;
 namespace signals = openxc::signals;
+namespace diagnostics = openxc::diagnostics;
 
 using openxc::util::log::debug;
 using openxc::can::lookupCommand;
@@ -42,6 +38,7 @@ using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 
 extern Pipeline PIPELINE;
+diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 
 /* Forward declarations */
 
@@ -50,22 +47,10 @@ void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
 
-DiagnosticShims SHIMS;
-DiagnosticRequestHandle DIAG_HANDLE;
-
-bool send_can_message(const uint16_t arbitration_id, const uint8_t* data,
-        const uint8_t size) {
-    const CanBus* bus = &getCanBuses()[0];
-    const CanMessage message = {arbitration_id, get_bitfield(data, size, 0,
-            size * CHAR_BIT)};
-    return openxc::can::write::sendCanMessage(bus, &message);
-}
-
 void setup() {
     initializeAllCan();
     signals::initialize();
-    SHIMS = diagnostic_init_shims(openxc::util::log::debug, send_can_message, NULL);
-    DIAG_HANDLE.completed = true;
+    diagnostics::initialize(&DIAGNOSTICS_MANAGER);
 }
 
 void loop() {
@@ -81,11 +66,7 @@ void loop() {
         receiveCan(&PIPELINE, &getCanBuses()[i]);
     }
 
-    if(DIAG_HANDLE.completed) {
-        // throttle position
-        DIAG_HANDLE = diagnostic_request_pid(&SHIMS,
-            DIAGNOSTIC_STANDARD_PID, 0x7df, 0x11, NULL);
-    }
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER);
 
     usb::read(PIPELINE.usb, receiveWriteRequest);
     uart::read(PIPELINE.uart, receiveWriteRequest);
@@ -250,50 +231,13 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 
         ++bus->messagesReceived;
 
-        if(!DIAG_HANDLE.completed) {
-            // TODO could we put this union in CanMessage? may not be necessary
-            // if we migrate way from uint64_t but i don't think it would
-            // negatively impact memory
-            ArrayOrBytes combined;
-            combined.whole = message.data;
-            DiagnosticResponse response = diagnostic_receive_can_frame(&SHIMS,
-                    &DIAG_HANDLE, message.id, combined.bytes,
-                    sizeof(combined.bytes));
-            if(response.completed && DIAG_HANDLE.completed) {
-                if(DIAG_HANDLE.success) {
-                  if(response.success) {
-                      debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, \
-                              pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x%02x, size: %d",
-                              response.arbitration_id,
-                              response.mode,
-                              response.pid,
-                              response.payload[0],
-                              response.payload[1],
-                              response.payload[2],
-                              response.payload[3],
-                              response.payload[4],
-                              response.payload[5],
-                              response.payload[6],
-                              response.payload[7],
-                              response.payload_length);
-
-                  } else {
-                      // The request was sent successfully, the response was
-                      // received successfully, BUT it was a negative response
-                      // from the other node.
-                      debug("This is the error code: %d", response.negative_response_code);
-                  }
-                } else {
-                    // Some other fatal error ocurred - we weren't able to send
-                    // the request or receive the response. The CAN connection
-                    // may be down.
-                }
-            }
-        }
+        diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &message);
     }
 }
 
 void reset() {
+    // TODO this reset command may not be useful anymore - it was to work around
+    // a bug we fixed a long time ago.
     initializeAllCan();
 }
 

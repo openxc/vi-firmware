@@ -11,7 +11,7 @@ TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
 NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp vi_firmware.cpp \
-		    emulator.cpp platform/platform.cpp
+		    emulator.cpp platform/platform.cpp diagnostics.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
 			  $(LIBS_PATH)/nanopb/pb_decode.c

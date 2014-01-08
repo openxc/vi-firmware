@@ -52,12 +52,16 @@ void setup() {
     signals::initialize();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER);
 
+    // TODO this is temporary before we add the interface to add/remove messages
+    // - just need one recurring request to test the system
     DiagnosticRequest request = {
-        arbitration_id: 0x7df,
-        mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST
+        arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
+        mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST,
+        pid: 0x11,
+        pid_length: 1
     };
-    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &request, NULL, NULL, 1);
+    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &request, NULL,
+            NULL, 1);
 }
 
 void loop() {

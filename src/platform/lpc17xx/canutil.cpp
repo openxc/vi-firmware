@@ -27,32 +27,29 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     return true;
 }
 
-// TODO when we merge this branch with 'iso' this function will be duplicated
-// except for the return type
-static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
-    AcceptanceFilterListEntry* result = list->lh_first;
-    if(result != NULL) {
-        LIST_REMOVE(list->lh_first, entries);
-    }
-    return result;
-}
-
 bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
     setAcceptanceFilterStatus(bus, true);
 
-    for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-            entry != NULL; entry = entry->entries.le_next) {
-        if(entry->filter == id) {
+    for(int i = 0; i < sizeof(bus->acceptanceFilters); i++) {
+        AcceptanceFilter* filter = bus->acceptanceFilters[i];
+        if(filter->active && filter->id == id) {
             return true;
         }
     }
 
     // it's not already in there, see if we have space
-    AcceptanceFilterListEntry* newEntry = popListEntry(
-            &bus->freeAcceptanceFilters);
-    if(newEntry == null) {
+    AcceptanceFilter* availableFilter = NULL;
+    for(int i = 0; i < sizeof(bus->acceptanceFilters); i++) {
+        AcceptanceFilter* filter = bus->acceptanceFilters[i];
+        if(!filter->active) {
+            availableFilter = filter;
+            break;
+        }
+    }
+
+    if(availableFilter == NULL) {
         debug("All acceptance filter slots already taken, can't add 0x%lx",
                 id);
         return false;

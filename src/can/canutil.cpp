@@ -20,6 +20,13 @@ void openxc::can::initializeCommon(CanBus* bus) {
     debug("Initializing CAN node %d...", bus->address);
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
+
+    LIST_INIT(&bus->acceptanceFilterList);
+    for(int i = 0; i < sizeof(bus->acceptanceFilterEntries); i++) {
+        LIST_INSERT_HEAD(&bus->acceptanceFilters,
+                &bus->acceptanceFilterEntries[i], entries);
+    }
+
     bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;
     // TODO could create this on the fly since most of the time we won't use it
@@ -286,4 +293,28 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
         }
     }
 #endif // __LOG_STATS__
+}
+
+bool openxc::can::configureDefaultFilters(CanBus* bus,
+        const CanMessageDefinition* messages, const int messageCount) {
+    uint8_t filterCount;
+    bool status = true;
+    if(messageCount > 0) {
+        for(int i = 0; i < messageCount; i++) {
+            if(messages[i].bus == bus) {
+                ++filterCount;
+                status = status && addAcceptanceFilter(bus, messages[i].id);
+            }
+        }
+
+        if(filterCount > 0) {
+            debug("Configured %d filters for bus %d", filterCount, bus->address);
+        }
+    }
+
+    if(filterCount == 0) {
+        debug("No filters configured, turning off acceptance filter");
+        setAcceptanceFilterStatus(bus, false);
+    }
+    return status;
 }

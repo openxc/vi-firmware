@@ -1,9 +1,10 @@
-#ifndef _CANUTIL_H_
-#define _CANUTIL_H_
+#ifndef __CANUTIL_H__
+#define __CANUTIL_H__
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/queue.h>
 #include "util/bitfield.h"
 #include "util/timer.h"
 #include "util/statistics.h"
@@ -15,6 +16,7 @@
 #include "platform/lpc17xx/canutil_lpc17xx.h"
 #endif // __LPC17XX__
 
+#define MAX_ACCEPTANCE_FILTERS 32
 
 // TODO These structs are defined outside of the openxc::can namespace because
 // we're not able to used namespaced types with emqueue.
@@ -126,6 +128,15 @@ QUEUE_DECLARE(CanMessage,
 #endif // __LOG_STATS__
 );
 
+
+struct AcceptanceFilterListEntry {
+    uint16_t position;
+    uint32_t filter;
+    LIST_ENTRY(AcceptanceFilterListEntry) entries;
+};
+
+LIST_HEAD(AcceptanceFilterList, AcceptanceFilterListHead);
+
 /* Public: A container for a CAN module paried with a certain bus.
  *
  * speed - The bus speed in bits per second (e.g. 500000)
@@ -157,6 +168,9 @@ struct CanBus {
     unsigned short maxMessageFrequency;
     bool rawWritable;
     void (*interruptHandler)();
+    AcceptanceFilterList acceptanceFilters;
+    AcceptanceFilterList freeAcceptanceFilters;
+    AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];
     HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;
@@ -201,19 +215,6 @@ namespace openxc {
 namespace can {
 
 extern const int CAN_ACTIVE_TIMEOUT_S;
-
-/* Public: A CAN transceiver message filter.
- *
- * number - The ID of this filter, e.g. 0, 1, 2.
- * value - The filter's value.
- * channel - The CAN channel this filter should be applied to - on the PIC32,
- *           channel 1 is for RX.
- */
-typedef struct {
-    uint8_t number;
-    uint32_t value;
-    uint8_t channel;
-} CanFilter;
 
 /* Public: The function definition for completely custom OpenXC command
  * handlers.
@@ -387,7 +388,16 @@ bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
  */
 void logBusStatistics(CanBus* buses, const int busCount);
 
+bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* message,
+        const int messageCount);
+
+bool addAcceptanceFilter(CanBus* bus, uint32_t id);
+
+void removeAcceptanceFilter(CanBus* bus, uint32_t id);
+
+bool setAcceptanceFilterStatus(CanBus* bus, bool enabled);
+
 } // can
 } // openxc
 
-#endif // _CANUTIL_H_
+#endif // __CANUTIL_H__

@@ -19,14 +19,19 @@ using openxc::util::log::debug;
 AF_SectionDef AF_TABLE;
 SFF_Entry STANDARD_AF_TABLE[MAX_ACCEPTANCE_FILTERS];
 
-static bool updateAcceptanceFilterTable(CanBus* bus) {
-    // TODO loop over all filters, set in table
-    STANDARD_AF_TABLE[0].controller = bus->address - 1;
-    STANDARD_AF_TABLE[0].disable = false;
-    STANDARD_AF_TABLE[0].id_11 = 0x08;
+bool openxc::can::updateAcceptanceFilterTable(CanBus* bus) {
+    memset(STANDARD_AF_TABLE, 0, sizeof(STANDARD_AF_TABLE));
+    uint16_t filterCount = 0;
+    for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+            entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+            entry = entry->entries.le_next, ++filterCount) {
+        STANDARD_AF_TABLE[filterCount].controller = bus->address - 1;
+        STANDARD_AF_TABLE[filterCount].disable = false;
+        STANDARD_AF_TABLE[filterCount].id_11 = entry->filter;
+    }
 
     AF_TABLE.SFF_Sec = STANDARD_AF_TABLE;
-    AF_TABLE.SFF_NumEntry = 6;
+    AF_TABLE.SFF_NumEntry = filterCount; // TODO need to subtract 1?
 
     return CAN_SetupAFLUT(LPC_CANAF, &AF_TABLE) == CAN_OK;
 }
@@ -40,64 +45,6 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
         CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
     }
     return true;
-}
-
-// TODO when we merge this branch with 'iso' this function will be duplicated
-// except for the return type
-static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
-    AcceptanceFilterListEntry* result = list->lh_first;
-    if(result != NULL) {
-        LIST_REMOVE(list->lh_first, entries);
-    }
-    return result;
-}
-
-bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
-    // TODO for a diagnostic request, when does a filter get removed? if a
-    // request is completed and no other active requsts have the same id
-    setAcceptanceFilterStatus(bus, true);
-
-    for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-            entry != NULL; entry = entry->entries.le_next) {
-        if(entry->filter == id) {
-            return true;
-        }
-    }
-
-    AcceptanceFilterListEntry* availableFilter = popListEntry(
-            &bus->freeAcceptanceFilters);
-    if(availableFilter == NULL) {
-        debug("All acceptance filter slots already taken, can't add 0x%lx",
-                id);
-        return false;
-    }
-
-    // TODO everything in this function except this is portable - we need an
-    // addAcceptanceFilter (in canutil.cpp and addAcceptanceFilterPlatformSpecific or something
-    // like that (in platform/*/canutil.cpp)
-
-    availableFilter->filter = id;
-    LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
-    return updateAcceptanceFilterTable(bus);
-}
-
-void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id) {
-    AcceptanceFilterListEntry* entry;
-    for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
-            entry = entry->entries.le_next) {
-        if(entry->filter == id) {
-            break;
-        }
-    }
-
-    if(entry != NULL) {
-        LIST_REMOVE(entry, entries);
-        if(bus->acceptanceFilters.lh_first == NULL) {
-            // when all filters are removed, switch into bypass mode
-            setAcceptanceFilterStatus(bus, false);
-        }
-        updateAcceptanceFilterTable(bus);
-    }
 }
 
 void configureCanControllerPins(LPC_CAN_TypeDef* controller) {

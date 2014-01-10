@@ -319,3 +319,58 @@ bool openxc::can::configureDefaultFilters(CanBus* bus,
     }
     return status;
 }
+
+// TODO when we merge this branch with 'iso' this function will be duplicated
+// except for the return type
+static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
+    AcceptanceFilterListEntry* result = list->lh_first;
+    if(result != NULL) {
+        LIST_REMOVE(list->lh_first, entries);
+    }
+    return result;
+}
+
+bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
+    // TODO for a diagnostic request, when does a filter get removed? if a
+    // request is completed and no other active requsts have the same id
+    setAcceptanceFilterStatus(bus, true);
+
+    for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+            entry != NULL; entry = entry->entries.le_next) {
+        if(entry->filter == id) {
+            return true;
+        }
+    }
+
+    AcceptanceFilterListEntry* availableFilter = popListEntry(
+            &bus->freeAcceptanceFilters);
+    if(availableFilter == NULL) {
+        debug("All acceptance filter slots already taken, can't add 0x%lx",
+                id);
+        return false;
+    }
+
+    availableFilter->filter = id;
+    LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
+    return updateAcceptanceFilterTable(bus);
+}
+
+void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id) {
+    AcceptanceFilterListEntry* entry;
+    for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
+            entry = entry->entries.le_next) {
+        if(entry->filter == id) {
+            break;
+        }
+    }
+
+    if(entry != NULL) {
+        LIST_REMOVE(entry, entries);
+        if(bus->acceptanceFilters.lh_first == NULL) {
+            // when all filters are removed, switch into bypass mode
+            setAcceptanceFilterStatus(bus, false);
+        }
+        updateAcceptanceFilterTable(bus);
+    }
+}
+

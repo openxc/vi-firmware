@@ -42,6 +42,31 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
     return previousMode;
 }
 
+bool openxc::can::updateAcceptanceFilterTable(CanBus* bus) {
+    CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
+
+    uint16_t filterCount = 0;
+    for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+            entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+            entry = entry->entries.le_next, ++filterCount) {
+        CAN_CONTROLLER(bus)->configureFilter(
+                CAN::FILTER(filterCount), entry->filter, CAN::SID);
+        CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+    }
+
+    // disable the remaining unused filters
+    for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
+        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
+    }
+
+
+
+    switchControllerMode(bus, previousMode);
+    return true;
+}
+
 bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
@@ -59,42 +84,6 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     }
     switchControllerMode(bus, previousMode);
     return true;
-}
-
-bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
-    CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
-
-    // TODO treat list as a set, make sure it's in there only once...or use
-    // HashMap so we can do it in O(1), mah not worth the complexity for such a
-    // small list updated so rarely
-    // TODO for a diagnostic request, when does a filter get removed? if a
-    // request is completed and no other active requsts have the same id
-    setAcceptanceFilterStatus(bus, true);
-
-    // TODO need to add to list, then re-initialize all based on the size of the
-    // list - really? there's no way to just add a single filter?
-    uint8_t filterNumber = 0;
-    CAN_CONTROLLER(bus)->configureFilter(
-            CAN::FILTER(filterNumber), id, CAN::SID);
-    CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterNumber),
-            CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
-    CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterNumber), true);
-
-    switchControllerMode(bus, previousMode);
-    return true;
-}
-
-void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id) {
-    CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
-
-    // TODO search filter list for the number to disable
-    uint8_t filterNumber = 0;
-    CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterNumber), false);
-
-    // TODO when all filters are removed, switch into bypass mode
-    setAcceptanceFilterStatus(bus, false);
-
-    switchControllerMode(bus, previousMode);
 }
 
 /* Public: Change the operational mode of the specified CAN module to

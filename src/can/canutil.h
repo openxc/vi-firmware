@@ -396,6 +396,8 @@ void removeAcceptanceFilter(CanBus* bus, uint32_t id);
 
 bool setAcceptanceFilterStatus(CanBus* bus, bool enabled);
 
+bool updateAcceptanceFilterTable(CanBus* bus);
+
 } // can
 } // openxc
 

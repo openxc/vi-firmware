@@ -19,21 +19,38 @@ using openxc::util::log::debug;
 AF_SectionDef AF_TABLE;
 SFF_Entry STANDARD_AF_TABLE[MAX_ACCEPTANCE_FILTERS];
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* bus) {
-    memset(STANDARD_AF_TABLE, 0, sizeof(STANDARD_AF_TABLE));
+extern uint16_t CANAF_std_cnt;
+
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     uint16_t filterCount = 0;
-    for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-            entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
-            entry = entry->entries.le_next, ++filterCount) {
-        STANDARD_AF_TABLE[filterCount].controller = bus->address - 1;
-        STANDARD_AF_TABLE[filterCount].disable = false;
-        STANDARD_AF_TABLE[filterCount].id_11 = entry->filter;
+
+    // TODO this is nuts, there's no way to reset this internal variable and clear
+    // all of the filters at once exception repeatedly calling CAN_RemoveEntry(...)
+    // until it returns an error.
+    CANAF_std_cnt = 0;
+
+    memset(STANDARD_AF_TABLE, 0, sizeof(STANDARD_AF_TABLE));
+    for(int i = 0; i < busCount; i++) {
+        CanBus* bus = &buses[i];
+        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+                entry = entry->entries.le_next, ++filterCount) {
+            STANDARD_AF_TABLE[filterCount] = {
+                controller: uint8_t(bus->address - 1),
+                disable: false,
+                id_11: entry->filter
+            };
+        }
     }
 
     AF_TABLE.SFF_Sec = STANDARD_AF_TABLE;
     AF_TABLE.SFF_NumEntry = filterCount; // TODO need to subtract 1?
 
-    return CAN_SetupAFLUT(LPC_CANAF, &AF_TABLE) == CAN_OK;
+    CAN_ERROR result = CAN_SetupAFLUT(LPC_CANAF, &AF_TABLE);
+    if(result != CAN_OK) {
+        debug("Couldn't update AFLUT, error %d", result);
+    }
+    return result == CAN_OK;
 }
 
 bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
@@ -70,7 +87,8 @@ void configureTransceiver() {
 
 void openxc::can::deinitialize(CanBus* bus) { }
 
-void openxc::can::initialize(CanBus* bus, bool writable) {
+void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
+        bool writable) {
     can::initializeCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
@@ -112,7 +130,8 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
     AF_TABLE.EFF_GPR_Sec = NULL;
     AF_TABLE.EFF_GPR_NumEntry = 0;
 
-    if(!configureDefaultFilters(bus, openxc::signals::getMessages(),
+    if(!configureDefaultFilters(buses, busCount, bus,
+            openxc::signals::getMessages(),
             openxc::signals::getMessageCount())) {
         debug("Unable to initialize CAN acceptance filters");
     }

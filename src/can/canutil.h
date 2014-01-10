@@ -255,7 +255,7 @@ typedef struct {
  * writable - configure the controller in a writable mode. If False, it will be
  *      configured as "listen only" and will not allow writes or even CAN ACKs.
  */
-void initialize(CanBus* bus, bool writable);
+void initialize(CanBus* buses, const int busCount, CanBus* bus, bool writable);
 
 /* Public: Free any memory associated with the CanBus.
  *
@@ -387,16 +387,16 @@ bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
  */
 void logBusStatistics(CanBus* buses, const int busCount);
 
-bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* message,
-        const int messageCount);
+bool configureDefaultFilters(CanBus* buses, const int busCount, CanBus* bus,
+        const CanMessageDefinition* message, const int messageCount);
 
-bool addAcceptanceFilter(CanBus* bus, uint32_t id);
+bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id);
 
-void removeAcceptanceFilter(CanBus* bus, uint32_t id);
+void removeAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id);
 
 bool setAcceptanceFilterStatus(CanBus* bus, bool enabled);
 
-bool updateAcceptanceFilterTable(CanBus* bus);
+bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
 
 } // can
 } // openxc

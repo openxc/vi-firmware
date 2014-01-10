@@ -42,26 +42,29 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
     return previousMode;
 }
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* bus) {
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
 
+    // TODO for the PIC32 we *could* only change the filters for one bus, but to
+    // simplify things we'll reset everything like we have to with the LPC1768
     uint16_t filterCount = 0;
-    for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-            entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
-            entry = entry->entries.le_next, ++filterCount) {
-        CAN_CONTROLLER(bus)->configureFilter(
-                CAN::FILTER(filterCount), entry->filter, CAN::SID);
-        CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
-                CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
-        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+    for(int i = ; i < busCount; i++) {
+        CanBus* bus = &buses[i];
+        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+                entry = entry->entries.le_next, ++filterCount) {
+            CAN_CONTROLLER(bus)->configureFilter(
+                    CAN::FILTER(filterCount), entry->filter, CAN::SID);
+            CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                    CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+        }
     }
 
     // disable the remaining unused filters
     for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
     }
-
-
 
     switchControllerMode(bus, previousMode);
     return true;
@@ -107,7 +110,8 @@ void openxc::can::deinitialize(CanBus* bus) {
     #endif
 }
 
-void openxc::can::initialize(CanBus* bus, bool writable) {
+void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
+        bool writable) {
     can::initializeCommon(bus);
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
@@ -144,7 +148,8 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
     CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8,
             CAN::RX_FULL_RECEIVE);
 
-    if(!configureDefaultFilters(bus, openxc::signals::getMessages(),
+    if(!configureDefaultFilters(buses, busCount, bus,
+            openxc::signals::getMessages(),
             openxc::signals::getMessageCount())) {
         debug("Unable to initialize CAN acceptance filters");
     }

@@ -118,7 +118,7 @@ void initializeAllCan() {
         // broken.
         writable = true;
 #endif
-        can::initialize(bus, writable);
+        can::initialize(getCanBuses(), getCanBusCount(), bus, writable);
     }
 }
 

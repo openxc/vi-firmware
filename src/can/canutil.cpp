@@ -296,15 +296,21 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
 #endif // __LOG_STATS__
 }
 
-bool openxc::can::configureDefaultFilters(CanBus* bus,
-        const CanMessageDefinition* messages, const int messageCount) {
-    uint8_t filterCount;
+bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
+        CanBus* bus, const CanMessageDefinition* messages,
+        const int messageCount) {
+    uint8_t filterCount = 0;
     bool status = true;
     if(messageCount > 0) {
         for(int i = 0; i < messageCount; i++) {
             if(messages[i].bus == bus) {
                 ++filterCount;
-                status = status && addAcceptanceFilter(bus, messages[i].id);
+                status = status && addAcceptanceFilter(buses, busCount, bus, messages[i].id);
+                if(!status) {
+                    debug("Couldn't add filter 0x%x to bus %d, breaking out of initialization",
+                            messages[i].id, bus->address);
+                    break;
+                }
             }
         }
 
@@ -315,6 +321,8 @@ bool openxc::can::configureDefaultFilters(CanBus* bus,
 
     if(filterCount == 0) {
         debug("No filters configured, turning off acceptance filter");
+        // TODO this is an issue on LPC17xx when the AF is a global setting -
+        // we can't have it off for one bus and on for the other
         setAcceptanceFilterStatus(bus, false);
     }
     return status;
@@ -330,7 +338,7 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
     return result;
 }
 
-bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
+bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
     setAcceptanceFilterStatus(bus, true);
@@ -338,6 +346,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {
+            debug("Filter for 0x%x already exists", id);
             return true;
         }
     }
@@ -350,12 +359,16 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id) {
         return false;
     }
 
+
     availableFilter->filter = id;
     LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
-    return updateAcceptanceFilterTable(bus);
+    debug("Added acceptance filter for 0x%x on bus %d", availableFilter->filter,
+            bus->address);
+    return updateAcceptanceFilterTable(buses, busCount);
 }
 
-void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id) {
+void openxc::can::removeAcceptanceFilter(CanBus* buses, const int busCount,
+        CanBus* bus, uint32_t id) {
     AcceptanceFilterListEntry* entry;
     for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
             entry = entry->entries.le_next) {
@@ -370,7 +383,7 @@ void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id) {
             // when all filters are removed, switch into bypass mode
             setAcceptanceFilterStatus(bus, false);
         }
-        updateAcceptanceFilterTable(bus);
+        updateAcceptanceFilterTable(buses, busCount);
     }
 }
 

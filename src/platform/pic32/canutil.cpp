@@ -42,35 +42,7 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
     return previousMode;
 }
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
-    CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
-
-    // TODO for the PIC32 we *could* only change the filters for one bus, but to
-    // simplify things we'll reset everything like we have to with the LPC1768
-    uint16_t filterCount = 0;
-    for(int i = ; i < busCount; i++) {
-        CanBus* bus = &buses[i];
-        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
-                entry = entry->entries.le_next, ++filterCount) {
-            CAN_CONTROLLER(bus)->configureFilter(
-                    CAN::FILTER(filterCount), entry->filter, CAN::SID);
-            CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
-                    CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
-        }
-    }
-
-    // disable the remaining unused filters
-    for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
-        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
-    }
-
-    switchControllerMode(bus, previousMode);
-    return true;
-}
-
-bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
@@ -86,6 +58,43 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
                 true);
     }
     switchControllerMode(bus, previousMode);
+    return true;
+}
+
+
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+    // TODO for the PIC32 we *could* only change the filters for one bus, but to
+    // simplify things we'll reset everything like we have to with the LPC1768
+    for(int i = 0; i < busCount; i++) {
+        CanBus* bus = &buses[i];
+        uint16_t filterCount = 0;
+        CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
+        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+                entry = entry->entries.le_next, ++filterCount) {
+            CAN_CONTROLLER(bus)->configureFilter(
+                    CAN::FILTER(filterCount), entry->filter, CAN::SID);
+            CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                    CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+        }
+
+        // disable the remaining unused filters
+        for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
+        }
+
+        if(filterCount == 0) {
+            debug("No filters configured, turning off acceptance filter");
+            setAcceptanceFilterStatus(bus, false);
+        } else {
+            setAcceptanceFilterStatus(bus, true);
+        }
+
+        switchControllerMode(bus, previousMode);
+    }
+
+
     return true;
 }
 

@@ -21,7 +21,12 @@ void openxc::can::initializeCommon(CanBus* bus) {
     QUEUE_INIT(CanMessage, &bus->receiveQueue);
     QUEUE_INIT(CanMessage, &bus->sendQueue);
 
-    bus->acceptanceFilters = {0};
+    LIST_INIT(&bus->acceptanceFilters);
+    LIST_INIT(&bus->freeAcceptanceFilters);
+    for(size_t i = 0; i < MAX_ACCEPTANCE_FILTERS; i++) {
+        LIST_INSERT_HEAD(&bus->freeAcceptanceFilters,
+                &bus->acceptanceFilterEntries[i], entries);
+    }
 
     bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;

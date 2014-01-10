@@ -129,11 +129,12 @@ QUEUE_DECLARE(CanMessage,
 );
 
 
-struct AcceptanceFilter {
-    bool active;
-    uint16_t position;
-    uint32_t id;
+struct AcceptanceFilterListEntry {
+    uint16_t filter;
+    LIST_ENTRY(AcceptanceFilterListEntry) entries;
 };
+
+LIST_HEAD(AcceptanceFilterList, AcceptanceFilterListEntry);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *
@@ -166,7 +167,9 @@ struct CanBus {
     unsigned short maxMessageFrequency;
     bool rawWritable;
     void (*interruptHandler)();
-    AcceptanceFilter acceptancFilters[MAX_ACCEPTANCE_FILTERS];
+    AcceptanceFilterList acceptanceFilters;
+    AcceptanceFilterList freeAcceptanceFilters;
+    AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];
     HashMap* dynamicMessages;
     bool (*writeHandler)(CanBus*, CanMessage);
     unsigned long lastMessageReceived;

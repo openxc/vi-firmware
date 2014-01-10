@@ -26,12 +26,12 @@ CAN can2Actual(CAN::CAN2);
 CAN* can1 = &can1Actual;
 CAN* can2 = &can2Actual;
 
-/* Private:  A message area for 2 channels to store 8 16 byte messages - rqeuired
- * by the PIC32 CAN library. We could add this to the CanBus struct, but the
- * PIC32 has way more memory than some of our other supported platforms so I
- * don't want to burden them unnecessarily.
+/* Private:  A message area for each bus, for 2 channels to store 8 16 byte
+ * messages - required by the PIC32 CAN library. We could add this to the CanBus
+ * struct, but the PIC32 has way more memory than some of our other supported
+ * platforms so I don't want to burden them unnecessarily.
  */
-uint8_t CAN_CONTROLLER_BUFFER[BUS_MEMORY_BUFFER_SIZE];
+uint8_t CAN_CONTROLLER_BUFFERS[2][BUS_MEMORY_BUFFER_SIZE];
 
 /* Private: Initializes message filters on the CAN controller.
  *
@@ -115,7 +115,8 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
     // Assign the buffer area to the CAN module. Note the size of each Channel
     // area. It is 2 (Channels) * 8 (Messages Buffers) 16 (bytes/per message
     // buffer) bytes. Each CAN module should have its own message area.
-    CAN_CONTROLLER(bus)->assignMemoryBuffer(CAN_CONTROLLER_BUFFER,
+    CAN_CONTROLLER(bus)->assignMemoryBuffer(
+            CAN_CONTROLLER_BUFFERS[bus->address - 1],
             BUS_MEMORY_BUFFER_SIZE);
 
     // Configure channel 0 for TX with 8 byte buffers and with "Remote Transmit

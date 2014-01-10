@@ -350,7 +350,6 @@ bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount, CanBus*
         return false;
     }
 
-
     availableFilter->filter = id;
     LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
     debug("Added acceptance filter for 0x%x on bus %d", availableFilter->filter,

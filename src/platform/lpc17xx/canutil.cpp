@@ -16,21 +16,22 @@ using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 
-static bool setAcceptanceFilterStatus(bool enabled) {
-    if(enabled) {
-        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
-    } else {
-        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
-    }
-    return true;
-}
+extern uint16_t CANAF_std_cnt;
 
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
-    // remove all existing entries
-    int entry = 0;
-    while(CAN_RemoveEntry(EXPLICIT_STANDARD_ENTRY, entry++) != CAN_ENTRY_NOT_EXIT_ERROR) {
-        continue;
+    // remove all existing entries - I tried looping over CAN_RemoveEntry until
+    // it returned an error, but that left the AF table in a corrupted state.
+    LPC_CANAF->AFMR = 0x00000001;
+    CANAF_std_cnt = 0;
+    for (int i = 0; i < 512; i++) {
+        LPC_CANAF_RAM->mask[i] = 0x00;
     }
+
+    LPC_CANAF->SFF_sa = 0x00;
+    LPC_CANAF->SFF_GRP_sa = 0x00;
+    LPC_CANAF->EFF_sa = 0x00;
+    LPC_CANAF->EFF_GRP_sa = 0x00;
+    LPC_CANAF->ENDofTable = 0x00;
 
     uint16_t filterCount = 0;
     CAN_ERROR result = CAN_OK;
@@ -53,7 +54,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         debug("No filters configured, turning off acceptance filter");
         // TODO this is an issue on LPC17xx when the AF is a global setting -
         // we can't have it off for one bus and on for the other
-        setAcceptanceFilterStatus(false);
+        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
     }
 
     return result == CAN_OK;

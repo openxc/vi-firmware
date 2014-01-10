@@ -341,7 +341,6 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
 bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
-    setAcceptanceFilterStatus(bus, true);
 
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {

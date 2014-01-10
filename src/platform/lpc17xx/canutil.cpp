@@ -16,40 +16,31 @@ using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 
-AF_SectionDef AF_TABLE;
-SFF_Entry STANDARD_AF_TABLE[MAX_ACCEPTANCE_FILTERS];
-
-extern uint16_t CANAF_std_cnt;
-
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+
+    // remove all existing entries
+    int entry = 0;
+    while(CAN_RemoveEntry(EXPLICIT_STANDARD_ENTRY, entry++) != CAN_ENTRY_NOT_EXIT_ERROR) {
+        continue;
+    }
+
     uint16_t filterCount = 0;
-
-    // TODO this is nuts, there's no way to reset this internal variable and clear
-    // all of the filters at once exception repeatedly calling CAN_RemoveEntry(...)
-    // until it returns an error.
-    CANAF_std_cnt = 0;
-
-    memset(STANDARD_AF_TABLE, 0, sizeof(STANDARD_AF_TABLE));
+    CAN_ERROR result = CAN_OK;
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];
         for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
                 entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
                 entry = entry->entries.le_next, ++filterCount) {
-            STANDARD_AF_TABLE[filterCount] = {
-                controller: uint8_t(bus->address - 1),
-                disable: false,
-                id_11: entry->filter
-            };
+           result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
+                                       STD_ID_FORMAT);
+           if(result != CAN_OK) {
+                debug("Couldn't add filter 0x%x to bus %d", entry->filter,
+                        bus->address);
+                break;
+           }
         }
     }
 
-    AF_TABLE.SFF_Sec = STANDARD_AF_TABLE;
-    AF_TABLE.SFF_NumEntry = filterCount; // TODO need to subtract 1?
-
-    CAN_ERROR result = CAN_SetupAFLUT(LPC_CANAF, &AF_TABLE);
-    if(result != CAN_OK) {
-        debug("Couldn't update AFLUT, error %d", result);
-    }
     return result == CAN_OK;
 }
 
@@ -119,16 +110,6 @@ void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
-
-    // disable all types of acceptance filters we will not be using
-    AF_TABLE.FullCAN_Sec = NULL;
-    AF_TABLE.FC_NumEntry = 0;
-    AF_TABLE.SFF_GPR_Sec = NULL;
-    AF_TABLE.SFF_GPR_NumEntry = 0;
-    AF_TABLE.EFF_Sec = NULL;
-    AF_TABLE.EFF_NumEntry = 0;
-    AF_TABLE.EFF_GPR_Sec = NULL;
-    AF_TABLE.EFF_GPR_NumEntry = 0;
 
     if(!configureDefaultFilters(buses, busCount, bus,
             openxc::signals::getMessages(),

@@ -318,13 +318,6 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
             debug("Configured %d filters for bus %d", filterCount, bus->address);
         }
     }
-
-    if(filterCount == 0) {
-        debug("No filters configured, turning off acceptance filter");
-        // TODO this is an issue on LPC17xx when the AF is a global setting -
-        // we can't have it off for one bus and on for the other
-        setAcceptanceFilterStatus(bus, false);
-    }
     return status;
 }
 
@@ -341,7 +334,6 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
 bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
-
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {
@@ -378,10 +370,6 @@ void openxc::can::removeAcceptanceFilter(CanBus* buses, const int busCount,
 
     if(entry != NULL) {
         LIST_REMOVE(entry, entries);
-        if(bus->acceptanceFilters.lh_first == NULL) {
-            // when all filters are removed, switch into bypass mode
-            setAcceptanceFilterStatus(bus, false);
-        }
         updateAcceptanceFilterTable(buses, busCount);
     }
 }

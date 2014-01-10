@@ -16,8 +16,16 @@ using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+static bool setAcceptanceFilterStatus(bool enabled) {
+    if(enabled) {
+        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
+    } else {
+        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
+    }
+    return true;
+}
 
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     // remove all existing entries
     int entry = 0;
     while(CAN_RemoveEntry(EXPLICIT_STANDARD_ENTRY, entry++) != CAN_ENTRY_NOT_EXIT_ERROR) {
@@ -41,18 +49,14 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         }
     }
 
-    return result == CAN_OK;
-}
-
-bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
-    debug("The LPC1768's CAN acceptance filter is global - setting %s for all controllers",
-            enabled ? "on": "off");
-    if(enabled) {
-        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
-    } else {
-        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
+    if(filterCount == 0) {
+        debug("No filters configured, turning off acceptance filter");
+        // TODO this is an issue on LPC17xx when the AF is a global setting -
+        // we can't have it off for one bus and on for the other
+        setAcceptanceFilterStatus(false);
     }
-    return true;
+
+    return result == CAN_OK;
 }
 
 void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
@@ -104,16 +108,16 @@ void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
     }
     CAN_ModeConfig(CAN_CONTROLLER(bus), mode, ENABLE);
 
+    if(!configureDefaultFilters(buses, busCount, bus,
+            openxc::signals::getMessages(),
+            openxc::signals::getMessageCount())) {
+        debug("Unable to initialize CAN acceptance filters");
+    }
+
     // enable receiver interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_RIE, ENABLE);
     // enable transmit interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
-
-    if(!configureDefaultFilters(buses, busCount, bus,
-            openxc::signals::getMessages(),
-            openxc::signals::getMessageCount())) {
-        debug("Unable to initialize CAN acceptance filters");
-    }
 }

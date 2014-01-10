@@ -394,8 +394,6 @@ bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_
 
 void removeAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id);
 
-bool setAcceptanceFilterStatus(CanBus* bus, bool enabled);
-
 bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
 
 } // can

@@ -1,9 +1,5 @@
 #include "can/canutil.h"
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* bus) {
-    return true;
-}
-
-bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     return true;
 }

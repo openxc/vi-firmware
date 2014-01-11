@@ -69,9 +69,12 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         CanBus* bus = &buses[i];
         uint16_t filterCount = 0;
         CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
+
         for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
                 entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
                 entry = entry->entries.le_next, ++filterCount) {
+            // Must disable before changing or else the filters do not work!
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
             CAN_CONTROLLER(bus)->configureFilter(
                     CAN::FILTER(filterCount), entry->filter, CAN::SID);
             CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
@@ -79,7 +82,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
         }
 
-        // disable the remaining unused filters
+        // Disable the remaining unused filters.
         for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
         }

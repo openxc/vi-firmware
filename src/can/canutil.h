@@ -74,7 +74,8 @@ struct CanSignal {
     const CanSignalState* states;
     uint8_t stateCount;
     bool writable;
-    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*, bool*);
+    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*,
+            bool*);
     bool received;
     float lastValue;
 };
@@ -125,11 +126,19 @@ QUEUE_DECLARE(CanMessage,
 );
 
 
+/* Private: An entry in the list of acceptance filters for each CanBus.
+ *
+ * This struct is meant to be used with a LIST type from <sys/queue.h>.
+ *
+ * filter - the value for the CAN acceptance filter.
+ */
 struct AcceptanceFilterListEntry {
     uint16_t filter;
     LIST_ENTRY(AcceptanceFilterListEntry) entries;
 };
 
+/* Private: A type of list containing CAN acceptance filters.
+ */
 LIST_HEAD(AcceptanceFilterList, AcceptanceFilterListEntry);
 
 /* Public: A container for a CAN module paried with a certain bus.
@@ -148,6 +157,10 @@ LIST_HEAD(AcceptanceFilterList, AcceptanceFilterListEntry);
  *      a previously registered CAN event occurs. (Only used by chipKIT, which
  *      registers a different handler per channel. LPC17xx uses the same global
  *      CAN_IRQHandler.
+ * acceptanceFilters - a list of active acceptance filters for this bus.
+ * freeAcceptanceFilters - a list of available slots for acceptance filters.
+ * acceptanceFilterEntries - static memory allocated for entires in the
+ *      acceptanceFilters and freeAcceptanceFilters list.
  * writeHandler - a function that actually writes out a CanMessage object to the
  *      CAN interface (implementation is platform specific);
  * lastMessageReceived - the time (in ms) when the last CAN message was
@@ -237,7 +250,7 @@ typedef bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
  * turn signals, so you will need to implement a custom command handler to
  *
  * genericName - The name of message received over USB.
- * handler - An function to actually process the recieved command's value
+ * handler - An function to actually process the received command's value
  *                and write it to CAN in the proper signals.
  */
 typedef struct {
@@ -246,6 +259,8 @@ typedef struct {
 } CanCommand;
 
 /* Public: Initialize the CAN controller.
+ *
+ * This function must be defined for each platform - it's hardware dependent.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
  * writable - configure the controller in a writable mode. If False, it will be
@@ -263,6 +278,8 @@ void initialize(CanBus* buses, const int busCount, CanBus* bus, bool writable);
 void destroy(CanBus* bus);
 
 /* Public: De-initialize the CAN controller.
+ *
+ * This function must be defined for each platform - it's hardware dependent.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
  */
@@ -314,7 +331,8 @@ CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanCommand* lookupCommand(const char* name, CanCommand* commands, int commandCount);
+CanCommand* lookupCommand(const char* name, CanCommand* commands,
+        int commandCount);
 
 /* Public: Look up a CanSignalState for a CanSignal by its textual name. Use
  * this to find the numerical value to write back to CAN when a string state is
@@ -345,34 +363,132 @@ const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
 const CanSignalState* lookupSignalState(int value, CanSignal* signal,
         CanSignal* signals, int signalCount);
 
-/* Public: Look up the CanMessage representation of a message based on its ID.
+/* Public: Search all predefined and dynamically configured CAN messages for one
+ * matching the given ID.
  *
+ * bus - The CanBus to search for the message.
  * id - The ID of the CAN message.
- * messages - The list of all CAN messages.
- * messageCount - The length of the messages array.
- *
- * TODO mention dynamic messages, update docs
+ * predefinedMessages - The list of predefined CAN messages to search.
+ * predefinedMessageCount - The length of the predefined messages array.
  *
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
-CanMessageDefinition* lookupMessage(int id, CanMessageDefinition* messages,
-        int messageCount);
-
 CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
+/* Public: Configure a new CAN message on the given bus.
+ *
+ * If the message is already registered with the bus (either as a predefined
+ * definition or a dynamic), nothing will be added.
+ *
+ * If it is not already defined, a CanMessageDefinition will be
+ * created and stored on the CanBus. This is useful for statistics, logging and
+ * potentially changing CAN acceptance filters on the fly (although that is not
+ * supported at the moment).
+ *
+ * bus - The CanBus to register the message on.
+ * id - The ID of the new CAN message definition.
+ * predefinedMessages - The list of predefined CAN messages to search for an
+ *      existing match.
+ * predefinedMessageCount - The length of the predefined messages array.
+ *
+ * Returns true if the message definition was registered successfully.
+ */
 bool registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
+/* Public: The opposite of registerMessageDefinition(...) - removes a definition
+ * if it exists for the ID on the given bus.
+ *
+ * bus - The CanBus to search for the message definition.
+ * id - The ID of the CAN message.
+ *
+ * Returns true if the message was found and unregistered successfully. If the
+ * message was not registered, returns false.
+ */
 bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
+
+/* Public: Based on the predefined CAN messages for a bus, add the required
+ * CAN acceptance filters to receive all messages.
+ *
+ * This will find messages in the messages array configured on the given bus and
+ * add an acceptance filter for the message ID.
+ *
+ * This function is *not* platform specific - it uses the
+ * addAcceptanceFilter(...) function.
+ *
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
+ * bus - The CanBus to initialize the default acceptance filters for.
+ * messages - An array of all active CAN messages definitions.
+ * messageCount - The length of the messages array.
+ *
+ * Returns true if the acceptance filters were all configured successfully.
+ */
+bool configureDefaultFilters(CanBus* buses, const int busCount, CanBus* bus,
+        const CanMessageDefinition* messages, const int messageCount);
+
+/* Public: Configure a new CAN message acceptance filter on the given bus.
+ *
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
+ * bus - The CanBus to initialize the filter on.
+ * id - The value of the new filter.
+ *
+ * Returns true if the filter was added or already existed. Returns false if the
+ * filter could not be added because of a CAN controller error or because all
+ * available filter slots are taken.
+ */
+bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus,
+        uint32_t id);
+
+/* Public: Remove a CAN message acceptance filter from the given bus.
+ *
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
+ * bus - The CanBus to remove the filter from.
+ * id - The value of the new filter.
+ *
+ * Returns true if the filter was added or already existed. Returns false if the
+ * filter could not be added because of a CAN controller error or because all
+ * available filter slots are taken.
+ */
+void removeAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus,
+        uint32_t id);
+
+/* Public: Apply the CAN acceptance filter configuration from software (on the
+ * CanBus struct) to the actual hardware CAN controllers.
+ *
+ * This function must be defined for each platform - it's hardware dependent.
+ *
+ * The 2 platforms that this firmware is compiled for at the moment (PIC32 and
+ * LPC17xx) don't very well support adding or removing a single CAN acceptance
+ * filter on the fly. It is much easier to completely erase and reset the entire
+ * table. There is certainly a way to do it on both, but it would involve quite
+ * a bit more code - e.g. the LPC17xx's acceptance filter table must be sorted
+ * in ascending order, both platforms have static slots for filters that we
+ * would have to keep track of, etc.
+ *
+ * With that in mind, it's easier to have this function to say that when called,
+ * the CAN controller's AF table should mirror the active filter list
+ * (CanBus.AcceptanceFilterList).
+ *
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
+ *
+ * Returns true if the acceptance filters were all configured properly.
+ */
+bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
 
 /* Public: Check if any CAN signals are configured as writable.
  *
- * bus - make sure the signals is found on this bus.
+ * bus - The bus to search for writable signal definitions.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
+ *
+ * Returns true if any signals on the bus are writable.
  */
 bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
 
@@ -382,15 +498,6 @@ bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
  * busCount - the length of the buses array.
  */
 void logBusStatistics(CanBus* buses, const int busCount);
-
-bool configureDefaultFilters(CanBus* buses, const int busCount, CanBus* bus,
-        const CanMessageDefinition* message, const int messageCount);
-
-bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id);
-
-void removeAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id);
-
-bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
 
 } // can
 } // openxc

@@ -55,10 +55,11 @@ void openxc::can::destroy(CanBus* bus) {
 
 bool openxc::can::busActive(CanBus* bus) {
     return bus->lastMessageReceived != 0 &&
-        time::systemTimeMs() - bus->lastMessageReceived < CAN_ACTIVE_TIMEOUT_S * 1000;
+        time::systemTimeMs() - bus->lastMessageReceived <
+            CAN_ACTIVE_TIMEOUT_S * 1000;
 }
 
-int lookup(void* key,
+static int lookup(void* key,
         bool (*comparator)(void* key, int index, void* candidates),
         void* candidates, int candidateCount) {
     for(int i = 0; i < candidateCount; i++) {
@@ -69,12 +70,12 @@ int lookup(void* key,
     return -1;
 }
 
-bool signalStateNameComparator(void* name, int index, void* states) {
+static bool signalStateNameComparator(void* name, int index, void* states) {
     return !strcmp((const char*)name, ((CanSignalState*)states)[index].name);
 }
 
-const CanSignalState* openxc::can::lookupSignalState(const char* name, CanSignal* signal,
-        CanSignal* signals, int signalCount) {
+const CanSignalState* openxc::can::lookupSignalState(const char* name,
+        CanSignal* signal, CanSignal* signals, int signalCount) {
     int index = lookup((void*)name, signalStateNameComparator,
             (void*)signal->states, signal->stateCount);
     if(index != -1) {
@@ -84,12 +85,12 @@ const CanSignalState* openxc::can::lookupSignalState(const char* name, CanSignal
     }
 }
 
-bool signalStateValueComparator(void* value, int index, void* states) {
+static bool signalStateValueComparator(void* value, int index, void* states) {
     return (*(int*)value) == ((CanSignalState*)states)[index].value;
 }
 
-const CanSignalState* openxc::can::lookupSignalState(int value, CanSignal* signal,
-        CanSignal* signals, int signalCount) {
+const CanSignalState* openxc::can::lookupSignalState(int value,
+        CanSignal* signal, CanSignal* signals, int signalCount) {
     int index = lookup((void*)&value, signalStateValueComparator,
             (void*)signal->states, signal->stateCount);
     if(index != -1) {
@@ -99,18 +100,19 @@ const CanSignalState* openxc::can::lookupSignalState(int value, CanSignal* signa
     }
 }
 
-bool signalComparator(void* name, int index, void* signals) {
+static bool signalComparator(void* name, int index, void* signals) {
     return !strcmp((const char*)name, ((CanSignal*)signals)[index].genericName);
 }
 
-bool writableSignalComparator(void* name, int index, void* signals) {
+static bool writableSignalComparator(void* name, int index, void* signals) {
     return signalComparator(name, index, signals) &&
             ((CanSignal*)signals)[index].writable;
 }
 
-CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals, int signalCount,
-        bool writable) {
-    bool (*comparator)(void* key, int index, void* candidates) = signalComparator;
+CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals,
+        int signalCount, bool writable) {
+    bool (*comparator)(void* key, int index, void* candidates) =
+            signalComparator;
     if(writable) {
         comparator = writableSignalComparator;
     }
@@ -122,15 +124,18 @@ CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals, int s
     }
 }
 
-CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals, int signalCount) {
+CanSignal* openxc::can::lookupSignal(const char* name, CanSignal* signals,
+        int signalCount) {
     return lookupSignal(name, signals, signalCount, false);
 }
 
-bool commandComparator(void* name, int index, void* commands) {
-    return !strcmp((const char*)name, ((CanCommand*)commands)[index].genericName);
+static bool commandComparator(void* name, int index, void* commands) {
+    return !strcmp((const char*)name,
+            ((CanCommand*)commands)[index].genericName);
 }
 
-CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands, int commandCount) {
+CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands,
+        int commandCount) {
     int index = lookup((void*)name, commandComparator, (void*)commands,
             commandCount);
     if(index != -1) {
@@ -140,6 +145,16 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands, i
     }
 }
 
+/* Private: Retreive a CanMessage struct from the array given the message's ID
+ * and the bus it should occur on.
+ *
+ * bus - The CanBus to search for the message.
+ * id - The ID of the CAN message.
+ * messages - The list of CAN messages to search.
+ * messageCount - The length of the messages array.
+ *
+ * Returns a pointer to the CanMessage if found, otherwise NULL.
+ */
 CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
         CanMessageDefinition* messages, int messageCount) {
     CanMessageDefinition* message = NULL;
@@ -157,7 +172,8 @@ CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
     CanMessageDefinition* message = lookupMessage(bus, id,
             predefinedMessages, predefinedMessageCount);
     if(message == NULL) {
-        message = (CanMessageDefinition*)emhashmap_get(bus->dynamicMessages, id);
+        message = (CanMessageDefinition*)emhashmap_get(
+                bus->dynamicMessages, id);
     }
     return message;
 }
@@ -191,7 +207,8 @@ bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
     return true;
 }
 
-bool openxc::can::signalsWritable(CanBus* bus, CanSignal* signals, int signalCount) {
+bool openxc::can::signalsWritable(CanBus* bus, CanSignal* signals,
+        int signalCount) {
     for(int i = 0; i < signalCount; i++) {
         if(bus == signals[i].message->bus && signals[i].writable) {
             return true;
@@ -216,7 +233,8 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
         initializedStats = true;
     }
 
-    if(time::systemTimeMs() - lastTimeLogged > BUS_STATS_LOG_FREQUENCY_S * 1000) {
+    if(time::systemTimeMs() - lastTimeLogged >
+            BUS_STATS_LOG_FREQUENCY_S * 1000) {
         unsigned int totalMessages = 0;
         unsigned int messagesReceived = 0;
         unsigned int messagesDropped = 0;
@@ -241,23 +259,28 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
                 debug("CAN%d Rx queue length: %d, avg: %f percent",
                         bus->address,
                         QUEUE_LENGTH(CanMessage, &bus->receiveQueue),
-                        statistics::exponentialMovingAverage(&bus->receiveQueueStats)
-                            / QUEUE_MAX_LENGTH(CanMessage) * 100);
+                        statistics::exponentialMovingAverage(
+                            &bus->receiveQueueStats) /
+                                QUEUE_MAX_LENGTH(CanMessage) * 100);
                 debug("CAN%d Tx queue length: %d, avg: %f percent",
                         bus->address,
                         QUEUE_LENGTH(CanMessage, &bus->sendQueue),
-                        statistics::exponentialMovingAverage(&bus->sendQueueStats)
-                            / QUEUE_MAX_LENGTH(CanMessage) * 100);
+                        statistics::exponentialMovingAverage(
+                            &bus->sendQueueStats) /
+                                QUEUE_MAX_LENGTH(CanMessage) * 100);
                 debug("CAN%d msgs Rx: %d (%dKB)",
                         bus->address, bus->receivedMessageStats.total,
                         bus->receivedDataStats.total);
                 debug("dropped: %d (avg %f percent)",
                         bus->droppedMessageStats.total,
-                        statistics::exponentialMovingAverage(&bus->droppedMessageStats) /
-                            statistics::exponentialMovingAverage(&bus->totalMessageStats) * 100);
+                        statistics::exponentialMovingAverage(
+                            &bus->droppedMessageStats) /
+                            statistics::exponentialMovingAverage(
+                                &bus->totalMessageStats) * 100);
                 debug("CAN%d avg throughput: %fKB / s", bus->address,
-                        statistics::exponentialMovingAverage(&bus->receivedDataStats)
-                            / BUS_STATS_LOG_FREQUENCY_S);
+                        statistics::exponentialMovingAverage(
+                            &bus->receivedDataStats) /
+                            BUS_STATS_LOG_FREQUENCY_S);
             }
 
             totalMessages += bus->totalMessageStats.total;
@@ -277,18 +300,20 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
             debug("dropped: %d (avg %f percent)",
                     droppedMessageStats.total,
                     statistics::exponentialMovingAverage(&droppedMessageStats) /
-                        statistics::exponentialMovingAverage(&totalMessageStats) * 100);
+                        statistics::exponentialMovingAverage(
+                            &totalMessageStats) * 100);
             debug("CAN avg throughput: %fKB / s, %d msgs / s",
                     statistics::exponentialMovingAverage(&receivedDataStats)
                         / BUS_STATS_LOG_FREQUENCY_S,
-                    (int)(statistics::exponentialMovingAverage(&totalMessageStats)
-                        / BUS_STATS_LOG_FREQUENCY_S));
+                    (int)(statistics::exponentialMovingAverage(
+                            &totalMessageStats) / BUS_STATS_LOG_FREQUENCY_S));
         }
 
         lastTimeLogged = time::systemTimeMs();
 
         for(int i = 0; i < busCount; i++) {
-            if(QUEUE_LENGTH(CanMessage, &buses[i].receiveQueue) == QUEUE_MAX_LENGTH(CanMessage)) {
+            if(QUEUE_LENGTH(CanMessage, &buses[i].receiveQueue) ==
+                    QUEUE_MAX_LENGTH(CanMessage)) {
                 debug("Dropped CAN messages while running stats on bus %d", i);
             }
         }
@@ -305,9 +330,10 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
         for(int i = 0; i < messageCount; i++) {
             if(messages[i].bus == bus) {
                 ++filterCount;
-                status = status && addAcceptanceFilter(buses, busCount, bus, messages[i].id);
+                status = status && addAcceptanceFilter(buses, busCount, bus,
+                        messages[i].id);
                 if(!status) {
-                    debug("Couldn't add filter 0x%x to bus %d, breaking out of initialization",
+                    debug("Couldn't add filter 0x%x to bus %d",
                             messages[i].id, bus->address);
                     break;
                 }
@@ -315,7 +341,8 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
         }
 
         if(filterCount > 0) {
-            debug("Configured %d filters for bus %d", filterCount, bus->address);
+            debug("Configured %d filters for bus %d", filterCount,
+                    bus->address);
         }
     }
     return status;
@@ -331,7 +358,8 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
     return result;
 }
 
-bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus, uint32_t id) {
+bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
+        CanBus* bus, uint32_t id) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;

@@ -18,7 +18,28 @@ using openxc::util::log::debug;
 
 extern uint16_t CANAF_std_cnt;
 
-bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+static void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
+    PINSEL_CFG_Type PinCfg;
+    PinCfg.OpenDrain = 0;
+    PinCfg.Pinmode = 0;
+    PinCfg.Funcnum = CAN_FUNCNUM(controller);
+    PinCfg.Pinnum = CAN_RX_PIN_NUM(controller);
+    PinCfg.Portnum = CAN_PORT_NUM(controller);
+    PINSEL_ConfigPin(&PinCfg);
+
+    PinCfg.Pinnum = CAN_TX_PIN_NUM(controller);
+    PINSEL_ConfigPin(&PinCfg);
+}
+
+static void configureTransceiver() {
+    // make P0.19 high to make sure the TJ1048T is awake
+    LPC_GPIO0->FIODIR |= 1 << 19;
+    LPC_GPIO0->FIOPIN |= 1 << 19;
+    LPC_GPIO0->FIODIR |= 1 << 6;
+    LPC_GPIO0->FIOPIN |= 1 << 6;
+}
+
+static void clearAcceptanceFilterTable() {
     // remove all existing entries - I tried looping over CAN_RemoveEntry until
     // it returned an error, but that left the AF table in a corrupted state.
     LPC_CANAF->AFMR = 0x00000001;
@@ -32,6 +53,10 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
     LPC_CANAF->EFF_sa = 0x00;
     LPC_CANAF->EFF_GRP_sa = 0x00;
     LPC_CANAF->ENDofTable = 0x00;
+}
+
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+    clearAcceptanceFilterTable();
 
     uint16_t filterCount = 0;
     CAN_ERROR result = CAN_OK;
@@ -53,32 +78,14 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
     if(filterCount == 0) {
         debug("No filters configured, turning off acceptance filter");
         // TODO this is an issue on LPC17xx when the AF is a global setting -
-        // we can't have it off for one bus and on for the other
+        // we can't have it off for one bus and on for the other. we'll have to
+        // keep track of if either bus wants it off, even if there are messages
+        // defined (and therefore potentailly some default filters configured.
+        // needs more thought, but I think this code is OK.
         CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
     }
 
     return result == CAN_OK;
-}
-
-void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
-    PINSEL_CFG_Type PinCfg;
-    PinCfg.OpenDrain = 0;
-    PinCfg.Pinmode = 0;
-    PinCfg.Funcnum = CAN_FUNCNUM(controller);
-    PinCfg.Pinnum = CAN_RX_PIN_NUM(controller);
-    PinCfg.Portnum = CAN_PORT_NUM(controller);
-    PINSEL_ConfigPin(&PinCfg);
-
-    PinCfg.Pinnum = CAN_TX_PIN_NUM(controller);
-    PINSEL_ConfigPin(&PinCfg);
-}
-
-void configureTransceiver() {
-    // make P0.19 high to make sure the TJ1048T is awake
-    LPC_GPIO0->FIODIR |= 1 << 19;
-    LPC_GPIO0->FIOPIN |= 1 << 19;
-    LPC_GPIO0->FIODIR |= 1 << 6;
-    LPC_GPIO0->FIOPIN |= 1 << 6;
 }
 
 void openxc::can::deinitialize(CanBus* bus) { }

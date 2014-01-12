@@ -12,10 +12,6 @@
 #include "emhashmap.h"
 #include "cJSON.h"
 
-#ifdef __LPC17XX__
-#include "platform/lpc17xx/canutil_lpc17xx.h"
-#endif // __LPC17XX__
-
 #define MAX_ACCEPTANCE_FILTERS 32
 
 // TODO These structs are defined outside of the openxc::can namespace because

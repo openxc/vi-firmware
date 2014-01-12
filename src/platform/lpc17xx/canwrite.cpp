@@ -1,6 +1,7 @@
 #include <bitfield/bitfield.h>
 #include <bitfield/8byte.h>
 #include "can/canutil.h"
+#include "canutil_lpc17xx.h"
 #include "can/canwrite.h"
 #include "util/log.h"
 

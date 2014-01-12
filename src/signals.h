@@ -4,8 +4,6 @@
 #include "can/canread.h"
 #include "can/canwrite.h"
 
-using openxc::can::CanFilter;
-
 namespace openxc {
 namespace signals {
 
@@ -86,22 +84,6 @@ CanBus* getCanBuses();
  * data - The 64-bit data field of the CAN message.
  */
 void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
-
-/* Public: Initialize an array of the CAN message filters that should be set for
- * the CAN module with the given address, given the currently active
- * configuration.
- *
- * If an array is of length 0, the CAN acceptance filter will be disabled and
- * all CAN messages will be passed through the translation stack.
- *
- * address - The address of the CAN module to retreive the filters for.
- * count - An OUT variable that will be set to the length of the returned
- *         filters array.
- *
- * Returns an array of CanFilters that should be initialized on the CAN
- * module with the given address.
- */
-CanFilter* initializeFilters(uint64_t address, int* count);
 
 } // namespace signals
 } // namespace openxc

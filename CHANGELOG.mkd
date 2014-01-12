@@ -2,11 +2,15 @@
 
 ## v6.0-dev
 
-* Update MPIDE dependency to 2013-08* version.
+* Support configuration of CAN messages acceptance filters on the fly, rather
+  than only at startup. This changed an API, but an internal one, so it is not a
+  breaking change.
 * Add new control command to retrive a unique device ID (only works if Bluetooth
   module is installed right now).
 * Moved debug logging to a secondary USB endpoint by default - re-enable UART
   with UART_LOGGING flag.
+* Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
+  the latest version.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
   function prototype, to allow triggering arbitrary new output messages without
   decoding a signal by hand.

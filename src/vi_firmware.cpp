@@ -110,10 +110,11 @@ void updateDataLights() {
         busWasActive = true;
     } else if(!busActive && (busWasActive || time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
-        // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
+        lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        busWasActive = false;
 #ifndef TRANSMITTER
 #ifndef __DEBUG__
-        busWasActive = false;
+        // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
         platform::suspend(&PIPELINE);
 #endif
 #endif

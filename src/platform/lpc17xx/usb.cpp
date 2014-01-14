@@ -36,10 +36,13 @@ extern UsbDevice USB_DEVICE;
 extern bool handleControlRequest(uint8_t);
 
 void configureEndpoints() {
-    Endpoint_ConfigureEndpoint(OUT_ENDPOINT_NUMBER, EP_TYPE_BULK,
-            ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
-    Endpoint_ConfigureEndpoint(IN_ENDPOINT_NUMBER, EP_TYPE_BULK,
-            ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+	#ifndef DATA_LOGGER
+		Endpoint_ConfigureEndpoint(OUT_ENDPOINT_NUMBER, EP_TYPE_BULK,
+				ENDPOINT_DIR_OUT, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+		Endpoint_ConfigureEndpoint(IN_ENDPOINT_NUMBER, EP_TYPE_BULK,
+				ENDPOINT_DIR_IN, DATA_ENDPOINT_SIZE, ENDPOINT_BANK_DOUBLE);
+	#endif
+
 }
 
 extern "C" {
@@ -50,11 +53,14 @@ void EVENT_USB_Device_Disconnect() {
 }
 
 void EVENT_USB_Device_ControlRequest() {
-    if(!(Endpoint_IsSETUPReceived())) {
-        return;
-    }
+	#ifndef DATA_LOGGER
+		if(!(Endpoint_IsSETUPReceived())) {
+			return;
+		}
 
-    handleControlRequest(USB_ControlRequest.bRequest);
+		handleControlRequest(USB_ControlRequest.bRequest);
+	#endif
+   
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
@@ -68,28 +74,30 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 
 /* Private: Flush any queued data out to the USB host. */
 static void sendToHost(UsbDevice* usbDevice) {
-    if(!usbDevice->configured) {
-        return;
-    }
+   #ifndef DATA_LOGGER
+		if(!usbDevice->configured) {
+			return;
+		}
 
-    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(IN_ENDPOINT_NUMBER);
-    if(!Endpoint_IsINReady() || QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
-        return;
-    }
+		uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+		Endpoint_SelectEndpoint(IN_ENDPOINT_NUMBER);
+		if(!Endpoint_IsINReady() || QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)) {
+			return;
+		}
 
-    // get bytes from transmit FIFO into intermediate buffer
-    int byteCount = 0;
-    while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)
-            && byteCount < USB_SEND_BUFFER_SIZE) {
-        usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
-    }
+		// get bytes from transmit FIFO into intermediate buffer
+		int byteCount = 0;
+		while(!QUEUE_EMPTY(uint8_t, &usbDevice->sendQueue)
+				&& byteCount < USB_SEND_BUFFER_SIZE) {
+			usbDevice->sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &usbDevice->sendQueue);
+		}
 
-    if(byteCount > 0) {
-        Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
-    }
-    Endpoint_ClearIN();
-    Endpoint_SelectEndpoint(previousEndpoint);
+		if(byteCount > 0) {
+			Endpoint_Write_Stream_LE(usbDevice->sendBuffer, byteCount, NULL);
+		}
+		Endpoint_ClearIN();
+		Endpoint_SelectEndpoint(previousEndpoint);
+   #endif
 }
 
 /* Private: Detect if USB VBUS is active.
@@ -147,26 +155,30 @@ void configureUsbDetection() {
 }
 
 void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
-    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+   #ifndef DATA_LOGGER
+		uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+		Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
-    Endpoint_ClearSETUP();
-    Endpoint_Write_Control_Stream_LE(data, length);
-    Endpoint_ClearOUT();
+		Endpoint_ClearSETUP();
+		Endpoint_Write_Control_Stream_LE(data, length);
+		Endpoint_ClearOUT();
 
-    Endpoint_SelectEndpoint(previousEndpoint);
+		Endpoint_SelectEndpoint(previousEndpoint);
+	#endif
 }
 
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
-    USB_USBTask();
+    #ifndef DATA_LOGGER
+		USB_USBTask();
 
-    if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
-                || !vbusDetected() || !usbHostDetected())) {
-        EVENT_USB_Device_Disconnect();
-    } else {
-        sendToHost(usbDevice);
-    }
+		if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
+					|| !vbusDetected() || !usbHostDetected())) {
+			EVENT_USB_Device_Disconnect();
+		} else {
+			sendToHost(usbDevice);
+		}
+	#endif
 }
 
 void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
@@ -179,20 +191,22 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::read(UsbDevice* usbDevice, bool (*callback)(uint8_t*)) {
-    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
+	#ifndef DATA_LOGGER
+		uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
+		Endpoint_SelectEndpoint(OUT_ENDPOINT_NUMBER);
 
-    while(Endpoint_IsOUTReceived()) {
-        while(Endpoint_BytesInEndpoint()) {
-            if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
-                        Endpoint_Read_8())) {
-                debug("Dropped write from host -- queue is full");
-            }
-        }
-        processQueue(&usbDevice->receiveQueue, callback);
-        Endpoint_ClearOUT();
-    }
-    Endpoint_SelectEndpoint(previousEndpoint);
+		while(Endpoint_IsOUTReceived()) {
+			while(Endpoint_BytesInEndpoint()) {
+				if(!QUEUE_PUSH(uint8_t, &usbDevice->receiveQueue,
+							Endpoint_Read_8())) {
+					debug("Dropped write from host -- queue is full");
+				}
+			}
+			processQueue(&usbDevice->receiveQueue, callback);
+			Endpoint_ClearOUT();
+		}
+		Endpoint_SelectEndpoint(previousEndpoint);
+	#endif
 }
 
 void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {

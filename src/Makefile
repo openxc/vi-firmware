@@ -70,8 +70,13 @@ ifndef PLATFORM
 PLATFORM = CHIPKIT
 endif
 
+ifndef DATA_LOGGER
+DATA_LOGGER = 0
+endif
+
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
+FS_PATH = fat_io_lib
 TARGET = $(BASE_TARGET)-$(PLATFORM)
 
 CROSSPLATFORM_C_SRCS = $(wildcard *.c)
@@ -84,6 +89,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcomma
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/emlist/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(FS_PATH)/*.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
@@ -92,13 +98,15 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard platform/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard $(FS_PATH)/*.cpp)
 
 INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/emlist -I$(LIBS_PATH)/emhashmap \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
 				-I$(LIBS_PATH)/nanopb \
-				-I$(LIBS_PATH)/openxc-message-format/gen/cpp
-
+				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
+				-I$(FS_PATH)
+			
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)

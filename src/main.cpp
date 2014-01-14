@@ -10,7 +10,8 @@
 #include "bluetooth.h"
 #include "power.h"
 #include "platform/platform.h"
-#include <stdlib.h>
+#include <stdio.h>
+
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define RESET_CONTROL_COMMAND 0x81
@@ -71,7 +72,9 @@ void updateInterfaceLight() {
     } else if(USB_DEVICE.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
+		#ifndef DATA_LOGGER
         lights::disable(lights::LIGHT_B);
+		#endif
     }
 }
 
@@ -80,15 +83,13 @@ int main(void) {
     openxc::util::log::initialize();
     time::initialize();
     power::initialize();
-    usb::initialize(pipeline.usb);
-    uart::initialize(pipeline.uart);
+	usb::initialize(pipeline.usb);
+	uart::initialize(pipeline.uart);
     bluetooth::initialize(pipeline.uart);
     network::initialize(pipeline.network);
     lights::initialize();
-
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();
-
     for (;;) {
         loop();
         process(&pipeline);
@@ -130,3 +131,6 @@ bool handleControlRequest(uint8_t request) {
         return false;
     }
 }
+
+
+

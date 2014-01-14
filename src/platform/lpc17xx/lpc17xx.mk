@@ -22,17 +22,23 @@ endif
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
 AS_FLAGS = -c -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
-CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
+CC_FLAGS = -c -fno-common -fmessage-length=0 -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
-		   -Wno-char-subscripts -Wno-unused-but-set-variable -Werror
+		   -Wno-char-subscripts -Wno-unused-but-set-variable
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++0x
-CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
+CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -D__LPC17XX__ -DBOARD=9
 
 ifeq ($(PLATFORM), BLUEBOARD)
 CC_SYMBOLS += -DBLUEBOARD
 else
 CC_SYMBOLS += -DFORDBOARD
+endif
+
+ifeq ($(DATA_LOGGER), 1)
+CC_SYMBOLS += -DDATA_LOGGER -DUSB_HOST_ONLY
+else
+CC_SYMBOLS += -DUSB_DEVICE_ONLY
 endif
 
 AS = $(GCC_BIN)arm-none-eabi-as
@@ -47,7 +53,13 @@ LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HAL/LPC17XX/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/DCD/LPC17XX/*.c)
-LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/DCD/LPC17XX/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HCD/LPC17XX/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HCD/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HCD/EHCI/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Core/LPC/HCD/OHCI/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Class/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Class/Host/*.c)
+LIB_C_SRCS += $(wildcard $(LIBS_PATH)/nxpUSBlib/Drivers/USB/Class/Common/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/BSP/*.c)
 LIB_C_SRCS += $(wildcard $(LIBS_PATH)/BSP/LPCXpressoBase_RevB/*.c)
 LIB_C_SRCS += $(CMSIS_PATH)/src/core_cm3.c

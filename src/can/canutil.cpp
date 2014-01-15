@@ -345,6 +345,7 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
                     bus->address);
         }
     }
+    status &= updateAcceptanceFilterTable(buses, busCount);
     return status;
 }
 

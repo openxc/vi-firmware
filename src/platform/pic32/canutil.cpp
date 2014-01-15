@@ -83,8 +83,9 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         }
 
         // Disable the remaining unused filters.
-        for(; filterCount < MAX_ACCEPTANCE_FILTERS; ++filterCount) {
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
+        for(int disabledFilters = filterCount;
+                disabledFilters < MAX_ACCEPTANCE_FILTERS; ++disabledFilters) {
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(disabledFilters), false);
         }
 
         if(filterCount == 0) {
@@ -96,7 +97,6 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
         switchControllerMode(bus, previousMode);
     }
-
 
     return true;
 }

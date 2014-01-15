@@ -187,7 +187,6 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
             message->bus = bus;
             message->id = id;
             message->frequencyClock = {bus->maxMessageFrequency};
-            // TODO document that this is the default somewhere
             message->forceSendChanged = true;
 
             emhashmap_put(bus->dynamicMessages, id, message);

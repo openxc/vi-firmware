@@ -383,7 +383,8 @@ CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
  * If it is not already defined, a CanMessageDefinition will be
  * created and stored on the CanBus. This is useful for statistics, logging and
  * potentially changing CAN acceptance filters on the fly (although that is not
- * supported at the moment).
+ * supported at the moment). The "forceSendChanged" will be true for the new
+ * message definition.
  *
  * bus - The CanBus to register the message on.
  * id - The ID of the new CAN message definition.

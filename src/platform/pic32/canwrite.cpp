@@ -28,8 +28,8 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
 
         message->msgSID.SID = request->id;
         message->msgEID.IDE = 0;
-        message->msgEID.DLC = 8;
-        memset(message->data, 0, 8);
+        message->msgEID.DLC = request->length;
+        memset(message->data, 0, request->length);
         copyToMessageBuffer(request->data, message->data);
 
         // Mark message as ready to be processed

@@ -104,10 +104,12 @@ typedef struct CanMessageDefinition CanMessageDefinition;
  *
  * id - The ID of the message.
  * data  - The message's data field.
+ * length - the length of the data array (max 8).
  */
 struct CanMessage {
     uint32_t id;
     uint64_t data;
+    uint8_t length;
 };
 typedef struct CanMessage CanMessage;
 

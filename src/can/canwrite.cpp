@@ -78,8 +78,11 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
 }
 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
-    CanMessage outgoingMessage = {message->id,
-            __builtin_bswap64(message->data)};
+    CanMessage outgoingMessage = {
+            id: message->id,
+            data: __builtin_bswap64(message->data),
+            length: (uint8_t)(message->length == 0 ? 8 : message->length)
+    };
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
@@ -131,6 +134,7 @@ void openxc::can::write::processWriteQueue(CanBus* bus) {
     }
 }
 
+// TODO should make this private, have everyone use enqueueMessage
 bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
     debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02llx",
             bus->address, message->id, __builtin_bswap64(message->data));

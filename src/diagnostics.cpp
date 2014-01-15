@@ -65,7 +65,9 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];
         bool status = true;
-        for(uint16_t filter = 0x7e8; filter < 0x7f0; filter++) {
+        for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
+                OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
+                filter++) {
             status = status && addAcceptanceFilter(buses, busCount, bus, filter);
             if(!status) {
                 debug("Couldn't add filter 0x%x to bus %d", filter,
@@ -98,40 +100,50 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanMessage* message) {
+    // TODO instead of checking here if a handle is completed, we always pass
+    // messages on to everything in the list. on cleanup, if a handle is
+    // completed (ie. a response has been received) or it's braodcast type and
+    // it's been more than 100ms, remove it.
+    //
+    // problem: we make one request to a node for mode 1. we get the response,
+    // it's marked completed.
+    // we make a mode 2 request to the same node before removing it from the
+    // list. we get the response - the old request has it and see's its for the
+    // wrong mode, it re-requests.
+    //
+    // solution: don't re-request, you are finished.
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
-        if(!entry->request.handle.completed) {
-            ArrayOrBytes combined;
-            combined.whole = message->data;
-            DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
-                    &entry->request.handle, message->id, combined.bytes,
-                    sizeof(combined.bytes));
-            if(response.completed && entry->request.handle.completed) {
-                if(entry->request.handle.success) {
-                    if(response.success) {
-                        debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
-                                response.arbitration_id,
-                                response.mode,
-                                response.pid,
-                                response.payload[0],
-                                response.payload[1],
-                                response.payload[2],
-                                response.payload[3],
-                                response.payload[4],
-                                response.payload[5],
-                                response.payload[6],
-                                response.payload_length);
+        ArrayOrBytes combined;
+        combined.whole = message->data;
+        DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
+                &entry->request.handle, message->id, combined.bytes,
+                sizeof(combined.bytes));
+        if(response.completed && entry->request.handle.completed) {
+            if(entry->request.handle.success) {
+                if(response.success) {
+                    debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
+                            response.arbitration_id,
+                            response.mode,
+                            response.pid,
+                            response.payload[0],
+                            response.payload[1],
+                            response.payload[2],
+                            response.payload[3],
+                            response.payload[4],
+                            response.payload[5],
+                            response.payload[6],
+                            response.payload_length);
 
-                        // TODO remove a CAN filter if nothing else is waiting
-                        // on it...hard to tell.
+                    // TODO remove a CAN filter if nothing else is waiting
+                    // on it...hard to tell.
 
-                    } else {
-                        debug("Negative diagnostic response received, NRC: 0x%x",
-                                response.negative_response_code);
-                    }
                 } else {
-                    debug("Fatal error when sending or receiving diagnostic request");
+                    debug("Negative diagnostic response received, NRC: 0x%x",
+                            response.negative_response_code);
                 }
+            } else {
+                debug("Fatal error when sending or receiving diagnostic request");
             }
         }
     }
@@ -185,7 +197,6 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     // use it as a timeout - if we set the frequency to 1Hz, when it "should
     // tick" and it's not yet completed, we know a response hasn't been received
     // in 1 second and we should either kill it or retry
-    // TODO we could (ab)use the frequency clock for non-recurring requests and
     newEntry->request.frequencyClock = {0};
     newEntry->request.frequencyClock.frequency =
             newEntry->request.recurring ? frequencyHz : 1;

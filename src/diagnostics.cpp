@@ -149,13 +149,18 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     // can::addFilter(CanFilter* filter);
 
     newEntry->request.handle = diagnostic_request(&manager->shims, request, NULL);
-    strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
+    if(genericName != NULL) {
+        strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
+    } else {
+        newEntry->request.genericName[0] = '\0';
+    }
     newEntry->request.decoder = decoder;
     newEntry->request.recurring = frequencyHz != 0;
     // TODO we could (ab)use the frequency clock for non-recurring requests and
     // use it as a timeout - if we set the frequency to 1Hz, when it "should
     // tick" and it's not yet completed, we know a response hasn't been received
     // in 1 second and we should either kill it or retry
+    // TODO we could (ab)use the frequency clock for non-recurring requests and
     newEntry->request.frequencyClock = {0};
     newEntry->request.frequencyClock.frequency =
             newEntry->request.recurring ? frequencyHz : 1;

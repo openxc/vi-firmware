@@ -12,6 +12,7 @@ using openxc::diagnostics::ActiveRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
+using openxc::can::addAcceptanceFilter;
 
 namespace time = openxc::util::time;
 
@@ -46,7 +47,8 @@ static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
     return true;
 }
 
-void openxc::diagnostics::initialize(DiagnosticsManager* manager) {
+void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
+        int busCount) {
     manager->shims = diagnostic_init_shims(openxc::util::log::debug,
                        sendDiagnosticCanMessage, NULL);
 
@@ -56,6 +58,21 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager) {
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
         LIST_INSERT_HEAD(&manager->freeActiveRequests,
                 &manager->activeListEntries[i], entries);
+    }
+
+    // Configure acceptance filters for standard OBD-II functional requests
+    // responses
+    for(int i = 0; i < busCount; i++) {
+        CanBus* bus = &buses[i];
+        bool status = true;
+        for(uint16_t filter = 0x7e8; filter < 0x7f0; filter++) {
+            status = status && addAcceptanceFilter(buses, busCount, bus, filter);
+            if(!status) {
+                debug("Couldn't add filter 0x%x to bus %d", filter,
+                        bus->address);
+                break;
+            }
+        }
     }
 }
 

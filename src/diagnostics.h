@@ -42,7 +42,7 @@ typedef struct {
     ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 } DiagnosticsManager;
 
-void initialize(DiagnosticsManager* manager);
+void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
 
 /* Public:
  *

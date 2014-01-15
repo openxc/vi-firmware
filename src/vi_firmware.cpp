@@ -50,7 +50,8 @@ void updateDataLights();
 void setup() {
     initializeAllCan();
     signals::initialize();
-    diagnostics::initialize(&DIAGNOSTICS_MANAGER);
+    diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
+            getCanBusCount());
 
     // TODO this is temporary before we add the interface to add/remove messages
     // - just need one recurring request to test the system

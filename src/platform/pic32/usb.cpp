@@ -30,9 +30,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // callback routine.
     USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
 
-    // TODO why can't we use USB_EVENT as the type anymore? rejects
-    // EVENT_EP0_REQUEST as a switch case
-    switch((int)event) {
+    switch(event) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
         USB_DEVICE.configured = true;

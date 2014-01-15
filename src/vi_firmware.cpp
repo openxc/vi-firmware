@@ -57,7 +57,7 @@ void setup() {
     DiagnosticRequest request = {
         arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
         mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST,
-        pid: 0x11,
+        pid: 0xc,
         pid_length: 1
     };
     diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &request, NULL,

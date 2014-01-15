@@ -160,7 +160,11 @@ void enqueueMessage(CanBus* bus, CanMessage* message);
  */
 void processWriteQueue(CanBus* bus);
 
-/* Public: Write a CAN message with the given data and node ID to the bus.
+/* Public: Write a CAN message with the given data and node ID to the bus
+ * immeidately.
+ *
+ * You should usually use enqueueMessage, unless you absolutely need the message
+ * written to the bus right now.
  *
  * bus - The CAN bus to send the message on.
  * request - the CanMessage message to send.
@@ -172,7 +176,7 @@ bool sendCanMessage(const CanBus* bus, const CanMessage* request);
 /* Private: Actually, finally write a CAN message with the given data and node
  * ID to the bus.
  *
- * Defined per-platform. Users should use sendCanMessage instead.
+ * Defined per-platform. Users should use enqueueMessage instead.
  *
  * bus - The CAN bus to send the message on.
  * request - the CanMessage message to send.

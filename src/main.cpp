@@ -13,7 +13,6 @@
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
-#define RESET_CONTROL_COMMAND 0x81
 #define DEVICE_ID_CONTROL_COMMAND 0x82
 
 namespace uart = openxc::interface::uart;
@@ -30,7 +29,6 @@ using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
 using openxc::signals::getActiveMessageSet;
 
-extern void reset();
 extern void setup();
 extern void loop();
 
@@ -109,7 +107,6 @@ int main(void) {
  *
  *  - VERSION_CONTROL_COMMAND - return the version of the firmware as a string,
  *      including the vehicle it is built to translate.
- *  - RESET_CONTROL_COMMAND - reset the device.
  *
  *  TODO This function is defined in main.cpp because it needs to reference the
  *  version and message set, which aren't declared in any header files at the
@@ -127,10 +124,6 @@ bool handleControlRequest(uint8_t request) {
         usb::sendControlMessage((uint8_t*)combinedVersion, strlen(combinedVersion));
         return true;
     }
-    case RESET_CONTROL_COMMAND:
-        debug("Resetting...");
-        reset();
-        return true;
     case DEVICE_ID_CONTROL_COMMAND:
     {
         if(strnlen(UART_DEVICE.deviceId, sizeof(UART_DEVICE.deviceId)) > 0) {

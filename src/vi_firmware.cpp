@@ -247,10 +247,4 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
     }
 }
 
-void reset() {
-    // TODO this reset command may not be useful anymore - it was to work around
-    // a bug we fixed a long time ago.
-    initializeAllCan();
-}
-
 #endif // CAN_EMULATOR

@@ -55,17 +55,6 @@ and the configured vehicle platform in the format:
 where ``1.0`` is the software version and ``c346`` is the configured
 vehicle.
 
-Reset
-`````
-
-Reset control command: ``0x81``
-
-The CAN transceivers can be re-initialized by sending the ``0x81`` control
-request. This command was introduced to work around a bug that caused the VI to
-periodically stop responding. The bug still exists, but there are now
-workarounds in the code to automatically re-initialize the transceivers if they
-stop receiving messages.
-
 Endpoint 2 IN - Vehicle Data to Host
 ------------------------------------
 

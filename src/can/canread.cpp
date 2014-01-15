@@ -3,12 +3,18 @@
 #include "util/log.h"
 #include "util/timer.h"
 #include "pb_encode.h"
+#include "../lights.h"
+extern "C"{
+#include "fat_filelib.h"
+}
+#include "mediaIO.h"
 
 using openxc::util::bitfield::getBitField;
 using openxc::util::log::debugNoNewline;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
+namespace lights = openxc::lights;
 
 const char openxc::can::read::BUS_FIELD_NAME[] = "bus";
 const char openxc::can::read::ID_FIELD_NAME[] = "id";
@@ -17,29 +23,35 @@ const char openxc::can::read::NAME_FIELD_NAME[] = "name";
 const char openxc::can::read::VALUE_FIELD_NAME[] = "value";
 const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
 
+
+
+
 /* Private: Serialize the root JSON object to a string (ending with a newline)
  * and send it to the pipeline.
  *
  * root - The JSON object to send.
  * pipeline - The pipeline to send on.
  */
+
 void sendJSON(cJSON* root, Pipeline* pipeline) {
     if(root == NULL) {
         debug("JSON object is NULL -- probably OOM");
     } else {
         char* message = cJSON_PrintUnformatted(root);
-        char messageWithDelimeter[strlen(message) + 3];
+		char messageWithDelimeter[strlen(message) + 3];
         strncpy(messageWithDelimeter, message, strlen(message));
         messageWithDelimeter[strlen(message)] = '\0';
         strncat(messageWithDelimeter, "\r\n", 2);
-
-        if(message != NULL) {
-            pipeline::sendMessage(pipeline, (uint8_t*) messageWithDelimeter,
-                    strlen(messageWithDelimeter));
-        } else {
-            debug("Converting JSON to string failed -- probably OOM");
-        }
-        cJSON_Delete(root);
+		if(message != NULL) {
+			#if defined(DATA_LOGGER)
+				writeToUSB(message);
+			#else
+				pipeline::sendMessage(pipeline, (uint8_t*) messageWithDelimeter,
+						strlen(messageWithDelimeter));
+			#endif
+		} else {
+			debug("Converting JSON to string failed -- probably OOM");
+		}
         free(message);
     }
 }
@@ -80,20 +92,32 @@ void sendJsonMessage(const char* name, cJSON* value, cJSON* event,
     using openxc::can::read::NAME_FIELD_NAME;
     using openxc::can::read::VALUE_FIELD_NAME;
     using openxc::can::read::EVENT_FIELD_NAME;
-
     cJSON *root = cJSON_CreateObject();
     if(root != NULL) {
+		//char messageWithDelimeter[20];
+		//char str2[20];
+		//strcpy (messageWithDelimeter,"Name: ");
+		//strcpy (str2,name);
+		//strncat (messageWithDelimeter, str2, 6);
+		//debug(messageWithDelimeter);
+	     //       pipeline::sendMessage(pipeline, (uint8_t*) messageWithDelimeter,
+		//				strlen(messageWithDelimeter));
+		#ifdef DATA_LOGGER
+		cJSON* counter = cJSON_CreateNumber(openxc::util::time::systemTimeMs());
+		cJSON_AddItemToObject(root, "counter", counter);
+		#endif
         cJSON_AddStringToObject(root, NAME_FIELD_NAME, name);
         cJSON_AddItemToObject(root, VALUE_FIELD_NAME, value);
+		
         if(event != NULL) {
             cJSON_AddItemToObject(root, EVENT_FIELD_NAME, event);
         }
         sendJSON(root, pipeline);
+		cJSON_Delete(root);
     } else {
         debug("Unable to allocate a cJSON object - probably OOM");
     }
 }
-
 /*
  *
  * TODO push responsibility for encoding to output formats to the pipeline - we
@@ -106,6 +130,9 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
     } else {
         // TODO is this the right place to do this?
         const char* name;
+		const char* ignition = "ignition_status";
+		const char* run = "run";
+		const char* off = "off";
         cJSON* value;
         cJSON* event = NULL;
         switch(message->type) {
@@ -132,9 +159,10 @@ void sendMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
                 // TODO handle raw message type here?
                 break;
         }
-
-        sendJsonMessage(name, value, event, pipeline);
-    }
+		if(getWriteStatus()){
+			sendJsonMessage(name, value, event, pipeline);
+		}
+	}
 }
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
@@ -306,14 +334,13 @@ void passthroughMessageJson(CanBus* bus, uint32_t id,
         Pipeline* pipeline) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, openxc::can::read::BUS_FIELD_NAME, bus->address);
-    cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME, id);
-
     char encodedData[67];
     union {
         uint64_t whole;
         uint8_t bytes[8];
     } combined;
     combined.whole = data;
+
 
     sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
             combined.bytes[0],
@@ -325,8 +352,14 @@ void passthroughMessageJson(CanBus* bus, uint32_t id,
             combined.bytes[6],
             combined.bytes[7]);
     cJSON_AddStringToObject(root, openxc::can::read::DATA_FIELD_NAME, encodedData);
-
-    sendJSON(root, pipeline);
+	cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME, id);
+	//Add counter
+	#ifdef DATA_LOGGER
+	cJSON* counter = cJSON_CreateNumber(openxc::util::time::systemTimeMs());
+	cJSON_AddItemToObject(root, "counter", counter);
+	#endif
+	sendJSON(root, pipeline);
+	cJSON_Delete(root);
 }
 
 void passthroughMessageProtobuf(CanBus* bus, uint32_t id,
@@ -351,12 +384,16 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
         uint64_t data, CanMessageDefinition* messages, int messageCount,
         Pipeline* pipeline) {
     bool send = true;
+	
     CanMessageDefinition* message = lookupMessageDefinition(bus, id, messages,
             messageCount);
+			
     if(message == NULL) {
         debug("Adding new message definition for message %d on bus %d",
                 id, bus->address);
+		#ifndef DATA_LOGGER
         send = registerMessageDefinition(bus, id, messages, messageCount);
+		#endif
     } else if(time::shouldTick(&message->frequencyClock) ||
             (data != message->lastValue && message->forceSendChanged)) {
         send = true;

@@ -13,6 +13,7 @@
 #include "power.h"
 #include "bluetooth.h"
 #include "platform/platform.h"
+#include "mediaIO.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -24,6 +25,7 @@ namespace can = openxc::can;
 namespace platform = openxc::platform;
 namespace time = openxc::util::time;
 namespace signals = openxc::signals;
+
 
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
@@ -84,15 +86,25 @@ void updateDataLights() {
         debug("CAN woke up - enabling LED");
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         busWasActive = true;
+		#if defined(DATA_LOGGER)
+		//Start Writing USB
+		USB_Init();
+		mediaSetup();
+		#endif
     } else if(!busActive && (busWasActive || time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
+		#if defined(DATA_LOGGER)
+		//Stop Writing USB
+		mediaShutdown();
+		#endif
 #ifndef TRANSMITTER
 #ifndef __DEBUG__
         busWasActive = false;
         platform::suspend(&pipeline);
 #endif
 #endif
+
     }
 }
 

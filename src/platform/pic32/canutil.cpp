@@ -61,9 +61,8 @@ static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     return true;
 }
 
-
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
-    // TODO for the PIC32 we *could* only change the filters for one bus, but to
+    // For the PIC32 we *could* only change the filters for one bus, but to
     // simplify things we'll reset everything like we have to with the LPC1768
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];

@@ -77,7 +77,7 @@ void openxc::power::initialize() {
 }
 
 void openxc::power::handleWake() {
-    // TODO This isn't especially graceful, we just reset the device after a
+    // This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
     // only have to worry about initialization of core peripherals in one spot,
     // setup() in vi_firmware.cpp and main.cpp. I'll leave this for now and we

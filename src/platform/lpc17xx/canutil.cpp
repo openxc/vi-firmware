@@ -77,12 +77,12 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
     if(filterCount == 0) {
         debug("No filters configured, turning off acceptance filter");
-        // TODO this is an issue on LPC17xx when the AF is a global setting -
-        // we can't have it off for one bus and on for the other. we'll have to
-        // keep track of if either bus wants it off, even if there are messages
-        // defined (and therefore potentailly some default filters configured.
-        // needs more thought, but I think this code is OK.
+        // On the LPC17xx, the AF mode is global - if it's off, it's off for
+        // both controllers. That's why this is outside the loop above, and
+        // we're counting *total* filters, not filters per bus.
         CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
+    } else {
+        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
     }
 
     return result == CAN_OK;
@@ -96,10 +96,12 @@ void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 
+    // Be aware that CAN_Init erase the acceptance filter table for BOTH
+    // controllers, so we need to initialize both CAN controllers before setting
+    // any filters, and then make sure to re-add the filters if we call CAN_Init
+    // again. Here we initialize both buses when the first bus is initialized,
+    // to get it out of the way.
     static bool CAN_CONTROLLER_INITIALIZED = false;
-    // TODO workaround the fact that CAN_Init erase the acceptance filter
-    // table, so we need to initialize both CAN controllers before setting
-    // any filters, and then make sure not to call CAN_Init again.
     if(!CAN_CONTROLLER_INITIALIZED) {
         for(int i = 0; i < getCanBusCount(); i++) {
             CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);

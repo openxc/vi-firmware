@@ -105,6 +105,9 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                                 response.payload[6],
                                 response.payload_length);
 
+                        // TODO remove a CAN filter if nothing else is waiting
+                        // on it...hard to tell.
+
                     } else {
                         debug("Negative diagnostic response received, NRC: 0x%x",
                                 response.negative_response_code);

@@ -348,8 +348,6 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
     return status;
 }
 
-// TODO when we merge this branch with 'iso' this function will be duplicated
-// except for the return type
 static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
     AcceptanceFilterListEntry* result = list->lh_first;
     if(result != NULL) {
@@ -360,8 +358,6 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
 
 bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
         CanBus* bus, uint32_t id) {
-    // TODO for a diagnostic request, when does a filter get removed? if a
-    // request is completed and no other active requsts have the same id
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {

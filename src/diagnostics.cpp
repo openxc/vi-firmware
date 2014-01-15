@@ -35,15 +35,15 @@ static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
     //
     // second, the send_can_message shim prototype from isotp-c doesn't have an
     // argument to identify the bus for the message, so we need to add that
-    const CanBus* bus = &getCanBuses()[0];
-    // TODO the sendCanMessage function is expecting the data in the message to
-    // be little endian, so it flips it. since we improve the bitfield
-    // functions, however, it's easier for us to keep in the proper order - big
-    // endian. for now, flipping it here.
-    const CanMessage message = {arbitration_id,
-        __builtin_bswap64(get_bitfield(data, size, 0, size * CHAR_BIT)
-                << (64 - CHAR_BIT * size))};
-    return openxc::can::write::sendCanMessage(bus, &message);
+    CanBus* bus = &getCanBuses()[0];
+    CanMessage message = {
+        id: arbitration_id,
+        data: get_bitfield(data, size, 0, size * CHAR_BIT)
+            << (64 - CHAR_BIT * size),
+        length: size
+    };
+    openxc::can::write::enqueueMessage(bus, &message);
+    return true;
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager) {

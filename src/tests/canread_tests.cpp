@@ -140,7 +140,7 @@ START_TEST (test_send_numerical)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
 }
@@ -154,7 +154,7 @@ START_TEST (test_preserve_float_precision)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":42.500000}\r\n");
@@ -168,7 +168,7 @@ START_TEST (test_send_boolean)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":false}\r\n");
@@ -182,7 +182,7 @@ START_TEST (test_send_string)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"string\"}\r\n");
@@ -196,7 +196,7 @@ START_TEST (test_send_evented_boolean)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
@@ -210,7 +210,7 @@ START_TEST (test_send_evented_string)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
@@ -224,7 +224,7 @@ START_TEST (test_send_evented_float)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
@@ -272,7 +272,7 @@ START_TEST (test_passthrough_message)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"bus\":0,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
@@ -291,7 +291,7 @@ START_TEST (test_default_handler)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
@@ -333,7 +333,7 @@ START_TEST (test_translate_float)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
@@ -404,7 +404,7 @@ START_TEST (test_translate_string)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
@@ -423,7 +423,7 @@ START_TEST (test_translate_bool)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
@@ -494,7 +494,7 @@ START_TEST (test_preserve_last_value)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
@@ -509,7 +509,7 @@ START_TEST (test_dont_send_same)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");

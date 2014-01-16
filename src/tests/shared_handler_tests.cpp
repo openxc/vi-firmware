@@ -125,7 +125,7 @@ START_TEST (test_button_event_handler_correct_types)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "event") == NULL);
     fail_if(strstr((char*)snapshot, "value") == NULL);
@@ -157,7 +157,7 @@ START_TEST (test_tire_pressure_handler)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }
@@ -200,7 +200,7 @@ START_TEST (test_occupancy_handler_child)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "child") == NULL);
@@ -220,7 +220,7 @@ START_TEST (test_occupancy_handler_adult)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "adult") == NULL);
@@ -240,7 +240,7 @@ START_TEST (test_occupancy_handler_empty)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "passenger") == NULL);
     fail_if(strstr((char*)snapshot, "empty") == NULL);
@@ -282,7 +282,7 @@ START_TEST (test_door_handler)
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     fail_if(strstr((char*)snapshot, "foo") == NULL);
 }

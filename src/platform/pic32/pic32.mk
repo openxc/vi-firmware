@@ -23,7 +23,10 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-MPIDE_DIR ?= $(DEPENDENCIES_MPIDE_DIR)
+ifeq ($(MPIDE_DIR),)
+	MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
+
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
 $(error MPIDE missing from path "$(MPIDE_DIR)" - run "script/bootstrap.sh")

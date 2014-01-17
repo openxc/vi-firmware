@@ -62,8 +62,8 @@ void setup() {
         pid: 0xc,
         pid_length: 1
     };
-    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &request, NULL,
-            NULL, 1);
+    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &request, NULL, NULL, 1);
 }
 
 void loop() {
@@ -245,7 +245,7 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 
         ++bus->messagesReceived;
 
-        diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &message);
+        diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, bus, &message, pipeline);
     }
 }
 

@@ -20,6 +20,7 @@ typedef enum {
 typedef enum {
     TRANSLATED,
     RAW,
+    DIAGNOSTIC,
     LOG
 } MessageClass;
 

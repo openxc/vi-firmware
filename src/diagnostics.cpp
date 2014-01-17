@@ -1,6 +1,7 @@
 #include "diagnostics.h"
 #include "signals.h"
 #include "can/canwrite.h"
+#include "can/canread.h"
 #include "util/log.h"
 #include "util/timer.h"
 #include <bitfield/bitfield.h>
@@ -13,6 +14,7 @@ using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 using openxc::can::addAcceptanceFilter;
+using openxc::pipeline::Pipeline;
 
 namespace time = openxc::util::time;
 
@@ -98,8 +100,59 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
     }
 }
 
+static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
+        const DiagnosticResponse* response) {
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+    message.has_diagnostic_message = true;
+    message.diagnostic_message = {0};
+    message.diagnostic_message.has_bus = true;
+    message.diagnostic_message.bus = bus->address;
+    message.diagnostic_message.has_message_id = true;
+    message.diagnostic_message.message_id = response->arbitration_id;
+    message.diagnostic_message.has_mode = true;
+    message.diagnostic_message.mode = response->mode;
+    // TODO the response may not have a PID, but the DiagnosticResponse type
+    // doesn't store the pid length anymore (the request does) so we can't tell.
+    message.diagnostic_message.has_pid = response->has_pid;
+    if(message.diagnostic_message.has_pid) {
+        message.diagnostic_message.pid = response->pid;
+    }
+    message.diagnostic_message.has_success = true;
+    message.diagnostic_message.success = response->success;
+    message.diagnostic_message.has_negative_response_code = !response->success;
+    message.diagnostic_message.negative_response_code =
+            response->negative_response_code;
+    message.diagnostic_message.has_payload = response->payload_length > 0;
+    memcpy(message.diagnostic_message.payload.bytes, response->payload,
+            response->payload_length);
+    message.diagnostic_message.payload.size = response->payload_length;
+
+    return message;
+}
+
+static void relayDiagnosticResponse(CanBus* bus, DiagnosticResponse* response,
+        Pipeline* pipeline) {
+    debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
+            response->arbitration_id,
+            response->mode,
+            response->pid,
+            response->payload[0],
+            response->payload[1],
+            response->payload[2],
+            response->payload[3],
+            response->payload[4],
+            response->payload[5],
+            response->payload[6],
+            response->payload_length);
+
+    openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(bus, response);
+    openxc::can::read::sendVehicleMessage(&message, pipeline);
+}
+
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
-        CanMessage* message) {
+        CanBus* bus, CanMessage* message, Pipeline* pipeline) {
     // TODO instead of checking here if a handle is completed, we always pass
     // messages on to everything in the list. on cleanup, if a handle is
     // completed (ie. a response has been received) or it's braodcast type and
@@ -122,22 +175,9 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
                 if(response.success) {
-                    debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
-                            response.arbitration_id,
-                            response.mode,
-                            response.pid,
-                            response.payload[0],
-                            response.payload[1],
-                            response.payload[2],
-                            response.payload[3],
-                            response.payload[4],
-                            response.payload[5],
-                            response.payload[6],
-                            response.payload_length);
-
+                    relayDiagnosticResponse(bus, &response, pipeline);
                     // TODO remove a CAN filter if nothing else is waiting
                     // on it...hard to tell.
-
                 } else {
                     debug("Negative diagnostic response received, NRC: 0x%x",
                             response.negative_response_code);
@@ -164,7 +204,7 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
 
     ActiveRequestListEntry* newEntry = popListEntry(
@@ -185,6 +225,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     // TODO before making request, set up CAN AF
     // can::addFilter(CanFilter* filter);
 
+    newEntry->request.bus = bus;
     newEntry->request.handle = diagnostic_request(&manager->shims, request, NULL);
     if(genericName != NULL) {
         strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
@@ -206,7 +247,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder) {
-    return addDiagnosticRequest(manager, request, genericName, decoder, 0);
+    return addDiagnosticRequest(manager, bus, request, genericName, decoder, 0);
 }

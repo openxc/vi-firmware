@@ -2,6 +2,7 @@
 #define __DIAGNOSTICS_H__
 
 #include "util/timer.h"
+#include "pipeline.h"
 #include <can/canutil.h>
 #include <obd2/obd2.h>
 #include <sys/queue.h>
@@ -21,6 +22,7 @@ namespace diagnostics {
  * If decoder is null, output will include the raw payload instead of a value.
  */
 typedef struct {
+    CanBus* bus;
     DiagnosticRequestHandle handle;
     char genericName[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;
@@ -48,15 +50,16 @@ void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
  *
  * frequencyHz - a value of 0 means it's a non-recurring request.
  */
-bool addDiagnosticRequest(DiagnosticsManager* manager,
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
 
-bool addDiagnosticRequest(DiagnosticsManager* manager,
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder);
 
-void receiveCanMessage(DiagnosticsManager* manager, CanMessage* message);
+void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
+        CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 
 void sendRequests(DiagnosticsManager* manager);
 

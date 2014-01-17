@@ -19,15 +19,14 @@ const char openxc::can::read::NAME_FIELD_NAME[] = "name";
 const char openxc::can::read::VALUE_FIELD_NAME[] = "value";
 const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
 
-/* Private: Serialize the root JSON object to a string (ending with a newline)
- * and send it to the pipeline.
- *
- * root - The JSON object to send.
- * pipeline - The pipeline to send on.
- * messageClass - the class of the message, used to decide which endpoints in
- *      the pipeline receive the message.
- */
-void sendJSON(cJSON* root, Pipeline* pipeline, MessageClass messageClass) {
+const char openxc::can::read::DIAGNOSTIC_MODE_FIELD_NAME[] = "mode";
+const char openxc::can::read::DIAGNOSTIC_PID_FIELD_NAME[] = "pid";
+const char openxc::can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "success";
+const char openxc::can::read::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
+const char openxc::can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
+
+void openxc::can::read::sendJSON(cJSON* root, Pipeline* pipeline,
+        MessageClass messageClass) {
     if(root == NULL) {
         debug("JSON object is NULL -- probably OOM");
     } else {
@@ -67,9 +66,20 @@ void sendProtobuf(openxc_VehicleMessage* message, Pipeline* pipeline) {
     status = pb_encode_delimited(&stream, openxc_VehicleMessage_fields,
             message);
     if(status) {
+        MessageClass messageClass;
+        switch(message->type) {
+            case openxc_VehicleMessage_Type_TRANSLATED:
+                messageClass = MessageClass::TRANSLATED;
+                break;
+            case openxc_VehicleMessage_Type_RAW:
+                messageClass = MessageClass::RAW;
+                break;
+            case openxc_VehicleMessage_Type_DIAGNOSTIC:
+                messageClass = MessageClass::DIAGNOSTIC;
+                break;
+        }
         pipeline::sendMessage(pipeline, buffer, stream.bytes_written,
-                message->type == openxc_VehicleMessage_Type_TRANSLATED ?
-                    MessageClass::TRANSLATED : MessageClass::RAW);
+                messageClass);
     } else {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }
@@ -238,7 +248,7 @@ void openxc::can::read::sendEventedStringMessage(const char* name,
     sendVehicleMessage(&message, pipeline);
 }
 
-void sendTranslatedJsonMessage(openxc_VehicleMessage* message,
+static void sendTranslatedJsonMessage(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     const char* name = message->translated_message.name;
     cJSON* value = NULL;
@@ -270,29 +280,31 @@ void sendTranslatedJsonMessage(openxc_VehicleMessage* message,
         cJSON_AddStringToObject(root, openxc::can::read::NAME_FIELD_NAME, name);
         cJSON_AddItemToObject(root, openxc::can::read::VALUE_FIELD_NAME, value);
         if(event != NULL) {
-            cJSON_AddItemToObject(root, openxc::can::read::EVENT_FIELD_NAME, event);
+            cJSON_AddItemToObject(root, openxc::can::read::EVENT_FIELD_NAME,
+                    event);
         }
-        sendJSON(root, pipeline, MessageClass::TRANSLATED);
+        openxc::can::read::sendJSON(root, pipeline, MessageClass::TRANSLATED);
     } else {
         debug("Unable to allocate a cJSON object - probably OOM");
     }
 }
 
-void sendRawJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
+static void sendRawJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, openxc::can::read::BUS_FIELD_NAME,
             message->raw_message.bus);
     cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME,
             message->raw_message.message_id);
 
-    char encodedData[67];
     union {
         uint64_t whole;
         uint8_t bytes[8];
     } combined;
     combined.whole = message->raw_message.data;
 
-    sprintf(encodedData, "0x%02x%02x%02x%02x%02x%02x%02x%02x",
+    char encodedData[67];
+    snprintf(encodedData, sizeof(encodedData),
+            "0x%02x%02x%02x%02x%02x%02x%02x%02x",
             combined.bytes[0],
             combined.bytes[1],
             combined.bytes[2],
@@ -304,7 +316,48 @@ void sendRawJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
     cJSON_AddStringToObject(root, openxc::can::read::DATA_FIELD_NAME,
             encodedData);
 
-    sendJSON(root, pipeline, MessageClass::RAW);
+    openxc::can::read::sendJSON(root, pipeline, MessageClass::RAW);
+}
+
+static void sendDiagnosticJsonMessage(openxc_VehicleMessage* message,
+        Pipeline* pipeline) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, openxc::can::read::BUS_FIELD_NAME,
+            message->diagnostic_message.bus);
+    cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME,
+            message->diagnostic_message.message_id);
+    cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_MODE_FIELD_NAME,
+            message->diagnostic_message.mode);
+    cJSON_AddBoolToObject(root, openxc::can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME,
+            message->diagnostic_message.success);
+
+    if(message->diagnostic_message.has_pid) {
+        cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_PID_FIELD_NAME,
+                message->diagnostic_message.pid);
+    }
+
+    if(message->diagnostic_message.has_negative_response_code) {
+        cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_NRC_FIELD_NAME,
+                message->diagnostic_message.negative_response_code);
+    }
+
+    if(message->diagnostic_message.has_payload) {
+        char encodedData[67];
+        char* maxAddress = encodedData + sizeof(encodedData);
+        char* encodedDataIndex = encodedData;
+        encodedDataIndex += sprintf(encodedDataIndex, "0x");
+        for(uint8_t i = 0; i < message->diagnostic_message.payload.size &&
+                encodedDataIndex < maxAddress; i++) {
+            encodedDataIndex += snprintf(encodedDataIndex,
+                    maxAddress - encodedDataIndex,
+                    "%02x",
+                    message->diagnostic_message.payload.bytes[i]);
+        }
+        cJSON_AddStringToObject(root, openxc::can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
+                encodedData);
+    }
+
+    openxc::can::read::sendJSON(root, pipeline, MessageClass::DIAGNOSTIC);
 }
 
 /* Private: Encode the given message data into a JSON object (conforming to
@@ -320,12 +373,15 @@ void sendJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
         sendTranslatedJsonMessage(message, pipeline);
     } else if(message->type == openxc_VehicleMessage_Type_RAW) {
         sendRawJsonMessage(message, pipeline);
+    } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
+        sendDiagnosticJsonMessage(message, pipeline);
     } else {
         debug("Unrecognized message type -- not sending");
     }
 }
 
-void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
+void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message,
+        Pipeline* pipeline) {
     if(pipeline->outputFormat == pipeline::PROTO) {
         sendProtobuf(message, pipeline);
     } else {

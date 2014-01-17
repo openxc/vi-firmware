@@ -24,6 +24,7 @@ namespace platform = openxc::platform;
 namespace power = openxc::power;
 namespace time = openxc::util::time;
 
+using openxc::pipeline::Pipeline;
 using openxc::util::log::debug;
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;

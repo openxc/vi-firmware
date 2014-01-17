@@ -36,6 +36,7 @@ using openxc::signals::getCommandCount;
 using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
+using openxc::pipeline::Pipeline;
 
 extern Pipeline PIPELINE;
 diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;

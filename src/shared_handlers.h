@@ -34,7 +34,7 @@ extern const float PI;
  * Returns the absolute distance travelled since the car started.
  */
 float handleMultisizeWheelRotationCount(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send, float wheelRadius);
 
 /* Interpret the given signal as a rolling counter of km travelled, but keep
@@ -52,7 +52,7 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
-       int signalCount, Pipeline* pipeline, float value, bool* send);
+       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
@@ -69,7 +69,7 @@ float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
-       int signalCount, Pipeline* pipeline, float value, bool* send);
+       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
@@ -86,7 +86,7 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
  * Returns total km travelled since the car started.
  */
 float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
-       int signalCount, Pipeline* pipeline, float value, bool* send);
+       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the signal as a "strict" boolean - anything besides 0 is true.
  *
@@ -99,7 +99,7 @@ float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
  * Returns false if value is 0, otherwise true.
  */
 bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send);
+        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in gallons) to obtain a
  * total since the vehicle started, and convert the result from gallons to
@@ -114,7 +114,7 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns the total fuel consumed since the vehicle started in liters.
  */
 float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send);
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in uL) to obtain a
  * total since the vehicle started, and convert the result from uL to
@@ -129,7 +129,7 @@ float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
  * Returns the total fuel consumed since the vehicle started in liters.
  */
 float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send);
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal to obtain a
  * total since the vehicle started, and multiply the results by the given
@@ -144,7 +144,7 @@ float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount, 
+float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
               float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
@@ -159,7 +159,7 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns value with the sign flipped.
  */
 float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send);
+        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Change the sign of the steering wheel angle value depending on the value of
  * another CAN signal, "steering_wheel_angle_sign".
@@ -176,7 +176,7 @@ float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns a signed steering wheel angle value.
  */
 float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-              int signalCount, Pipeline* pipeline, float value, bool* send);
+              int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Combine latitude and longitude signals split into their components (degrees,
  * minutes and fractional minutes) into 2 output message: latitude and longitude
@@ -202,7 +202,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
  * pipeline - The pipeline that wraps the output devices.
  */
 void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Pipeline* pipeline);
+        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
  * combine the result into a single OpenXC JSON with both a value (the button
@@ -216,7 +216,7 @@ void handleGpsMessage(int messageId, uint64_t data, CanSignal* signals,
  * pipeline - The pipeline that wraps the output devices.
  */
 void handleButtonEventMessage(int messageId, uint64_t data,
-        CanSignal* signals, int signalCount, Pipeline* pipeline);
+        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /* Decode a boolean signal (the door ajar status for the door in question) and
  * send an OpenXC JSON message with the value (door ID) and event (ajar status)
@@ -233,7 +233,7 @@ void handleButtonEventMessage(int messageId, uint64_t data,
  * pipeline - The pipeline that wraps the output devices.
  */
 void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline);
+        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /* Decode a numerical signal (the pressure of the tire in question) and
  * send an OpenXC JSON message with the value (tire ID) and event (tire
@@ -253,13 +253,13 @@ void sendDoorStatus(const char* doorId, uint64_t data, CanSignal* signal,
  */
 void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
        CanSignal* signal, CanSignal* signals, int signalCount,
-       Pipeline* pipeline);
+       openxc::pipeline::Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
  */
 bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
-            int signalCount, Pipeline* pipeline, float value, bool* send);
+            int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
         CanSignal* signals, int signalCount);
@@ -267,7 +267,7 @@ bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
 /** Handle a CAN message that contains the ajar status of all doors.
  */
 void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Pipeline* pipeline);
+        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /**
  * Parse 4 tire pressure signals from a single message send each as an evented
@@ -278,14 +278,14 @@ void handleDoorStatusMessage(int messageId, uint64_t data, CanSignal* signals,
  * This assumes the value on the bus for each pressure is psi.
  */
 void handlePsiTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Pipeline* pipeline);
+        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /**
  * The same as handlePsiTirePressureMessage, but assumes the value on the bus is
  * in kilpascals and converts to psi before sending the messages.
  */
 void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Pipeline* pipeline);
+        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /* Combine the values from two sensors in each seat to determine if there is
  * actually an occupant, and if so their general size (child or adult).
@@ -307,7 +307,7 @@ void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signa
  * pipeline - The pipeline that wraps the output devices.
  */
 void handleOccupancyMessage(int messageId, uint64_t data,
-              CanSignal* signals, int signalCount, Pipeline* pipeline);
+              CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 } // namespace handlers
 } // namespace signals

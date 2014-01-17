@@ -18,6 +18,7 @@ using openxc::can::read::sendEventedFloatMessage;
 using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendStringMessage;
+using openxc::pipeline::Pipeline;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 

@@ -14,6 +14,7 @@ using openxc::signals::handlers::sendDoorStatus;
 using openxc::signals::handlers::handleOccupancyMessage;
 using openxc::signals::handlers::handleFuelFlow;
 using openxc::signals::handlers::handleInverted;
+using openxc::pipeline::Pipeline;
 
 CanMessageDefinition MESSAGES[4] = {
     {NULL, 0},

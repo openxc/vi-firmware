@@ -15,7 +15,8 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {
         id: message->msgSID.SID,
-        length: message->msgEID.DLC
+        data: 0,
+        length: (uint8_t) message->msgEID.DLC
     };
     // Copy incoming data, flipping byte order to little-endian storage (can't
     // just use memcpy).

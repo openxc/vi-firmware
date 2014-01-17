@@ -107,15 +107,21 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42, 0x123456789ABCDEF1LLU};
-    can::read::passthroughMessage(&CAN_BUSES[0], message.id, message.data,
-            NULL, 0, &PIPELINE);
+    CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
     ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
     ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
-    ck_assert_int_eq(message.data, decodedMessage.raw_message.data);
+
+    union {
+        uint64_t whole;
+        uint8_t bytes[8];
+    } combined;
+    memcpy(combined.bytes, decodedMessage.raw_message.data.bytes,
+            decodedMessage.raw_message.data.size);
+    ck_assert_int_eq(message.data, combined.whole);
 }
 END_TEST
 

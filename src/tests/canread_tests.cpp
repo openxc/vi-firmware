@@ -225,14 +225,16 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
+    CanMessage message = {MESSAGES[2].id, 0x1234};
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x5678, MESSAGES,
+    message.data = 0x5678;
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_if(queueEmpty());
 }
@@ -242,15 +244,16 @@ START_TEST (test_passthrough_limited_frequency)
 {
     MESSAGES[1].frequencyClock.timeFunction = timeMock;
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
+    CanMessage message = {MESSAGES[1].id, 0x1234};
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_unless(queueEmpty());
     fakeTime += 2000;
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
             MESSAGE_COUNT, &PIPELINE);
     fail_if(queueEmpty());
 }
@@ -259,7 +262,8 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], 42, 0x123456789ABCDEF1LLU, NULL, 0, &PIPELINE);
+    CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
+    can::read::passthroughMessage(&CAN_BUSES[0], &message, NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];

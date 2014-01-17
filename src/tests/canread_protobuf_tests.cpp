@@ -22,6 +22,7 @@ using openxc::can::read::sendEventedFloatMessage;
 using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendStringMessage;
+using openxc::pipeline::Pipeline;
 
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;

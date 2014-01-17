@@ -17,6 +17,7 @@ UartDevice uartDevice;
 NetworkDevice networkDevice;
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
+QUEUE_TYPE(uint8_t)* LOG_QUEUE = &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue;
 
 extern bool USB_PROCESSED;
 extern bool UART_PROCESSED;
@@ -40,10 +41,10 @@ START_TEST (test_log_to_usb)
     const char* message = "message";
     sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::LOG);
 
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, LOG_QUEUE)];
     ck_assert(QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE));
     ck_assert(!QUEUE_EMPTY(uint8_t, &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue));
-    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.usb->endpoints[LOG_ENDPOINT_INDEX].queue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -54,7 +55,7 @@ START_TEST (test_only_usb)
     sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -104,11 +105,11 @@ START_TEST (test_with_uart)
     sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST
@@ -121,15 +122,15 @@ START_TEST (test_with_uart_and_network)
     sendMessage(&PIPELINE, (uint8_t*)message, 8, MessageClass::TRANSLATED);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.uart->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
     snapshot[QUEUE_LENGTH(uint8_t, &PIPELINE.network->sendQueue)];
-    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.network->sendQueue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, &PIPELINE.network->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
 END_TEST

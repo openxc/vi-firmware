@@ -13,7 +13,7 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*c
     }
 
     uint8_t snapshot[length];
-    QUEUE_SNAPSHOT(uint8_t, queue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, queue, snapshot, length);
     if(callback == NULL) {
         debug("Callback is NULL (%p) -- unable to handle queue at %p",
                 callback, queue);

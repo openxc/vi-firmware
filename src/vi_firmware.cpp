@@ -226,8 +226,8 @@ bool receiveWriteRequest(uint8_t* message) {
         }
         cJSON_Delete(root);
     } else {
-        debug("No valid JSON in incoming buffer yet -- "
-                "if it's valid, may be out of memory");
+        // debug("No valid JSON in incoming buffer yet -- "
+                // "if it's valid, may be out of memory");
     }
     return foundMessage;
 }

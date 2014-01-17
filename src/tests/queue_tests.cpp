@@ -169,7 +169,7 @@ START_TEST (test_snapshot)
     }
 
     uint8_t snapshot[QUEUE_MAX_LENGTH(uint8_t)];
-    QUEUE_SNAPSHOT(uint8_t, &queue, snapshot);
+    QUEUE_SNAPSHOT(uint8_t, &queue, snapshot, sizeof(snapshot));
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t); i++) {
         ck_assert_int_eq(snapshot[i], expected[i]);
     }

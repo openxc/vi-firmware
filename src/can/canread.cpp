@@ -7,6 +7,7 @@
 using openxc::util::bitfield::getBitField;
 using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
+using openxc::pipeline::Pipeline;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;

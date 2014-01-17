@@ -83,7 +83,7 @@ CanBus* getCanBuses();
  * id - The 11-bit ID of the incoming CAN message.
  * data - The 64-bit data field of the CAN message.
  */
-void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
+void decodeCanMessage(openxc::pipeline::Pipeline* pipeline, CanBus* bus, int id, uint64_t data);
 
 } // namespace signals
 } // namespace openxc

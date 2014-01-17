@@ -11,7 +11,12 @@ CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
     CAN_ReceiveMsg(CAN_CONTROLLER(bus), &message);
 
-    CanMessage result = {message.id};
+    CanMessage result = {
+        id: message.id,
+        data: 0,
+        length: message.len
+    };
+
     result.data = message.dataA[0];
     result.data |= (((uint64_t)message.dataA[1]) << 8);
     result.data |= (((uint64_t)message.dataA[2]) << 16);

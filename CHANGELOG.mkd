@@ -11,6 +11,7 @@
   with UART_LOGGING flag.
 * Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
   the latest version.
+* BREAKING CHANGE: Using CanMessage struct in favor if loose id + data.
 * BREAKING CHANGE: Removed "reset" control command.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
   function prototype, to allow triggering arbitrary new output messages without

@@ -240,7 +240,7 @@ bool receiveWriteRequest(uint8_t* message) {
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(pipeline, bus, message.id, message.data);
+        decodeCanMessage(pipeline, bus, &message);
         bus->lastMessageReceived = time::systemTimeMs();
 
         ++bus->messagesReceived;

@@ -296,23 +296,16 @@ static void sendRawJsonMessage(openxc_VehicleMessage* message, Pipeline* pipelin
     cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME,
             message->raw_message.message_id);
 
-    union {
-        uint64_t whole;
-        uint8_t bytes[8];
-    } combined;
-    combined.whole = message->raw_message.data;
-
     char encodedData[67];
-    snprintf(encodedData, sizeof(encodedData),
-            "0x%02x%02x%02x%02x%02x%02x%02x%02x",
-            combined.bytes[0],
-            combined.bytes[1],
-            combined.bytes[2],
-            combined.bytes[3],
-            combined.bytes[4],
-            combined.bytes[5],
-            combined.bytes[6],
-            combined.bytes[7]);
+    const char* maxAddress = encodedData + sizeof(encodedData);
+    char* encodedDataIndex = encodedData;
+    encodedDataIndex += sprintf(encodedDataIndex, "0x");
+    for(uint8_t i = 0; i < message->raw_message.data.size &&
+            encodedDataIndex < maxAddress; i++) {
+        encodedDataIndex += snprintf(encodedDataIndex,
+                maxAddress - encodedDataIndex,
+                "%02x", message->raw_message.data.bytes[i]);
+    }
     cJSON_AddStringToObject(root, openxc::can::read::DATA_FIELD_NAME,
             encodedData);
 
@@ -343,7 +336,7 @@ static void sendDiagnosticJsonMessage(openxc_VehicleMessage* message,
 
     if(message->diagnostic_message.has_payload) {
         char encodedData[67];
-        char* maxAddress = encodedData + sizeof(encodedData);
+        const char* maxAddress = encodedData + sizeof(encodedData);
         char* encodedDataIndex = encodedData;
         encodedDataIndex += sprintf(encodedDataIndex, "0x");
         for(uint8_t i = 0; i < message->diagnostic_message.payload.size &&
@@ -389,18 +382,17 @@ void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message,
     }
 }
 
-void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
-        uint64_t data, CanMessageDefinition* messages, int messageCount,
-        Pipeline* pipeline) {
+void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
+        CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
     bool send = true;
-    CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus, id,
-            messages, messageCount);
+    CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus,
+            message->id, messages, messageCount);
     if(messageDefinition == NULL) {
         debug("Adding new message definition for message %d on bus %d",
-                id, bus->address);
-        send = registerMessageDefinition(bus, id, messages, messageCount);
+                message->id, bus->address);
+        send = registerMessageDefinition(bus, message->id, messages, messageCount);
     } else if(time::shouldTick(&messageDefinition->frequencyClock) ||
-            (data != messageDefinition->lastValue &&
+            (message->data != messageDefinition->lastValue &&
                  messageDefinition->forceSendChanged)) {
         send = true;
     } else {
@@ -408,23 +400,31 @@ void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
     }
 
     if(send) {
-        openxc_VehicleMessage message = {0};
-        message.has_type = true;
-        message.type = openxc_VehicleMessage_Type_RAW;
-        message.has_raw_message = true;
-        message.raw_message = {0};
-        message.raw_message.has_message_id = true;
-        message.raw_message.message_id = id;
-        message.raw_message.has_bus = true;
-        message.raw_message.bus = bus->address;
-        message.raw_message.has_data = true;
-        message.raw_message.data = data;
+        openxc_VehicleMessage vehicleMessage = {0};
+        vehicleMessage.has_type = true;
+        vehicleMessage.type = openxc_VehicleMessage_Type_RAW;
+        vehicleMessage.has_raw_message = true;
+        vehicleMessage.raw_message = {0};
+        vehicleMessage.raw_message.has_message_id = true;
+        vehicleMessage.raw_message.message_id = message->id;
+        vehicleMessage.raw_message.has_bus = true;
+        vehicleMessage.raw_message.bus = bus->address;
+        vehicleMessage.raw_message.has_data = true;
+        vehicleMessage.raw_message.data.size = message->length;
 
-        sendVehicleMessage(&message, pipeline);
+        union {
+            uint64_t whole;
+            uint8_t bytes[8];
+        } combined;
+        combined.whole = message->data;
+        memcpy(vehicleMessage.raw_message.data.bytes, combined.bytes,
+                message->length);
+
+        sendVehicleMessage(&vehicleMessage, pipeline);
     }
 
     if(messageDefinition != NULL) {
-        messageDefinition->lastValue = data;
+        messageDefinition->lastValue = message->data;
     }
 }
 

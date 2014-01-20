@@ -4,6 +4,8 @@
 #include <cJSON.h>
 #include <pb_decode.h>
 
+#include "signals.h"
+#include "config.h"
 #include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
@@ -23,45 +25,14 @@ using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendStringMessage;
 using openxc::pipeline::Pipeline;
+using openxc::signals::getSignalCount;
+using openxc::signals::getSignals;
+using openxc::signals::getCanBuses;
 
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
-
-const int CAN_BUS_COUNT = 2;
-CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { },
-    { }
-};
-
-const int MESSAGE_COUNT = 3;
-CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
-    {&CAN_BUSES[0], 0},
-    {&CAN_BUSES[0], 1, {10}},
-    {&CAN_BUSES[0], 2, {1}, true},
-};
-
-CanSignalState SIGNAL_STATES[1][6] = {
-    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
-        {5, "neutral"}, {6, "second"}, },
-};
-
-const int SIGNAL_COUNT = 3;
-CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
-        -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
-        0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true,
-        NULL, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
-        0.000000, {0}, false, false, NULL, 0, true},
-};
-
-const int COMMAND_COUNT = 1;
-CanCommand COMMANDS[COMMAND_COUNT] = {
-    {"turn_signal_status", NULL},
-};
 
 static unsigned long fakeTime = 0;
 
@@ -81,10 +52,10 @@ void setup() {
     PIPELINE.usb = &USB_DEVICE;
     usb::initialize(&USB_DEVICE);
     PIPELINE.usb->configured = true;
-    for(int i = 0; i < SIGNAL_COUNT; i++) {
-        SIGNALS[i].received = false;
-        SIGNALS[i].sendSame = true;
-        SIGNALS[i].frequencyClock = {0};
+    for(int i = 0; i < getSignalCount(); i++) {
+        getSignals()[i].received = false;
+        getSignals()[i].sendSame = true;
+        getSignals()[i].frequencyClock = {0};
     }
 }
 
@@ -108,7 +79,7 @@ START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
     CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, NULL, 0, &PIPELINE);
+    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
@@ -187,8 +158,8 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[1], BIG_ENDIAN_TEST_DATA,
-            stringHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[1], BIG_ENDIAN_TEST_DATA,
+            stringHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
@@ -205,8 +176,8 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
-            booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
+            booleanTranslateHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
@@ -223,8 +194,8 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            floatHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            floatHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);

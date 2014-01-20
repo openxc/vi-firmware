@@ -1,5 +1,6 @@
 #include <check.h>
 #include <stdint.h>
+#include "signals.h"
 #include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
@@ -19,42 +20,13 @@ using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendStringMessage;
 using openxc::pipeline::Pipeline;
+using openxc::signals::getSignalCount;
+using openxc::signals::getSignals;
+using openxc::signals::getCanBuses;
+using openxc::signals::getMessages;
+using openxc::signals::getMessageCount;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
-
-const int CAN_BUS_COUNT = 2;
-CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { },
-    { }
-};
-
-const int MESSAGE_COUNT = 3;
-CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
-    {&CAN_BUSES[0], 0},
-    {&CAN_BUSES[0], 1, {10}},
-    {&CAN_BUSES[0], 2, {1}, true},
-};
-
-CanSignalState SIGNAL_STATES[1][6] = {
-    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
-        {5, "neutral"}, {6, "second"}, },
-};
-
-const int SIGNAL_COUNT = 3;
-CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
-        -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
-        0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true,
-        NULL, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
-        0.000000, {0}, false, false, NULL, 0, true},
-};
-
-const int COMMAND_COUNT = 1;
-CanCommand COMMANDS[COMMAND_COUNT] = {
-    {"turn_signal_status", NULL},
-};
 
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
@@ -77,17 +49,17 @@ void setup() {
     PIPELINE.usb = &USB_DEVICE;
     usb::initialize(&USB_DEVICE);
     PIPELINE.usb->configured = true;
-    for(int i = 0; i < SIGNAL_COUNT; i++) {
-        SIGNALS[i].received = false;
-        SIGNALS[i].sendSame = true;
-        SIGNALS[i].frequencyClock = {0};
+    for(int i = 0; i < getSignalCount(); i++) {
+        getSignals()[i].received = false;
+        getSignals()[i].sendSame = true;
+        getSignals()[i].frequencyClock = {0};
     }
 }
 
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
-    ck_assert_int_eq(passthroughHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT,
+    ck_assert_int_eq(passthroughHandler(&getSignals()[0], getSignals(), getSignalCount(),
                 &PIPELINE, 42.0, &send), 42.0);
     fail_unless(send);
 }
@@ -96,11 +68,11 @@ END_TEST
 START_TEST (test_boolean_handler)
 {
     bool send = true;
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 1.0, &send));
+    fail_unless(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(), &PIPELINE, 1.0, &send));
     fail_unless(send);
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 0.5, &send));
+    fail_unless(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(), &PIPELINE, 0.5, &send));
     fail_unless(send);
-    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 0, &send));
+    fail_if(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(), &PIPELINE, 0, &send));
     fail_unless(send);
 }
 END_TEST
@@ -108,7 +80,7 @@ END_TEST
 START_TEST (test_ignore_handler)
 {
     bool send = true;
-    ignoreHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 1.0, &send);
+    ignoreHandler(&getSignals()[0], getSignals(), getSignalCount(), &PIPELINE, 1.0, &send);
     fail_if(send);
 }
 END_TEST
@@ -116,10 +88,10 @@ END_TEST
 START_TEST (test_state_handler)
 {
     bool send = true;
-    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &PIPELINE, 2, &send),
-            SIGNAL_STATES[0][1].name);
+    ck_assert_str_eq(stateHandler(&getSignals()[1], getSignals(), getSignalCount(), &PIPELINE, 2, &send),
+            getSignals()[1].states[1].name);
     fail_unless(send);
-    stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &PIPELINE, 42, &send);
+    stateHandler(&getSignals()[1], getSignals(), getSignalCount(), &PIPELINE, 42, &send);
     fail_if(send);
 }
 END_TEST
@@ -225,36 +197,36 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {MESSAGES[2].id, 0x1234};
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    CanMessage message = {getMessages()[2].id, 0x1234};
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_unless(queueEmpty());
     message.data = 0x5678;
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_if(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_passthrough_limited_frequency)
 {
-    MESSAGES[1].frequencyClock.timeFunction = timeMock;
+    getMessages()[1].frequencyClock.timeFunction = timeMock;
     fail_unless(queueEmpty());
-    CanMessage message = {MESSAGES[1].id, 0x1234};
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    CanMessage message = {getMessages()[1].id, 0x1234};
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_unless(queueEmpty());
     fakeTime += 2000;
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
+            getMessageCount(), &PIPELINE);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -263,14 +235,14 @@ START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
     CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
-    can::read::passthroughMessage(&CAN_BUSES[0], &message, NULL, 0, &PIPELINE);
+    can::read::passthroughMessage(&getCanBuses()[0], &message, NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"bus\":0,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
+            "{\"bus\":1,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
 }
 END_TEST
 
@@ -281,8 +253,8 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_default_handler)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -307,24 +279,24 @@ bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_respects_send_value)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            ignoreHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            ignoreHandler, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            noSendStringHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            noSendStringHandler, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            noSendBooleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            noSendBooleanTranslateHandler, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            floatHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            floatHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -345,10 +317,10 @@ float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_float_handler_called_every_time)
 {
     frequencyTestCounter = 0;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            floatHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            floatHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            floatHandlerFrequencyTest, getSignals(), getSignalCount());
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            floatHandlerFrequencyTest, getSignals(), getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -362,10 +334,10 @@ bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_bool_handler_called_every_time)
 {
     frequencyTestCounter = 0;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            boolHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            boolHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            boolHandlerFrequencyTest, getSignals(), getSignalCount());
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            boolHandlerFrequencyTest, getSignals(), getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -379,10 +351,10 @@ const char* strHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_str_handler_called_every_time)
 {
     frequencyTestCounter = 0;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            strHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            strHandlerFrequencyTest, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            strHandlerFrequencyTest, getSignals(), getSignalCount());
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            strHandlerFrequencyTest, getSignals(), getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -394,8 +366,8 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            stringHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            stringHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -413,8 +385,8 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
-            booleanTranslateHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
+            booleanTranslateHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -427,47 +399,47 @@ END_TEST
 
 START_TEST (test_always_send_first)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_unlimited_frequency)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_limited_frequency)
 {
-    SIGNALS[0].frequencyClock.frequency = 1;
-    SIGNALS[0].frequencyClock.timeFunction = timeMock;
+    getSignals()[0].frequencyClock.frequency = 1;
+    getSignals()[0].frequencyClock.timeFunction = timeMock;
     fakeTime = 2000;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_unless(queueEmpty());
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_unless(queueEmpty());
     // mock waiting 1 second
     fakeTime += 1000;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
@@ -479,13 +451,13 @@ float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_preserve_last_value)
 {
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], BIG_ENDIAN_TEST_DATA,
-            SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+            getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
 
-    can::read::translateSignal(&PIPELINE, &SIGNALS[0], 0x1234123000000000,
-            preserveHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[0], 0x1234123000000000,
+            preserveHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -498,9 +470,9 @@ END_TEST
 
 START_TEST (test_dont_send_same)
 {
-    SIGNALS[2].sendSame = false;
-    can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
-            booleanHandler, SIGNALS, SIGNAL_COUNT);
+    getSignals()[2].sendSame = false;
+    can::read::translateSignal(&PIPELINE, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
+            booleanHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -510,8 +482,8 @@ START_TEST (test_dont_send_same)
             "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&PIPELINE, &SIGNALS[2], BIG_ENDIAN_TEST_DATA,
-            booleanHandler, SIGNALS, SIGNAL_COUNT);
+    can::read::translateSignal(&PIPELINE, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
+            booleanHandler, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 }
 END_TEST

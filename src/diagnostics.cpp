@@ -11,11 +11,11 @@ using openxc::diagnostics::ActiveRequestList;
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::ActiveRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
-using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 using openxc::can::addAcceptanceFilter;
 using openxc::can::read::sendNumericalMessage;
 using openxc::pipeline::Pipeline;
+using openxc::signals::getCanBuses;
 
 namespace time = openxc::util::time;
 
@@ -27,21 +27,11 @@ static ActiveRequestListEntry* popListEntry(ActiveRequestList* list) {
     return result;
 }
 
-static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
-        const uint8_t* data, const uint8_t size) {
-    // TODO right now this doesn't support sending requests on anything but bus
-    // 1. a few things need to change to support uses bus 2, or using different
-    // buses for different requests.
-    //
-    // this is OK to use the signals.h functions directly here, since we intend
-    // for those to change at runtime soon - we don't want to provide the buses
-    // when the DiagnosticsManager is initialized, for example.
-    //
-    // second, the send_can_message shim prototype from isotp-c doesn't have an
-    // argument to identify the bus for the message, so we need to add that
-    CanBus* bus = &getCanBuses()[0];
+static bool sendDiagnosticCanMessage(CanBus* bus,
+        const uint16_t arbitrationId, const uint8_t* data,
+        const uint8_t size) {
     CanMessage message = {
-        id: arbitration_id,
+        id: arbitrationId,
         data: get_bitfield(data, size, 0, size * CHAR_BIT)
             << (64 - CHAR_BIT * size),
         length: size
@@ -50,10 +40,31 @@ static bool sendDiagnosticCanMessage(const uint16_t arbitration_id,
     return true;
 }
 
+static bool sendDiagnosticCanMessageBus1(
+        const uint16_t arbitrationId, const uint8_t* data,
+        const uint8_t size) {
+    return sendDiagnosticCanMessage(&getCanBuses()[0], arbitrationId, data,
+            size);
+}
+
+static bool sendDiagnosticCanMessageBus2(
+        const uint16_t arbitrationId, const uint8_t* data,
+        const uint8_t size) {
+    return sendDiagnosticCanMessage(&getCanBuses()[1], arbitrationId, data,
+            size);
+}
+
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         int busCount) {
-    manager->shims = diagnostic_init_shims(openxc::util::log::debug,
-                       sendDiagnosticCanMessage, NULL);
+    if(busCount > 0) {
+        manager->shims[0]= diagnostic_init_shims(openxc::util::log::debug,
+                           sendDiagnosticCanMessageBus1, NULL);
+    }
+
+    if(busCount > 1) {
+        manager->shims[1]= diagnostic_init_shims(openxc::util::log::debug,
+                           sendDiagnosticCanMessageBus2, NULL);
+    }
 
     LIST_INIT(&manager->activeRequests);
     LIST_INIT(&manager->freeActiveRequests);
@@ -91,12 +102,17 @@ static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
     return request->recurring && time::shouldTick(&request->frequencyClock);
 }
 
-void openxc::diagnostics::sendRequests(DiagnosticsManager* manager) {
+void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
+        CanBus* bus) {
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
-        if(requestShouldRecur(&entry->request)) {
-            entry->request.handle = diagnostic_request(&manager->shims,
-                    &entry->request.handle.request, NULL);
+        if(entry->request.bus == bus && requestShouldRecur(&entry->request)) {
+            entry->request.handle = diagnostic_request(
+                    // TODO eek, is bus address and array index this tightly
+                    // coupled?
+                    &manager->shims[bus->address - 1],
+                    &entry->request.handle.request,
+                    NULL);
         }
     }
 }
@@ -184,7 +200,8 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
 
         ArrayOrBytes combined;
         combined.whole = message->data;
-        DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,
+        DiagnosticResponse response = diagnostic_receive_can_frame(
+                &manager->shims[bus->address - 1],
                 &entry->request.handle, message->id, combined.bytes,
                 sizeof(combined.bytes));
         if(response.completed && entry->request.handle.completed) {
@@ -241,7 +258,8 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     // can::addFilter(CanFilter* filter);
 
     newEntry->request.bus = bus;
-    newEntry->request.handle = diagnostic_request(&manager->shims, request, NULL);
+    newEntry->request.handle = diagnostic_request(
+            &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {
         strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
     } else {

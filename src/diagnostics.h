@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MAX_SHIM_COUNT 2
 #define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
 #define MAX_GENERIC_NAME_LENGTH 40
 
@@ -38,7 +39,7 @@ struct ActiveRequestListEntry {
 LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
 
 typedef struct {
-    DiagnosticShims shims;
+    DiagnosticShims shims[MAX_SHIM_COUNT];
     ActiveRequestList activeRequests;
     ActiveRequestList freeActiveRequests;
     ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
@@ -61,7 +62,7 @@ bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 
-void sendRequests(DiagnosticsManager* manager);
+void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
 } // namespace diagnnostics
 } // namespace openxc

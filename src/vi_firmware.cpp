@@ -76,10 +76,11 @@ void loop() {
         // you need to modify the firmware to not use any interfaces, you'll
         // have to change that or enable the flush functionality to write to
         // your desired output interface.
-        receiveCan(&PIPELINE, &getCanBuses()[i]);
+        CanBus* bus = &(getCanBuses()[i]);
+        receiveCan(&PIPELINE, bus);
+        diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, bus);
     }
 
-    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER);
 
     usb::read(PIPELINE.usb, receiveWriteRequest);
     uart::read(PIPELINE.uart, receiveWriteRequest);

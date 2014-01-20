@@ -167,6 +167,11 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     // solution: don't re-request, you are finished.
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
+
+        if(bus != entry->request.bus) {
+            continue;
+        }
+
         ArrayOrBytes combined;
         combined.whole = message->data;
         DiagnosticResponse response = diagnostic_receive_can_frame(&manager->shims,

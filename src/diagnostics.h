@@ -4,7 +4,7 @@
 #include "util/timer.h"
 #include "pipeline.h"
 #include <can/canutil.h>
-#include <obd2/obd2.h>
+#include <uds/uds.h>
 #include <sys/queue.h>
 #include <stdint.h>
 #include <stdlib.h>

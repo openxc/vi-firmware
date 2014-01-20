@@ -14,6 +14,7 @@ using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 using openxc::can::addAcceptanceFilter;
+using openxc::can::read::sendNumericalMessage;
 using openxc::pipeline::Pipeline;
 
 namespace time = openxc::util::time;
@@ -113,8 +114,6 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     message.diagnostic_message.message_id = response->arbitration_id;
     message.diagnostic_message.has_mode = true;
     message.diagnostic_message.mode = response->mode;
-    // TODO the response may not have a PID, but the DiagnosticResponse type
-    // doesn't store the pid length anymore (the request does) so we can't tell.
     message.diagnostic_message.has_pid = response->has_pid;
     if(message.diagnostic_message.has_pid) {
         message.diagnostic_message.pid = response->pid;
@@ -132,8 +131,8 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-static void relayDiagnosticResponse(CanBus* bus, DiagnosticResponse* response,
-        Pipeline* pipeline) {
+static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response, Pipeline* pipeline) {
     debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
             response->arbitration_id,
             response->mode,
@@ -147,8 +146,19 @@ static void relayDiagnosticResponse(CanBus* bus, DiagnosticResponse* response,
             response->payload[6],
             response->payload_length);
 
-    openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(bus, response);
-    openxc::can::read::sendVehicleMessage(&message, pipeline);
+    if(strnlen(request->genericName, sizeof(request->genericName)) > 0) {
+        float value;
+        if(request->decoder != NULL) {
+            value = request->decoder(response);
+        } else {
+            value = diagnostic_payload_to_float(response);
+        }
+        sendNumericalMessage(request->genericName, value, pipeline);
+    } else {
+        openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
+                request->bus, response);
+        openxc::can::read::sendVehicleMessage(&message, pipeline);
+    }
 }
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
@@ -180,7 +190,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
                 if(response.success) {
-                    relayDiagnosticResponse(bus, &response, pipeline);
+                    relayDiagnosticResponse(&entry->request, &response, pipeline);
                     // TODO remove a CAN filter if nothing else is waiting
                     // on it...hard to tell.
                 } else {

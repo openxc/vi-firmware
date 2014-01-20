@@ -63,7 +63,7 @@ void setup() {
         pid_length: 1
     };
     diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL, 1);
+            &request, "foobar", NULL, 1);
 }
 
 void loop() {

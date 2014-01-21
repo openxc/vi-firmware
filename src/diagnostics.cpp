@@ -212,8 +212,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
             entry != NULL; entry = entry->entries.le_next) {
         ActiveDiagnosticRequest* request = &entry->request;
         if(request->handle.completed && !request->recurring) {
-            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
             LIST_REMOVE(entry, entries);
+            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
         }
     }
 

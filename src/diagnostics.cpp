@@ -211,12 +211,16 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         ActiveDiagnosticRequest* request = &entry->request;
-        if(request->handle.completed && !request->recurring) {
+        if(request->recurring) {
+            // TODO leave active unless explicitly removed
+        } else if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+            // TODO when request is > 100ms old, remove it...or we've received a
+            // few responses? nah, timeout.
+        } else if(request->handle.completed) {
             LIST_REMOVE(entry, entries);
             LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
         }
     }
-
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,

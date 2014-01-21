@@ -239,6 +239,10 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
 
+    if(genericName == NULL && decoder != NULL) {
+        return false;
+    }
+
     ActiveRequestListEntry* newEntry = popListEntry(
             &manager->freeActiveRequests);
     if(newEntry == NULL) {

@@ -16,6 +16,7 @@ using openxc::can::addAcceptanceFilter;
 using openxc::can::read::sendNumericalMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
+using openxc::signals::getCanBusCount;
 
 namespace time = openxc::util::time;
 
@@ -72,23 +73,6 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
         LIST_INSERT_HEAD(&manager->freeActiveRequests,
                 &manager->activeListEntries[i], entries);
-    }
-
-    // Configure acceptance filters for standard OBD-II functional requests
-    // responses
-    for(int i = 0; i < busCount; i++) {
-        CanBus* bus = &buses[i];
-        bool status = true;
-        for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
-                OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
-                filter++) {
-            status = status && addAcceptanceFilter(buses, busCount, bus, filter);
-            if(!status) {
-                debug("Couldn't add filter 0x%x to bus %d", filter,
-                        bus->address);
-                break;
-            }
-        }
     }
 }
 
@@ -258,8 +242,22 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         return false;
     }
 
-    // TODO before making request, set up CAN AF
-    // can::addFilter(CanFilter* filter);
+    bool filterStatus = true;
+    if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+    for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
+            OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
+            filter++) {
+        filterStatus = filterStatus && addAcceptanceFilter(bus, filter, getCanBuses(), getCanBusCount());
+    }
+    } else {
+        filterStatus = addAcceptanceFilter(bus, request->arbitration_id, getCanBuses(), getCanBusCount());
+    }
+
+    if(!filterStatus) {
+        debug("Couldn't add filter 0x%x to bus %d", request->arbitration_id, bus->address);
+        LIST_INSERT_HEAD(&manager->freeActiveRequests, newEntry, entries);
+        return false;
+    }
 
     newEntry->request.bus = bus;
     newEntry->request.handle = diagnostic_request(

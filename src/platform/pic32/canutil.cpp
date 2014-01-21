@@ -121,8 +121,8 @@ void openxc::can::deinitialize(CanBus* bus) {
     #endif
 }
 
-void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
-        bool writable) {
+void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
+        const int busCount) {
     can::initializeCommon(bus);
     // Switch the CAN module ON and switch it to Configuration mode. Wait till
     // the switch is complete
@@ -159,9 +159,8 @@ void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
     CAN_CONTROLLER(bus)->configureChannelForRx(CAN::CHANNEL1, 8,
             CAN::RX_FULL_RECEIVE);
 
-    if(!configureDefaultFilters(buses, busCount, bus,
-            openxc::signals::getMessages(),
-            openxc::signals::getMessageCount())) {
+    if(!configureDefaultFilters(bus, openxc::signals::getMessages(),
+                openxc::signals::getMessageCount(), buses, busCount)) {
         debug("Unable to initialize CAN acceptance filters");
     }
 

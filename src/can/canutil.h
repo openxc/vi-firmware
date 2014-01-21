@@ -264,7 +264,7 @@ typedef struct {
  * writable - configure the controller in a writable mode. If False, it will be
  *      configured as "listen only" and will not allow writes or even CAN ACKs.
  */
-void initialize(CanBus* buses, const int busCount, CanBus* bus, bool writable);
+void initialize(CanBus* bus, bool writable, CanBus* buses, const int busCount);
 
 /* Public: Free any memory associated with the CanBus.
  *
@@ -418,30 +418,30 @@ bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
  * This function is *not* platform specific - it uses the
  * addAcceptanceFilter(...) function.
  *
- * buses - An array of all active CanBus instances.
- * busCount - The length of the buses array.
  * bus - The CanBus to initialize the default acceptance filters for.
  * messages - An array of all active CAN messages definitions.
  * messageCount - The length of the messages array.
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
  *
  * Returns true if the acceptance filters were all configured successfully.
  */
-bool configureDefaultFilters(CanBus* buses, const int busCount, CanBus* bus,
-        const CanMessageDefinition* messages, const int messageCount);
+bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages, 
+        const int messageCount, CanBus* buses, const int busCount);
 
 /* Public: Configure a new CAN message acceptance filter on the given bus.
  *
- * buses - An array of all active CanBus instances.
- * busCount - The length of the buses array.
  * bus - The CanBus to initialize the filter on.
  * id - The value of the new filter.
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
  *
  * Returns true if the filter was added or already existed. Returns false if the
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus,
-        uint32_t id);
+bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses, 
+        const int busCount);
 
 /* Public: Remove a CAN message acceptance filter from the given bus.
  *
@@ -454,8 +454,8 @@ bool addAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus,
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-void removeAcceptanceFilter(CanBus* buses, const int busCount, CanBus* bus,
-        uint32_t id);
+void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses, 
+        const int busCount);
 
 /* Public: Apply the CAN acceptance filter configuration from software (on the
  * CanBus struct) to the actual hardware CAN controllers.

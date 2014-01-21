@@ -90,8 +90,8 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
 void openxc::can::deinitialize(CanBus* bus) { }
 
-void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
-        bool writable) {
+void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
+        const int busCount) {
     can::initializeCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
@@ -118,9 +118,8 @@ void openxc::can::initialize(CanBus* buses, const int busCount, CanBus* bus,
     }
     CAN_ModeConfig(CAN_CONTROLLER(bus), mode, ENABLE);
 
-    if(!configureDefaultFilters(buses, busCount, bus,
-            openxc::signals::getMessages(),
-            openxc::signals::getMessageCount())) {
+    if(!configureDefaultFilters(bus, openxc::signals::getMessages(),
+            openxc::signals::getMessageCount(), buses, busCount)) {
         debug("Unable to initialize CAN acceptance filters");
     }
 

@@ -320,17 +320,17 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
 #endif // __LOG_STATS__
 }
 
-bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
-        CanBus* bus, const CanMessageDefinition* messages,
-        const int messageCount) {
+bool openxc::can::configureDefaultFilters(CanBus* bus,
+        const CanMessageDefinition* messages, const int messageCount,
+        CanBus* buses, const int busCount) {
     uint8_t filterCount = 0;
     bool status = true;
     if(messageCount > 0) {
         for(int i = 0; i < messageCount; i++) {
             if(messages[i].bus == bus) {
                 ++filterCount;
-                status = status && addAcceptanceFilter(buses, busCount, bus,
-                        messages[i].id);
+                status = status && addAcceptanceFilter(bus, messages[i].id,
+                        buses, busCount);
                 if(!status) {
                     debug("Couldn't add filter 0x%x to bus %d",
                             messages[i].id, bus->address);
@@ -356,8 +356,8 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
     return result;
 }
 
-bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
-        CanBus* bus, uint32_t id) {
+bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
+        CanBus* buses, int busCount) {
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {
@@ -381,8 +381,8 @@ bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
     return updateAcceptanceFilterTable(buses, busCount);
 }
 
-void openxc::can::removeAcceptanceFilter(CanBus* buses, const int busCount,
-        CanBus* bus, uint32_t id) {
+void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
+        CanBus* buses, const int busCount) {
     AcceptanceFilterListEntry* entry;
     for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
             entry = entry->entries.le_next) {

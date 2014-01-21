@@ -63,6 +63,23 @@ START_TEST (test_add_basic_request)
 }
 END_TEST
 
+START_TEST (test_add_request_other_bus)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
+            &request, "mypid", NULL));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[1]);
+    fail_if(canQueueEmpty(1));
+    diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
+            &message, &PIPELINE);
+    fail_if(outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\r\n");
+}
+END_TEST
+
 START_TEST (test_add_request_with_name)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -166,6 +183,7 @@ Suite* suite(void) {
     tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_add_basic_request);
     tcase_add_test(tc_core, test_receive_singletimer_twice);
+    tcase_add_test(tc_core, test_add_request_other_bus);
     tcase_add_test(tc_core, test_add_request_with_name);
     tcase_add_test(tc_core, test_add_request_with_decoder_no_name);
     tcase_add_test(tc_core, test_add_request_with_name_and_decoder);

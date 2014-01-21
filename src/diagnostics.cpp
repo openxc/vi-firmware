@@ -244,11 +244,12 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
 
     bool filterStatus = true;
     if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-    for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
-            OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
-            filter++) {
-        filterStatus = filterStatus && addAcceptanceFilter(bus, filter, getCanBuses(), getCanBusCount());
-    }
+        for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
+                OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
+                filter++) {
+            filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
+                    getCanBuses(), getCanBusCount());
+        }
     } else {
         filterStatus = addAcceptanceFilter(bus, request->arbitration_id, getCanBuses(), getCanBusCount());
     }

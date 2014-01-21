@@ -128,10 +128,13 @@ QUEUE_DECLARE(CanMessage,
  *
  * This struct is meant to be used with a LIST type from <sys/queue.h>.
  *
- * filter - the value for the CAN acceptance filter.
+ * filter - The value for the CAN acceptance filter.
+ * activeUserCount - The number of active consumers of this filter's messages.
+ *      When 0, this filter can be removed.
  */
 struct AcceptanceFilterListEntry {
     uint16_t filter;
+    uint8_t activeUserCount;
     LIST_ENTRY(AcceptanceFilterListEntry) entries;
 };
 
@@ -426,7 +429,7 @@ bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
  *
  * Returns true if the acceptance filters were all configured successfully.
  */
-bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages, 
+bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages,
         const int messageCount, CanBus* buses, const int busCount);
 
 /* Public: Configure a new CAN message acceptance filter on the given bus.
@@ -440,7 +443,7 @@ bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages,
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses, 
+bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses,
         const int busCount);
 
 /* Public: Remove a CAN message acceptance filter from the given bus.
@@ -454,7 +457,7 @@ bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses,
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses, 
+void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses,
         const int busCount);
 
 /* Public: Apply the CAN acceptance filter configuration from software (on the

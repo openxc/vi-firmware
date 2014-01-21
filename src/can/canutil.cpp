@@ -361,7 +361,9 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {
-            debug("Filter for 0x%x already exists", id);
+            ++entry->activeUserCount;
+            debug("Filter for 0x%x already exists -- bumped user count to %d",
+                    id, entry->activeUserCount);
             return true;
         }
     }
@@ -375,6 +377,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
     }
 
     availableFilter->filter = id;
+    availableFilter->activeUserCount = 1;
     LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
     debug("Added acceptance filter for 0x%x on bus %d", availableFilter->filter,
             bus->address);
@@ -392,8 +395,15 @@ void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
     }
 
     if(entry != NULL) {
-        LIST_REMOVE(entry, entries);
-        updateAcceptanceFilterTable(buses, busCount);
+        --entry->activeUserCount;
+        debug("Decremented active user count for filter 0x%x to %d",
+                entry->filter, entry->activeUserCount);
+        if(entry->activeUserCount == 0) {
+            debug("No active users - disabling filter");
+            LIST_REMOVE(entry, entries);
+            LIST_INSERT_HEAD(&bus->freeAcceptanceFilters, entry, entries);
+            updateAcceptanceFilterTable(buses, busCount);
+        }
     }
 }
 

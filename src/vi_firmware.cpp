@@ -172,7 +172,6 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     if(matchingBus == NULL) {
         debug("No matching bus for write request, so using the first we find");
-        // TODO kill this...require bus
         matchingBus = &getCanBuses()[0];
     }
 

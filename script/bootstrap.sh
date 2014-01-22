@@ -294,8 +294,6 @@ if [ -z $VIRTUAL_ENV ]; then
     PIP_SUDO_CMD=$SUDO_CMD
 fi
 
-$PIP_SUDO_CMD pip install -U setuptools
-$PIP_SUDO_CMD pip install -U pip
 $PIP_SUDO_CMD pip install --src dependencies --pre -Ur script/pip-requirements.txt
 
 popd

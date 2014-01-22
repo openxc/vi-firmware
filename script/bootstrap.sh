@@ -288,8 +288,15 @@ if ! command -v pip >/dev/null 2>&1; then
     $SUDO_CMD easy_install pip
 fi
 
-$SUDO_CMD pip install -U pip
-$SUDO_CMD pip install --pre -Ur script/pip-requirements.txt
+PIP_SUDO_CMD=
+if [ -z $VIRTUAL_ENV ]; then
+    # Only use sudo if the user doesn't have an active virtualenv
+    PIP_SUDO_CMD=$SUDO_CMD
+fi
+
+$PIP_SUDO_CMD pip install -U setuptools
+$PIP_SUDO_CMD pip install -U pip
+$PIP_SUDO_CMD pip install --src dependencies --pre -Ur script/pip-requirements.txt
 
 popd
 

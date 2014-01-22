@@ -166,14 +166,16 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
-    if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
+    if(usbDevice->configured) {
+        if((USB_DeviceState != DEVICE_STATE_Configured
                 || !vbusDetected() || !usbHostDetected())) {
-        EVENT_USB_Device_Disconnect();
-    } else if(usbDevice->configured) {
-        for(int i = 0; i < ENDPOINT_COUNT; i++) {
-            UsbEndpoint* endpoint = &usbDevice->endpoints[i];
-            if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
-                flushQueueToHost(usbDevice, endpoint);
+            EVENT_USB_Device_Disconnect();
+        } else {
+            for(int i = 0; i < ENDPOINT_COUNT; i++) {
+                UsbEndpoint* endpoint = &usbDevice->endpoints[i];
+                if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
+                    flushQueueToHost(usbDevice, endpoint);
+                }
             }
         }
     }

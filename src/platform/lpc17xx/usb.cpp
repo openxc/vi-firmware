@@ -20,7 +20,8 @@ extern "C" {
 #define USB_DM_PIN 30
 #define USB_DM_FUNCNUM 1
 
-#define USB_HOST_DETECT_DEBOUNCE_VALUE 1000
+#define USB_HOST_DETECT_INACTIVE_VALUE 400
+#define USB_HOST_DETECT_ACTIVE_VALUE 50
 
 #define USB_CONNECT_PORT 2
 #define USB_CONNECT_PIN 9
@@ -67,6 +68,7 @@ void EVENT_USB_Device_ControlRequest() {
 void EVENT_USB_Device_ConfigurationChanged(void) {
     USB_DEVICE.configured = false;
     configureEndpoints();
+    debug("USB configured");
     USB_DEVICE.configured = true;
 }
 
@@ -118,17 +120,24 @@ bool vbusDetected() {
  *
  * Returns true of there is measurable activity on the D- USB line.
  */
-bool usbHostDetected() {
+bool usbHostDetected(UsbDevice* usbDevice) {
     static int debounce = 0;
+    static float average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
 
     if(gpio::getValue(USB_DM_PORT, USB_DM_PIN) == GPIO_VALUE_LOW) {
         ++debounce;
     } else {
+        average = average * .9 + debounce * .1;
         debounce = 0;
     }
 
-    if(debounce > USB_HOST_DETECT_DEBOUNCE_VALUE) {
+    if(!usbDevice->configured && average < USB_HOST_DETECT_ACTIVE_VALUE) {
+        EVENT_USB_Device_ConfigurationChanged();
+    }
+
+    if(average > USB_HOST_DETECT_INACTIVE_VALUE) {
         debounce = 0;
+        average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
         return false;
     }
     return true;
@@ -166,9 +175,29 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
+    if(!usbDevice->configured) {
+        usbHostDetected(usbDevice);
+    }
+
     if(usbDevice->configured) {
-        if((USB_DeviceState != DEVICE_STATE_Configured
-                || !vbusDetected() || !usbHostDetected())) {
+        if((USB_DeviceState != DEVICE_STATE_Configured || !vbusDetected())
+                || !usbHostDetected(usbDevice)) {
+            // On Windows the USB device will be configured when plugged in for
+            // the first time, regardless of if you are actively using it in an
+            // application. Windows will *not* send the USB configured event
+            // when an application connects.
+            //
+            // On Linux and Mac, the USB configured event triggers each time a
+            // new connection is made to the device.
+            //
+            // This means that if vbus is high (i.e. USB *might* be connected),
+            // that's the only time we should check the usbHostDetected()
+            // workaround. If we call that on Windows when USB is attached, it
+            // will *unconfigure* the USB device from the VI side but not
+            // reconfigure it until you disconnect and reconnect the device to
+            // the PC! If the debounce value is small (which is ideal...) that
+            // could happen even before your app has a chance to load the
+            // device.
             EVENT_USB_Device_Disconnect();
         } else {
             for(int i = 0; i < ENDPOINT_COUNT; i++) {
@@ -186,8 +215,6 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     USB_Init();
     ::USB_Connect();
     configureUsbDetection();
-
-    debug("Done.");
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,

@@ -213,7 +213,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
         ActiveDiagnosticRequest* request = &entry->request;
         if(request->recurring) {
             // TODO leave active unless explicitly removed
-        } else if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+        } else if(request->handle.request.arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+            // TODO ^^ digging pretty deep into the struct here, i don't like it
             // TODO when request is > 100ms old, remove it...or we've received a
             // few responses? nah, timeout.
         } else if(request->handle.completed) {

@@ -24,6 +24,7 @@ using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::sendBooleanMessage;
 using openxc::can::read::sendStringMessage;
 using openxc::can::read::sendEventedBooleanMessage;
+using openxc::pipeline::Pipeline;
 
 int emulatorRateLimiter = 0;
 

@@ -77,12 +77,12 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
 }
 
 static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
-    // TODO do we want to check if the previous request has been completed? if
+    // Not currently checking if the request is completed or not. If
     // we wait for that, it's possible we could get stuck - if we made the
     // request while the CAN bus wasn't up, we're not going to get a response.
     // unless the frequency is > 10Hz, there's little chance that we wouldn't
     // have receive the response by the next tick, so if it isn't completed it
-    // likely means we're not going to hear back. for now, let's try again.
+    // likely means we're not going to hear back. We'll send the request again.
     return request->recurring && time::shouldTick(&request->frequencyClock);
 }
 
@@ -97,6 +97,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
                     &manager->shims[bus->address - 1],
                     &entry->request.handle.request,
                     NULL);
+            entry->request.timeoutClock = {0};
         }
     }
 }
@@ -163,18 +164,6 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
-    // TODO instead of checking here if a handle is completed, we always pass
-    // messages on to everything in the list. on cleanup, if a handle is
-    // completed (ie. a response has been received) or it's braodcast type and
-    // it's been more than 100ms, remove it.
-    //
-    // problem: we make one request to a node for mode 1. we get the response,
-    // it's marked completed.
-    // we make a mode 2 request to the same node before removing it from the
-    // list. we get the response - the old request has it and see's its for the
-    // wrong mode, it re-requests.
-    //
-    // solution: don't re-request, you are finished.
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
 
@@ -192,8 +181,6 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             if(entry->request.handle.success) {
                 if(response.success) {
                     relayDiagnosticResponse(&entry->request, &response, pipeline);
-                    // TODO remove a CAN filter if nothing else is waiting
-                    // on it...hard to tell.
                 } else {
                     debug("Negative diagnostic response received, NRC: 0x%x",
                             response.negative_response_code);
@@ -205,19 +192,22 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     }
 }
 
+static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
+    return request->handle.request.arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
+            && time::shouldTick(&request->timeoutClock);
+}
+
 static void cleanupActiveRequests(DiagnosticsManager* manager) {
     // clean up the active request list, move as many to the free list as
     // possible
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         ActiveDiagnosticRequest* request = &entry->request;
-        if(request->recurring) {
-            // TODO leave active unless explicitly removed
-        } else if(request->handle.request.arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-            // TODO ^^ digging pretty deep into the struct here, i don't like it
-            // TODO when request is > 100ms old, remove it...or we've received a
-            // few responses? nah, timeout.
-        } else if(request->handle.completed) {
+        if(!request->recurring && (
+                broadcastTimedOut(request) ||
+                (request->handle.request.arbitration_id ==
+                        OBD2_FUNCTIONAL_BROADCAST_ID
+                    && request->handle.completed))) {
             LIST_REMOVE(entry, entries);
             LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
         }
@@ -232,18 +222,11 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         return false;
     }
 
+    cleanupActiveRequests(manager);
     ActiveRequestListEntry* newEntry = popListEntry(
             &manager->freeActiveRequests);
     if(newEntry == NULL) {
-        cleanupActiveRequests(manager);
-        newEntry = popListEntry(&manager->freeActiveRequests);
-    }
-
-    if(newEntry == NULL) {
         debug("Unable to allocate space for a new diagnostic request");
-        // TODO at the moment we're *never* deleting requests that were going to
-        // the broadcast address, because they're never "completed" unless we
-        // time them out while waiting for response from multiple modules
         return false;
     }
 
@@ -275,13 +258,12 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     }
     newEntry->request.decoder = decoder;
     newEntry->request.recurring = frequencyHz != 0;
-    // TODO we could (ab)use the frequency clock for non-recurring requests and
-    // use it as a timeout - if we set the frequency to 1Hz, when it "should
-    // tick" and it's not yet completed, we know a response hasn't been received
-    // in 1 second and we should either kill it or retry
     newEntry->request.frequencyClock = {0};
     newEntry->request.frequencyClock.frequency =
             newEntry->request.recurring ? frequencyHz : 1;
+    // time out after 100ms
+    newEntry->request.timeoutClock = {0};
+    newEntry->request.timeoutClock.frequency = 10;
     LIST_INSERT_HEAD(&manager->activeRequests, newEntry, entries);
 
     return true;

@@ -29,6 +29,7 @@ typedef struct {
     DiagnosticResponseDecoder decoder;
     bool recurring;
     openxc::util::time::FrequencyClock frequencyClock;
+    openxc::util::time::FrequencyClock timeoutClock;
 } ActiveDiagnosticRequest;
 
 struct ActiveRequestListEntry {
@@ -64,7 +65,7 @@ void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
 
 void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
-} // namespace diagnnostics
+} // namespace diagnostics
 } // namespace openxc
 
 #endif // __DIAGNOSTICS_H__

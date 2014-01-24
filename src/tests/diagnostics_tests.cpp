@@ -46,6 +46,17 @@ void setup() {
     fail_unless(canQueueEmpty(0));
 }
 
+START_TEST (test_add_recurring_too_frequent)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &request, NULL, NULL, 1));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &request, NULL, NULL, 10));
+    ck_assert(!diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &request, NULL, NULL, 11));
+}
+END_TEST
+
 START_TEST (test_add_basic_request)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -181,6 +192,7 @@ Suite* suite(void) {
     Suite* s = suite_create("diagnostics");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
+    tcase_add_test(tc_core, test_add_recurring_too_frequent);
     tcase_add_test(tc_core, test_add_basic_request);
     tcase_add_test(tc_core, test_receive_singletimer_twice);
     tcase_add_test(tc_core, test_add_request_other_bus);

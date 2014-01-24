@@ -7,6 +7,8 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
+#define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
+
 using openxc::diagnostics::ActiveRequestList;
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::ActiveRequestListEntry;
@@ -219,6 +221,13 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
 
     if(genericName == NULL && decoder != NULL) {
+        debug("Diagnostic requests with decoded payload require a generic name");
+        return false;
+    }
+
+    if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
+        debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
+                frequencyHz, MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ);
         return false;
     }
 

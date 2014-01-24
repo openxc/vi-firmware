@@ -66,10 +66,6 @@ Copyright (c) 2012-2013 Ford Motor Company
 
 Licensed under the BSD license.
 
-The Windows driver for the VI and its installer available in
-`conf/windows-driver` is licensed under the GPL. More information is available
-in the `conf/windows-driver/README.mkd` file.
-
 This repository includes links to other source code repositories (as git
 submodules) that may be distributed under different licenses. See those
 individual repositories for more details.

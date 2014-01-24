@@ -1,6 +1,7 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
+#include "diagnostics.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
 
@@ -22,9 +23,11 @@ int getMessageSetCount();
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
  *
+ * diagnosticsManager - TODO
+ *
  * TODO should this also be called when the configuration is switched?
  */
-void initialize();
+void initialize(openxc::diagnostics::DiagnosticsManager* diagnosticsManager);
 
 /* Public: Any additional processing that should happen each time through the
  * main firmware loop, in addition to the built-in CAN message handling. This

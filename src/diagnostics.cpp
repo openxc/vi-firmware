@@ -283,3 +283,19 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         const DiagnosticResponseDecoder decoder) {
     return addDiagnosticRequest(manager, bus, request, genericName, decoder, 0);
 }
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        CanBus* bus, uint16_t arbitration_id, uint8_t mode, uint16_t pid,
+        uint8_t pid_length, uint8_t payload[], uint8_t payload_length,
+        const char* genericName, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz) {
+    DiagnosticRequest request = {
+        arbitration_id: arbitration_id,
+        mode: mode,
+        pid: pid,
+        pid_length: pid_length
+    };
+    memcpy(request.payload, payload, payload_length);
+    request.payload_length = payload_length;
+    return addDiagnosticRequest(manager, bus, &request, genericName, decoder, frequencyHz);
+}

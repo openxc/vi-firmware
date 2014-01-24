@@ -50,20 +50,9 @@ void updateDataLights();
 
 void setup() {
     initializeAllCan();
-    signals::initialize();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
             getCanBusCount());
-
-    // TODO this is temporary before we add the interface to add/remove messages
-    // - just need one recurring request to test the system
-    DiagnosticRequest request = {
-        arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
-        mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST,
-        pid: 0xc,
-        pid_length: 1
-    };
-    diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, "foobar", NULL, 1);
+    signals::initialize(&DIAGNOSTICS_MANAGER);
 }
 
 void loop() {

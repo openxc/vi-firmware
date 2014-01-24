@@ -404,6 +404,39 @@ last value of another signal arrived in the message or before/after the
 value you're current modifying. For steering wheel angle, that's
 probably OK - for other signals, not so much.
 
+Diagnostic Messages
+===================
+
+The ``diagnostic_messages`` key is an array of objects describing a recurring
+diagnostic message request.
+
+Diagnostic Message
+------------------
+
+The attributes of each diagnostic message object are:
+
+``bus`` - The name of one of the previously defined CAN buses where this message
+should be requested.
+
+``id`` - the arbitration ID for the request.
+
+``mode`` - the diagnostic request mode, e.g. Mode 1 for powertrain diagnostic
+requests.
+
+``frequency`` - The freuqency in Hz to request this diagnostic message. The
+maximum allowed frequency is 10Hz.
+
+``pid`` - (optional) If the mode uses PIDs, the pid to request.
+
+``generic_name`` - (optional) If defined, the output format of the diagnostic
+response will be of the typical translated data format (i.e. an object with a
+``name`` and ``value``). The value will be the payload.
+
+``handler`` - (optional) When using a ``generic_name``, you can also specify a
+custom handler function to parse the payload. This field is the name of a custom
+command handler function (that matches the ``DiagnosticResponseDecoder``
+function prototype).
+
 Mappings
 ========
 
@@ -418,8 +451,9 @@ The ``mappings`` field must be a list of JSON objects with:
 
 ``mapping`` - a path to a JSON file containing a single object with the key
 ``messages``, containing objects formatted as the :ref:`Messages` section
-documents. In short, you can pull out the ``messages`` key from the main file
-and throw it into a separate file and link it in here.
+describes. In short, you can pull out the ``messages`` key from the main file
+and throw it into a separate file and link it in here. You can also do the same
+with a ``diagnostic_messages`` field containing :ref:`Diagnostic Messages`.
 
 ``bus`` - (optional) The name of one of the defined CAN buses where these
 messages can be found - this value will be set for all of the messages contained

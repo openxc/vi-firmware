@@ -60,6 +60,11 @@ bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
         const DiagnosticResponseDecoder decoder);
 
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        uint16_t arbitration_id, uint8_t mode, uint16_t pid, uint8_t pid_length,
+        uint8_t payload[], uint8_t payload_length, const char* genericName,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 

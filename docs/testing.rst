@@ -5,12 +5,8 @@ Testing
 Windows USB Device Driver
 =========================
 
-On Windows, a driver is required to use the VI's USB interface. A
-driver is available in the `conf/windows-driver
-<https://github.com/openxc/vi-firmware/tree/master/conf/windows-driver>`_
-folder. The driver supports both 32- and 64-bit Windows. The driver is generated
-using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
-project.
+If you want to send and receive vehicle data in Windows via USB, you must
+install the `VI Windows Driver <https://github.com/openxc/vi-windows-driver>`.
 
 Python Library
 ==============

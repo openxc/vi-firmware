@@ -1,1 +1,1 @@
--e git+https://github.com/openxc/openxc-python.git@next#egg=openxc
+openxc==0.10.1

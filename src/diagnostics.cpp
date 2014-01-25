@@ -292,6 +292,9 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     DiagnosticRequest request = {
         arbitration_id: arbitration_id,
         mode: mode,
+        // TODO what about non-pid requests? the openxc::diagnostics API is
+        // getting sloppy
+        has_pid: true,
         pid: pid,
         pid_length: pid_length
     };

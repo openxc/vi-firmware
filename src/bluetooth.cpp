@@ -53,8 +53,15 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
         if(at_commander_set_name(&config, BLUETOOTH_DEVICE_NAME, true)) {
             debug("Successfully set Bluetooth device name");
         } else {
-            debug("Unable to set Bluetooth device name - rebooting anyway");
+            debug("Unable to set Bluetooth device name");
         }
+
+        if(at_commander_set_configuration_timer(&config, 0)) {
+            debug("Successfully disabled remote Bluetooth configuration");
+        } else {
+            debug("Unable to disable remote Bluetooth configuration");
+        }
+
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

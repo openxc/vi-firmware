@@ -11,6 +11,8 @@
   with UART_LOGGING flag.
 * Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
   the latest version.
+* Use new version of Arduino-Makefile which depends on the Perl module
+  Device::SerialPort.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
   function prototype, to allow triggering arbitrary new output messages without
   decoding a signal by hand.

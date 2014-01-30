@@ -153,6 +153,31 @@ _popd
 _popd
 set -e
 
+## Perl's Device::SerialPort for Arduino-Makefile
+
+if ! command -v perldoc >/dev/null 2>&1; then
+    die "Missing Perl - required to restart the chipKIT. Please install it separately and re-run bootstrap."
+else
+    if ! perldoc -l Device::SerialPort; then
+        if [ $OS == "linux" ]; then
+            if [ $DISTRO == "arch" ]; then
+                $SUDO_CMD pacman -S base-devel
+            elif [ $DISTRO == "Ubuntu" ]; then
+                $SUDO_CMD apt-get update -qq
+                $SUDO_CMD apt-get install libdevice-serialport-perl -y
+            fi
+        else
+            if [ $OS == "windows" ]; then
+                _pushd /usr/bin
+                ln -fs gcc.exe gcc-4
+                ln -fss g++.exe g++-4
+                _popd
+            fi
+            cpan Device::SerialPort
+        fi
+    fi
+fi
+
 # ARM / LPC17XX Dependencies
 
 if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then

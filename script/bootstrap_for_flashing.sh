@@ -182,17 +182,17 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
         MPIDE_BASENAME=mpide-0023-macosx-20120903
         MPIDE_FILE="$MPIDE_BASENAME".dmg
     else
-        MPIDE_BASENAME=mpide-0023-linux-20120903
+        MPIDE_BASENAME=mpide-0023-linux32-20130626
         MPIDE_FILE="$MPIDE_BASENAME".tgz
         EXTRACT_COMMAND="tar -xzf"
     fi
 
-    MPIDE_URL=https://github.com/downloads/chipKIT32/chipKIT32-MAX/$MPIDE_FILE
+    MPIDE_URL=http://chipkit.s3.amazonaws.com/builds/$MPIDE_FILE
 
     _pushd $DEPENDENCIES_FOLDER
     if ! test -e $MPIDE_FILE
     then
-        echo "Downloading MPIDE..."
+        echo "Downloading MPIDE $MPIDE_URL..."
         download $MPIDE_URL $MPIDE_FILE
     fi
 

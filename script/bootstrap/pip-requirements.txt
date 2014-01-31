@@ -1,1 +1,2 @@
 -e git+https://github.com/openxc/openxc-python.git@next#egg=openxc
+argparse

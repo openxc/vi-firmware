@@ -182,12 +182,20 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
         MPIDE_BASENAME=mpide-0023-macosx-20120903
         MPIDE_FILE="$MPIDE_BASENAME".dmg
     else
-        MPIDE_BASENAME=mpide-0023-linux32-20130626
+        MPIDE_BASENAME=mpide-0023-linux-20120903
         MPIDE_FILE="$MPIDE_BASENAME".tgz
         EXTRACT_COMMAND="tar -xzf"
     fi
 
-    MPIDE_URL=http://chipkit.s3.amazonaws.com/builds/$MPIDE_FILE
+    if [ $OS == "linux" ]; then
+        # The 20120903 version for Linux has been removed from the official
+        # chipKIT S3 bucket, so we have to temporarily host the file on the
+        # OpenXC bucket until the VI firmware version that works with the newer
+        # MPIDE is fully merged in.
+        MPIDE_URL=http://openxcplatform.com.s3.amazonaws.com/$MPIDE_FILE
+    else
+        MPIDE_URL=http://chipkit.s3.amazonaws.com/builds/$MPIDE_FILE
+    fi
 
     _pushd $DEPENDENCIES_FOLDER
     if ! test -e $MPIDE_FILE

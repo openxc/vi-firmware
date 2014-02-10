@@ -1,6 +1,9 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v5.1.3-dev
+## v5.1.3
+
+* On VIs with an RN-42, disable configuration via Bluetooth to make the
+  connection more stable on Samsung Android devices.
 
 ## v5.1.2
 

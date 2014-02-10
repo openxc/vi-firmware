@@ -19,6 +19,11 @@
 * BREAKING CHANGE: Changed USB endpoint numbers to allow for optimal performance
   and a new logging channel.
 
+## v5.1.3
+
+* On VIs with an RN-42, disable configuration via Bluetooth to make the
+  connection more stable on Samsung Android devices.
+
 ## v5.1.2
 
 * Add BINARY_OUTPUT flag

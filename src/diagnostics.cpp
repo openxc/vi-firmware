@@ -8,6 +8,7 @@
 #include <limits.h>
 
 #define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
+#define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
 
 using openxc::diagnostics::ActiveRequestList;
 using openxc::diagnostics::ActiveDiagnosticRequest;
@@ -248,7 +249,10 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
                     getCanBuses(), getCanBusCount());
         }
     } else {
-        filterStatus = addAcceptanceFilter(bus, request->arbitration_id, getCanBuses(), getCanBusCount());
+        filterStatus = addAcceptanceFilter(bus,
+                request->arbitration_id +
+                        DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
+                getCanBuses(), getCanBusCount());
     }
 
     if(!filterStatus) {

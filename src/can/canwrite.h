@@ -148,6 +148,10 @@ bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
  * of the data is swapped, but otherwise this function queues the data to write
  * out to CAN without any additional processing.
  *
+ * If the 'length' field of the CanMessage struct is 0, the message size is
+ * assumed to be 8 (i.e. it will use the entire contents of the 'data' field, so
+ * make sure it's all valid or zereod out!).
+ *
  * bus - the bus to send the message.
  * message - the CAN message this data should be sent in. The byte order of the
  *      data will be reversed.

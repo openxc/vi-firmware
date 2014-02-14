@@ -20,6 +20,7 @@ QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].
 DiagnosticRequest request = {
     arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
     mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST,
+    has_pid: true,
     pid: 0x2,
     pid_length: 1
 };
@@ -74,6 +75,41 @@ START_TEST (test_add_basic_request)
 }
 END_TEST
 
+START_TEST (test_padding_on_by_default)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+                &getCanBuses()[0], &request, NULL, NULL));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.length, 8);
+}
+END_TEST
+
+START_TEST (test_padding_enabled)
+{
+    request.no_frame_padding = false;
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+                &getCanBuses()[0], &request, NULL, NULL));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.length, 8);
+}
+END_TEST
+
+START_TEST (test_padding_disabled)
+{
+    request.no_frame_padding = true;
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+                &getCanBuses()[0], &request, NULL, NULL));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.length, 3);
+}
+END_TEST
+
 START_TEST (test_add_request_other_bus)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
@@ -108,9 +144,9 @@ START_TEST (test_add_request_with_name)
 }
 END_TEST
 
-static float decodeFloatTimes2(const DiagnosticResponse* response) {
-    float value = diagnostic_payload_to_float(response);
-    return value * 2;
+static float decodeFloatTimes2(const DiagnosticResponse* response,
+        int parsed_payload) {
+    return parsed_payload * 2;
 }
 
 START_TEST (test_add_request_with_decoder_no_name)
@@ -200,6 +236,9 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_add_request_with_decoder_no_name);
     tcase_add_test(tc_core, test_add_request_with_name_and_decoder);
     tcase_add_test(tc_core, test_add_request_with_frequency);
+    tcase_add_test(tc_core, test_padding_on_by_default);
+    tcase_add_test(tc_core, test_padding_enabled);
+    tcase_add_test(tc_core, test_padding_disabled);
 
     suite_add_tcase(s, tc_core);
 

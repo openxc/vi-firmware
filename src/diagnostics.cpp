@@ -62,13 +62,13 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         int busCount) {
     if(busCount > 0) {
         manager->shims[0]= diagnostic_init_shims(openxc::util::log::debug,
-                           sendDiagnosticCanMessageBus1, NULL);
+                sendDiagnosticCanMessageBus1, NULL);
+        if(busCount > 1) {
+            manager->shims[1]= diagnostic_init_shims(openxc::util::log::debug,
+                    sendDiagnosticCanMessageBus2, NULL);
+        }
     }
 
-    if(busCount > 1) {
-        manager->shims[1]= diagnostic_init_shims(openxc::util::log::debug,
-                           sendDiagnosticCanMessageBus2, NULL);
-    }
 
     LIST_INIT(&manager->activeRequests);
     LIST_INIT(&manager->freeActiveRequests);
@@ -153,9 +153,10 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
     if(strnlen(request->genericName, sizeof(request->genericName)) > 0) {
         float value;
         if(request->decoder != NULL) {
-            value = request->decoder(response);
+            value = request->decoder(response,
+                    diagnostic_payload_to_integer(response));
         } else {
-            value = diagnostic_payload_to_float(response);
+            value = diagnostic_payload_to_integer(response);
         }
         sendNumericalMessage(request->genericName, value, pipeline);
     } else {

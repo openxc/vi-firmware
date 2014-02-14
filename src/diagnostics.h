@@ -16,6 +16,19 @@
 namespace openxc {
 namespace diagnostics {
 
+/* Public: The signature for an optional function that can apply the neccessary
+ * formula to translate the binary payload into meaningful data.
+ *
+ * response - the received DiagnosticResponse (the data is in response.payload,
+ *      a byte array). This is most often used when the byte order is
+ *      signiticant, i.e. with many OBD-II PID formulas.
+ * parsed_payload - the entire payload of the response parsed as a single
+ *      integer. You can calculate this from the response yourself, but it's
+ *      provided here already parsed as a shortcut.
+ */
+typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
+        int parsed_payload);
+
 /* Public:
  *
  * If genericName is null, output will be in raw OBD-II response format.

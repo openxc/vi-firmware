@@ -7,6 +7,7 @@
 
 namespace can = openxc::can;
 
+#include "diagnostics.h"
 using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
@@ -16,6 +17,7 @@ using openxc::can::read::ignoreHandler;
 using openxc::can::write::booleanWriter;
 using openxc::can::write::stateWriter;
 using openxc::can::write::numberWriter;
+using openxc::diagnostics::DiagnosticsManager;
 using namespace openxc::signals::handlers;
 
 const int MESSAGE_SET_COUNT = 2;
@@ -113,7 +115,7 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
     }
 };
 
-void openxc::signals::initialize() {
+void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) {
     switch(getConfiguration()->messageSetIndex) {
     case 0: // message set: passthrough
         break;

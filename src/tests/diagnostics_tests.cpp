@@ -49,19 +49,19 @@ void setup() {
 
 START_TEST (test_add_recurring_too_frequent)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL, 1));
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL, 10));
-    ck_assert(!diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL, 11));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL, 1));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL, 10));
+    ck_assert(!diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL, 11));
 }
 END_TEST
 
 START_TEST (test_add_basic_request)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -112,8 +112,8 @@ END_TEST
 
 START_TEST (test_add_request_other_bus)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
-            &request, "mypid", NULL));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+                &getCanBuses()[1], &request, "mypid", NULL));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[1]);
     fail_if(canQueueEmpty(1));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
@@ -129,8 +129,8 @@ END_TEST
 
 START_TEST (test_add_request_with_name)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, "mypid", NULL));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, "mypid", NULL));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -151,15 +151,15 @@ static float decodeFloatTimes2(const DiagnosticResponse* response,
 
 START_TEST (test_add_request_with_decoder_no_name)
 {
-    fail_if(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, decodeFloatTimes2));
+    fail_if(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, decodeFloatTimes2));
 }
 END_TEST
 
 START_TEST (test_add_request_with_name_and_decoder)
 {
-    fail_unless(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, "mypid", decodeFloatTimes2));
+    fail_unless(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, "mypid", decodeFloatTimes2));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -175,8 +175,8 @@ END_TEST
 
 START_TEST (test_add_request_with_frequency)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL, 1));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL, 1));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -201,8 +201,8 @@ END_TEST
 
 START_TEST (test_receive_singletimer_twice)
 {
-    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            &request, NULL, NULL));
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, NULL));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 

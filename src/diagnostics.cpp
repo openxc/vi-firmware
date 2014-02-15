@@ -137,18 +137,10 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 
 static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
-    debug("Diagnostic response received: arb_id: 0x%02x, mode: 0x%x, pid: 0x%x, payload: 0x%02x%02x%02x%02x%02x%02x%02x, size: %d",
-            response->arbitration_id,
-            response->mode,
-            response->pid,
-            response->payload[0],
-            response->payload[1],
-            response->payload[2],
-            response->payload[3],
-            response->payload[4],
-            response->payload[5],
-            response->payload[6],
-            response->payload_length);
+    char response_string[256] = {0};
+    diagnostic_response_to_string(response, response_string,
+            sizeof(response_string));
+    debug("Diagnostic response received: %s", response_string);
 
     if(strnlen(request->genericName, sizeof(request->genericName)) > 0) {
         float value;

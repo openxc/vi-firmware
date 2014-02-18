@@ -14,6 +14,7 @@
 
 #define VERSION_CONTROL_COMMAND 0x80
 #define DEVICE_ID_CONTROL_COMMAND 0x82
+#define DIAGNOSTIC_REQUEST_CONTROL_COMMAND 0x83
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -132,6 +133,11 @@ bool handleControlRequest(uint8_t request) {
             usb::sendControlMessage((uint8_t*)UART_DEVICE.deviceId,
                     strlen(UART_DEVICE.deviceId));
         }
+        return true;
+    }
+    case DIAGNOSTIC_REQUEST_CONTROL_COMMAND:
+    {
+        debug("FOO");
         return true;
     }
     default:

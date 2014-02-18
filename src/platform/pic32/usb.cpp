@@ -23,7 +23,7 @@ using openxc::util::bytebuffer::processQueue;
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t);
+extern bool handleControlRequest(uint8_t, uint8_t[], int);
 
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
@@ -48,7 +48,8 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
 
     case EVENT_EP0_REQUEST:
-        handleControlRequest(SetupPkt.bRequest);
+        // TODO read payload
+        handleControlRequest(SetupPkt.bRequest, NULL, 0);
         break;
 
     default:

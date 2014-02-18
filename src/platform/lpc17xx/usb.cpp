@@ -4,6 +4,7 @@
 #include "util/bytebuffer.h"
 #include "gpio.h"
 #include "usb_config.h"
+#include "emqueue.h"
 
 #include "LPC17xx.h"
 #include "lpc17xx_pinsel.h"
@@ -37,7 +38,7 @@ using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 
 extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t);
+extern bool handleControlRequest(uint8_t, uint8_t[], int);
 
 void configureEndpoints() {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
@@ -62,7 +63,35 @@ void EVENT_USB_Device_ControlRequest() {
         return;
     }
 
-    handleControlRequest(USB_ControlRequest.bRequest);
+    QUEUE_TYPE(uint8_t) payloadQueue;
+    QUEUE_INIT(uint8_t, &payloadQueue);
+    debug("Rq: 0x%x, length: 0x%x", USB_ControlRequest.bRequest,
+            USB_ControlRequest.wLength);
+
+    // Don't try and read payload of system-level control requests
+    if((USB_ControlRequest.bmRequestType >> 7 == 0) &&
+            USB_ControlRequest.bRequest >= 0x80) {
+        Endpoint_ClearSETUP();
+
+        for(int i = 0; i < USB_ControlRequest.wLength; i++) {
+            while (!(Endpoint_IsOUTReceived()));
+            if(!QUEUE_PUSH(uint8_t, &payloadQueue, Endpoint_Read_8())) {
+                debug("Dropped control command write from host -- queue is full");
+                break;
+            }
+        }
+
+        Endpoint_ClearOUT();
+        Endpoint_ClearStatusStage();
+    }
+
+    int length = QUEUE_LENGTH(uint8_t, &payloadQueue);
+    uint8_t snapshot[length];
+    if(length > 0) {
+        QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
+    }
+
+    handleControlRequest(USB_ControlRequest.bRequest, snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
@@ -166,6 +195,8 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
 
     Endpoint_ClearSETUP();
     Endpoint_Write_Control_Stream_LE(data, length);
+    // TODO I think it needs to be ClearIN since this is a device -> host
+    // request, but a simple switch breaks it
     Endpoint_ClearOUT();
 
     Endpoint_SelectEndpoint(previousEndpoint);

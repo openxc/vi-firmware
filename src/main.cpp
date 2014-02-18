@@ -114,7 +114,7 @@ int main(void) {
  *  version and message set, which aren't declared in any header files at the
  *  moment. Ripe for refactoring!
  */
-bool handleControlRequest(uint8_t request) {
+bool handleControlRequest(uint8_t request, uint8_t payload[], int payloadLength) {
     switch(request) {
     case VERSION_CONTROL_COMMAND:
     {
@@ -137,7 +137,7 @@ bool handleControlRequest(uint8_t request) {
     }
     case DIAGNOSTIC_REQUEST_CONTROL_COMMAND:
     {
-        debug("FOO");
+        debug("Diag payload: %s", payload);
         return true;
     }
     default:

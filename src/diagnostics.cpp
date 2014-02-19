@@ -185,7 +185,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
 }
 
 static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
-    return request->handle.request.arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
+    return request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
             && time::shouldTick(&request->timeoutClock);
 }
 
@@ -197,8 +197,7 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
         ActiveDiagnosticRequest* request = &entry->request;
         if(!request->recurring && (
                 broadcastTimedOut(request) ||
-                (request->handle.request.arbitration_id ==
-                        OBD2_FUNCTIONAL_BROADCAST_ID
+                (request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
                     && request->handle.completed))) {
             LIST_REMOVE(entry, entries);
             LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
@@ -251,6 +250,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     }
 
     newEntry->request.bus = bus;
+    newEntry->request.arbitration_id = request->arbitration_id;
     newEntry->request.handle = diagnostic_request(
             &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {

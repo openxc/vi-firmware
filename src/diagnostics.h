@@ -37,6 +37,7 @@ typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
  */
 typedef struct {
     CanBus* bus;
+    uint16_t arbitration_id;
     DiagnosticRequestHandle handle;
     char genericName[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;

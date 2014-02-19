@@ -86,7 +86,8 @@ static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
     // unless the frequency is > 10Hz, there's little chance that we wouldn't
     // have receive the response by the next tick, so if it isn't completed it
     // likely means we're not going to hear back. We'll send the request again.
-    return request->recurring && time::shouldTick(&request->frequencyClock);
+    return request->recurring &&
+            time::shouldTick(&request->frequencyClock, true);
 }
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
@@ -195,7 +196,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
 
 static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
     return request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
-            && time::shouldTick(&request->timeoutClock);
+            && time::shouldTick(&request->timeoutClock, true);
 }
 
 static void cleanupActiveRequests(DiagnosticsManager* manager) {

@@ -61,7 +61,7 @@ END_TEST
 START_TEST (test_add_basic_request)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL));
+            &getCanBuses()[0], &request, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -78,7 +78,7 @@ END_TEST
 START_TEST (test_padding_on_by_default)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-                &getCanBuses()[0], &request, NULL, 1, 0, NULL));
+                &getCanBuses()[0], &request, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -90,7 +90,7 @@ START_TEST (test_padding_enabled)
 {
     request.no_frame_padding = false;
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-                &getCanBuses()[0], &request, NULL, 1, 0, NULL));
+                &getCanBuses()[0], &request, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -102,7 +102,7 @@ START_TEST (test_padding_disabled)
 {
     request.no_frame_padding = true;
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-                &getCanBuses()[0], &request, NULL, 1, 0, NULL));
+                &getCanBuses()[0], &request, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -113,7 +113,7 @@ END_TEST
 START_TEST (test_add_request_other_bus)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-                &getCanBuses()[1], &request, "mypid", 1, 0, NULL));
+                &getCanBuses()[1], &request, "mypid", 1, 0, NULL, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[1]);
     fail_if(canQueueEmpty(1));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[1],
@@ -130,7 +130,7 @@ END_TEST
 START_TEST (test_add_request_with_name)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, "mypid", 1, 0, NULL));
+            &getCanBuses()[0], &request, "mypid", 1, 0, NULL, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -147,7 +147,7 @@ END_TEST
 START_TEST (test_scaling)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, "mypid", 2.0, 14, NULL));
+            &getCanBuses()[0], &request, "mypid", 2.0, 14, NULL, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -166,17 +166,17 @@ static float decodeFloatTimes2(const DiagnosticResponse* response,
     return parsed_payload * 2;
 }
 
-START_TEST (test_add_request_with_decoder_no_name)
+START_TEST (test_add_request_with_decoder_no_name_allowed)
 {
-    fail_if(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, decodeFloatTimes2));
+    fail_unless(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, NULL, 1, 0, decodeFloatTimes2, 0));
 }
 END_TEST
 
 START_TEST (test_add_request_with_name_and_decoder)
 {
     fail_unless(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, "mypid", 1, 0, decodeFloatTimes2));
+            &getCanBuses()[0], &request, "mypid", 1, 0, decodeFloatTimes2, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -219,7 +219,7 @@ END_TEST
 START_TEST (test_receive_singletimer_twice)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL));
+            &getCanBuses()[0], &request, 0));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -250,7 +250,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_receive_singletimer_twice);
     tcase_add_test(tc_core, test_add_request_other_bus);
     tcase_add_test(tc_core, test_add_request_with_name);
-    tcase_add_test(tc_core, test_add_request_with_decoder_no_name);
+    tcase_add_test(tc_core, test_add_request_with_decoder_no_name_allowed);
     tcase_add_test(tc_core, test_add_request_with_name_and_decoder);
     tcase_add_test(tc_core, test_add_request_with_frequency);
     tcase_add_test(tc_core, test_padding_on_by_default);

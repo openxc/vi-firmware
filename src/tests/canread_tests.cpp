@@ -30,6 +30,7 @@ const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
+extern unsigned long FAKE_TIME;
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
 
@@ -37,14 +38,9 @@ bool queueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
 }
 
-static unsigned long fakeTime = 0;
-
-unsigned long timeMock() {
-    return fakeTime;
-}
 
 void setup() {
-    fakeTime = 0;
+    FAKE_TIME = 1000;
     PIPELINE.outputFormat = openxc::pipeline::JSON;
     PIPELINE.usb = &USB_DEVICE;
     usb::initialize(&USB_DEVICE);
@@ -214,7 +210,6 @@ END_TEST
 
 START_TEST (test_passthrough_limited_frequency)
 {
-    getMessages()[1].frequencyClock.timeFunction = timeMock;
     fail_unless(queueEmpty());
     CanMessage message = {getMessages()[1].id, 0x1234};
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
@@ -224,7 +219,7 @@ START_TEST (test_passthrough_limited_frequency)
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &PIPELINE);
     fail_unless(queueEmpty());
-    fakeTime += 2000;
+    FAKE_TIME += 2000;
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &PIPELINE);
     fail_if(queueEmpty());
@@ -420,8 +415,7 @@ END_TEST
 START_TEST (test_limited_frequency)
 {
     getSignals()[0].frequencyClock.frequency = 1;
-    getSignals()[0].frequencyClock.timeFunction = timeMock;
-    fakeTime = 2000;
+    FAKE_TIME = 2000;
     can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
             getSignals(), getSignalCount());
     fail_if(queueEmpty());
@@ -437,7 +431,7 @@ START_TEST (test_limited_frequency)
             getSignals(), getSignalCount());
     fail_unless(queueEmpty());
     // mock waiting 1 second
-    fakeTime += 1000;
+    FAKE_TIME += 1000;
     can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
             getSignals(), getSignalCount());
     fail_if(queueEmpty());

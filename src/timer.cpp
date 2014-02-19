@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <stdlib.h>
+#include "util/log.h"
 #include "util/timer.h"
 
 #define MS_PER_SECOND 1000
@@ -19,26 +21,42 @@ float frequencyToPeriod(float frequency) {
 }
 
 bool openxc::util::time::shouldTick(FrequencyClock* clock) {
+    return shouldTick(clock, false);
+}
+
+static bool started(openxc::util::time::FrequencyClock* clock) {
+    return clock->lastTick != 0;
+}
+
+bool openxc::util::time::shouldTick(FrequencyClock* clock, bool stagger) {
     if(clock == NULL) {
         return true;
     }
 
     unsigned long (*timeFunction)() =
             clock->timeFunction != NULL ? clock->timeFunction : systemTimeMs;
-    float elapsedTime = timeFunction() - clock->lastTick;
+    float elapsedTime = 0;
+    float period = frequencyToPeriod(clock->frequency);
+    if(!started(clock) && stagger) {
+        // We don't seed the random generator, but that's OK - we can use the
+        // same order of random numbers each time without issue.
+        clock->lastTick = timeFunction() - (rand() % int(period));
+    } else {
+        // Make sure it ticks the the first call to shouldTick
+        elapsedTime = !started(clock) ? period :
+                timeFunction() - clock->lastTick;
+    }
+
     bool tick = false;
-    if(!clock->started || clock->frequency == 0 ||
-            elapsedTime >= frequencyToPeriod(clock->frequency)) {
-        tick = true;
+    if(clock->frequency == 0 || elapsedTime >= period) {
         clock->lastTick = timeFunction();
-        clock->started = true;
+        tick = true;
     }
     return tick;
 }
 
 void openxc::util::time::initializeClock(FrequencyClock* clock) {
-    clock->lastTick = -1;
+    clock->lastTick = 0;
     clock->frequency = 0;
     clock->timeFunction = systemTimeMs;
-    clock->started = false;
 }

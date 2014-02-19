@@ -23,11 +23,11 @@ namespace diagnostics {
  *      a byte array). This is most often used when the byte order is
  *      signiticant, i.e. with many OBD-II PID formulas.
  * parsed_payload - the entire payload of the response parsed as a single
- *      integer. You can calculate this from the response yourself, but it's
- *      provided here already parsed as a shortcut.
+ *      integer, then transformed with the registered factor and offset
+ *      to a float.
  */
 typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
-        int parsed_payload);
+        float parsed_payload);
 
 /* Public:
  *
@@ -40,6 +40,8 @@ typedef struct {
     uint16_t arbitration_id;
     DiagnosticRequestHandle handle;
     char genericName[MAX_GENERIC_NAME_LENGTH];
+    float factor;
+    float offset;
     DiagnosticResponseDecoder decoder;
     bool recurring;
     openxc::util::time::FrequencyClock frequencyClock;
@@ -68,16 +70,24 @@ void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
  */
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz);
+
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request, const uint8_t frequencyHz);
+
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder);
+        float factor, float offset, const DiagnosticResponseDecoder decoder);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         uint16_t arbitration_id, uint8_t mode, uint16_t pid, uint8_t pid_length,
         uint8_t payload[], uint8_t payload_length, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);

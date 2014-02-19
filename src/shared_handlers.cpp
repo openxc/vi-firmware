@@ -422,3 +422,8 @@ void openxc::signals::handlers::handleOccupancyMessage(int messageId,
             lookupSignal("passenger_occupancy_upper", signals, signalCount),
             signals, signalCount, pipeline);
 }
+
+float openxc::signals::handlers::handleObd2Pid(
+        const DiagnosticResponse* response, float parsedPayload) {
+    return diagnostic_decode_obd2_pid(response);
+}

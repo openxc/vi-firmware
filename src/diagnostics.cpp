@@ -155,12 +155,10 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
 
     if(response->success && strnlen(
                 request->genericName, sizeof(request->genericName)) > 0) {
-        float value;
+        float value = diagnostic_payload_to_integer(response) *
+                request->factor + request->offset;
         if(request->decoder != NULL) {
-            value = request->decoder(response,
-                    diagnostic_payload_to_integer(response));
-        } else {
-            value = diagnostic_payload_to_integer(response);
+            value = request->decoder(response, value);
         }
         sendNumericalMessage(request->genericName, value, pipeline);
     } else {
@@ -218,8 +216,11 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz) {
 
+    // TODO add another value so we can have the detailed response format, but
+    // with the translated value
     if(genericName == NULL && decoder != NULL) {
         debug("Diagnostic requests with decoded payload require a generic name");
         return false;
@@ -269,6 +270,8 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     } else {
         newEntry->request.genericName[0] = '\0';
     }
+    newEntry->request.factor = factor;
+    newEntry->request.offset = offset;
     newEntry->request.decoder = decoder;
     newEntry->request.recurring = frequencyHz != 0;
     newEntry->request.frequencyClock = {0};
@@ -284,15 +287,16 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder) {
-    return addDiagnosticRequest(manager, bus, request, genericName, decoder, 0);
+        float factor, float offset, const DiagnosticResponseDecoder decoder) {
+    return addDiagnosticRequest(manager, bus, request, genericName, factor,
+            offset, decoder, 0);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, uint16_t arbitration_id, uint8_t mode, uint16_t pid,
         uint8_t pid_length, uint8_t payload[], uint8_t payload_length,
-        const char* genericName, const DiagnosticResponseDecoder decoder,
-        const uint8_t frequencyHz) {
+        const char* genericName, float factor, float offset,
+        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
     DiagnosticRequest request = {
         arbitration_id: arbitration_id,
         mode: mode,
@@ -304,5 +308,16 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     };
     memcpy(request.payload, payload, payload_length);
     request.payload_length = payload_length;
-    return addDiagnosticRequest(manager, bus, &request, genericName, decoder, frequencyHz);
+    return addDiagnosticRequest(manager, bus, &request, genericName, factor,
+            offset, decoder, frequencyHz);
+}
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request, const uint8_t frequencyHz) {
+    return addDiagnosticRequest(manager, bus, request, NULL, 1.0, 0, NULL, frequencyHz);
+}
+
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request) {
+    return addDiagnosticRequest(manager, bus, request, 0);
 }

@@ -142,7 +142,8 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
             sizeof(response_string));
     debug("Diagnostic response received: %s", response_string);
 
-    if(strnlen(request->genericName, sizeof(request->genericName)) > 0) {
+    if(response->success && strnlen(
+                request->genericName, sizeof(request->genericName)) > 0) {
         float value;
         if(request->decoder != NULL) {
             value = request->decoder(response,
@@ -175,12 +176,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 sizeof(combined.bytes));
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
-                if(response.success) {
-                    relayDiagnosticResponse(&entry->request, &response, pipeline);
-                } else {
-                    debug("Negative diagnostic response received, NRC: 0x%x",
-                            response.negative_response_code);
-                }
+                relayDiagnosticResponse(&entry->request, &response, pipeline);
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }

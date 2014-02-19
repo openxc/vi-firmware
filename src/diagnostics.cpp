@@ -106,6 +106,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 }
 
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
+        const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
@@ -115,7 +116,17 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     message.diagnostic_message.has_bus = true;
     message.diagnostic_message.bus = bus->address;
     message.diagnostic_message.has_message_id = true;
-    message.diagnostic_message.message_id = response->arbitration_id;
+
+    if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
+        message.diagnostic_message.message_id = response->arbitration_id
+            - DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET;
+    } else {
+        // must preserve responding arb ID for responses to functional broadcast
+        // requests, as they are the actual module address and not just arb ID +
+        // 8.
+        message.diagnostic_message.message_id = response->arbitration_id;
+    }
+
     message.diagnostic_message.has_mode = true;
     message.diagnostic_message.mode = response->mode;
     message.diagnostic_message.has_pid = response->has_pid;
@@ -154,7 +165,7 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
         sendNumericalMessage(request->genericName, value, pipeline);
     } else {
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
-                request->bus, response);
+                request->bus, request, response);
         openxc::can::read::sendVehicleMessage(&message, pipeline);
     }
 }

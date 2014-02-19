@@ -148,11 +148,6 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 
 static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
-    char response_string[256] = {0};
-    diagnostic_response_to_string(response, response_string,
-            sizeof(response_string));
-    debug("Diagnostic response received: %s", response_string);
-
     if(response->success && strnlen(
                 request->genericName, sizeof(request->genericName)) > 0) {
         float value = diagnostic_payload_to_integer(response) *

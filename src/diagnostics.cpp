@@ -107,7 +107,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response) {
+        const DiagnosticResponse* response, float parsedValue) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
@@ -143,22 +143,27 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
             response->payload_length);
     message.diagnostic_message.payload.size = response->payload_length;
 
+    if(message.diagnostic_message.has_payload && request->parsePayload) {
+        message.diagnostic_message.has_value = true;
+        message.diagnostic_message.value = parsedValue;
+    }
+
     return message;
 }
 
 static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
+    float value = diagnostic_payload_to_integer(response) *
+            request->factor + request->offset;
+    if(request->decoder != NULL) {
+        value = request->decoder(response, value);
+    }
     if(response->success && strnlen(
                 request->genericName, sizeof(request->genericName)) > 0) {
-        float value = diagnostic_payload_to_integer(response) *
-                request->factor + request->offset;
-        if(request->decoder != NULL) {
-            value = request->decoder(response, value);
-        }
         sendNumericalMessage(request->genericName, value, pipeline);
     } else {
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
-                request->bus, request, response);
+                request->bus, request, response, value);
         openxc::can::read::sendVehicleMessage(&message, pipeline);
     }
 }
@@ -209,17 +214,11 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
     }
 }
 
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+static bool addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        bool parsePayload, float factor, float offset,
+        const openxc::diagnostics::DiagnosticResponseDecoder decoder,
         const uint8_t frequencyHz) {
-
-    // TODO add another value so we can have the detailed response format, but
-    // with the translated value
-    if(genericName == NULL && decoder != NULL) {
-        debug("Diagnostic requests with decoded payload require a generic name");
-        return false;
-    }
 
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
@@ -265,6 +264,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     } else {
         newEntry->request.genericName[0] = '\0';
     }
+    newEntry->request.parsePayload = parsePayload;
     newEntry->request.factor = factor;
     newEntry->request.offset = offset;
     newEntry->request.decoder = decoder;
@@ -280,39 +280,16 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     return true;
 }
 
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        float factor, float offset, const DiagnosticResponseDecoder decoder) {
-    return addDiagnosticRequest(manager, bus, request, genericName, factor,
-            offset, decoder, 0);
-}
-
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
-        CanBus* bus, uint16_t arbitration_id, uint8_t mode, uint16_t pid,
-        uint8_t pid_length, uint8_t payload[], uint8_t payload_length,
-        const char* genericName, float factor, float offset,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz) {
-    DiagnosticRequest request = {
-        arbitration_id: arbitration_id,
-        mode: mode,
-        // TODO what about non-pid requests? the openxc::diagnostics API is
-        // getting sloppy
-        has_pid: true,
-        pid: pid,
-        pid_length: pid_length
-    };
-    memcpy(request.payload, payload, payload_length);
-    request.payload_length = payload_length;
-    return addDiagnosticRequest(manager, bus, &request, genericName, factor,
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request, const char* genericName,
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz) {
+    return addDiagnosticRequest(manager, bus, request, genericName, true, factor,
             offset, decoder, frequencyHz);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const uint8_t frequencyHz) {
-    return addDiagnosticRequest(manager, bus, request, NULL, 1.0, 0, NULL, frequencyHz);
-}
-
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request) {
-    return addDiagnosticRequest(manager, bus, request, 0);
+    return addDiagnosticRequest(manager, bus, request, NULL, false, 1.0, 0,
+            NULL, frequencyHz);
 }

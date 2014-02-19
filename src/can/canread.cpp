@@ -24,6 +24,7 @@ const char openxc::can::read::DIAGNOSTIC_PID_FIELD_NAME[] = "pid";
 const char openxc::can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "success";
 const char openxc::can::read::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
 const char openxc::can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
+const char openxc::can::read::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
 
 void openxc::can::read::sendJSON(cJSON* root, Pipeline* pipeline,
         MessageClass messageClass) {
@@ -334,7 +335,11 @@ static void sendDiagnosticJsonMessage(openxc_VehicleMessage* message,
                 message->diagnostic_message.negative_response_code);
     }
 
-    if(message->diagnostic_message.has_payload) {
+
+    if(message->diagnostic_message.has_value) {
+        cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_VALUE_FIELD_NAME,
+                message->diagnostic_message.value);
+    } else if(message->diagnostic_message.has_payload) {
         char encodedData[67];
         const char* maxAddress = encodedData + sizeof(encodedData);
         char* encodedDataIndex = encodedData;

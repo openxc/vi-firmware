@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include "util/timer.h"
 #include "pipeline.h"
-#include "emhashmap.h"
 #include <can/canutil.h>
 #include <uds/uds.h>
 
@@ -59,10 +58,10 @@ LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
 
 typedef struct {
     DiagnosticShims shims[MAX_SHIM_COUNT];
-    HashMap* occupiedArbitrationIds;
+    ActiveRequestList inFlightRequests;
     ActiveRequestList activeRequests;
     ActiveRequestList freeActiveRequests;
-    ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    ActiveRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 } DiagnosticsManager;
 
 void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);

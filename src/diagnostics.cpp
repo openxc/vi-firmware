@@ -70,14 +70,13 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         }
     }
 
-    manager->occupiedArbitrationIds = emhashmap_create(
-            SIMULTANOUS_DIAGNOSTIC_REQUEST_LIMIT);
+    LIST_INIT(&manager->inFlightRequests);
     LIST_INIT(&manager->activeRequests);
     LIST_INIT(&manager->freeActiveRequests);
 
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
         LIST_INSERT_HEAD(&manager->freeActiveRequests,
-                &manager->activeListEntries[i], entries);
+                &manager->requestListEntries[i], entries);
     }
 }
 
@@ -86,8 +85,14 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
  */
 static inline bool clearToSend(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request) {
-    return !emhashmap_contains(manager->occupiedArbitrationIds,
-            request->arbitration_id);
+    for(ActiveRequestListEntry* entry = manager->inFlightRequests.lh_first;
+            entry != NULL; entry = entry->entries.le_next) {
+        if(entry->request.arbitration_id == request->arbitration_id) {
+            debug("0x%x already in flight", request->arbitration_id);
+            return false;
+        }
+    }
+    return true;
 }
 
 static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
@@ -114,8 +119,14 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
                     &entry->request.handle.request,
                     NULL);
             entry->request.timeoutClock = {0};
-            emhashmap_put(manager->occupiedArbitrationIds,
-                    entry->request.arbitration_id, NULL);
+
+            debug("adding 0x%x to inflight", entry->request.arbitration_id);
+            // TODO make a macro for this iterator safe remove...after it
+            // works. right now it seems to corrupt the lists.
+            ActiveRequestListEntry* previousEntry = *entry->entries.le_prev;
+            LIST_REMOVE(entry, entries);
+            LIST_INSERT_HEAD(&manager->inFlightRequests, entry, entries);
+            entry = previousEntry;
         }
     }
 }
@@ -185,7 +196,7 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
-    for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
+    for(ActiveRequestListEntry* entry = manager->inFlightRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
 
         if(bus != entry->request.bus) {
@@ -200,9 +211,14 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 sizeof(combined.bytes));
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
-                emhashmap_remove(manager->occupiedArbitrationIds,
-                        entry->request.arbitration_id);
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
+
+                debug("moving 0x%x back to active", entry->request.arbitration_id);
+                ActiveRequestListEntry* previousEntry = *entry->entries.le_prev;
+                LIST_REMOVE(entry, entries);
+                // TODO need to insert at the tail
+                LIST_INSERT_HEAD(&manager->activeRequests, entry, entries);
+                entry = previousEntry;
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }
@@ -218,6 +234,7 @@ static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
 static void cleanupActiveRequests(DiagnosticsManager* manager) {
     // clean up the active request list, move as many to the free list as
     // possible
+    // TODO clean up inflight requests too?
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         ActiveDiagnosticRequest* request = &entry->request;
@@ -225,10 +242,10 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
                 broadcastTimedOut(request) ||
                 (request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
                     && request->handle.completed))) {
+            ActiveRequestListEntry* previousEntry = *entry->entries.le_prev;
             LIST_REMOVE(entry, entries);
             LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
-            emhashmap_remove(manager->occupiedArbitrationIds,
-                    entry->request.arbitration_id);
+            entry = previousEntry;
         }
     }
 }
@@ -276,8 +293,6 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
 
     newEntry->request.bus = bus;
     newEntry->request.arbitration_id = request->arbitration_id;
-    newEntry->request.handle = diagnostic_request(
-            &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {
         strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
     } else {

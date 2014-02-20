@@ -9,6 +9,7 @@
 
 #define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
 #define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
+#define SIMULTANOUS_DIAGNOSTIC_REQUEST_LIMIT 32
 
 using openxc::diagnostics::ActiveRequestList;
 using openxc::diagnostics::ActiveDiagnosticRequest;
@@ -69,7 +70,8 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         }
     }
 
-
+    manager->occupiedArbitrationIds = emhashmap_create(
+            SIMULTANOUS_DIAGNOSTIC_REQUEST_LIMIT);
     LIST_INIT(&manager->activeRequests);
     LIST_INIT(&manager->freeActiveRequests);
 
@@ -77,6 +79,15 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         LIST_INSERT_HEAD(&manager->freeActiveRequests,
                 &manager->activeListEntries[i], entries);
     }
+}
+
+/* Private: Returns true if there are no other active requests to the same arb
+ * ID.
+ */
+static inline bool clearToSend(DiagnosticsManager* manager,
+        ActiveDiagnosticRequest* request) {
+    return !emhashmap_contains(manager->occupiedArbitrationIds,
+            request->arbitration_id);
 }
 
 static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
@@ -94,7 +105,8 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
     for(ActiveRequestListEntry* entry = manager->activeRequests.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
-        if(entry->request.bus == bus && requestShouldRecur(&entry->request)) {
+        if(entry->request.bus == bus && requestShouldRecur(&entry->request)
+                && clearToSend(manager, &entry->request)) {
             entry->request.handle = diagnostic_request(
                     // TODO eek, is bus address and array index this tightly
                     // coupled?
@@ -102,6 +114,8 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
                     &entry->request.handle.request,
                     NULL);
             entry->request.timeoutClock = {0};
+            emhashmap_put(manager->occupiedArbitrationIds,
+                    entry->request.arbitration_id, NULL);
         }
     }
 }
@@ -186,6 +200,8 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 sizeof(combined.bytes));
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
+                emhashmap_remove(manager->occupiedArbitrationIds,
+                        entry->request.arbitration_id);
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
@@ -211,6 +227,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
                     && request->handle.completed))) {
             LIST_REMOVE(entry, entries);
             LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, entries);
+            emhashmap_remove(manager->occupiedArbitrationIds,
+                    entry->request.arbitration_id);
         }
     }
 }

@@ -1,13 +1,14 @@
 #ifndef __DIAGNOSTICS_H__
 #define __DIAGNOSTICS_H__
 
-#include "util/timer.h"
-#include "pipeline.h"
-#include <can/canutil.h>
-#include <uds/uds.h>
 #include <sys/queue.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "util/timer.h"
+#include "pipeline.h"
+#include "emhashmap.h"
+#include <can/canutil.h>
+#include <uds/uds.h>
 
 #define MAX_SHIM_COUNT 2
 #define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
@@ -58,6 +59,7 @@ LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
 
 typedef struct {
     DiagnosticShims shims[MAX_SHIM_COUNT];
+    HashMap* occupiedArbitrationIds;
     ActiveRequestList activeRequests;
     ActiveRequestList freeActiveRequests;
     ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];

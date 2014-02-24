@@ -48,7 +48,7 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 
     // we most likely just power cycled the RN-42 to make sure it was on, so
     // wait for it to boot up
-    delayMs(1000);
+    delayMs(500);
     if(at_commander_set_baud(&config, device->baudRate)) {
         debug("Successfully set baud rate");
         if(at_commander_set_name(&config, BLUETOOTH_DEVICE_NAME, true)) {

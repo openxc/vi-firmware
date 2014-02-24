@@ -95,6 +95,18 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
             debug("Unable to change Bluetooth page scan window.");
         }
 
+        AtCommand modeCommand = {
+            request_format: "SM,%d\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+
+        if(at_commander_set(&config, &modeCommand, 0)) {
+            debug("Changed Bluetooth device mode to slave");
+        } else {
+            debug("Unable to change Bluetooth device mode");
+        }
+
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

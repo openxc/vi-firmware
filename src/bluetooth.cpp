@@ -71,6 +71,30 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
             debug("Unable to disable remote Bluetooth configuration");
         }
 
+        AtCommand inquiryCommand = {
+            request_format: "SI,%s\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+
+        if(at_commander_set(&config, &inquiryCommand, "0200")) {
+            debug("Changed Bluetooth inquiry window to 0200");
+        } else {
+            debug("Unable to change Bluetooth inquiry window.");
+        }
+
+        AtCommand pagingCommand = {
+            request_format: "SJ,%s\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+
+        if(at_commander_set(&config, &pagingCommand, "0200")) {
+            debug("Changed Bluetooth page scan window to 0200");
+        } else {
+            debug("Unable to change Bluetooth page scan window.");
+        }
+
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

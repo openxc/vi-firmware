@@ -9,6 +9,9 @@
 #include <string.h>
 
 #define BLUETOOTH_DEVICE_NAME "OpenXC-VI"
+#define BLUETOOTH_SLAVE_MODE 0
+#define BLUETOOTH_PAIRING_MODE 6
+#define BLUETOOTH_AUTO_MASTER_MODE 3
 
 namespace gpio = openxc::gpio;
 namespace uart = openxc::interface::uart;
@@ -95,16 +98,34 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
             debug("Unable to change Bluetooth page scan window.");
         }
 
-        AtCommand modeCommand = {
-            request_format: "SM,%d\r",
-            expected_response: "AOK",
+        AtCommand firmwareVersionCommand = {
+            request_format: "V\r",
+            expected_response: NULL,
             error_response: "ERR"
         };
 
-        if(at_commander_set(&config, &modeCommand, 0)) {
-            debug("Changed Bluetooth device mode to slave");
+        char versionString[64];
+        if(!at_commander_get(&config, &firmwareVersionCommand, versionString, sizeof(versionString))) {
+            debug("Unable to determine Bluetoothe module firmware version");
         } else {
-            debug("Unable to change Bluetooth device mode");
+            debug("Bluetooth module is running firmware %s", versionString);
+            AtCommand modeCommand = {
+                request_format: "SM,%d\r",
+                expected_response: "AOK",
+                error_response: "ERR"
+            };
+
+            int desiredMode = BLUETOOTH_SLAVE_MODE;
+            if(strstr(versionString, "6.") != NULL) {
+                debug("Bluetooth device is on 6.x firmware - switching to pairing mode");
+                desiredMode = BLUETOOTH_PAIRING_MODE;
+            } else {
+                debug("Bluetooth device is on 4.x firmware - switching to slave mode");
+            }
+
+            if(!at_commander_set(&config, &modeCommand, desiredMode)) {
+                debug("Unable to change Bluetooth device mode");
+            }
         }
 
         at_commander_reboot(&config);

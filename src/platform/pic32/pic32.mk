@@ -95,13 +95,13 @@ $(error chipKIT Network library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
-ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/arduino-mk/chipKIT.mk; echo $$?)
+ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/chipKIT.mk; echo $$?)
 ifneq ($(ARDUINO_MK_EXISTS),0)
 $(error arduino.mk library missing - run "script/bootstrap.sh")
 endif
 
 USER_LIB_PATH = $(LIBS_PATH)
-ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk/arduino-mk
+ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)

@@ -27,6 +27,8 @@ using openxc::util::log::debug;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 
+static bool BLUETOOTH_STORE_REMOTE_ADDRESS = false;
+
 void changeBaudRate(void* device, int baud) {
     uart::changeBaudRate((UartDevice*)device, baud);
 }
@@ -106,9 +108,10 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 
         char versionString[64];
         if(!at_commander_get(&config, &firmwareVersionCommand, versionString, sizeof(versionString))) {
-            debug("Unable to determine Bluetoothe module firmware version");
+            debug("Unable to determine Bluetooth module firmware version");
         } else {
             debug("Bluetooth module is running firmware %s", versionString);
+
             AtCommand modeCommand = {
                 request_format: "SM,%d\r",
                 expected_response: "AOK",
@@ -120,7 +123,28 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
                 debug("Bluetooth device is on 6.x firmware - switching to pairing mode");
                 desiredMode = BLUETOOTH_PAIRING_MODE;
             } else {
-                debug("Bluetooth device is on 4.x firmware - switching to slave mode");
+                debug("Bluetooth device is on 4.x firmware");
+
+                AtCommand remoteAddressQuery = {
+                    request_format: "GR\r",
+                    expected_response: NULL,
+                    error_response: "ERR"
+                };
+
+                char remoteAddress[64];
+                if(!at_commander_get(&config, &remoteAddressQuery, remoteAddress, sizeof(remoteAddress))) {
+                    debug("Unable to get currently stored remote BT address");
+                } else {
+                    if(strncmp(remoteAddress, "NOT SET", sizeof(remoteAddress))) {
+                        desiredMode = BLUETOOTH_AUTO_MASTER_MODE;
+                        BLUETOOTH_STORE_REMOTE_ADDRESS = true;
+                        debug("Remote BT address stored - switching to auto-connect master mode");
+                    } else {
+                        BLUETOOTH_STORE_REMOTE_ADDRESS = false;
+                        desiredMode = BLUETOOTH_SLAVE_MODE;
+                        debug("No remote BT address stored - switching to slave mode");
+                    }
+                }
             }
 
             if(!at_commander_set(&config, &modeCommand, desiredMode)) {

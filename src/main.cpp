@@ -99,6 +99,7 @@ int main(void) {
         loop();
         process(&PIPELINE);
         updateInterfaceLight();
+        bluetooth::loop(PIPELINE.uart);
     }
 
     return 0;

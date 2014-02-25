@@ -41,16 +41,53 @@ void writeByte(void* device, uint8_t byte) {
     uart::writeByte((UartDevice*)device, byte);
 }
 
+void openxc::bluetooth::loop(UartDevice* device) {
+    if(BLUETOOTH_STORE_REMOTE_ADDRESS && uart::connected(device)) {
+        AtCommanderConfig config = {AT_PLATFORM_RN42};
+        config.baud_rate_initializer = changeBaudRate;
+        config.device = device;
+        config.write_function = writeByte;
+        config.read_function = readByte;
+        config.delay_function = delayMs;
+        config.log_function = debug;
+
+        AtCommand connectedAddressQuery = {
+            request_format: "GR\r",
+            expected_response: NULL,
+            error_response: "ERR"
+        };
+
+        char remoteAddress[64];
+        if(at_commander_get(&config, &connectedAddressQuery,
+                    remoteAddress, sizeof(remoteAddress))) {
+            debug("Connected BT device address is %s", remoteAddress);
+
+            AtCommand remoteAddressCommand = {
+                request_format: "SR,%s\r",
+                expected_response: "AOK",
+                error_response: "ERR"
+            };
+            if(at_commander_set(&config, &remoteAddressCommand, remoteAddress)) {
+                debug("Stored remote BT address - will auto-connect next boot");
+            } else {
+                debug("Unable to clear Bluetooth stored remote address");
+            }
+        } else {
+            debug("Unable to get currently connected BT device MAC");
+        }
+
+        BLUETOOTH_STORE_REMOTE_ADDRESS = false;
+    }
+}
+
 void openxc::bluetooth::configureExternalModule(UartDevice* device) {
     AtCommanderConfig config = {AT_PLATFORM_RN42};
-
     config.baud_rate_initializer = changeBaudRate;
     config.device = device;
     config.write_function = writeByte;
     config.read_function = readByte;
     config.delay_function = delayMs;
     config.log_function = debug;
-
     // we most likely just power cycled the RN-42 to make sure it was on, so
     // wait for it to boot up
     delayMs(500);
@@ -137,10 +174,10 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
                 } else {
                     if(strncmp(remoteAddress, "NOT SET", sizeof(remoteAddress))) {
                         desiredMode = BLUETOOTH_AUTO_MASTER_MODE;
-                        BLUETOOTH_STORE_REMOTE_ADDRESS = true;
+                        BLUETOOTH_STORE_REMOTE_ADDRESS = false;
                         debug("Remote BT address stored - switching to auto-connect master mode");
                     } else {
-                        BLUETOOTH_STORE_REMOTE_ADDRESS = false;
+                        BLUETOOTH_STORE_REMOTE_ADDRESS = true;
                         desiredMode = BLUETOOTH_SLAVE_MODE;
                         debug("No remote BT address stored - switching to slave mode");
                     }

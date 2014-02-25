@@ -20,7 +20,7 @@ particular location.
 Windows
 ^^^^^^^
 
-Download 32-bit version of Cygwin `Cygwin <http://www.cygwin.com>`__ (yes,
+Download 32-bit version of `Cygwin <http://www.cygwin.com>`__ (yes,
 even if you're on 64-bit Windows) and run the installer - during the
 installation process, select these packages:
 

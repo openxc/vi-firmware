@@ -38,8 +38,6 @@ bool openxc::util::time::shouldTick(FrequencyClock* clock, bool stagger) {
     float elapsedTime = 0;
     float period = frequencyToPeriod(clock->frequency);
     if(!started(clock) && stagger) {
-        // We don't seed the random generator, but that's OK - we can use the
-        // same order of random numbers each time without issue.
         clock->lastTick = timeFunction() - (rand() % int(period));
     } else {
         // Make sure it ticks the the first call to shouldTick
@@ -52,6 +50,7 @@ bool openxc::util::time::shouldTick(FrequencyClock* clock, bool stagger) {
         clock->lastTick = timeFunction();
         tick = true;
     }
+
     return tick;
 }
 

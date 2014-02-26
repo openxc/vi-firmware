@@ -90,6 +90,8 @@ int main(void) {
     bluetooth::initialize(PIPELINE.uart);
     network::initialize(PIPELINE.network);
 
+    srand(time::systemTimeMs());
+
     debug("Initializing as %s", getActiveMessageSet()->name);
     setup();
 

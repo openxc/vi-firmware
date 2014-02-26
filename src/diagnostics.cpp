@@ -9,7 +9,6 @@
 
 #define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
 #define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
-#define SIMULTANOUS_DIAGNOSTIC_REQUEST_LIMIT 32
 
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::DiagnosticRequestListEntry;

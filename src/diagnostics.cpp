@@ -129,9 +129,10 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
     DiagnosticRequestListEntry* entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
-        if(entry->request.bus == bus && (!entry->request.recurring ||
-                    requestShouldRecur(&entry->request))
-                && clearToSend(manager, &entry->request)) {
+        // It's important to check if we're clear to send first, because calling
+        // requestShouldRecur will tick the clock if it returns true.
+        if(entry->request.bus == bus && clearToSend(manager, &entry->request) &&
+                (!entry->request.recurring || requestShouldRecur(&entry->request))) {
             start_diagnostic_request(&manager->shims[bus->address - 1],
                     &entry->request.handle);
             entry->request.timeoutClock = {0};

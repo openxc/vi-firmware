@@ -78,7 +78,8 @@ static inline bool clearToSend(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request) {
     DiagnosticRequestListEntry* entry;
     LIST_FOREACH(entry, &manager->inFlightRequests, listEntries) {
-        if(entry->request.arbitration_id == request->arbitration_id) {
+        if(&entry->request != request &&
+                entry->request.arbitration_id == request->arbitration_id) {
             debug("0x%x already in flight", request->arbitration_id);
             return false;
         }

@@ -11,7 +11,7 @@
 #include <uds/uds.h>
 
 #define MAX_SHIM_COUNT 2
-#define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
+#define MAX_SIMULTANEOUS_DIAG_REQUESTS 20
 #define MAX_GENERIC_NAME_LENGTH 40
 
 namespace openxc {

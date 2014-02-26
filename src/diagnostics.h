@@ -49,19 +49,21 @@ typedef struct {
     openxc::util::time::FrequencyClock timeoutClock;
 } ActiveDiagnosticRequest;
 
-struct ActiveRequestListEntry {
+struct DiagnosticRequestListEntry {
     ActiveDiagnosticRequest request;
-    LIST_ENTRY(ActiveRequestListEntry) entries;
+    TAILQ_ENTRY(DiagnosticRequestListEntry) queueEntries;
+    LIST_ENTRY(DiagnosticRequestListEntry) listEntries;
 };
 
-LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
+LIST_HEAD(DiagnosticRequestList, DiagnosticRequestListEntry);
+TAILQ_HEAD(DiagnosticRequestQueue, DiagnosticRequestListEntry);
 
 typedef struct {
     DiagnosticShims shims[MAX_SHIM_COUNT];
-    ActiveRequestList inFlightRequests;
-    ActiveRequestList activeRequests;
-    ActiveRequestList freeActiveRequests;
-    ActiveRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    DiagnosticRequestQueue activeRequests;
+    DiagnosticRequestList inFlightRequests;
+    DiagnosticRequestList freeActiveRequests;
+    DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 } DiagnosticsManager;
 
 void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);

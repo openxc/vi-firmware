@@ -2,6 +2,7 @@
 #define __DIAGNOSTICS_H__
 
 #include <sys/queue.h>
+#include "bsd_queue_patch.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include "util/timer.h"

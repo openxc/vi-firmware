@@ -135,6 +135,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
             start_diagnostic_request(&manager->shims[bus->address - 1],
                     &entry->request.handle);
             entry->request.timeoutClock = {0};
+            entry->request.timeoutClock.frequency = 10;
 
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
             LIST_INSERT_HEAD(&manager->inFlightRequests, entry, listEntries);
@@ -229,7 +230,6 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             if(entry->request.handle.success) {
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
-                debug("moving 0x%x back to active", entry->request.arbitration_id);
                 LIST_REMOVE(entry, listEntries);
                 TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
                         queueEntries);

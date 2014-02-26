@@ -205,7 +205,6 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
 }
 
 void openxc::diagnostics::loop(DiagnosticsManager* manager) {
-    // TODO this is too often
     cleanupActiveRequests(manager);
 }
 
@@ -253,7 +252,7 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     }
 
     cleanupActiveRequests(manager);
-    DiagnosticRequestListEntry* newEntry = LIST_FIRST(&manager->freeActiveRequests);;
+    DiagnosticRequestListEntry* newEntry = LIST_FIRST(&manager->freeActiveRequests);
     if(newEntry == NULL) {
         debug("Unable to allocate space for a new diagnostic request");
         return false;

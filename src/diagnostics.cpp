@@ -129,7 +129,8 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
     DiagnosticRequestListEntry* entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
-        if(entry->request.bus == bus && requestShouldRecur(&entry->request)
+        if(entry->request.bus == bus && (!entry->request.recurring ||
+                    requestShouldRecur(&entry->request))
                 && clearToSend(manager, &entry->request)) {
             start_diagnostic_request(&manager->shims[bus->address - 1],
                     &entry->request.handle);
@@ -237,6 +238,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             }
         }
     }
+    cleanupActiveRequests(manager);
 }
 
 static bool addDiagnosticRequest(DiagnosticsManager* manager,

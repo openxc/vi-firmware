@@ -15,6 +15,8 @@ diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
 
+extern long FAKE_TIME;
+
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
 
 DiagnosticRequest request = {
@@ -194,6 +196,9 @@ START_TEST (test_add_request_with_frequency)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
             &getCanBuses()[0], &request, NULL, 1, 0, NULL, 1));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    // get around the staggered start
+    FAKE_TIME += 2000;
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 

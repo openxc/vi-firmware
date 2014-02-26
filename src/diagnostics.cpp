@@ -23,6 +23,35 @@ using openxc::signals::getCanBusCount;
 
 namespace time = openxc::util::time;
 
+static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
+    return request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
+            && time::shouldTick(&request->timeoutClock, true);
+}
+
+// clean up the active request list, move as many to the free list as
+// possible
+static void cleanupActiveRequests(DiagnosticsManager* manager) {
+    DiagnosticRequestListEntry* entry, *tmp;
+    LIST_FOREACH_SAFE(entry, &manager->inFlightRequests, listEntries, tmp) {
+        ActiveDiagnosticRequest* request = &entry->request;
+        if(time::shouldTick(&request->timeoutClock, true)) {
+            LIST_REMOVE(entry, listEntries);
+            TAILQ_INSERT_TAIL(&manager->activeRequests, entry, queueEntries);
+        }
+    }
+
+    TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
+        ActiveDiagnosticRequest* request = &entry->request;
+        if(!request->recurring && (
+                broadcastTimedOut(request) ||
+                (request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
+                    && request->handle.completed))) {
+            TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
+            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, listEntries);
+        }
+    }
+}
+
 static bool sendDiagnosticCanMessage(CanBus* bus,
         const uint16_t arbitrationId, const uint8_t* data,
         const uint8_t size) {
@@ -182,6 +211,11 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
     }
 }
 
+void openxc::diagnostics::loop(DiagnosticsManager* manager) {
+    // TODO this is too often
+    cleanupActiveRequests(manager);
+}
+
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
     DiagnosticRequestListEntry* entry, *tmp;
@@ -207,28 +241,6 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }
-        }
-    }
-}
-
-static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
-    return request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
-            && time::shouldTick(&request->timeoutClock, true);
-}
-
-static void cleanupActiveRequests(DiagnosticsManager* manager) {
-    // clean up the active request list, move as many to the free list as
-    // possible
-    // TODO clean up inflight requests too?
-    DiagnosticRequestListEntry* entry, *tmp;
-    TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
-        ActiveDiagnosticRequest* request = &entry->request;
-        if(!request->recurring && (
-                broadcastTimedOut(request) ||
-                (request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
-                    && request->handle.completed))) {
-            TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
-            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, listEntries);
         }
     }
 }

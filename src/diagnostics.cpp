@@ -108,7 +108,6 @@ static inline bool clearToSend(DiagnosticsManager* manager,
     LIST_FOREACH(entry, &manager->inFlightRequests, listEntries) {
         if(&entry->request != request &&
                 entry->request.arbitration_id == request->arbitration_id) {
-            debug("0x%x already in flight", request->arbitration_id);
             return false;
         }
     }
@@ -132,15 +131,10 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
         if(entry->request.bus == bus && requestShouldRecur(&entry->request)
                 && clearToSend(manager, &entry->request)) {
-            entry->request.handle = diagnostic_request(
-                    // TODO eek, is bus address and array index this tightly
-                    // coupled?
-                    &manager->shims[bus->address - 1],
-                    &entry->request.handle.request,
-                    NULL);
+            start_diagnostic_request(&manager->shims[bus->address - 1],
+                    &entry->request.handle);
             entry->request.timeoutClock = {0};
 
-            debug("adding 0x%x to inflight", entry->request.arbitration_id);
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
             LIST_INSERT_HEAD(&manager->inFlightRequests, entry, listEntries);
         }
@@ -226,6 +220,8 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         ArrayOrBytes combined;
         combined.whole = message->data;
         DiagnosticResponse response = diagnostic_receive_can_frame(
+                // TODO eek, is bus address and array index this tightly
+                // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->request.handle, message->id, combined.bytes,
                 sizeof(combined.bytes));
@@ -287,6 +283,8 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
 
     newEntry->request.bus = bus;
     newEntry->request.arbitration_id = request->arbitration_id;
+    newEntry->request.handle = generate_diagnostic_request(
+            &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {
         strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
     } else {

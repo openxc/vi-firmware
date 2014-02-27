@@ -65,23 +65,27 @@ void EVENT_USB_Device_ControlRequest() {
 
     QUEUE_TYPE(uint8_t) payloadQueue;
     QUEUE_INIT(uint8_t, &payloadQueue);
-    debug("Rq: 0x%x, length: 0x%x", USB_ControlRequest.bRequest,
-            USB_ControlRequest.wLength);
 
     // Don't try and read payload of system-level control requests
     if((USB_ControlRequest.bmRequestType >> 7 == 0) &&
             USB_ControlRequest.bRequest >= 0x80) {
         Endpoint_ClearSETUP();
 
-        for(int i = 0; i < USB_ControlRequest.wLength; i++) {
-            while (!(Endpoint_IsOUTReceived()));
-            if(!QUEUE_PUSH(uint8_t, &payloadQueue, Endpoint_Read_8())) {
-                debug("Dropped control command write from host -- queue is full");
-                break;
+        int bytesReceived = 0;
+        while(bytesReceived < USB_ControlRequest.wLength) {
+            // TODO could this get stuck?
+            while(!Endpoint_IsOUTReceived());
+            while(Endpoint_BytesInEndpoint()) {
+                uint8_t byte = Endpoint_Read_8();
+                if(!QUEUE_PUSH(uint8_t, &payloadQueue, byte)) {
+                    debug("Dropped control command write from host -- queue is full");
+                    break;
+                }
+                ++bytesReceived;
             }
+            Endpoint_ClearOUT();
         }
 
-        Endpoint_ClearOUT();
         Endpoint_ClearStatusStage();
     }
 

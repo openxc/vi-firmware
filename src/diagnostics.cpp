@@ -59,11 +59,10 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
             char request_string[128] = {0};
             diagnostic_request_to_string(&request->handle.request,
                     request_string, sizeof(request_string));
+            debug("Moving timed out or completed request back to active list: %s", request_string);
 
             LIST_REMOVE(entry, listEntries);
-            debug("Moving timed out or completed request back to active list: %s", request_string);
-            TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
-                    queueEntries);
+            TAILQ_INSERT_TAIL(&manager->activeRequests, entry, queueEntries);
         }
     }
 
@@ -145,21 +144,22 @@ static inline bool clearToSend(DiagnosticsManager* manager,
 
 static inline bool shouldSend(ActiveDiagnosticRequest* request) {
     return (!request->recurring && !requestCompleted(request)) ||
-            (request->recurring && timedOut(request));
+            (request->recurring &&
+                time::elapsed(&request->frequencyClock, true));
 }
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
     DiagnosticRequestListEntry* entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
-        // It's important to check if we're clear to send first, because calling
-        // shouldSend will tick the clock if it returns true.
-        if(entry->request.bus == bus && clearToSend(manager, &entry->request) &&
-                shouldSend(&entry->request)) {
+        ActiveDiagnosticRequest* request = &entry->request;
+        if(request->bus == bus && shouldSend(request) &&
+                    clearToSend(manager, request)) {
+            time::tick(&request->frequencyClock);
             start_diagnostic_request(&manager->shims[bus->address - 1],
-                    &entry->request.handle);
-            entry->request.timeoutClock = {0};
-            entry->request.timeoutClock.frequency = 10;
+                    &request->handle);
+            request->timeoutClock = {0};
+            request->timeoutClock.frequency = 10;
 
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
             LIST_INSERT_HEAD(&manager->inFlightRequests, entry, listEntries);
@@ -255,16 +255,8 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
                 LIST_REMOVE(entry, listEntries);
-                if(entry->request.recurring) {
-                    TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
-                            queueEntries);
-                } else {
-                    // TODO rather than cancelling right now, could inspect the
-                    // completed flag in cleanup and remove it then (that's be
-                    // better, it would standardize this and just move them back
-                    // to active all of the time
-                    cancelRequest(manager, entry);
-                }
+                TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
+                        queueEntries);
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }

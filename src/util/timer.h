@@ -5,6 +5,8 @@ namespace openxc {
 namespace util {
 namespace time {
 
+typedef unsigned long (*TimeFunction)();
+
 /* Public: A frequency counting clock.
  *
  * frequency - the clock freuquency in Hz.
@@ -14,7 +16,7 @@ namespace time {
 typedef struct {
     float frequency;
     unsigned long lastTick;
-    unsigned long (*timeFunction)();
+    TimeFunction timeFunction;
 } FrequencyClock;
 
 /* Public: Initialize a FrequencyClock structure back to a fresh start - never
@@ -24,8 +26,8 @@ typedef struct {
  */
 void initializeClock(FrequencyClock* clock);
 
-/* Public:  Determine if the clock should tick, according to its frequency and
- * last tick time.
+/* Public: Determine if the clock should tick, according to its frequency and
+ * last tick time, and tick it if it needs it!
  *
  * If the frequency is 0 or the clock is NULL, will return true. The first call
  * to this function always returns true if staggered start is disabled.
@@ -37,12 +39,22 @@ void initializeClock(FrequencyClock* clock);
  *
  * Return true if the clock should tick.
  */
-bool shouldTick(FrequencyClock* clock, bool stagger);
+bool tick(FrequencyClock* clock, bool stagger);
 
-/* Public:  The same as shouldTick(FrequencyClock, bool), but staggered start is
+/* Public:  The same as tick(FrequencyClock, bool), but staggered start is
  *      off.
  */
-bool shouldTick(FrequencyClock* clock);
+bool tick(FrequencyClock* clock);
+
+/* Public: Determine if the clock's tick timer has elapsed and it should tick.
+ * Does *not* actually tick the clock.
+ *
+ * stagger - If true, will set the clock back a random amount if it hasn't
+ *      started, so it doesn't start right away with the first call to
+ *      tick(...). Still, it doesn't actually tick it.
+ */
+bool elapsed(FrequencyClock* clock, bool stagger);
+
 
 /* Public: Delay execution by the given number of milliseconds.
  */

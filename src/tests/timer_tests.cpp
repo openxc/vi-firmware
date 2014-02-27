@@ -5,7 +5,7 @@
 
 using openxc::util::time::systemTimeMs;
 using openxc::util::time::FrequencyClock;
-using openxc::util::time::shouldTick;
+using openxc::util::time::tick;
 
 void setup() {
 }
@@ -18,7 +18,7 @@ START_TEST (test_first_tick_always_true)
     FrequencyClock clock;
     initializeClock(&clock);
     clock.frequency = 1;
-    ck_assert(shouldTick(&clock));
+    ck_assert(tick(&clock));
 }
 END_TEST
 
@@ -29,9 +29,9 @@ START_TEST (test_no_time_function_uses_default)
     // that never increases.
     initializeClock(&clock);
     clock.frequency = 1;
-    ck_assert(shouldTick(&clock));
-    ck_assert(!shouldTick(&clock));
-    ck_assert(!shouldTick(&clock));
+    ck_assert(tick(&clock));
+    ck_assert(!tick(&clock));
+    ck_assert(!tick(&clock));
 }
 END_TEST
 
@@ -40,9 +40,9 @@ START_TEST (test_zero_frequency_always_ticks)
     FrequencyClock clock;
     initializeClock(&clock);
     clock.frequency = 0;
-    ck_assert(shouldTick(&clock));
-    ck_assert(shouldTick(&clock));
-    ck_assert(shouldTick(&clock));
+    ck_assert(tick(&clock));
+    ck_assert(tick(&clock));
+    ck_assert(tick(&clock));
 }
 END_TEST
 
@@ -58,10 +58,10 @@ START_TEST (test_non_zero_frequency_waits)
     initializeClock(&clock);
     clock.timeFunction = timeMock;
     clock.frequency = 1;
-    ck_assert(shouldTick(&clock));
-    ck_assert(!shouldTick(&clock));
+    ck_assert(tick(&clock));
+    ck_assert(!tick(&clock));
     fakeTime += 1000;
-    ck_assert(shouldTick(&clock));
+    ck_assert(tick(&clock));
 }
 END_TEST
 
@@ -71,9 +71,9 @@ START_TEST (test_staggered_not_true_at_start)
     initializeClock(&clock);
     clock.timeFunction = timeMock;
     clock.frequency = 1;
-    ck_assert(!shouldTick(&clock, true));
+    ck_assert(!tick(&clock, true));
     fakeTime += 1000;
-    ck_assert(shouldTick(&clock));
+    ck_assert(tick(&clock));
 }
 END_TEST
 

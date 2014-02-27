@@ -328,6 +328,12 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     newEntry->request.timeoutClock.frequency = 10;
     TAILQ_INSERT_HEAD(&manager->activeRequests, newEntry, queueEntries);
 
+    char request_string[128] = {0};
+    diagnostic_request_to_string(&newEntry->request.handle.request,
+            request_string, sizeof(request_string));
+    debug("Added new diagnostic request (freq: %f): %s", frequencyHz,
+            request_string);
+
     return true;
 }
 

@@ -109,10 +109,10 @@ static bool sendDiagnosticCanMessageBus2(
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         int busCount) {
     if(busCount > 0) {
-        manager->shims[0]= diagnostic_init_shims(openxc::util::log::debug,
+        manager->shims[0] = diagnostic_init_shims(openxc::util::log::debug,
                 sendDiagnosticCanMessageBus1, NULL);
         if(busCount > 1) {
-            manager->shims[1]= diagnostic_init_shims(openxc::util::log::debug,
+            manager->shims[1] = diagnostic_init_shims(openxc::util::log::debug,
                     sendDiagnosticCanMessageBus2, NULL);
         }
     }
@@ -265,6 +265,29 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     cleanupActiveRequests(manager);
 }
 
+static DiagnosticRequestListEntry* lookupExistingRequest(
+        DiagnosticsManager* manager, DiagnosticRequest* request) {
+    DiagnosticRequestListEntry* existingEntry, *entry, *tmp;
+    LIST_FOREACH_SAFE(entry, &manager->inFlightRequests, listEntries, tmp) {
+        ActiveDiagnosticRequest* candidate = &entry->request;
+        if(diagnostic_request_equals(&candidate->handle.request, request)) {
+            existingEntry = entry;
+            break;
+        }
+    }
+
+    if(existingEntry == NULL) {
+        TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
+            ActiveDiagnosticRequest* candidate = &entry->request;
+            if(diagnostic_request_equals(&candidate->handle.request, request)) {
+                existingEntry = entry;
+                break;
+            }
+        }
+    }
+    return existingEntry;
+}
+
 static bool addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
@@ -278,61 +301,74 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     }
 
     cleanupActiveRequests(manager);
-    DiagnosticRequestListEntry* newEntry = LIST_FIRST(&manager->freeActiveRequests);
-    if(newEntry == NULL) {
-        debug("Unable to allocate space for a new diagnostic request");
-        return false;
-    }
-    LIST_REMOVE(newEntry, listEntries);
 
-    bool filterStatus = true;
-    if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-        for(uint16_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
-                OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
-                filter++) {
-            filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
+    // TODO see if there is already an active request with the same ID+mode+pid
+    // combo - if there is, update the frequency, pid, payload, name, factor,
+    // offset and decoder if set.
+    DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, request);
+    bool usedFreeEntry = false;
+    if(entry == NULL) {
+        usedFreeEntry = true;
+        entry = LIST_FIRST(&manager->freeActiveRequests);
+        if(entry == NULL) {
+            debug("Unable to allocate space for a new diagnostic request");
+            return false;
+        }
+
+        bool filterStatus = true;
+        if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+            for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
+                    OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
+                    filter++) {
+                filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
+                        getCanBuses(), getCanBusCount());
+            }
+        } else {
+            filterStatus = addAcceptanceFilter(bus,
+                    request->arbitration_id +
+                            DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
                     getCanBuses(), getCanBusCount());
         }
-    } else {
-        filterStatus = addAcceptanceFilter(bus,
-                request->arbitration_id +
-                        DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
-                getCanBuses(), getCanBusCount());
+
+        if(!filterStatus) {
+            debug("Couldn't add filter 0x%x to bus %d", request->arbitration_id, bus->address);
+            return false;
+        }
     }
 
-    if(!filterStatus) {
-        debug("Couldn't add filter 0x%x to bus %d", request->arbitration_id, bus->address);
-        LIST_INSERT_HEAD(&manager->freeActiveRequests, newEntry, listEntries);
-        return false;
-    }
-
-    newEntry->request.bus = bus;
-    newEntry->request.arbitration_id = request->arbitration_id;
-    newEntry->request.handle = generate_diagnostic_request(
+    entry->request.bus = bus;
+    entry->request.arbitration_id = request->arbitration_id;
+    entry->request.handle = generate_diagnostic_request(
             &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {
-        strncpy(newEntry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
+        strncpy(entry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
     } else {
-        newEntry->request.genericName[0] = '\0';
+        entry->request.genericName[0] = '\0';
     }
-    newEntry->request.parsePayload = parsePayload;
-    newEntry->request.factor = factor;
-    newEntry->request.offset = offset;
-    newEntry->request.decoder = decoder;
-    newEntry->request.recurring = frequencyHz != 0;
-    newEntry->request.frequencyClock = {0};
-    newEntry->request.frequencyClock.frequency =
-            newEntry->request.recurring ? frequencyHz : 1;
+    entry->request.parsePayload = parsePayload;
+    entry->request.factor = factor;
+    entry->request.offset = offset;
+    entry->request.decoder = decoder;
+    entry->request.recurring = frequencyHz != 0;
+    entry->request.frequencyClock = {0};
+    entry->request.frequencyClock.frequency =
+            entry->request.recurring ? frequencyHz : 1;
     // time out after 100ms
-    newEntry->request.timeoutClock = {0};
-    newEntry->request.timeoutClock.frequency = 10;
-    TAILQ_INSERT_HEAD(&manager->activeRequests, newEntry, queueEntries);
+    entry->request.timeoutClock = {0};
+    entry->request.timeoutClock.frequency = 10;
 
     char request_string[128] = {0};
-    diagnostic_request_to_string(&newEntry->request.handle.request,
+    diagnostic_request_to_string(&entry->request.handle.request,
             request_string, sizeof(request_string));
-    debug("Added new diagnostic request (freq: %f): %s", frequencyHz,
-            request_string);
+    if(usedFreeEntry) {
+        LIST_REMOVE(entry, listEntries);
+        TAILQ_INSERT_HEAD(&manager->activeRequests, entry, queueEntries);
+        debug("Added new diagnostic request (freq: %f): %s", frequencyHz,
+                request_string);
+    } else {
+        debug("Updated existing diagnostic request (freq: %f): %s", frequencyHz,
+                request_string);
+    }
 
     return true;
 }

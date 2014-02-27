@@ -15,6 +15,7 @@ using openxc::diagnostics::DiagnosticRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::util::log::debug;
 using openxc::can::addAcceptanceFilter;
+using openxc::can::removeAcceptanceFilter;
 using openxc::can::read::sendNumericalMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
@@ -22,9 +23,29 @@ using openxc::signals::getCanBusCount;
 
 namespace time = openxc::util::time;
 
-static bool broadcastTimedOut(ActiveDiagnosticRequest* request) {
-    return request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
-            && time::shouldTick(&request->timeoutClock, true);
+static bool timedOut(ActiveDiagnosticRequest* request) {
+    return time::elapsed(&request->timeoutClock, true);
+}
+
+/* Private: Returns true if the request has timed out waiting for a response,
+ *      or the request handle is completed and it wasn't a functional broadcast
+ *      request. Functional broadcast requests are never complete until they
+ *      time out.
+ */
+static bool requestCompleted(ActiveDiagnosticRequest* request) {
+    return (request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID &&
+                 request->handle.completed) || timedOut(request);
+}
+
+/* Private: Move the entry to the free list and decrement the lock count for any
+ * CAN filters it used.
+ */
+static void cancelRequest(DiagnosticsManager* manager,
+        DiagnosticRequestListEntry* entry) {
+    LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, listEntries);
+    removeAcceptanceFilter(entry->request.bus,
+            entry->request.arbitration_id + DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
+            getCanBuses(), getCanBusCount());
 }
 
 // clean up the active request list, move as many to the free list as
@@ -33,20 +54,27 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
     DiagnosticRequestListEntry* entry, *tmp;
     LIST_FOREACH_SAFE(entry, &manager->inFlightRequests, listEntries, tmp) {
         ActiveDiagnosticRequest* request = &entry->request;
-        if(time::shouldTick(&request->timeoutClock, true)) {
+        if(requestCompleted(&entry->request)) {
+            char request_string[128] = {0};
+            diagnostic_request_to_string(&request->handle.request,
+                    request_string, sizeof(request_string));
+
             LIST_REMOVE(entry, listEntries);
-            TAILQ_INSERT_TAIL(&manager->activeRequests, entry, queueEntries);
+            debug("Moving timed out or completed request back to active list: %s", request_string);
+            TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
+                    queueEntries);
         }
     }
 
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
         ActiveDiagnosticRequest* request = &entry->request;
-        if(!request->recurring && (
-                broadcastTimedOut(request) ||
-                (request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID
-                    && request->handle.completed))) {
+        if(!request->recurring && requestCompleted(request)) {
+            char request_string[128] = {0};
+            diagnostic_request_to_string(&request->handle.request,
+                    request_string, sizeof(request_string));
+            debug("Cancelling timed out or completed, non-recurring request: %s", request_string);
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
-            LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, listEntries);
+            cancelRequest(manager, entry);
         }
     }
 }
@@ -114,15 +142,9 @@ static inline bool clearToSend(DiagnosticsManager* manager,
     return true;
 }
 
-static inline bool requestShouldRecur(ActiveDiagnosticRequest* request) {
-    // Not currently checking if the request is completed or not. If
-    // we wait for that, it's possible we could get stuck - if we made the
-    // request while the CAN bus wasn't up, we're not going to get a response.
-    // unless the frequency is > 10Hz, there's little chance that we wouldn't
-    // have receive the response by the next tick, so if it isn't completed it
-    // likely means we're not going to hear back. We'll send the request again.
-    return request->recurring &&
-            time::shouldTick(&request->frequencyClock, true);
+static inline bool shouldSend(ActiveDiagnosticRequest* request) {
+    return (!request->recurring && !requestCompleted(request)) ||
+            (request->recurring && timedOut(request));
 }
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
@@ -130,9 +152,9 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
     DiagnosticRequestListEntry* entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
         // It's important to check if we're clear to send first, because calling
-        // requestShouldRecur will tick the clock if it returns true.
+        // shouldSend will tick the clock if it returns true.
         if(entry->request.bus == bus && clearToSend(manager, &entry->request) &&
-                (!entry->request.recurring || requestShouldRecur(&entry->request))) {
+                shouldSend(&entry->request)) {
             start_diagnostic_request(&manager->shims[bus->address - 1],
                     &entry->request.handle);
             entry->request.timeoutClock = {0};
@@ -232,8 +254,16 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
                 LIST_REMOVE(entry, listEntries);
-                TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
-                        queueEntries);
+                if(entry->request.recurring) {
+                    TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
+                            queueEntries);
+                } else {
+                    // TODO rather than cancelling right now, could inspect the
+                    // completed flag in cleanup and remove it then (that's be
+                    // better, it would standardize this and just move them back
+                    // to active all of the time
+                    cancelRequest(manager, entry);
+                }
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }

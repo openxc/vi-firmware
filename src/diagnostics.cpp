@@ -80,7 +80,7 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
 }
 
 static bool sendDiagnosticCanMessage(CanBus* bus,
-        const uint16_t arbitrationId, const uint8_t* data,
+        const uint32_t arbitrationId, const uint8_t* data,
         const uint8_t size) {
     CanMessage message = {
         id: arbitrationId,
@@ -93,14 +93,14 @@ static bool sendDiagnosticCanMessage(CanBus* bus,
 }
 
 static bool sendDiagnosticCanMessageBus1(
-        const uint16_t arbitrationId, const uint8_t* data,
+        const uint32_t arbitrationId, const uint8_t* data,
         const uint8_t size) {
     return sendDiagnosticCanMessage(&getCanBuses()[0], arbitrationId, data,
             size);
 }
 
 static bool sendDiagnosticCanMessageBus2(
-        const uint16_t arbitrationId, const uint8_t* data,
+        const uint32_t arbitrationId, const uint8_t* data,
         const uint8_t size) {
     return sendDiagnosticCanMessage(&getCanBuses()[1], arbitrationId, data,
             size);
@@ -373,7 +373,7 @@ void openxc::diagnostics::handleDiagnosticCommand(
                     }
 
                     DiagnosticRequest request = {
-                        arbitration_id: uint16_t(idObject->valueint),
+                        arbitration_id: uint32_t(idObject->valueint),
                         mode: uint8_t(modeObject->valueint)
                     };
 

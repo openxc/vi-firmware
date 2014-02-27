@@ -173,7 +173,7 @@ struct CanBus {
     unsigned int speed;
     short address;
     void* controller;
-    unsigned short maxMessageFrequency;
+    float maxMessageFrequency;
     bool rawWritable;
     void (*interruptHandler)();
     AcceptanceFilterList acceptanceFilters;

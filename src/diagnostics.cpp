@@ -269,7 +269,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
 
 static DiagnosticRequestListEntry* lookupExistingRequest(
         DiagnosticsManager* manager, DiagnosticRequest* request) {
-    DiagnosticRequestListEntry* existingEntry, *entry, *tmp;
+    DiagnosticRequestListEntry* existingEntry = NULL, *entry, *tmp;
     LIST_FOREACH_SAFE(entry, &manager->inFlightRequests, listEntries, tmp) {
         ActiveDiagnosticRequest* candidate = &entry->request;
         if(diagnostic_request_equals(&candidate->handle.request, request)) {

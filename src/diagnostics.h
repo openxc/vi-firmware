@@ -76,10 +76,10 @@ void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
         float factor, float offset, const DiagnosticResponseDecoder decoder,
-        const uint8_t frequencyHz);
+        float frequencyHz);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const uint8_t frequencyHz);
+        DiagnosticRequest* request, float frequencyHz);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);

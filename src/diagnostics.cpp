@@ -246,7 +246,7 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
-        const uint8_t frequencyHz) {
+        float frequencyHz) {
 
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",

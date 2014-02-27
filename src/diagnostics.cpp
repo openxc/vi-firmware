@@ -254,9 +254,11 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             if(entry->request.handle.success) {
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
-                LIST_REMOVE(entry, listEntries);
-                TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
-                        queueEntries);
+                if(entry->request.arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
+                    LIST_REMOVE(entry, listEntries);
+                    TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
+                            queueEntries);
+                }
             } else {
                 debug("Fatal error when sending or receiving diagnostic request");
             }

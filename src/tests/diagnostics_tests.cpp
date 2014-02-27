@@ -242,7 +242,6 @@ START_TEST (test_receive_singletimer_twice)
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
             &message, &PIPELINE);
     fail_unless(outputQueueEmpty());
-
 }
 END_TEST
 

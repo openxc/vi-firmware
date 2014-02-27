@@ -363,8 +363,6 @@ void openxc::diagnostics::handleDiagnosticCommand(
                 cJSON* busObject = cJSON_GetObjectItem(requestObject, "bus");
                 cJSON* idObject = cJSON_GetObjectItem(requestObject, "id");
                 cJSON* modeObject = cJSON_GetObjectItem(requestObject, "mode");
-                cJSON* pidObject = cJSON_GetObjectItem(requestObject, "pid");
-                cJSON* frequencyObject = cJSON_GetObjectItem(requestObject, "frequency");
 
                 if(busObject != NULL && idObject != NULL && modeObject != NULL) {
                     CanBus* canBus = lookupBus(busObject->valueint,
@@ -376,18 +374,23 @@ void openxc::diagnostics::handleDiagnosticCommand(
 
                     DiagnosticRequest request = {
                         arbitration_id: uint16_t(idObject->valueint),
-                        mode: uint8_t(modeObject->valueint),
-                        has_pid: true,
-                        pid: uint16_t(pidObject->valueint),
-                        pid_length: 0};
-                        // TODO other fields
+                        mode: uint8_t(modeObject->valueint)
+                    };
 
+                    // TODO copy payload
+
+                    cJSON* pidObject = cJSON_GetObjectItem(requestObject, "pid");
+                    if(pidObject != NULL) {
+                        request.has_pid = true;
+                        request.pid = uint16_t(pidObject->valueint);
+                    }
+
+                    cJSON* frequencyObject = cJSON_GetObjectItem(requestObject, "frequency");
                     float frequency = 0;
                     if(frequencyObject != NULL) {
                         frequency = frequencyObject->valuedouble;
                     }
 
-                    // TODO grab name, min max, use other constructor if needed
                     addDiagnosticRequest(diagnosticsManager, canBus, &request,
                             frequency);
                 }

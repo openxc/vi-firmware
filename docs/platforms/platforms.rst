@@ -16,14 +16,8 @@ support </advanced/boardsupport>` section.
 Troubleshooting PIC32 Boards
 ----------------------------
 
-No data received over USB?
-    If you have UART enabled for a while, then disconnect the UART receiver
-    (i.e. pull the status pin low and stop touching RTS/CTS), it can cause the
-    firmware to block trying to write data to UART. Power cycle the board or
-    leave the UART receiver attached even if nobody is reading data (i.e. keep
-    the CTS/RTS lines active).
-
-USB data arriving in bursts?
-    Are you also reading data over UART, or do you have something pulling the
-    UART connect pin high? It's not always possible to read both USB and UART at
-    full data rates at the same time.
+No data received over UART (i.e. Bluetooth)?
+    If you are powering the device via USB but not also reading data via USB, it
+    may be blocked waiting to send data. See the documentation for your specific
+    platform for information on how to enable VBUS detection, or power the
+    device via the OBD pins.

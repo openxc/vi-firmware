@@ -33,7 +33,7 @@ using openxc::signals::getActiveMessageSet;
 extern void setup();
 extern void loop();
 
-const char VERSION[] = "5.1.3-dev";
+const char VERSION[] = "6.0-dev";
 const int UART_BAUD_RATE = 230400;
 
 UartDevice UART_DEVICE = {UART_BAUD_RATE};

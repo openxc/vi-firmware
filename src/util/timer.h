@@ -12,7 +12,7 @@ namespace time {
  *      ticked.
  */
 typedef struct {
-    int frequency;
+    float frequency;
     unsigned long lastTick;
     unsigned long (*timeFunction)();
 } FrequencyClock;

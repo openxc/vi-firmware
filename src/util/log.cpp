@@ -5,7 +5,7 @@
 
 #define LOG_QUEUE_FLUSH_MAX_TRIES 5
 
-const int openxc::util::log::MAX_LOG_LINE_LENGTH = 120;
+const int openxc::util::log::MAX_LOG_LINE_LENGTH = 256;
 
 namespace usb = openxc::interface::usb;
 

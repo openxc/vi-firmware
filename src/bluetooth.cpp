@@ -9,6 +9,9 @@
 #include <string.h>
 
 #define BLUETOOTH_DEVICE_NAME "OpenXC-VI"
+#define BLUETOOTH_SLAVE_MODE 0
+#define BLUETOOTH_PAIRING_MODE 6
+#define BLUETOOTH_AUTO_MASTER_MODE 3
 
 namespace gpio = openxc::gpio;
 namespace uart = openxc::interface::uart;
@@ -48,13 +51,13 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 
     // we most likely just power cycled the RN-42 to make sure it was on, so
     // wait for it to boot up
-    delayMs(1000);
+    delayMs(500);
     if(at_commander_set_baud(&config, device->baudRate)) {
         debug("Successfully set baud rate");
         if(at_commander_set_name(&config, BLUETOOTH_DEVICE_NAME, true)) {
             debug("Successfully set Bluetooth device name");
         } else {
-            debug("Unable to set Bluetooth device name - rebooting anyway");
+            debug("Unable to set Bluetooth device name");
         }
 
         if(at_commander_get_device_id(&config, device->deviceId,
@@ -64,6 +67,67 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
             debug("Unable to get Bluetooth MAC");
             device->deviceId[0] = '\0';
         }
+
+        if(at_commander_set_configuration_timer(&config, 0)) {
+            debug("Successfully disabled remote Bluetooth configuration");
+        } else {
+            debug("Unable to disable remote Bluetooth configuration");
+        }
+
+        AtCommand inquiryCommand = {
+            request_format: "SI,%s\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+
+        if(at_commander_set(&config, &inquiryCommand, "0200")) {
+            debug("Changed Bluetooth inquiry window to 0200");
+        } else {
+            debug("Unable to change Bluetooth inquiry window.");
+        }
+
+        AtCommand pagingCommand = {
+            request_format: "SJ,%s\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+
+        if(at_commander_set(&config, &pagingCommand, "0200")) {
+            debug("Changed Bluetooth page scan window to 0200");
+        } else {
+            debug("Unable to change Bluetooth page scan window.");
+        }
+
+        AtCommand firmwareVersionCommand = {
+            request_format: "V\r",
+            expected_response: NULL,
+            error_response: "ERR"
+        };
+
+        char versionString[64];
+        if(!at_commander_get(&config, &firmwareVersionCommand, versionString, sizeof(versionString))) {
+            debug("Unable to determine Bluetoothe module firmware version");
+        } else {
+            debug("Bluetooth module is running firmware %s", versionString);
+            AtCommand modeCommand = {
+                request_format: "SM,%d\r",
+                expected_response: "AOK",
+                error_response: "ERR"
+            };
+
+            int desiredMode = BLUETOOTH_SLAVE_MODE;
+            if(strstr(versionString, "6.") != NULL) {
+                debug("Bluetooth device is on 6.x firmware - switching to pairing mode");
+                desiredMode = BLUETOOTH_PAIRING_MODE;
+            } else {
+                debug("Bluetooth device is on 4.x firmware - switching to slave mode");
+            }
+
+            if(!at_commander_set(&config, &modeCommand, desiredMode)) {
+                debug("Unable to change Bluetooth device mode");
+            }
+        }
+
         at_commander_reboot(&config);
     } else {
         debug("Unable to set baud rate of attached UART device");

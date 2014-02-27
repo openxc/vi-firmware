@@ -20,6 +20,7 @@ extern const char DIAGNOSTIC_PID_FIELD_NAME[];
 extern const char DIAGNOSTIC_SUCCESS_FIELD_NAME[];
 extern const char DIAGNOSTIC_NRC_FIELD_NAME[];
 extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
+extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
 
 typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
 typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);

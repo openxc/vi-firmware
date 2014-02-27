@@ -11,6 +11,8 @@
   with UART_LOGGING flag.
 * Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
   the latest version.
+* Use new version of Arduino-Makefile which depends on the Perl module
+  Device::SerialPort.
 * BREAKING CHANGE: Using CanMessage struct in favor if loose id + data.
 * BREAKING CHANGE: Removed "reset" control command.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
@@ -18,6 +20,11 @@
   decoding a signal by hand.
 * BREAKING CHANGE: Changed USB endpoint numbers to allow for optimal performance
   and a new logging channel.
+
+## v5.1.3
+
+* On VIs with an RN-42, disable configuration via Bluetooth to make the
+  connection more stable on Samsung Android devices.
 
 ## v5.1.2
 

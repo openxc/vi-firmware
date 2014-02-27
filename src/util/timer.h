@@ -12,21 +12,35 @@ namespace time {
  *      ticked.
  */
 typedef struct {
-    int frequency;
+    float frequency;
     unsigned long lastTick;
     unsigned long (*timeFunction)();
-    bool started;
 } FrequencyClock;
 
+/* Public: Initialize a FrequencyClock structure back to a fresh start - never
+ * ticked, default time function, no set frequency.
+ *
+ * clock - The clock to initialize.
+ */
 void initializeClock(FrequencyClock* clock);
 
 /* Public:  Determine if the clock should tick, according to its frequency and
  * last tick time.
  *
  * If the frequency is 0 or the clock is NULL, will return true. The first call
- * to this function always returns true.
+ * to this function always returns true if staggered start is disabled.
+ *
+ * stagger - If true, adds a random offset to the starting time (between 0 and 1
+ *      full period), which is useful if you are initializing multiple clocks
+ *      and you want to stagger their ticks. This only applies to the first tick
+ *      of the clock.
  *
  * Return true if the clock should tick.
+ */
+bool shouldTick(FrequencyClock* clock, bool stagger);
+
+/* Public:  The same as shouldTick(FrequencyClock, bool), but staggered start is
+ *      off.
  */
 bool shouldTick(FrequencyClock* clock);
 

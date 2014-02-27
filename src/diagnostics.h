@@ -1,16 +1,17 @@
 #ifndef __DIAGNOSTICS_H__
 #define __DIAGNOSTICS_H__
 
+#include <sys/queue.h>
+#include "bsd_queue_patch.h"
+#include <stdint.h>
+#include <stdlib.h>
 #include "util/timer.h"
 #include "pipeline.h"
 #include <can/canutil.h>
 #include <uds/uds.h>
-#include <sys/queue.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 #define MAX_SHIM_COUNT 2
-#define MAX_SIMULTANEOUS_DIAG_REQUESTS 10
+#define MAX_SIMULTANEOUS_DIAG_REQUESTS 20
 #define MAX_GENERIC_NAME_LENGTH 40
 
 namespace openxc {
@@ -23,11 +24,11 @@ namespace diagnostics {
  *      a byte array). This is most often used when the byte order is
  *      signiticant, i.e. with many OBD-II PID formulas.
  * parsed_payload - the entire payload of the response parsed as a single
- *      integer. You can calculate this from the response yourself, but it's
- *      provided here already parsed as a shortcut.
+ *      integer, then transformed with the registered factor and offset
+ *      to a float.
  */
 typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
-        int parsed_payload);
+        float parsed_payload);
 
 /* Public:
  *
@@ -37,26 +38,33 @@ typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
  */
 typedef struct {
     CanBus* bus;
+    uint16_t arbitration_id;
     DiagnosticRequestHandle handle;
     char genericName[MAX_GENERIC_NAME_LENGTH];
+    bool parsePayload;
+    float factor;
+    float offset;
     DiagnosticResponseDecoder decoder;
     bool recurring;
     openxc::util::time::FrequencyClock frequencyClock;
     openxc::util::time::FrequencyClock timeoutClock;
 } ActiveDiagnosticRequest;
 
-struct ActiveRequestListEntry {
+struct DiagnosticRequestListEntry {
     ActiveDiagnosticRequest request;
-    LIST_ENTRY(ActiveRequestListEntry) entries;
+    TAILQ_ENTRY(DiagnosticRequestListEntry) queueEntries;
+    LIST_ENTRY(DiagnosticRequestListEntry) listEntries;
 };
 
-LIST_HEAD(ActiveRequestList, ActiveRequestListEntry);
+LIST_HEAD(DiagnosticRequestList, DiagnosticRequestListEntry);
+TAILQ_HEAD(DiagnosticRequestQueue, DiagnosticRequestListEntry);
 
 typedef struct {
     DiagnosticShims shims[MAX_SHIM_COUNT];
-    ActiveRequestList activeRequests;
-    ActiveRequestList freeActiveRequests;
-    ActiveRequestListEntry activeListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    DiagnosticRequestQueue activeRequests;
+    DiagnosticRequestList inFlightRequests;
+    DiagnosticRequestList freeActiveRequests;
+    DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 } DiagnosticsManager;
 
 void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
@@ -67,21 +75,18 @@ void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
  */
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
+        const uint8_t frequencyHz);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const char* genericName,
-        const DiagnosticResponseDecoder decoder);
-
-bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        uint16_t arbitration_id, uint8_t mode, uint16_t pid, uint8_t pid_length,
-        uint8_t payload[], uint8_t payload_length, const char* genericName,
-        const DiagnosticResponseDecoder decoder, const uint8_t frequencyHz);
+        DiagnosticRequest* request, const uint8_t frequencyHz);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 
 void sendRequests(DiagnosticsManager* manager, CanBus* bus);
+
+void loop(DiagnosticsManager* manager);
 
 } // namespace diagnostics
 } // namespace openxc

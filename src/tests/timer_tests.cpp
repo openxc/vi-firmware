@@ -46,7 +46,7 @@ START_TEST (test_zero_frequency_always_ticks)
 }
 END_TEST
 
-static unsigned long fakeTime = 0;
+static unsigned long fakeTime = 1000;
 
 unsigned long timeMock() {
     return fakeTime;
@@ -60,7 +60,19 @@ START_TEST (test_non_zero_frequency_waits)
     clock.frequency = 1;
     ck_assert(shouldTick(&clock));
     ck_assert(!shouldTick(&clock));
-    fakeTime = 1000;
+    fakeTime += 1000;
+    ck_assert(shouldTick(&clock));
+}
+END_TEST
+
+START_TEST (test_staggered_not_true_at_start)
+{
+    FrequencyClock clock;
+    initializeClock(&clock);
+    clock.timeFunction = timeMock;
+    clock.frequency = 1;
+    ck_assert(!shouldTick(&clock, true));
+    fakeTime += 1000;
     ck_assert(shouldTick(&clock));
 }
 END_TEST
@@ -73,6 +85,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_zero_frequency_always_ticks);
     tcase_add_test(tc_core, test_non_zero_frequency_waits);
     tcase_add_test(tc_core, test_first_tick_always_true);
+    tcase_add_test(tc_core, test_staggered_not_true_at_start);
     suite_add_tcase(s, tc_core);
 
     return s;

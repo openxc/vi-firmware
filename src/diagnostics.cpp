@@ -14,6 +14,7 @@ using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::DiagnosticRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::util::log::debug;
+using openxc::can::lookupBus;
 using openxc::can::addAcceptanceFilter;
 using openxc::can::removeAcceptanceFilter;
 using openxc::can::read::sendNumericalMessage;
@@ -341,13 +342,59 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, const char* genericName,
         float factor, float offset, const DiagnosticResponseDecoder decoder,
-        const uint8_t frequencyHz) {
+        float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, genericName, true, factor,
             offset, decoder, frequencyHz);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const uint8_t frequencyHz) {
+        DiagnosticRequest* request, float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, NULL, false, 1.0, 0,
             NULL, frequencyHz);
+}
+
+void openxc::diagnostics::handleDiagnosticCommand(
+        DiagnosticsManager* diagnosticsManager, uint8_t* payload) {
+    cJSON *root = cJSON_Parse((char*)payload);
+    if(root != NULL) {
+        cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
+        if(commandNameObject != NULL &&
+                !strcmp(commandNameObject->valuestring, "diagnostic_request")) {
+            cJSON* requestObject = cJSON_GetObjectItem(root, "request");
+            if(requestObject != NULL) {
+                cJSON* busObject = cJSON_GetObjectItem(requestObject, "bus");
+                cJSON* idObject = cJSON_GetObjectItem(requestObject, "id");
+                cJSON* modeObject = cJSON_GetObjectItem(requestObject, "mode");
+                cJSON* pidObject = cJSON_GetObjectItem(requestObject, "pid");
+                cJSON* frequencyObject = cJSON_GetObjectItem(requestObject, "frequency");
+
+                if(busObject != NULL && idObject != NULL && modeObject != NULL) {
+                    CanBus* canBus = lookupBus(busObject->valueint,
+                            getCanBuses(), getCanBusCount());
+                    if(canBus == NULL) {
+                        debug("No matching active bus for requested address: %d", busObject->valueint);
+                        return;
+                    }
+
+                    DiagnosticRequest request = {
+                        arbitration_id: uint16_t(idObject->valueint),
+                        mode: uint8_t(modeObject->valueint),
+                        has_pid: true,
+                        pid: uint16_t(pidObject->valueint),
+                        pid_length: 0};
+                        // TODO other fields
+
+                    float frequency = 0;
+                    if(frequencyObject != NULL) {
+                        frequency = frequencyObject->valuedouble;
+                    }
+
+                    // TODO grab name, min max, use other constructor if needed
+                    addDiagnosticRequest(diagnosticsManager, canBus, &request,
+                            frequency);
+                }
+            }
+        }
+        cJSON_Delete(root);
+    }
 }

@@ -378,6 +378,8 @@ CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
+CanBus* lookupBus(uint8_t address, CanBus* buses, const int busCount);
+
 /* Public: Configure a new CAN message on the given bus.
  *
  * If the message is already registered with the bus (either as a predefined

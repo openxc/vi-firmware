@@ -88,6 +88,8 @@ void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
 void loop(DiagnosticsManager* manager);
 
+void handleDiagnosticCommand(DiagnosticsManager* manager, uint8_t* payload);
+
 } // namespace diagnostics
 } // namespace openxc
 

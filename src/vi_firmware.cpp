@@ -26,6 +26,7 @@ namespace signals = openxc::signals;
 namespace diagnostics = openxc::diagnostics;
 
 using openxc::util::log::debug;
+using openxc::can::lookupBus;
 using openxc::can::lookupCommand;
 using openxc::can::lookupSignal;
 using openxc::signals::initialize;
@@ -39,7 +40,7 @@ using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 
 extern Pipeline PIPELINE;
-diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
+extern diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 
 /* Forward declarations */
 
@@ -146,17 +147,10 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     CanBus* matchingBus = NULL;
     if(busObject != NULL) {
-        int busAddress = busObject->valueint;
-        for(int i = 0; i < getCanBusCount(); i++) {
-            CanBus* candidateBus = &(getCanBuses()[i]);
-            if(candidateBus->address == busAddress) {
-                matchingBus = candidateBus;
-                break;
-            }
-        }
-
+        int address = busObject->valueint;
+        matchingBus = lookupBus(address, getCanBuses(), getCanBusCount());
         if(matchingBus == NULL) {
-            debug("No matching active bus for requested address: %d", busAddress);
+            debug("No matching active bus for requested address: %d", address);
         }
     }
 

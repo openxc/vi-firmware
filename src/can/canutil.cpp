@@ -178,6 +178,17 @@ CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
     return message;
 }
 
+CanBus* openxc::can::lookupBus(uint8_t address, CanBus* buses, const int busCount) {
+    CanBus* bus = NULL;
+    for(int i = 0; i < busCount; i++) {
+        if(buses[i].address == address) {
+            bus = &buses[i];
+            break;
+        }
+    }
+    return bus;
+}
+
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
     CanMessageDefinition* message = lookupMessageDefinition(bus, id, NULL, 0);
@@ -406,4 +417,3 @@ void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
         }
     }
 }
-

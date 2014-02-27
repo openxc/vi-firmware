@@ -10,6 +10,7 @@
 #include "bluetooth.h"
 #include "power.h"
 #include "platform/platform.h"
+#include "diagnostics.h"
 #include <stdlib.h>
 
 #define VERSION_CONTROL_COMMAND 0x80
@@ -24,6 +25,7 @@ namespace lights = openxc::lights;
 namespace platform = openxc::platform;
 namespace power = openxc::power;
 namespace time = openxc::util::time;
+namespace diagnostics = openxc::diagnostics;
 
 using openxc::pipeline::Pipeline;
 using openxc::util::log::debug;
@@ -60,6 +62,8 @@ Pipeline PIPELINE = {
     &NETWORK_DEVICE
 #endif // __USE_NETWORK__
 };
+
+diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 
 /* Public: Update the color and status of a board's light that shows the output
  * interface status. This function is intended to be called each time through
@@ -139,7 +143,7 @@ bool handleControlRequest(uint8_t request, uint8_t payload[], int payloadLength)
     }
     case DIAGNOSTIC_REQUEST_CONTROL_COMMAND:
     {
-        debug("Diag payload: %s", payload);
+        diagnostics::handleDiagnosticCommand(&DIAGNOSTICS_MANAGER, payload);
         return true;
     }
     default:

@@ -10,7 +10,7 @@ TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
-NON_TESTABLE_SRCS = signals.cpp main.cpp emulator.cpp platform/platform.cpp
+NON_TESTABLE_SRCS = signals.cpp main.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
 			  $(LIBS_PATH)/nanopb/pb_decode.c

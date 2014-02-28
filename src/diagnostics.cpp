@@ -45,7 +45,8 @@ static void cancelRequest(DiagnosticsManager* manager,
         DiagnosticRequestListEntry* entry) {
     LIST_INSERT_HEAD(&manager->freeActiveRequests, entry, listEntries);
     removeAcceptanceFilter(entry->request.bus,
-            entry->request.arbitration_id + DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
+            entry->request.arbitration_id +
+                DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
             getCanBuses(), getCanBusCount());
 }
 
@@ -59,7 +60,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
             char request_string[128] = {0};
             diagnostic_request_to_string(&request->handle.request,
                     request_string, sizeof(request_string));
-            debug("Moving timed out or completed request back to active list: %s", request_string);
+            debug("Moving timed out or completed request back to active list: %s",
+                    request_string);
 
             LIST_REMOVE(entry, listEntries);
             TAILQ_INSERT_TAIL(&manager->activeRequests, entry, queueEntries);
@@ -72,7 +74,8 @@ static void cleanupActiveRequests(DiagnosticsManager* manager) {
             char request_string[128] = {0};
             diagnostic_request_to_string(&request->handle.request,
                     request_string, sizeof(request_string));
-            debug("Cancelling timed out or completed, non-recurring request: %s", request_string);
+            debug("Cancelling timed out or completed, non-recurring request: %s",
+                    request_string);
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
             cancelRequest(manager, entry);
         }
@@ -252,13 +255,14 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             if(entry->request.handle.success) {
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
-                if(entry->request.arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
+                if(entry->request.arbitration_id !=
+                        OBD2_FUNCTIONAL_BROADCAST_ID) {
                     LIST_REMOVE(entry, listEntries);
                     TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
                             queueEntries);
                 }
             } else {
-                debug("Fatal error when sending or receiving diagnostic request");
+                debug("Fatal error sending or receiving diagnostic request");
             }
         }
     }
@@ -313,7 +317,8 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     // TODO see if there is already an active request with the same ID+mode+pid
     // combo - if there is, update the frequency, pid, payload, name, factor,
     // offset and decoder if set.
-    DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, bus, request);
+    DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, bus,
+            request);
     bool usedFreeEntry = false;
     if(entry == NULL) {
         usedFreeEntry = true;
@@ -325,8 +330,9 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
 
         bool filterStatus = true;
         if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-            for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START; filter <
-                    OBD2_FUNCTIONAL_RESPONSE_START + OBD2_FUNCTIONAL_RESPONSE_COUNT;
+            for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START;
+                    filter < OBD2_FUNCTIONAL_RESPONSE_START +
+                        OBD2_FUNCTIONAL_RESPONSE_COUNT;
                     filter++) {
                 filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
                         getCanBuses(), getCanBusCount());
@@ -339,7 +345,8 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
         }
 
         if(!filterStatus) {
-            debug("Couldn't add filter 0x%x to bus %d", request->arbitration_id, bus->address);
+            debug("Couldn't add filter 0x%x to bus %d", request->arbitration_id,
+                    bus->address);
             return false;
         }
     }
@@ -349,7 +356,8 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     entry->request.handle = generate_diagnostic_request(
             &manager->shims[bus->address - 1], request, NULL);
     if(genericName != NULL) {
-        strncpy(entry->request.genericName, genericName, MAX_GENERIC_NAME_LENGTH);
+        strncpy(entry->request.genericName, genericName,
+                MAX_GENERIC_NAME_LENGTH);
     } else {
         entry->request.genericName[0] = '\0';
     }
@@ -383,16 +391,16 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     return true;
 }
 
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const char* genericName,
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
         float factor, float offset, const DiagnosticResponseDecoder decoder,
         float frequencyHz) {
-    return addDiagnosticRequest(manager, bus, request, genericName, true, factor,
-            offset, decoder, frequencyHz);
+    return addDiagnosticRequest(manager, bus, request, genericName, true,
+            factor, offset, decoder, frequencyHz);
 }
 
-bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, float frequencyHz) {
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, NULL, false, 1.0, 0,
             NULL, frequencyHz);
 }
@@ -410,11 +418,13 @@ void openxc::diagnostics::handleDiagnosticCommand(
                 cJSON* idObject = cJSON_GetObjectItem(requestObject, "id");
                 cJSON* modeObject = cJSON_GetObjectItem(requestObject, "mode");
 
-                if(busObject != NULL && idObject != NULL && modeObject != NULL) {
+                if(busObject != NULL && idObject != NULL &&
+                        modeObject != NULL) {
                     CanBus* canBus = lookupBus(busObject->valueint,
                             getCanBuses(), getCanBusCount());
                     if(canBus == NULL) {
-                        debug("No matching active bus for requested address: %d", busObject->valueint);
+                        debug("No matching active bus for requested address: %d",
+                                busObject->valueint);
                         return;
                     }
 
@@ -425,13 +435,15 @@ void openxc::diagnostics::handleDiagnosticCommand(
 
                     // TODO copy payload
 
-                    cJSON* pidObject = cJSON_GetObjectItem(requestObject, "pid");
+                    cJSON* pidObject = cJSON_GetObjectItem(
+                            requestObject, "pid");
                     if(pidObject != NULL) {
                         request.has_pid = true;
                         request.pid = uint16_t(pidObject->valueint);
                     }
 
-                    cJSON* frequencyObject = cJSON_GetObjectItem(requestObject, "frequency");
+                    cJSON* frequencyObject = cJSON_GetObjectItem(requestObject,
+                            "frequency");
                     float frequency = 0;
                     if(frequencyObject != NULL) {
                         frequency = frequencyObject->valuedouble;

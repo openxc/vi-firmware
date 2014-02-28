@@ -1,5 +1,3 @@
-#ifndef CAN_EMULATOR
-
 #include "interface/usb.h"
 #include "can/canread.h"
 #include "interface/uart.h"
@@ -14,6 +12,8 @@
 #include "bluetooth.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
+#include "data_emulator.h"
+
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -84,6 +84,10 @@ void loop() {
     openxc::signals::loop();
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&PIPELINE);
+
+#ifdef EMULATE_VEHICLE_DATA
+    openxc::emulator::generateFakeMeasurements(&PIPELINE);
+#endif // EMULATE_VEHICLE_DATA
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -235,5 +239,3 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
         diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, bus, &message, pipeline);
     }
 }
-
-#endif // CAN_EMULATOR

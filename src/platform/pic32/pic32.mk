@@ -1,7 +1,7 @@
 BOARD_TAG = mega_pic32
 
-ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue \
-			   emhashmap/emlist emhashmap AT-commander/atcommander \
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON \
+			   emqueue emhashmap/emlist emhashmap AT-commander/atcommander \
 			   nanopb bitfield-c/src isotp-c/src uds-c/src
 ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
@@ -30,10 +30,6 @@ endif
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
 $(error MPIDE missing from path "$(MPIDE_DIR)" - run "script/bootstrap.sh")
-endif
-
-ifndef CAN_EMULATOR
-ARDUINO_LIBS += chipKITCAN
 endif
 
 NO_CORE_MAIN_FUNCTION = 1
@@ -80,12 +76,10 @@ ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - run "script/bootstrap.sh" to download)
 endif
 
-ifndef CAN_EMULATOR
 EXPECTED_CAN_LIBRARY_PATH = $(LIBS_PATH)/chipKITCAN
 MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_CAN_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_CAN_LIBRARY_EXISTS),0)
 $(error chipKIT CAN library missing - run "script/bootstrap.sh" to download)
-endif
 endif
 
 ifdef NETWORK

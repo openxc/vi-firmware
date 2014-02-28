@@ -162,7 +162,7 @@ transmitter: TRANSMITTER = 1
 transmitter: custom_all
 
 EMULATOR ?= 0
-emulator: SYMBOLS += CAN_EMULATOR
+emulator: SYMBOLS += EMULATE_VEHICLE_DATA
 emulator: EMULATOR = 1
 emulator: custom_all
 

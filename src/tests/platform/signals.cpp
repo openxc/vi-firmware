@@ -4,10 +4,10 @@
 #include "util/log.h"
 #include "config.h"
 #include "shared_handlers.h"
+#include "diagnostics.h"
 
 namespace can = openxc::can;
 
-#include "diagnostics.h"
 using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;

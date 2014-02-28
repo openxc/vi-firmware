@@ -110,6 +110,7 @@ void setPwmPeriod(int period) {
 }
 
 void openxc::lights::initialize() {
+    initializeCommon();
     configureLightPins();
     initializePwm();
     setPwmPeriod(PWM_PERIOD_MICROSECONDS);

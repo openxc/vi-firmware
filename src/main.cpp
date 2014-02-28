@@ -7,8 +7,6 @@
 #include "util/log.h"
 #include "lights.h"
 #include "util/timer.h"
-#include "bluetooth.h"
-#include "power.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
 #include <stdlib.h>
@@ -20,10 +18,8 @@
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
-namespace bluetooth = openxc::bluetooth;
 namespace lights = openxc::lights;
 namespace platform = openxc::platform;
-namespace power = openxc::power;
 namespace time = openxc::util::time;
 namespace diagnostics = openxc::diagnostics;
 
@@ -65,45 +61,12 @@ Pipeline PIPELINE = {
 
 diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 
-/* Public: Update the color and status of a board's light that shows the output
- * interface status. This function is intended to be called each time through
- * the main program loop.
- */
-void updateInterfaceLight() {
-    if(uart::connected(PIPELINE.uart)) {
-        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-    } else if(USB_DEVICE.configured) {
-        lights::enable(lights::LIGHT_B, lights::COLORS.green);
-    } else {
-        lights::disable(lights::LIGHT_B);
-    }
-}
-
 int main(void) {
-    platform::initialize();
-    openxc::util::log::initialize();
-    time::initialize();
-    lights::initialize();
-    power::initialize();
-    usb::initialize(PIPELINE.usb);
-    uart::initialize(PIPELINE.uart);
-    updateInterfaceLight();
-    // give basic power indication ASAP, even if no CAN activity or output
-    // interface attached
-    lights::enable(lights::LIGHT_A, lights::COLORS.red);
-
-    bluetooth::initialize(PIPELINE.uart);
-    network::initialize(PIPELINE.network);
-
-    srand(time::systemTimeMs());
-
-    debug("Initializing as %s", getActiveMessageSet()->name);
     initializeVehicleInterface();
 
     for (;;) {
         loop();
         process(&PIPELINE);
-        updateInterfaceLight();
     }
 
     return 0;

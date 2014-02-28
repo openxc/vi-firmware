@@ -20,6 +20,8 @@ extern unsigned long FAKE_TIME;
 // file so we don't have to use extern.
 extern bool receiveWriteRequest(uint8_t*);
 extern void receiveCan(Pipeline* pipeline, CanBus* bus);
+extern void updateDataLights();
+extern void initializeVehicleInterface();
 
 
 static bool canQueueEmpty(int bus) {
@@ -27,9 +29,7 @@ static bool canQueueEmpty(int bus) {
 }
 
 void setup() {
-    for(int i = 0; i < getCanBusCount(); i++) {
-        openxc::can::initializeCommon(&getCanBuses()[i]);
-    }
+    initializeVehicleInterface();
     fail_unless(canQueueEmpty(0));
 }
 
@@ -53,8 +53,6 @@ END_TEST
 
 START_TEST (test_update_data_lights_can_active)
 {
-    extern void updateDataLights();
-
     CanBus* bus = &getCanBuses()[0];
     CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
@@ -68,18 +66,39 @@ END_TEST
 
 START_TEST (test_update_data_lights_can_inactive)
 {
-    extern void updateDataLights();
+
+    updateDataLights();
+    ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
+                openxc::lights::COLORS.red));
 
     CanBus* bus = &getCanBuses()[0];
     CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
     receiveCan(&PIPELINE, bus);
 
-    FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000);
+    FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
+
+}
+END_TEST
+
+START_TEST (test_update_data_lights_suspend)
+{
+    CanBus* bus = &getCanBuses()[0];
+    CanMessage message = {0x1, 0x2};
+    QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
+    receiveCan(&PIPELINE, bus);
+
+    FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
 
     updateDataLights();
+#ifdef __DEBUG__
     ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
                 openxc::lights::COLORS.red));
+#else
+    ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
+                openxc::lights::COLORS.black));
+#endif // __DEBUG__
+
 }
 END_TEST
 
@@ -91,6 +110,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_raw_write_not_allowed);
     tcase_add_test(tc_core, test_update_data_lights_can_active);
     tcase_add_test(tc_core, test_update_data_lights_can_inactive);
+    tcase_add_test(tc_core, test_update_data_lights_suspend);
 
     suite_add_tcase(s, tc_core);
 

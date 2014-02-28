@@ -11,4 +11,6 @@ void openxc::lights::enable(Light light, RGB color) {
     }
 }
 
-void openxc::lights::initialize() { }
+void openxc::lights::initialize() {
+    initializeCommon();
+}

@@ -30,6 +30,8 @@ extern const Palette COLORS;
 
 void initialize();
 
+void initializeCommon();
+
 void deinitialize();
 
 /* Public: Display the given color on the light.

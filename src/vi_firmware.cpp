@@ -14,7 +14,6 @@
 #include "diagnostics.h"
 #include "data_emulator.h"
 
-
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
@@ -24,6 +23,8 @@ namespace platform = openxc::platform;
 namespace time = openxc::util::time;
 namespace signals = openxc::signals;
 namespace diagnostics = openxc::diagnostics;
+namespace power = openxc::power;
+namespace bluetooth = openxc::bluetooth;
 
 using openxc::util::log::debug;
 using openxc::can::lookupBus;
@@ -49,7 +50,40 @@ void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
 
+static bool BUS_WAS_ACTIVE;
+
+/* Public: Update the color and status of a board's light that shows the output
+ * interface status. This function is intended to be called each time through
+ * the main program loop.
+ */
+void updateInterfaceLight() {
+    if(uart::connected(PIPELINE.uart)) {
+        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
+    } else if(PIPELINE.usb->configured) {
+        lights::enable(lights::LIGHT_B, lights::COLORS.green);
+    } else {
+        lights::disable(lights::LIGHT_B);
+    }
+}
+
 void initializeVehicleInterface() {
+    platform::initialize();
+    openxc::util::log::initialize();
+    time::initialize();
+    lights::initialize();
+    power::initialize();
+    usb::initialize(PIPELINE.usb);
+    uart::initialize(PIPELINE.uart);
+
+    updateInterfaceLight();
+
+    bluetooth::initialize(PIPELINE.uart);
+    network::initialize(PIPELINE.network);
+
+    srand(time::systemTimeMs());
+
+    debug("Initializing as %s", signals::getActiveMessageSet()->name);
+    BUS_WAS_ACTIVE = false;
     initializeAllCan();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
             getCanBusCount());
@@ -88,6 +122,8 @@ void loop() {
 #ifdef EMULATE_VEHICLE_DATA
     openxc::emulator::generateFakeMeasurements(&PIPELINE);
 #endif // EMULATE_VEHICLE_DATA
+
+    updateInterfaceLight();
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -95,20 +131,19 @@ void loop() {
  * main program loop.
  */
 void updateDataLights() {
-    static bool busWasActive;
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
         busActive = busActive || can::busActive(&getCanBuses()[i]);
     }
 
-    if(!busWasActive && busActive) {
+    if(!BUS_WAS_ACTIVE && busActive) {
         debug("CAN woke up - enabling LED");
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
-        busWasActive = true;
-    } else if(!busActive && (busWasActive || time::uptimeMs() >
+        BUS_WAS_ACTIVE = true;
+    } else if(!busActive && (BUS_WAS_ACTIVE || time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         lights::enable(lights::LIGHT_A, lights::COLORS.red);
-        busWasActive = false;
+        BUS_WAS_ACTIVE = false;
 #ifndef TRANSMITTER
 #ifndef __DEBUG__
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on

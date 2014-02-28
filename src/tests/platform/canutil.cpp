@@ -8,4 +8,5 @@ void openxc::can::deinitialize(CanBus* bus) { }
 
 void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
         const int busCount) {
+    initializeCommon(bus);
 }

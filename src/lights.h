@@ -70,6 +70,8 @@ void disable(Light light, int duration);
  */
 void flash(Light light, RGB color, int duration);
 
+bool colors_equal(const RGB colorA, const RGB colorB);
+
 } // namespace lights
 } // namespace openxc
 

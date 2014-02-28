@@ -37,3 +37,7 @@ void openxc::lights::deinitialize() {
     disable(LIGHT_A);
     disable(LIGHT_B);
 }
+
+bool openxc::lights::colors_equal(const RGB colorA, const RGB colorB) {
+    return colorA.r == colorB.r && colorA.g == colorB.g && colorA.b == colorB.b;
+}

@@ -150,6 +150,8 @@ static inline bool shouldSend(ActiveDiagnosticRequest* request) {
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
+    cleanupActiveRequests(manager);
+
     DiagnosticRequestListEntry* entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
         ActiveDiagnosticRequest* request = &entry->request;
@@ -228,10 +230,6 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
                 request->bus, request, response, value);
         openxc::can::read::sendVehicleMessage(&message, pipeline);
     }
-}
-
-void openxc::diagnostics::loop(DiagnosticsManager* manager) {
-    cleanupActiveRequests(manager);
 }
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,

@@ -81,7 +81,6 @@ void loop() {
     }
 
     updateDataLights();
-    openxc::diagnostics::loop(&DIAGNOSTICS_MANAGER);
     openxc::signals::loop();
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&PIPELINE);

@@ -236,7 +236,7 @@ START_TEST (test_add_request_with_name_and_decoder)
 }
 END_TEST
 
-START_TEST (test_add_request_with_frequency)
+START_TEST (test_add_recurring)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
             &getCanBuses()[0], &request, 1));
@@ -251,18 +251,24 @@ START_TEST (test_add_request_with_frequency)
     fail_if(outputQueueEmpty());
 
     resetQueues();
-    // TODO expire timer...no good way to do that without reaching really deep
-    // into the library internals
 
-    // diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
-    // fail_if(canQueueEmpty(0));
-    // diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
-            // &message, &PIPELINE);
-    // fail_if(outputQueueEmpty());
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+
+    FAKE_TIME += 900;
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+    FAKE_TIME += 100;
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &message, &PIPELINE);
+    fail_if(outputQueueEmpty());
 }
 END_TEST
 
-START_TEST (test_receive_nonreceurring_twice)
+START_TEST (test_receive_nonrecurring_twice)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
             &getCanBuses()[0], &request, 0));
@@ -287,23 +293,45 @@ START_TEST (test_receive_nonreceurring_twice)
 }
 END_TEST
 
+START_TEST (test_nonrecurring_timeout)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    resetQueues();
+
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+
+    FAKE_TIME += 500;
+
+    // the request timed out and it's non-recurring, so it should *not* be sent
+    // again
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("diagnostics");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_add_recurring_too_frequent);
     tcase_add_test(tc_core, test_add_basic_request);
-    tcase_add_test(tc_core, test_receive_nonreceurring_twice);
     tcase_add_test(tc_core, test_add_request_other_bus);
     tcase_add_test(tc_core, test_add_request_with_name);
     tcase_add_test(tc_core, test_add_request_with_decoder_no_name_allowed);
     tcase_add_test(tc_core, test_add_request_with_name_and_decoder);
-    tcase_add_test(tc_core, test_add_request_with_frequency);
+    tcase_add_test(tc_core, test_add_recurring);
+    tcase_add_test(tc_core, test_add_recurring_too_frequent);
     tcase_add_test(tc_core, test_padding_on_by_default);
     tcase_add_test(tc_core, test_padding_enabled);
     tcase_add_test(tc_core, test_padding_disabled);
     tcase_add_test(tc_core, test_scaling);
     tcase_add_test(tc_core, test_update_existing_recurring);
+    tcase_add_test(tc_core, test_receive_nonrecurring_twice);
+    tcase_add_test(tc_core, test_nonrecurring_timeout);
 
     suite_add_tcase(s, tc_core);
 

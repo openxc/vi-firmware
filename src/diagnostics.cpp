@@ -267,12 +267,18 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     cleanupActiveRequests(manager);
 }
 
+/* Note that this pops it off of whichver list it wason and returns it, so make
+ * sure to add it to some other list or it'll be lost.
+ */
 static DiagnosticRequestListEntry* lookupExistingRequest(
-        DiagnosticsManager* manager, DiagnosticRequest* request) {
+        DiagnosticsManager* manager, const CanBus* bus,
+        const DiagnosticRequest* request) {
     DiagnosticRequestListEntry* existingEntry = NULL, *entry, *tmp;
     LIST_FOREACH_SAFE(entry, &manager->inFlightRequests, listEntries, tmp) {
         ActiveDiagnosticRequest* candidate = &entry->request;
-        if(diagnostic_request_equals(&candidate->handle.request, request)) {
+        if(candidate->bus == bus && diagnostic_request_equals(
+                    &candidate->handle.request, request)) {
+            LIST_REMOVE(entry, listEntries);
             existingEntry = entry;
             break;
         }
@@ -281,7 +287,9 @@ static DiagnosticRequestListEntry* lookupExistingRequest(
     if(existingEntry == NULL) {
         TAILQ_FOREACH_SAFE(entry, &manager->activeRequests, queueEntries, tmp) {
             ActiveDiagnosticRequest* candidate = &entry->request;
-            if(diagnostic_request_equals(&candidate->handle.request, request)) {
+            if(candidate->bus == bus && diagnostic_request_equals(
+                        &candidate->handle.request, request)) {
+                TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
                 existingEntry = entry;
                 break;
             }
@@ -307,7 +315,7 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     // TODO see if there is already an active request with the same ID+mode+pid
     // combo - if there is, update the frequency, pid, payload, name, factor,
     // offset and decoder if set.
-    DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, request);
+    DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, bus, request);
     bool usedFreeEntry = false;
     if(entry == NULL) {
         usedFreeEntry = true;
@@ -354,7 +362,7 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
     entry->request.recurring = frequencyHz != 0;
     entry->request.frequencyClock = {0};
     entry->request.frequencyClock.frequency =
-            entry->request.recurring ? frequencyHz : 1;
+            entry->request.recurring ? frequencyHz : 0;
     // time out after 100ms
     entry->request.timeoutClock = {0};
     entry->request.timeoutClock.frequency = 10;
@@ -364,13 +372,15 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
             request_string, sizeof(request_string));
     if(usedFreeEntry) {
         LIST_REMOVE(entry, listEntries);
-        TAILQ_INSERT_HEAD(&manager->activeRequests, entry, queueEntries);
         debug("Added new diagnostic request (freq: %f): %s", frequencyHz,
                 request_string);
     } else {
+        // lookupExistingRequest already popped it off of whichever list it was
+        // on
         debug("Updated existing diagnostic request (freq: %f): %s", frequencyHz,
                 request_string);
     }
+    TAILQ_INSERT_HEAD(&manager->activeRequests, entry, queueEntries);
 
     return true;
 }

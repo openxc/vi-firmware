@@ -20,13 +20,13 @@ extern long FAKE_TIME;
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
 
 DiagnosticRequest request = {
-    arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
+    arbitration_id: 0x7e0,
     mode: OBD2_MODE_POWERTRAIN_DIAGNOSTIC_REQUEST,
     has_pid: true,
     pid: 0x2,
     pid_length: 1
 };
-CanMessage message = {0x7e8, __builtin_bswap64(0x341024500000000)};
+CanMessage message = {request.arbitration_id + 0x8, __builtin_bswap64(0x341024500000000)};
 
 static bool canQueueEmpty(int bus) {
     return QUEUE_EMPTY(CanMessage, &getCanBuses()[bus].sendQueue);
@@ -36,27 +36,71 @@ bool outputQueueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
 }
 
-void setup() {
-    PIPELINE.outputFormat = openxc::pipeline::JSON;
-    PIPELINE.usb = &USB_DEVICE;
+static void resetQueues() {
     usb::initialize(&USB_DEVICE);
     PIPELINE.usb->configured = true;
     for(int i = 0; i < getCanBusCount(); i++) {
         openxc::can::initializeCommon(&getCanBuses()[i]);
+        fail_unless(canQueueEmpty(i));
     }
+    fail_unless(outputQueueEmpty());
+}
+
+void setup() {
+    PIPELINE.outputFormat = openxc::pipeline::JSON;
+    PIPELINE.usb = &USB_DEVICE;
+    resetQueues();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
             getCanBusCount());
-    fail_unless(canQueueEmpty(0));
 }
 
 START_TEST (test_add_recurring_too_frequent)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL, 1));
+            &getCanBuses()[0], &request, 1));
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL, 10));
+            &getCanBuses()[0], &request, 10));
     ck_assert(!diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL, 11));
+            &getCanBuses()[0], &request, 11));
+}
+END_TEST
+
+START_TEST (test_update_existing_recurring)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, 10));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    // get around the staggered start
+    FAKE_TIME += 2000;
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &message, &PIPELINE);
+    fail_if(outputQueueEmpty());
+
+    // received one response to recurring request - now reset queues
+
+    resetQueues();
+
+    // change request to non-recurring, which should trigger it to be sent once,
+    // right now
+    ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &message, &PIPELINE);
+    fail_if(outputQueueEmpty());
+
+    resetQueues();
+
+    diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+    diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
+            &message, &PIPELINE);
+    fail_unless(outputQueueEmpty());
 }
 END_TEST
 
@@ -73,7 +117,7 @@ START_TEST (test_add_basic_request)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2024,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\r\n");
 }
 END_TEST
 
@@ -195,7 +239,7 @@ END_TEST
 START_TEST (test_add_request_with_frequency)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
-            &getCanBuses()[0], &request, NULL, 1, 0, NULL, 1));
+            &getCanBuses()[0], &request, 1));
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     // get around the staggered start
     FAKE_TIME += 2000;
@@ -206,10 +250,7 @@ START_TEST (test_add_request_with_frequency)
             &message, &PIPELINE);
     fail_if(outputQueueEmpty());
 
-    openxc::can::initializeCommon(&getCanBuses()[0]);
-    usb::initialize(&USB_DEVICE);
-    fail_unless(canQueueEmpty(0));
-    fail_unless(outputQueueEmpty());
+    resetQueues();
     // TODO expire timer...no good way to do that without reaching really deep
     // into the library internals
 
@@ -221,7 +262,7 @@ START_TEST (test_add_request_with_frequency)
 }
 END_TEST
 
-START_TEST (test_receive_singletimer_twice)
+START_TEST (test_receive_nonreceurring_twice)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&DIAGNOSTICS_MANAGER,
             &getCanBuses()[0], &request, 0));
@@ -232,11 +273,12 @@ START_TEST (test_receive_singletimer_twice)
             &message, &PIPELINE);
     fail_if(outputQueueEmpty());
 
-    openxc::can::initializeCommon(&getCanBuses()[0]);
-    usb::initialize(&USB_DEVICE);
-    fail_unless(canQueueEmpty(0));
-    fail_unless(outputQueueEmpty());
+    // the request should be moved from inflight to active at this point
 
+    resetQueues();
+
+    // the non-recurring request should already be completed, so this should
+    // *not* send it again
     diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, &getCanBuses()[0],
@@ -251,7 +293,7 @@ Suite* suite(void) {
     tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_add_recurring_too_frequent);
     tcase_add_test(tc_core, test_add_basic_request);
-    tcase_add_test(tc_core, test_receive_singletimer_twice);
+    tcase_add_test(tc_core, test_receive_nonreceurring_twice);
     tcase_add_test(tc_core, test_add_request_other_bus);
     tcase_add_test(tc_core, test_add_request_with_name);
     tcase_add_test(tc_core, test_add_request_with_decoder_no_name_allowed);
@@ -261,6 +303,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_padding_enabled);
     tcase_add_test(tc_core, test_padding_disabled);
     tcase_add_test(tc_core, test_scaling);
+    tcase_add_test(tc_core, test_update_existing_recurring);
 
     suite_add_tcase(s, tc_core);
 

@@ -11,7 +11,7 @@ using openxc::signals::getCanBusCount;
 using openxc::signals::getMessages;
 using openxc::pipeline::Pipeline;
 
-diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
+extern diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
 

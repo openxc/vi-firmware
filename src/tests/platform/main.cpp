@@ -1,8 +1,10 @@
 #include "interface/uart.h"
 #include "interface/usb.h"
 #include "pipeline.h"
+#include "diagnostics.h"
 
 namespace usb = openxc::interface::usb;
+namespace diagnostics = openxc::diagnostics;
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
@@ -23,3 +25,5 @@ Pipeline PIPELINE = {
     &USB_DEVICE,
     &UART_DEVICE,
 };
+
+diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;

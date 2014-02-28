@@ -49,7 +49,7 @@ void initializeAllCan();
 bool receiveWriteRequest(uint8_t*);
 void updateDataLights();
 
-void setup() {
+void initializeVehicleInterface() {
     initializeAllCan();
     diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
             getCanBusCount());

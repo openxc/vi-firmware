@@ -33,7 +33,7 @@ using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::sendControlMessage;
 using openxc::signals::getActiveMessageSet;
 
-extern void setup();
+extern void initializeVehicleInterface();
 extern void loop();
 
 const char VERSION[] = "6.0-dev";
@@ -98,7 +98,7 @@ int main(void) {
     srand(time::systemTimeMs());
 
     debug("Initializing as %s", getActiveMessageSet()->name);
-    setup();
+    initializeVehicleInterface();
 
     for (;;) {
         loop();

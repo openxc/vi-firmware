@@ -159,10 +159,14 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
         matchingBus = &getCanBuses()[0];
     }
 
-    char* dataString = dataObject->valuestring;
-    char* end;
-    CanMessage message = {id, strtoull(dataString, &end, 16)};
-    can::write::enqueueMessage(matchingBus, &message);
+    if(matchingBus->rawWritable) {
+        char* dataString = dataObject->valuestring;
+        char* end;
+        CanMessage message = {id, strtoull(dataString, &end, 16)};
+        can::write::enqueueMessage(matchingBus, &message);
+    } else {
+        debug("Raw CAN writes not allowed for bus %d", matchingBus->address);
+    }
 }
 
 void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {

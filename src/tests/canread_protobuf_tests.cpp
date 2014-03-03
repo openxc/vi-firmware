@@ -28,15 +28,13 @@ using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
 using openxc::signals::getCanBuses;
-
-extern Pipeline PIPELINE;
-extern UsbDevice USB_DEVICE;
+using openxc::config::getConfiguration;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 static unsigned long fakeTime = 0;
 
-QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
 
 bool queueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
@@ -48,10 +46,9 @@ unsigned long timeMock() {
 
 void setup() {
     fakeTime = 0;
-    PIPELINE.outputFormat = openxc::pipeline::PROTO;
-    PIPELINE.usb = &USB_DEVICE;
-    usb::initialize(&USB_DEVICE);
-    PIPELINE.usb->configured = true;
+    getConfiguration()->outputFormat = openxc::config::PROTO;
+    usb::initialize(&getConfiguration()->usb);
+    getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {
         getSignals()[i].received = false;
         getSignals()[i].sendSame = true;
@@ -79,10 +76,10 @@ START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
     CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
-    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0, &PIPELINE);
+    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
     ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
 
@@ -99,10 +96,10 @@ END_TEST
 START_TEST (test_send_numeric_value)
 {
     fail_unless(queueEmpty());
-    sendNumericalMessage("test", 42, &PIPELINE);
+    sendNumericalMessage("test", 42, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
     ck_assert_int_eq(42, decodedMessage.translated_message.numeric_value);
@@ -113,10 +110,10 @@ START_TEST (test_preserve_float_precision)
 {
     fail_unless(queueEmpty());
     float value = 42.5;
-    sendNumericalMessage("test", value, &PIPELINE);
+    sendNumericalMessage("test", value, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
     ck_assert_int_eq(42.5, decodedMessage.translated_message.numeric_value);
@@ -126,10 +123,10 @@ END_TEST
 START_TEST (test_send_boolean)
 {
     fail_unless(queueEmpty());
-    sendBooleanMessage("test", false, &PIPELINE);
+    sendBooleanMessage("test", false, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
     ck_assert(decodedMessage.translated_message.boolean_value == false);
@@ -139,10 +136,10 @@ END_TEST
 START_TEST (test_send_string)
 {
     fail_unless(queueEmpty());
-    sendStringMessage("test", "string", &PIPELINE);
+    sendStringMessage("test", "string", &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("test", decodedMessage.translated_message.name);
     ck_assert_str_eq("string", decodedMessage.translated_message.string_value);
@@ -158,11 +155,11 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&PIPELINE, &getSignals()[1], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[1], BIG_ENDIAN_TEST_DATA,
             stringHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("transmission_gear_position", decodedMessage.translated_message.name);
     ck_assert_str_eq("foo", decodedMessage.translated_message.string_value);
@@ -176,11 +173,11 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&PIPELINE, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2], BIG_ENDIAN_TEST_DATA,
             booleanTranslateHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("brake_pedal_status", decodedMessage.translated_message.name);
     ck_assert(decodedMessage.translated_message.boolean_value == false);
@@ -194,11 +191,11 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&PIPELINE, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
+    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0], BIG_ENDIAN_TEST_DATA,
             floatHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
     ck_assert_str_eq("torque_at_transmission", decodedMessage.translated_message.name);
     ck_assert_int_eq(42, decodedMessage.translated_message.numeric_value);

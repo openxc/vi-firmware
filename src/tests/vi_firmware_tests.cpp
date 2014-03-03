@@ -3,6 +3,7 @@
 #include "signals.h"
 #include "diagnostics.h"
 #include "lights.h"
+#include "config.h"
 #include "pipeline.h"
 
 namespace diagnostics = openxc::diagnostics;
@@ -11,8 +12,8 @@ namespace usb = openxc::interface::usb;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
+using openxc::config::getConfiguration;
 
-extern Pipeline PIPELINE;
 extern openxc::lights::RGB LIGHT_A_LAST_COLOR;
 extern unsigned long FAKE_TIME;
 
@@ -56,7 +57,7 @@ START_TEST (test_update_data_lights_can_active)
     CanBus* bus = &getCanBuses()[0];
     CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
-    receiveCan(&PIPELINE, bus);
+    receiveCan(&getConfiguration()->pipeline, bus);
 
     updateDataLights();
     ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
@@ -74,7 +75,7 @@ START_TEST (test_update_data_lights_can_inactive)
     CanBus* bus = &getCanBuses()[0];
     CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
-    receiveCan(&PIPELINE, bus);
+    receiveCan(&getConfiguration()->pipeline, bus);
 
     FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
 
@@ -86,7 +87,7 @@ START_TEST (test_update_data_lights_suspend)
     CanBus* bus = &getCanBuses()[0];
     CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
-    receiveCan(&PIPELINE, bus);
+    receiveCan(&getConfiguration()->pipeline, bus);
 
     FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
 

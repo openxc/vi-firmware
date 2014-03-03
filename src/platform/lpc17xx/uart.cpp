@@ -3,6 +3,7 @@
 #include "lpc17xx_uart.h"
 #include "interface/uart.h"
 #include "pipeline.h"
+#include "config.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
 #include "gpio.h"
@@ -40,13 +41,12 @@
 
 namespace gpio = openxc::gpio;
 
+using openxc::config::getConfiguration;
 using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GpioValue;
 using openxc::gpio::GpioDirection;
-
-extern Pipeline PIPELINE;
 
 __IO int32_t RTS_STATE;
 __IO FlagStatus TRANSMIT_INTERRUPT_STATUS;
@@ -81,12 +81,12 @@ void enableTransmitInterrupt() {
 }
 
 void handleReceiveInterrupt() {
-    while(!QUEUE_FULL(uint8_t, &PIPELINE.uart->receiveQueue)) {
+    while(!QUEUE_FULL(uint8_t, &getConfiguration()->uart.receiveQueue)) {
         uint8_t byte;
         uint32_t received = UART_Receive(UART1_DEVICE, &byte, 1, NONE_BLOCKING);
         if(received > 0) {
-            QUEUE_PUSH(uint8_t, &PIPELINE.uart->receiveQueue, byte);
-            if(QUEUE_FULL(uint8_t, &PIPELINE.uart->receiveQueue)) {
+            QUEUE_PUSH(uint8_t, &getConfiguration()->uart.receiveQueue, byte);
+            if(QUEUE_FULL(uint8_t, &getConfiguration()->uart.receiveQueue)) {
                 pauseReceive();
             }
         } else {
@@ -100,16 +100,16 @@ void handleTransmitInterrupt() {
 
     while(UART_CheckBusy(UART1_DEVICE) == SET);
 
-    while(!QUEUE_EMPTY(uint8_t, &PIPELINE.uart->sendQueue)) {
-        uint8_t byte = QUEUE_PEEK(uint8_t, &PIPELINE.uart->sendQueue);
+    while(!QUEUE_EMPTY(uint8_t, &getConfiguration()->uart.sendQueue)) {
+        uint8_t byte = QUEUE_PEEK(uint8_t, &getConfiguration()->uart.sendQueue);
         if(UART_Send(UART1_DEVICE, &byte, 1, NONE_BLOCKING)) {
-            QUEUE_POP(uint8_t, &PIPELINE.uart->sendQueue);
+            QUEUE_POP(uint8_t, &getConfiguration()->uart.sendQueue);
         } else {
             break;
         }
     }
 
-    if(QUEUE_EMPTY(uint8_t, &PIPELINE.uart->sendQueue)) {
+    if(QUEUE_EMPTY(uint8_t, &getConfiguration()->uart.sendQueue)) {
         disableTransmitInterrupt();
         TRANSMIT_INTERRUPT_STATUS = RESET;
     } else {

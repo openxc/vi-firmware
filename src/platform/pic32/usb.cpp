@@ -1,6 +1,8 @@
 #include "interface/usb.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include "config.h"
+#include "commands.h"
 #include "gpio.h"
 
 #ifdef CHIPKIT
@@ -19,29 +21,29 @@ using openxc::interface::usb::UsbEndpoint;
 using openxc::interface::usb::UsbEndpointDirection;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::util::bytebuffer::processQueue;
+using openxc::config::getConfiguration;
+using openxc::commands::handleCommand;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
-extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t, uint8_t[], int);
 
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
-    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
+    getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
-        USB_DEVICE.configured = true;
+        getConfiguration()->usb.configured = true;
 
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
-            UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
+            UsbEndpoint* endpoint = &getConfiguration()->usb.endpoints[i];
             if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
-                USB_DEVICE.device.EnableEndpoint(endpoint->address,
+                getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             } else {
-                USB_DEVICE.device.EnableEndpoint(endpoint->address,
+                getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             }
         }
@@ -49,7 +51,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     case EVENT_EP0_REQUEST:
         // TODO read payload
-        handleControlRequest(SetupPkt.bRequest, NULL, 0);
+        handleCommand(SetupPkt.bRequest, NULL, 0);
         break;
 
     default:
@@ -59,7 +61,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 }
 
 void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
-    USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
+    getConfiguration()->usb.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
 }
 
 bool vbusEnabled() {

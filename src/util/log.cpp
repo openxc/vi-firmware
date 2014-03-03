@@ -1,6 +1,7 @@
 #include "util/log.h"
 #include "pipeline.h"
 #include <stdio.h>
+#include "config.h"
 #include <stdarg.h>
 
 #define LOG_QUEUE_FLUSH_MAX_TRIES 5
@@ -13,8 +14,7 @@ using openxc::util::bytebuffer::conditionalEnqueue;
 using openxc::interface::usb::UsbDevice;
 using openxc::pipeline::Pipeline;
 using openxc::pipeline::MessageClass;
-
-extern Pipeline PIPELINE;
+using openxc::config::getConfiguration;
 
 void openxc::util::log::debug(const char* format, ...) {
 #ifdef __DEBUG__
@@ -25,7 +25,7 @@ void openxc::util::log::debug(const char* format, ...) {
     vsnprintf(buffer, MAX_LOG_LINE_LENGTH - 2, format, args);
     strncat(buffer, "\r\n", 2);
 
-    pipeline::sendMessage(&PIPELINE, (uint8_t*) buffer,
+    pipeline::sendMessage(&getConfiguration()->pipeline, (uint8_t*) buffer,
             strnlen(buffer, MAX_LOG_LINE_LENGTH), MessageClass::LOG);
 
     va_end(args);

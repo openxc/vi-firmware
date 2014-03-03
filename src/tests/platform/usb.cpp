@@ -15,3 +15,5 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*)) { }
 
 void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) { }
+
+void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) { }

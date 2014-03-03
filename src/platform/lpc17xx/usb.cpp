@@ -4,7 +4,9 @@
 #include "util/bytebuffer.h"
 #include "gpio.h"
 #include "usb_config.h"
+#include "config.h"
 #include "emqueue.h"
+#include "commands.h"
 
 #include "LPC17xx.h"
 #include "lpc17xx_pinsel.h"
@@ -29,6 +31,8 @@ extern "C" {
 
 namespace gpio = openxc::gpio;
 
+using openxc::commands::handleCommand;
+using openxc::config::getConfiguration;
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::usb::UsbEndpoint;
@@ -37,12 +41,9 @@ using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 
-extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t, uint8_t[], int);
-
 void configureEndpoints() {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
-        UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
+        UsbEndpoint* endpoint = &getConfiguration()->usb.endpoints[i];
         Endpoint_ConfigureEndpoint(endpoint->address,
                 EP_TYPE_BULK,
                 endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT ?
@@ -55,7 +56,7 @@ extern "C" {
 
 void EVENT_USB_Device_Disconnect() {
     debug("USB no longer detected - marking unconfigured");
-    USB_DEVICE.configured = false;
+    getConfiguration()->usb.configured = false;
 }
 
 void EVENT_USB_Device_ControlRequest() {
@@ -95,14 +96,14 @@ void EVENT_USB_Device_ControlRequest() {
         QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
     }
 
-    handleControlRequest(USB_ControlRequest.bRequest, snapshot, length);
+    handleCommand(USB_ControlRequest.bRequest, snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
-    USB_DEVICE.configured = false;
+    getConfiguration()->usb.configured = false;
     configureEndpoints();
     debug("USB configured");
-    USB_DEVICE.configured = true;
+    getConfiguration()->usb.configured = true;
 }
 
 }

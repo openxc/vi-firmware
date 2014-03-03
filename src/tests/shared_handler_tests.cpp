@@ -20,11 +20,9 @@ using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
 using openxc::signals::getCanBuses;
+using openxc::config::getConfiguration;
 
-extern Pipeline PIPELINE;
-extern UsbDevice USB_DEVICE;
-
-QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
 
 bool queueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
@@ -32,9 +30,8 @@ bool queueEmpty() {
 
 void setup() {
     openxc::config::getConfiguration()->messageSetIndex = 1;
-    PIPELINE.usb = &USB_DEVICE;
-    usb::initialize(&USB_DEVICE);
-    PIPELINE.usb->configured = true;
+    usb::initialize(&getConfiguration()->usb);
+    getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {
         getSignals()[i].received = false;
         getSignals()[i].frequencyClock = {0};
@@ -45,7 +42,7 @@ START_TEST (test_inverted_handler)
 {
     bool send = true;
     float result = handleInverted(&getSignals()[0], getSignals(), getSignalCount(),
-            &PIPELINE, 1, &send);
+            &getConfiguration()->pipeline, 1, &send);
     ck_assert(result == -1.0);
 }
 END_TEST
@@ -58,7 +55,7 @@ START_TEST (test_button_event_handler)
             &send);
     data += stateWriter(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
-            &PIPELINE);
+            &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -71,7 +68,7 @@ START_TEST (test_button_event_handler_bad_type)
             &send);
     data += stateWriter(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
-            &PIPELINE);
+            &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -84,7 +81,7 @@ START_TEST (test_button_event_handler_correct_types)
             &send);
     data += stateWriter(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
-            &PIPELINE);
+            &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -105,7 +102,7 @@ START_TEST (test_button_event_handler_bad_state)
             &send);
     data += numberWriter(&getSignals()[1], getSignals(), getSignalCount(), 11, &send);
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
-            &PIPELINE);
+            &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -116,7 +113,7 @@ START_TEST (test_tire_pressure_handler)
     uint64_t data = numberWriter(&getSignals()[7], getSignals(), getSignalCount(), 23.1,
             &send);
     sendTirePressure("foo", __builtin_bswap64(data), 1, &getSignals()[7], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -132,7 +129,7 @@ START_TEST (test_send_invalid_tire)
     uint64_t data = booleanWriter(&getSignals()[7], getSignals(), getSignalCount(), true,
             &send);
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -143,11 +140,11 @@ START_TEST (test_send_same_tire_pressure)
     uint64_t data = booleanWriter(&getSignals()[7], getSignals(), getSignalCount(), true,
             &send);
     sendDoorStatus("front_left", __builtin_bswap64(data), &getSignals()[7], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     sendDoorStatus("front_left", __builtin_bswap64(data), &getSignals()[7], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -159,7 +156,7 @@ START_TEST (test_occupancy_handler_child)
             &send);
     data += booleanWriter(&getSignals()[12], getSignals(), getSignalCount(), false, &send);
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
-            getSignals(), getSignalCount(), &PIPELINE);
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -179,7 +176,7 @@ START_TEST (test_occupancy_handler_adult)
             &send);
     data += booleanWriter(&getSignals()[12], getSignals(), getSignalCount(), true, &send);
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
-            getSignals(), getSignalCount(), &PIPELINE);
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -199,7 +196,7 @@ START_TEST (test_occupancy_handler_empty)
             &send);
     data += booleanWriter(&getSignals()[12], getSignals(), getSignalCount(), false, &send);
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
-            getSignals(), getSignalCount(), &PIPELINE);
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -241,7 +238,7 @@ START_TEST (test_door_handler)
     uint64_t data = booleanWriter(&getSignals()[2], getSignals(), getSignalCount(), true,
             &send);
     sendDoorStatus("foo", __builtin_bswap64(data), &getSignals()[2], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -257,7 +254,7 @@ START_TEST (test_send_invalid_door_status)
     uint64_t data = booleanWriter(&getSignals()[2], getSignals(), getSignalCount(), true,
             &send);
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -268,11 +265,11 @@ START_TEST (test_send_same_door_status)
     uint64_t data = booleanWriter(&getSignals()[2], getSignals(), getSignalCount(), true,
             &send);
     sendDoorStatus("driver", __builtin_bswap64(data), &getSignals()[2], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     sendDoorStatus("driver", __builtin_bswap64(data), &getSignals()[2], getSignals(),
-            getSignalCount(), &PIPELINE);
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST

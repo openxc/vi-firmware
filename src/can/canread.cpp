@@ -2,12 +2,14 @@
 #include <canutil/read.h>
 #include <pb_encode.h>
 #include "can/canread.h"
+#include "config.h"
 #include "util/log.h"
 #include "util/timer.h"
 
 using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
 using openxc::pipeline::Pipeline;
+using openxc::config::getConfiguration;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
@@ -380,7 +382,7 @@ void sendJsonMessage(openxc_VehicleMessage* message, Pipeline* pipeline) {
 
 void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
-    if(pipeline->outputFormat == pipeline::PROTO) {
+    if(getConfiguration()->outputFormat == openxc::config::PROTO) {
         sendProtobuf(message, pipeline);
     } else {
         sendJsonMessage(message, pipeline);

@@ -13,6 +13,7 @@
 #include "platform/platform.h"
 #include "diagnostics.h"
 #include "data_emulator.h"
+#include "config.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -39,9 +40,8 @@ using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
-
-extern Pipeline PIPELINE;
-extern diagnostics::DiagnosticsManager DIAGNOSTICS_MANAGER;
+using openxc::config::Configuration;
+using openxc::config::getConfiguration;
 
 /* Forward declarations */
 
@@ -57,9 +57,9 @@ static bool BUS_WAS_ACTIVE;
  * the main program loop.
  */
 void updateInterfaceLight() {
-    if(uart::connected(PIPELINE.uart)) {
+    if(uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-    } else if(PIPELINE.usb->configured) {
+    } else if(getConfiguration()->usb.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
         lights::disable(lights::LIGHT_B);
@@ -72,25 +72,25 @@ void initializeVehicleInterface() {
     time::initialize();
     lights::initialize();
     power::initialize();
-    usb::initialize(PIPELINE.usb);
-    uart::initialize(PIPELINE.uart);
+    usb::initialize(&getConfiguration()->usb);
+    uart::initialize(&getConfiguration()->uart);
 
     updateInterfaceLight();
 
-    bluetooth::initialize(PIPELINE.uart);
-    network::initialize(PIPELINE.network);
+    bluetooth::initialize(&getConfiguration()->uart);
+    network::initialize(&getConfiguration()->network);
 
     srand(time::systemTimeMs());
 
     debug("Initializing as %s", signals::getActiveMessageSet()->name);
     BUS_WAS_ACTIVE = false;
     initializeAllCan();
-    diagnostics::initialize(&DIAGNOSTICS_MANAGER, getCanBuses(),
+    diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
             getCanBusCount());
-    signals::initialize(&DIAGNOSTICS_MANAGER);
+    signals::initialize(&getConfiguration()->diagnosticsManager);
 }
 
-void loop() {
+void firmareLoop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
         // no USB or Bluetooth, the loop will stall here. Deep down in
@@ -101,14 +101,14 @@ void loop() {
         // have to change that or enable the flush functionality to write to
         // your desired output interface.
         CanBus* bus = &(getCanBuses()[i]);
-        receiveCan(&PIPELINE, bus);
-        diagnostics::sendRequests(&DIAGNOSTICS_MANAGER, bus);
+        receiveCan(&getConfiguration()->pipeline, bus);
+        diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
     }
 
 
-    usb::read(PIPELINE.usb, receiveWriteRequest);
-    uart::read(PIPELINE.uart, receiveWriteRequest);
-    network::read(PIPELINE.network, receiveWriteRequest);
+    usb::read(&getConfiguration()->usb, receiveWriteRequest);
+    uart::read(&getConfiguration()->uart, receiveWriteRequest);
+    network::read(&getConfiguration()->network, receiveWriteRequest);
 
     for(int i = 0; i < getCanBusCount(); i++) {
         can::write::processWriteQueue(&getCanBuses()[i]);
@@ -117,13 +117,15 @@ void loop() {
     updateDataLights();
     openxc::signals::loop();
     can::logBusStatistics(getCanBuses(), getCanBusCount());
-    openxc::pipeline::logStatistics(&PIPELINE);
+    openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
 #ifdef EMULATE_VEHICLE_DATA
-    openxc::emulator::generateFakeMeasurements(&PIPELINE);
+    openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
 #endif // EMULATE_VEHICLE_DATA
 
     updateInterfaceLight();
+
+    openxc::pipeline::process(&getConfiguration()->pipeline);
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -147,7 +149,7 @@ void updateDataLights() {
 #ifndef TRANSMITTER
 #ifndef __DEBUG__
         // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
-        platform::suspend(&PIPELINE);
+        platform::suspend(&getConfiguration()->pipeline);
 #endif
 #endif
     }
@@ -271,6 +273,6 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 
         ++bus->messagesReceived;
 
-        diagnostics::receiveCanMessage(&DIAGNOSTICS_MANAGER, bus, &message, pipeline);
+        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, bus, &message, pipeline);
     }
 }

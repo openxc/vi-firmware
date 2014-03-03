@@ -13,11 +13,6 @@ namespace openxc {
 namespace pipeline {
 
 typedef enum {
-    JSON,
-    PROTO
-} OutputFormat;
-
-typedef enum {
     TRANSLATED,
     RAW,
     DIAGNOSTIC,
@@ -37,7 +32,6 @@ typedef enum {
  * sendQueues?
  */
 typedef struct {
-    OutputFormat outputFormat;
     UsbDevice* usb;
     UartDevice* uart;
     NetworkDevice* network;

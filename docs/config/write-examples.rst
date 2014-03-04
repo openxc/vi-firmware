@@ -305,8 +305,10 @@ In ``my_handlers.cpp``:
       // of the CAN messages we enqueue in the handler will be sent until after
       // it returns - interaction with the car via CAN must be asynchronous.
       CanMessage message = {0x34, 0x12345};
-      // TODO need a lookupCanBus function to make sure we get the bus we wanted
-      can::write::enqueueMessage(getCanBuses()[0], &message);
+      CanBus* bus = lookupBus(0, getCanBuses(), getCanBusCount());
+      if(bus != NULL) {
+        can::write::enqueueMessage(bus, &message);
+      }
 
       // Send the numeric value:
 

@@ -19,7 +19,6 @@ extern unsigned long FAKE_TIME;
 
 // TODO this should be refactored out of vi_firmware.cpp, and include a header
 // file so we don't have to use extern.
-extern bool receiveWriteRequest(uint8_t*);
 extern void receiveCan(Pipeline* pipeline, CanBus* bus);
 extern void updateDataLights();
 extern void initializeVehicleInterface();
@@ -33,24 +32,6 @@ void setup() {
     initializeVehicleInterface();
     fail_unless(canQueueEmpty(0));
 }
-
-const char* REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
-
-START_TEST (test_raw_write_allowed)
-{
-    getCanBuses()[0].rawWritable = true;
-    ck_assert(receiveWriteRequest((uint8_t*)REQUEST));
-    fail_if(canQueueEmpty(0));
-}
-END_TEST
-
-START_TEST (test_raw_write_not_allowed)
-{
-    getCanBuses()[0].rawWritable = false;
-    ck_assert(receiveWriteRequest((uint8_t*)REQUEST));
-    fail_unless(canQueueEmpty(0));
-}
-END_TEST
 
 START_TEST (test_update_data_lights_can_active)
 {
@@ -107,8 +88,6 @@ Suite* suite(void) {
     Suite* s = suite_create("firmware");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_raw_write_allowed);
-    tcase_add_test(tc_core, test_raw_write_not_allowed);
     tcase_add_test(tc_core, test_update_data_lights_can_active);
     tcase_add_test(tc_core, test_update_data_lights_can_inactive);
     tcase_add_test(tc_core, test_update_data_lights_suspend);

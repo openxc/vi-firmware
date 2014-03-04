@@ -9,6 +9,8 @@ namespace openxc {
 namespace can {
 namespace write {
 
+uint64_t encodeSignal(CanSignal* signal, float value);
+
 /* Public: Write the given number to the correct bitfield for the given signal.
  *
  * signal - The signal associated with the value.
@@ -18,21 +20,18 @@ namespace write {
  * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
+ * TODO update docs for all of these functions.
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, double value, bool* send);
+float numberEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send);
 
-/* Public: Interpret the JSON value as a double, then do the same as
- * numberWriter(CanSignal*, CanSignal*, int, double, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
+/* Public: Interpret the value as a float, then do the same as
+ * numberEncoder(CanSignal*, CanSignal*, int, float, bool*).
  */
-uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
+float numberEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc_DynamicField* value, bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
@@ -51,48 +50,18 @@ uint64_t numberWriter(CanSignal* signal, CanSignal* signals,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
+float stateEncoder(CanSignal* signal, CanSignal* signals,
         int signalCount, const char* value, bool* send);
 
 /* Public: Interpret the JSON value as a string, then do the same as
- * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
+ * stateEncoder(CanSignal*, CanSignal*, int, const char*, bool*).
  */
-uint64_t stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
-
-/* Public: Write the given boolean value to the correct bitfield for the given
- * signal. This will write either a 0 or 1.
- *
- * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
- * value - The boolean to write.
- * send - An output argument that will be set to false if the value should
- *     not be sent for any reason.
- *
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
- */
-uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, bool* send);
-
-/* Public: Interpret the JSON value as a boolean, then do the same as
- * numberWriter(CanSignal*, CanSignal*, int, bool, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- */
-uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send);
+float stateEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc_DynamicField* value, bool* send);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Using the provided CanSignal and writer function, convert the cJSON value
+ * Using the provided CanSignal and writer function, convert the value
  * into a numerical value appropriate for the CAN signal. This may include
  * converting a string state value to its numerical equivalent, for example. The
  * writer function must know how to do this conversion (and return a fully
@@ -101,30 +70,24 @@ uint64_t booleanWriter(CanSignal* signal, CanSignal* signals,
  * signal - The CanSignal to send.
  * value - The value to send in the signal. This could be a boolean, number or
  *         string (i.e. a state value).
- * writer - A function to convert from the cJSON value to an encoded uint64_t.
+ * writer - A function to convert from the value to an encoded uint64_t.
  * signals - An array of all CAN signals.
  * signalCount - The size of the signals array.
  * force - true if the signals should be sent regardless of the writable status
  *         in the CAN message structure.
  *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- *
  * Returns true if the message was sent successfully.
  */
-bool sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
-        CanSignal* signals, int signalCount, bool force);
+bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
+        SignalEncoder writer, CanSignal* signals, int signalCount, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
  * Just like the above function sendSignal(), but the value of force defaults
  * to false.
  */
-bool sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
-        CanSignal* signals, int signalCount);
+bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
+        SignalEncoder writer, CanSignal* signals, int signalCount);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
@@ -133,16 +96,22 @@ bool sendSignal(CanSignal* signal, cJSON* value,
  *
  * See above for argument descriptions.
  */
-bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
-        int signalCount, bool force);
+bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
+        CanSignal* signals, int signalCount, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
  * Just like the above function sendSignal(), but the value of force defaults
  * to false.
  */
-bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
-        int signalCount);
+bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
+        CanSignal* signals, int signalCount);
+
+bool sendSignal(CanSignal* signal, float value, CanSignal* signals,
+                int signalCount, bool force);
+
+bool sendSignal(CanSignal* signal, float value, CanSignal* signals,
+                int signalCount);
 
 /* Public: The lowest-level API available to send a CAN message. The byte order
  * of the data is swapped, but otherwise this function queues the data to write

@@ -10,17 +10,8 @@
 
 namespace can = openxc::can;
 
-using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
-using openxc::config::getConfiguration;
-using openxc::can::read::booleanHandler;
-using openxc::can::read::stateHandler;
-using openxc::can::read::ignoreHandler;
-using openxc::can::write::booleanWriter;
-using openxc::can::write::stateWriter;
-using openxc::can::write::numberWriter;
 using openxc::diagnostics::DiagnosticsManager;
-using namespace openxc::signals::handlers;
 
 const int MESSAGE_SET_COUNT = 1;
 CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
@@ -46,17 +37,9 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
 };
 
 void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) {
-    switch(getConfiguration()->messageSetIndex) {
-    case 0: // message set: emulator
-        break;
-    }
 }
 
 void openxc::signals::loop() {
-    switch(getConfiguration()->messageSetIndex) {
-    case 0: // message set: emulator
-        break;
-    }
 }
 
 const int MAX_COMMAND_COUNT = 1;
@@ -100,7 +83,7 @@ int openxc::signals::getCanBusCount() {
 }
 
 CanMessageSet* openxc::signals::getActiveMessageSet() {
-    return &MESSAGE_SETS[getConfiguration()->messageSetIndex];
+    return &MESSAGE_SETS[0];
 }
 
 CanMessageSet* openxc::signals::getMessageSets() {

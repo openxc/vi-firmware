@@ -2,7 +2,6 @@
 #include "util/bytebuffer.h"
 #include "util/log.h"
 #include "config.h"
-#include "commands.h"
 #include "gpio.h"
 
 #ifdef CHIPKIT
@@ -51,7 +50,8 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     case EVENT_EP0_REQUEST:
         // TODO read payload
-        commands::handleCommand(commands::Command(SetupPkt.bRequest), NULL, 0);
+        commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
+                NULL, 0);
         break;
 
     default:
@@ -192,7 +192,7 @@ void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
-        bool (*callback)(uint8_t*)) {
+        commands::IncomingMessageCallback callback) {
     if(!device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         if(endpoint->receiveBuffer[0] != '\0') {
             for(int i = 0; i < endpoint->size; i++) {

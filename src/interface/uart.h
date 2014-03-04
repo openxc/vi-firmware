@@ -2,6 +2,8 @@
 #define _UARTUTIL_H_
 
 #include "util/bytebuffer.h"
+#include "commands.h"
+#include <stdlib.h>
 
 #define MAX_DEVICE_ID_LENGTH 17
 
@@ -59,7 +61,7 @@ void changeBaudRate(UartDevice* device, int baud);
  * device - The UART device to check for incoming data.
  * callback - A function to call with any received data.
  */
-void read(UartDevice* device, bool (*callback)(uint8_t*));
+void read(UartDevice* device, openxc::commands::IncomingMessageCallback callback);
 
 /* Public: Perform platform-agnostic UART initialization.
  */

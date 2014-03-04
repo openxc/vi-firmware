@@ -262,8 +262,8 @@ void sendTirePressure(const char* tireId, uint64_t data, float conversionFactor,
 bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
             int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
-bool handleTurnSignalCommand(const char* name, cJSON* value, cJSON* event,
-        CanSignal* signals, int signalCount);
+bool handleTurnSignalCommand(const char* name, openxc_DynamicField* value,
+              openxc_DynamicField* event, CanSignal* signals, int signalCount);
 
 /** Handle a CAN message that contains the ajar status of all doors.
  */

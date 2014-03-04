@@ -18,7 +18,7 @@ void setup() {
 void teardown() {
 }
 
-bool callback(uint8_t* message) {
+bool callback(uint8_t* message, size_t length) {
     called = true;
     return callbackStatus;
 }

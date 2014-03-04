@@ -94,38 +94,36 @@ static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
     return true;
 }
 
+static cJSON* serializeDynamicField(openxc_DynamicField* field) {
+    cJSON* value = NULL;
+    if(field->has_numeric_value) {
+        value = cJSON_CreateNumber(field->numeric_value);
+    } else if(field->has_boolean_value) {
+        value = cJSON_CreateBool(field->boolean_value);
+    } else if(field->has_string_value) {
+        value = cJSON_CreateString(field->string_value);
+    }
+    return value;
+}
 
 static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
     const char* name = message->translated_message.name;
+    cJSON_AddStringToObject(root, payload::json::NAME_FIELD_NAME, name);
+
     cJSON* value = NULL;
-    if(message->translated_message.has_numeric_value) {
-        value = cJSON_CreateNumber(
-                message->translated_message.numeric_value);
-    } else if(message->translated_message.has_boolean_value) {
-        value = cJSON_CreateBool(
-                message->translated_message.boolean_value);
-    } else if(message->translated_message.has_string_value) {
-        value = cJSON_CreateString(
-                message->translated_message.string_value);
+    if(message->translated_message.has_value) {
+        value = serializeDynamicField(&message->translated_message.value);
+        if(value != NULL) {
+            cJSON_AddItemToObject(root, payload::json::VALUE_FIELD_NAME, value);
+        }
     }
 
     cJSON* event = NULL;
-    if(message->translated_message.has_numeric_event) {
-        event = cJSON_CreateNumber(
-                message->translated_message.numeric_event);
-    } else if(message->translated_message.has_boolean_event) {
-        event = cJSON_CreateBool(
-                message->translated_message.boolean_event);
-    } else if(message->translated_message.has_string_event) {
-        event = cJSON_CreateString(
-                message->translated_message.string_event);
-    }
-
-    cJSON_AddStringToObject(root, payload::json::NAME_FIELD_NAME, name);
-    cJSON_AddItemToObject(root, payload::json::VALUE_FIELD_NAME, value);
-    if(event != NULL) {
-        cJSON_AddItemToObject(root, payload::json::EVENT_FIELD_NAME,
-                event);
+    if(message->translated_message.has_event) {
+        event = serializeDynamicField(&message->translated_message.event);
+        if(event != NULL) {
+            cJSON_AddItemToObject(root, payload::json::EVENT_FIELD_NAME, event);
+        }
     }
     return true;
 }
@@ -199,6 +197,89 @@ static bool deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     return true;
 }
 
+static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) {
+    bool status = true;
+    switch(element->type) {
+        case cJSON_String:
+            field->has_string_value = true;
+            strcpy(field->string_value, element->valuestring);
+            break;
+        case cJSON_False:
+        case cJSON_True:
+            field->has_boolean_value = true;
+            field->boolean_value = bool(element->valueint);
+            break;
+        case cJSON_Number:
+            field->has_numeric_value = true;
+            field->numeric_value = element->valuedouble;
+            break;
+        default:
+            debug("Unsupported type in value field: %d", element->type);
+            status = false;
+            break;
+    }
+    return status;
+}
+
+static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
+    message->has_translated_message = true;
+    openxc_TranslatedMessage* translatedMessage = &message->translated_message;
+
+    cJSON* element = cJSON_GetObjectItem(root, "name");
+    if(element != NULL && element->type == cJSON_String) {
+        translatedMessage->has_name = true;
+        strcpy(translatedMessage->name, element->valuestring);
+    }
+
+    element = cJSON_GetObjectItem(root, "value");
+    if(element != NULL) {
+        if(!deserializeDynamicField(element, &translatedMessage->value)) {
+            debug("Unsupported type in value field: %d", element->type);
+        }
+    }
+
+    element = cJSON_GetObjectItem(root, "event");
+    if(element != NULL) {
+        if(!deserializeDynamicField(element, &translatedMessage->event)) {
+            debug("Unsupported type in event field: %d", element->type);
+        }
+    }
+    return true;
+}
+
+static bool deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
+    bool status = true;
+
+    message->has_raw_message = true;
+    openxc_RawMessage* rawMessage = &message->raw_message;
+
+    cJSON* element = cJSON_GetObjectItem(root, "id");
+    if(element != NULL) {
+        rawMessage->has_message_id = true;
+        rawMessage->message_id = element->valueint;
+
+        element = cJSON_GetObjectItem(root, "data");
+        if(element == NULL) {
+            debug("Raw write request for 0x%02x missing data", rawMessage->message_id);
+            status = false;
+        } else {
+            rawMessage->has_data = true;
+            // TODO need to load data from hex string to byte array
+            element = cJSON_GetObjectItem(root, "bus");
+            if(element == NULL) {
+                debug("Raw write request for 0x%02x missing bus", rawMessage->message_id);
+            } else {
+                rawMessage->has_bus = true;
+                rawMessage->bus = element->valueint;
+            }
+        }
+    } else {
+        debug("Write request is malformed, missing name or id: %s", message);
+        status = false;
+    }
+    return status;
+}
+
 bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
     cJSON *root = cJSON_Parse((char*)payload);
@@ -206,15 +287,13 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         return false;
     }
 
-    // TODO need to handle deserializing regular vehicle data messages, for
-    // writes
     bool status = true;
     cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
     if(commandNameObject != NULL) {
         message->has_type = true;
+        message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
         openxc_ControlCommand* command = &message->control_command;
 
-        command->has_type = true;
         if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
                     strlen(VERSION_COMMAND_NAME))) {
             command->type = openxc_ControlCommand_Type_VERSION;
@@ -227,6 +306,16 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             status = false;
+        }
+    } else {
+        message->has_type = true;
+        cJSON* nameObject = cJSON_GetObjectItem(root, "name");
+        if(nameObject == NULL) {
+            message->type = openxc_VehicleMessage_Type_RAW;
+            status = deserializeRaw(root, message);
+        } else {
+            message->type = openxc_VehicleMessage_Type_TRANSLATED;
+            status = deserializeTranslated(root, message);
         }
     }
     cJSON_Delete(root);

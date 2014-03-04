@@ -2,6 +2,7 @@
 #define __COMMANDS_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 namespace openxc {
 namespace commands {
@@ -16,7 +17,12 @@ typedef enum {
     COMPLEX_COMMAND = 0x83
 } Command;
 
-bool handleCommand(Command command, uint8_t payload[], int payloadLength);
+typedef bool (*IncomingMessageCallback)(uint8_t*, size_t);
+
+bool handleIncomingMessage(uint8_t payload[], size_t payloadLength);
+
+bool handleControlCommand(Command command, uint8_t payload[],
+        size_t payloadLength);
 
 } // namespace commands
 } // namespace openxc

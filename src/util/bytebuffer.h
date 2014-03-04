@@ -2,6 +2,7 @@
 #define _BUFFERS_H_
 
 #include "emqueue.h"
+#include "commands.h"
 
 QUEUE_DECLARE(uint8_t, 256)
 
@@ -19,7 +20,8 @@ namespace bytebuffer {
  * callback - A function that will return true if an OpenXC message is found in
  *          the queue.
  */
-void processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*));
+void processQueue(QUEUE_TYPE(uint8_t)* queue,
+                openxc::commands::IncomingMessageCallback callback);
 
 /* Public: Add the message to the byte queue if there is room.
  *

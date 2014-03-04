@@ -10,8 +10,12 @@
 #include "emqueue.h"
 #include "emhashmap.h"
 #include "cJSON.h"
+#include "openxc.pb.h"
 
 #define MAX_ACCEPTANCE_FILTERS 32
+
+typedef float (*SignalEncoder)(struct CanSignal*, struct CanSignal*, int,
+        openxc_DynamicField*, bool*);
 
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.
@@ -70,8 +74,7 @@ struct CanSignal {
     const CanSignalState* states;
     uint8_t stateCount;
     bool writable;
-    uint64_t (*writeHandler)(struct CanSignal*, struct CanSignal*, int, cJSON*,
-            bool*);
+    SignalEncoder writeHandler;
     bool received;
     float lastValue;
 };
@@ -238,8 +241,8 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
  *
  * Returns true if the command caused something to be sent over CAN.
  */
-typedef bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
-        CanSignal* signals, int signalCount);
+typedef bool (*CommandHandler)(const char* name, openxc_DynamicField* value,
+        openxc_DynamicField* event, CanSignal* signals, int signalCount);
 
 /* Public: A command to read from USB and possibly write back to CAN.
  *

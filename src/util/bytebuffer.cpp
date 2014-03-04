@@ -5,8 +5,10 @@
 QUEUE_DEFINE(uint8_t)
 
 using openxc::util::log::debug;
+using openxc::commands::IncomingMessageCallback;
 
-void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*callback)(uint8_t*)) {
+void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
+        IncomingMessageCallback callback) {
     int length = QUEUE_LENGTH(uint8_t, queue);
     if(length == 0) {
         return;
@@ -20,7 +22,7 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue, bool (*c
         return;
     }
 
-    if(callback(snapshot)) {
+    if(callback(snapshot, length)) {
         QUEUE_INIT(uint8_t, queue);
     } else if(QUEUE_FULL(uint8_t, queue)) {
         debug("Incoming write is too long - dumping queue");

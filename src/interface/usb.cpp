@@ -1,5 +1,6 @@
 #include "interface/usb.h"
 #include "util/log.h"
+#include "commands.h"
 
 using openxc::util::log::debug;
 
@@ -23,7 +24,7 @@ void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::read(UsbDevice* device,
-        bool (*callback)(uint8_t*)) {
+        openxc::commands::IncomingMessageCallback callback) {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &device->endpoints[i];
         if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {

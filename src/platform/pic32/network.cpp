@@ -56,7 +56,8 @@ void openxc::interface::network::processSendQueue(NetworkDevice* device) {
     }
 }
 
-void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::network::read(NetworkDevice* device,
+        IncomingMessageCallback callback) {
     Client client = device->server->available();
     if(client) {
         uint8_t byte;
@@ -70,7 +71,8 @@ void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(ui
 
 #else
 
-void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
+void openxc::interface::network::read(NetworkDevice* device,
+        openxc::commands::IncomingMessageCallback callback) { }
 void openxc::interface::network::initialize(NetworkDevice* device) { }
 void openxc::interface::network::processSendQueue(NetworkDevice* device) { }
 

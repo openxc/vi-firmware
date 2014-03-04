@@ -258,19 +258,6 @@ void postTranslate(CanSignal* signal, float value);
 void sendVehicleMessage(openxc_VehicleMessage* message,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Private: Serialize the root JSON object to a string (ending with a newline)
- * and send it to the pipeline.
- *
- * TODO this really doesn't belong here
- *
- * root - The JSON object to send.
- * pipeline - The pipeline to send on.
- * messageClass - the class of the message, used to decide which endpoints in
- *      the pipeline receive the message.
- */
-void sendJSON(cJSON* root, openxc::pipeline::Pipeline* pipeline,
-                openxc::pipeline::MessageClass messageClass);
-
 } // namespace read
 } // namespace can
 } // namespace openxc

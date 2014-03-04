@@ -11,7 +11,6 @@ namespace signals = openxc::signals;
 
 void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
-    // TODO Move this to openxc::config
         &config->usb,
         &config->uart,
 #ifdef __USE_NETWORK__

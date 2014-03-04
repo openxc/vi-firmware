@@ -1,13 +1,11 @@
 #include <payload/payload.h>
 #include <payload/json.h>
 #include <util/log.h>
-#include <can/canread.h>
 #include <cJSON.h>
 #include <stdlib.h>
 #include <sys/param.h>
 
-// TODO why are we importing this? move the field names to payload
-namespace can = openxc::can;
+namespace payload = openxc::payload;
 
 using openxc::util::log::debug;
 

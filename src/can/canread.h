@@ -9,19 +9,6 @@ namespace openxc {
 namespace can {
 namespace read {
 
-extern const char BUS_FIELD_NAME[];
-extern const char ID_FIELD_NAME[];
-extern const char DATA_FIELD_NAME[];
-extern const char NAME_FIELD_NAME[];
-extern const char VALUE_FIELD_NAME[];
-extern const char EVENT_FIELD_NAME[];
-extern const char DIAGNOSTIC_MODE_FIELD_NAME[];
-extern const char DIAGNOSTIC_PID_FIELD_NAME[];
-extern const char DIAGNOSTIC_SUCCESS_FIELD_NAME[];
-extern const char DIAGNOSTIC_NRC_FIELD_NAME[];
-extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
-extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
-
 typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
 typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
 typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);

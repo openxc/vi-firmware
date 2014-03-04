@@ -14,28 +14,46 @@ using openxc::util::log::debug;
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
+const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
+const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic";
+
+const char openxc::payload::json::BUS_FIELD_NAME[] = "bus";
+const char openxc::payload::json::ID_FIELD_NAME[] = "id";
+const char openxc::payload::json::DATA_FIELD_NAME[] = "data";
+const char openxc::payload::json::NAME_FIELD_NAME[] = "name";
+const char openxc::payload::json::VALUE_FIELD_NAME[] = "value";
+const char openxc::payload::json::EVENT_FIELD_NAME[] = "event";
+
+const char openxc::payload::json::DIAGNOSTIC_MODE_FIELD_NAME[] = "mode";
+const char openxc::payload::json::DIAGNOSTIC_PID_FIELD_NAME[] = "pid";
+const char openxc::payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "success";
+const char openxc::payload::json::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
+const char openxc::payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
+const char openxc::payload::json::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
+
 static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
-    cJSON_AddNumberToObject(root, can::read::BUS_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
             message->diagnostic_response.bus);
-    cJSON_AddNumberToObject(root, can::read::ID_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
             message->diagnostic_response.message_id);
-    cJSON_AddNumberToObject(root, can::read::DIAGNOSTIC_MODE_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_MODE_FIELD_NAME,
             message->diagnostic_response.mode);
-    cJSON_AddBoolToObject(root, can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME,
+    cJSON_AddBoolToObject(root, payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME,
             message->diagnostic_response.success);
 
     if(message->diagnostic_response.has_pid) {
-        cJSON_AddNumberToObject(root, can::read::DIAGNOSTIC_PID_FIELD_NAME,
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
                 message->diagnostic_response.pid);
     }
 
     if(message->diagnostic_response.has_negative_response_code) {
-        cJSON_AddNumberToObject(root, can::read::DIAGNOSTIC_NRC_FIELD_NAME,
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_NRC_FIELD_NAME,
                 message->diagnostic_response.negative_response_code);
     }
 
     if(message->diagnostic_response.has_value) {
-        cJSON_AddNumberToObject(root, can::read::DIAGNOSTIC_VALUE_FIELD_NAME,
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
                 message->diagnostic_response.value);
     } else if(message->diagnostic_response.has_payload) {
         char encodedData[67];
@@ -49,16 +67,16 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
                     "%02x",
                     message->diagnostic_response.payload.bytes[i]);
         }
-        cJSON_AddStringToObject(root, can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
+        cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
                 encodedData);
     }
     return true;
 }
 
 static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
-    cJSON_AddNumberToObject(root, can::read::BUS_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
             message->raw_message.bus);
-    cJSON_AddNumberToObject(root, can::read::ID_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
             message->raw_message.message_id);
 
     char encodedData[67];
@@ -71,7 +89,7 @@ static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
                 maxAddress - encodedDataIndex,
                 "%02x", message->raw_message.data.bytes[i]);
     }
-    cJSON_AddStringToObject(root, can::read::DATA_FIELD_NAME,
+    cJSON_AddStringToObject(root, payload::json::DATA_FIELD_NAME,
             encodedData);
     return true;
 }
@@ -103,10 +121,10 @@ static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
                 message->translated_message.string_event);
     }
 
-    cJSON_AddStringToObject(root, can::read::NAME_FIELD_NAME, name);
-    cJSON_AddItemToObject(root, can::read::VALUE_FIELD_NAME, value);
+    cJSON_AddStringToObject(root, payload::json::NAME_FIELD_NAME, name);
+    cJSON_AddItemToObject(root, payload::json::VALUE_FIELD_NAME, value);
     if(event != NULL) {
-        cJSON_AddItemToObject(root, can::read::EVENT_FIELD_NAME,
+        cJSON_AddItemToObject(root, payload::json::EVENT_FIELD_NAME,
                 event);
     }
     return true;

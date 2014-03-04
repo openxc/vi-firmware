@@ -4,10 +4,6 @@
 #include "openxc.pb.h"
 #include <stdint.h>
 
-#define VERSION_COMMAND_NAME "version"
-#define DEVICE_ID_COMMAND_NAME "device_id"
-#define DIAGNOSTIC_COMMAND_NAME "diagnostic"
-
 namespace openxc {
 namespace payload {
 

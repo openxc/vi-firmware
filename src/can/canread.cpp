@@ -14,20 +14,6 @@ using openxc::config::getConfiguration;
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
 
-const char openxc::can::read::BUS_FIELD_NAME[] = "bus";
-const char openxc::can::read::ID_FIELD_NAME[] = "id";
-const char openxc::can::read::DATA_FIELD_NAME[] = "data";
-const char openxc::can::read::NAME_FIELD_NAME[] = "name";
-const char openxc::can::read::VALUE_FIELD_NAME[] = "value";
-const char openxc::can::read::EVENT_FIELD_NAME[] = "event";
-
-const char openxc::can::read::DIAGNOSTIC_MODE_FIELD_NAME[] = "mode";
-const char openxc::can::read::DIAGNOSTIC_PID_FIELD_NAME[] = "pid";
-const char openxc::can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "success";
-const char openxc::can::read::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
-const char openxc::can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
-const char openxc::can::read::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
-
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
         bool* send) {
     float value = eightbyte_parse_float(data, signal->bitPosition,

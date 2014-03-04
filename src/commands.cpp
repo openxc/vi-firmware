@@ -57,7 +57,10 @@ static bool handleComplexCommand(uint8_t payload[], size_t payloadLength) {
                 status = handleVersionCommand();
                 break;
             case openxc_ControlCommand_Type_DEVICE_ID:
-                status  = handleDeviceIdCommmand();
+                status = handleDeviceIdCommmand();
+                break;
+            default:
+                status = false;
                 break;
         }
     }

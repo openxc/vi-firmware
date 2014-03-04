@@ -9,7 +9,7 @@ of JSON, it uses `Google Protocol Buffers
 data. Translated-style OpenXC messages are on average 30% smaller when using
 protobufs instead of JSON, and raw messages are around 60% smaller. This space
 savings comes at the cost of decreased flexibility and increased complexity in
-reciving and parsing the data.
+receiving and parsing the data.
 
 The firmware does not currently support *receiving* binary-encoded messages -
 CAN write requests must still be sent in JSON.

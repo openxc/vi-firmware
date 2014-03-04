@@ -45,7 +45,7 @@ static void resetQueues() {
 }
 
 void setup() {
-    getConfiguration()->outputFormat = openxc::config::JSON;
+    getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     resetQueues();
     diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
             getCanBusCount());

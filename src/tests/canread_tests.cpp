@@ -42,7 +42,7 @@ bool queueEmpty() {
 
 void setup() {
     FAKE_TIME = 1000;
-    getConfiguration()->outputFormat = openxc::config::JSON;
+    getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {

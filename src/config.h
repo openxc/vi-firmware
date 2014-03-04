@@ -7,19 +7,19 @@
 #include "interface/network.h"
 #include "diagnostics.h"
 #include "pipeline.h"
+#include <payload/payload.h>
+
+// TODO find a good home for this
+#define MAX_OUTGOING_PAYLOAD_SIZE 256
+#define UART_BAUD_RATE 230400
 
 namespace openxc {
 namespace config {
 
-typedef enum {
-    JSON,
-    PROTO
-} OutputFormat;
-
 typedef struct {
     int messageSetIndex;
     const char* version;
-    OutputFormat outputFormat;
+    openxc::payload::PayloadFormat payloadFormat;
     bool initialized;
 
     openxc::interface::uart::UartDevice uart;

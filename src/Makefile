@@ -96,6 +96,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard can/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard interface/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard platform/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard util/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard payload/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcommander.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
@@ -112,6 +113,7 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard platform/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard payload/*.cpp)
 
 INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/emlist -I$(LIBS_PATH)/emhashmap \

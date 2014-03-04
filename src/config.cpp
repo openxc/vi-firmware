@@ -3,10 +3,9 @@
 
 using openxc::pipeline::Pipeline;
 using openxc::interface::uart::UartDevice;
+using openxc::payload::PayloadFormat;
 
 namespace usb = openxc::interface::usb;
-
-#define UART_BAUD_RATE 230400
 
 namespace signals = openxc::signals;
 
@@ -26,11 +25,11 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
         version: "6.0-dev",
-        outputFormat:
+        payloadFormat:
 #ifdef USE_BINARY_OUTPUT
-            openxc::config::PROTO,
+            PayloadFormat::PROTOBUF,
 #else
-            openxc::config::JSON,
+            PayloadFormat::JSON,
 #endif
         initialized: false,
         uart: {

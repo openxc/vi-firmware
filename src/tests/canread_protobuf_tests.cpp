@@ -46,7 +46,7 @@ unsigned long timeMock() {
 
 void setup() {
     fakeTime = 0;
-    getConfiguration()->outputFormat = openxc::config::PROTO;
+    getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::PROTOBUF;
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {

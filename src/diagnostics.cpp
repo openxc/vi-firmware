@@ -178,41 +178,41 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-    message.has_diagnostic_message = true;
-    message.diagnostic_message = {0};
-    message.diagnostic_message.has_bus = true;
-    message.diagnostic_message.bus = bus->address;
-    message.diagnostic_message.has_message_id = true;
+    message.has_diagnostic_response = true;
+    message.diagnostic_response = {0};
+    message.diagnostic_response.has_bus = true;
+    message.diagnostic_response.bus = bus->address;
+    message.diagnostic_response.has_message_id = true;
 
     if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
-        message.diagnostic_message.message_id = response->arbitration_id
+        message.diagnostic_response.message_id = response->arbitration_id
             - DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET;
     } else {
         // must preserve responding arb ID for responses to functional broadcast
         // requests, as they are the actual module address and not just arb ID +
         // 8.
-        message.diagnostic_message.message_id = response->arbitration_id;
+        message.diagnostic_response.message_id = response->arbitration_id;
     }
 
-    message.diagnostic_message.has_mode = true;
-    message.diagnostic_message.mode = response->mode;
-    message.diagnostic_message.has_pid = response->has_pid;
-    if(message.diagnostic_message.has_pid) {
-        message.diagnostic_message.pid = response->pid;
+    message.diagnostic_response.has_mode = true;
+    message.diagnostic_response.mode = response->mode;
+    message.diagnostic_response.has_pid = response->has_pid;
+    if(message.diagnostic_response.has_pid) {
+        message.diagnostic_response.pid = response->pid;
     }
-    message.diagnostic_message.has_success = true;
-    message.diagnostic_message.success = response->success;
-    message.diagnostic_message.has_negative_response_code = !response->success;
-    message.diagnostic_message.negative_response_code =
+    message.diagnostic_response.has_success = true;
+    message.diagnostic_response.success = response->success;
+    message.diagnostic_response.has_negative_response_code = !response->success;
+    message.diagnostic_response.negative_response_code =
             response->negative_response_code;
-    message.diagnostic_message.has_payload = response->payload_length > 0;
-    memcpy(message.diagnostic_message.payload.bytes, response->payload,
+    message.diagnostic_response.has_payload = response->payload_length > 0;
+    memcpy(message.diagnostic_response.payload.bytes, response->payload,
             response->payload_length);
-    message.diagnostic_message.payload.size = response->payload_length;
+    message.diagnostic_response.payload.size = response->payload_length;
 
-    if(message.diagnostic_message.has_payload && request->parsePayload) {
-        message.diagnostic_message.has_value = true;
-        message.diagnostic_message.value = parsedValue;
+    if(message.diagnostic_response.has_payload && request->parsePayload) {
+        message.diagnostic_response.has_value = true;
+        message.diagnostic_response.value = parsedValue;
     }
 
     return message;
@@ -405,55 +405,40 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
             NULL, frequencyHz);
 }
 
-void openxc::diagnostics::handleDiagnosticCommand(
-        DiagnosticsManager* diagnosticsManager, uint8_t* payload) {
-    cJSON *root = cJSON_Parse((char*)payload);
-    if(root != NULL) {
-        cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
-        if(commandNameObject != NULL &&
-                !strcmp(commandNameObject->valuestring, "diagnostic_request")) {
-            cJSON* requestObject = cJSON_GetObjectItem(root, "request");
-            if(requestObject != NULL) {
-                cJSON* busObject = cJSON_GetObjectItem(requestObject, "bus");
-                cJSON* idObject = cJSON_GetObjectItem(requestObject, "id");
-                cJSON* modeObject = cJSON_GetObjectItem(requestObject, "mode");
+bool openxc::diagnostics::handleDiagnosticCommand(
+        DiagnosticsManager* diagnosticsManager,
+        openxc_ControlCommand* command) {
+    bool status = true;
+    if(command->has_diagnostic_request) {
+        openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
+        if(commandRequest->has_bus && commandRequest->has_message_id &&
+                commandRequest->has_mode) {
+            CanBus* canBus = lookupBus(commandRequest->bus, getCanBuses(),
+                    getCanBusCount());
+            if(canBus == NULL) {
+                debug("No matching active bus for requested address: %d",
+                        commandRequest->bus);
+                status = false;
+            } else {
+                DiagnosticRequest request = {
+                    arbitration_id: commandRequest->message_id,
+                    mode: uint8_t(commandRequest->mode),
+                };
 
-                if(busObject != NULL && idObject != NULL &&
-                        modeObject != NULL) {
-                    CanBus* canBus = lookupBus(busObject->valueint,
-                            getCanBuses(), getCanBusCount());
-                    if(canBus == NULL) {
-                        debug("No matching active bus for requested address: %d",
-                                busObject->valueint);
-                        return;
-                    }
-
-                    DiagnosticRequest request = {
-                        arbitration_id: uint32_t(idObject->valueint),
-                        mode: uint8_t(modeObject->valueint)
-                    };
-
-                    // TODO copy payload
-
-                    cJSON* pidObject = cJSON_GetObjectItem(
-                            requestObject, "pid");
-                    if(pidObject != NULL) {
-                        request.has_pid = true;
-                        request.pid = uint16_t(pidObject->valueint);
-                    }
-
-                    cJSON* frequencyObject = cJSON_GetObjectItem(requestObject,
-                            "frequency");
-                    float frequency = 0;
-                    if(frequencyObject != NULL) {
-                        frequency = frequencyObject->valuedouble;
-                    }
-
-                    addDiagnosticRequest(diagnosticsManager, canBus, &request,
-                            frequency);
-                }
+                // TODO copy payload
+                float frequency = commandRequest->has_frequency ?
+                        commandRequest->frequency : 0;
+                addDiagnosticRequest(diagnosticsManager, canBus, &request,
+                        frequency);
             }
+
+        } else {
+            debug("Diagnostic requests need at least a bus, arb. ID and mode");
+            status = false;
         }
-        cJSON_Delete(root);
+    } else {
+        debug("Command was not a diagnostic request");
+        status = false;
     }
+    return status;
 }

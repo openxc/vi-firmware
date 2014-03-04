@@ -14,6 +14,7 @@
 #define USB_HANDLE_MAX_WAIT_COUNT 35000
 
 namespace gpio = openxc::gpio;
+namespace commands = openxc::commands;
 
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -22,7 +23,6 @@ using openxc::interface::usb::UsbEndpointDirection;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::util::bytebuffer::processQueue;
 using openxc::config::getConfiguration;
-using openxc::commands::handleCommand;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
@@ -51,7 +51,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     case EVENT_EP0_REQUEST:
         // TODO read payload
-        handleCommand(SetupPkt.bRequest, NULL, 0);
+        commands::handleCommand(commands::Command(SetupPkt.bRequest), NULL, 0);
         break;
 
     default:
@@ -60,8 +60,13 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     return true;
 }
 
-void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
-    getConfiguration()->usb.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
+bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
+        uint8_t* data, uint8_t length) {
+    if(usbDevice->configured) {
+        usbDevice->device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
+        return true;
+    }
+    return false;
 }
 
 bool vbusEnabled() {

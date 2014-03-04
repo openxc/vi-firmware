@@ -10,7 +10,13 @@ namespace commands {
 #define DEVICE_ID_CONTROL_COMMAND 0x82
 #define DIAGNOSTIC_REQUEST_CONTROL_COMMAND 0x83
 
-bool handleCommand(uint8_t request, uint8_t payload[], int payloadLength);
+typedef enum {
+    VERSION = 0x80,
+    DEVICE_ID = 0x82,
+    COMPLEX_COMMAND = 0x83
+} Command;
+
+bool handleCommand(Command command, uint8_t payload[], int payloadLength);
 
 } // namespace commands
 } // namespace openxc

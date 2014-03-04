@@ -9,6 +9,7 @@
 #include "pipeline.h"
 #include <can/canutil.h>
 #include <uds/uds.h>
+#include <openxc.pb.h>
 
 #define MAX_SHIM_COUNT 2
 #define MAX_SIMULTANEOUS_DIAG_REQUESTS 20
@@ -86,7 +87,14 @@ void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
 
 void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
-void handleDiagnosticCommand(DiagnosticsManager* manager, uint8_t* payload);
+/* Public: Handle an incoming command, which could be from a USB control
+ * transfer or a deserilaized command from UART.
+ *
+ *  - VERSION_CONTROL_COMMAND - return the version of the firmware as a string,
+ *      including the vehicle it is built to translate.
+ */
+bool handleDiagnosticCommand(DiagnosticsManager* manager,
+        openxc_ControlCommand* command);
 
 } // namespace diagnostics
 } // namespace openxc

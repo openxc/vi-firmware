@@ -30,8 +30,8 @@ extern "C" {
 #define USB_CONNECT_PIN 9
 
 namespace gpio = openxc::gpio;
+namespace commands = openxc::commands;
 
-using openxc::commands::handleCommand;
 using openxc::config::getConfiguration;
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -96,7 +96,8 @@ void EVENT_USB_Device_ControlRequest() {
         QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
     }
 
-    handleCommand(USB_ControlRequest.bRequest, snapshot, length);
+    commands::handleCommand(commands::Command(USB_ControlRequest.bRequest),
+            snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
@@ -194,7 +195,12 @@ void configureUsbDetection() {
     PINSEL_ConfigPin(&hostDetectPinConfig);
 }
 
-void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
+bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
+        uint8_t* data, uint8_t length) {
+    if(!usbDevice->configured) {
+        return false;
+    }
+
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
@@ -205,6 +211,7 @@ void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
     Endpoint_ClearOUT();
 
     Endpoint_SelectEndpoint(previousEndpoint);
+    return true;
 }
 
 

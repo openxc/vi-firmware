@@ -319,39 +319,39 @@ static void sendDiagnosticJsonMessage(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, openxc::can::read::BUS_FIELD_NAME,
-            message->diagnostic_message.bus);
+            message->diagnostic_response.bus);
     cJSON_AddNumberToObject(root, openxc::can::read::ID_FIELD_NAME,
-            message->diagnostic_message.message_id);
+            message->diagnostic_response.message_id);
     cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_MODE_FIELD_NAME,
-            message->diagnostic_message.mode);
+            message->diagnostic_response.mode);
     cJSON_AddBoolToObject(root, openxc::can::read::DIAGNOSTIC_SUCCESS_FIELD_NAME,
-            message->diagnostic_message.success);
+            message->diagnostic_response.success);
 
-    if(message->diagnostic_message.has_pid) {
+    if(message->diagnostic_response.has_pid) {
         cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_PID_FIELD_NAME,
-                message->diagnostic_message.pid);
+                message->diagnostic_response.pid);
     }
 
-    if(message->diagnostic_message.has_negative_response_code) {
+    if(message->diagnostic_response.has_negative_response_code) {
         cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_NRC_FIELD_NAME,
-                message->diagnostic_message.negative_response_code);
+                message->diagnostic_response.negative_response_code);
     }
 
 
-    if(message->diagnostic_message.has_value) {
+    if(message->diagnostic_response.has_value) {
         cJSON_AddNumberToObject(root, openxc::can::read::DIAGNOSTIC_VALUE_FIELD_NAME,
-                message->diagnostic_message.value);
-    } else if(message->diagnostic_message.has_payload) {
+                message->diagnostic_response.value);
+    } else if(message->diagnostic_response.has_payload) {
         char encodedData[67];
         const char* maxAddress = encodedData + sizeof(encodedData);
         char* encodedDataIndex = encodedData;
         encodedDataIndex += sprintf(encodedDataIndex, "0x");
-        for(uint8_t i = 0; i < message->diagnostic_message.payload.size &&
+        for(uint8_t i = 0; i < message->diagnostic_response.payload.size &&
                 encodedDataIndex < maxAddress; i++) {
             encodedDataIndex += snprintf(encodedDataIndex,
                     maxAddress - encodedDataIndex,
                     "%02x",
-                    message->diagnostic_message.payload.bytes[i]);
+                    message->diagnostic_response.payload.bytes[i]);
         }
         cJSON_AddStringToObject(root, openxc::can::read::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
                 encodedData);

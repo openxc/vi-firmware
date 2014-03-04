@@ -16,7 +16,8 @@ typedef enum {
     TRANSLATED,
     RAW,
     DIAGNOSTIC,
-    LOG
+    LOG,
+    COMMAND_RESPONSE,
 } MessageClass;
 
 /* Public: A container for all output devices that want to be notified of new

@@ -77,8 +77,9 @@ void openxc::can::read::sendNumericalMessage(const char* name, float value,
     strcpy(message.translated_message.name, name);
     message.translated_message.has_type = true;
     message.translated_message.type = openxc_TranslatedMessage_Type_NUM;
-    message.translated_message.has_numeric_value = true;
-    message.translated_message.numeric_value = value;
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_numeric_value = true;
+    message.translated_message.value.numeric_value = value;
 
     sendVehicleMessage(&message, pipeline);
 }
@@ -94,8 +95,9 @@ void openxc::can::read::sendBooleanMessage(const char* name, bool value,
     strcpy(message.translated_message.name, name);
     message.translated_message.has_type = true;
     message.translated_message.type = openxc_TranslatedMessage_Type_BOOL;
-    message.translated_message.has_boolean_value = true;
-    message.translated_message.boolean_value = value;
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_boolean_value = true;
+    message.translated_message.value.boolean_value = value;
 
     sendVehicleMessage(&message, pipeline);
 }
@@ -111,8 +113,9 @@ void openxc::can::read::sendStringMessage(const char* name, const char* value,
     strcpy(message.translated_message.name, name);
     message.translated_message.has_type = true;
     message.translated_message.type = openxc_TranslatedMessage_Type_STRING;
-    message.translated_message.has_string_value = true;
-    strcpy(message.translated_message.string_value, value);
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_string_value = true;
+    strcpy(message.translated_message.value.string_value, value);
 
     sendVehicleMessage(&message, pipeline);
 }
@@ -129,10 +132,12 @@ void openxc::can::read::sendEventedFloatMessage(const char* name,
     strcpy(message.translated_message.name, name);
     message.translated_message.has_type = true;
     message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_NUM;
-    message.translated_message.has_string_value = true;
-    strcpy(message.translated_message.string_value, value);
-    message.translated_message.has_numeric_event = true;
-    message.translated_message.numeric_event = event;
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_string_value = true;
+    strcpy(message.translated_message.value.string_value, value);
+    message.translated_message.has_event = true;
+    message.translated_message.event.has_numeric_value = true;
+    message.translated_message.event.numeric_value = event;
 
     sendVehicleMessage(&message, pipeline);
 }
@@ -149,10 +154,12 @@ void openxc::can::read::sendEventedBooleanMessage(const char* name,
     message.translated_message.has_type = true;
     message.translated_message.type =
             openxc_TranslatedMessage_Type_EVENTED_BOOL;
-    message.translated_message.has_string_value = true;
-    strcpy(message.translated_message.string_value, value);
-    message.translated_message.has_boolean_event = true;
-    message.translated_message.boolean_event = event;
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_string_value = true;
+    strcpy(message.translated_message.value.string_value, value);
+    message.translated_message.has_event = true;
+    message.translated_message.event.has_boolean_value = true;
+    message.translated_message.event.boolean_value = event;
 
     sendVehicleMessage(&message, pipeline);
 }
@@ -169,10 +176,12 @@ void openxc::can::read::sendEventedStringMessage(const char* name,
     message.translated_message.has_type = true;
     message.translated_message.type =
             openxc_TranslatedMessage_Type_EVENTED_STRING;
-    message.translated_message.has_string_value = true;
-    strcpy(message.translated_message.string_value, value);
-    message.translated_message.has_string_event = true;
-    strcpy(message.translated_message.string_event, event);
+    message.translated_message.has_value = true;
+    message.translated_message.value.has_string_value = true;
+    strcpy(message.translated_message.value.string_value, value);
+    message.translated_message.has_event = true;
+    message.translated_message.event.has_string_value = true;
+    strcpy(message.translated_message.event.string_value, event);
 
     sendVehicleMessage(&message, pipeline);
 }

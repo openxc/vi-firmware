@@ -3,13 +3,12 @@
 #include "signals.h"
 #include "can/canutil.h"
 #include "can/canwrite.h"
-#include "cJSON.h"
 
 namespace can = openxc::can;
 
-using openxc::can::write::numberWriter;
-using openxc::can::write::booleanWriter;
-using openxc::can::write::stateWriter;
+using openxc::can::write::numberEncoder;
+using openxc::can::write::stateEncoder;
+using openxc::can::write::encodeSignal;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
 using openxc::signals::getCanBuses;
@@ -27,13 +26,13 @@ void setup() {
 START_TEST (test_number_writer)
 {
     bool send = true;
-    uint64_t value = numberWriter(&getSignals()[6], getSignals(),
-            getSignalCount(), 0xa, &send);
+    uint64_t value = encodeSignal(&getSignals()[6], numberEncoder(&getSignals()[6], getSignals(),
+            getSignalCount(), 0xa, &send));
     ck_assert_int_eq(value, 0x1e00000000000000LLU);
     fail_unless(send);
 
-    value = numberWriter(&getSignals()[1], getSignals(), getSignalCount(), 0x6,
-            &send);
+    value = encodeSignal(&getSignals()[1], numberEncoder(&getSignals()[1], getSignals(), getSignalCount(), 0x6,
+            &send));
     ck_assert_int_eq(value, 0x6000000000000000LLU);
     fail_unless(send);
 }
@@ -42,12 +41,12 @@ END_TEST
 START_TEST (test_boolean_writer)
 {
     bool send = true;
-    uint64_t value = booleanWriter(&getSignals()[2], getSignals(), getSignalCount(), true,
-            &send);
+    uint64_t value = encodeSignal(&getSignals()[2], numberEncoder(&getSignals()[2], getSignals(), getSignalCount(), float(true),
+            &send));
     ck_assert_int_eq(value, 0x8000000000000000LLU);
     fail_unless(send);
 
-    value = booleanWriter(&getSignals()[2], getSignals(), getSignalCount(), false, &send);
+    value = encodeSignal(&getSignals()[2], numberEncoder(&getSignals()[2], getSignals(), getSignalCount(), float(false), &send));
     ck_assert_int_eq(value, 0x0000000000000000LLU);
     fail_unless(send);
 }
@@ -56,8 +55,12 @@ END_TEST
 START_TEST (test_state_writer)
 {
     bool send = true;
-    uint64_t value = stateWriter(&getSignals()[1], getSignals(), getSignalCount(),
-            cJSON_CreateString(getSignals()[1].states[1].name), &send);
+    openxc_DynamicField field;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
+    uint64_t value = encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(),
+            getSignalCount(), &field, &send));
     ck_assert_int_eq(value, 0x2000000000000000LLU);
     fail_unless(send);
 }
@@ -66,13 +69,12 @@ END_TEST
 START_TEST (test_state_writer_null_string)
 {
     bool send = true;
-    uint64_t value = stateWriter(&getSignals()[1], getSignals(), getSignalCount(),
-            (const char*)NULL, &send);
+    uint64_t value = encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(), getSignalCount(),
+            (const char*)NULL, &send));
     fail_if(send);
 
     send = true;
-    value = stateWriter(&getSignals()[1], getSignals(), getSignalCount(),
-            (cJSON*)NULL, &send);
+    value = encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(), getSignalCount(), (openxc_DynamicField*)NULL, &send));
     fail_if(send);
 }
 END_TEST
@@ -80,8 +82,11 @@ END_TEST
 START_TEST (test_write_not_allowed)
 {
     getSignals()[1].writable = false;
-    can::write::sendSignal(&getSignals()[1], cJSON_CreateNumber(0x6),
-            getSignals(), getSignalCount());
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0x6;
+
+    can::write::sendSignal(&getSignals()[1], &field, getSignals(), getSignalCount());
     fail_unless(QUEUE_EMPTY(CanMessage, &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
@@ -89,8 +94,11 @@ END_TEST
 START_TEST (test_write_unknown_state)
 {
     bool send = true;
-    stateWriter(&getSignals()[1], getSignals(), getSignalCount(),
-            cJSON_CreateString("not_a_state"), &send);
+    openxc_DynamicField field;
+    field.has_string_value = true;
+    strcpy(field.string_value, "not_a_state");
+
+    stateEncoder(&getSignals()[1], getSignals(), getSignalCount(), &field, &send);
     fail_if(send);
 }
 END_TEST
@@ -116,7 +124,11 @@ END_TEST
 
 START_TEST (test_send_with_null_writer)
 {
-    fail_unless(can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::sendSignal(&getSignals()[6], &field,
                 NULL, getSignals(), getSignalCount()));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[6].message->bus->sendQueue);
@@ -126,7 +138,11 @@ END_TEST
 
 START_TEST (test_send_using_default)
 {
-    fail_unless(can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::sendSignal(&getSignals()[6], &field,
                 getSignals(), getSignalCount()));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[6].message->bus->sendQueue);
@@ -136,8 +152,11 @@ END_TEST
 
 START_TEST (test_send_with_custom_with_states)
 {
-    fail_unless(can::write::sendSignal(&getSignals()[1],
-                cJSON_CreateString(getSignals()[1].states[1].name), getSignals(),
+    openxc_DynamicField field;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
+    fail_unless(can::write::sendSignal(&getSignals()[1], &field, getSignals(),
                 getSignalCount()));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[1].message->bus->sendQueue);
@@ -145,25 +164,32 @@ START_TEST (test_send_with_custom_with_states)
 }
 END_TEST
 
-uint64_t customStateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
+float customStateWriter(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc_DynamicField* value, bool* send) {
     *send = false;
     return 0;
 }
 
 START_TEST (test_send_with_custom_says_no_send)
 {
+    openxc_DynamicField field;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
     fail_if(can::write::sendSignal(&getSignals()[1],
-                cJSON_CreateString(getSignals()[1].states[1].name), customStateWriter,
-                getSignals(), getSignalCount()));
+                &field, customStateWriter, getSignals(), getSignalCount()));
     fail_unless(QUEUE_EMPTY(CanMessage, &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
 START_TEST (test_force_send)
 {
-    fail_if(can::write::sendSignal(&getSignals()[1],
-                cJSON_CreateString(getSignals()[1].states[1].name), customStateWriter,
+    openxc_DynamicField field;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
+    fail_unless(can::write::sendSignal(&getSignals()[1],
+                &field, customStateWriter,
                 getSignals(), getSignalCount(), true));
     ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage,
                 &getSignals()[1].message->bus->sendQueue));
@@ -178,7 +204,11 @@ END_TEST
 
 START_TEST (test_no_write_handler)
 {
-    can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa), getSignals(),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    can::write::sendSignal(&getSignals()[6], &field, getSignals(),
             getSignalCount());
     getCanBuses()[0].writeHandler = NULL;
     can::write::processWriteQueue(&getCanBuses()[0]);
@@ -192,7 +222,11 @@ bool writeHandler(const CanBus* bus, const CanMessage* message) {
 
 START_TEST (test_failed_write_handler)
 {
-    can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa), getSignals(),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    can::write::sendSignal(&getSignals()[6], &field, getSignals(),
             getSignalCount());
     getCanBuses()[0].writeHandler = writeHandler;
     can::write::processWriteQueue(&getCanBuses()[0]);
@@ -202,7 +236,11 @@ END_TEST
 
 START_TEST (test_successful_write)
 {
-    can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa), getSignals(),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    can::write::sendSignal(&getSignals()[6], &field, getSignals(),
             getSignalCount());
     can::write::processWriteQueue(&getCanBuses()[0]);
     fail_unless(QUEUE_EMPTY(CanMessage, &getSignals()[1].message->bus->sendQueue));
@@ -211,9 +249,13 @@ END_TEST
 
 START_TEST (test_write_multiples)
 {
-    can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa), getSignals(),
+    openxc_DynamicField field;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    can::write::sendSignal(&getSignals()[6], &field, getSignals(),
             getSignalCount());
-    can::write::sendSignal(&getSignals()[6], cJSON_CreateNumber(0xa), getSignals(),
+    can::write::sendSignal(&getSignals()[6], &field, getSignals(),
             getSignalCount());
     can::write::processWriteQueue(&getCanBuses()[0]);
     fail_unless(QUEUE_EMPTY(CanMessage, &getSignals()[1].message->bus->sendQueue));

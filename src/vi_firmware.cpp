@@ -14,6 +14,7 @@
 #include "diagnostics.h"
 #include "data_emulator.h"
 #include "config.h"
+#include "commands.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -26,29 +27,16 @@ namespace signals = openxc::signals;
 namespace diagnostics = openxc::diagnostics;
 namespace power = openxc::power;
 namespace bluetooth = openxc::bluetooth;
+namespace commands = openxc::commands;
 
 using openxc::util::log::debug;
-using openxc::can::lookupBus;
-using openxc::can::lookupCommand;
-using openxc::can::lookupSignal;
-using openxc::signals::initialize;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
-using openxc::signals::getCommands;
-using openxc::signals::getCommandCount;
 using openxc::signals::getSignals;
 using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
-using openxc::config::Configuration;
 using openxc::config::getConfiguration;
-
-/* Forward declarations */
-
-void receiveCan(Pipeline*, CanBus*);
-void initializeAllCan();
-bool receiveWriteRequest(uint8_t*);
-void updateDataLights();
 
 static bool BUS_WAS_ACTIVE;
 
@@ -64,68 +52,6 @@ void updateInterfaceLight() {
     } else {
         lights::disable(lights::LIGHT_B);
     }
-}
-
-void initializeVehicleInterface() {
-    platform::initialize();
-    openxc::util::log::initialize();
-    time::initialize();
-    lights::initialize();
-    power::initialize();
-    usb::initialize(&getConfiguration()->usb);
-    uart::initialize(&getConfiguration()->uart);
-
-    updateInterfaceLight();
-
-    bluetooth::initialize(&getConfiguration()->uart);
-    network::initialize(&getConfiguration()->network);
-
-    srand(time::systemTimeMs());
-
-    debug("Initializing as %s", signals::getActiveMessageSet()->name);
-    BUS_WAS_ACTIVE = false;
-    initializeAllCan();
-    diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
-            getCanBusCount());
-    signals::initialize(&getConfiguration()->diagnosticsManager);
-}
-
-void firmareLoop() {
-    for(int i = 0; i < getCanBusCount(); i++) {
-        // In normal operation, if no output interface is enabled/attached (e.g.
-        // no USB or Bluetooth, the loop will stall here. Deep down in
-        // receiveCan when it tries to append messages to the queue it will
-        // reach a point where it tries to flush the (full) queue. Since nothing
-        // is attached, that will just keep timing out. Just be aware that if
-        // you need to modify the firmware to not use any interfaces, you'll
-        // have to change that or enable the flush functionality to write to
-        // your desired output interface.
-        CanBus* bus = &(getCanBuses()[i]);
-        receiveCan(&getConfiguration()->pipeline, bus);
-        diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
-    }
-
-
-    usb::read(&getConfiguration()->usb, receiveWriteRequest);
-    uart::read(&getConfiguration()->uart, receiveWriteRequest);
-    network::read(&getConfiguration()->network, receiveWriteRequest);
-
-    for(int i = 0; i < getCanBusCount(); i++) {
-        can::write::processWriteQueue(&getCanBuses()[i]);
-    }
-
-    updateDataLights();
-    openxc::signals::loop();
-    can::logBusStatistics(getCanBuses(), getCanBusCount());
-    openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
-
-#ifdef EMULATE_VEHICLE_DATA
-    openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
-#endif // EMULATE_VEHICLE_DATA
-
-    updateInterfaceLight();
-
-    openxc::pipeline::process(&getConfiguration()->pipeline);
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -172,95 +98,6 @@ void initializeAllCan() {
     }
 }
 
-void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
-    uint32_t id = idObject->valueint;
-    cJSON* dataObject = cJSON_GetObjectItem(root, "data");
-    if(dataObject == NULL) {
-        debug("Raw write request missing data", id);
-        return;
-    }
-
-    cJSON* busObject = cJSON_GetObjectItem(root, "bus");
-    if(busObject == NULL) {
-        debug("Raw write request missing bus", id);
-    }
-
-    CanBus* matchingBus = NULL;
-    if(busObject != NULL) {
-        int address = busObject->valueint;
-        matchingBus = lookupBus(address, getCanBuses(), getCanBusCount());
-        if(matchingBus == NULL) {
-            debug("No matching active bus for requested address: %d", address);
-        }
-    }
-
-    if(matchingBus == NULL) {
-        debug("No matching bus for write request, so using the first we find");
-        matchingBus = &getCanBuses()[0];
-    }
-
-    if(matchingBus->rawWritable) {
-        char* dataString = dataObject->valuestring;
-        char* end;
-        CanMessage message = {id, strtoull(dataString, &end, 16)};
-        can::write::enqueueMessage(matchingBus, &message);
-    } else {
-        debug("Raw CAN writes not allowed for bus %d", matchingBus->address);
-    }
-}
-
-void receiveTranslatedWriteRequest(cJSON* nameObject, cJSON* root) {
-    char* name = nameObject->valuestring;
-    cJSON* value = cJSON_GetObjectItem(root, "value");
-
-    // Optional, may be NULL
-    cJSON* event = cJSON_GetObjectItem(root, "event");
-
-    CanSignal* signal = lookupSignal(name, getSignals(), getSignalCount(),
-            true);
-    if(signal != NULL) {
-        if(value == NULL) {
-            debug("Write request for %s missing value", name);
-            return;
-        }
-        can::write::sendSignal(signal, value, getSignals(), getSignalCount());
-    } else {
-        CanCommand* command = lookupCommand(name, getCommands(),
-                getCommandCount());
-        if(command != NULL) {
-            command->handler(name, value, event, getSignals(),
-                    getSignalCount());
-        } else {
-            debug("Writing not allowed for signal with name %s", name);
-        }
-    }
-}
-
-bool receiveWriteRequest(uint8_t* message) {
-    cJSON *root = cJSON_Parse((char*)message);
-    bool foundMessage = false;
-    if(root != NULL) {
-        foundMessage = true;
-        cJSON* nameObject = cJSON_GetObjectItem(root, "name");
-        if(nameObject == NULL) {
-            cJSON* idObject = cJSON_GetObjectItem(root, "id");
-            if(idObject == NULL) {
-                debug("Write request is malformed, "
-                        "missing name or id: %s", message);
-            } else {
-                receiveRawWriteRequest(idObject, root);
-            }
-        } else {
-            receiveTranslatedWriteRequest(nameObject, root);
-        }
-        cJSON_Delete(root);
-    } else {
-        // debug("No valid JSON in incoming buffer yet -- "
-                // "if it's valid, may be out of memory");
-    }
-    return foundMessage;
-}
-
 /*
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the uart monitor.
@@ -275,4 +112,65 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 
         diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, bus, &message, pipeline);
     }
+}
+
+void initializeVehicleInterface() {
+    platform::initialize();
+    openxc::util::log::initialize();
+    time::initialize();
+    lights::initialize();
+    power::initialize();
+    usb::initialize(&getConfiguration()->usb);
+    uart::initialize(&getConfiguration()->uart);
+
+    updateInterfaceLight();
+
+    bluetooth::initialize(&getConfiguration()->uart);
+    network::initialize(&getConfiguration()->network);
+
+    srand(time::systemTimeMs());
+
+    debug("Initializing as %s", signals::getActiveMessageSet()->name);
+    BUS_WAS_ACTIVE = false;
+    initializeAllCan();
+    diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
+            getCanBusCount());
+    signals::initialize(&getConfiguration()->diagnosticsManager);
+}
+
+void firmareLoop() {
+    for(int i = 0; i < getCanBusCount(); i++) {
+        // In normal operation, if no output interface is enabled/attached (e.g.
+        // no USB or Bluetooth, the loop will stall here. Deep down in
+        // receiveCan when it tries to append messages to the queue it will
+        // reach a point where it tries to flush the (full) queue. Since nothing
+        // is attached, that will just keep timing out. Just be aware that if
+        // you need to modify the firmware to not use any interfaces, you'll
+        // have to change that or enable the flush functionality to write to
+        // your desired output interface.
+        CanBus* bus = &(getCanBuses()[i]);
+        receiveCan(&getConfiguration()->pipeline, bus);
+        diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
+    }
+
+    usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
+    uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
+    network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+
+    for(int i = 0; i < getCanBusCount(); i++) {
+        can::write::processWriteQueue(&getCanBuses()[i]);
+    }
+
+    updateDataLights();
+    openxc::signals::loop();
+    can::logBusStatistics(getCanBuses(), getCanBusCount());
+    openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
+
+#ifdef EMULATE_VEHICLE_DATA
+    openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
+#endif // EMULATE_VEHICLE_DATA
+
+    updateInterfaceLight();
+
+    openxc::pipeline::process(&getConfiguration()->pipeline);
 }

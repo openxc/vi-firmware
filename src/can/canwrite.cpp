@@ -14,40 +14,25 @@ void checkWritePermission(CanSignal* signal, bool* send) {
     }
 }
 
-uint64_t encodeSignal(CanSignal* signal, float value) {
+uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
     return eightbyte_encode_float(value, signal->bitPosition, signal->bitSize,
             signal->factor, signal->offset);
 }
 
-uint64_t openxc::can::write::booleanWriter(CanSignal* signal,
-        CanSignal* signals, int signalCount, bool value, bool* send) {
-    return encodeSignal(signal, value);
+float openxc::can::write::numberEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    return value;
 }
 
-uint64_t openxc::can::write::booleanWriter(CanSignal* signal,
-        CanSignal* signals, int signalCount, cJSON* value, bool* send) {
-    int intValue = 0;
-    if(value->type == cJSON_False) {
-        intValue = 0;
-    } else if(value->type == cJSON_True) {
-        intValue = 1;
-    }
-    return booleanWriter(signal, signals, signalCount, intValue, send);
+float openxc::can::write::numberEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc_DynamicField* value, bool* send) {
+    return numberEncoder(signal, signals, signalCount, value->numeric_value,
+            send);
 }
 
-uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, double value, bool* send) {
-    return encodeSignal(signal, value);
-}
-
-uint64_t openxc::can::write::numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
-    return numberWriter(signal, signals, signalCount, value->valuedouble, send);
-}
-
-uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
+float openxc::can::write::stateEncoder(CanSignal* signal, CanSignal* signals,
         int signalCount, const char* value, bool* send) {
-    uint64_t result = 0;
+    float result = 0;
     if(value == NULL) {
         debug("Can't write state of NULL -- not sending");
         *send = false;
@@ -55,7 +40,7 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
         const CanSignalState* signalState = lookupSignalState(value, signal,
                 signals, signalCount);
         if(signalState != NULL) {
-            result = encodeSignal(signal, signalState->value);
+            result = signalState->value;
         } else {
             debug("Couldn't find a valid signal state for \"%s\"", value);
             *send = false;
@@ -64,14 +49,14 @@ uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
     return result;
 }
 
-uint64_t openxc::can::write::stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
-    uint64_t result = 0;
+float openxc::can::write::stateEncoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc_DynamicField* value, bool* send) {
+    float result = 0;
     if(value == NULL) {
         debug("Can't write state of NULL -- not sending");
         *send = false;
     } else {
-        result = stateWriter(signal, signals, signalCount, value->valuestring,
+        result = stateEncoder(signal, signals, signalCount, value->string_value,
                 send);
     }
     return result;
@@ -86,37 +71,48 @@ void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
+bool openxc::can::write::sendSignal(CanSignal* signal, openxc_DynamicField* value,
         CanSignal* signals, int signalCount) {
     return sendSignal(signal, value, signals, signalCount, false);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
-        CanSignal* signals, int signalCount, bool force) {
+bool openxc::can::write::sendSignal(CanSignal* signal,
+        openxc_DynamicField* value, CanSignal* signals, int signalCount,
+        bool force) {
     return sendSignal(signal, value, signal->writeHandler, signals,
             signalCount, force);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
-        CanSignal* signals, int signalCount) {
+bool openxc::can::write::sendSignal(CanSignal* signal, openxc_DynamicField* value,
+        SignalEncoder writer, CanSignal* signals, int signalCount) {
     return sendSignal(signal, value, writer, signals, signalCount, false);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
-        uint64_t (*writer)(CanSignal*, CanSignal*, int, cJSON*, bool*),
-        CanSignal* signals, int signalCount, bool force) {
+bool openxc::can::write::sendSignal(CanSignal* signal,
+        openxc_DynamicField* value, SignalEncoder writer, CanSignal* signals,
+        int signalCount, bool force) {
     if(writer == NULL) {
         if(signal->stateCount > 0) {
-            writer = stateWriter;
+            writer = stateEncoder;
         } else {
-            writer = numberWriter;
+            writer = numberEncoder;
         }
     }
+
+    bool send = true;
+    float rawValue = writer(signal, signals, signalCount, value, &send);
+    if(force || send) {
+        return sendSignal(signal, rawValue, signals, signalCount, force);
+    }
+    return send;
+}
+
+bool openxc::can::write::sendSignal(CanSignal* signal, float value, CanSignal* signals,
+                int signalCount, bool force) {
     bool send = true;
     checkWritePermission(signal, &send);
 
-    uint64_t data = writer(signal, signals, signalCount, value, &send);
+    uint64_t data = encodeSignal(signal, value);
     if(force || send) {
         CanMessage message = {signal->message->id, data};
         enqueueMessage(signal->message->bus, &message);
@@ -125,6 +121,11 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
                 signal->genericName);
     }
     return send;
+}
+
+bool openxc::can::write::sendSignal(CanSignal* signal, float value, CanSignal* signals,
+                int signalCount) {
+    return sendSignal(signal, value, signals, signalCount);
 }
 
 void openxc::can::write::processWriteQueue(CanBus* bus) {

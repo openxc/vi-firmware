@@ -21,7 +21,6 @@ using openxc::can::read::sendEventedStringMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
-using openxc::can::write::booleanWriter;
 using openxc::can::write::sendSignal;
 using openxc::can::lookupSignal;
 using openxc::pipeline::Pipeline;
@@ -353,8 +352,9 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId,
 }
 
 bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
-        cJSON* value, cJSON* event, CanSignal* signals, int signalCount) {
-    const char* direction = value->valuestring;
+        openxc_DynamicField* value, openxc_DynamicField* event,
+        CanSignal* signals, int signalCount) {
+    const char* direction = value->string_value;
     CanSignal* signal = NULL;
     if(!strcmp("left", direction)) {
         signal = lookupSignal("turn_signal_left", signals, signalCount);
@@ -364,10 +364,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
 
     bool sent = true;
     if(signal != NULL) {
-        cJSON* boolObject = cJSON_CreateBool(true);
-        can::write::sendSignal(signal, boolObject, booleanWriter,
-                signals, signalCount, true);
-        cJSON_Delete(boolObject);
+        can::write::sendSignal(signal, float(true), signals, signalCount, true);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
         sent = false;

@@ -152,7 +152,8 @@ void UART1_IRQHandler() {
 
 }
 
-void openxc::interface::uart::read(UartDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::uart::read(UartDevice* device,
+        openxc::commands::IncomingMessageCallback callback) {
     if(device != NULL) {
         if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
             processQueue(&device->receiveQueue, callback);

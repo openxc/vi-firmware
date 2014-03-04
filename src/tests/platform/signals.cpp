@@ -8,15 +8,8 @@
 
 namespace can = openxc::can;
 
-using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
-using openxc::can::read::booleanHandler;
-using openxc::can::read::stateHandler;
-using openxc::can::read::ignoreHandler;
-using openxc::can::write::booleanWriter;
-using openxc::can::write::stateWriter;
-using openxc::can::write::numberWriter;
 using openxc::diagnostics::DiagnosticsManager;
 using namespace openxc::signals::handlers;
 

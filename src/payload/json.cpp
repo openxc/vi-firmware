@@ -4,10 +4,15 @@
 #include <cJSON.h>
 #include <stdlib.h>
 #include <sys/param.h>
+#include <stdio.h>
 
 namespace payload = openxc::payload;
 
 using openxc::util::log::debug;
+
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 
 static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddNumberToObject(root, can::read::BUS_FIELD_NAME,

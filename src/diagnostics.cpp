@@ -314,9 +314,6 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
 
     cleanupActiveRequests(manager);
 
-    // TODO see if there is already an active request with the same ID+mode+pid
-    // combo - if there is, update the frequency, pid, payload, name, factor,
-    // offset and decoder if set.
     DiagnosticRequestListEntry* entry = lookupExistingRequest(manager, bus,
             request);
     bool usedFreeEntry = false;

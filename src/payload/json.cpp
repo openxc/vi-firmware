@@ -199,22 +199,27 @@ static bool deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
 static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) {
     bool status = true;
+    field->has_type = true;
     switch(element->type) {
         case cJSON_String:
+            field->type = openxc_DynamicField_Type_STRING;
             field->has_string_value = true;
             strcpy(field->string_value, element->valuestring);
             break;
         case cJSON_False:
         case cJSON_True:
+            field->type = openxc_DynamicField_Type_BOOL;
             field->has_boolean_value = true;
             field->boolean_value = bool(element->valueint);
             break;
         case cJSON_Number:
+            field->type = openxc_DynamicField_Type_NUM;
             field->has_numeric_value = true;
             field->numeric_value = element->valuedouble;
             break;
         default:
             debug("Unsupported type in value field: %d", element->type);
+            field->has_type = false;
             status = false;
             break;
     }
@@ -235,6 +240,8 @@ static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
     if(element != NULL) {
         if(!deserializeDynamicField(element, &translatedMessage->value)) {
             debug("Unsupported type in value field: %d", element->type);
+        } else {
+            translatedMessage->has_value = true;
         }
     }
 
@@ -242,6 +249,8 @@ static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
     if(element != NULL) {
         if(!deserializeDynamicField(element, &translatedMessage->event)) {
             debug("Unsupported type in event field: %d", element->type);
+        } else {
+            translatedMessage->has_event = true;
         }
     }
     return true;
@@ -318,8 +327,11 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             status = deserializeTranslated(root, message);
         }
     }
+    // TODO how do we report back validation check, in 'status'
+    // TODO more importantly, how do we share the validation code with protobuf?
+    // have to move it up one level
     cJSON_Delete(root);
-    return status;
+    return true;
 }
 
 int openxc::payload::json::serialize(openxc_VehicleMessage* message,

@@ -24,12 +24,14 @@ void setup() {
     fail_unless(canQueueEmpty(0));
 }
 
-const char* REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
+const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
+const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"transmission_gear_position\", \"value\": \"third\"}";
+const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"torque_at_transmission\", \"value\": 200}";
 
 START_TEST (test_raw_write_allowed)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage((uint8_t*)REQUEST, strlen(REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -37,7 +39,43 @@ END_TEST
 START_TEST (test_raw_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
-    ck_assert(handleIncomingMessage((uint8_t*)REQUEST, strlen(REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_translated_write_allowed)
+{
+    ck_assert(handleIncomingMessage((uint8_t*)WRITABLE_TRANSLATED_REQUEST,
+                strlen(WRITABLE_TRANSLATED_REQUEST)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_translated_write_not_allowed)
+{
+    ck_assert(handleIncomingMessage((uint8_t*)NON_WRITABLE_TRANSLATED_REQUEST,
+                strlen(WRITABLE_TRANSLATED_REQUEST)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_translated_write_allowed_by_signal_override)
+{
+    getCanBuses()[0].rawWritable = false;
+    ck_assert(handleIncomingMessage((uint8_t*)WRITABLE_TRANSLATED_REQUEST,
+                strlen(WRITABLE_TRANSLATED_REQUEST)));
+    fail_if(canQueueEmpty(0));
+    ck_assert(handleIncomingMessage((uint8_t*)NON_WRITABLE_TRANSLATED_REQUEST,
+                strlen(WRITABLE_TRANSLATED_REQUEST)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_unrecognized_message)
+{
+    const char* request = "{\"foo\": 1, \"bar\": 42, \"data\": \"0x1234\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -48,6 +86,10 @@ Suite* suite(void) {
     tcase_add_checked_fixture(tc_core, setup, NULL);
     tcase_add_test(tc_core, test_raw_write_allowed);
     tcase_add_test(tc_core, test_raw_write_not_allowed);
+    tcase_add_test(tc_core, test_translated_write_allowed);
+    tcase_add_test(tc_core, test_translated_write_not_allowed);
+    tcase_add_test(tc_core, test_translated_write_allowed_by_signal_override);
+    tcase_add_test(tc_core, test_unrecognized_message);
 
     suite_add_tcase(s, tc_core);
 

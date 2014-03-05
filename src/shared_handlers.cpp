@@ -21,7 +21,6 @@ using openxc::can::read::sendEventedStringMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
-using openxc::can::write::sendSignal;
 using openxc::can::lookupSignal;
 using openxc::pipeline::Pipeline;
 
@@ -364,7 +363,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
 
     bool sent = true;
     if(signal != NULL) {
-        can::write::sendSignal(signal, float(true), signals, signalCount, true);
+        can::write::encodeAndSendBooleanSignal(signal, true, true);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
         sent = false;

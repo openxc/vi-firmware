@@ -138,8 +138,7 @@ bool handleTranslated(openxc_VehicleMessage* message) {
                     status = false;
                 }
 
-                can::write::sendSignal(signal, &translatedMessage->value,
-                        getSignals(), getSignalCount());
+                can::write::encodeAndSendSignal(signal, &translatedMessage->value, false);
                 // TODO support writing evented signals
             } else {
                 CanCommand* command = lookupCommand(translatedMessage->name,

@@ -9,29 +9,7 @@ namespace openxc {
 namespace can {
 namespace write {
 
-uint64_t encodeSignal(CanSignal* signal, float value);
-
-/* Public: Write the given number to the correct bitfield for the given signal.
- *
- * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
- * value - The value to write.
- * send - An output argument that will be set to false if the value should
- *     not be sent for any reason.
- *
- * TODO update docs for all of these functions.
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
- */
-float numberEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send);
-
-/* Public: Interpret the value as a float, then do the same as
- * numberEncoder(CanSignal*, CanSignal*, int, float, bool*).
- */
-float numberEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc_DynamicField* value, bool* send);
+uint64_t encodeBoolean(const CanSignal* signal, bool value, bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
@@ -40,8 +18,6 @@ float numberEncoder(CanSignal* signal, CanSignal* signals,
  * to a single state. See https://github.com/openxc/vi-firmware/issues/185.
  *
  * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
  * value - The string object to write. The value should correspond to a signal
  *         state integer value.
  * send - An output argument that will be set to false if the value should
@@ -50,14 +26,22 @@ float numberEncoder(CanSignal* signal, CanSignal* signals,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-float stateEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send);
+uint64_t encodeState(const CanSignal* signal, const char* state, bool* send);
 
-/* Public: Interpret the JSON value as a string, then do the same as
- * stateEncoder(CanSignal*, CanSignal*, int, const char*, bool*).
+/* Public: Write the given number to the correct bitfield for the given signal.
+ *
+ * signal - The signal associated with the value.
+ * value - The value to write.
+ * send - An output argument that will be set to false if the value should
+ *     not be sent for any reason.
+ *
+ * TODO update docs for all of these functions.
+ * Returns a 64-bit data block with the bit field for the signal set to the
+ * encoded value.
  */
-float stateEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc_DynamicField* value, bool* send);
+uint64_t encodeNumber(const CanSignal* signal, float value, bool* send);
+
+uint64_t buildMessage(CanSignal* signal, int encodedValue);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
@@ -71,23 +55,13 @@ float stateEncoder(CanSignal* signal, CanSignal* signals,
  * value - The value to send in the signal. This could be a boolean, number or
  *         string (i.e. a state value).
  * writer - A function to convert from the value to an encoded uint64_t.
- * signals - An array of all CAN signals.
- * signalCount - The size of the signals array.
  * force - true if the signals should be sent regardless of the writable status
  *         in the CAN message structure.
  *
  * Returns true if the message was sent successfully.
  */
-bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        SignalEncoder writer, CanSignal* signals, int signalCount, bool force);
-
-/* Public: Write a CAN signal with the given value to the bus.
- *
- * Just like the above function sendSignal(), but the value of force defaults
- * to false.
- */
-bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        SignalEncoder writer, CanSignal* signals, int signalCount);
+bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value,
+        SignalEncoder writer, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
@@ -96,22 +70,13 @@ bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
  *
  * See above for argument descriptions.
  */
-bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        CanSignal* signals, int signalCount, bool force);
+bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value, bool force);
 
-/* Public: Write a CAN signal with the given value to the bus.
- *
- * Just like the above function sendSignal(), but the value of force defaults
- * to false.
- */
-bool sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        CanSignal* signals, int signalCount);
+bool sendEncodedSignal(CanSignal* signal, uint64_t value, bool force);
 
-bool sendSignal(CanSignal* signal, float value, CanSignal* signals,
-                int signalCount, bool force);
-
-bool sendSignal(CanSignal* signal, float value, CanSignal* signals,
-                int signalCount);
+bool encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force);
+bool encodeAndSendStateSignal(CanSignal* signal, const char* value, bool force);
+bool encodeAndSendNumericSignal(CanSignal* signal, float value, bool force);
 
 /* Public: The lowest-level API available to send a CAN message. The byte order
  * of the data is swapped, but otherwise this function queues the data to write

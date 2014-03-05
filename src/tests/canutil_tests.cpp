@@ -89,23 +89,17 @@ END_TEST
 
 START_TEST (test_lookup_signal_state_by_name)
 {
-    fail_unless(lookupSignalState("does_not_exist", &getSignals()[1], getSignals(),
-                getSignalCount()) == NULL);
-    fail_unless(lookupSignalState("reverse", &getSignals()[1], getSignals(), getSignalCount())
-            == &getSignals()[1].states[0]);
-    fail_unless(lookupSignalState("third", &getSignals()[1], getSignals(), getSignalCount())
-            == &getSignals()[1].states[1]);
+    fail_unless(lookupSignalState("does_not_exist", &getSignals()[1]) == NULL);
+    fail_unless(lookupSignalState("reverse", &getSignals()[1]) == &getSignals()[1].states[0]);
+    fail_unless(lookupSignalState("third", &getSignals()[1]) == &getSignals()[1].states[1]);
 }
 END_TEST
 
 START_TEST (test_lookup_signal_state_by_value)
 {
-    fail_unless(lookupSignalState(MESSAGE_ID, &getSignals()[1], getSignals(),
-                getSignalCount()) == NULL);
-    fail_unless(lookupSignalState(1, &getSignals()[1], getSignals(), getSignalCount())
-            == &getSignals()[1].states[0]);
-    fail_unless(lookupSignalState(2, &getSignals()[1], getSignals(), getSignalCount())
-            == &getSignals()[1].states[1]);
+    fail_unless(lookupSignalState(MESSAGE_ID, &getSignals()[1]) == NULL);
+    fail_unless(lookupSignalState(1, &getSignals()[1]) == &getSignals()[1].states[0]);
+    fail_unless(lookupSignalState(2, &getSignals()[1]) == &getSignals()[1].states[1]);
 }
 END_TEST
 

@@ -7,9 +7,10 @@
 
 namespace usb = openxc::interface::usb;
 
-using openxc::can::write::encodeSignal;
-using openxc::can::write::stateEncoder;
-using openxc::can::write::numberEncoder;
+using openxc::can::write::encodeState;
+using openxc::can::write::encodeNumber;
+using openxc::can::write::encodeBoolean;
+using openxc::can::write::buildMessage;
 using openxc::signals::handlers::handleButtonEventMessage;
 using openxc::signals::handlers::sendTirePressure;
 using openxc::signals::handlers::sendDoorStatus;
@@ -51,9 +52,9 @@ START_TEST (test_button_event_handler)
 {
     fail_unless(queueEmpty());
     bool send = true;
-    uint64_t data =  encodeSignal(&getSignals()[0], stateEncoder(&getSignals()[0], getSignals(), getSignalCount(), "down",
+    uint64_t data =  buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down",
             &send));
-    data += encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send));
+    data += buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send));
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -64,9 +65,9 @@ START_TEST (test_button_event_handler_bad_type)
 {
     fail_unless(queueEmpty());
     bool send = true;
-    uint64_t data =  encodeSignal(&getSignals()[0], stateEncoder(&getSignals()[0], getSignals(), getSignalCount(), "bad",
+    uint64_t data =  buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "bad",
             &send));
-    data += encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send));
+    data += buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send));
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
             &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
@@ -77,9 +78,9 @@ START_TEST (test_button_event_handler_correct_types)
 {
     fail_unless(queueEmpty());
     bool send = true;
-    uint64_t data =  encodeSignal(&getSignals()[0], stateEncoder(&getSignals()[0], getSignals(), getSignalCount(), "down",
+    uint64_t data =  buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down",
             &send));
-    data += encodeSignal(&getSignals()[1], stateEncoder(&getSignals()[1], getSignals(), getSignalCount(), "stuck", &send));
+    data += buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send));
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -98,9 +99,9 @@ START_TEST (test_button_event_handler_bad_state)
 {
     fail_unless(queueEmpty());
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[0], stateEncoder(&getSignals()[0], getSignals(), getSignalCount(), "down",
+    uint64_t data = buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down",
             &send));
-    data += encodeSignal(&getSignals()[1], numberEncoder(&getSignals()[1], getSignals(), getSignalCount(), 11, &send));
+    data += buildMessage(&getSignals()[1], encodeNumber(&getSignals()[1], 11, &send));
     handleButtonEventMessage(0, __builtin_bswap64(data), getSignals(), getSignalCount(),
             &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
@@ -110,7 +111,7 @@ END_TEST
 START_TEST (test_tire_pressure_handler)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[7], numberEncoder(&getSignals()[7], getSignals(), getSignalCount(), 23.1,
+    uint64_t data = buildMessage(&getSignals()[7], encodeNumber(&getSignals()[7], 23.1,
             &send));
     sendTirePressure("foo", __builtin_bswap64(data), 1, &getSignals()[7], getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
@@ -126,7 +127,7 @@ END_TEST
 START_TEST (test_send_invalid_tire)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[7], numberEncoder(&getSignals()[7], getSignals(), getSignalCount(), true,
+    uint64_t data = buildMessage(&getSignals()[7], encodeNumber(&getSignals()[7], true,
             &send));
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
@@ -137,7 +138,7 @@ END_TEST
 START_TEST (test_send_same_tire_pressure)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[7], numberEncoder(&getSignals()[7], getSignals(), getSignalCount(), true,
+    uint64_t data = buildMessage(&getSignals()[7], encodeNumber(&getSignals()[7], true,
             &send));
     sendDoorStatus("front_left", __builtin_bswap64(data), &getSignals()[7], getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
@@ -152,9 +153,9 @@ END_TEST
 START_TEST (test_occupancy_handler_child)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[11], numberEncoder(&getSignals()[11], getSignals(), getSignalCount(), float(true),
+    uint64_t data = buildMessage(&getSignals()[11], encodeBoolean(&getSignals()[11], true,
             &send));
-    data += encodeSignal(&getSignals()[12], numberEncoder(&getSignals()[12], getSignals(), getSignalCount(), float(false), &send));
+    data += buildMessage(&getSignals()[12], encodeBoolean(&getSignals()[12], false, &send));
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
             getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -172,9 +173,9 @@ END_TEST
 START_TEST (test_occupancy_handler_adult)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[11], numberEncoder(&getSignals()[11], getSignals(), getSignalCount(), true,
+    uint64_t data = buildMessage(&getSignals()[11], encodeNumber(&getSignals()[11], true,
             &send));
-    data += encodeSignal(&getSignals()[12], numberEncoder(&getSignals()[12], getSignals(), getSignalCount(), true, &send));
+    data += buildMessage(&getSignals()[12], encodeNumber(&getSignals()[12], true, &send));
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
             getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -192,9 +193,9 @@ END_TEST
 START_TEST (test_occupancy_handler_empty)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[11], numberEncoder(&getSignals()[11], getSignals(), getSignalCount(), float(false),
+    uint64_t data = buildMessage(&getSignals()[11], encodeBoolean(&getSignals()[11], false,
             &send));
-    data += encodeSignal(&getSignals()[12], numberEncoder(&getSignals()[12], getSignals(), getSignalCount(), float(false), &send));
+    data += buildMessage(&getSignals()[12], encodeBoolean(&getSignals()[12], false, &send));
     handleOccupancyMessage(getSignals()[11].message->id, __builtin_bswap64(data),
             getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -235,8 +236,7 @@ END_TEST
 START_TEST (test_door_handler)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[2], numberEncoder(&getSignals()[2], getSignals(), getSignalCount(), true,
-            &send));
+    uint64_t data = buildMessage(&getSignals()[2], encodeNumber(&getSignals()[2], true, &send));
     sendDoorStatus("foo", __builtin_bswap64(data), &getSignals()[2], getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -251,7 +251,7 @@ END_TEST
 START_TEST (test_send_invalid_door_status)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[2], numberEncoder(&getSignals()[2], getSignals(), getSignalCount(), true,
+    uint64_t data = buildMessage(&getSignals()[2], encodeNumber(&getSignals()[2], true,
             &send));
     sendDoorStatus("does-not-exist", __builtin_bswap64(data), NULL, getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
@@ -262,7 +262,7 @@ END_TEST
 START_TEST (test_send_same_door_status)
 {
     bool send = true;
-    uint64_t data = encodeSignal(&getSignals()[2], numberEncoder(&getSignals()[2], getSignals(), getSignalCount(), true,
+    uint64_t data = buildMessage(&getSignals()[2], encodeNumber(&getSignals()[2], true,
             &send));
     sendDoorStatus("driver", __builtin_bswap64(data), &getSignals()[2], getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);

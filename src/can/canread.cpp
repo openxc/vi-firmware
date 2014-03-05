@@ -57,8 +57,7 @@ float openxc::can::read::ignoreHandler(CanSignal* signal, CanSignal* signals,
 const char* openxc::can::read::stateHandler(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    const CanSignalState* signalState = lookupSignalState(value, signal,
-            signals, signalCount);
+    const CanSignalState* signalState = lookupSignalState(value, signal);
     if(signalState != NULL) {
         return signalState->name;
     }

@@ -75,7 +75,7 @@ static bool signalStateNameComparator(void* name, int index, void* states) {
 }
 
 const CanSignalState* openxc::can::lookupSignalState(const char* name,
-        CanSignal* signal, CanSignal* signals, int signalCount) {
+        const CanSignal* signal) {
     int index = lookup((void*)name, signalStateNameComparator,
             (void*)signal->states, signal->stateCount);
     if(index != -1) {
@@ -90,7 +90,7 @@ static bool signalStateValueComparator(void* value, int index, void* states) {
 }
 
 const CanSignalState* openxc::can::lookupSignalState(int value,
-        CanSignal* signal, CanSignal* signals, int signalCount) {
+        const CanSignal* signal) {
     int index = lookup((void*)&value, signalStateValueComparator,
             (void*)signal->states, signal->stateCount);
     if(index != -1) {

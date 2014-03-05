@@ -14,8 +14,7 @@
 
 #define MAX_ACCEPTANCE_FILTERS 32
 
-typedef float (*SignalEncoder)(struct CanSignal*, struct CanSignal*, int,
-        openxc_DynamicField*, bool*);
+typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
 
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.
@@ -344,13 +343,10 @@ CanCommand* lookupCommand(const char* name, CanCommand* commands,
  *
  * name - The string name of the desired signal state.
  * signal - The CanSignal that should include this state.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
-        CanSignal* signals, int signalCount);
+const CanSignalState* lookupSignalState(const char* name, const CanSignal* signal);
 
 /* Public: Look up a CanSignalState for a CanSignal by its numerical value.
  * Use this to find the string equivalent value to write over USB when a float
@@ -359,13 +355,10 @@ const CanSignalState* lookupSignalState(const char* name, CanSignal* signal,
  * value - the numerical value equivalent for the state.
  * name - The string name of the desired signal state.
  * signal - The CanSignal that should include this state.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
  *
  * Returns a pointer to the CanSignalState if found, otherwise NULL.
  */
-const CanSignalState* lookupSignalState(int value, CanSignal* signal,
-        CanSignal* signals, int signalCount);
+const CanSignalState* lookupSignalState(int value, const CanSignal* signal);
 
 /* Public: Search all predefined and dynamically configured CAN messages for one
  * matching the given ID.

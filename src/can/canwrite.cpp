@@ -1,3 +1,4 @@
+#include <bitfield/8byte.h>
 #include <canutil/write.h>
 #include "can/canwrite.h"
 #include "util/log.h"
@@ -8,58 +9,37 @@ using openxc::util::log::debug;
 
 QUEUE_DEFINE(CanMessage);
 
-void checkWritePermission(CanSignal* signal, bool* send) {
-    if(!signal->writable) {
-        *send = false;
+uint64_t openxc::can::write::buildMessage(CanSignal* signal, int value) {
+    uint64_t result = 0;
+    if(!eightbyte_set_bitfield(value, signal->bitPosition, signal->bitSize, &result)) {
+        debug("Unable to encode value %d into a bitfield", value);
     }
+    return result;
 }
 
-uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
-    return eightbyte_encode_float(value, signal->bitPosition, signal->bitSize,
-            signal->factor, signal->offset);
+uint64_t openxc::can::write::encodeBoolean(const CanSignal* signal, bool value, bool* send) {
+    return encodeNumber(signal, float(value), send);
 }
 
-float openxc::can::write::numberEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send) {
-    return value;
-}
-
-float openxc::can::write::numberEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc_DynamicField* value, bool* send) {
-    return numberEncoder(signal, signals, signalCount, value->numeric_value,
-            send);
-}
-
-float openxc::can::write::stateEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, bool* send) {
-    float result = 0;
-    if(value == NULL) {
+uint64_t openxc::can::write::encodeState(const CanSignal* signal, const char* state, bool* send) {
+    uint64_t result = 0;
+    if(state == NULL) {
         debug("Can't write state of NULL -- not sending");
         *send = false;
     } else {
-        const CanSignalState* signalState = lookupSignalState(value, signal,
-                signals, signalCount);
+        const CanSignalState* signalState = lookupSignalState(state, signal);
         if(signalState != NULL) {
             result = signalState->value;
         } else {
-            debug("Couldn't find a valid signal state for \"%s\"", value);
+            debug("Couldn't find a valid signal state for \"%s\"", state);
             *send = false;
         }
     }
-    return result;
+    return encodeNumber(signal, result, send);
 }
 
-float openxc::can::write::stateEncoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc_DynamicField* value, bool* send) {
-    float result = 0;
-    if(value == NULL) {
-        debug("Can't write state of NULL -- not sending");
-        *send = false;
-    } else {
-        result = stateEncoder(signal, signals, signalCount, value->string_value,
-                send);
-    }
-    return result;
+uint64_t openxc::can::write::encodeNumber(const CanSignal* signal, float value, bool* send) {
+    return float_to_fixed_point(value, signal->factor, signal->offset);
 }
 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
@@ -71,49 +51,74 @@ void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        CanSignal* signals, int signalCount) {
-    return sendSignal(signal, value, signals, signalCount, false);
+bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
+        openxc_DynamicField* value, bool force) {
+    return encodeAndSendSignal(signal, value, signal->writeHandler, force);
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal,
-        openxc_DynamicField* value, CanSignal* signals, int signalCount,
-        bool force) {
-    return sendSignal(signal, value, signal->writeHandler, signals,
-            signalCount, force);
-}
-
-bool openxc::can::write::sendSignal(CanSignal* signal, openxc_DynamicField* value,
-        SignalEncoder writer, CanSignal* signals, int signalCount) {
-    return sendSignal(signal, value, writer, signals, signalCount, false);
-}
-
-bool openxc::can::write::sendSignal(CanSignal* signal,
-        openxc_DynamicField* value, SignalEncoder writer, CanSignal* signals,
-        int signalCount, bool force) {
+bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
+        openxc_DynamicField* value, SignalEncoder writer, bool force) {
+    bool send = true;
+    uint64_t encodedValue = 0;
     if(writer == NULL) {
-        if(signal->stateCount > 0) {
-            writer = stateEncoder;
-        } else {
-            writer = numberEncoder;
+        switch(value->type) {
+            case openxc_DynamicField_Type_STRING:
+                encodedValue = encodeState(signal, value->string_value, &send);
+                break;
+            case openxc_DynamicField_Type_NUM:
+                encodedValue = encodeNumber(signal, value->numeric_value, &send);
+                break;
+            case openxc_DynamicField_Type_BOOL:
+                encodedValue = encodeBoolean(signal, value->numeric_value, &send);
+                break;
+            default:
+                debug("Dynamic field didn't have a value, can't encode");
+                send = false;
+                break;
         }
+    } else {
+        // TODO do we need to pass the full payload into the handler?
+        encodedValue = writer(signal, value, &send);
     }
 
-    bool send = true;
-    float rawValue = writer(signal, signals, signalCount, value, &send);
     if(force || send) {
-        return sendSignal(signal, rawValue, signals, signalCount, force);
+        send = sendEncodedSignal(signal, encodedValue, force);
     }
     return send;
 }
 
-bool openxc::can::write::sendSignal(CanSignal* signal, float value, CanSignal* signals,
-                int signalCount, bool force) {
-    bool send = true;
-    checkWritePermission(signal, &send);
+bool openxc::can::write::encodeAndSendNumericSignal(CanSignal* signal, float value, bool force) {
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_NUM;
+    field.numeric_value = value;
+    return encodeAndSendSignal(signal, &field, force);
+}
 
-    uint64_t data = encodeSignal(signal, value);
+bool openxc::can::write::encodeAndSendStateSignal(CanSignal* signal, const char* value,
+        bool force) {
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_STRING;
+    strcpy(field.string_value, value);
+    return encodeAndSendSignal(signal, &field, force);
+}
+
+bool openxc::can::write::encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force) {
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_BOOL;
+    field.boolean_value = value;
+    return encodeAndSendSignal(signal, &field, force);
+}
+
+// value is already encoded
+bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bool force) {
+    bool send = signal->writable;
+
+    uint64_t data = buildMessage(signal, value);
     if(force || send) {
+        send = true;
         CanMessage message = {signal->message->id, data};
         enqueueMessage(signal->message->bus, &message);
     } else {
@@ -121,11 +126,6 @@ bool openxc::can::write::sendSignal(CanSignal* signal, float value, CanSignal* s
                 signal->genericName);
     }
     return send;
-}
-
-bool openxc::can::write::sendSignal(CanSignal* signal, float value, CanSignal* signals,
-                int signalCount) {
-    return sendSignal(signal, value, signals, signalCount);
 }
 
 void openxc::can::write::processWriteQueue(CanBus* bus) {

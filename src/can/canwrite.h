@@ -9,6 +9,9 @@ namespace openxc {
 namespace can {
 namespace write {
 
+uint64_t encodeDynamicField(const CanSignal* signal, openxc_DynamicField* field,
+                bool* send);
+
 uint64_t encodeBoolean(const CanSignal* signal, bool value, bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
@@ -96,7 +99,7 @@ void enqueueMessage(CanBus* bus, CanMessage* message);
  *
  * bus - The CanBus instance that has a queued to be flushed out to CAN.
  */
-void processWriteQueue(CanBus* bus);
+void flushOutgoingCanMessageQueue(CanBus* bus);
 
 /* Public: Write a CAN message with the given data and node ID to the bus
  * immeidately.

@@ -158,7 +158,7 @@ void firmareLoop() {
     network::read(&getConfiguration()->network, commands::handleIncomingMessage);
 
     for(int i = 0; i < getCanBusCount(); i++) {
-        can::write::processWriteQueue(&getCanBuses()[i]);
+        can::write::flushOutgoingCanMessageQueue(&getCanBuses()[i]);
     }
 
     updateDataLights();

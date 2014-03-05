@@ -51,6 +51,27 @@ void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
+uint64_t openxc::can::write::encodeDynamicField(const CanSignal* signal,
+        openxc_DynamicField* field, bool* send) {
+    float encodedValue = 0;
+    switch(field->type) {
+        case openxc_DynamicField_Type_STRING:
+            encodedValue = encodeState(signal, field->string_value, send);
+            break;
+        case openxc_DynamicField_Type_NUM:
+            encodedValue = encodeNumber(signal, field->numeric_value, send);
+            break;
+        case openxc_DynamicField_Type_BOOL:
+            encodedValue = encodeBoolean(signal, field->numeric_value, send);
+            break;
+        default:
+            debug("Dynamic field didn't have a value, can't encode");
+            *send = false;
+            break;
+    }
+    return encodedValue;
+}
+
 bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
         openxc_DynamicField* value, bool force) {
     return encodeAndSendSignal(signal, value, signal->writeHandler, force);
@@ -61,21 +82,7 @@ bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
     bool send = true;
     uint64_t encodedValue = 0;
     if(writer == NULL) {
-        switch(value->type) {
-            case openxc_DynamicField_Type_STRING:
-                encodedValue = encodeState(signal, value->string_value, &send);
-                break;
-            case openxc_DynamicField_Type_NUM:
-                encodedValue = encodeNumber(signal, value->numeric_value, &send);
-                break;
-            case openxc_DynamicField_Type_BOOL:
-                encodedValue = encodeBoolean(signal, value->numeric_value, &send);
-                break;
-            default:
-                debug("Dynamic field didn't have a value, can't encode");
-                send = false;
-                break;
-        }
+        encodedValue = encodeDynamicField(signal, value, &send);
     } else {
         // TODO do we need to pass the full payload into the handler?
         encodedValue = writer(signal, value, &send);
@@ -128,7 +135,7 @@ bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bo
     return send;
 }
 
-void openxc::can::write::processWriteQueue(CanBus* bus) {
+void openxc::can::write::flushOutgoingCanMessageQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
         const CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
         sendCanMessage(bus, &message);

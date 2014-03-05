@@ -62,7 +62,7 @@ const CanSignalState SIGNAL_STATES[][MAX_SIGNAL_COUNT][MAX_SIGNAL_STATES] = {
 };
 
 CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
-    { // message set: passthrough
+    { // message set: tests
         {&CAN_MESSAGES[0][0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
             -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
         {&CAN_MESSAGES[0][1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
@@ -110,28 +110,28 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
 
 void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) {
     switch(getConfiguration()->messageSetIndex) {
-    case 0: // message set: passthrough
+    case 0: // message set: tests
         break;
     }
 }
 
 void openxc::signals::loop() {
     switch(getConfiguration()->messageSetIndex) {
-    case 0: // message set: passthrough
+    case 0: // message set: tests
         break;
     }
 }
 
 const int MAX_COMMAND_COUNT = 1;
 CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {
-    { // message set: passthrough
+    { // message set: tests
         {"turn_signal_status", NULL},
     },
 };
 
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, CanMessage* message) {
     switch(getConfiguration()->messageSetIndex) {
-    case 0: // message set: passthrough
+    case 0: // message set: tests
         switch(bus->address) {
         case 1:
             switch (message->id) {

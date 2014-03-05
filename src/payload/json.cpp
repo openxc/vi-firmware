@@ -285,6 +285,7 @@ static bool deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
     } else {
         debug("Write request is malformed, missing name or id: %s", message);
         status = false;
+        message->has_raw_message = false;
     }
     return status;
 }
@@ -297,9 +298,9 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
     }
 
     bool status = true;
+    message->has_type = true;
     cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
     if(commandNameObject != NULL) {
-        message->has_type = true;
         message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
         openxc_ControlCommand* command = &message->control_command;
 
@@ -317,7 +318,6 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             status = false;
         }
     } else {
-        message->has_type = true;
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
             message->type = openxc_VehicleMessage_Type_RAW;
@@ -327,7 +327,12 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             status = deserializeTranslated(root, message);
         }
     }
-    // TODO how do we report back validation check, in 'status'
+
+    if(!status) {
+        message->has_type = false;
+    }
+    // TODO how do we report back validation check, in 'status' - do it via the
+    // openxc_VehicleMessage as in th eprevious lines clearing the type.
     // TODO more importantly, how do we share the validation code with protobuf?
     // have to move it up one level
     cJSON_Delete(root);

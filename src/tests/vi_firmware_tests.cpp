@@ -22,6 +22,7 @@ extern unsigned long FAKE_TIME;
 extern void receiveCan(Pipeline* pipeline, CanBus* bus);
 extern void updateDataLights();
 extern void initializeVehicleInterface();
+extern void firmwareLoop();
 
 
 static bool canQueueEmpty(int bus) {
@@ -84,6 +85,12 @@ START_TEST (test_update_data_lights_suspend)
 }
 END_TEST
 
+START_TEST (test_loop)
+{
+    firmwareLoop();
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("firmware");
     TCase *tc_core = tcase_create("core");
@@ -91,6 +98,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_update_data_lights_can_active);
     tcase_add_test(tc_core, test_update_data_lights_can_inactive);
     tcase_add_test(tc_core, test_update_data_lights_suspend);
+
+    tcase_add_test(tc_core, test_loop);
 
     suite_add_tcase(s, tc_core);
 

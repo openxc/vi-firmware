@@ -138,7 +138,7 @@ void initializeVehicleInterface() {
     signals::initialize(&getConfiguration()->diagnosticsManager);
 }
 
-void firmareLoop() {
+void firmwareLoop() {
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
         // no USB or Bluetooth, the loop will stall here. Deep down in

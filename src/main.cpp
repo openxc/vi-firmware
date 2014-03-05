@@ -1,11 +1,11 @@
 extern void initializeVehicleInterface();
-extern void firmareLoop();
+extern void firmwareLoop();
 
 int main(void) {
 
     initializeVehicleInterface();
     for (;;) {
-        firmareLoop();
+        firmwareLoop();
     }
 
     return 0;

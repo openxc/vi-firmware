@@ -20,6 +20,9 @@ using openxc::config::getFirmwareDescriptor;
 
 extern void initializeVehicleInterface();
 
+extern char LAST_COMMAND_NAME[];
+extern openxc_DynamicField LAST_COMMAND_VALUE;
+extern openxc_DynamicField LAST_COMMAND_EVENT;
 extern uint8_t LAST_CONTROL_COMMAND_PAYLOAD[];
 extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 
@@ -62,6 +65,40 @@ START_TEST (test_diagnostic_request)
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_custom_evented_command)
+{
+    const char* command = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}";
+    ck_assert(handleIncomingMessage((uint8_t*)command, strlen(command)));
+    ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.boolean_value, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.has_type, true);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.type, openxc_DynamicField_Type_NUM);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.has_numeric_value, true);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.numeric_value, 2);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.has_boolean_value, false);
+    ck_assert_int_eq(LAST_COMMAND_EVENT.has_string_value, false);
+}
+END_TEST
+
+START_TEST (test_custom_command)
+{
+    const char* command = "{\"name\": \"turn_signal_status\", \"value\": true}";
+    ck_assert(handleIncomingMessage((uint8_t*)command, strlen(command)));
+    ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.boolean_value, true);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
+    ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
 }
 END_TEST
 
@@ -172,6 +209,8 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);
+    tcase_add_test(tc_complex_commands, test_custom_command);
+    tcase_add_test(tc_complex_commands, test_custom_evented_command);
     tcase_add_test(tc_complex_commands,
             test_translated_write_allowed_by_signal_override);
     tcase_add_test(tc_complex_commands, test_unrecognized_message);

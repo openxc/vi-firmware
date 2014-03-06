@@ -151,8 +151,6 @@ bool handleTranslated(openxc_VehicleMessage* message) {
                     // TODO could simplify it by passing the entire
                     // TranslatedMessage to the handler
                     switch(translatedMessage->type) {
-                    // TODO make sure we actually set the type when
-                    // deserializing
                     case openxc_TranslatedMessage_Type_STRING:
                     case openxc_TranslatedMessage_Type_NUM:
                     case openxc_TranslatedMessage_Type_BOOL:

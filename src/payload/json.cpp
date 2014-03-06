@@ -227,6 +227,7 @@ static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) 
 }
 
 static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
+    message->type = openxc_VehicleMessage_Type_TRANSLATED;
     message->has_translated_message = true;
     openxc_TranslatedMessage* translatedMessage = &message->translated_message;
 
@@ -253,12 +254,32 @@ static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
             translatedMessage->has_event = true;
         }
     }
+
+    translatedMessage->has_type = true;
+    if(translatedMessage->has_event) {
+        if(translatedMessage->event.has_string_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_STRING;
+        } else if(translatedMessage->event.has_numeric_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_NUM;
+        } else if(translatedMessage->event.has_boolean_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_BOOL;
+        }
+    } else {
+        if(translatedMessage->value.has_string_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_STRING;
+        } else if(translatedMessage->value.has_numeric_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_NUM;
+        } else if(translatedMessage->value.has_boolean_value) {
+            translatedMessage->type = openxc_TranslatedMessage_Type_BOOL;
+        }
+    }
     return true;
 }
 
 static bool deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
     bool status = true;
 
+    message->type = openxc_VehicleMessage_Type_RAW;
     message->has_raw_message = true;
     openxc_RawMessage* rawMessage = &message->raw_message;
 
@@ -322,10 +343,8 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
     } else {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            message->type = openxc_VehicleMessage_Type_RAW;
             status = deserializeRaw(root, message);
         } else {
-            message->type = openxc_VehicleMessage_Type_TRANSLATED;
             status = deserializeTranslated(root, message);
         }
     }

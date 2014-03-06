@@ -13,6 +13,7 @@ using openxc::config::getConfiguration;
 using openxc::diagnostics::DiagnosticsManager;
 using namespace openxc::signals::handlers;
 
+
 const int MESSAGE_SET_COUNT = 2;
 CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
     { 0, "tests", 2, 4, 7, 1 },
@@ -122,10 +123,25 @@ void openxc::signals::loop() {
     }
 }
 
+char LAST_COMMAND_NAME[128];
+openxc_DynamicField LAST_COMMAND_VALUE;
+openxc_DynamicField LAST_COMMAND_EVENT;
+
+bool turnSignalCommandHandler(const char* name, openxc_DynamicField* value,
+        openxc_DynamicField* event, CanSignal* signals, int signalCount) {
+    strcpy(LAST_COMMAND_NAME, name);
+    // TODO will this copy the string value?
+    LAST_COMMAND_VALUE = *value;
+    if(event != NULL) {
+        LAST_COMMAND_EVENT = *event;
+    }
+    return true;
+}
+
 const int MAX_COMMAND_COUNT = 1;
 CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {
     { // message set: tests
-        {"turn_signal_status", NULL},
+        {"turn_signal_status", turnSignalCommandHandler},
     },
 };
 

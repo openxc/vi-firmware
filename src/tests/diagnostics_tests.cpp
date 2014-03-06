@@ -13,6 +13,8 @@ using openxc::signals::getMessages;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 
+extern void initializeVehicleInterface();
+extern bool ACCEPTANCE_FILTER_STATUS;
 extern long FAKE_TIME;
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
@@ -24,7 +26,12 @@ DiagnosticRequest request = {
     pid: 0x2,
     pid_length: 1
 };
-CanMessage message = {request.arbitration_id + 0x8, __builtin_bswap64(0x341024500000000)};
+
+CanMessage message = {
+   id: request.arbitration_id + 0x8,
+   data: __builtin_bswap64(0x341024500000000),
+   length: 8
+};
 
 static bool canQueueEmpty(int bus) {
     return QUEUE_EMPTY(CanMessage, &getCanBuses()[bus].sendQueue);
@@ -45,6 +52,10 @@ static void resetQueues() {
 }
 
 void setup() {
+    ACCEPTANCE_FILTER_STATUS = true;
+    request.pid = 2;
+    request.arbitration_id = 0x7e0;
+    initializeVehicleInterface();
     getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     resetQueues();
     diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
@@ -311,6 +322,232 @@ START_TEST (test_nonrecurring_timeout)
 }
 END_TEST
 
+START_TEST(test_clear_to_send_blocked)
+{
+    // add 2 requests for 2 pids from same arb id. send one request, then the other -
+    // confirm no can messages sent.
+    // increase time to time out first, then send again - make sure the
+    // other pid goes out
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+
+    FAKE_TIME += 50;
+
+    request.pid = request.pid + 1;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+
+    FAKE_TIME += 100;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST(test_clear_to_send)
+{
+    // add 2 requests for 2 pids from same arb id. send one request, then the
+    // other - confirm no can messages sent. rx can message to close out first,
+    // then send and make sure the other goes out
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+
+    // should have 1 in flight
+    request.pid = request.pid + 1;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+    resetQueues();
+    // should have 1 in flight, 1 active
+
+    // should be expecting PID 2
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    // should have 0 in flight, 1 active
+
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    // should have 1 in flight, 0 active
+}
+END_TEST
+
+START_TEST(test_broadcast_response_arb_id)
+{
+    // send a broadcast request, rx a response. make sure the response's message
+    // ID is the response's message ID, not the func. broadcast ID
+    request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot, "2024") != NULL);
+    ck_assert(strstr((char*)snapshot, "2015") == NULL);
+}
+END_TEST
+
+START_TEST(test_parsed_payload)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(
+             &getConfiguration()->diagnosticsManager,
+             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot, "69") != NULL);
+}
+END_TEST
+
+START_TEST(test_requests_on_multiple_buses)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    resetQueues();
+
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[1], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[1]);
+
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[1],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+}
+END_TEST
+
+START_TEST(test_update_inflight)
+{
+    // Add and send one diag request, then before rx or timeout, update it.
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    resetQueues();
+
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 10));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    FAKE_TIME += 100;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    resetQueues();
+
+    // recur, getting around staggered start
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    FAKE_TIME += 200;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+    // have to hit all of these twice to get around staggered start
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    FAKE_TIME += 100;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+}
+
+END_TEST
+
+START_TEST(test_use_all_free_entries)
+{
+    for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
+        request.arbitration_id = 1 + i;
+        ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request, 0));
+    }
+    ++request.arbitration_id;
+    ck_assert(!diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+}
+END_TEST
+
+int countFilters(CanBus* bus) {
+    int filterCount = 0;
+    AcceptanceFilterListEntry* entry;
+    LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
+        ++filterCount;
+    }
+    return filterCount;
+}
+
+START_TEST(test_broadcast_can_filters)
+{
+    request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 8);
+}
+END_TEST
+
+START_TEST(test_can_filters)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 1);
+
+    request.pid = request.pid + 1;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 1);
+
+    ++request.arbitration_id;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 2);
+
+}
+END_TEST
+
+START_TEST(test_can_filters_broken)
+{
+    ACCEPTANCE_FILTER_STATUS = false;
+    ck_assert(!diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 0);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("diagnostics");
     TCase *tc_core = tcase_create("core");
@@ -329,6 +566,17 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_update_existing_recurring);
     tcase_add_test(tc_core, test_receive_nonrecurring_twice);
     tcase_add_test(tc_core, test_nonrecurring_timeout);
+
+    tcase_add_test(tc_core, test_clear_to_send_blocked);
+    tcase_add_test(tc_core, test_clear_to_send);
+    tcase_add_test(tc_core, test_broadcast_response_arb_id);
+    tcase_add_test(tc_core, test_parsed_payload);
+    tcase_add_test(tc_core, test_requests_on_multiple_buses);
+    tcase_add_test(tc_core, test_update_inflight);
+    tcase_add_test(tc_core, test_use_all_free_entries);
+    tcase_add_test(tc_core, test_broadcast_can_filters);
+    tcase_add_test(tc_core, test_can_filters);
+    tcase_add_test(tc_core, test_can_filters_broken);
 
     suite_add_tcase(s, tc_core);
 

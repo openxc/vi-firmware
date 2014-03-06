@@ -98,6 +98,46 @@ START_TEST (test_diagnostic_request)
 }
 END_TEST
 
+START_TEST (test_diagnostic_request_missing_mode)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_diagnostic_request_missing_arb_id)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"mode\": 1}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_diagnostic_request_missing_bus)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"id\": 2, \"mode\": 1}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_diagnostic_request_invalid_bus)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
 START_TEST (test_non_complete_message)
 {
     const char* request = "{\"name\": \"turn_signal_status\", ";
@@ -275,6 +315,10 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_unrecognized_message);
     tcase_add_test(tc_complex_commands, test_unrecognized_command_name);
     tcase_add_test(tc_complex_commands, test_diagnostic_request);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_invalid_bus);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_bus);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_arb_id);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_mode);
     suite_add_tcase(s, tc_complex_commands);
 
     TCase *tc_control_commands = tcase_create("control_commands");

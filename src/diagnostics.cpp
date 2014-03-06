@@ -35,7 +35,9 @@ static bool timedOut(ActiveDiagnosticRequest* request) {
  */
 static bool requestCompleted(ActiveDiagnosticRequest* request) {
     return (request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID &&
-                 request->handle.completed) || timedOut(request);
+                 request->handle.completed) || (
+                     timedOut(request) &&
+                        diagnostic_request_sent(&request->handle));
 }
 
 /* Private: Move the entry to the free list and decrement the lock count for any
@@ -137,7 +139,7 @@ static inline bool clearToSend(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request) {
     DiagnosticRequestListEntry* entry;
     LIST_FOREACH(entry, &manager->inFlightRequests, listEntries) {
-        if(&entry->request != request &&
+        if(&entry->request != request && entry->request.bus == request->bus &&
                 entry->request.arbitration_id == request->arbitration_id) {
             return false;
         }
@@ -300,12 +302,11 @@ static DiagnosticRequestListEntry* lookupExistingRequest(
     return existingEntry;
 }
 
-static bool addDiagnosticRequest(DiagnosticsManager* manager,
+bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
         float frequencyHz) {
-
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
                 frequencyHz, MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ);
@@ -375,8 +376,8 @@ static bool addDiagnosticRequest(DiagnosticsManager* manager,
             request_string, sizeof(request_string));
     if(usedFreeEntry) {
         LIST_REMOVE(entry, listEntries);
-        debug("Added new diagnostic request (freq: %f): %s", frequencyHz,
-                request_string);
+        debug("Added new diagnostic request (freq: %f) on bus %d: %s",
+                frequencyHz, bus->address, request_string);
     } else {
         // lookupExistingRequest already popped it off of whichever list it was
         // on

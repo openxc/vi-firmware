@@ -392,7 +392,14 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
     LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
     debug("Added acceptance filter for 0x%x on bus %d", availableFilter->filter,
             bus->address);
-    return updateAcceptanceFilterTable(buses, busCount);
+    bool status = updateAcceptanceFilterTable(buses, busCount);
+    if(!status) {
+        debug("Unable to update AF table after adding filter for 0x%x on bus %d",
+                availableFilter->filter, bus->address);
+        LIST_REMOVE(availableFilter, entries);
+        LIST_INSERT_HEAD(&bus->freeAcceptanceFilters, availableFilter, entries);
+    }
+    return status;
 }
 
 void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,

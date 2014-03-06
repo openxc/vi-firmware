@@ -69,6 +69,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         uint16_t filterCount = 0;
         CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
 
+        // TODO use FOREACH
         for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
                 entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
                 entry = entry->entries.le_next, ++filterCount) {

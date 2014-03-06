@@ -1,7 +1,9 @@
 #include "can/canutil.h"
 
+bool ACCEPTANCE_FILTER_STATUS = true;
+
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
-    return true;
+    return ACCEPTANCE_FILTER_STATUS;
 }
 
 void openxc::can::deinitialize(CanBus* bus) { }

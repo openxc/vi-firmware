@@ -6,7 +6,7 @@ Windows USB Device Driver
 =========================
 
 If you want to send and receive vehicle data in Windows via USB, you must
-install the `VI Windows Driver <https://github.com/openxc/vi-windows-driver>`.
+install the `VI Windows Driver <https://github.com/openxc/vi-windows-driver>`_.
 
 Python Library
 ==============

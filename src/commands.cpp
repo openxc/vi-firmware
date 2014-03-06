@@ -182,7 +182,7 @@ bool handleTranslated(openxc_VehicleMessage* message) {
 }
 
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     bool foundMessage = payload::deserialize(payload, length, &message,
             getConfiguration()->payloadFormat);
     if(foundMessage && message.has_type) {

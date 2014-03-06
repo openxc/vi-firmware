@@ -68,6 +68,13 @@ START_TEST (test_diagnostic_request)
 }
 END_TEST
 
+START_TEST (test_non_complete_message)
+{
+    const char* request = "{\"name\": \"turn_signal_status\", ";
+    ck_assert(!handleIncomingMessage((uint8_t*)request, strlen(request)));
+}
+END_TEST
+
 START_TEST (test_custom_evented_command)
 {
     const char* command = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}";
@@ -99,6 +106,22 @@ START_TEST (test_custom_command)
     ck_assert_int_eq(LAST_COMMAND_VALUE.boolean_value, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
+}
+END_TEST
+
+START_TEST (test_translated_write_no_match)
+{
+    const char* request = "{\"name\": \"foobar\", \"value\": true}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_translated_write_missing_value)
+{
+    const char* request = "{\"name\": \"turn_signal_status\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_unless(canQueueEmpty(0));
 }
 END_TEST
 
@@ -205,10 +228,13 @@ Suite* suite(void) {
     Suite* s = suite_create("commands");
     TCase *tc_complex_commands = tcase_create("complex_commands");
     tcase_add_checked_fixture(tc_complex_commands, setup, NULL);
+    tcase_add_test(tc_complex_commands, test_non_complete_message);
     tcase_add_test(tc_complex_commands, test_raw_write_allowed);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);
+    tcase_add_test(tc_complex_commands, test_translated_write_missing_value);
+    tcase_add_test(tc_complex_commands, test_translated_write_no_match);
     tcase_add_test(tc_complex_commands, test_custom_command);
     tcase_add_test(tc_complex_commands, test_custom_evented_command);
     tcase_add_test(tc_complex_commands,

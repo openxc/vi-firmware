@@ -77,21 +77,7 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
     return status;
 }
 
-bool openxc::commands::handleControlCommand(Command command, uint8_t payload[],
-        size_t payloadLength) {
-    switch(command) {
-    case Command::VERSION:
-        return handleVersionCommand();
-    case Command::DEVICE_ID:
-        return handleDeviceIdCommmand();
-    case Command::COMPLEX_COMMAND:
-        return handleIncomingMessage(payload, payloadLength);
-    default:
-        return false;
-    }
-}
-
-bool handleRaw(openxc_VehicleMessage* message) {
+static bool handleRaw(openxc_VehicleMessage* message) {
     bool status = true;
     if(message->has_raw_message) {
         openxc_RawMessage* rawMessage = &message->raw_message;
@@ -124,7 +110,7 @@ bool handleRaw(openxc_VehicleMessage* message) {
     return status;
 }
 
-bool handleTranslated(openxc_VehicleMessage* message) {
+static bool handleTranslated(openxc_VehicleMessage* message) {
     bool status = true;
     if(message->has_translated_message) {
         openxc_TranslatedMessage* translatedMessage =
@@ -177,6 +163,20 @@ bool handleTranslated(openxc_VehicleMessage* message) {
         }
     }
     return status;
+}
+
+bool openxc::commands::handleControlCommand(Command command, uint8_t payload[],
+        size_t payloadLength) {
+    switch(command) {
+    case Command::VERSION:
+        return handleVersionCommand();
+    case Command::DEVICE_ID:
+        return handleDeviceIdCommmand();
+    case Command::COMPLEX_COMMAND:
+        return handleIncomingMessage(payload, payloadLength);
+    default:
+        return false;
+    }
 }
 
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {

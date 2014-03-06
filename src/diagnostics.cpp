@@ -25,7 +25,8 @@ using openxc::signals::getCanBusCount;
 namespace time = openxc::util::time;
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
-    return time::elapsed(&request->timeoutClock, true);
+    // don't use staggered start with the timeout clock
+    return time::elapsed(&request->timeoutClock, false);
 }
 
 /* Private: Returns true if the request has timed out waiting for a response,
@@ -167,6 +168,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
                     &request->handle);
             request->timeoutClock = {0};
             request->timeoutClock.frequency = 10;
+            time::tick(&request->timeoutClock);
 
             TAILQ_REMOVE(&manager->activeRequests, entry, queueEntries);
             LIST_INSERT_HEAD(&manager->inFlightRequests, entry, listEntries);

@@ -471,16 +471,9 @@ START_TEST(test_update_inflight)
     fail_if(canQueueEmpty(0));
 
     resetQueues();
-
-    // recur, getting around staggered start
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    FAKE_TIME += 200;
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-    resetQueues();
-    // have to hit all of these twice to get around staggered start
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     FAKE_TIME += 100;
+
+    // recur
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 }

@@ -84,27 +84,27 @@ static bool handleRaw(openxc_VehicleMessage* message) {
         CanBus* matchingBus = NULL;
         if(rawMessage->has_bus) {
             matchingBus = lookupBus(rawMessage->bus, getCanBuses(), getCanBusCount());
+        }
 
-            if(matchingBus == NULL && getCanBusCount() > 0) {
-                debug("No matching bus for write request, so using the first we find");
-                matchingBus = &getCanBuses()[0];
-            }
+        if(matchingBus == NULL && getCanBusCount() > 0) {
+            debug("No matching bus for write request, so using the first we find");
+            matchingBus = &getCanBuses()[0];
+        }
 
-            if(matchingBus == NULL) {
-                debug("No matching active bus for requested address: %d",
-                        rawMessage->bus);
-                status = false;
-            } else if(matchingBus->rawWritable) {
-                    char* end;
-                    CanMessage message = {
-                        id: rawMessage->message_id,
-                        data: strtoull((const char*)rawMessage->data.bytes, &end, 16)
-                    };
-                    can::write::enqueueMessage(matchingBus, &message);
-            } else {
-                debug("Raw CAN writes not allowed for bus %d", matchingBus->address);
-                status = false;
-            }
+        if(matchingBus == NULL) {
+            debug("No matching active bus for requested address: %d",
+                    rawMessage->bus);
+            status = false;
+        } else if(matchingBus->rawWritable) {
+                char* end;
+                CanMessage message = {
+                    id: rawMessage->message_id,
+                    data: strtoull((const char*)rawMessage->data.bytes, &end, 16)
+                };
+                can::write::enqueueMessage(matchingBus, &message);
+        } else {
+            debug("Raw CAN writes not allowed for bus %d", matchingBus->address);
+            status = false;
         }
     }
     return status;

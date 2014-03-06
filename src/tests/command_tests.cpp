@@ -12,6 +12,7 @@ namespace usb = openxc::interface::usb;
 
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
+using openxc::signals::getActiveMessageSet;
 using openxc::commands::handleIncomingMessage;
 using openxc::commands::handleControlCommand;
 using openxc::commands::Command;
@@ -33,12 +34,41 @@ static bool canQueueEmpty(int bus) {
 void setup() {
     initializeVehicleInterface();
     fail_unless(canQueueEmpty(0));
+    getActiveMessageSet()->busCount = 2;
 }
 
 const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
 const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"transmission_gear_position\", \"value\": \"third\"}";
 const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"torque_at_transmission\", \"value\": 200}";
 const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
+
+START_TEST (test_raw_write_no_matching_bus)
+{
+    const char* request = "{\"bus\": 3, \"id\": 42, \"data\": \"0x1234\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_unless(canQueueEmpty(0));
+    fail_unless(canQueueEmpty(1));
+}
+END_TEST
+
+START_TEST (test_raw_write_missing_bus)
+{
+    getCanBuses()[0].rawWritable = true;
+    const char* request = "{\"id\": 42, \"data\": \"0x1234\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_raw_write_missing_bus_no_buses)
+{
+    getCanBuses()[0].rawWritable = true;
+    getActiveMessageSet()->busCount = 0;
+    const char* request = "{\"id\": 42, \"data\": \"0x1234\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
 
 START_TEST (test_raw_write_allowed)
 {
@@ -229,6 +259,9 @@ Suite* suite(void) {
     TCase *tc_complex_commands = tcase_create("complex_commands");
     tcase_add_checked_fixture(tc_complex_commands, setup, NULL);
     tcase_add_test(tc_complex_commands, test_non_complete_message);
+    tcase_add_test(tc_complex_commands, test_raw_write_no_matching_bus);
+    tcase_add_test(tc_complex_commands, test_raw_write_missing_bus);
+    tcase_add_test(tc_complex_commands, test_raw_write_missing_bus_no_buses);
     tcase_add_test(tc_complex_commands, test_raw_write_allowed);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);

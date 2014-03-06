@@ -18,6 +18,9 @@ const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic";
 
+const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
+const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
+
 const char openxc::payload::json::BUS_FIELD_NAME[] = "bus";
 const char openxc::payload::json::ID_FIELD_NAME[] = "id";
 const char openxc::payload::json::DATA_FIELD_NAME[] = "data";
@@ -69,6 +72,29 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
         }
         cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
                 encodedData);
+    }
+    return true;
+}
+
+static bool serializeCommandResponse(openxc_VehicleMessage* message,
+        cJSON* root) {
+    const char* typeString = NULL;
+    if(message->command_response.type == openxc_ControlCommand_Type_VERSION) {
+        typeString = payload::json::VERSION_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
+        typeString = payload::json::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
+        typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
+    } else {
+        return false;
+    }
+
+    cJSON_AddStringToObject(root, payload::json::COMMAND_RESPONSE_FIELD_NAME,
+            typeString);
+    if(message->command_response.has_message) {
+        cJSON_AddStringToObject(root,
+                payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME,
+                message->command_response.message);
     }
     return true;
 }
@@ -371,6 +397,8 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             serializeRaw(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
             serializeDiagnostic(message, root);
+        } else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
+            serializeCommandResponse(message, root);
         } else {
             debug("Unrecognized message type -- not sending");
         }

@@ -38,7 +38,17 @@ static bool handleVersionCommand() {
 
     usb::sendControlMessage(&getConfiguration()->usb, (uint8_t*)descriptor,
             strlen(descriptor));
-    // TODO inject into outgoing stream, too as COMMAND_RESPONSE type
+
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = openxc_ControlCommand_Type_VERSION;
+    message.command_response.has_message = true;
+    strncpy(message.command_response.message, descriptor, sizeof(descriptor));
+    can::read::sendVehicleMessage(&message, &getConfiguration()->pipeline);
+
     return true;
 }
 
@@ -49,7 +59,17 @@ static bool handleDeviceIdCommmand() {
     if(strnlen(uart->deviceId, sizeof(uart->deviceId)) > 0) {
         usb::sendControlMessage(&getConfiguration()->usb,
                 (uint8_t*)uart->deviceId, strlen(uart->deviceId));
-        // TODO inject into outgoing stream, too as COMMAND_RESPONSE type
+
+        openxc_VehicleMessage message;
+        message.has_type = true;
+        message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+        message.has_command_response = true;
+        message.command_response.has_type = true;
+        message.command_response.type = openxc_ControlCommand_Type_DEVICE_ID;
+        message.command_response.has_message = true;
+        strncpy(message.command_response.message, uart->deviceId,
+                strlen(uart->deviceId));
+        can::read::sendVehicleMessage(&message, &getConfiguration()->pipeline);
     }
     return true;
 }

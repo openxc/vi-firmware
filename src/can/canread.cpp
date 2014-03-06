@@ -191,6 +191,9 @@ void openxc::can::read::sendEventedStringMessage(const char* name,
  *
  * This will accept both raw and translated typed messages.
  *
+ * TODO this doesn't belong here since it now can send command responses, it
+ * belongs up a level - maybe with the pipeline.
+ *
  * message - A message structure containing the type and data for the message.
  * pipeline - The pipeline to send on.
  */
@@ -209,6 +212,9 @@ void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message,
             break;
         case openxc_VehicleMessage_Type_DIAGNOSTIC:
             messageClass = MessageClass::DIAGNOSTIC;
+            break;
+        case openxc_VehicleMessage_Type_COMMAND_RESPONSE:
+            messageClass = MessageClass::COMMAND_RESPONSE;
             break;
         default:
             debug("Trying to serialize unrecognized type: %d", message->type);

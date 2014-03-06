@@ -27,12 +27,19 @@ extern openxc_DynamicField LAST_COMMAND_EVENT;
 extern uint8_t LAST_CONTROL_COMMAND_PAYLOAD[];
 extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
+
+bool outputQueueEmpty() {
+    return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
+}
+
 static bool canQueueEmpty(int bus) {
     return QUEUE_EMPTY(CanMessage, &getCanBuses()[bus].sendQueue);
 }
 
 void setup() {
     initializeVehicleInterface();
+    getConfiguration()->usb.configured = true;
     fail_unless(canQueueEmpty(0));
     getActiveMessageSet()->busCount = 2;
 }
@@ -239,6 +246,38 @@ START_TEST (test_unrecognized_message)
 }
 END_TEST
 
+START_TEST (test_device_id_message_in_stream)
+{
+    const char* request = "{\"command\": \"device_id\"}";
+    strcpy(getConfiguration()->uart.deviceId, "mydevice");
+    ck_assert(outputQueueEmpty());
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(!outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot, getConfiguration()->uart.deviceId) != NULL);
+}
+END_TEST
+
+START_TEST (test_version_message_in_stream)
+{
+    const char* request = "{\"command\": \"version\"}";
+    ck_assert(outputQueueEmpty());
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(!outputQueueEmpty());
+
+    char firmwareDescriptor[256] = {0};
+    getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot, firmwareDescriptor) != NULL);
+}
+END_TEST
+
 START_TEST (test_version_message)
 {
     const char* request = "{\"command\": \"version\"}";
@@ -325,8 +364,10 @@ Suite* suite(void) {
     tcase_add_checked_fixture(tc_control_commands, setup, NULL);
     tcase_add_test(tc_control_commands, test_version_message);
     tcase_add_test(tc_control_commands, test_version_control_command);
+    tcase_add_test(tc_control_commands, test_version_message_in_stream);
     tcase_add_test(tc_control_commands, test_device_id_message);
     tcase_add_test(tc_control_commands, test_device_id_control_command);
+    tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
     tcase_add_test(tc_control_commands, test_unrecognized_control_command);
     tcase_add_test(tc_control_commands, test_complex_control_command);
     suite_add_tcase(s, tc_control_commands);

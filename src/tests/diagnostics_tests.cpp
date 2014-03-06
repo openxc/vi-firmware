@@ -244,6 +244,30 @@ START_TEST (test_add_request_with_name_and_decoder)
 }
 END_TEST
 
+START_TEST (test_nonrecurring_not_staggered)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 0));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_recurring_staggered)
+{
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 1));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+    FAKE_TIME += 2000;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
 START_TEST (test_add_recurring)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
@@ -559,6 +583,9 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_update_existing_recurring);
     tcase_add_test(tc_core, test_receive_nonrecurring_twice);
     tcase_add_test(tc_core, test_nonrecurring_timeout);
+
+    tcase_add_test(tc_core, test_recurring_staggered);
+    tcase_add_test(tc_core, test_nonrecurring_not_staggered);
 
     tcase_add_test(tc_core, test_clear_to_send_blocked);
     tcase_add_test(tc_core, test_clear_to_send);

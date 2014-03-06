@@ -61,7 +61,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 }
 
 bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
-        uint8_t* data, uint8_t length) {
+        uint8_t* data, size_t length) {
     if(usbDevice->configured) {
         usbDevice->device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
         return true;

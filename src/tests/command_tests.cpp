@@ -16,8 +16,12 @@ using openxc::commands::handleIncomingMessage;
 using openxc::commands::handleControlCommand;
 using openxc::commands::Command;
 using openxc::config::getConfiguration;
+using openxc::config::getFirmwareDescriptor;
 
 extern void initializeVehicleInterface();
+
+extern uint8_t LAST_CONTROL_COMMAND_PAYLOAD[];
+extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 
 static bool canQueueEmpty(int bus) {
     return QUEUE_EMPTY(CanMessage, &getCanBuses()[bus].sendQueue);
@@ -36,7 +40,8 @@ const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"reques
 START_TEST (test_raw_write_allowed)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
+                strlen(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -44,7 +49,8 @@ END_TEST
 START_TEST (test_raw_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
-    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
+                strlen(RAW_REQUEST)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -107,29 +113,39 @@ START_TEST (test_version_message)
 {
     const char* request = "{\"command\": \"version\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
-    // TODO check data was sent to outgoing USB send queue and uart
+    char firmwareDescriptor[256] = {0};
+    getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
+    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, firmwareDescriptor) != NULL);
 }
 END_TEST
 
 START_TEST (test_version_control_command)
 {
     ck_assert(handleControlCommand(Command::VERSION, NULL, 0));
-    // TODO check data was sent to outgoing USB send queue and uart
+    char firmwareDescriptor[256] = {0};
+    getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
+    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, firmwareDescriptor) != NULL);
 }
 END_TEST
 
 START_TEST (test_device_id_message)
 {
     const char* request = "{\"command\": \"device_id\"}";
+    strcpy(getConfiguration()->uart.deviceId, "mydevice");
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
-    // TODO check data was sent to outgoing USB send queue and uart
+    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, getConfiguration()->uart.deviceId) != NULL);
 }
 END_TEST
 
 START_TEST (test_device_id_control_command)
 {
+    strcpy(getConfiguration()->uart.deviceId, "mydevice");
     ck_assert(handleControlCommand(Command::DEVICE_ID, NULL, 0));
-    // TODO check data was sent to outgoing USB send queue and uart
+    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, getConfiguration()->uart.deviceId) != NULL);
 }
 END_TEST
 
@@ -156,7 +172,8 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);
-    tcase_add_test(tc_complex_commands, test_translated_write_allowed_by_signal_override);
+    tcase_add_test(tc_complex_commands,
+            test_translated_write_allowed_by_signal_override);
     tcase_add_test(tc_complex_commands, test_unrecognized_message);
     tcase_add_test(tc_complex_commands, test_unrecognized_command_name);
     tcase_add_test(tc_complex_commands, test_diagnostic_request);

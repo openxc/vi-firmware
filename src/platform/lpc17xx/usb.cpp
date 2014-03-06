@@ -197,7 +197,7 @@ void configureUsbDetection() {
 }
 
 bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
-        uint8_t* data, uint8_t length) {
+        uint8_t* data, size_t length) {
     if(!usbDevice->configured) {
         return false;
     }

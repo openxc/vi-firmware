@@ -123,7 +123,7 @@ void processSendQueue(UsbDevice* device);
  *      for USB 2.0)
  * length - The length of the data array.
  */
-bool sendControlMessage(UsbDevice* usbDevice, uint8_t* data, uint8_t length);
+bool sendControlMessage(UsbDevice* usbDevice, uint8_t* data, size_t length);
 
 /* Public: Disconnect from host and turn off the USB peripheral
  *           (minimal power draw).

@@ -302,6 +302,7 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
     cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
     if(commandNameObject != NULL) {
         message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
+        message->has_control_command = true;
         openxc_ControlCommand* command = &message->control_command;
 
         if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
@@ -315,6 +316,7 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             status = deserializeDiagnostic(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
+            message->has_control_command = false;
             status = false;
         }
     } else {

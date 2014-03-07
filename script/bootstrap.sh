@@ -280,11 +280,15 @@ fi
 
 if ! command -v pip >/dev/null 2>&1; then
     echo "Installing Pip..."
-    if ! command -v easy_install >/dev/null 2>&1; then
-        die "easy_install not available, can't install pip"
+    if [ $OS == "linux" ]; then
+        _install "python-pip"
+    else
+        if ! command -v easy_install >/dev/null 2>&1; then
+            $SUDO_CMD easy_install pip
+        else
+            die "easy_install not available, can't install pip"
+        fi
     fi
-
-    $SUDO_CMD easy_install pip
 fi
 
 $SUDO_CMD pip install --pre -Ur script/pip-requirements.txt

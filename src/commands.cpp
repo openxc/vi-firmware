@@ -33,6 +33,7 @@ namespace config = openxc::config;
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
 namespace uart = openxc::interface::uart;
+namespace pipeline = openxc::pipeline;
 
 static bool handleVersionCommand() {
     char descriptor[128];
@@ -49,7 +50,7 @@ static bool handleVersionCommand() {
     message.command_response.type = openxc_ControlCommand_Type_VERSION;
     message.command_response.has_message = true;
     strncpy(message.command_response.message, descriptor, sizeof(descriptor));
-    can::read::sendVehicleMessage(&message, &getConfiguration()->pipeline);
+    pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
 
     return true;
 }
@@ -71,7 +72,7 @@ static bool handleDeviceIdCommmand() {
         message.command_response.has_message = true;
         strncpy(message.command_response.message, uart->deviceId,
                 strlen(uart->deviceId));
-        can::read::sendVehicleMessage(&message, &getConfiguration()->pipeline);
+        pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
     }
     return true;
 }

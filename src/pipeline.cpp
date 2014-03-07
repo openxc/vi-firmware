@@ -4,6 +4,7 @@
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "util/bytebuffer.h"
+#include "config.h"
 #include "lights.h"
 
 #define PIPELINE_ENDPOINT_COUNT 3
@@ -15,6 +16,7 @@ namespace usb = openxc::interface::usb;
 namespace network = openxc::interface::network;
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
+namespace config = openxc::config;
 
 using openxc::util::bytebuffer::conditionalEnqueue;
 using openxc::util::bytebuffer::messageFits;
@@ -104,6 +106,32 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
         sendToEndpoint(NETWORK, sendQueue, &pipeline->network->receiveQueue,
                 message, messageSize);
     }
+}
+
+void openxc::pipeline::sendVehicleMessage(openxc_VehicleMessage* message,
+        Pipeline* pipeline) {
+    uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
+    size_t length = payload::serialize(message, payload, sizeof(payload),
+            config::getConfiguration()->payloadFormat);
+    MessageClass messageClass;
+    switch(message->type) {
+        case openxc_VehicleMessage_Type_TRANSLATED:
+            messageClass = MessageClass::TRANSLATED;
+            break;
+        case openxc_VehicleMessage_Type_RAW:
+            messageClass = MessageClass::RAW;
+            break;
+        case openxc_VehicleMessage_Type_DIAGNOSTIC:
+            messageClass = MessageClass::DIAGNOSTIC;
+            break;
+        case openxc_VehicleMessage_Type_COMMAND_RESPONSE:
+            messageClass = MessageClass::COMMAND_RESPONSE;
+            break;
+        default:
+            debug("Trying to serialize unrecognized type: %d", message->type);
+            break;
+    }
+    sendMessage(pipeline, payload, length, messageClass);
 }
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,

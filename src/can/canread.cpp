@@ -10,9 +10,9 @@ using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
+using openxc::pipeline::sendVehicleMessage;
 
 namespace time = openxc::util::time;
-namespace pipeline = openxc::pipeline;
 
 float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
         bool* send) {
@@ -158,32 +158,6 @@ void openxc::can::read::sendEventedStringMessage(const char* name,
     strcpy(message.translated_message.event.string_value, event);
 
     sendVehicleMessage(&message, pipeline);
-}
-
-void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message,
-        Pipeline* pipeline) {
-    uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
-    size_t length = payload::serialize(message, payload, sizeof(payload),
-            getConfiguration()->payloadFormat);
-    MessageClass messageClass;
-    switch(message->type) {
-        case openxc_VehicleMessage_Type_TRANSLATED:
-            messageClass = MessageClass::TRANSLATED;
-            break;
-        case openxc_VehicleMessage_Type_RAW:
-            messageClass = MessageClass::RAW;
-            break;
-        case openxc_VehicleMessage_Type_DIAGNOSTIC:
-            messageClass = MessageClass::DIAGNOSTIC;
-            break;
-        case openxc_VehicleMessage_Type_COMMAND_RESPONSE:
-            messageClass = MessageClass::COMMAND_RESPONSE;
-            break;
-        default:
-            debug("Trying to serialize unrecognized type: %d", message->type);
-            break;
-    }
-    pipeline::sendMessage(pipeline, payload, length, messageClass);
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,

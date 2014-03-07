@@ -191,21 +191,6 @@ float preTranslate(CanSignal* signal, uint64_t data, bool* send);
  */
 void postTranslate(CanSignal* signal, float value);
 
-/* Public: Serialize the message to a bytestream (conforming to the OpenXC
- * standard and the currently selected payload format) and send it out to the
- * pipeline.
- *
- * This will accept both raw and translated typed messages.
- *
- * TODO this doesn't belong here since it now can send command responses, it
- * belongs up a level - maybe with the pipeline.
- *
- * message - A message structure containing the type and data for the message.
- * pipeline - The pipeline to send on.
- */
-void sendVehicleMessage(openxc_VehicleMessage* message,
-        openxc::pipeline::Pipeline* pipeline);
-
 } // namespace read
 } // namespace can
 } // namespace openxc

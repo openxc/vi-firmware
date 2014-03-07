@@ -23,6 +23,7 @@ using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 
 namespace time = openxc::util::time;
+namespace pipeline = openxc::pipeline;
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -235,7 +236,7 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
     } else {
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
                 request->bus, request, response, value);
-        openxc::can::read::sendVehicleMessage(&message, pipeline);
+        pipeline::sendVehicleMessage(&message, pipeline);
     }
 }
 

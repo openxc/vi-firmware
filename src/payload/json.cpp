@@ -154,73 +154,70 @@ static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
     return true;
 }
 
-static bool deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
+static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
+    command->has_type = true;
     command->type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command->has_diagnostic_request = true;
 
     cJSON* request = cJSON_GetObjectItem(root, "request");
-    if(request == NULL) {
-        return false;
-    }
+    if(request != NULL) {
+        cJSON* element = cJSON_GetObjectItem(request, "bus");
+        if(element != NULL) {
+            command->diagnostic_request.has_bus = true;
+            command->diagnostic_request.bus = element->valueint;
+        }
 
-    cJSON* element = cJSON_GetObjectItem(request, "bus");
-    if(element != NULL) {
-        command->diagnostic_request.has_bus = true;
-        command->diagnostic_request.bus = element->valueint;
-    }
+        element = cJSON_GetObjectItem(request, "mode");
+        if(element != NULL) {
+            command->diagnostic_request.has_mode = true;
+            command->diagnostic_request.mode = element->valueint;
+        }
 
-    element = cJSON_GetObjectItem(request, "mode");
-    if(element != NULL) {
-        command->diagnostic_request.has_mode = true;
-        command->diagnostic_request.mode = element->valueint;
-    }
+        element = cJSON_GetObjectItem(request, "id");
+        if(element != NULL) {
+            command->diagnostic_request.has_message_id = true;
+            command->diagnostic_request.message_id = element->valueint;
+        }
 
-    element = cJSON_GetObjectItem(request, "id");
-    if(element != NULL) {
-        command->diagnostic_request.has_message_id = true;
-        command->diagnostic_request.message_id = element->valueint;
-    }
+        element = cJSON_GetObjectItem(request, "pid");
+        if(element != NULL) {
+            command->diagnostic_request.has_pid = true;
+            command->diagnostic_request.pid = element->valueint;
+        }
 
-    element = cJSON_GetObjectItem(request, "pid");
-    if(element != NULL) {
-        command->diagnostic_request.has_pid = true;
-        command->diagnostic_request.pid = element->valueint;
-    }
+        element = cJSON_GetObjectItem(request, "payload");
+        if(element != NULL) {
+            command->diagnostic_request.has_payload = true;
+            // TODO need to go from hex string to byte array.
+            command->diagnostic_request.payload.size = 0;
+            // mempcy(command->diagnostic_request.payload.bytes,
+                    // xxx, xxx.length);
+        }
 
-    element = cJSON_GetObjectItem(request, "payload");
-    if(element != NULL) {
-        command->diagnostic_request.has_payload = true;
-        // TODO need to go from hex string to byte array.
-        command->diagnostic_request.payload.size = 0;
-        // mempcy(command->diagnostic_request.payload.bytes,
-                // xxx, xxx.length);
-    }
+        element = cJSON_GetObjectItem(request, "parse_payload");
+        if(element != NULL) {
+            command->diagnostic_request.has_parse_payload = true;
+            command->diagnostic_request.parse_payload = bool(element->valueint);
+        }
 
-    element = cJSON_GetObjectItem(request, "parse_payload");
-    if(element != NULL) {
-        command->diagnostic_request.has_parse_payload = true;
-        command->diagnostic_request.parse_payload = bool(element->valueint);
-    }
+        element = cJSON_GetObjectItem(request, "factor");
+        if(element != NULL) {
+            command->diagnostic_request.has_factor = true;
+            command->diagnostic_request.factor = element->valuedouble;
+        }
 
-    element = cJSON_GetObjectItem(request, "factor");
-    if(element != NULL) {
-        command->diagnostic_request.has_factor = true;
-        command->diagnostic_request.factor = element->valuedouble;
-    }
+        element = cJSON_GetObjectItem(request, "offset");
+        if(element != NULL) {
+            command->diagnostic_request.has_offset = true;
+            command->diagnostic_request.offset = element->valuedouble;
+        }
 
-    element = cJSON_GetObjectItem(request, "offset");
-    if(element != NULL) {
-        command->diagnostic_request.has_offset = true;
-        command->diagnostic_request.offset = element->valuedouble;
+        element = cJSON_GetObjectItem(request, "frequency");
+        if(element != NULL) {
+            command->diagnostic_request.has_frequency = true;
+            command->diagnostic_request.frequency = element->valuedouble;
+        }
     }
-
-    element = cJSON_GetObjectItem(request, "frequency");
-    if(element != NULL) {
-        command->diagnostic_request.has_frequency = true;
-        command->diagnostic_request.frequency = element->valuedouble;
-    }
-
-    return true;
 }
 
 static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) {
@@ -252,7 +249,8 @@ static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) 
     return status;
 }
 
-static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
+static void deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
+    message->has_type = true;
     message->type = openxc_VehicleMessage_Type_TRANSLATED;
     message->has_translated_message = true;
     openxc_TranslatedMessage* translatedMessage = &message->translated_message;
@@ -265,18 +263,14 @@ static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
 
     element = cJSON_GetObjectItem(root, "value");
     if(element != NULL) {
-        if(!deserializeDynamicField(element, &translatedMessage->value)) {
-            debug("Unsupported type in value field: %d", element->type);
-        } else {
+        if(deserializeDynamicField(element, &translatedMessage->value)) {
             translatedMessage->has_value = true;
         }
     }
 
     element = cJSON_GetObjectItem(root, "event");
     if(element != NULL) {
-        if(!deserializeDynamicField(element, &translatedMessage->event)) {
-            debug("Unsupported type in event field: %d", element->type);
-        } else {
+        if(deserializeDynamicField(element, &translatedMessage->event)) {
             translatedMessage->has_event = true;
         }
     }
@@ -299,12 +293,10 @@ static bool deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
             translatedMessage->type = openxc_TranslatedMessage_Type_BOOL;
         }
     }
-    return true;
 }
 
-static bool deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
-    bool status = true;
-
+static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
+    message->has_type = true;
     message->type = openxc_VehicleMessage_Type_RAW;
     message->has_raw_message = true;
     openxc_RawMessage* rawMessage = &message->raw_message;
@@ -315,26 +307,18 @@ static bool deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
         rawMessage->message_id = element->valueint;
 
         element = cJSON_GetObjectItem(root, "data");
-        if(element == NULL) {
-            debug("Raw write request for 0x%02x missing data", rawMessage->message_id);
-            status = false;
-        } else {
+        if(element != NULL) {
             rawMessage->has_data = true;
             // TODO need to load data from hex string to byte array
             element = cJSON_GetObjectItem(root, "bus");
-            if(element == NULL) {
-                debug("Raw write request for 0x%02x missing bus", rawMessage->message_id);
-            } else {
+            if(element != NULL) {
                 rawMessage->has_bus = true;
                 rawMessage->bus = element->valueint;
             }
         }
     } else {
-        debug("Write request is malformed, missing name or id: %s", message);
-        status = false;
         message->has_raw_message = false;
     }
-    return status;
 }
 
 bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
@@ -344,10 +328,10 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         return false;
     }
 
-    bool status = true;
     message->has_type = true;
     cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
     if(commandNameObject != NULL) {
+        message->has_type = true;
         message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
         message->has_control_command = true;
         openxc_ControlCommand* command = &message->control_command;
@@ -360,28 +344,19 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             command->type = openxc_ControlCommand_Type_DEVICE_ID;
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
-            status = deserializeDiagnostic(root, command);
+            deserializeDiagnostic(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             message->has_control_command = false;
-            status = false;
         }
     } else {
         cJSON* nameObject = cJSON_GetObjectItem(root, "name");
         if(nameObject == NULL) {
-            status = deserializeRaw(root, message);
+            deserializeRaw(root, message);
         } else {
-            status = deserializeTranslated(root, message);
+            deserializeTranslated(root, message);
         }
     }
-
-    if(!status) {
-        message->has_type = false;
-    }
-    // TODO how do we report back validation check, in 'status' - do it via the
-    // openxc_VehicleMessage as in th eprevious lines clearing the type.
-    // TODO more importantly, how do we share the validation code with protobuf?
-    // have to move it up one level
     cJSON_Delete(root);
     return true;
 }

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "openxc.pb.h"
 
 namespace openxc {
 namespace commands {
@@ -23,6 +24,15 @@ bool handleIncomingMessage(uint8_t payload[], size_t payloadLength);
 
 bool handleControlCommand(Command command, uint8_t payload[],
         size_t payloadLength);
+
+/* Public: Validate the data in an OpenXC message;
+ *
+ * For example, confirms that a RawMessage typed message has both an id an data
+ * field.
+ *
+ * Returns true if the message is valid.
+ */
+bool validate(openxc_VehicleMessage* message);
 
 } // namespace commands
 } // namespace openxc

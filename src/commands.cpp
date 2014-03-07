@@ -79,19 +79,19 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
     if(message != NULL && message->has_control_command) {
         openxc_ControlCommand* command = &message->control_command;
         switch(command->type) {
-            case openxc_ControlCommand_Type_DIAGNOSTIC:
-                status = diagnostics::handleDiagnosticCommand(
-                        &getConfiguration()->diagnosticsManager, command);
-                break;
-            case openxc_ControlCommand_Type_VERSION:
-                status = handleVersionCommand();
-                break;
-            case openxc_ControlCommand_Type_DEVICE_ID:
-                status = handleDeviceIdCommmand();
-                break;
-            default:
-                status = false;
-                break;
+        case openxc_ControlCommand_Type_DIAGNOSTIC:
+            status = diagnostics::handleDiagnosticCommand(
+                    &getConfiguration()->diagnosticsManager, command);
+            break;
+        case openxc_ControlCommand_Type_VERSION:
+            status = handleVersionCommand();
+            break;
+        case openxc_ControlCommand_Type_DEVICE_ID:
+            status = handleDeviceIdCommmand();
+            break;
+        default:
+            status = false;
+            break;
         }
     }
     return status;
@@ -203,7 +203,7 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
     bool foundMessage = payload::deserialize(payload, length, &message,
             getConfiguration()->payloadFormat);
-    if(foundMessage && message.has_type) {
+    if(foundMessage && validate(&message)) {
         switch(message.type) {
         case openxc_VehicleMessage_Type_RAW:
             handleRaw(&message);
@@ -220,4 +220,122 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
         }
     }
     return foundMessage;
+}
+
+static bool validateRaw(openxc_VehicleMessage* message) {
+    bool valid = true;
+    if(message->has_type && message->type == openxc_VehicleMessage_Type_RAW &&
+            message->has_raw_message) {
+        openxc_RawMessage* raw = &message->raw_message;
+        if(!raw->has_message_id) {
+            valid = false;
+            debug("Write request is malformed, missing id");
+        }
+
+        if(!raw->has_data) {
+            valid = false;
+            debug("Raw write request for 0x%02x missing data", raw->message_id);
+        }
+    } else {
+        valid = false;
+    }
+    return valid;
+}
+
+static bool validateTranslated(openxc_VehicleMessage* message) {
+    bool valid = true;
+    if(message->has_type && message->type == openxc_VehicleMessage_Type_TRANSLATED &&
+            message->has_translated_message) {
+        openxc_TranslatedMessage* translated = &message->translated_message;
+        if(!translated->has_name) {
+            valid = false;
+            debug("Write request is missing name");
+        }
+
+        if(!translated->has_value) {
+            valid = false;
+        } else if(!translated->value.has_type) {
+            valid = false;
+            debug("Unsupported type in value field of %s", translated->name);
+        }
+
+        if(translated->has_event) {
+            if(!translated->event.has_type) {
+                valid = false;
+                debug("Unsupported type in event field of %s", translated->name);
+            }
+        }
+
+    } else {
+        valid = false;
+    }
+    return valid;
+}
+
+static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
+    bool valid = true;
+    if(message->has_control_command) {
+        openxc_ControlCommand* command = &message->control_command;
+        if(command->has_type && command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
+            openxc_DiagnosticRequest* request = &command->diagnostic_request;
+
+            if(!request->has_message_id) {
+                valid = false;
+                debug("Diagnostic request missing message ID");
+            }
+
+            if(!request->has_mode) {
+                valid = false;
+                debug("Diagnostic request missing mode");
+            }
+        } else {
+            valid = false;
+            debug("Diagnostic request is of unexpected type");
+        }
+    } else {
+        valid = false;
+    }
+    return valid;
+}
+
+static bool validateControlCommand(openxc_VehicleMessage* message) {
+    bool valid = message->has_type && message->type ==
+            openxc_VehicleMessage_Type_CONTROL_COMMAND &&
+            message->has_control_command;
+    if(valid) {
+        switch(message->control_command.type) {
+        case openxc_ControlCommand_Type_DIAGNOSTIC:
+            valid = validateDiagnosticRequest(message);
+            break;
+        case openxc_ControlCommand_Type_VERSION:
+        case openxc_ControlCommand_Type_DEVICE_ID:
+            valid =  true;
+            break;
+        default:
+            valid = false;
+            break;
+        }
+    }
+    return valid;
+}
+
+bool openxc::commands::validate(openxc_VehicleMessage* message) {
+    bool valid = false;
+    if(message != NULL && message->has_type) {
+        switch(message->type) {
+        case openxc_VehicleMessage_Type_RAW:
+            valid = validateRaw(message);
+            break;
+        case openxc_VehicleMessage_Type_TRANSLATED:
+            valid = validateTranslated(message);
+            break;
+        case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+            valid = validateControlCommand(message);
+            break;
+        default:
+            debug("Incoming message had unrecognized type: %d", message->type);
+            break;
+        }
+    }
+    return valid;
 }

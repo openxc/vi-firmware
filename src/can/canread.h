@@ -9,12 +9,50 @@ namespace openxc {
 namespace can {
 namespace read {
 
-typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
-typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
-typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
+typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int,
+                openxc::pipeline::Pipeline*, float, bool*);
+typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int,
+                openxc::pipeline::Pipeline*, float, bool*);
+typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int,
+                openxc::pipeline::Pipeline*, float, bool*);
+
+/* Public: Parse a CAN signal from a CAN message, apply the required
+ * transforations and send the result to the pipeline.
+ *
+ * There are 4 versions of this function, each translating the signal into a
+ * different native data type. This version omits the 'handler' argument and
+ * interprets the signal as a simple floating point number.
+ *
+ * The version accepting a StringHandler runs the float value through the
+ * handler function to convert it to a string describing a valid state for the
+ * CAN signal. No error checking is performed on the handler, so if a NULL is
+ * returned by the handler (e.g. because no state was found associated with the
+ * float value), bad things may happen.
+ *
+ * pipeline - The pipeline to send the final formatted message on.
+ * signal - The details of the signal to decode and forward.
+ * data   - The raw bytes of the CAN message that contains the signal.
+ * handler - (not in all versions of the function) a function that performs
+ *      extra processing on the float value.
+ * signals - an array of all active signals.
+ * signalCount - The length of the signals array.
+ */
+void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
+        uint64_t data, CanSignal* signals, int signalCount);
+
+void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
+        uint64_t data, NumericalHandler handler, CanSignal* signals,
+        int signalCount);
+
+void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
+        uint64_t data, BooleanHandler handler, CanSignal* signals,
+        int signalCount);
+void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
+        uint64_t data, StringHandler handler, CanSignal* signals,
+        int signalCount);
 
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
- * it in a JSON message with "id" and "data" attributes and send it out to the
+ * it in a message with "id" and "data" attributes and send it out to the
  * pipelines.
  *
  * This is useful for debugging when CAN acceptance filters are disabled. Call
@@ -32,67 +70,10 @@ void passthroughMessage(CanBus* bus, CanMessage* message,
         CanMessageDefinition* messages, int messageCount,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and send the result to the pipeline;
+/* Public: Create a new OpenXC message and send it to the pipeline.
  *
- * pipeline - The pipeline to send the final formatted message on.
- * signal - The details of the signal to decode and forward.
- * data   - The raw bytes of the CAN message that contains the signal.
- */
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, CanSignal* signals, int signalCount);
-
-/* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and also run the final float value through the handler
- * function before sending the result to the pipeline.
- *
- * pipeline - The pipeline to send the final formatted message on.
- * signal - The details of the signal to decode and forward.
- * data - The raw bytes of the CAN message that contains the signal.
- * handler - a function that performs extra processing on the float value.
- * signals - an array of all active signals.
- * signalCount - The length of the signals array.
- */
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, NumericalHandler handler, CanSignal* signals,
-        int signalCount);
-
-/* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and (expecting the float value to be 0 or 1) convert it to a
- * boolean.
- *
- * pipeline - The pipeline to send the final formatted message on.
- * signal - The details of the signal to decode and forward.
- * data - The raw bytes of the CAN message that contains the signal.
- * handler - a function that converts the float value to a boolean.
- * signals - an array of all active signals.
- * signalCount - The length of the signals array
- */
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, BooleanHandler handler, CanSignal* signals
-        , int signalCount);
-
-/* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and also runs the float value through the handler function to
- * convert it to a string describing a valid state for the CAN signal. No error
- * checking is performed on the handler, so if a NULL is returned by the handler
- * (e.g. because no state was found associated with the float value), bad things
- * may happen.
- *
- * pipeline - The pipeline to send the final formatted message on.
- * signal - The details of the signal to decode and forward.
- * data - The raw bytes of the CAN message that contains the signal.
- * handler - A function that returns the string state value associated with the
- *     float value.
- * signals - An array of all active signals.
- * signalCount - The length of the signals array>
- */
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, StringHandler handler, CanSignal* signals,
-        int signalCount);
-
-/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
- * message followed by a newline.
+ * There are three versions of this function, each taking a different type for
+ * the 'value' field - a float, char* or bool.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The numerical value for the value field of the OpenXC message.
@@ -100,29 +81,17 @@ void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
  */
 void sendNumericalMessage(const char* name, float value,
         openxc::pipeline::Pipeline* pipeline);
-
-/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
- * message followed by a newline.
- *
- * name - The value for the name field of the OpenXC message.
- * value - The string value for the value field of the OpenXC message.
- * pipeline - The pipeline to send on.
- */
 void sendStringMessage(const char* name, const char* value,
         openxc::pipeline::Pipeline* pipeline);
-
-/* Public: Send the given name and value out to the pipeline in an OpenXC JSON
- * message followed by a newline.
- *
- * name - The value for the name field of the OpenXC message.
- * value - The boolean value for the value field of the OpenXC message.
- * pipeline - The pipeline to send on.
- */
 void sendBooleanMessage(const char* name, bool value,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Send the given name, value and event out to the pipeline in an OpenXC
- * JSON message followed by a newline.
+/* Public: Create a new OpenXC message including an 'event' and send it to the
+ * pipeline.
+ *
+ * There are three versions of this function, each taking a different type for
+ * the 'event' field - a float, char* or bool. The 'value' field is always a
+ * string for evented messages.
  *
  * name - The value for the name field of the OpenXC message.
  * value - The string value for the value field of the OpenXC message.
@@ -131,26 +100,8 @@ void sendBooleanMessage(const char* name, bool value,
  */
 void sendEventedBooleanMessage(const char* name, const char* value, bool event,
         openxc::pipeline::Pipeline* pipeline);
-
-/* Public: Send the given name, value and event out to the pipeline in an OpenXC
- * JSON message followed by a newline.
- *
- * name - The value for the name field of the OpenXC message.
- * value - The string value for the value field of the OpenXC message.
- * event - The string event for the event field of the OpenXC message.
- * pipeline - The pipeline to send on.
- */
 void sendEventedStringMessage(const char* name, const char* value,
         const char* event, openxc::pipeline::Pipeline* pipeline);
-
-/* Public: Send the given name, value and event out to the pipeline in an OpenXC
- * JSON message followed by a newline.
- *
- * name - The value for the name field of the OpenXC message.
- * value - The string value for the value field of the OpenXC message.
- * event - The float event for the event field of the OpenXC message.
- * pipeline - The pipeline to send on.
- */
 void sendEventedFloatMessage(const char* name, const char* value, float event,
         openxc::pipeline::Pipeline* pipeline);
 
@@ -240,7 +191,17 @@ float preTranslate(CanSignal* signal, uint64_t data, bool* send);
  */
 void postTranslate(CanSignal* signal, float value);
 
-/* Private: Inject a new vehicle data message into the pipeline.
+/* Public: Serialize the message to a bytestream (conforming to the OpenXC
+ * standard and the currently selected payload format) and send it out to the
+ * pipeline.
+ *
+ * This will accept both raw and translated typed messages.
+ *
+ * TODO this doesn't belong here since it now can send command responses, it
+ * belongs up a level - maybe with the pipeline.
+ *
+ * message - A message structure containing the type and data for the message.
+ * pipeline - The pipeline to send on.
  */
 void sendVehicleMessage(openxc_VehicleMessage* message,
         openxc::pipeline::Pipeline* pipeline);

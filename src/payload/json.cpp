@@ -188,10 +188,19 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "payload");
         if(element != NULL) {
             command->diagnostic_request.has_payload = true;
-            // TODO need to go from hex string to byte array.
-            command->diagnostic_request.payload.size = 0;
-            // mempcy(command->diagnostic_request.payload.bytes,
-                    // xxx, xxx.length);
+            union {
+                uint64_t whole;
+                uint8_t bytes[8];
+            } combined;
+            char* end;
+            combined.whole = __builtin_bswap64(strtoull(element->valuestring, &end, 16));
+            memcpy(command->diagnostic_request.payload.bytes, combined.bytes, 8);
+
+            command->diagnostic_request.payload.size = (
+                    strlen(element->valuestring) + 1) / 2;
+            if(strstr(element->valuestring, "0x") != NULL) {
+                command->diagnostic_request.payload.size -= 2;
+            }
         }
 
         element = cJSON_GetObjectItem(request, "parse_payload");
@@ -309,6 +318,10 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
         element = cJSON_GetObjectItem(root, "data");
         if(element != NULL) {
             rawMessage->has_data = true;
+            // TODO this is ugly, and duplicated from parsing payload for
+            // diagnostic. would it be better to have these fields be a JSON
+            // array of numbers, i.e. bytes? that'd be MUCH easier and more
+            // consistent to parse, just a little bit bigger when serialized
             union {
                 uint64_t whole;
                 uint8_t bytes[8];

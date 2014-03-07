@@ -429,7 +429,12 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                     mode: uint8_t(commandRequest->mode),
                 };
 
-                // TODO copy payload
+                if(commandRequest->has_payload) {
+                    request.payload_length = commandRequest->payload.size;
+                    memcpy(request.payload, commandRequest->payload.bytes,
+                            request.payload_length);
+                }
+
                 float frequency = commandRequest->has_frequency ?
                         commandRequest->frequency : 0;
                 addDiagnosticRequest(diagnosticsManager, canBus, &request,

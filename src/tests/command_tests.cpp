@@ -168,23 +168,38 @@ START_TEST (test_raw_write_not_allowed)
 }
 END_TEST
 
-START_TEST (test_diagnostic_request_missing_request)
+START_TEST (test_diagnostic_request_with_payload)
 {
-    ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
-                strlen(DIAGNOSTIC_REQUEST)));
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"0x1234\"}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 2);
+    // TODO we're not handling payload less than 8 bytes correctly
+    // ck_assert_int_eq(message.data, 0x0301123400000000LLU);
 }
 END_TEST
 
-START_TEST (test_diagnostic_request)
+START_TEST (test_diagnostic_request_missing_request)
 {
     const char* request = "{\"command\": \"diagnostic_request\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_diagnostic_request)
+{
+    ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
+                strlen(DIAGNOSTIC_REQUEST)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
 }
 END_TEST
 
@@ -589,7 +604,12 @@ Suite* suite(void) {
             test_translated_write_allowed_by_signal_override);
     tcase_add_test(tc_complex_commands, test_unrecognized_message);
     tcase_add_test(tc_complex_commands, test_unrecognized_command_name);
+    // These tests are mixing up payload deserialization and request handling
+    // because they used to be more tightly coupled, so we could clean this up a
+    // bit. It's low priority though, since the code is still all tested - the
+    // test suite might just get a little smaller.
     tcase_add_test(tc_complex_commands, test_diagnostic_request);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_request);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_invalid_bus);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_bus);

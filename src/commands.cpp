@@ -9,7 +9,9 @@
 #include <payload/payload.h>
 #include "signals.h"
 #include <can/canutil.h>
+#include <bitfield/bitfield.h>
 #include <cJSON.h>
+#include <limits.h>
 
 using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
@@ -114,10 +116,11 @@ static bool handleRaw(openxc_VehicleMessage* message) {
                     rawMessage->bus);
             status = false;
         } else if(matchingBus->rawWritable) {
-                char* end;
+                uint8_t size = rawMessage->data.size;
                 CanMessage message = {
                     id: rawMessage->message_id,
-                    data: strtoull((const char*)rawMessage->data.bytes, &end, 16)
+                    data: get_bitfield(rawMessage->data.bytes,
+                            size, 0, size * CHAR_BIT) << (64 - CHAR_BIT * size)
                 };
                 can::write::enqueueMessage(matchingBus, &message);
         } else {

@@ -309,12 +309,21 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
         element = cJSON_GetObjectItem(root, "data");
         if(element != NULL) {
             rawMessage->has_data = true;
-            // TODO need to load data from hex string to byte array
-            element = cJSON_GetObjectItem(root, "bus");
-            if(element != NULL) {
-                rawMessage->has_bus = true;
-                rawMessage->bus = element->valueint;
-            }
+            union {
+                uint64_t whole;
+                uint8_t bytes[8];
+            } combined;
+            char* end;
+            combined.whole = strtoull(element->valuestring, &end, 16);
+            memcpy(rawMessage->data.bytes, combined.bytes, 8);
+            //TODO get actual size
+            rawMessage->data.size = 8;
+        }
+
+        element = cJSON_GetObjectItem(root, "bus");
+        if(element != NULL) {
+            rawMessage->has_bus = true;
+            rawMessage->bus = element->valueint;
         }
     } else {
         message->has_raw_message = false;

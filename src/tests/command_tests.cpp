@@ -131,12 +131,31 @@ START_TEST (test_raw_write_missing_bus_no_buses)
 }
 END_TEST
 
-START_TEST (test_raw_write_allowed)
+START_TEST (test_raw_write)
+{
+    getCanBuses()[0].rawWritable = true;
+    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234567812345678\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 42);
+    ck_assert_int_eq(message.data, 0x1234567812345678);
+}
+END_TEST
+
+START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
     ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
                 strlen(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 42);
+    ck_assert_int_eq(message.data, 0x1234);
+    // TODO pending
+    // ck_assert_int_eq(message.length, 2);
 }
 END_TEST
 
@@ -557,7 +576,8 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_no_matching_bus);
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus);
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus_no_buses);
-    tcase_add_test(tc_complex_commands, test_raw_write_allowed);
+    tcase_add_test(tc_complex_commands, test_raw_write);
+    tcase_add_test(tc_complex_commands, test_raw_write_less_than_full_message);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);

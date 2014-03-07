@@ -411,13 +411,17 @@ bool openxc::diagnostics::handleDiagnosticCommand(
     bool status = true;
     if(command->has_diagnostic_request) {
         openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
-        if(commandRequest->has_bus && commandRequest->has_message_id &&
-                commandRequest->has_mode) {
-            CanBus* canBus = lookupBus(commandRequest->bus, getCanBuses(),
-                    getCanBusCount());
+        if(commandRequest->has_message_id && commandRequest->has_mode) {
+            CanBus* canBus = NULL;
+            if(commandRequest->has_bus) {
+                canBus = lookupBus(commandRequest->bus, getCanBuses(), getCanBusCount());
+            } else if(getCanBusCount() > 0) {
+                canBus = &getCanBuses()[0];
+                debug("No bus specified for diagnostic request missing bus, using first active: %d", canBus->address);
+            }
+
             if(canBus == NULL) {
-                debug("No matching active bus for requested address: %d",
-                        commandRequest->bus);
+                debug("No active bus to send diagnostic request");
                 status = false;
             } else {
                 DiagnosticRequest request = {

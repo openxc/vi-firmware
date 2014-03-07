@@ -104,6 +104,7 @@ const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"reques
 
 START_TEST (test_raw_write_no_matching_bus)
 {
+    getCanBuses()[0].rawWritable = true;
     const char* request = "{\"bus\": 3, \"id\": 42, \"data\": \"0x1234\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     fail_unless(canQueueEmpty(0));
@@ -194,7 +195,7 @@ START_TEST (test_diagnostic_request_missing_bus)
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
-    fail_unless(canQueueEmpty(0));
+    fail_if(canQueueEmpty(0));
 }
 END_TEST
 

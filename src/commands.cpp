@@ -104,11 +104,9 @@ static bool handleRaw(openxc_VehicleMessage* message) {
         CanBus* matchingBus = NULL;
         if(rawMessage->has_bus) {
             matchingBus = lookupBus(rawMessage->bus, getCanBuses(), getCanBusCount());
-        }
-
-        if(matchingBus == NULL && getCanBusCount() > 0) {
-            debug("No matching bus for write request, so using the first we find");
+        } else if(getCanBusCount() > 0) {
             matchingBus = &getCanBuses()[0];
+            debug("No bus specified for write, using the first active: %d", matchingBus->address);
         }
 
         if(matchingBus == NULL) {

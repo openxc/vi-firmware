@@ -9,6 +9,13 @@ namespace openxc {
 namespace can {
 namespace read {
 
+/* Public: The three valid type signatures for CAN signal decoding. Each accepts
+ * a raw float CAN signal (parsed from a CAN message, with any defined factor
+ * and offset transformations applied) and returns a final, decoded value.
+ *
+ * Each version of the type signature returns a different native type - float,
+ * bool or string.
+ */
 typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int,
                 openxc::pipeline::Pipeline*, float, bool*);
 typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int,

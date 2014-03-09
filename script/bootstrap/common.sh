@@ -143,10 +143,9 @@ if [ -z $COMMON_SOURCED ]; then
                 die "Missing 'make' - install the Xcode CLI tools"
         else
             if [ $DISTRO == "arch" ]; then
-                $SUDO_CMD pacman -S base-devel
+                _install "base-devel"
             elif [ $DISTRO == "Ubuntu" ]; then
-                $SUDO_CMD apt-get update -qq
-                $SUDO_CMD apt-get install build-essential -y
+                _install "build-essential"
             fi
         fi
     fi

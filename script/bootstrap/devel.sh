@@ -10,12 +10,11 @@ if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
     elif [ $OS == "mac" ]; then
         brew install lcov
     else
-        if [ $DISTRO == "arch" ]; then
+        if [ $DISTRO == "Ubuntu" ]; then
+            _install "lcov"
+        elif [ $DISTRO == "arch" ]; then
             echo "Missing lcov - install from the AUR."
             _wait
-        elif [ $DISTRO == "Ubuntu" ]; then
-            $SUDO_CMD apt-get update -qq
-            $SUDO_CMD apt-get install lcov -y
         fi
     fi
 fi

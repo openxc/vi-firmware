@@ -104,7 +104,9 @@ void EVENT_USB_Device_ControlRequest() {
 void EVENT_USB_Device_ConfigurationChanged(void) {
     getConfiguration()->usb.configured = false;
     configureEndpoints();
-    debug("USB configured");
+    // Don't use debug() in here, because if UART logging is enabled, that
+    // breaks most if not all USB control commands because we don't response
+    // fast enough.
     getConfiguration()->usb.configured = true;
 }
 

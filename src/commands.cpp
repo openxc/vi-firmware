@@ -49,6 +49,8 @@ static bool handleVersionCommand() {
     message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_VERSION;
     message.command_response.has_message = true;
+    memset(message.command_response.message, 0,
+            sizeof(message.command_response.message));
     strncpy(message.command_response.message, descriptor, sizeof(descriptor));
     pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
 
@@ -59,7 +61,8 @@ static bool handleDeviceIdCommmand() {
     // TODO move getDeviceId to openxc::platform, allow each platform to
     // define where the device ID comes from.
     uart::UartDevice* uart = &getConfiguration()->uart;
-    if(strnlen(uart->deviceId, sizeof(uart->deviceId)) > 0) {
+    size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
+    if(deviceIdLength > 0) {
         usb::sendControlMessage(&getConfiguration()->usb,
                 (uint8_t*)uart->deviceId, strlen(uart->deviceId));
 
@@ -70,8 +73,10 @@ static bool handleDeviceIdCommmand() {
         message.command_response.has_type = true;
         message.command_response.type = openxc_ControlCommand_Type_DEVICE_ID;
         message.command_response.has_message = true;
+        memset(message.command_response.message, 0,
+                sizeof(message.command_response.message));
         strncpy(message.command_response.message, uart->deviceId,
-                strlen(uart->deviceId));
+                deviceIdLength);
         pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
     }
     return true;

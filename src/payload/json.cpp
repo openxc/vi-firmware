@@ -390,20 +390,21 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     cJSON* root = cJSON_CreateObject();
     size_t finalLength = 0;
     if(root != NULL) {
+        bool status = true;
         if(message->type == openxc_VehicleMessage_Type_TRANSLATED) {
-            serializeTranslated(message, root);
+            status = serializeTranslated(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_RAW) {
-            serializeRaw(message, root);
+            status = serializeRaw(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
-            serializeDiagnostic(message, root);
+            status = serializeDiagnostic(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
-            serializeCommandResponse(message, root);
+            status = serializeCommandResponse(message, root);
         } else {
             debug("Unrecognized message type -- not sending");
         }
 
         char* message = cJSON_PrintUnformatted(root);
-        if(message != NULL) {
+        if(status && message != NULL) {
             char messageWithDelimeter[strlen(message) + 3];
             strncpy(messageWithDelimeter, message, strlen(message));
             messageWithDelimeter[strlen(message)] = '\0';
@@ -414,7 +415,7 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
 
             free(message);
         } else {
-            debug("Converting JSON to string failed -- probably OOM");
+            debug("Converting JSON to string failed -- possibly OOM");
         }
 
         cJSON_Delete(root);

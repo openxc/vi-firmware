@@ -205,20 +205,24 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
     bool foundMessage = payload::deserialize(payload, length, &message,
             getConfiguration()->payloadFormat);
-    if(foundMessage && validate(&message)) {
-        switch(message.type) {
-        case openxc_VehicleMessage_Type_RAW:
-            handleRaw(&message);
-            break;
-        case openxc_VehicleMessage_Type_TRANSLATED:
-            handleTranslated(&message);
-            break;
-        case openxc_VehicleMessage_Type_CONTROL_COMMAND:
-            handleComplexCommand(&message);
-            break;
-        default:
-            debug("Incoming message had unrecognized type: %d", message.type);
-            break;
+    if(foundMessage) {
+        if(validate(&message)) {
+            switch(message.type) {
+            case openxc_VehicleMessage_Type_RAW:
+                handleRaw(&message);
+                break;
+            case openxc_VehicleMessage_Type_TRANSLATED:
+                handleTranslated(&message);
+                break;
+            case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+                handleComplexCommand(&message);
+                break;
+            default:
+                debug("Incoming message had unrecognized type: %d", message.type);
+                break;
+            }
+        } else {
+            debug("Incoming message is complete but invalid");
         }
     }
     return foundMessage;
@@ -301,9 +305,10 @@ static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
 }
 
 static bool validateControlCommand(openxc_VehicleMessage* message) {
-    bool valid = message->has_type && message->type ==
-            openxc_VehicleMessage_Type_CONTROL_COMMAND &&
-            message->has_control_command;
+    bool valid = message->has_type &&
+            message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND &&
+            message->has_control_command &&
+            message->control_command.has_type;
     if(valid) {
         switch(message->control_command.type) {
         case openxc_ControlCommand_Type_DIAGNOSTIC:

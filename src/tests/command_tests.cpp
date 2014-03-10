@@ -580,6 +580,10 @@ START_TEST (test_validate_device_id_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DEVICE_ID;
     ck_assert(validate(&CONTROL_COMMAND));
+
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DEVICE_ID;
+    CONTROL_COMMAND.control_command.has_type = false;
+    ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 

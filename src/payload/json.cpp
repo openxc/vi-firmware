@@ -360,9 +360,11 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
 
         if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
                     strlen(VERSION_COMMAND_NAME))) {
+            command->has_type = true;
             command->type = openxc_ControlCommand_Type_VERSION;
         } else if(!strncmp(commandNameObject->valuestring,
                     DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
+            command->has_type = true;
             command->type = openxc_ControlCommand_Type_DEVICE_ID;
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {

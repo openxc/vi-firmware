@@ -4,3 +4,4 @@ handlers.h
 .cproject
 .settings
 openxc-logs-*.txt
+.gdbinit

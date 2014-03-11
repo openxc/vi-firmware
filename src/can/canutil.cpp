@@ -6,7 +6,8 @@
 
 #define BUS_STATS_LOG_FREQUENCY_S 15
 #define CAN_MESSAGE_TOTAL_BIT_SIZE 128
-#define DYNAMIC_MESSAGE_MAP_CAPACITY 25
+#define MAX_DYNAMIC_MESSAGE_COUNT 128
+#define DYNAMIC_MESSAGE_MAP_LOAD_FACTOR 10
 
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
@@ -30,8 +31,8 @@ void openxc::can::initializeCommon(CanBus* bus) {
 
     bus->writeHandler = openxc::can::write::sendMessage;
     bus->lastMessageReceived = 0;
-    // TODO could create this on the fly since most of the time we won't use it
-    bus->dynamicMessages = emhashmap_create(DYNAMIC_MESSAGE_MAP_CAPACITY);
+    emhashmap_initialize(&bus->dynamicMessages, MAX_DYNAMIC_MESSAGE_COUNT,
+            DYNAMIC_MESSAGE_MAP_LOAD_FACTOR);
 #ifdef __LOG_STATS__
     statistics::initialize(&bus->totalMessageStats);
     statistics::initialize(&bus->droppedMessageStats);
@@ -43,14 +44,12 @@ void openxc::can::initializeCommon(CanBus* bus) {
 }
 
 void openxc::can::destroy(CanBus* bus) {
-    if(bus->dynamicMessages != NULL) {
-        MapIterator iterator = emhashmap_iterator(bus->dynamicMessages);
-        MapEntry* next = NULL;
-        while((next = emhashmap_iterator_next(&iterator)) != NULL) {
-            delete (CanMessageDefinition*)next->value;
-        }
-        emhashmap_destroy(bus->dynamicMessages);
+    MapIterator iterator = emhashmap_iterator(&bus->dynamicMessages);
+    MapEntry* next = NULL;
+    while((next = emhashmap_iterator_next(&iterator)) != NULL) {
+        delete (CanMessageDefinition*)next->value;
     }
+    emhashmap_deinitialize(&bus->dynamicMessages);
 }
 
 bool openxc::can::busActive(CanBus* bus) {
@@ -172,8 +171,10 @@ CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
     CanMessageDefinition* message = lookupMessage(bus, id,
             predefinedMessages, predefinedMessageCount);
     if(message == NULL) {
-        message = (CanMessageDefinition*)emhashmap_get(
-                bus->dynamicMessages, id);
+        MapEntry* entry = emhashmap_get(&bus->dynamicMessages, id);
+        if(entry != NULL) {
+            message = (CanMessageDefinition*)entry->value;
+        }
     }
     return message;
 }
@@ -200,7 +201,12 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
             message->frequencyClock = {bus->maxMessageFrequency};
             message->forceSendChanged = true;
 
-            emhashmap_put(bus->dynamicMessages, id, message);
+            if(!emhashmap_put(&bus->dynamicMessages, id, message)) {
+                debug("Unable to insert dynamic message definition into map");
+                delete message;
+            }
+        } else {
+            debug("Unable to allocate space for a new CAN message def - probably OOM");
         }
     }
     return message != NULL;
@@ -208,7 +214,7 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
 
 bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
     CanMessageDefinition* message = (CanMessageDefinition*) emhashmap_remove(
-            bus->dynamicMessages, id);
+            &bus->dynamicMessages, id);
     if(message != NULL) {
         delete message;
     } else {

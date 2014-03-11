@@ -32,6 +32,7 @@ using openxc::config::getConfiguration;
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
 extern unsigned long FAKE_TIME;
+extern void initializeVehicleInterface();
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
         IN_ENDPOINT_INDEX].queue;
@@ -43,6 +44,7 @@ bool queueEmpty() {
 
 void setup() {
     FAKE_TIME = 1000;
+    initializeVehicleInterface();
     getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;

@@ -182,7 +182,7 @@ struct CanBus {
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];
-    HashMap* dynamicMessages;
+    HashMap dynamicMessages;
     bool (*writeHandler)(const CanBus*, const CanMessage*);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;

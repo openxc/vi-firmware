@@ -32,7 +32,7 @@ using openxc::config::getConfiguration;
 
 const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
 
-static unsigned long fakeTime = 0;
+extern void initializeVehicleInterface();
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
 
@@ -40,13 +40,9 @@ bool queueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
 }
 
-unsigned long timeMock() {
-    return fakeTime;
-}
-
 void setup() {
-    fakeTime = 0;
     getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::PROTOBUF;
+    initializeVehicleInterface();
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {

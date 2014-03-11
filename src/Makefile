@@ -100,7 +100,6 @@ CROSSPLATFORM_C_SRCS += $(wildcard payload/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcommander.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/emlist/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emhashmap/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
@@ -116,7 +115,7 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard payload/*.cpp)
 
 INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
-				-I$(LIBS_PATH)/emlist -I$(LIBS_PATH)/emhashmap \
+				-I$(LIBS_PATH)/emhashmap \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
 				-I$(LIBS_PATH)/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \

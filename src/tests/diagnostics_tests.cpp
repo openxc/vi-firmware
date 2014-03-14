@@ -53,6 +53,7 @@ static void resetQueues() {
 
 void setup() {
     ACCEPTANCE_FILTER_STATUS = true;
+    getCanBuses()[0].rawWritable = true;
     request.pid = 2;
     request.arbitration_id = 0x7e0;
     initializeVehicleInterface();

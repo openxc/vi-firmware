@@ -47,6 +47,7 @@ void setup() {
     getConfiguration()->usb.configured = true;
     fail_unless(canQueueEmpty(0));
     getActiveMessageSet()->busCount = 2;
+    getCanBuses()[0].rawWritable = true;
 
     RAW_MESSAGE.has_type = true;
     RAW_MESSAGE.type = openxc_VehicleMessage_Type_RAW;
@@ -187,6 +188,17 @@ START_TEST (test_diagnostic_request_missing_request)
 {
     const char* request = "{\"command\": \"diagnostic_request\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_diagnostic_request_write_not_allowed)
+{
+    getCanBuses()[0].rawWritable = false;
+    ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
+                strlen(DIAGNOSTIC_REQUEST)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -613,6 +625,7 @@ Suite* suite(void) {
     // bit. It's low priority though, since the code is still all tested - the
     // test suite might just get a little smaller.
     tcase_add_test(tc_complex_commands, test_diagnostic_request);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_request);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_invalid_bus);

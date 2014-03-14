@@ -413,18 +413,18 @@ bool openxc::diagnostics::handleDiagnosticCommand(
     if(command->has_diagnostic_request) {
         openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
         if(commandRequest->has_message_id && commandRequest->has_mode) {
-            CanBus* canBus = NULL;
+            CanBus* bus = NULL;
             if(commandRequest->has_bus) {
-                canBus = lookupBus(commandRequest->bus, getCanBuses(), getCanBusCount());
+                bus = lookupBus(commandRequest->bus, getCanBuses(), getCanBusCount());
             } else if(getCanBusCount() > 0) {
-                canBus = &getCanBuses()[0];
-                debug("No bus specified for diagnostic request missing bus, using first active: %d", canBus->address);
+                bus = &getCanBuses()[0];
+                debug("No bus specified for diagnostic request missing bus, using first active: %d", bus->address);
             }
 
-            if(canBus == NULL) {
+            if(bus == NULL) {
                 debug("No active bus to send diagnostic request");
                 status = false;
-            } else {
+            } else if(bus->rawWritable) {
                 DiagnosticRequest request = {
                     arbitration_id: commandRequest->message_id,
                     mode: uint8_t(commandRequest->mode),
@@ -443,8 +443,11 @@ bool openxc::diagnostics::handleDiagnosticCommand(
 
                 float frequency = commandRequest->has_frequency ?
                         commandRequest->frequency : 0;
-                addDiagnosticRequest(diagnosticsManager, canBus, &request,
+                addDiagnosticRequest(diagnosticsManager, bus, &request,
                         frequency);
+            } else {
+                debug("Raw CAN writes not allowed for bus %d", bus->address);
+                status = false;
             }
 
         } else {

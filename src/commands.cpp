@@ -10,7 +10,6 @@
 #include "signals.h"
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
-#include <cJSON.h>
 #include <limits.h>
 
 using openxc::interface::usb::sendControlMessage;

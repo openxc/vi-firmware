@@ -436,6 +436,11 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                             request.payload_length);
                 }
 
+                if(commandRequest->has_pid) {
+                    request.has_pid = true;
+                    request.pid = commandRequest->pid;
+                }
+
                 float frequency = commandRequest->has_frequency ?
                         commandRequest->frequency : 0;
                 addDiagnosticRequest(diagnosticsManager, canBus, &request,

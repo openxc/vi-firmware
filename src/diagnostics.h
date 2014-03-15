@@ -81,10 +81,10 @@ bool addDiagnosticRequest(DiagnosticsManager* manager,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
         float frequencyHz, bool waitForMultipleResponses);
 
-bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const char* genericName,
-        float factor, float offset, const DiagnosticResponseDecoder decoder,
-        float frequencyHz);
+bool addDiagnosticRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, float factor, float offset,
+        float frequencyHz, bool waitForMultipleResponses);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, float frequencyHz);

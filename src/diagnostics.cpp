@@ -411,10 +411,11 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        float factor, float offset, const DiagnosticResponseDecoder decoder,
-        float frequencyHz) {
-    return addDiagnosticRequest(manager, bus, request, genericName, true,
-            factor, offset, decoder, frequencyHz, false);
+        bool parsePayload, float factor, float offset,
+        float frequencyHz, bool waitForMultipleResponses) {
+    return addDiagnosticRequest(manager, bus, request, genericName,
+            parsePayload, factor, offset, NULL, frequencyHz,
+            waitForMultipleResponses);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
@@ -463,8 +464,6 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                     multipleResponses = commandRequest->multiple_responses;
                 }
 
-                // TODO make a version of th is function specifically for us,
-                // with no decoder
                 addDiagnosticRequest(manager, bus, &request,
                         commandRequest->has_name ?
                                 commandRequest->name : NULL,
@@ -474,7 +473,6 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                                 commandRequest->factor : 1.0,
                         commandRequest->has_offset ?
                                 commandRequest->offset : 0,
-                        NULL,
                         commandRequest->has_frequency ?
                                 commandRequest->frequency : 0,
                         multipleResponses);

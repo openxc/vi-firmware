@@ -428,11 +428,11 @@ maximum allowed frequency is 10Hz.
 
 ``pid`` - (optional) If the mode uses PIDs, the pid to request.
 
-``generic_name`` - (optional) If defined, the output format of the diagnostic
+``name`` - (optional) If defined, the output format of the diagnostic
 response will be of the typical translated data format (i.e. an object with a
 ``name`` and ``value``). The value will be the payload.
 
-``handler`` - (optional) When using a ``generic_name``, you can also specify a
+``handler`` - (optional) When using a ``name``, you can also specify a
 custom handler function to parse the payload. This field is the name of a custom
 command handler function (that matches the ``DiagnosticResponseDecoder``
 function prototype).

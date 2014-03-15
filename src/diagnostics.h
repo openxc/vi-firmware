@@ -47,6 +47,7 @@ typedef struct {
     float offset;
     DiagnosticResponseDecoder decoder;
     bool recurring;
+    bool waitForMultipleResponses;
     openxc::util::time::FrequencyClock frequencyClock;
     openxc::util::time::FrequencyClock timeoutClock;
 } ActiveDiagnosticRequest;
@@ -74,15 +75,15 @@ void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
  *
  * frequencyHz - a value of 0 means it's a non-recurring request.
  */
-bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequest* request, const char* genericName,
-        float factor, float offset, const DiagnosticResponseDecoder decoder,
-        float frequencyHz);
-
 bool addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
+        float frequencyHz, bool waitForMultipleResponses);
+
+bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request, const char* genericName,
+        float factor, float offset, const DiagnosticResponseDecoder decoder,
         float frequencyHz);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,

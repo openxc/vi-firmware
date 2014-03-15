@@ -90,6 +90,8 @@ void setup() {
     CONTROL_COMMAND.control_command.diagnostic_request.payload.size = 1;
     CONTROL_COMMAND.control_command.diagnostic_request.has_parse_payload = true;
     CONTROL_COMMAND.control_command.diagnostic_request.parse_payload = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.multiple_responses = false;
     CONTROL_COMMAND.control_command.diagnostic_request.has_factor = true;
     CONTROL_COMMAND.control_command.diagnostic_request.factor = 2.1;
     CONTROL_COMMAND.control_command.diagnostic_request.has_offset = true;
@@ -560,6 +562,13 @@ START_TEST (test_validate_diagnostic_no_parse_payload)
 }
 END_TEST
 
+START_TEST (test_validate_diagnostic_no_multiple_responses)
+{
+    CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = false;
+    ck_assert(validate(&CONTROL_COMMAND));
+}
+END_TEST
+
 START_TEST (test_validate_diagnostic_no_factor)
 {
     CONTROL_COMMAND.control_command.diagnostic_request.has_factor = false;
@@ -668,6 +677,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_diagnostic_no_factor);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_offset);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_frequency);
+    tcase_add_test(tc_validation, test_validate_diagnostic_no_multiple_responses);
     tcase_add_test(tc_validation, test_validate_version_command);
     tcase_add_test(tc_validation, test_validate_device_id_command);
     suite_add_tcase(s, tc_validation);

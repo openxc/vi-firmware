@@ -30,16 +30,23 @@ static bool timedOut(ActiveDiagnosticRequest* request) {
     return time::elapsed(&request->timeoutClock, false);
 }
 
+/* Private: Returns true if a sufficient response has been received for a diagnostic request.
+ *
+ * This is true when at least one response has been received and the request is
+ * configured to not wait for multiple responses. Functional broadcast requests
+ * may often wish to wait the full 100ms for modules to respond.
+ */
+static bool responseReceived(ActiveDiagnosticRequest* request) {
+    return !request->waitForMultipleResponses &&
+                request->handle.completed;
+}
+
 /* Private: Returns true if the request has timed out waiting for a response,
- *      or the request handle is completed and it wasn't a functional broadcast
- *      request. Functional broadcast requests are never complete until they
- *      time out.
+ *      or a sufficient number of responses has been received.
  */
 static bool requestCompleted(ActiveDiagnosticRequest* request) {
-    return (request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID &&
-                 request->handle.completed) || (
-                     timedOut(request) &&
-                        diagnostic_request_sent(&request->handle));
+    return responseReceived(request) || (
+            timedOut(request) && diagnostic_request_sent(&request->handle));
 }
 
 /* Private: Move the entry to the free list and decrement the lock count for any
@@ -270,8 +277,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
             if(entry->request.handle.success) {
                 relayDiagnosticResponse(&entry->request, &response, pipeline);
 
-                if(entry->request.arbitration_id !=
-                        OBD2_FUNCTIONAL_BROADCAST_ID) {
+                if(responseReceived(&entry->request)) {
                     LIST_REMOVE(entry, listEntries);
                     TAILQ_INSERT_TAIL(&manager->activeRequests, entry,
                             queueEntries);
@@ -319,7 +325,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
-        float frequencyHz) {
+        float frequencyHz, bool waitForMultipleResponses) {
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
                 frequencyHz, MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ);
@@ -373,6 +379,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         entry->request.genericName[0] = '\0';
     }
     entry->request.parsePayload = parsePayload;
+    entry->request.waitForMultipleResponses = waitForMultipleResponses;
     entry->request.factor = factor;
     entry->request.offset = offset;
     entry->request.decoder = decoder;
@@ -407,18 +414,17 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         float factor, float offset, const DiagnosticResponseDecoder decoder,
         float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, genericName, true,
-            factor, offset, decoder, frequencyHz);
+            factor, offset, decoder, frequencyHz, false);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, NULL, false, 1.0, 0,
-            NULL, frequencyHz);
+            NULL, frequencyHz, false);
 }
 
 bool openxc::diagnostics::handleDiagnosticCommand(
-        DiagnosticsManager* diagnosticsManager,
-        openxc_ControlCommand* command) {
+        DiagnosticsManager* manager, openxc_ControlCommand* command) {
     bool status = true;
     if(command->has_diagnostic_request) {
         openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
@@ -451,10 +457,27 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                     request.pid = commandRequest->pid;
                 }
 
-                float frequency = commandRequest->has_frequency ?
-                        commandRequest->frequency : 0;
-                addDiagnosticRequest(diagnosticsManager, bus, &request,
-                        frequency);
+                bool multipleResponses = commandRequest->message_id ==
+                        OBD2_FUNCTIONAL_BROADCAST_ID;
+                if(commandRequest->has_multiple_responses) {
+                    multipleResponses = commandRequest->multiple_responses;
+                }
+
+                // TODO make a version of th is function specifically for us,
+                // with no decoder
+                addDiagnosticRequest(manager, bus, &request,
+                        commandRequest->has_name ?
+                                commandRequest->name : NULL,
+                        commandRequest->has_parse_payload ?
+                                commandRequest->parse_payload : false,
+                        commandRequest->has_factor ?
+                                commandRequest->factor : 1.0,
+                        commandRequest->has_offset ?
+                                commandRequest->offset : 0,
+                        NULL,
+                        commandRequest->has_frequency ?
+                                commandRequest->frequency : 0,
+                        multipleResponses);
             } else {
                 debug("Raw CAN writes not allowed for bus %d", bus->address);
                 status = false;

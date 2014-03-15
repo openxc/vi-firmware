@@ -405,6 +405,133 @@ START_TEST(test_clear_to_send)
 }
 END_TEST
 
+START_TEST(test_command_single_response_default)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_unless(outputQueueEmpty());
+}
+END_TEST
+
+START_TEST(test_command_multiple_responses_default_broadcast)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = OBD2_FUNCTIONAL_BROADCAST_ID;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+}
+END_TEST
+
+START_TEST(test_command_multiple_responses)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_multiple_responses = true;
+    command.diagnostic_request.multiple_responses = true;
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+}
+END_TEST
+
+START_TEST(test_broadcast_accept_multiple_responses)
+{
+    request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
+    ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, 1.0, 0, NULL, 0, true));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    CanMessage message = {
+         id: 0x7e8,
+         data: __builtin_bswap64(0x341024500000000),
+         length: 8
+    };
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+
+}
+END_TEST
+
 START_TEST(test_broadcast_response_arb_id)
 {
     // send a broadcast request, rx a response. make sure the response's message
@@ -435,7 +562,7 @@ START_TEST(test_parsed_payload)
 {
     ck_assert(diagnostics::addDiagnosticRequest(
              &getConfiguration()->diagnosticsManager,
-             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, 0));
+             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -591,6 +718,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_clear_to_send_blocked);
     tcase_add_test(tc_core, test_clear_to_send);
     tcase_add_test(tc_core, test_broadcast_response_arb_id);
+    tcase_add_test(tc_core, test_broadcast_accept_multiple_responses);
     tcase_add_test(tc_core, test_parsed_payload);
     tcase_add_test(tc_core, test_requests_on_multiple_buses);
     tcase_add_test(tc_core, test_update_inflight);
@@ -598,6 +726,10 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_broadcast_can_filters);
     tcase_add_test(tc_core, test_can_filters);
     tcase_add_test(tc_core, test_can_filters_broken);
+
+    tcase_add_test(tc_core, test_command_multiple_responses);
+    tcase_add_test(tc_core, test_command_multiple_responses_default_broadcast);
+    tcase_add_test(tc_core, test_command_single_response_default);
 
     suite_add_tcase(s, tc_core);
 

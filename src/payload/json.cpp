@@ -154,6 +154,28 @@ static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
     return true;
 }
 
+/* Private:
+ *
+ * Returns the size of the byte array stored in dest.
+ */
+static size_t dehexlify(const char source[], uint8_t* destination,
+        size_t destinationLength) {
+    size_t i = 0;
+    if(strstr(source, "0x") != NULL) {
+        i += 2;
+    }
+
+    size_t byteIndex = 0;
+    for(; i < strlen(source) && byteIndex < destinationLength; i += 2) {
+        char bytestring[3] = {0};
+        strncpy(bytestring, &(source[i]), 2);
+
+        char* end = NULL;
+        destination[byteIndex++] = strtoul(bytestring, &end, 16);
+    }
+    return byteIndex;
+}
+
 static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     command->has_type = true;
     command->type = openxc_ControlCommand_Type_DIAGNOSTIC;
@@ -188,19 +210,10 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "payload");
         if(element != NULL) {
             command->diagnostic_request.has_payload = true;
-            union {
-                uint64_t whole;
-                uint8_t bytes[8];
-            } combined;
-            char* end;
-            combined.whole = __builtin_bswap64(strtoull(element->valuestring, &end, 16));
-            memcpy(command->diagnostic_request.payload.bytes, combined.bytes, 8);
-
-            command->diagnostic_request.payload.size = (
-                    strlen(element->valuestring) + 1) / 2;
-            if(strstr(element->valuestring, "0x") != NULL) {
-                command->diagnostic_request.payload.size -= 2;
-            }
+            command->diagnostic_request.payload.size = dehexlify(
+                    element->valuestring,
+                    command->diagnostic_request.payload.bytes,
+                    sizeof(((openxc_DiagnosticRequest*)0)->payload.bytes));
         }
 
         element = cJSON_GetObjectItem(request, "parse_payload");
@@ -324,19 +337,10 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
         element = cJSON_GetObjectItem(root, "data");
         if(element != NULL) {
             rawMessage->has_data = true;
-            // TODO this is ugly, and duplicated from parsing payload for
-            // diagnostic. would it be better to have these fields be a JSON
-            // array of numbers, i.e. bytes? that'd be MUCH easier and more
-            // consistent to parse, just a little bit bigger when serialized
-            union {
-                uint64_t whole;
-                uint8_t bytes[8];
-            } combined;
-            char* end;
-            combined.whole = strtoull(element->valuestring, &end, 16);
-            memcpy(rawMessage->data.bytes, combined.bytes, 8);
-            //TODO get actual size
-            rawMessage->data.size = 8;
+            rawMessage->data.size = dehexlify(
+                    element->valuestring,
+                    rawMessage->data.bytes,
+                    sizeof(((openxc_RawMessage*)0)->data.bytes));
         }
 
         element = cJSON_GetObjectItem(root, "bus");

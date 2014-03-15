@@ -14,7 +14,7 @@ NON_TESTABLE_SRCS = signals.cpp main.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
 			  $(LIBS_PATH)/nanopb/pb_decode.c
-TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)
+TEST_CPP_SRCS = $(wildcard tests/platform/*.cpp) $(CROSSPLATFORM_CPP_SRCS)
 TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 
 TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)

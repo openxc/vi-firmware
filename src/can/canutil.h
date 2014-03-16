@@ -8,11 +8,11 @@
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "emqueue.h"
-#include "emhashmap.h"
 #include "cJSON.h"
 #include "openxc.pb.h"
 
 #define MAX_ACCEPTANCE_FILTERS 32
+#define MAX_DYNAMIC_MESSAGE_COUNT 80
 
 typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
 
@@ -144,6 +144,12 @@ struct AcceptanceFilterListEntry {
  */
 LIST_HEAD(AcceptanceFilterList, AcceptanceFilterListEntry);
 
+struct CanMessageDefinitionListEntry {
+    CanMessageDefinition definition;
+    LIST_ENTRY(CanMessageDefinitionListEntry) entries;
+};
+LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
+
 /* Public: A container for a CAN module paried with a certain bus.
  *
  * speed - The bus speed in bits per second (e.g. 500000)
@@ -182,7 +188,9 @@ struct CanBus {
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];
-    HashMap dynamicMessages;
+    CanMessageDefinitionList dynamicMessages;
+    CanMessageDefinitionList freeMessageDefinitions;
+    CanMessageDefinitionListEntry definitionEntries[MAX_DYNAMIC_MESSAGE_COUNT];
     bool (*writeHandler)(const CanBus*, const CanMessage*);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;

@@ -19,9 +19,6 @@
 [submodule "src/libs/AT-commander"]
 	path = src/libs/AT-commander
 	url = https://github.com/openxc/AT-commander
-[submodule "src/libs/emhashmap"]
-	path = src/libs/emhashmap
-	url = https://github.com/openxc/emhashmap.git
 [submodule "src/libs/nanopb"]
 	path = src/libs/nanopb
 	url = https://code.google.com/p/nanopb/

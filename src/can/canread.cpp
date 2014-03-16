@@ -166,9 +166,12 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus,
             message->id, messages, messageCount);
     if(messageDefinition == NULL) {
-        debug("Adding new message definition for message %d on bus %d",
-                message->id, bus->address);
-        send = registerMessageDefinition(bus, message->id, messages, messageCount);
+        if(registerMessageDefinition(bus, message->id, messages, messageCount)) {
+            debug("Added new message definition for message %d on bus %d",
+                    message->id, bus->address);
+        // else you couldn't add it to the list for some reason, but don't
+        // spam the log about it.
+        }
     } else if(time::tick(&messageDefinition->frequencyClock) ||
             (message->data != messageDefinition->lastValue &&
                  messageDefinition->forceSendChanged)) {

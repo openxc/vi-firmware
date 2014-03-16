@@ -6,8 +6,8 @@
 
 #define BUS_STATS_LOG_FREQUENCY_S 15
 #define CAN_MESSAGE_TOTAL_BIT_SIZE 128
-#define MAX_DYNAMIC_MESSAGE_COUNT 128
-#define DYNAMIC_MESSAGE_MAP_LOAD_FACTOR 10
+#define MAX_DYNAMIC_MESSAGE_COUNT 64
+#define DYNAMIC_MESSAGE_MAP_LOAD_FACTOR 15
 
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
@@ -193,7 +193,7 @@ CanBus* openxc::can::lookupBus(uint8_t address, CanBus* buses, const int busCoun
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
     CanMessageDefinition* message = lookupMessageDefinition(bus, id, NULL, 0);
-    if(message == NULL) {
+    if(message == NULL && !emhashmap_is_full(&bus->dynamicMessages)) {
         message = new CanMessageDefinition();
         if(message != NULL) {
             message->bus = bus;

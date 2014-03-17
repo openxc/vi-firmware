@@ -12,6 +12,7 @@
 #include "bluetooth.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
+#include "obd2.h"
 #include "data_emulator.h"
 #include "config.h"
 #include "commands.h"
@@ -136,6 +137,9 @@ void initializeVehicleInterface() {
     diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
             getCanBusCount());
     signals::initialize(&getConfiguration()->diagnosticsManager);
+    // TODO hard coding bus 0? need a flag to control whether or not obd2 is
+    // used
+    diagnostics::obd2::initialize(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
 }
 
 void firmwareLoop() {
@@ -152,6 +156,10 @@ void firmwareLoop() {
         receiveCan(&getConfiguration()->pipeline, bus);
         diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
     }
+
+    // TODO hard coding ok? need a flag to control if this is used
+    diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
 
     usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
     uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);

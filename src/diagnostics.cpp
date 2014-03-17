@@ -4,6 +4,7 @@
 #include "can/canread.h"
 #include "util/log.h"
 #include "util/timer.h"
+#include "obd2.h"
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
@@ -130,6 +131,17 @@ static bool sendDiagnosticCanMessageBus2(
             size);
 }
 
+void openxc::diagnostics::reset(DiagnosticsManager* manager) {
+    TAILQ_INIT(&manager->activeRequests);
+    LIST_INIT(&manager->inFlightRequests);
+    LIST_INIT(&manager->freeActiveRequests);
+
+    for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
+        LIST_INSERT_HEAD(&manager->freeActiveRequests,
+                &manager->requestListEntries[i], listEntries);
+    }
+}
+
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         int busCount) {
     if(busCount > 0) {
@@ -141,14 +153,7 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
         }
     }
 
-    TAILQ_INIT(&manager->activeRequests);
-    LIST_INIT(&manager->inFlightRequests);
-    LIST_INIT(&manager->freeActiveRequests);
-
-    for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
-        LIST_INSERT_HEAD(&manager->freeActiveRequests,
-                &manager->requestListEntries[i], listEntries);
-    }
+    reset(manager);
 }
 
 /* Private: Returns true if there are no other active requests to the same arb

@@ -71,6 +71,8 @@ typedef struct {
 
 void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
 
+void reset(DiagnosticsManager* manager);
+
 /* Public:
  *
  * frequencyHz - a value of 0 means it's a non-recurring request.

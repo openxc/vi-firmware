@@ -12,7 +12,7 @@ namespace obd2 {
 
 void loop(DiagnosticsManager* manager, CanBus* bus);
 
-void initialize(DiagnosticsManager* manager, CanBus* bus);
+void initialize(DiagnosticsManager* manager);
 
 } // namespace obd2
 } // namespace diagnostics

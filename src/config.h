@@ -27,6 +27,7 @@ typedef struct {
     openxc::interface::usb::UsbDevice usb;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;
+    CanBus* obd2Bus;
 } Configuration;
 
 Configuration* getConfiguration();

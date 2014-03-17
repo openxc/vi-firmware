@@ -134,12 +134,10 @@ void initializeVehicleInterface() {
     debug("Initializing as %s", signals::getActiveMessageSet()->name);
     BUS_WAS_ACTIVE = false;
     initializeAllCan();
-    diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
-            getCanBusCount());
+
+    diagnostics::initialize(&getConfiguration()->diagnosticsManager,
+            getCanBuses(), getCanBusCount(), getConfiguration()->obd2Bus);
     signals::initialize(&getConfiguration()->diagnosticsManager);
-    // TODO hard coding bus 0? need a flag to control whether or not obd2 is
-    // used
-    diagnostics::obd2::initialize(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
 }
 
 void firmwareLoop() {

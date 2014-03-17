@@ -31,13 +31,19 @@ namespace diagnostics {
 typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
         float parsed_payload);
 
+typedef void (*DiagnosticResponseCallback)(
+            struct DiagnosticsManager* manager,
+            const struct ActiveDiagnosticRequest* request,
+            const DiagnosticResponse* response,
+            float parsed_payload);
+
 /* Public:
  *
  * If genericName is null, output will be in raw OBD-II response format.
  *
  * If decoder is null, output will include the raw payload instead of a value.
  */
-typedef struct {
+struct ActiveDiagnosticRequest {
     CanBus* bus;
     uint32_t arbitration_id;
     DiagnosticRequestHandle handle;
@@ -46,11 +52,13 @@ typedef struct {
     float factor;
     float offset;
     DiagnosticResponseDecoder decoder;
+    DiagnosticResponseCallback callback;
     bool recurring;
     bool waitForMultipleResponses;
     openxc::util::time::FrequencyClock frequencyClock;
     openxc::util::time::FrequencyClock timeoutClock;
-} ActiveDiagnosticRequest;
+};
+typedef struct ActiveDiagnosticRequest ActiveDiagnosticRequest;
 
 struct DiagnosticRequestListEntry {
     ActiveDiagnosticRequest request;
@@ -61,15 +69,18 @@ struct DiagnosticRequestListEntry {
 LIST_HEAD(DiagnosticRequestList, DiagnosticRequestListEntry);
 TAILQ_HEAD(DiagnosticRequestQueue, DiagnosticRequestListEntry);
 
-typedef struct {
+struct DiagnosticsManager {
     DiagnosticShims shims[MAX_SHIM_COUNT];
+    CanBus* obd2Bus;
     DiagnosticRequestQueue activeRequests;
     DiagnosticRequestList inFlightRequests;
     DiagnosticRequestList freeActiveRequests;
     DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
-} DiagnosticsManager;
+};
+typedef struct DiagnosticsManager DiagnosticsManager;
 
-void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount);
+void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount,
+        CanBus* obd2Bus);
 
 void reset(DiagnosticsManager* manager);
 
@@ -80,7 +91,8 @@ void reset(DiagnosticsManager* manager);
 bool addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
-        const openxc::diagnostics::DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback,
         float frequencyHz, bool waitForMultipleResponses);
 
 bool addDiagnosticRequest(DiagnosticsManager* manager,

@@ -7,6 +7,8 @@
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
 
+using openxc::diagnostics::ActiveDiagnosticRequest;
+using openxc::diagnostics::DiagnosticsManager;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getMessages;
@@ -60,7 +62,7 @@ void setup() {
     getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     resetQueues();
     diagnostics::initialize(&getConfiguration()->diagnosticsManager, getCanBuses(),
-            getCanBusCount());
+            getCanBusCount(), NULL);
 }
 
 START_TEST (test_add_recurring_too_frequent)
@@ -168,7 +170,7 @@ END_TEST
 START_TEST (test_add_request_other_bus)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[1], &request, "mypid", false, 1, 0, NULL, 0, false));
+                &getCanBuses()[1], &request, "mypid", false, 1, 0, NULL, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[1]);
     fail_if(canQueueEmpty(1));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[1],
@@ -185,7 +187,7 @@ END_TEST
 START_TEST (test_add_request_with_name)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 1, 0, NULL, 0, false));
+            &getCanBuses()[0], &request, "mypid", false, 1, 0, NULL, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -202,7 +204,7 @@ END_TEST
 START_TEST (test_scaling)
 {
     ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 2.0, 14, NULL, 0, false));
+            &getCanBuses()[0], &request, "mypid", false, 2.0, 14, NULL, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -224,14 +226,40 @@ static float decodeFloatTimes2(const DiagnosticResponse* response,
 START_TEST (test_add_request_with_decoder_no_name_allowed)
 {
     fail_unless(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, 1, 0, decodeFloatTimes2, 0, false));
+            &getCanBuses()[0], &request, NULL, false, 1, 0, decodeFloatTimes2, NULL, 0, false));
+}
+END_TEST
+
+static const ActiveDiagnosticRequest* CALLBACK_REQUEST = NULL;
+static const DiagnosticResponse* CALLBACK_RESPONSE = NULL;
+void myCallback(DiagnosticsManager* manager,
+        const ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response,
+        float parsed_payload) {
+   ck_assert(manager == &getConfiguration()->diagnosticsManager);
+   CALLBACK_REQUEST = request;
+   CALLBACK_RESPONSE = response;
+}
+
+START_TEST (test_request_callback)
+{
+    fail_unless(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, 1, 0, NULL, myCallback, 0, false));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    ck_assert(CALLBACK_REQUEST->arbitration_id == request.arbitration_id);
+
+    ck_assert(CALLBACK_RESPONSE->arbitration_id == request.arbitration_id + 0x8);
+    ck_assert(CALLBACK_RESPONSE->mode == request.mode);
+    ck_assert(CALLBACK_RESPONSE->pid == request.pid);
 }
 END_TEST
 
 START_TEST (test_add_request_with_name_and_decoder)
 {
     fail_unless(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 1, 0, decodeFloatTimes2, 0, false));
+            &getCanBuses()[0], &request, "mypid", false, 1, 0, decodeFloatTimes2, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -513,7 +541,7 @@ START_TEST(test_broadcast_accept_multiple_responses)
 {
     request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
     ck_assert(diagnostics::addDiagnosticRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, 1.0, 0, NULL, 0, true));
+            &getCanBuses()[0], &request, NULL, false, 1.0, 0, NULL, NULL, 0, true));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -562,7 +590,7 @@ START_TEST(test_parsed_payload)
 {
     ck_assert(diagnostics::addDiagnosticRequest(
              &getConfiguration()->diagnosticsManager,
-             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, 0, false));
+             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, NULL, 0, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -730,6 +758,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_command_multiple_responses);
     tcase_add_test(tc_core, test_command_multiple_responses_default_broadcast);
     tcase_add_test(tc_core, test_command_single_response_default);
+
+    tcase_add_test(tc_core, test_request_callback);
 
     suite_add_tcase(s, tc_core);
 

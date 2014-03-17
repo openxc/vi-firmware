@@ -143,10 +143,12 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
-        int busCount) {
+        int busCount, CanBus* obd2Bus) {
     if(busCount > 0) {
         manager->shims[0] = diagnostic_init_shims(openxc::util::log::debug,
                 sendDiagnosticCanMessageBus1, NULL);
+        manager->obd2Bus = obd2Bus;
+        obd2::initialize(manager);
         if(busCount > 1) {
             manager->shims[1] = diagnostic_init_shims(openxc::util::log::debug,
                     sendDiagnosticCanMessageBus2, NULL);
@@ -154,6 +156,7 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
     }
 
     reset(manager);
+
 }
 
 /* Private: Returns true if there are no other active requests to the same arb
@@ -245,13 +248,15 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
+static void relayDiagnosticResponse(DiagnosticsManager* manager,
+        ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
     float value = diagnostic_payload_to_integer(response) *
             request->factor + request->offset;
     if(request->decoder != NULL) {
         value = request->decoder(response, value);
     }
+
     if(response->success && strnlen(
                 request->genericName, sizeof(request->genericName)) > 0) {
         sendNumericalMessage(request->genericName, value, pipeline);
@@ -259,6 +264,10 @@ static void relayDiagnosticResponse(ActiveDiagnosticRequest* request,
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
                 request->bus, request, response, value);
         pipeline::sendVehicleMessage(&message, pipeline);
+    }
+
+    if(request->callback != NULL) {
+        request->callback(manager, request, response, value);
     }
 }
 
@@ -280,7 +289,8 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
                 sizeof(combined.bytes));
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
-                relayDiagnosticResponse(&entry->request, &response, pipeline);
+                relayDiagnosticResponse(manager, &entry->request, &response,
+                        pipeline);
 
                 if(responseReceived(&entry->request)) {
                     LIST_REMOVE(entry, listEntries);
@@ -330,6 +340,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
+        const openxc::diagnostics::DiagnosticResponseCallback callback,
         float frequencyHz, bool waitForMultipleResponses) {
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
@@ -388,6 +399,7 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
     entry->request.factor = factor;
     entry->request.offset = offset;
     entry->request.decoder = decoder;
+    entry->request.callback = callback;
     entry->request.recurring = frequencyHz != 0;
     entry->request.frequencyClock = {0};
     entry->request.frequencyClock.frequency =
@@ -419,14 +431,14 @@ bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         bool parsePayload, float factor, float offset,
         float frequencyHz, bool waitForMultipleResponses) {
     return addDiagnosticRequest(manager, bus, request, genericName,
-            parsePayload, factor, offset, NULL, frequencyHz,
+            parsePayload, factor, offset, NULL, NULL, frequencyHz,
             waitForMultipleResponses);
 }
 
 bool openxc::diagnostics::addDiagnosticRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, float frequencyHz) {
     return addDiagnosticRequest(manager, bus, request, NULL, false, 1.0, 0,
-            NULL, frequencyHz, false);
+            NULL, NULL, frequencyHz, false);
 }
 
 bool openxc::diagnostics::handleDiagnosticCommand(

@@ -55,6 +55,7 @@ struct ActiveDiagnosticRequest {
     DiagnosticResponseCallback callback;
     bool recurring;
     bool waitForMultipleResponses;
+    bool inFlight;
     openxc::util::time::FrequencyClock frequencyClock;
     openxc::util::time::FrequencyClock timeoutClock;
 };
@@ -62,6 +63,8 @@ typedef struct ActiveDiagnosticRequest ActiveDiagnosticRequest;
 
 struct DiagnosticRequestListEntry {
     ActiveDiagnosticRequest request;
+    // TODO these couuld be pushed down into ActiveDiagnosticRequest to save 4
+    // bytes each
     TAILQ_ENTRY(DiagnosticRequestListEntry) queueEntries;
     LIST_ENTRY(DiagnosticRequestListEntry) listEntries;
 };
@@ -72,9 +75,10 @@ TAILQ_HEAD(DiagnosticRequestQueue, DiagnosticRequestListEntry);
 struct DiagnosticsManager {
     DiagnosticShims shims[MAX_SHIM_COUNT];
     CanBus* obd2Bus;
-    DiagnosticRequestQueue activeRequests;
+    DiagnosticRequestQueue recurringRequests;
+    DiagnosticRequestList nonrecurringRequests;
     DiagnosticRequestList inFlightRequests;
-    DiagnosticRequestList freeActiveRequests;
+    DiagnosticRequestList freeRequestEntries;
     DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 };
 typedef struct DiagnosticsManager DiagnosticsManager;
@@ -88,20 +92,23 @@ void reset(DiagnosticsManager* manager);
  *
  * frequencyHz - a value of 0 means it's a non-recurring request.
  */
-bool addDiagnosticRequest(DiagnosticsManager* manager,
+bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback,
         float frequencyHz, bool waitForMultipleResponses);
 
-bool addDiagnosticRequest(DiagnosticsManager* manager,
+bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
         bool parsePayload, float factor, float offset,
         float frequencyHz, bool waitForMultipleResponses);
 
-bool addDiagnosticRequest(DiagnosticsManager* manager, CanBus* bus,
+bool addRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, float frequencyHz);
+
+bool cancelRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request);
 
 void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
         CanMessage* message, openxc::pipeline::Pipeline* pipeline);

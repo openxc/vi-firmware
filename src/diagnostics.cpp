@@ -305,7 +305,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     cleanupActiveRequests(manager);
 }
 
-/* Note that this pops it off of whichver list it wason and returns it, so make
+/* Note that this pops it off of whichver list it was on and returns it, so make
  * sure to add it to some other list or it'll be lost.
  */
 static DiagnosticRequestListEntry* lookupExistingRequest(

@@ -64,27 +64,20 @@ static void checkSupportedPids(DiagnosticsManager* manager,
     }
 }
 
-static void createRecurringIgnitionStatusCheck(DiagnosticsManager* manager) {
-    // TODO how do we protect these? don't want to be able to delete them,
-    // otherwise we could lose track of ignition we also don't want to blow away
-    // an existing request at a faster frequency. may need to update API in
-    // ::diagnostics. a simple 'force update' flag? but we *do* want to force
-    // update if someone else set it to less than 1hz. this exposes a weakness
-    // in the update/delete API, since there's no unique ID assigned to each
-    // request you add. probably overthinking it.
+static void requestIgnitionStatus(DiagnosticsManager* manager) {
     DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
             mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
     addDiagnosticRequest(manager, manager->obd2Bus, &request, "engine_speed",
-            false, 1, 0, NULL, checkIgnitionStatus, 1, false);
+            false, 1, 0, NULL, checkIgnitionStatus, 0, false);
 
     request.pid = VEHICLE_SPEED_PID;
     addDiagnosticRequest(manager, manager->obd2Bus, &request, "vehicle_speed",
-            false, 1, 0, NULL, checkIgnitionStatus, 1, false);
+            false, 1, 0, NULL, checkIgnitionStatus, 0, false);
 }
 
 void openxc::diagnostics::obd2::initialize(DiagnosticsManager* manager) {
     if(manager->obd2Bus != NULL) {
-        createRecurringIgnitionStatusCheck(manager);
+        requestIgnitionStatus(manager);
         time::tick(&IGNITION_STATUS_TIMER);
     } else {
         debug("No bus configured for OBD2 queries, not enabling");
@@ -101,15 +94,25 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
     static bool pidSupportQueried = false;
 
     if((ignitionWasOn && !ENGINE_STARTED && !VEHICLE_IN_MOTION) ||
-            time::elapsed(&IGNITION_STATUS_TIMER, false)) {
+            (sentFinalIgnitionCheck && time::elapsed(&IGNITION_STATUS_TIMER, false))) {
         // remove all open diagnostic requests, which shuld cause the bus to go
         // silent if the car is off, and thus the VI to suspend. TODO kick off
         // watchdog!
         diagnostics::reset(manager);
         ignitionWasOn = false;
         pidSupportQueried = false;
+    } else if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
+        // We haven't received an ignition in 5 seconds. Either the user didn't
+        // have either OBD-II request configured as a recurring request (which
+        // is fine) or they did, but the car stopped responding. Kick off
+        // another request to see which is true. It will take 5+5 seconds after
+        // ignition off to decide we should shut down.
+        requestIgnitionStatus();
+        time::tick(&IGNITION_STATUS_TIMER);
+        sentFinalIgnitionCheck = true;
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
         ignitionWasOn = true;
+        sentFinalIgnitionCheck = false;
         // TODO check a flag to decide if the user wants the OBD-II set enabled
         if(!pidSupportQueried) {
             pidSupportQueried = true;

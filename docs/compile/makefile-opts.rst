@@ -51,6 +51,10 @@ These options are passed as shell environment variables to the Makefile, e.g.
 - ``BINARY_OUTPUT`` - By default, the output format is JSON. Set this to ``1``
   to use a binary output format, described more in :doc:`/advanced/binary`.
 
+- ``INCLUDE_RECURRING_OBD2_REQUESTS`` - Define this flag (e.g. set it to ``1``)
+  to include a set of recurring OBD-II requests in the build, to be requests
+  immediately on startup.
+
 - ``BOOTLOADER`` - By default, the firmware is built to run on a microcontroller
   with a bootloader (if one is available for the selected platform), allowing
   you to update the firmware without specialized hardware. If you want to build

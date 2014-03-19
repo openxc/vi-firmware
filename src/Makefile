@@ -68,6 +68,11 @@ ifeq ($(LOG_STATS), 1)
 SYMBOLS += __LOG_STATS__
 endif
 
+INCLUDE_RECURRING_OBD2_REQUESTS ?= 0
+ifeq ($(INCLUDE_RECURRING_OBD2_REQUESTS), 1)
+SYMBOLS += __INCLUDE_RECURRING_OBD2_REQUESTS__
+endif
+
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 # ifeq ($(NETWORK), 1)
 # SYMBOLS += __USE_NETWORK__
@@ -141,6 +146,7 @@ define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
+	$(call show_vi_config_variable,INCLUDE_RECURRING_OBD2_REQUESTS)
 	$(call show_vi_config_variable,UART_LOGGING)
 	$(call show_vi_config_variable,BENCHTEST)
 	$(call show_vi_config_variable,LOG_STATS)

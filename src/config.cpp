@@ -31,8 +31,12 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
             PayloadFormat::JSON,
 #endif
         initialized: false,
-        // TODO allow override with a preprocessor flag
-        recurringObd2Requests: false,
+        recurringObd2Requests:
+#ifdef __INCLUDE_RECURRING_OBD2_REQUESTS__
+            true,
+#else
+            false,
+#endif
         uart: {
             baudRate: UART_BAUD_RATE
         },

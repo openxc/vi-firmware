@@ -38,6 +38,7 @@ typedef struct {
     bool sendCanAcks;
     bool emulatedData;
     bool uartLogging;
+    bool calculateMetrics;
 } Configuration;
 
 Configuration* getConfiguration();

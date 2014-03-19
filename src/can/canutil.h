@@ -115,15 +115,7 @@ struct CanMessage {
 };
 typedef struct CanMessage CanMessage;
 
-QUEUE_DECLARE(CanMessage,
-#ifdef __LOG_STATS__
-    // because the stats logging blocks the main loop much longer than normal,
-    // we need to increase the incoming CAN buffer so we don't drop messages
-    40
-#else
-    8
-#endif // __LOG_STATS__
-);
+QUEUE_DECLARE(CanMessage, 8);
 
 
 /* Private: An entry in the list of acceptance filters for each CanBus.
@@ -195,14 +187,16 @@ struct CanBus {
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;
-#ifdef __LOG_STATS__
+
+    // TODO These are unnecessary if you aren't calculating metrics, and they do
+    // take up a big of memory.
     openxc::util::statistics::DeltaStatistic totalMessageStats;
     openxc::util::statistics::DeltaStatistic droppedMessageStats;
     openxc::util::statistics::DeltaStatistic receivedMessageStats;
     openxc::util::statistics::DeltaStatistic receivedDataStats;
     openxc::util::statistics::Statistic sendQueueStats;
     openxc::util::statistics::Statistic receiveQueueStats;
-#endif // __LOG_STATS__
+
     QUEUE_TYPE(CanMessage) sendQueue;
     QUEUE_TYPE(CanMessage) receiveQueue;
 };

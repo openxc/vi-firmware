@@ -103,8 +103,8 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_gen
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, DEBUG=0, mapped_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, DEBUG=0, copy_passthrough_signals))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1, , all))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1 DEBUG=0, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, DEFAULT_METRICS_STATUS=1 DEBUG=0, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 DEFAULT_METRICS_STATUS=1, code_generation_test))
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_compile_test, NETWORK=1, code_generation_test))
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, DEFAULT_ALLOW_RAW_WRITE_NETWORK=1, code_generation_test))

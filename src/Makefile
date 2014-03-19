@@ -47,16 +47,16 @@ else
 	SYMBOLS += NDEBUG
 endif
 
-LOG_STATS ?= 0
-ifeq ($(LOG_STATS), 1)
-	SYMBOLS += __LOG_STATS__
-endif
-
 TRANSMITTER ?= 0
 ifeq ($(TRANSMITTER), 1)
 	DEFAULT_POWER_MANAGEMENT = OFF
 	DEFAULT_USB_PRODUCT_ID = 0x2
 endif
+
+
+# 0 or 1
+DEFAULT_METRICS_STATUS ?= 0
+SYMBOLS += DEFAULT_METRICS_STATUS=$(DEFAULT_METRICS_STATUS)
 
 # 0 or 1
 DEFAULT_UART_LOGGING_STATUS ?= 0
@@ -163,7 +163,7 @@ define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
-	$(call show_vi_config_variable,LOG_STATS)
+	$(call show_vi_config_variable,DEFAULT_METRICS_STATUS)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_NETWORK)

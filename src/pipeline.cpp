@@ -154,7 +154,10 @@ void openxc::pipeline::process(Pipeline* pipeline) {
 }
 
 void openxc::pipeline::logStatistics(Pipeline* pipeline) {
-#ifdef __LOG_STATS__
+    if(!config::getConfiguration()->calculateMetrics) {
+        return;
+    }
+
     static unsigned long lastTimeLogged;
     static DeltaStatistic droppedMessageStats[PIPELINE_ENDPOINT_COUNT];
     static DeltaStatistic sentMessageStats[PIPELINE_ENDPOINT_COUNT];
@@ -212,5 +215,4 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             lastTimeLogged = time::systemTimeMs();
         }
     }
-#endif // __LOG_STATS__
 }

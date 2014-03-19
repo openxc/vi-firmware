@@ -3,12 +3,14 @@
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "util/log.h"
+#include "config.h"
 
 #define BUS_STATS_LOG_FREQUENCY_S 15
 #define CAN_MESSAGE_TOTAL_BIT_SIZE 128
 
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;
+namespace config = openxc::config;
 
 using openxc::util::log::debug;
 using openxc::util::statistics::DeltaStatistic;
@@ -36,14 +38,12 @@ void openxc::can::initializeCommon(CanBus* bus) {
                 &bus->definitionEntries[i], entries);
     }
 
-#ifdef __LOG_STATS__
     statistics::initialize(&bus->totalMessageStats);
     statistics::initialize(&bus->droppedMessageStats);
     statistics::initialize(&bus->receivedMessageStats);
     statistics::initialize(&bus->receivedDataStats);
     statistics::initialize(&bus->sendQueueStats);
     statistics::initialize(&bus->receiveQueueStats);
-#endif // __LOG_STATS__
 }
 
 void openxc::can::destroy(CanBus* bus) {
@@ -236,7 +236,10 @@ bool openxc::can::signalsWritable(CanBus* bus, CanSignal* signals,
 }
 
 void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
-#ifdef __LOG_STATS__
+    if(!config::getConfiguration()->calculateMetrics) {
+        return;
+    }
+
     static DeltaStatistic totalMessageStats;
     static DeltaStatistic receivedMessageStats;
     static DeltaStatistic droppedMessageStats;
@@ -336,7 +339,6 @@ void openxc::can::logBusStatistics(CanBus* buses, const int busCount) {
             }
         }
     }
-#endif // __LOG_STATS__
 }
 
 bool openxc::can::configureDefaultFilters(CanBus* bus,

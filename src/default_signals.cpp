@@ -8,14 +8,14 @@
 using openxc::pipeline::Pipeline;
 using openxc::diagnostics::DiagnosticsManager;
 
-#ifdef __LPC17XX__
+#if defined(__LPC17XX__)
 #define can1 LPC_CAN1
-#endif // __LPC17XX__
-
-#ifdef __PIC32__
+#elif defined(__PIC32__)
 extern void* can1;
 extern void handleCan1Interrupt();
-#endif // __PIC32__
+#else
+#define can1 NULL
+#endif // __LPC17XX__
 
 CanBus defaultBus = {
     125000, 1, can1,

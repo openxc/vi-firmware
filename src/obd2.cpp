@@ -119,7 +119,6 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
         ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
-        // TODO check a flag to decide if the user wants the OBD-II set enabled
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {
             pidSupportQueried = true;
             DiagnosticRequest request = {

@@ -27,9 +27,9 @@ These options are passed as shell environment variables to the Makefile, e.g.
 - ``LOG_STATS`` - Set to ``1`` to enable logging CAN message and output message
   statistics over the normal DEBUG output.
 
-- ``BENCHTEST`` - Set to ``1`` to enable write mode on the CAN controllers so
-  messages are ACKed. SEe the :doc:`testing section </testing>` for more
-  details.
+- ``DEFAULT_CAN_ACK_STATUS`` - Set to ``1`` to enable write mode on the CAN
+  controllers by default, so messages are ACKed. See the :doc:`testing section </testing>`
+  for more details.
 
 - ``NETWORK`` - By default, TCP output of OpenXC vehicle data is disabled. Set
   this to ``1`` to enable TCP output on boards that have an Network interface

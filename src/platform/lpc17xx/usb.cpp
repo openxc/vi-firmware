@@ -55,7 +55,6 @@ void configureEndpoints() {
 extern "C" {
 
 void EVENT_USB_Device_Disconnect() {
-    debug("USB no longer detected - marking unconfigured");
     getConfiguration()->usb.configured = false;
 }
 
@@ -169,6 +168,7 @@ bool usbHostDetected(UsbDevice* usbDevice) {
         debounce = 0;
     }
 
+    bool hostDetected = true;
     if(!usbDevice->configured && average < USB_HOST_DETECT_ACTIVE_VALUE) {
         EVENT_USB_Device_ConfigurationChanged();
     }
@@ -176,9 +176,9 @@ bool usbHostDetected(UsbDevice* usbDevice) {
     if(average > USB_HOST_DETECT_INACTIVE_VALUE) {
         debounce = 0;
         average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
-        return false;
+        hostDetected = false;
     }
-    return true;
+    return hostDetected;
 }
 
 /* Private: Configure I/O pins used to detect if USB is connected to a host. */

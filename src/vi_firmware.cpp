@@ -38,6 +38,7 @@ using openxc::signals::getSignalCount;
 using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
+using openxc::config::PowerManagement;
 
 static bool BUS_WAS_ACTIVE;
 
@@ -73,12 +74,10 @@ void updateDataLights() {
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         lights::enable(lights::LIGHT_A, lights::COLORS.red);
         BUS_WAS_ACTIVE = false;
-#ifndef TRANSMITTER
-#ifndef __DEBUG__
-        // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
-        platform::suspend(&getConfiguration()->pipeline);
-#endif
-#endif
+        if(getConfiguration()->powerManagement != PowerManagement::OFF) {
+            // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
+            platform::suspend(&getConfiguration()->pipeline);
+        }
     }
 }
 

@@ -57,14 +57,11 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 #ifdef OBD2_BUILD
             // TODO hard coding bus for OBD2 as bus 1 for now, could make this
             // configurable.
-            // TODO need an option to enable/disable obd2 stuff completely, which
-            // will also disable the inferred ignition status check, but sometimes
-            // that's what you want (e.g. the normal OpenXC builds with only normal
-            // mode CAN messages).
-            config->diagnosticsManager.obd2Bus = &getCanBuses()[0];
+            &getCanBuses()[0],
 #else
-            NULL
+            NULL,
 #endif
+        powerManagement: DEFAULT_POWER_MANAGEMENT,
     };
 
     if(!CONFIG.initialized) {

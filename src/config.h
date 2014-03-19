@@ -16,19 +16,25 @@
 namespace openxc {
 namespace config {
 
+typedef enum {
+    OFF,
+    SILENT_CAN,
+    OBD2_IGNITION_CHECK,
+} PowerManagement;
+
 typedef struct {
     int messageSetIndex;
     const char* version;
     openxc::payload::PayloadFormat payloadFormat;
     bool initialized;
     bool recurringObd2Requests;
-
     openxc::interface::uart::UartDevice uart;
     openxc::interface::network::NetworkDevice network;
     openxc::interface::usb::UsbDevice usb;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;
     CanBus* obd2Bus;
+    PowerManagement powerManagement;
 } Configuration;
 
 Configuration* getConfiguration();

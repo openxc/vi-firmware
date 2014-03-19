@@ -54,6 +54,7 @@ NETWORK_ALLOW_RAW_WRITE ?= 0
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 SYMBOLS += __DEBUG__
+DEFAULT_POWER_MANAGEMENT = PowerManagement::OFF
 else
 SYMBOLS += NDEBUG
 endif
@@ -72,6 +73,9 @@ INCLUDE_RECURRING_OBD2_REQUESTS ?= 0
 ifeq ($(INCLUDE_RECURRING_OBD2_REQUESTS), 1)
 SYMBOLS += __INCLUDE_RECURRING_OBD2_REQUESTS__
 endif
+
+DEFAULT_POWER_MANAGEMENT ?= PowerManagement::SILENT_CAN
+SYMBOLS += DEFAULT_POWER_MANAGEMENT=$(DEFAULT_POWER_MANAGEMENT)
 
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 # ifeq ($(NETWORK), 1)
@@ -156,6 +160,7 @@ define show_options
 	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,EMULATOR)
 	$(call show_vi_config_variable,TRANSMITTER)
+	$(call show_vi_config_variable,DEFAULT_POWER_MANAGEMENT)
 	$(call show_separator)
 endef
 

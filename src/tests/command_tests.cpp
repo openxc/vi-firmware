@@ -43,6 +43,7 @@ static bool canQueueEmpty(int bus) {
 }
 
 void setup() {
+    getConfiguration()->desiredRunLevel = openxc::config::RunLevel::ALL_IO;
     getConfiguration()->obd2BusAddress = 0;
     initializeVehicleInterface();
     getConfiguration()->usb.configured = true;

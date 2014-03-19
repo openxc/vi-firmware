@@ -27,6 +27,10 @@ void suspend();
  */
 void handleWake();
 
+void enableWatchdogTimer(int microseconds);
+
+void disableWatchdogTimer();
+
 } // namespace power
 } // namespace openxc
 

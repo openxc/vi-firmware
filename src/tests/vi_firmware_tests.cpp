@@ -20,7 +20,7 @@ extern unsigned long FAKE_TIME;
 // TODO this should be refactored out of vi_firmware.cpp, and include a header
 // file so we don't have to use extern.
 extern void receiveCan(Pipeline* pipeline, CanBus* bus);
-extern void updateDataLights();
+extern void checkBusActivity();
 extern void initializeVehicleInterface();
 extern void firmwareLoop();
 
@@ -41,7 +41,7 @@ START_TEST (test_update_data_lights_can_active)
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
     receiveCan(&getConfiguration()->pipeline, bus);
 
-    updateDataLights();
+    checkBusActivity();
     ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
                 openxc::lights::COLORS.blue));
 }
@@ -50,7 +50,7 @@ END_TEST
 START_TEST (test_update_data_lights_can_inactive)
 {
 
-    updateDataLights();
+    checkBusActivity();
     ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
                 openxc::lights::COLORS.red));
 
@@ -73,7 +73,7 @@ START_TEST (test_update_data_lights_suspend)
 
     FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
 
-    updateDataLights();
+    checkBusActivity();
 #ifdef __DEBUG__
     ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
                 openxc::lights::COLORS.red));

@@ -49,6 +49,8 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         emulatedData: DEFAULT_EMULATED_DATA_STATUS,
         uartLogging: DEFAULT_UART_LOGGING_STATUS,
         calculateMetrics: DEFAULT_METRICS_STATUS,
+        runLevel: RunLevel::NOT_RUNNING,
+        desiredRunLevel: RunLevel::CAN_ONLY,
     };
 
     if(!CONFIG.initialized) {

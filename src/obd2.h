@@ -16,7 +16,7 @@ typedef struct {
     float frequency;
 } Obd2Pid;
 
-void loop(DiagnosticsManager* manager, CanBus* bus);
+void loop(DiagnosticsManager* manager);
 
 void initialize(DiagnosticsManager* manager);
 

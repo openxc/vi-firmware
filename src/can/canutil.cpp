@@ -15,7 +15,7 @@ namespace config = openxc::config;
 using openxc::util::log::debug;
 using openxc::util::statistics::DeltaStatistic;
 
-const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 10;
+const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 5;
 
 void openxc::can::initializeCommon(CanBus* bus) {
     debug("Initializing CAN node %d...", bus->address);

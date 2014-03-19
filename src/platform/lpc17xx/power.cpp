@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_clkpwr.h"
+#include "lpc17xx_wdt.h"
 
 #define POWER_CONTROL_PORT 2
 #define POWER_CONTROL_PIN 13
@@ -98,7 +99,18 @@ void openxc::power::suspend() {
     // Disable brown-out detection when we go into lower power
     LPC_SC->PCON |= (1 << 2);
 
+    // TODO do we need to disable and disconnect the main PLL0 before ending
+    // deep sleep, accoridn gto errata lpc1768-16.march2010? it's in some
+    // example code from NXP.
     CLKPWR_DeepSleep();
+}
+
+void openxc::power::enableWatchdogTimer(int microseconds) {
+    WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
+    WDT_Start(microseconds);
+}
+
+void openxc::power::disableWatchdogTimer() {
 }
 
 extern "C" {

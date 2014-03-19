@@ -40,6 +40,7 @@ using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::config::PowerManagement;
+using openxc::config::RunLevel;
 
 static bool BUS_WAS_ACTIVE;
 
@@ -61,7 +62,7 @@ void updateInterfaceLight() {
  * of the CAN bus. This function is intended to be called each time through the
  * main program loop.
  */
-void updateDataLights() {
+void checkBusActivity() {
     bool busActive = false;
     for(int i = 0; i < getCanBusCount(); i++) {
         busActive = busActive || can::busActive(&getCanBuses()[i]);
@@ -75,7 +76,7 @@ void updateDataLights() {
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
         lights::enable(lights::LIGHT_A, lights::COLORS.red);
         BUS_WAS_ACTIVE = false;
-        if(getConfiguration()->powerManagement != PowerManagement::OFF) {
+        if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
             platform::suspend(&getConfiguration()->pipeline);
         }
@@ -111,35 +112,54 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
     }
 }
 
+void initializeIO() {
+    debug("Moving to ALL I/O runlevel");
+    usb::initialize(&getConfiguration()->usb);
+    uart::initialize(&getConfiguration()->uart);
+
+    bluetooth::initialize(&getConfiguration()->uart);
+    network::initialize(&getConfiguration()->network);
+    getConfiguration()->runLevel = RunLevel::ALL_IO;
+    debug("Now running with all I/O active");
+}
+
 void initializeVehicleInterface() {
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();
-    lights::initialize();
     power::initialize();
-    usb::initialize(&getConfiguration()->usb);
-    uart::initialize(&getConfiguration()->uart);
-
-    updateInterfaceLight();
-
-    bluetooth::initialize(&getConfiguration()->uart);
-    network::initialize(&getConfiguration()->network);
+    lights::initialize();
 
     srand(time::systemTimeMs());
+    initializeAllCan();
 
     char descriptor[128];
     config::getFirmwareDescriptor(descriptor, sizeof(descriptor));
-    debug("Initializing %s", descriptor);
+    debug("Performing minimal initalization for %s", descriptor);
     BUS_WAS_ACTIVE = false;
-    initializeAllCan();
 
     diagnostics::initialize(&getConfiguration()->diagnosticsManager,
             getCanBuses(), getCanBusCount(),
             getConfiguration()->obd2BusAddress);
     signals::initialize(&getConfiguration()->diagnosticsManager);
+    getConfiguration()->runLevel = RunLevel::CAN_ONLY;
+
+    if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
+            // TODO this....or maybe it's not necessary
+            // && we are starting up because of wdt) {
+        getConfiguration()->desiredRunLevel = RunLevel::CAN_ONLY;
+    } else {
+        getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
+        initializeIO();
+    }
 }
 
 void firmwareLoop() {
+    if(getConfiguration()->runLevel != RunLevel::ALL_IO &&
+            getConfiguration()->desiredRunLevel == RunLevel::ALL_IO) {
+        initializeIO();
+    }
+
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
         // no USB or Bluetooth, the loop will stall here. Deep down in
@@ -154,28 +174,31 @@ void firmwareLoop() {
         diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
     }
 
-    // TODO hard coding ok? need a flag to control if this is used
-    diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0]);
+    diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager);
 
-    usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
-    uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
-    network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+    if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
+        usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
+        uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
+        network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+    }
 
     for(int i = 0; i < getCanBusCount(); i++) {
         can::write::flushOutgoingCanMessageQueue(&getCanBuses()[i]);
     }
 
-    updateDataLights();
+    checkBusActivity();
+    if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
+        updateInterfaceLight();
+    }
+
     openxc::signals::loop();
+
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
     if(getConfiguration()->emulatedData) {
         openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
     }
-
-    updateInterfaceLight();
 
     openxc::pipeline::process(&getConfiguration()->pipeline);
 }

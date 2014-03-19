@@ -17,10 +17,16 @@ namespace openxc {
 namespace config {
 
 typedef enum {
-    OFF,
+    ALWAYS_ON,
     SILENT_CAN,
     OBD2_IGNITION_CHECK,
 } PowerManagement;
+
+typedef enum {
+    NOT_RUNNING,
+    CAN_ONLY,
+    ALL_IO,
+} RunLevel;
 
 typedef struct {
     int messageSetIndex;
@@ -39,6 +45,8 @@ typedef struct {
     bool emulatedData;
     bool uartLogging;
     bool calculateMetrics;
+    RunLevel runLevel;
+    RunLevel desiredRunLevel;
 } Configuration;
 
 Configuration* getConfiguration();

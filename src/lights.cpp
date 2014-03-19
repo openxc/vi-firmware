@@ -39,8 +39,6 @@ void openxc::lights::deinitialize() {
 }
 
 void openxc::lights::initializeCommon() {
-    // give basic power indication ASAP, even if no CAN activity or output
-    // interface attached
     lights::enable(lights::LIGHT_A, lights::COLORS.red);
 }
 

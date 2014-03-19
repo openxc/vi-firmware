@@ -35,3 +35,10 @@ void openxc::power::suspend() {
 void openxc::power::handleWake() {
     SoftReset();
 }
+
+void openxc::power::enableWatchdogTimer(int microseconds) {
+    // TODO
+}
+
+void openxc::power::disableWatchdogTimer() {
+}

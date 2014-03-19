@@ -80,6 +80,9 @@ endif
 DEFAULT_POWER_MANAGEMENT ?= SILENT_CAN
 SYMBOLS += DEFAULT_POWER_MANAGEMENT=$(DEFAULT_POWER_MANAGEMENT)
 
+DEFAULT_EMULATED_DATA_STATUS ?= 0
+SYMBOLS += DEFAULT_EMULATED_DATA_STATUS=$(DEFAULT_EMULATED_DATA_STATUS)
+
 DEFAULT_USB_PRODUCT_ID ?= 0x1
 SYMBOLS += DEFAULT_USB_PRODUCT_ID=$(DEFAULT_USB_PRODUCT_ID)
 
@@ -166,8 +169,7 @@ define show_options
 	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
-	$(call show_vi_config_variable,EMULATOR)
-	$(call show_vi_config_variable,USB_PRODUCT_ID)
+	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)
 	$(call show_vi_config_variable,DEFAULT_POWER_MANAGEMENT)
 	$(call show_vi_config_variable,DEFAULT_USB_PRODUCT_ID)
 	$(call show_vi_config_variable,DEFAULT_CAN_ACK_STATUS)
@@ -175,11 +177,6 @@ define show_options
 endef
 
 include tests/tests.mk
-
-EMULATOR ?= 0
-emulator: SYMBOLS += EMULATE_VEHICLE_DATA
-emulator: EMULATOR = 1
-emulator: custom_all
 
 .DEFAULT_GOAL = custom_all
 

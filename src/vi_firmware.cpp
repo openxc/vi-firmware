@@ -167,9 +167,9 @@ void firmwareLoop() {
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
-#ifdef EMULATE_VEHICLE_DATA
-    openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
-#endif // EMULATE_VEHICLE_DATA
+    if(getConfiguration()->emulatedData) {
+        openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
+    }
 
     updateInterfaceLight();
 

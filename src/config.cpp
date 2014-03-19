@@ -63,6 +63,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 #endif
         powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
         sendCanAcks: DEFAULT_CAN_ACK_STATUS,
+        emulatedData: DEFAULT_EMULATED_DATA_STATUS,
     };
 
     if(!CONFIG.initialized) {
@@ -73,5 +74,6 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 
 void openxc::config::getFirmwareDescriptor(char* buffer, size_t length) {
     snprintf(buffer, length, "%s (%s)", getConfiguration()->version,
-            signals::getActiveMessageSet()->name);
+            signals::getActiveMessageSet() != NULL ?
+                signals::getActiveMessageSet()->name : "default");
 }

@@ -36,6 +36,7 @@ typedef struct {
     CanBus* obd2Bus;
     PowerManagement powerManagement;
     bool sendCanAcks;
+    bool emulatedData;
 } Configuration;
 
 Configuration* getConfiguration();

@@ -1,5 +1,5 @@
-#ifndef __EMULATOR_H__
-#define __EMULATOR_H__
+#ifndef __DATA_EMULATOR_H__
+#define __DATA_EMULATOR_H__
 
 #include "pipeline.h"
 
@@ -11,4 +11,4 @@ void generateFakeMeasurements(openxc::pipeline::Pipeline* pipeline);
 } // namespace emulator
 } // namespace openxc
 
-#endif // __EMULATOR_H__
+#endif // __DATA_EMULATOR_H__

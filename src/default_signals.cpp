@@ -18,7 +18,7 @@ extern void handleCan1Interrupt();
 #endif // __LPC17XX__
 
 CanBus defaultBus = {
-    125000, 1, can1,
+    500000, 1, can1,
         0, true,
         #ifdef __PIC32__
         handleCan1Interrupt,

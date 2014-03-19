@@ -105,6 +105,7 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     static bool CAN_CONTROLLER_INITIALIZED = false;
     if(!CAN_CONTROLLER_INITIALIZED) {
         for(int i = 0; i < getCanBusCount(); i++) {
+            debug("Initializing bus %d at %d baud", bus->address, getCanBuses()[i].speed);
             CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);
         }
         CAN_CONTROLLER_INITIALIZED = true;

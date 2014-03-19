@@ -19,7 +19,7 @@ float openxc::can::read::preTranslate(CanSignal* signal, uint64_t data,
     float value = eightbyte_parse_float(data, signal->bitPosition,
             signal->bitSize, signal->factor, signal->offset);
 
-    if(time::tick(&signal->frequencyClock) ||
+    if(time::conditionalTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {
         if(send && (!signal->received || signal->sendSame ||
                     value != signal->lastValue)) {
@@ -172,7 +172,7 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
         // else you couldn't add it to the list for some reason, but don't
         // spam the log about it.
         }
-    } else if(time::tick(&messageDefinition->frequencyClock) ||
+    } else if(time::conditionalTick(&messageDefinition->frequencyClock) ||
             (message->data != messageDefinition->lastValue &&
                  messageDefinition->forceSendChanged)) {
         send = true;

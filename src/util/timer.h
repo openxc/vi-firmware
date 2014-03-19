@@ -39,22 +39,26 @@ void initializeClock(FrequencyClock* clock);
  *
  * Return true if the clock should tick.
  */
-bool tick(FrequencyClock* clock, bool stagger);
+bool conditionalTick(FrequencyClock* clock, bool stagger);
 
-/* Public:  The same as tick(FrequencyClock, bool), but staggered start is
+/* Public:  The same as conditionalTick(FrequencyClock, bool), but staggered start is
  *      off.
  */
-bool tick(FrequencyClock* clock);
+bool conditionalTick(FrequencyClock* clock);
 
 /* Public: Determine if the clock's tick timer has elapsed and it should tick.
  * Does *not* actually tick the clock.
  *
  * stagger - If true, will set the clock back a random amount if it hasn't
  *      started, so it doesn't start right away with the first call to
- *      tick(...). Still, it doesn't actually tick it.
+ *      conditionalTick(...). Still, it doesn't actually tick it.
  */
 bool elapsed(FrequencyClock* clock, bool stagger);
 
+/* Public: Force the clock to tick, regardless of it its time has actually
+ * elapsed.
+ */
+void tick(FrequencyClock* clock);
 
 /* Public: Delay execution by the given number of milliseconds.
  */

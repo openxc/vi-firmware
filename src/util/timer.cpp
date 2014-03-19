@@ -20,8 +20,8 @@ float frequencyToPeriod(float frequency) {
     return 1 / frequency * MS_PER_SECOND;
 }
 
-bool openxc::util::time::tick(FrequencyClock* clock) {
-    return tick(clock, false);
+bool openxc::util::time::conditionalTick(FrequencyClock* clock) {
+    return conditionalTick(clock, false);
 }
 
 static bool started(openxc::util::time::FrequencyClock* clock) {
@@ -45,7 +45,7 @@ bool openxc::util::time::elapsed(FrequencyClock* clock, bool stagger) {
     if(!started(clock) && stagger) {
         clock->lastTick = getTimeFunction(clock)() - (rand() % int(period));
     } else {
-        // Make sure it ticks the the first call to tick(...)
+        // Make sure it ticks the the first call to conditionalTick(...)
         elapsedTime = !started(clock) ? period :
                 getTimeFunction(clock)() - clock->lastTick;
     }
@@ -53,7 +53,11 @@ bool openxc::util::time::elapsed(FrequencyClock* clock, bool stagger) {
     return clock->frequency == 0 || elapsedTime >= period;
 }
 
-bool openxc::util::time::tick(FrequencyClock* clock, bool stagger) {
+void openxc::util::time::tick(FrequencyClock* clock) {
+    clock->lastTick = getTimeFunction(clock)();
+}
+
+bool openxc::util::time::conditionalTick(FrequencyClock* clock, bool stagger) {
     bool tick = elapsed(clock, stagger);
     if(tick) {
         clock->lastTick = getTimeFunction(clock)();

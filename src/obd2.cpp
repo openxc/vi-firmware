@@ -121,9 +121,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
     static bool pidSupportQueried = false;
     static bool sentFinalIgnitionCheck = false;
 
-    // TODO when does this go back to false? only on reboot?
-    static bool stoppedDiagnostics = false;
-    if(stoppedDiagnostics) {
+    if(!manager->initialized) {
         return;
     }
 
@@ -133,11 +131,11 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
             // silent if the car is off, and thus the VI to suspend. TODO kick off
             // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
             // turn on bluetooth) until we decide the vehicle is actually on.
-            if(!stoppedDiagnostics && getConfiguration()->powerManagement ==
+            if(manager->initialized && getConfiguration()->powerManagement ==
                         PowerManagement::OBD2_IGNITION_CHECK) {
                 debug("Ceasing diagnostic requests as ignition went off");
                 diagnostics::reset(manager);
-                stoppedDiagnostics = true;
+                manager->initialized = false;
             }
             ignitionWasOn = false;
             pidSupportQueried = false;

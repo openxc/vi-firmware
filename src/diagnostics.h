@@ -77,7 +77,6 @@ struct DiagnosticsManager {
     CanBus* obd2Bus;
     DiagnosticRequestQueue recurringRequests;
     DiagnosticRequestList nonrecurringRequests;
-    DiagnosticRequestList inFlightRequests;
     DiagnosticRequestList freeRequestEntries;
     DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
 };

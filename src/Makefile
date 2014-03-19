@@ -17,7 +17,7 @@ show_vi_config_info = $(info - $(call space_pad_to,$(2),4) $(1))
 
 # Call with the name of the variable, a prefix tag if desired (like [AUTODETECTED]),
 # and an explanation if desired (like (found in $$PATH)
-show_vi_config_variable = $(call show_vi_config_info,$(1) = $($(1)) $(3),$(2))
+show_vi_config_variable = $(call show_vi_config_info,$(call space_pad_to,$($(1)),10)= $(1) $(3),$(2))
 
 show_separator = $(info -------------------------)
 

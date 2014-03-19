@@ -173,7 +173,8 @@ bool usbHostDetected(UsbDevice* usbDevice) {
         EVENT_USB_Device_ConfigurationChanged();
     }
 
-    if(average > USB_HOST_DETECT_INACTIVE_VALUE) {
+    if(debounce > USB_HOST_DETECT_INACTIVE_VALUE * 2 ||
+            average > USB_HOST_DETECT_INACTIVE_VALUE) {
         debounce = 0;
         average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
         hostDetected = false;

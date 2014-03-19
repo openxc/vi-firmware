@@ -24,7 +24,7 @@ static bool VEHICLE_IN_MOTION = false;
 static openxc::util::time::FrequencyClock IGNITION_STATUS_TIMER = {0.2};
 
 const Obd2Pid OBD2_PIDS[] = {
-    { pid: ENGINE_SPEED_PID, name: "engine_speed", frequency: 1 },
+    { pid: ENGINE_SPEED_PID, name: "engine_speed", frequency: 5 },
     { pid: VEHICLE_SPEED_PID, name: "vehicle_speed", frequency: 5 },
     { pid: 0x4, name: "engine_load", frequency: 5 },
     { pid: 0x33, name: "barometric_pressure", frequency: 1 },
@@ -62,36 +62,6 @@ static void checkIgnitionStatus(DiagnosticsManager* manager,
     }
 }
 
-static void checkSupportedPids(DiagnosticsManager* manager,
-        const ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response,
-        float parsedPayload) {
-    if(manager->obd2Bus == NULL || getConfiguration()->recurringObd2Requests) {
-        return;
-    }
-
-    for(int i = 0; i < response->payload_length; i++) {
-        for(int j = CHAR_BIT - 1; j >= 0; j--) {
-            if(response->payload[i] >> j & 0x1) {
-                uint16_t pid = response->pid + (i * CHAR_BIT) + j + 1;
-                DiagnosticRequest request = {
-                        arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
-                        mode: 0x1, has_pid: true, pid: pid};
-                for(size_t i = 0; i < sizeof(OBD2_PIDS) / sizeof(Obd2Pid); i++) {
-                    if(OBD2_PIDS[i].pid == pid) {
-                        addRecurringRequest(manager, manager->obd2Bus, &request,
-                                OBD2_PIDS[i].name, false, false, 1, 0,
-                                openxc::signals::handlers::handleObd2Pid,
-                                NULL,
-                                OBD2_PIDS[i].frequency);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
 static void requestIgnitionStatus(DiagnosticsManager* manager) {
     if(manager->obd2Bus != NULL && (getConfiguration()->powerManagement ==
                 PowerManagement::OBD2_IGNITION_CHECK ||
@@ -105,6 +75,37 @@ static void requestIgnitionStatus(DiagnosticsManager* manager) {
         addRequest(manager, manager->obd2Bus, &request, "vehicle_speed",
                 false, false, 1, 0, NULL, checkIgnitionStatus);
         time::tick(&IGNITION_STATUS_TIMER);
+    }
+}
+
+static void checkSupportedPids(DiagnosticsManager* manager,
+        const ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response,
+        float parsedPayload) {
+    if(manager->obd2Bus == NULL || !getConfiguration()->recurringObd2Requests) {
+        return;
+    }
+
+    for(int i = 0; i < response->payload_length; i++) {
+        for(int j = CHAR_BIT - 1; j >= 0; j--) {
+            if(response->payload[i] >> j & 0x1) {
+                uint16_t pid = response->pid + (i * CHAR_BIT) + j + 1;
+                DiagnosticRequest request = {
+                        arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
+                        mode: 0x1, has_pid: true, pid: pid};
+                for(size_t i = 0; i < sizeof(OBD2_PIDS) / sizeof(Obd2Pid); i++) {
+                    if(OBD2_PIDS[i].pid == pid) {
+                        debug("Vehicle supports PID %d", pid);
+                        addRecurringRequest(manager, manager->obd2Bus, &request,
+                                OBD2_PIDS[i].name, false, false, 1, 0,
+                                openxc::signals::handlers::handleObd2Pid,
+                                checkIgnitionStatus,
+                                OBD2_PIDS[i].frequency);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -124,6 +125,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
 
     if((ignitionWasOn && !ENGINE_STARTED && !VEHICLE_IN_MOTION) ||
             (sentFinalIgnitionCheck && time::elapsed(&IGNITION_STATUS_TIMER, false))) {
+        debug("Ceasing diagnostic requests as ignition went off");
         // remove all open diagnostic requests, which shuld cause the bus to go
         // silent if the car is off, and thus the VI to suspend. TODO kick off
         // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
@@ -147,6 +149,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
         ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {
+            debug("Ignition is on - querying for supported OBD-II PIDs");
             pidSupportQueried = true;
             DiagnosticRequest request = {
                     arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,

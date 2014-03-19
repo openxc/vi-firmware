@@ -63,6 +63,7 @@ static void requestIgnitionStatus(DiagnosticsManager* manager) {
     if(manager->obd2Bus != NULL && (getConfiguration()->powerManagement ==
                 PowerManagement::OBD2_IGNITION_CHECK ||
             getConfiguration()->recurringObd2Requests)) {
+        debug("Sending requests to check ignition status");
         DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                 mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
         addRequest(manager, manager->obd2Bus, &request, "engine_speed",
@@ -147,7 +148,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
             requestIgnitionStatus(manager);
             sentFinalIgnitionCheck = true;
         }
-    } else if(!ignitionWasOn && (ENGINE_STARTED || VEHICLE_IN_MOTION)) {
+    } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
         ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {

@@ -47,12 +47,11 @@ static void checkIgnitionStatus(DiagnosticsManager* manager,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response,
         float parsedPayload) {
-    float value = diagnostic_decode_obd2_pid(response);
     bool match = false;
     if(response->pid == ENGINE_SPEED_PID) {
-        match = ENGINE_STARTED = value != 0;
+        match = ENGINE_STARTED = parsedPayload != 0;
     } else if(response->pid == VEHICLE_SPEED_PID) {
-        match = VEHICLE_IN_MOTION = value != 0;
+        match = VEHICLE_IN_MOTION = parsedPayload != 0;
     }
 
     if(match) {

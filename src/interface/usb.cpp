@@ -10,13 +10,7 @@ void openxc::interface::usb::initializeCommon(UsbDevice* usbDevice) {
         QUEUE_INIT(uint8_t, &usbDevice->endpoints[i].queue);
     }
     usbDevice->configured = false;
-    usbDevice->allowRawWrites =
-#ifdef USB_ALLOW_RAW_WRITE
-        true
-#else
-        false
-#endif
-        ;
+    usbDevice->allowRawWrites = DEFAULT_ALLOW_RAW_WRITE_USB;
 }
 
 void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {

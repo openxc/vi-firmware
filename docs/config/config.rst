@@ -44,13 +44,6 @@ Compile-time Configuration Options
 
 TODO store these in the VI config JSON but have sane defaults.
 
-Debugging
----------
-
-This can only be configured at compile-time. It enables compiling with debug
-symbols, sets the optimization level for the compiler to 0 and changes the log
-level to debug.
-
 Output Format
 -------------
 

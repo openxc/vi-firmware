@@ -26,21 +26,17 @@ OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
-USB_ALLOW_RAW_WRITE ?= 1
+# 0 or 1
+DEFAULT_ALLOW_RAW_WRITE_USB ?= 1
+SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_USB=$(DEFAULT_ALLOW_RAW_WRITE_USB)
 
-ifeq ($(USB_ALLOW_RAW_WRITE), 1)
-	SYMBOLS += USB_ALLOW_RAW_WRITE
-endif
+# 0 or 1
+DEFAULT_ALLOW_RAW_WRITE_UART ?= 1
+SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_UART=$(DEFAULT_ALLOW_RAW_WRITE_UART)
 
-BLUETOOTH_ALLOW_RAW_WRITE ?= 0
-ifeq ($(BLUETOOTH_ALLOW_RAW_WRITE), 1)
-	SYMBOLS += BLUETOOTH_ALLOW_RAW_WRITE
-endif
-
-NETWORK_ALLOW_RAW_WRITE ?= 0
-# ifeq ($(NETWORK_ALLOW_RAW_WRITE), 1)
-# 	SYMBOLS += NETWORK_ALLOW_RAW_WRITE
-# endif
+# 0 or 1
+DEFAULT_ALLOW_RAW_WRITE_NETWORK ?= 1
+SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_NETWORK=$(DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
@@ -168,9 +164,9 @@ define show_options
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
 	$(call show_vi_config_variable,LOG_STATS)
-	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
-	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)
-	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
+	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
+	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)
+	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 	$(call show_vi_config_variable,DEFAULT_UART_LOGGING_STATUS)
 	$(call show_vi_config_variable,DEFAULT_OUTPUT_FORMAT)
 	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)

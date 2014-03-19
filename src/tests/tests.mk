@@ -107,9 +107,9 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1 DEBUG
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_compile_test, NETWORK=1, code_generation_test))
-#$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, NETWORK_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, DEBUG=0 USB_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, DEBUG=0 BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
+#$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, DEFAULT_ALLOW_RAW_WRITE_NETWORK=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_USB=0, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_UART=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, DEBUG=0 DEFAULT_OUTPUT_FORMAT=PROTOBUF, code_generation_test))
 
 copy_passthrough_signals:

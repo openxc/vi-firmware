@@ -12,12 +12,6 @@ void openxc::interface::uart::initializeCommon(UartDevice* device) {
         QUEUE_INIT(uint8_t, &device->receiveQueue);
         QUEUE_INIT(uint8_t, &device->sendQueue);
 
-        device->allowRawWrites =
-#ifdef UART_ALLOW_RAW_WRITE
-            true
-#else
-            false
-#endif
-            ;
+        device->allowRawWrites = DEFAULT_ALLOW_RAW_WRITE_UART;
     }
 }

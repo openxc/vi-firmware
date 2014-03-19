@@ -93,8 +93,9 @@ static void checkSupportedPids(DiagnosticsManager* manager,
 }
 
 static void requestIgnitionStatus(DiagnosticsManager* manager) {
-    if(manager->obd2Bus != NULL && getConfiguration()->powerManagement ==
-            PowerManagement::OBD2_IGNITION_CHECK) {
+    if(manager->obd2Bus != NULL && (getConfiguration()->powerManagement ==
+                PowerManagement::OBD2_IGNITION_CHECK ||
+            getConfiguration()->recurringObd2Requests)) {
         DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                 mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
         addRequest(manager, manager->obd2Bus, &request, "engine_speed",

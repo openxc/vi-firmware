@@ -62,6 +62,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
             NULL,
 #endif
         powerManagement: DEFAULT_POWER_MANAGEMENT,
+        sendCanAcks: DEFAULT_CAN_ACK_STATUS,
     };
 
     if(!CONFIG.initialized) {

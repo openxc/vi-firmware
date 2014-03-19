@@ -35,6 +35,7 @@ typedef struct {
     openxc::pipeline::Pipeline pipeline;
     CanBus* obd2Bus;
     PowerManagement powerManagement;
+    bool sendCanAcks;
 } Configuration;
 
 Configuration* getConfiguration();

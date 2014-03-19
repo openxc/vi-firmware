@@ -87,13 +87,9 @@ void initializeAllCan() {
 
         bool writable = bus->rawWritable ||
             can::signalsWritable(bus, getSignals(), getSignalCount());
-#if defined(TRANSMITTER) || defined(__DEBUG__) || defined(__BENCHTEST__)
-        // if we are bench testing with only 2 CAN nodes connected to one
-        // another, the receiver must *not* be in listen only mode, otherwise
-        // nobody ACKs the CAN messages and it looks like the whole things is
-        // broken.
-        writable = true;
-#endif
+        if(getConfiguration()->sendCanAcks) {
+            writable = true;
+        }
         can::initialize(bus, writable, getCanBuses(), getCanBusCount());
     }
 }

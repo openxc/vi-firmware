@@ -26,10 +26,6 @@ OBJDIR_ROOT = build
 DEPENDENCIES_FOLDER = ../dependencies
 OBJDIR = $(OBJDIR_ROOT)
 
-ifeq ($(BENCHTEST), 1)
-SYMBOLS += __BENCHTEST__
-endif
-
 BINARY_OUTPUT ?= 0
 ifeq ($(BINARY_OUTPUT), 1)
 SYMBOLS += USE_BINARY_OUTPUT
@@ -55,6 +51,7 @@ DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 SYMBOLS += __DEBUG__
 DEFAULT_POWER_MANAGEMENT = PowerManagement::OFF
+DEFAULT_CAN_ACK_STATUS = true
 else
 SYMBOLS += NDEBUG
 endif
@@ -76,6 +73,12 @@ endif
 
 DEFAULT_POWER_MANAGEMENT ?= PowerManagement::SILENT_CAN
 SYMBOLS += DEFAULT_POWER_MANAGEMENT=$(DEFAULT_POWER_MANAGEMENT)
+
+DEFAULT_USB_PRODUCT_ID ?= 0x1
+SYMBOLS += DEFAULT_USB_PRODUCT_ID=$(DEFAULT_USB_PRODUCT_ID)
+
+DEFAULT_CAN_ACK_STATUS ?= false
+SYMBOLS += DEFAULT_CAN_ACK_STATUS=$(DEFAULT_CAN_ACK_STATUS)
 
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 # ifeq ($(NETWORK), 1)
@@ -152,24 +155,20 @@ define show_options
 	$(call show_vi_config_variable,DEBUG)
 	$(call show_vi_config_variable,INCLUDE_RECURRING_OBD2_REQUESTS)
 	$(call show_vi_config_variable,UART_LOGGING)
-	$(call show_vi_config_variable,BENCHTEST)
 	$(call show_vi_config_variable,LOG_STATS)
 	$(call show_vi_config_variable,BINARY_OUTPUT)
 	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,EMULATOR)
-	$(call show_vi_config_variable,TRANSMITTER)
+	$(call show_vi_config_variable,USB_PRODUCT_ID)
 	$(call show_vi_config_variable,DEFAULT_POWER_MANAGEMENT)
+	$(call show_vi_config_variable,DEFAULT_USB_PRODUCT_ID)
+	$(call show_vi_config_variable,DEFAULT_CAN_ACK_STATUS)
 	$(call show_separator)
 endef
 
 include tests/tests.mk
-
-TRANSMITTER ?= 0
-transmitter: SYMBOLS += TRANSMITTER
-transmitter: TRANSMITTER = 1
-transmitter: custom_all
 
 EMULATOR ?= 0
 emulator: SYMBOLS += EMULATE_VEHICLE_DATA

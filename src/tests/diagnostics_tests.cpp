@@ -367,6 +367,17 @@ void myCallback(DiagnosticsManager* manager,
    CALLBACK_RESPONSE = *response;
 }
 
+START_TEST (test_recurring_obd2_build)
+{
+    getConfiguration()->recurringObd2Requests = true;
+    getConfiguration()->obd2Bus = &getCanBuses()[0];
+    initializeVehicleInterface();
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    // should have requested ignition status
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
 START_TEST (test_request_callback)
 {
     fail_unless(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
@@ -889,6 +900,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_command_single_response_default);
 
     tcase_add_test(tc_core, test_request_callback);
+
+    tcase_add_test(tc_core, test_recurring_obd2_build);
 
     suite_add_tcase(s, tc_core);
 

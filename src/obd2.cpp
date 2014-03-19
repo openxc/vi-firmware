@@ -3,6 +3,7 @@
 #include "util/timer.h"
 #include "util/log.h"
 #include "shared_handlers.h"
+#include "config.h"
 #include <limits.h>
 
 namespace time = openxc::util::time;
@@ -10,6 +11,7 @@ namespace time = openxc::util::time;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::util::log::debug;
 using openxc::diagnostics::ActiveDiagnosticRequest;
+using openxc::config::getConfiguration;
 
 #define ENGINE_SPEED_PID 0xc
 #define VEHICLE_SPEED_PID 0xd
@@ -42,7 +44,7 @@ static void checkSupportedPids(DiagnosticsManager* manager,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response,
         float parsedPayload) {
-    if(manager->obd2Bus == NULL) {
+    if(manager->obd2Bus == NULL || getConfiguration()->recurringObd2Requests) {
         return;
     }
 
@@ -100,7 +102,8 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
             (sentFinalIgnitionCheck && time::elapsed(&IGNITION_STATUS_TIMER, false))) {
         // remove all open diagnostic requests, which shuld cause the bus to go
         // silent if the car is off, and thus the VI to suspend. TODO kick off
-        // watchdog!
+        // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
+        // turn on bluetooth) until we decide the vehicle is actually on.
         diagnostics::reset(manager);
         ignitionWasOn = false;
         pidSupportQueried = false;
@@ -117,7 +120,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
         ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
         // TODO check a flag to decide if the user wants the OBD-II set enabled
-        if(!pidSupportQueried) {
+        if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {
             pidSupportQueried = true;
             DiagnosticRequest request = {
                     arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,

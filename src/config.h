@@ -21,6 +21,7 @@ typedef struct {
     const char* version;
     openxc::payload::PayloadFormat payloadFormat;
     bool initialized;
+    bool recurringObd2Requests;
 
     openxc::interface::uart::UartDevice uart;
     openxc::interface::network::NetworkDevice network;

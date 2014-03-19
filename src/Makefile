@@ -167,7 +167,6 @@ define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
-	$(call show_vi_config_variable,INCLUDE_RECURRING_OBD2_REQUESTS)
 	$(call show_vi_config_variable,LOG_STATS)
 	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)

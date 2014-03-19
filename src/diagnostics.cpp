@@ -73,19 +73,23 @@ static void cancelRequest(DiagnosticsManager* manager,
 }
 
 static void cleanupRequest(DiagnosticsManager* manager,
-        DiagnosticRequestListEntry* entry) {
+        DiagnosticRequestListEntry* entry, bool force) {
     ActiveDiagnosticRequest* request = &entry->request;
-    if(entry->request.inFlight && requestCompleted(&entry->request)) {
+    if(force || (entry->request.inFlight && requestCompleted(&entry->request))) {
         entry->request.inFlight = false;
 
         char request_string[128] = {0};
         diagnostic_request_to_string(&request->handle.request,
                 request_string, sizeof(request_string));
         if(request->recurring) {
-            debug("Moving completed recurring request to the back of the queue: %s",
-                    request_string);
             TAILQ_REMOVE(&manager->recurringRequests, entry, queueEntries);
-            TAILQ_INSERT_TAIL(&manager->recurringRequests, entry, queueEntries);
+            if(force) {
+                cancelRequest(manager, entry);
+            } else {
+                debug("Moving completed recurring request to the back of the queue: %s",
+                        request_string);
+                TAILQ_INSERT_TAIL(&manager->recurringRequests, entry, queueEntries);
+            }
         } else {
             debug("Cancelling completed, non-recurring request: %s",
                     request_string);
@@ -96,14 +100,14 @@ static void cleanupRequest(DiagnosticsManager* manager,
 }
 
 // clean up the request list, move as many to the free list as possible
-static void cleanupActiveRequests(DiagnosticsManager* manager) {
+static void cleanupActiveRequests(DiagnosticsManager* manager, bool force) {
     DiagnosticRequestListEntry* entry, *tmp;
     LIST_FOREACH_SAFE(entry, &manager->nonrecurringRequests, listEntries, tmp) {
-        cleanupRequest(manager, entry);
+        cleanupRequest(manager, entry, force);
     }
 
     TAILQ_FOREACH_SAFE(entry, &manager->recurringRequests, queueEntries, tmp) {
-        cleanupRequest(manager, entry);
+        cleanupRequest(manager, entry, force);
     }
 }
 
@@ -135,6 +139,11 @@ static bool sendDiagnosticCanMessageBus2(
 }
 
 void openxc::diagnostics::reset(DiagnosticsManager* manager) {
+    if(manager->initialized) {
+        debug("Clearing existing diagnostic requests");
+        cleanupActiveRequests(manager, true);
+    }
+
     TAILQ_INIT(&manager->recurringRequests);
     LIST_INIT(&manager->nonrecurringRequests);
     LIST_INIT(&manager->freeRequestEntries);
@@ -143,6 +152,7 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
         LIST_INSERT_HEAD(&manager->freeRequestEntries,
                 &manager->requestListEntries[i], listEntries);
     }
+    debug("Reset diagnostics requests");
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
@@ -157,9 +167,11 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
     }
 
     reset(manager);
+    manager->initialized = true;
 
     manager->obd2Bus = lookupBus(obd2BusAddress, buses, busCount);
     obd2::initialize(manager);
+    debug("Initialized diagnostics");
 }
 
 static inline bool conflicting(ActiveDiagnosticRequest* request,
@@ -213,7 +225,7 @@ static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
-    cleanupActiveRequests(manager);
+    cleanupActiveRequests(manager, false);
 
     DiagnosticRequestListEntry* entry;
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
@@ -328,7 +340,7 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
         receiveCanMessage(manager, bus, entry, message, pipeline);
     }
-    cleanupActiveRequests(manager);
+    cleanupActiveRequests(manager, false);
 }
 
 /* Note that this pops it off of whichver list it was on and returns it, so make
@@ -383,7 +395,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         return false;
     }
 
-    cleanupActiveRequests(manager);
+    cleanupActiveRequests(manager, false);
 
     DiagnosticRequestListEntry* entry = NULL;
     if(frequencyHz != 0.0) {

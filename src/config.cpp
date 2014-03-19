@@ -30,7 +30,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         uart: {
             baudRate: UART_BAUD_RATE
         },
-        network: {},
+        network: {0},
         usb: {
             endpoints: {
                 {IN_ENDPOINT_NUMBER, DATA_ENDPOINT_SIZE,
@@ -41,8 +41,8 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
-        diagnosticsManager: {},
-        pipeline: {},
+        diagnosticsManager: {0},
+        pipeline: {0},
         obd2BusAddress: DEFAULT_OBD2_BUS,
         powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
         sendCanAcks: DEFAULT_CAN_ACK_STATUS,

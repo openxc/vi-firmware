@@ -50,11 +50,9 @@ static void checkIgnitionStatus(DiagnosticsManager* manager,
     float value = diagnostic_decode_obd2_pid(response);
     bool match = false;
     if(response->pid == ENGINE_SPEED_PID) {
-        match = true;
-        ENGINE_STARTED = value != 0;
+        match = ENGINE_STARTED = value != 0;
     } else if(response->pid == VEHICLE_SPEED_PID) {
-        VEHICLE_IN_MOTION = value != 0;
-        match = true;
+        match = VEHICLE_IN_MOTION = value != 0;
     }
 
     if(match) {
@@ -123,29 +121,36 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
     static bool pidSupportQueried = false;
     static bool sentFinalIgnitionCheck = false;
 
-    if((ignitionWasOn && !ENGINE_STARTED && !VEHICLE_IN_MOTION) ||
-            (sentFinalIgnitionCheck && time::elapsed(&IGNITION_STATUS_TIMER, false))) {
-        debug("Ceasing diagnostic requests as ignition went off");
-        // remove all open diagnostic requests, which shuld cause the bus to go
-        // silent if the car is off, and thus the VI to suspend. TODO kick off
-        // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
-        // turn on bluetooth) until we decide the vehicle is actually on.
-        if(getConfiguration()->powerManagement ==
-                    PowerManagement::OBD2_IGNITION_CHECK) {
-            diagnostics::reset(manager);
+    // TODO when does this go back to false? only on reboot?
+    static bool stoppedDiagnostics = false;
+    if(stoppedDiagnostics) {
+        return;
+    }
+
+    if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
+        if(sentFinalIgnitionCheck) {
+            // remove all open diagnostic requests, which shuld cause the bus to go
+            // silent if the car is off, and thus the VI to suspend. TODO kick off
+            // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
+            // turn on bluetooth) until we decide the vehicle is actually on.
+            if(!stoppedDiagnostics && getConfiguration()->powerManagement ==
+                        PowerManagement::OBD2_IGNITION_CHECK) {
+                debug("Ceasing diagnostic requests as ignition went off");
+                diagnostics::reset(manager);
+                stoppedDiagnostics = true;
+            }
+            ignitionWasOn = false;
+            pidSupportQueried = false;
+        } else {
+            // We haven't received an ignition in 5 seconds. Either the user didn't
+            // have either OBD-II request configured as a recurring request (which
+            // is fine) or they did, but the car stopped responding. Kick off
+            // another request to see which is true. It will take 5+5 seconds after
+            // ignition off to decide we should shut down.
+            requestIgnitionStatus(manager);
+            sentFinalIgnitionCheck = true;
         }
-        ignitionWasOn = false;
-        pidSupportQueried = false;
-    } else if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
-        // We haven't received an ignition in 5 seconds. Either the user didn't
-        // have either OBD-II request configured as a recurring request (which
-        // is fine) or they did, but the car stopped responding. Kick off
-        // another request to see which is true. It will take 5+5 seconds after
-        // ignition off to decide we should shut down.
-        requestIgnitionStatus(manager);
-        time::tick(&IGNITION_STATUS_TIMER);
-        sentFinalIgnitionCheck = true;
-    } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
+    } else if(!ignitionWasOn && (ENGINE_STARTED || VEHICLE_IN_MOTION)) {
         ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {

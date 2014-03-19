@@ -79,6 +79,7 @@ struct DiagnosticsManager {
     DiagnosticRequestList nonrecurringRequests;
     DiagnosticRequestList freeRequestEntries;
     DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    bool initialized;
 };
 typedef struct DiagnosticsManager DiagnosticsManager;
 

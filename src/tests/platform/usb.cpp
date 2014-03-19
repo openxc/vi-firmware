@@ -1,6 +1,8 @@
 #include "interface/usb.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 using openxc::commands::IncomingMessageCallback;
 

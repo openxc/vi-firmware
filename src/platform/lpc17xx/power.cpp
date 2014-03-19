@@ -45,7 +45,7 @@ void setPowerPassthroughStatus(bool enabled) {
 }
 
 void openxc::power::initialize() {
-    debug("Initializing power controls...");
+    initializeCommon();
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type powerPassthroughPinConfig;
     powerPassthroughPinConfig.OpenDrain = 0;
@@ -58,15 +58,11 @@ void openxc::power::initialize() {
     gpio::setDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
     setPowerPassthroughStatus(true);
 
-    debug("Done.");
-
-    debug("Turning off unused peripherals...");
+    debug("Turning off unused peripherals");
     for(unsigned int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
             sizeof(DISABLED_PERIPHERALS[0]); i++) {
         CLKPWR_ConfigPPWR(DISABLED_PERIPHERALS[i], DISABLE);
     }
-
-    debug("Done.");
 
     PINSEL_CFG_Type programButtonPinConfig;
     programButtonPinConfig.OpenDrain = 0;
@@ -111,6 +107,11 @@ void openxc::power::enableWatchdogTimer(int microseconds) {
 }
 
 void openxc::power::disableWatchdogTimer() {
+    LPC_WDT->WDMOD = 0x0;
+}
+
+void openxc::power::feedWatchdog() {
+	WDT_Feed();
 }
 
 extern "C" {

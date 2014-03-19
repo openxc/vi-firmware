@@ -5,6 +5,7 @@
 using openxc::util::log::debug;
 
 void openxc::power::initialize() {
+    initializeCommon();
 }
 
 /* This function will invoke the CPU power save sleep mode.
@@ -41,4 +42,7 @@ void openxc::power::enableWatchdogTimer(int microseconds) {
 }
 
 void openxc::power::disableWatchdogTimer() {
+}
+
+void openxc::power::feedWatchdog() {
 }

@@ -9,3 +9,5 @@ void openxc::power::suspend() { }
 void openxc::power::enableWatchdogTimer(int microseconds) { }
 
 void openxc::power::disableWatchdogTimer() { }
+
+void openxc::power::feedWatchdog() { }

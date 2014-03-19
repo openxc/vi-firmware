@@ -9,6 +9,8 @@ namespace power {
  */
 void initialize();
 
+void initializeCommon();
+
 /* Public: Shut down all peripherals, set up interrupts to wake on CAN activity
  * and put the microcontroller into a low power mode.
  *
@@ -30,6 +32,8 @@ void handleWake();
 void enableWatchdogTimer(int microseconds);
 
 void disableWatchdogTimer();
+
+void feedWatchdog();
 
 } // namespace power
 } // namespace openxc

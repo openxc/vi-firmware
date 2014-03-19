@@ -118,6 +118,7 @@ void initializeIO() {
     uart::initialize(&getConfiguration()->uart);
 
     bluetooth::initialize(&getConfiguration()->uart);
+
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
     debug("Now running with all I/O active");
@@ -201,4 +202,5 @@ void firmwareLoop() {
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);
+    openxc::power::feedWatchdog();
 }

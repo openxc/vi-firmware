@@ -10,6 +10,12 @@ namespace openxc {
 namespace diagnostics {
 namespace obd2 {
 
+typedef struct {
+    uint8_t pid;
+    const char* name;
+    float frequency;
+} Obd2Pid;
+
 void loop(DiagnosticsManager* manager, CanBus* bus);
 
 void initialize(DiagnosticsManager* manager);

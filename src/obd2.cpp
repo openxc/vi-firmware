@@ -9,6 +9,7 @@
 namespace time = openxc::util::time;
 
 using openxc::diagnostics::DiagnosticsManager;
+using openxc::diagnostics::obd2::Obd2Pid;
 using openxc::util::log::debug;
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::config::getConfiguration;
@@ -20,6 +21,26 @@ static bool ENGINE_STARTED = false;
 static bool VEHICLE_IN_MOTION = false;
 
 static openxc::util::time::FrequencyClock IGNITION_STATUS_TIMER = {0.2};
+
+const Obd2Pid OBD2_PIDS[] = {
+    { pid: ENGINE_SPEED_PID, name: "engine_speed", frequency: 1 },
+    { pid: VEHICLE_SPEED_PID, name: "vehicle_speed", frequency: 5 },
+    { pid: 0x4, name: "engine_load", frequency: 5 },
+    { pid: 0x33, name: "barometric_pressure", frequency: 1 },
+    { pid: 0x4c, name: "commanded_throttle_position", frequency: 1 },
+    { pid: 0x5, name: "engine_coolant_temperature", frequency: 1 },
+    { pid: 0x27, name: "fuel_level", frequency: 1 },
+    { pid: 0xf, name: "intake_air_temperature", frequency: 1 },
+    { pid: 0xb, name: "intake_manifold_pressure", frequency: 1 },
+    { pid: 0x1f, name: "running_time", frequency: 1 },
+    { pid: 0x11, name: "throttle_position", frequency: 5 },
+    { pid: 0xa, name: "fuel_pressure", frequency: 1 },
+    { pid: 0x66, name: "mass_airflow", frequency: 5 },
+    { pid: 0x5a, name: "accelerator_pedal_position", frequency: 5 },
+    { pid: 0x52, name: "ethanol_fuel_percentage", frequency: 1 },
+    { pid: 0x5c, name: "engine_oil_temperature", frequency: 1 },
+    { pid: 0x63, name: "engine_torque", frequency: 1 },
+};
 
 static void checkIgnitionStatus(DiagnosticsManager* manager,
         const ActiveDiagnosticRequest* request,
@@ -55,12 +76,17 @@ static void checkSupportedPids(DiagnosticsManager* manager,
                 DiagnosticRequest request = {
                         arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                         mode: 0x1, has_pid: true, pid: pid};
-                addRecurringRequest(manager, manager->obd2Bus, &request, "obd2_pid", false,
-                        1, 0, openxc::signals::handlers::handleObd2Pid, NULL, 1, false);
-                // TODO lookup the predefined names for these
-                // TODO lookup the predefined frequencies for these
-                // TODO configure to only send when listener is attached, except
-                // don't want to clobber RPM/veh speed for power check
+                for(size_t i = 0; i < sizeof(OBD2_PIDS) / sizeof(Obd2Pid); i++) {
+                    if(OBD2_PIDS[i].pid == pid) {
+                        addRecurringRequest(manager, manager->obd2Bus, &request,
+                                OBD2_PIDS[i].name, false, 1, 0,
+                                openxc::signals::handlers::handleObd2Pid,
+                                NULL,
+                                OBD2_PIDS[i].frequency,
+                                false);
+                        break;
+                    }
+                }
             }
         }
     }

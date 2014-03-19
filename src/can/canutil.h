@@ -11,8 +11,10 @@
 #include "cJSON.h"
 #include "openxc.pb.h"
 
-#define MAX_ACCEPTANCE_FILTERS 32
-#define MAX_DYNAMIC_MESSAGE_COUNT 80
+// TODO actual max is 32 but dropped to 24 for memory considerations
+#define MAX_ACCEPTANCE_FILTERS 24
+// TODO this takes up a ton of memory
+#define MAX_DYNAMIC_MESSAGE_COUNT 12
 
 typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
 
@@ -189,7 +191,7 @@ struct CanBus {
     unsigned int messagesDropped;
 
     // TODO These are unnecessary if you aren't calculating metrics, and they do
-    // take up a big of memory.
+    // take up a bit of memory.
     openxc::util::statistics::DeltaStatistic totalMessageStats;
     openxc::util::statistics::DeltaStatistic droppedMessageStats;
     openxc::util::statistics::DeltaStatistic receivedMessageStats;

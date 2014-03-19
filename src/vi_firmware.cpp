@@ -131,7 +131,8 @@ void initializeVehicleInterface() {
     initializeAllCan();
 
     diagnostics::initialize(&getConfiguration()->diagnosticsManager,
-            getCanBuses(), getCanBusCount(), getConfiguration()->obd2Bus);
+            getCanBuses(), getCanBusCount(),
+            getConfiguration()->obd2BusAddress);
     signals::initialize(&getConfiguration()->diagnosticsManager);
 }
 

@@ -146,11 +146,10 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
-        int busCount, CanBus* obd2Bus) {
+        int busCount, uint8_t obd2BusAddress) {
     if(busCount > 0) {
         manager->shims[0] = diagnostic_init_shims(openxc::util::log::debug,
                 sendDiagnosticCanMessageBus1, NULL);
-        manager->obd2Bus = obd2Bus;
         if(busCount > 1) {
             manager->shims[1] = diagnostic_init_shims(openxc::util::log::debug,
                     sendDiagnosticCanMessageBus2, NULL);
@@ -159,9 +158,8 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
 
     reset(manager);
 
-    if(manager->obd2Bus != NULL) {
-        obd2::initialize(manager);
-    }
+    manager->obd2Bus = lookupBus(obd2BusAddress, buses, busCount);
+    obd2::initialize(manager);
 }
 
 static inline bool conflicting(ActiveDiagnosticRequest* request,

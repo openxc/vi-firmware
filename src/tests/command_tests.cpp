@@ -43,6 +43,7 @@ static bool canQueueEmpty(int bus) {
 }
 
 void setup() {
+    getConfiguration()->obd2BusAddress = 0;
     initializeVehicleInterface();
     getConfiguration()->usb.configured = true;
     fail_unless(canQueueEmpty(0));

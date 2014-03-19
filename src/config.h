@@ -33,7 +33,7 @@ typedef struct {
     openxc::interface::usb::UsbDevice usb;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;
-    CanBus* obd2Bus;
+    uint8_t obd2BusAddress;
     PowerManagement powerManagement;
     bool sendCanAcks;
     bool emulatedData;

@@ -83,7 +83,7 @@ struct DiagnosticsManager {
 typedef struct DiagnosticsManager DiagnosticsManager;
 
 void initialize(DiagnosticsManager* manager, CanBus* buses, int busCount,
-        CanBus* obd2Bus);
+        uint8_t obd2BusAddress);
 
 void reset(DiagnosticsManager* manager);
 

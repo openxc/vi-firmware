@@ -368,7 +368,7 @@ void myCallback(DiagnosticsManager* manager,
 START_TEST (test_recurring_obd2_build)
 {
     getConfiguration()->recurringObd2Requests = true;
-    getConfiguration()->obd2Bus = &getCanBuses()[0];
+    getConfiguration()->obd2BusAddress = 1;
     initializeVehicleInterface();
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     // should have requested ignition status

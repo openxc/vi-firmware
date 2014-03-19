@@ -24,19 +24,9 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
         version: "6.0-dev",
-        payloadFormat:
-#ifdef USE_BINARY_OUTPUT
-            PayloadFormat::PROTOBUF,
-#else
-            PayloadFormat::JSON,
-#endif
+        payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         initialized: false,
-        recurringObd2Requests:
-#ifdef __INCLUDE_RECURRING_OBD2_REQUESTS__
-            true,
-#else
-            false,
-#endif
+        recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         uart: {
             baudRate: UART_BAUD_RATE
         },
@@ -53,14 +43,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         },
         diagnosticsManager: {},
         pipeline: {},
-        obd2Bus:
-#ifdef OBD2_BUILD
-            // TODO hard coding bus for OBD2 as bus 1 for now, could make this
-            // configurable.
-            &getCanBuses()[0],
-#else
-            NULL,
-#endif
+        obd2BusAddress: DEFAULT_OBD2_BUS,
         powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
         sendCanAcks: DEFAULT_CAN_ACK_STATUS,
         emulatedData: DEFAULT_EMULATED_DATA_STATUS,

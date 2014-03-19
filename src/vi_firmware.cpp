@@ -29,6 +29,7 @@ namespace diagnostics = openxc::diagnostics;
 namespace power = openxc::power;
 namespace bluetooth = openxc::bluetooth;
 namespace commands = openxc::commands;
+namespace config = openxc::config;
 
 using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
@@ -126,7 +127,9 @@ void initializeVehicleInterface() {
 
     srand(time::systemTimeMs());
 
-    debug("Initializing as %s", signals::getActiveMessageSet()->name);
+    char descriptor[128];
+    config::getFirmwareDescriptor(descriptor, sizeof(descriptor));
+    debug("Initializing %s", descriptor);
     BUS_WAS_ACTIVE = false;
     initializeAllCan();
 

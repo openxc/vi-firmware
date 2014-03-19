@@ -13,6 +13,7 @@ using openxc::diagnostics::obd2::Obd2Pid;
 using openxc::util::log::debug;
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::config::getConfiguration;
+using openxc::config::PowerManagement;
 
 #define ENGINE_SPEED_PID 0xc
 #define VEHICLE_SPEED_PID 0xd
@@ -92,7 +93,8 @@ static void checkSupportedPids(DiagnosticsManager* manager,
 }
 
 static void requestIgnitionStatus(DiagnosticsManager* manager) {
-    if(manager->obd2Bus != NULL) {
+    if(manager->obd2Bus != NULL && getConfiguration()->powerManagement ==
+            PowerManagement::OBD2_IGNITION_CHECK) {
         DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                 mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
         addRequest(manager, manager->obd2Bus, &request, "engine_speed",
@@ -106,11 +108,7 @@ static void requestIgnitionStatus(DiagnosticsManager* manager) {
 }
 
 void openxc::diagnostics::obd2::initialize(DiagnosticsManager* manager) {
-    if(manager->obd2Bus != NULL) {
-        requestIgnitionStatus(manager);
-    } else {
-        debug("No bus configured for OBD2 queries, not enabling");
-    }
+    requestIgnitionStatus(manager);
 }
 
 // * CAN traffic will eventualy stop, and we will suspend.
@@ -129,7 +127,10 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
         // silent if the car is off, and thus the VI to suspend. TODO kick off
         // watchdog! TODO when it wakes keep in a minimum run level (i.e. don't
         // turn on bluetooth) until we decide the vehicle is actually on.
-        diagnostics::reset(manager);
+        if(getConfiguration()->powerManagement ==
+                    PowerManagement::OBD2_IGNITION_CHECK) {
+            diagnostics::reset(manager);
+        }
         ignitionWasOn = false;
         pidSupportQueried = false;
     } else if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {

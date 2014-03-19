@@ -91,7 +91,6 @@ unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
 unit_tests: C_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage $(C_SUPRESSED_ERRORS)
 unit_tests: CC_FLAGS =  $(C_FLAGS) $(CC_SUPRESSED_ERRORS)
-unit_tests: CC_SYMBOLS += -D__TESTS__
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)

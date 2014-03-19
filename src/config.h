@@ -37,6 +37,7 @@ typedef struct {
     PowerManagement powerManagement;
     bool sendCanAcks;
     bool emulatedData;
+    bool uartLogging;
 } Configuration;
 
 Configuration* getConfiguration();

@@ -47,6 +47,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
         sendCanAcks: DEFAULT_CAN_ACK_STATUS,
         emulatedData: DEFAULT_EMULATED_DATA_STATUS,
+        uartLogging: DEFAULT_UART_LOGGING_STATUS,
     };
 
     if(!CONFIG.initialized) {

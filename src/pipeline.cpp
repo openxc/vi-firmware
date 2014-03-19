@@ -91,11 +91,10 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
                 messageSize);
     }
 
-#if defined(__UART_LOGGING__) or defined(__TESTS__)
-    if(messageClass == MessageClass::LOG) {
+    if(config::getConfiguration()->uartLogging &&
+            messageClass == MessageClass::LOG) {
         openxc::util::log::debugUart((const char*)message);
     }
-#endif // __UART_LOGGING__
 }
 
 void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,

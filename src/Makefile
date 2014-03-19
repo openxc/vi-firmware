@@ -51,11 +51,6 @@ else
 	SYMBOLS += NDEBUG
 endif
 
-UART_LOGGING ?= 0
-ifeq ($(UART_LOGGING), 1)
-	SYMBOLS += __UART_LOGGING__
-endif
-
 LOG_STATS ?= 0
 ifeq ($(LOG_STATS), 1)
 	SYMBOLS += __LOG_STATS__
@@ -66,6 +61,10 @@ ifeq ($(TRANSMITTER), 1)
 	DEFAULT_POWER_MANAGEMENT = OFF
 	DEFAULT_USB_PRODUCT_ID = 0x2
 endif
+
+# 0 or 1
+DEFAULT_UART_LOGGING_STATUS ?= 0
+SYMBOLS += DEFAULT_UART_LOGGING_STATUS=$(DEFAULT_UART_LOGGING_STATUS)
 
 # 0 (off), 1 or 2
 DEFAULT_OBD2_BUS ?= 1
@@ -169,11 +168,11 @@ define show_options
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
 	$(call show_vi_config_variable,INCLUDE_RECURRING_OBD2_REQUESTS)
-	$(call show_vi_config_variable,UART_LOGGING)
 	$(call show_vi_config_variable,LOG_STATS)
 	$(call show_vi_config_variable,USB_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,BLUETOOTH_ALLOW_RAW_WRITE)
 	$(call show_vi_config_variable,NETWORK_ALLOW_RAW_WRITE)
+	$(call show_vi_config_variable,DEFAULT_UART_LOGGING_STATUS)
 	$(call show_vi_config_variable,DEFAULT_OUTPUT_FORMAT)
 	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)
 	$(call show_vi_config_variable,DEFAULT_POWER_MANAGEMENT)

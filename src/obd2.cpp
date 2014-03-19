@@ -79,11 +79,10 @@ static void checkSupportedPids(DiagnosticsManager* manager,
                 for(size_t i = 0; i < sizeof(OBD2_PIDS) / sizeof(Obd2Pid); i++) {
                     if(OBD2_PIDS[i].pid == pid) {
                         addRecurringRequest(manager, manager->obd2Bus, &request,
-                                OBD2_PIDS[i].name, false, 1, 0,
+                                OBD2_PIDS[i].name, false, false, 1, 0,
                                 openxc::signals::handlers::handleObd2Pid,
                                 NULL,
-                                OBD2_PIDS[i].frequency,
-                                false);
+                                OBD2_PIDS[i].frequency);
                         break;
                     }
                 }
@@ -96,12 +95,12 @@ static void requestIgnitionStatus(DiagnosticsManager* manager) {
     if(manager->obd2Bus != NULL) {
         DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                 mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
-        addRecurringRequest(manager, manager->obd2Bus, &request, "engine_speed",
-                false, 1, 0, NULL, checkIgnitionStatus, 0, false);
+        addRequest(manager, manager->obd2Bus, &request, "engine_speed",
+                false, false, 1, 0, NULL, checkIgnitionStatus);
 
         request.pid = VEHICLE_SPEED_PID;
-        addRecurringRequest(manager, manager->obd2Bus, &request, "vehicle_speed",
-                false, 1, 0, NULL, checkIgnitionStatus, 0, false);
+        addRequest(manager, manager->obd2Bus, &request, "vehicle_speed",
+                false, false, 1, 0, NULL, checkIgnitionStatus);
         time::tick(&IGNITION_STATUS_TIMER);
     }
 }
@@ -154,8 +153,8 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager, CanBus* bus) {
                     pid: 0x0};
             for(int i = 0x0; i <= 0x80; i += 0x20) {
                 request.pid = i;
-                addRecurringRequest(manager, bus, &request, NULL, false, 1, 0,
-                        NULL, checkSupportedPids, 0, false);
+                addRequest(manager, bus, &request, NULL, false, false, 1, 0,
+                        NULL, checkSupportedPids);
             }
         }
     }

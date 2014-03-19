@@ -96,8 +96,8 @@ START_TEST (test_update_existing_recurring)
 
     // change request to non-recurring, which should trigger it to be sent once,
     // right now
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -118,7 +118,7 @@ END_TEST
 START_TEST (test_simultaneous_recurring_nonrecurring)
 {
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "foo", false, 1, 0, NULL, NULL, 1, false));
+                &getCanBuses()[0], &request, "foo", false, false, 1, 0, NULL, NULL, 1));
     // get around the staggered start
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     FAKE_TIME += 2000;
@@ -127,10 +127,8 @@ START_TEST (test_simultaneous_recurring_nonrecurring)
 
     resetQueues();
 
-    // TODO need an addRecurringRequest and addRequest - for now a '0' frequency
-    // means non-recurring
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "bar", false, 1, 0, NULL, NULL, 0, false));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request, "bar", false, false));
 
     FAKE_TIME += 50;
     // the recurring is in flight and not expired, so the new non-recurring
@@ -160,8 +158,8 @@ START_TEST (test_simultaneous_recurring_nonrecurring)
     resetQueues();
 
     // add another non-recurring
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "bar", false, 1, 0, NULL, NULL, 0, false));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request, "bar", false, false));
 
     // send again, but now non-recurring should send first
     FAKE_TIME += 1000;
@@ -223,9 +221,9 @@ START_TEST (test_add_nonrecurring_doesnt_clobber_recurring)
 
     resetQueues();
 
-    ck_assert(diagnostics::addRecurringRequest(
+    ck_assert(diagnostics::addRequest(
              &getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-             &request, 0));
+             &request));
 
     FAKE_TIME += 1000;
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
@@ -243,8 +241,8 @@ END_TEST
 
 START_TEST (test_add_basic_request)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -260,8 +258,8 @@ END_TEST
 
 START_TEST (test_padding_on_by_default)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -272,8 +270,8 @@ END_TEST
 START_TEST (test_padding_enabled)
 {
     request.no_frame_padding = false;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -284,8 +282,8 @@ END_TEST
 START_TEST (test_padding_disabled)
 {
     request.no_frame_padding = true;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -295,8 +293,8 @@ END_TEST
 
 START_TEST (test_add_request_other_bus)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[1], &request, "mypid", false, 1, 0, NULL, NULL, 0, false));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[1], &request, "mypid", false, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[1]);
     fail_if(canQueueEmpty(1));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[1],
@@ -312,8 +310,8 @@ END_TEST
 
 START_TEST (test_add_request_with_name)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 1, 0, NULL, NULL, 0, false));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, "mypid", false, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -329,8 +327,8 @@ END_TEST
 
 START_TEST (test_scaling)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 2.0, 14, NULL, NULL, 0, false));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, "mypid", false, false, 2.0, 14));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -351,8 +349,8 @@ static float decodeFloatTimes2(const DiagnosticResponse* response,
 
 START_TEST (test_add_request_with_decoder_no_name_allowed)
 {
-    fail_unless(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, 1, 0, decodeFloatTimes2, NULL, 0, false));
+    fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, false, 1, 0, decodeFloatTimes2, NULL));
 }
 END_TEST
 
@@ -380,8 +378,8 @@ END_TEST
 
 START_TEST (test_request_callback)
 {
-    fail_unless(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, 1, 0, NULL, myCallback, 0, false));
+    fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, false, 1, 0, NULL, myCallback));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
@@ -395,8 +393,8 @@ END_TEST
 
 START_TEST (test_add_request_with_name_and_decoder)
 {
-    fail_unless(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, 1, 0, decodeFloatTimes2, NULL, 0, false));
+    fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, "mypid", false, false, 1, 0, decodeFloatTimes2, NULL));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -412,8 +410,8 @@ END_TEST
 
 START_TEST (test_nonrecurring_not_staggered)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+             &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     resetQueues();
@@ -468,8 +466,8 @@ END_TEST
 
 START_TEST (test_receive_nonrecurring_twice)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -493,8 +491,8 @@ END_TEST
 
 START_TEST (test_nonrecurring_timeout)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -518,8 +516,8 @@ START_TEST(test_clear_to_send_blocked)
     // confirm no can messages sent.
     // increase time to time out first, then send again - make sure the
     // other pid goes out
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     resetQueues();
@@ -527,8 +525,8 @@ START_TEST(test_clear_to_send_blocked)
     FAKE_TIME += 50;
 
     request.pid = request.pid + 1;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
 
@@ -543,16 +541,16 @@ START_TEST(test_clear_to_send)
     // add 2 requests for 2 pids from same arb id. send one request, then the
     // other - confirm no can messages sent. rx can message to close out first,
     // then send and make sure the other goes out
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     resetQueues();
 
     // should have 1 in flight
     request.pid = request.pid + 1;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
     resetQueues();
@@ -677,8 +675,8 @@ END_TEST
 START_TEST(test_broadcast_accept_multiple_responses)
 {
     request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, 1.0, 0, NULL, NULL, 0, true));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, true, 1, 0));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -702,8 +700,8 @@ START_TEST(test_broadcast_response_arb_id)
     // send a broadcast request, rx a response. make sure the response's message
     // ID is the response's message ID, not the func. broadcast ID
     request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -725,9 +723,9 @@ END_TEST
 
 START_TEST(test_parsed_payload)
 {
-    ck_assert(diagnostics::addRecurringRequest(
+    ck_assert(diagnostics::addRequest(
              &getConfiguration()->diagnosticsManager,
-             &getCanBuses()[0], &request, NULL, true, 1.0, 0.0, NULL, NULL, 0, false));
+             &getCanBuses()[0], &request, NULL, true, false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -748,15 +746,15 @@ END_TEST
 
 START_TEST(test_requests_on_multiple_buses)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
     resetQueues();
 
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[1], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[1], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[1]);
 
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -773,8 +771,8 @@ END_TEST
 START_TEST(test_update_inflight)
 {
     // Add and send one diag request, then before rx or timeout, update it.
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
@@ -801,12 +799,12 @@ START_TEST(test_use_all_free_entries)
 {
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
         request.arbitration_id = 1 + i;
-        ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, 0));
+        ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request));
     }
     ++request.arbitration_id;
-    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(!diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
 }
 END_TEST
 
@@ -822,8 +820,8 @@ int countFilters(CanBus* bus) {
 START_TEST(test_broadcast_can_filters)
 {
     request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
 
     ck_assert_int_eq(countFilters(&getCanBuses()[0]), 8);
 }
@@ -831,19 +829,19 @@ END_TEST
 
 START_TEST(test_can_filters)
 {
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     ck_assert_int_eq(countFilters(&getCanBuses()[0]), 1);
 
     request.pid = request.pid + 1;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
 
     ck_assert_int_eq(countFilters(&getCanBuses()[0]), 1);
 
     ++request.arbitration_id;
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     ck_assert_int_eq(countFilters(&getCanBuses()[0]), 2);
 
 }
@@ -852,8 +850,8 @@ END_TEST
 START_TEST(test_can_filters_broken)
 {
     ACCEPTANCE_FILTER_STATUS = false;
-    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 0));
+    ck_assert(!diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
     ck_assert_int_eq(countFilters(&getCanBuses()[0]), 0);
 }
 END_TEST

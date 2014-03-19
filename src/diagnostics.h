@@ -93,18 +93,40 @@ void reset(DiagnosticsManager* manager);
  */
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, float factor, float offset,
-        const DiagnosticResponseDecoder decoder,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback,
-        float frequencyHz, bool waitForMultipleResponses);
+        float frequencyHz);
+
+bool addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback);
 
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, float factor, float offset,
-        float frequencyHz, bool waitForMultipleResponses);
+        bool parsePayload, bool waitForMultipleResponses, float frequency);
+
+bool addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses);
+
+bool addRecurringRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset, float frequency);
+
+bool addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset);
 
 bool addRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, float frequencyHz);
+
+bool addRequest(DiagnosticsManager* manager, CanBus* bus,
+        DiagnosticRequest* request);
 
 bool cancelRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request);

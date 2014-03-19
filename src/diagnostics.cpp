@@ -362,12 +362,23 @@ bool openxc::diagnostics::cancelRecurringRequest(
     return entry != NULL;
 }
 
+bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset,
+        const openxc::diagnostics::DiagnosticResponseDecoder decoder,
+        const openxc::diagnostics::DiagnosticResponseCallback callback) {
+    return addRecurringRequest(manager, bus, request, genericName, parsePayload,
+            waitForMultipleResponses, factor, offset, decoder, callback, 0);
+}
+
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, float factor, float offset,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset,
         const openxc::diagnostics::DiagnosticResponseDecoder decoder,
         const openxc::diagnostics::DiagnosticResponseCallback callback,
-        float frequencyHz, bool waitForMultipleResponses) {
+        float frequencyHz) {
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
                 frequencyHz, MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ);
@@ -464,17 +475,44 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, float factor, float offset,
-        float frequencyHz, bool waitForMultipleResponses) {
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset, float frequencyHz) {
     return addRecurringRequest(manager, bus, request, genericName,
-            parsePayload, factor, offset, NULL, NULL, frequencyHz,
-            waitForMultipleResponses);
+            parsePayload, waitForMultipleResponses, factor, offset, NULL, NULL,
+            frequencyHz);
+}
+
+bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float factor,
+        float offset) {
+    return addRequest(manager, bus, request, genericName,
+            parsePayload, waitForMultipleResponses, factor, offset, NULL, NULL);
 }
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, float frequencyHz) {
-    return addRecurringRequest(manager, bus, request, NULL, false, 1.0, 0,
-            NULL, NULL, frequencyHz, false);
+    return addRecurringRequest(manager, bus, request, NULL, false, false, 1.0,
+            0, frequencyHz);
+}
+
+bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request) {
+    return addRecurringRequest(manager, bus, request, 0);
+}
+
+bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses, float frequency) {
+    return addRecurringRequest(manager, bus, request, genericName, parsePayload,
+            waitForMultipleResponses, 1, 0, frequency);
+}
+
+bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        bool parsePayload, bool waitForMultipleResponses) {
+    return addRequest(manager, bus, request, genericName, parsePayload,
+            waitForMultipleResponses, 1.0, 0);
 }
 
 bool openxc::diagnostics::handleDiagnosticCommand(
@@ -522,13 +560,13 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                                 commandRequest->name : NULL,
                         commandRequest->has_parse_payload ?
                                 commandRequest->parse_payload : false,
+                        multipleResponses,
                         commandRequest->has_factor ?
                                 commandRequest->factor : 1.0,
                         commandRequest->has_offset ?
                                 commandRequest->offset : 0,
                         commandRequest->has_frequency ?
-                                commandRequest->frequency : 0,
-                        multipleResponses);
+                                commandRequest->frequency : 0);
             } else {
                 debug("Raw CAN writes not allowed for bus %d", bus->address);
                 status = false;

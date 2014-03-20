@@ -154,7 +154,14 @@ static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
     return true;
 }
 
-/* Private:
+/* Private: Parse a hex string as a byte array.
+ *
+ * source - The hex string to parse - each byte in the string *must* be
+ *      represented with 2 characters, e.g. `1` is `01` - the complete string
+ *      must have an even number of characters. The string can optionally begin
+ *      with a '0x' prefix.
+ * destination - The array to store the resulting byte array.
+ * destinationLength - The maximum length for the parsed byte array.
  *
  * Returns the size of the byte array stored in dest.
  */

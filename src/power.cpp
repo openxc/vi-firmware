@@ -6,6 +6,5 @@
 using openxc::util::log::debug;
 
 void openxc::power::initializeCommon() {
-    debug("Initializing peripheral power...");
     enableWatchdogTimer(WATCHDOG_TIMEOUT_MICROSECONDS);
 }

@@ -38,11 +38,18 @@ void openxc::power::handleWake() {
 }
 
 void openxc::power::enableWatchdogTimer(int microseconds) {
-    // TODO
+    // TODO WDTCONbits.WDTPSTA = 14; // about 16 second, ignoring whatever
+    // requested... DEVCFG1 = 0x14 << 16;
+    // WDTCONbits.WDTPS = 0x14;
+    DEVCFG1 |= 0x0 << 16;
+    WDTCONbits.ON = 0x1;
+    // EnableWDT();
 }
 
 void openxc::power::disableWatchdogTimer() {
+    DisableWDT();
 }
 
 void openxc::power::feedWatchdog() {
+    ClearWDT();
 }

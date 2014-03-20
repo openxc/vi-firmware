@@ -135,9 +135,9 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
                 debug("Ceasing diagnostic requests as ignition went off");
                 diagnostics::reset(manager);
                 manager->initialized = false;
+                pidSupportQueried = false;
             }
             ignitionWasOn = false;
-            pidSupportQueried = false;
         } else {
             // We haven't received an ignition in 5 seconds. Either the user didn't
             // have either OBD-II request configured as a recurring request (which

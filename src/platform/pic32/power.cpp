@@ -38,12 +38,12 @@ void openxc::power::handleWake() {
 }
 
 void openxc::power::enableWatchdogTimer(int microseconds) {
-    // TODO WDTCONbits.WDTPSTA = 14; // about 16 second, ignoring whatever
-    // requested... DEVCFG1 = 0x14 << 16;
-    // WDTCONbits.WDTPS = 0x14;
-    DEVCFG1 |= 0x0 << 16;
-    WDTCONbits.ON = 0x1;
-    // EnableWDT();
+    // TODO argh, can't change postscaler value from software because it's
+    // configured with a #pragma directive in the bootloader. The time for the
+    // WDT is permanently set at about 1 second. We could write to the
+    // configuration register in flash memory, but we'd want to make sure that
+    // only happened once because flash has a 10k write limit.
+    EnableWDT();
 }
 
 void openxc::power::disableWatchdogTimer() {

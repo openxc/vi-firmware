@@ -45,7 +45,6 @@ void setPowerPassthroughStatus(bool enabled) {
 }
 
 void openxc::power::initialize() {
-    initializeCommon();
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type powerPassthroughPinConfig;
     powerPassthroughPinConfig.OpenDrain = 0;

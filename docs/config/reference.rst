@@ -404,6 +404,8 @@ last value of another signal arrived in the message or before/after the
 value you're current modifying. For steering wheel angle, that's
 probably OK - for other signals, not so much.
 
+.. _diagnostic-messages:
+
 Diagnostic Messages
 ===================
 
@@ -453,7 +455,7 @@ The ``mappings`` field must be a list of JSON objects with:
 ``messages``, containing objects formatted as the :ref:`Messages` section
 describes. In short, you can pull out the ``messages`` key from the main file
 and throw it into a separate file and link it in here. You can also do the same
-with a ``diagnostic_messages`` field containing :ref:`Diagnostic Messages`.
+with a ``diagnostic_messages`` field containing :ref:`diagnostic-messages`.
 
 ``bus`` - (optional) The name of one of the defined CAN buses where these
 messages can be found - this value will be set for all of the messages contained

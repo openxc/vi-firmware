@@ -1,48 +1,158 @@
-===========================
-Output Interfaces & Format
-===========================
+=============================
+I/O, Data Format and Commands
+=============================
 
 The OpenXC message format is specified and versioned separately from any of the
 individual OpenXC interfaces or libraries, in the `OpenXC Message Format
 <https://github.com/openxc/openxc-message-format>`_ repository.
 
-UART Output
-==============
+Commands
+=========
 
-You can optionally receive the output data over a UART connection in
-addition to USB. The data format is the same as USB - a stream of newline
-separated JSON objects.
+The firmware supports all commands defined in the OpenXC Message Format
+specification. Both UART and USB interfaces accept commands (serialized as JSON)
+sent in the normal data stream back to the VI. USB also supports these commands
+via USB control requests - see the USB section for the specifics.
 
-In the same way that you can send OpenXC writes over USB using the OUT direction
-of the USB endpoint, you can send identically formatted messages in the opposite
-direction on the serial device - from the host to the VI. They'll be processed
-in exactly the same way. These write messages are accepted via serial even if
-USB is connected. One important difference between reads and writes - write JSON
-messages must be separated by a NULL character instead of a newline.
+The following is a summary of each command type - for the full specification,
+see the `OpenXC Message Format`_.
 
-For details on your particular platform like the pins and baud rate, see the
-:doc:`supported platforms </platforms/platforms>`.
+Translated Writes
+------------------
 
-USB Device Driver
-=================
+Translated write commands require that the firmware is pre-configured to
+understand the named signal, and also allows it to be written.
 
-Most users do not need to know the details of the device driver, but for
-reference it is documented here.
+::
 
-The VI initializes its USB 2.0 controller as a USB device with three
-endpoints. The Android tablet or computer you connect to the translator acts as
-the USB host, and must initiate all transfers.
+    {"name": "seat_position", "value": 20}
 
-Endpoint 0
-----------
+RAW CAN Message Writes
+-------------------------
 
-This is the standard USB control transfer endpoint. The VI has a few control
-commands:
+The RAW CAN message write requires that the VI is configured to allow raw writes
+to the given CAN bus. If the ``bus`` attribute is omitted, it will write the
+message to the first CAN bus found that permits writes.
+
+::
+
+    {"bus": 1, "id": 1234, "value": "0x12345678"}
+
+Vehicle Diagnostic Requests
+---------------------------
+
+Diagnostic requests can either be one-time or recurring (if the ``frequency``
+option is specified). The command requires that the VI is configured to allow
+raw writes to the given cAN bus. If the ``bus`` attribute is omitted, it will
+write the message to the first CAN bus found that permits writes.
+
+::
+
+    { "command": "diagnostic_request",
+      "request": {
+          "bus": 1,
+          "id": 1234,
+          "mode": 1,
+          "pid": 5
+        }
+      }
+    }
+
+
+.. _version-query:
+
+Version Query
+-------------
+
+This asynchronous command will query for the version of firmware that the VI is
+running:
+
+::
+
+    { "command": "version"}
+
+The response is injected into the normal output data stream:
+
+::
+
+    { "command_response": "version", "message": "v6.0 (default)"}
+
+.. _device-id-query:
+
+Device ID Query
+----------------
+
+This asynchronous command will query for a unique device ID for the VI:
+
+::
+
+    { "command": "device_id"}
+
+If no device ID is available, the response message will be "Unknown". The
+response is injected into the normal output data stream:
+
+::
+
+    { "command_response": "device_id", "message": "0012345678"}
+
+UART (Serial, Bluetooth)
+========================
+
+The UART (or serial) connection for a VI is often connected to a Bluetooth
+module, e.g. the Roving Networks RN-41 on the Ford Reference VI. This allows
+wireless I/O  with the VI.
+
+The VI will send all messages it is configured to received out over the UART
+interface using the OpenXC message format. The data may be serialized as either
+JSON or protocol buffers, depending on the selected output format. Each message
+is followed by a ``\r\n`` delimiter.
+
+The UART interface also accepts all valid OpenXC commands. JSON is the only
+support format for commands in this version. Commands must be delimited with a
+``\0`` (NULL) character.
+
+For details on your particular platform (i.e. the baud rate and pins for UART on
+the board) see the :doc:`supported platforms </platforms/platforms>`.
+
+USB Device
+===========
+
+The VI is configured as a USB device, so you can connect it to a computer or
+mobile device that supports USB OTG. USB is best if you need to stream a lot of
+to or from the VI - the UART connection caps out at around 23KB/s, but USB can
+go about 100KB/s.
+
+The VI will publish all messages it is configured to received to USB bulk ``IN``
+endpoint 2 using the OpenXC message format. The data may be serialized as either
+JSON or protocol buffers, depending on the selected output format. Each message
+is followed by a ``\r\n`` delimiter. A larger read request from the host request
+will allow more messages to be batched together into one USB request and give
+high overall throughput (with the downside of introducing delay depending on the
+size of the request).
+
+Bulk ``OUT`` endpoint 5 will accept valid OpenXC commands from the host,
+serialized as JSON (the Protocol Buffer format is not supported for commands).
+Commands must be delimited with a ``\0`` (NULL) character. Commands must
+be no more than 256 bytes (4 USB packets).
+
+Finally, the VI publishes log messages to bulk ``IN`` endpoint 11 when compiled
+with the ``DEBUG`` flag. The log messages are delimited with ``\r\n``.
+
+If you are using one of the support libraries (e.g. `openxc-python
+<https://github.com/openxc/openxc/python>`_ or `openxc-android
+<https://github.com/openxc/openxc-android>`_, you don't need to worry about the
+details of the USB device driver, but for creating new libraries the endpoints
+are documented here.
+
+Control Transfers
+-----------------
+
+The VI accepts a few control transfer requests on the standard endpoint 0.:
 
 Version
-```````
+````````
 
-Version control command: ``0x80``
+Transfer request type: ``0x80``
 
 The host can retrieve the version of the VI using the ``0x80`` control request.
 The data returned is a string containing the software version of the firmware
@@ -50,42 +160,21 @@ and the configured vehicle platform in the format:
 
 ::
 
-    Version: 1.0 (c346)
+    Version: 1.0 (type1)
 
-where ``1.0`` is the software version and ``c346`` is the configured
-vehicle.
+where ``1.0`` is the software version and ``type1`` is an optional string
+descriptor for the build.
 
-Endpoint 2 IN - Vehicle Data to Host
-------------------------------------
+The version can also be obtained with a :ref:`version query <version-query>` sent to
+the main IN endpoint.
 
-Endpoint 2 is configured as a bulk transfer endpoint with the ``IN``
-direction (device to host). OpenXC JSON messages read from the vehicle
-are sent to the host via ``IN`` transactions. When the host is ready to
-receive, it should issue a request to read data from this endpoint. A
-larger sized request will allow more messages to be batched together
-into one USB request and give high overall throughput (with the downside
-of introducing delay depending on the size of the request).
+Device ID
+`````````
 
-Endpoint 5 OUT - Commands to Vehicle
-------------------------------------
+Transfer request type: ``0x82``
 
-OpenXC JSON messages created by the host to send to the vehicle (i.e. to
-write to the CAN bus) are sent via ``OUT`` transactions. The CAN
-translator is prepared to accept writes from the host as soon as it
-initializes USB, so they can be sent at any time. The messages must be separated
-by a NULL character.
+The host can retrieve a unique device identifier for the VI (if one is
+available) using the ``0x82`` control request.
 
-There is no special demarcation on these messages to indicate they are writes -
-the fact that they are written in the ``OUT`` direction is sufficient. Write
-messages must be no more than 4 USB packets in size, i.e. 4 \* 64 = 256 bytes.
-
-In the same way the VI is pre-configured with a list of CAN signals to read and
-parse from the CAN bus, it is configured with a whitelist of messages and
-signals for which to accept writes from the host. If a message is sent with an
-unlisted ID it is silently ignored.
-
-Endpoint 11 IN - Logging
-------------------------
-
-When compiled with the ``DEBUG`` flag, debug logging will be published to this
-endpoint. The log messages are separated by ``\r\n``.
+The version can also be obtained with a :ref:`device ID query <device-id-query>`
+sent to the main IN endpoint.

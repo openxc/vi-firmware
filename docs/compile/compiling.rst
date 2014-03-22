@@ -2,7 +2,7 @@
 Building from Source
 ====================
 
-For a detailed walkthrough, see :doc:`getting-started`.
+For a detailed walkthrough, see :doc:`/getting-started/getting-started`.
 
 The build process uses GNU Make and works with Linux (tested in Arch Linux and
 Ubuntu), OS X and Cygwin 32-bit in Windows. For documentation on how to build
@@ -17,6 +17,6 @@ optional.
 .. toctree::
     :maxdepth: 2
 
-    getting-started
     makefile-opts
     troubleshooting
+    dependencies

@@ -57,6 +57,12 @@ If this doesn't print out anything or gives you an error, make sure you cloned
 this repository from GitHub with git and that you didn't download a zip file.
 The zip file is missing all of the git metadata, so submodules will not work.
 
+PIC32 Dependencies
+-------------------
+
+If you are planning to build for the PIC32 platforms (e.g. the chipKIT Max32 or
+C5), you need these dependencies.
+
 .. _mpidedep:
 
 MPIDE
@@ -128,10 +134,34 @@ comes with the MPIDE download. The chipKIT uses a different FTDI chip than the
 Arduino, so even if you've used the Arduino before, you still need to install
 this driver.
 
+LPC176x Dependencies
+--------------------
+
+If you are planning to build for the LPC176x platforms (e.g. the Ford Reference
+VI), you need these dependencies.
+
+.. _gcc-arm:
+
+GCC for ARM Toolchain
+---------------------
+
+Download the binary version of the toolchain for your platform (Linux, OS X or
+Windows) from this `Launchpad site <https://launchpad.net/gcc-arm-embedded>`_.
+
+Arch Linux
+~~~~~~~~~~
+
+In Arch Linux you can install the ``arm-none-eabi-gcc`` from the ``[community]``
+repository.
+
+
 .. _openocddep:
 
 OpenOCD
 --------
+
+If you plan to flash an LPC17xx based board with JTAG and not use the USB
+bootloader included with the Ford Reference VI, you need OpenOCD.
 
 Arch Linux
 ~~~~~~~~~~
@@ -157,19 +187,5 @@ Remove the Olimex sections from the FTDI kernel module, and then reload it:
     $ sudo sed -i "" -e "/Olimex OpenOCD JTAG A/{N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" /System/Library/Extensions/FTDIUSBSerialDriver.kext/Contents/Info.plist
     $ sudo kextunload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
     $ sudo kextload /System/Library/Extensions/FTDIUSBSerialDriver.kext/
-
-.. _gcc-arm:
-
-GCC for ARM Toolchain
----------------------
-
-Download the binary version of the toolchain for your platform (Linux, OS X or
-Windows) from this `Launchpad site <https://launchpad.net/gcc-arm-embedded>`_.
-
-Arch Linux
-~~~~~~~~~~
-
-In Arch Linux you can alternatively install the ``gcc-arm-none-eabi`` package
-from the AUR.
 
 .. _`Homebrew`: http://mxcl.github.com/homebrew/

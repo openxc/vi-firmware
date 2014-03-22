@@ -1,6 +1,11 @@
 =====================================
-Getting Started with VI Configuration
+Customizing the VI Configuration
 =====================================
+
+The open source VI firmware doesn't include any CAN
+message definitions. If you know the details of your CAN signals, you can add
+your own implementation of the functions defined in ``signals.h`` to a file
+named ``signals.cpp``.
 
 In this example, we'll pick a simple use case and walk through how to
 configure and compile the firmware. You'll need to be comfortable
@@ -34,7 +39,7 @@ JSON Configuration
 ==================
 
 The configuration file format used for the VI firmware lis what we call
-a JSON mapping file. `JSON <http://en.wikipedia.org/wiki/JSON>`__ is a
+a JSON mapping file. `JSON <http://en.wikipedia.org/wiki/JSON>`_ is a
 human-readable data format that's a alternative to XML - we use it
 because it's easy to parse and easy to write by hand and the syntax is
 fairly obvious. Each configuration file, or mapping, is a single JSON
@@ -147,4 +152,4 @@ That's it - the configuration is finished. When we compile the VI
 firmware with this configuration, it will read our CAN message from the
 bus, parse and translate it into a JSON output message with a ``name``
 and ``value``, and send it out over USB and Bluetooth. Next, we'll :doc:`walk
-through how to do the compilation </compile/getting-started>`.
+through how to do the compilation with your config </getting-started/with-config>`.

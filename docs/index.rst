@@ -29,7 +29,7 @@ version to a USB, Bluetooth or network interface.
 .. toctree::
     :maxdepth: 2
 
-    getting-started
+    getting-started/getting-started
 
 Configuring, Compiling and Testing
 ==================================

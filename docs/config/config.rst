@@ -30,7 +30,6 @@ you most likely want one of the binary firmwares from an automaker
 .. toctree::
     :maxdepth: 1
 
-    getting-started
     examples
     raw-examples
     code-examples

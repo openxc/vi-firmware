@@ -1,6 +1,6 @@
-===============================
-Basic Configuration Examples
-===============================
+================================
+Read-only Configuration Examples
+================================
 
 If you haven't created a custom firmware for the OpenXC VI yet, we recommend the
 `getting started with custom data guide

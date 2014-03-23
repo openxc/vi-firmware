@@ -1,6 +1,6 @@
-=====================================
-Firmware Write Configuration Examples
-=====================================
+===============================
+Writable Configuration Examples
+===============================
 
 A "write" to the VI is an OpenXC formatted message sent in reverse - from an
 application running on a host device back through e.g. USB or Bluetooth to the

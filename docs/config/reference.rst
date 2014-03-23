@@ -425,7 +425,7 @@ should be requested.
 ``mode`` - the diagnostic request mode, e.g. Mode 1 for powertrain diagnostic
 requests.
 
-``frequency`` - The freuqency in Hz to request this diagnostic message. The
+``frequency`` - The frequency in Hz to request this diagnostic message. The
 maximum allowed frequency is 10Hz.
 
 ``pid`` - (optional) If the mode uses PIDs, the pid to request.
@@ -434,10 +434,25 @@ maximum allowed frequency is 10Hz.
 response will be of the typical translated data format (i.e. an object with a
 ``name`` and ``value``). The value will be the payload.
 
-``handler`` - (optional) When using a ``name``, you can also specify a
-custom handler function to parse the payload. This field is the name of a custom
-command handler function (that matches the ``DiagnosticResponseDecoder``
-function prototype).
+``parse_payload`` - (optional, defaults to ``false``) A boolean, which if
+``true``, will cause a parsed version of the payload in a diagnostic response to
+be included with the published message. The parsed payload is simply the entire
+payload array interpreted as an integer.
+
+``factor`` -  (optional, defaults to ``1.0``) If ``parse_payload`` is ``true``,
+the parsed payload will be multiplied by this factor before returning.
+
+``offset`` -  (optional, defaults to ``0``) If ``parse_payload`` is ``true``,
+the parsed payload will be offset by this amount after being multiplied by the
+``factor``.
+
+``decoder`` - (optional) When using a ``name``, you can also specify a custom
+decoder function to parse the payload. This field is the name of a function
+(that matches the ``DiagnosticResponseDecoder`` function prototype).
+
+``callback`` - (optional) This field is the name of a function
+(that matches the ``DiagnosticResponseCallback`` function prototype) that should
+be called every time a response is received to this request.
 
 Mappings
 ========

@@ -22,6 +22,7 @@ together with the community to reverse engineer it!
     raw-examples
     code-examples
     write-examples
+    diagnostic
     faq
     bit-numbering
     reference

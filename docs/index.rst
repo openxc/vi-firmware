@@ -28,41 +28,31 @@ version to a USB, Bluetooth or network interface.
 
 .. toctree::
     :maxdepth: 2
+    :hidden:
 
     getting-started/getting-started
 
-Configuring, Compiling and Testing
-==================================
-
 .. toctree::
     :maxdepth: 1
+    :hidden:
 
     config/config
     compile/compiling
     platforms/platforms
-    testing
-
-Advanced Reference
-======================
-
-.. toctree::
-    :maxdepth: 1
-
     advanced/advanced
     output
 
-Contributing
-============
-
 .. toctree::
-    :maxdepth: 0
+    :maxdepth: 1
+    :hidden:
 
+    testing
     contributing
 
 License
 -------
 
-Copyright (c) 2012-2013 Ford Motor Company
+Copyright (c) 2012-2014 Ford Motor Company
 
 Licensed under the BSD license.
 

@@ -20,6 +20,10 @@ void loop(DiagnosticsManager* manager);
 
 void initialize(DiagnosticsManager* manager);
 
+bool isObd2Request(DiagnosticRequest* request);
+
+float handleObd2Pid(const DiagnosticResponse* response, float parsedPayload);
+
 } // namespace obd2
 } // namespace diagnostics
 } // namespace openxc

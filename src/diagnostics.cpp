@@ -298,11 +298,11 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
     // (parsed value)
     // if includes decoder, include value instead of payload but leave the rest.
 
-    if(response->success && request->genericName != NULL &&
-            strnlen(request->genericName, sizeof(request->genericName)) > 0) {
+    if(response->success && request->name != NULL &&
+            strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-        sendNumericalMessage(request->genericName, value, pipeline);
+        sendNumericalMessage(request->name, value, pipeline);
     } else {
         // If no name, send full details of response but still include 'value'
         // instead of 'payload' if they provided a decoder. The one case you
@@ -385,15 +385,15 @@ bool openxc::diagnostics::cancelRecurringRequest(
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback) {
-    return addRecurringRequest(manager, bus, request, genericName,
+    return addRecurringRequest(manager, bus, request, name,
             waitForMultipleResponses, decoder, callback, 0);
 }
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback, float frequencyHz) {
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
@@ -447,13 +447,13 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
     entry->request.arbitration_id = request->arbitration_id;
     entry->request.handle = generate_diagnostic_request(
             &manager->shims[bus->address - 1], request, NULL);
-    if(genericName != NULL) {
-        strncpy(entry->request.genericName, genericName,
-                MAX_GENERIC_NAME_LENGTH);
+    if(name != NULL) {
+        strncpy(entry->request.name, name, MAX_GENERIC_NAME_LENGTH);
     } else {
-        entry->request.genericName[0] = '\0';
+        entry->request.name[0] = '\0';
     }
     entry->request.waitForMultipleResponses = waitForMultipleResponses;
+
     entry->request.decoder = decoder;
     entry->request.callback = callback;
     entry->request.recurring = frequencyHz != 0;
@@ -488,16 +488,16 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 }
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, float frequencyHz) {
-    return addRecurringRequest(manager, bus, request, genericName,
+    return addRecurringRequest(manager, bus, request, name,
             waitForMultipleResponses, NULL, NULL, frequencyHz);
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses) {
-    return addRequest(manager, bus, request, genericName,
+    return addRequest(manager, bus, request, name,
             waitForMultipleResponses, NULL, NULL);
 }
 
@@ -545,6 +545,20 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                     request.pid = commandRequest->pid;
                 }
 
+                DiagnosticResponseDecoder decoder = NULL;
+                if(commandRequest->has_decoded_type) {
+                    switch(commandRequest->decoded_type) {
+                        case openxc_DiagnosticRequest_DecodedType_NONE:
+                            decoder = passthroughDecoder;
+                            break;
+                        case openxc_DiagnosticRequest_DecodedType_OBD2:
+                            decoder = obd2::handleObd2Pid;
+                            break;
+                    }
+                } else if(obd2::isObd2Request(&request)) {
+                    decoder = obd2::handleObd2Pid;
+                }
+
                 bool multipleResponses = commandRequest->message_id ==
                         OBD2_FUNCTIONAL_BROADCAST_ID;
                 if(commandRequest->has_multiple_responses) {
@@ -555,6 +569,8 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         commandRequest->has_name ?
                                 commandRequest->name : NULL,
                         multipleResponses,
+                        decoder,
+                        NULL,
                         commandRequest->has_frequency ?
                                 commandRequest->frequency : 0);
             } else {
@@ -571,4 +587,9 @@ bool openxc::diagnostics::handleDiagnosticCommand(
         status = false;
     }
     return status;
+}
+
+float openxc::diagnostics::passthroughDecoder(const DiagnosticResponse* response,
+        float parsed_payload) {
+    return parsed_payload;
 }

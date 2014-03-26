@@ -310,8 +310,6 @@ void handleKpaTirePressureMessage(int messageId, uint64_t data, CanSignal* signa
 void handleOccupancyMessage(int messageId, uint64_t data,
               CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
 
-float handleObd2Pid(const DiagnosticResponse* response, float parsedPayload);
-
 } // namespace handlers
 } // namespace signals
 } // namespace openxc

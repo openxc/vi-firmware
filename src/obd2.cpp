@@ -97,7 +97,7 @@ static void checkSupportedPids(DiagnosticsManager* manager,
                         debug("Vehicle supports PID %d", pid);
                         addRecurringRequest(manager, manager->obd2Bus, &request,
                                 OBD2_PIDS[i].name, false,
-                                openxc::signals::handlers::handleObd2Pid,
+                                openxc::diagnostics::obd2::handleObd2Pid,
                                 checkIgnitionStatus, OBD2_PIDS[i].frequency);
                         break;
                     }
@@ -165,4 +165,13 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
             }
         }
     }
+}
+
+bool openxc::diagnostics::obd2::isObd2Request(DiagnosticRequest* request) {
+    return request->mode == 0x1 && request->has_pid && request->pid < 0xff;
+}
+
+float openxc::diagnostics::obd2::handleObd2Pid(
+        const DiagnosticResponse* response, float parsedPayload) {
+    return diagnostic_decode_obd2_pid(response);
 }

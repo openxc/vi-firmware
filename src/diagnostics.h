@@ -37,7 +37,7 @@ typedef void (*DiagnosticResponseCallback)(
 
 /* Public:
  *
- * If genericName is null, output will be in raw OBD-II response format.
+ * If name is null, output will be in raw OBD-II response format.
  *
  * If decoder is null, output will include the raw payload instead of a value.
  */
@@ -45,7 +45,7 @@ struct ActiveDiagnosticRequest {
     CanBus* bus;
     uint32_t arbitration_id;
     DiagnosticRequestHandle handle;
-    char genericName[MAX_GENERIC_NAME_LENGTH];
+    char name[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;
     DiagnosticResponseCallback callback;
     bool recurring;
@@ -59,7 +59,7 @@ typedef struct ActiveDiagnosticRequest ActiveDiagnosticRequest;
 struct DiagnosticRequestListEntry {
     ActiveDiagnosticRequest request;
     // TODO these couuld be pushed down into ActiveDiagnosticRequest to save 4
-    // bytes each
+    // bytes per entry
     TAILQ_ENTRY(DiagnosticRequestListEntry) queueEntries;
     LIST_ENTRY(DiagnosticRequestListEntry) listEntries;
 };
@@ -88,21 +88,21 @@ void reset(DiagnosticsManager* manager);
  * frequencyHz - a value of 0 means it's a non-recurring request.
  */
 bool addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback, float frequencyHz);
 
 bool addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback);
 
 bool addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, float frequency);
 
 bool addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses);
 
 bool addRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
@@ -127,6 +127,9 @@ void sendRequests(DiagnosticsManager* manager, CanBus* bus);
  */
 bool handleDiagnosticCommand(DiagnosticsManager* manager,
         openxc_ControlCommand* command);
+
+float passthroughDecoder(const DiagnosticResponse* response,
+        float parsed_payload);
 
 } // namespace diagnostics
 } // namespace openxc

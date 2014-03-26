@@ -3,6 +3,7 @@
 #include "signals.h"
 #include "config.h"
 #include "diagnostics.h"
+#include "obd2.h"
 #include "lights.h"
 #include "config.h"
 #include "pipeline.h"
@@ -92,10 +93,6 @@ void setup() {
     CONTROL_COMMAND.control_command.diagnostic_request.payload.size = 1;
     CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = true;
     CONTROL_COMMAND.control_command.diagnostic_request.multiple_responses = false;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_factor = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.factor = 2.1;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_offset = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.offset = -1000.2;;
     CONTROL_COMMAND.control_command.diagnostic_request.has_frequency = true;
     CONTROL_COMMAND.control_command.diagnostic_request.frequency = 10;
 }
@@ -171,6 +168,19 @@ START_TEST (test_raw_write_not_allowed)
 }
 END_TEST
 
+START_TEST (test_named_diagnostic_request)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"name\": \"foobar\", \"bus\": 1, \"id\": 2, \"mode\": 1}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    ck_assert_str_eq(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests
+                )->request.name, "foobar");
+}
+END_TEST
+
 START_TEST (test_diagnostic_request_with_payload)
 {
     const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"0x1234\"}}";
@@ -206,6 +216,25 @@ START_TEST (test_diagnostic_request_write_not_allowed)
 }
 END_TEST
 
+START_TEST (test_recognized_obd2_request_overridden)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->request.decoder == openxc::diagnostics::passthroughDecoder);
+}
+END_TEST
+
+START_TEST (test_recognized_obd2_request)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->request.decoder
+            == openxc::diagnostics::obd2::handleObd2Pid);
+}
+END_TEST
+
 START_TEST (test_diagnostic_request)
 {
     ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
@@ -215,6 +244,7 @@ START_TEST (test_diagnostic_request)
     fail_if(canQueueEmpty(0));
 }
 END_TEST
+
 
 START_TEST (test_diagnostic_request_missing_mode)
 {
@@ -561,20 +591,6 @@ START_TEST (test_validate_diagnostic_no_multiple_responses)
 }
 END_TEST
 
-START_TEST (test_validate_diagnostic_no_factor)
-{
-    CONTROL_COMMAND.control_command.diagnostic_request.has_factor = false;
-    ck_assert(validate(&CONTROL_COMMAND));
-}
-END_TEST
-
-START_TEST (test_validate_diagnostic_no_offset)
-{
-    CONTROL_COMMAND.control_command.diagnostic_request.has_offset = false;
-    ck_assert(validate(&CONTROL_COMMAND));
-}
-END_TEST
-
 START_TEST (test_validate_diagnostic_no_frequency)
 {
     CONTROL_COMMAND.control_command.diagnostic_request.has_frequency = false;
@@ -633,6 +649,9 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_bus);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_arb_id);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_mode);
+    tcase_add_test(tc_complex_commands, test_named_diagnostic_request);
+    tcase_add_test(tc_complex_commands, test_recognized_obd2_request);
+    tcase_add_test(tc_complex_commands, test_recognized_obd2_request_overridden);
     suite_add_tcase(s, tc_complex_commands);
 
     TCase *tc_control_commands = tcase_create("control_commands");
@@ -665,8 +684,6 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_diagnostic_missing_id);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_pid);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_payload);
-    tcase_add_test(tc_validation, test_validate_diagnostic_no_factor);
-    tcase_add_test(tc_validation, test_validate_diagnostic_no_offset);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_frequency);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_multiple_responses);
     tcase_add_test(tc_validation, test_validate_version_command);

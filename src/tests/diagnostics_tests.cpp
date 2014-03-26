@@ -256,6 +256,46 @@ START_TEST (test_add_basic_request)
 }
 END_TEST
 
+START_TEST (test_recognized_obd2_request_overridden)
+{
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, NULL, false, diagnostics::passthroughDecoder, NULL));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot, "value") != NULL);
+    ck_assert(strstr((char*)snapshot, "payload") == NULL);
+}
+END_TEST
+
+START_TEST (test_recognized_obd2_request)
+{
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    // only doing OBD-II autodetection for commands, still need to be able to
+    // pass NULL to addRequest to say no decoder, and don't put 'value' in.
+    ck_assert(strstr((char*)snapshot, "value") == NULL);
+    ck_assert(strstr((char*)snapshot, "payload") != NULL);
+}
+END_TEST
+
 START_TEST (test_padding_on_by_default)
 {
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
@@ -859,6 +899,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_add_nonrecurring_doesnt_clobber_recurring);
     tcase_add_test(tc_core, test_receive_nonrecurring_twice);
     tcase_add_test(tc_core, test_nonrecurring_timeout);
+    tcase_add_test(tc_core, test_recognized_obd2_request);
+    tcase_add_test(tc_core, test_recognized_obd2_request_overridden);
 
     tcase_add_test(tc_core, test_recurring_staggered);
     tcase_add_test(tc_core, test_nonrecurring_not_staggered);

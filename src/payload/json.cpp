@@ -229,22 +229,35 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
             command->diagnostic_request.multiple_responses = bool(element->valueint);
         }
 
-        element = cJSON_GetObjectItem(request, "factor");
+        element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
-            command->diagnostic_request.has_factor = true;
-            command->diagnostic_request.factor = element->valuedouble;
-        }
-
-        element = cJSON_GetObjectItem(request, "offset");
-        if(element != NULL) {
-            command->diagnostic_request.has_offset = true;
-            command->diagnostic_request.offset = element->valuedouble;
+            command->diagnostic_request.has_multiple_responses = true;
+            command->diagnostic_request.multiple_responses = bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
             command->diagnostic_request.has_frequency = true;
             command->diagnostic_request.frequency = element->valuedouble;
+        }
+
+        element = cJSON_GetObjectItem(request, "decoded_type");
+        if(element != NULL) {
+            if(!strcmp(element->valuestring, "obd2")) {
+                command->diagnostic_request.has_decoded_type = true;
+                command->diagnostic_request.decoded_type =
+                        openxc_DiagnosticRequest_DecodedType_OBD2;
+            } else if(!strcmp(element->valuestring, "none")) {
+                command->diagnostic_request.has_decoded_type = true;
+                command->diagnostic_request.decoded_type =
+                        openxc_DiagnosticRequest_DecodedType_NONE;
+            }
+        }
+
+        element = cJSON_GetObjectItem(request, "name");
+        if(element != NULL && element->type == cJSON_String) {
+            command->diagnostic_request.has_name = true;
+            strcpy(command->diagnostic_request.name, element->valuestring);
         }
     }
 }

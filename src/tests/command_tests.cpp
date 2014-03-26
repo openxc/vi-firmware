@@ -90,8 +90,6 @@ void setup() {
     CONTROL_COMMAND.control_command.diagnostic_request.has_payload = true;
     CONTROL_COMMAND.control_command.diagnostic_request.payload.bytes[0] = 0xff;
     CONTROL_COMMAND.control_command.diagnostic_request.payload.size = 1;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_parse_payload = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.parse_payload = true;
     CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = true;
     CONTROL_COMMAND.control_command.diagnostic_request.multiple_responses = false;
     CONTROL_COMMAND.control_command.diagnostic_request.has_factor = true;
@@ -556,13 +554,6 @@ START_TEST (test_validate_diagnostic_no_payload)
 }
 END_TEST
 
-START_TEST (test_validate_diagnostic_no_parse_payload)
-{
-    CONTROL_COMMAND.control_command.diagnostic_request.has_parse_payload = false;
-    ck_assert(validate(&CONTROL_COMMAND));
-}
-END_TEST
-
 START_TEST (test_validate_diagnostic_no_multiple_responses)
 {
     CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = false;
@@ -674,7 +665,6 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_diagnostic_missing_id);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_pid);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_payload);
-    tcase_add_test(tc_validation, test_validate_diagnostic_no_parse_payload);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_factor);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_offset);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_frequency);

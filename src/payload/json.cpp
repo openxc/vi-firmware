@@ -223,12 +223,6 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
                     sizeof(((openxc_DiagnosticRequest*)0)->payload.bytes));
         }
 
-        element = cJSON_GetObjectItem(request, "parse_payload");
-        if(element != NULL) {
-            command->diagnostic_request.has_parse_payload = true;
-            command->diagnostic_request.parse_payload = bool(element->valueint);
-        }
-
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
             command->diagnostic_request.has_multiple_responses = true;

@@ -118,7 +118,7 @@ END_TEST
 START_TEST (test_simultaneous_recurring_nonrecurring)
 {
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "foo", false, false, 1, 0, NULL, NULL, 1));
+                &getCanBuses()[0], &request, "foo", false, NULL, NULL, 1));
     // get around the staggered start
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     FAKE_TIME += 2000;
@@ -128,7 +128,7 @@ START_TEST (test_simultaneous_recurring_nonrecurring)
     resetQueues();
 
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "bar", false, false));
+                &getCanBuses()[0], &request, "bar", false));
 
     FAKE_TIME += 50;
     // the recurring is in flight and not expired, so the new non-recurring
@@ -159,7 +159,7 @@ START_TEST (test_simultaneous_recurring_nonrecurring)
 
     // add another non-recurring
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[0], &request, "bar", false, false));
+                &getCanBuses()[0], &request, "bar", false));
 
     // send again, but now non-recurring should send first
     FAKE_TIME += 1000;
@@ -294,7 +294,7 @@ END_TEST
 START_TEST (test_add_request_other_bus)
 {
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-                &getCanBuses()[1], &request, "mypid", false, false));
+                &getCanBuses()[1], &request, "mypid", false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[1]);
     fail_if(canQueueEmpty(1));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[1],
@@ -311,7 +311,7 @@ END_TEST
 START_TEST (test_add_request_with_name)
 {
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, false));
+            &getCanBuses()[0], &request, "mypid", false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -325,23 +325,6 @@ START_TEST (test_add_request_with_name)
 }
 END_TEST
 
-START_TEST (test_scaling)
-{
-    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, false, 2.0, 14));
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-            &message, &getConfiguration()->pipeline);
-    fail_if(outputQueueEmpty());
-
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
-    snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":152}\r\n");
-}
-END_TEST
-
 static float decodeFloatTimes2(const DiagnosticResponse* response,
         float parsed_payload) {
     return parsed_payload * 2;
@@ -350,7 +333,7 @@ static float decodeFloatTimes2(const DiagnosticResponse* response,
 START_TEST (test_add_request_with_decoder_no_name_allowed)
 {
     fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, false, 1, 0, decodeFloatTimes2, NULL));
+            &getCanBuses()[0], &request, NULL, false, decodeFloatTimes2, NULL));
 }
 END_TEST
 
@@ -379,7 +362,7 @@ END_TEST
 START_TEST (test_request_callback)
 {
     fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, false, 1, 0, NULL, myCallback));
+            &getCanBuses()[0], &request, NULL, false, NULL, myCallback));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
@@ -394,7 +377,7 @@ END_TEST
 START_TEST (test_add_request_with_name_and_decoder)
 {
     fail_unless(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, "mypid", false, false, 1, 0, decodeFloatTimes2, NULL));
+            &getCanBuses()[0], &request, "mypid", false, decodeFloatTimes2, NULL));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
@@ -676,7 +659,7 @@ START_TEST(test_broadcast_accept_multiple_responses)
 {
     request.arbitration_id = OBD2_FUNCTIONAL_BROADCAST_ID;
     ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, NULL, false, true, 1, 0));
+            &getCanBuses()[0], &request, NULL, true));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -721,11 +704,11 @@ START_TEST(test_broadcast_response_arb_id)
 }
 END_TEST
 
-START_TEST(test_parsed_payload)
+START_TEST(test_passthrough_decoder)
 {
     ck_assert(diagnostics::addRequest(
              &getConfiguration()->diagnosticsManager,
-             &getCanBuses()[0], &request, NULL, true, false));
+             &getCanBuses()[0], &request, "this_will_have_value", false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
     CanMessage message = {
@@ -870,7 +853,6 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_padding_on_by_default);
     tcase_add_test(tc_core, test_padding_enabled);
     tcase_add_test(tc_core, test_padding_disabled);
-    tcase_add_test(tc_core, test_scaling);
     tcase_add_test(tc_core, test_update_existing_recurring);
     tcase_add_test(tc_core, test_simultaneous_recurring_nonrecurring);
     tcase_add_test(tc_core, test_cancel_recurring);
@@ -885,7 +867,7 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_clear_to_send);
     tcase_add_test(tc_core, test_broadcast_response_arb_id);
     tcase_add_test(tc_core, test_broadcast_accept_multiple_responses);
-    tcase_add_test(tc_core, test_parsed_payload);
+    tcase_add_test(tc_core, test_passthrough_decoder);
     tcase_add_test(tc_core, test_requests_on_multiple_buses);
     tcase_add_test(tc_core, test_update_inflight);
     tcase_add_test(tc_core, test_use_all_free_entries);

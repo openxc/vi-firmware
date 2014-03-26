@@ -24,9 +24,7 @@ namespace diagnostics {
  * response - the received DiagnosticResponse (the data is in response.payload,
  *      a byte array). This is most often used when the byte order is
  *      signiticant, i.e. with many OBD-II PID formulas.
- * parsed_payload - the entire payload of the response parsed as a single
- *      integer, then transformed with the registered factor and offset
- *      to a float.
+ * parsed_payload - the entire payload of the response parsed as an int.
  */
 typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
         float parsed_payload);
@@ -48,9 +46,6 @@ struct ActiveDiagnosticRequest {
     uint32_t arbitration_id;
     DiagnosticRequestHandle handle;
     char genericName[MAX_GENERIC_NAME_LENGTH];
-    bool parsePayload;
-    float factor;
-    float offset;
     DiagnosticResponseDecoder decoder;
     DiagnosticResponseCallback callback;
     bool recurring;
@@ -94,34 +89,21 @@ void reset(DiagnosticsManager* manager);
  */
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset, const DiagnosticResponseDecoder decoder,
-        const DiagnosticResponseCallback callback,
-        float frequencyHz);
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback, float frequencyHz);
 
 bool addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset, const DiagnosticResponseDecoder decoder,
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback);
 
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float frequency);
+        bool waitForMultipleResponses, float frequency);
 
 bool addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses);
-
-bool addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset, float frequency);
-
-bool addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset);
+        bool waitForMultipleResponses);
 
 bool addRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request, float frequencyHz);

@@ -270,14 +270,17 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     message.diagnostic_response.has_negative_response_code = !response->success;
     message.diagnostic_response.negative_response_code =
             response->negative_response_code;
-    message.diagnostic_response.has_payload = response->payload_length > 0;
-    memcpy(message.diagnostic_response.payload.bytes, response->payload,
-            response->payload_length);
-    message.diagnostic_response.payload.size = response->payload_length;
 
-    if(message.diagnostic_response.has_payload && request->parsePayload) {
-        message.diagnostic_response.has_value = true;
-        message.diagnostic_response.value = parsedValue;
+    if(response->payload_length > 0) {
+        if(request->decoder != NULL)  {
+            message.diagnostic_response.has_value = true;
+            message.diagnostic_response.value = parsedValue;
+        } else {
+            message.diagnostic_response.has_payload = true;
+            memcpy(message.diagnostic_response.payload.bytes, response->payload,
+                    response->payload_length);
+            message.diagnostic_response.payload.size = response->payload_length;
+        }
     }
 
     return message;
@@ -286,16 +289,25 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
-    float value = diagnostic_payload_to_integer(response) *
-            request->factor + request->offset;
+    float value = diagnostic_payload_to_integer(response);
     if(request->decoder != NULL) {
         value = request->decoder(response, value);
     }
 
-    if(response->success && strnlen(
-                request->genericName, sizeof(request->genericName)) > 0) {
+    // TODO if name, implies no id+mode+pid+bus or payload, and adds value
+    // (parsed value)
+    // if includes decoder, include value instead of payload but leave the rest.
+
+    if(response->success && request->genericName != NULL &&
+            strnlen(request->genericName, sizeof(request->genericName)) > 0) {
+        // If name, include 'value' instead of payload, and leave of response
+        // details.
         sendNumericalMessage(request->genericName, value, pipeline);
     } else {
+        // If no name, send full details of response but still include 'value'
+        // instead of 'payload' if they provided a decoder. The one case you
+        // can't get is the full detailed response with 'value'. We could add
+        // another parameter for that but it's onerous to carry that around.
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
                 request->bus, request, response, value);
         pipeline::sendVehicleMessage(&message, pipeline);
@@ -374,21 +386,16 @@ bool openxc::diagnostics::cancelRecurringRequest(
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset,
-        const openxc::diagnostics::DiagnosticResponseDecoder decoder,
-        const openxc::diagnostics::DiagnosticResponseCallback callback) {
-    return addRecurringRequest(manager, bus, request, genericName, parsePayload,
-            waitForMultipleResponses, factor, offset, decoder, callback, 0);
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback) {
+    return addRecurringRequest(manager, bus, request, genericName,
+            waitForMultipleResponses, decoder, callback, 0);
 }
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset,
-        const openxc::diagnostics::DiagnosticResponseDecoder decoder,
-        const openxc::diagnostics::DiagnosticResponseCallback callback,
-        float frequencyHz) {
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback, float frequencyHz) {
     if(frequencyHz > MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ) {
         debug("Requested recurring diagnostic frequency %d is higher than maximum of %d",
                 frequencyHz, MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ);
@@ -446,10 +453,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
     } else {
         entry->request.genericName[0] = '\0';
     }
-    entry->request.parsePayload = parsePayload;
     entry->request.waitForMultipleResponses = waitForMultipleResponses;
-    entry->request.factor = factor;
-    entry->request.offset = offset;
     entry->request.decoder = decoder;
     entry->request.callback = callback;
     entry->request.recurring = frequencyHz != 0;
@@ -485,44 +489,26 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset, float frequencyHz) {
+        bool waitForMultipleResponses, float frequencyHz) {
     return addRecurringRequest(manager, bus, request, genericName,
-            parsePayload, waitForMultipleResponses, factor, offset, NULL, NULL,
-            frequencyHz);
+            waitForMultipleResponses, NULL, NULL, frequencyHz);
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float factor,
-        float offset) {
+        bool waitForMultipleResponses) {
     return addRequest(manager, bus, request, genericName,
-            parsePayload, waitForMultipleResponses, factor, offset, NULL, NULL);
+            waitForMultipleResponses, NULL, NULL);
 }
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, float frequencyHz) {
-    return addRecurringRequest(manager, bus, request, NULL, false, false, 1.0,
-            0, frequencyHz);
+    return addRecurringRequest(manager, bus, request, NULL, false, frequencyHz);
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request) {
     return addRecurringRequest(manager, bus, request, 0);
-}
-
-bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses, float frequency) {
-    return addRecurringRequest(manager, bus, request, genericName, parsePayload,
-            waitForMultipleResponses, 1, 0, frequency);
-}
-
-bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* genericName,
-        bool parsePayload, bool waitForMultipleResponses) {
-    return addRequest(manager, bus, request, genericName, parsePayload,
-            waitForMultipleResponses, 1.0, 0);
 }
 
 bool openxc::diagnostics::handleDiagnosticCommand(
@@ -568,13 +554,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                 addRecurringRequest(manager, bus, &request,
                         commandRequest->has_name ?
                                 commandRequest->name : NULL,
-                        commandRequest->has_parse_payload ?
-                                commandRequest->parse_payload : false,
                         multipleResponses,
-                        commandRequest->has_factor ?
-                                commandRequest->factor : 1.0,
-                        commandRequest->has_offset ?
-                                commandRequest->offset : 0,
                         commandRequest->has_frequency ?
                                 commandRequest->frequency : 0);
             } else {

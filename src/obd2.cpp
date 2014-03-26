@@ -67,12 +67,12 @@ static void requestIgnitionStatus(DiagnosticsManager* manager) {
         debug("Sending requests to check ignition status");
         DiagnosticRequest request = {arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
                 mode: 0x1, has_pid: true, pid: ENGINE_SPEED_PID};
-        addRequest(manager, manager->obd2Bus, &request, "engine_speed",
-                false, false, 1, 0, NULL, checkIgnitionStatus);
+        addRequest(manager, manager->obd2Bus, &request, "engine_speed", false,
+                NULL, checkIgnitionStatus);
 
         request.pid = VEHICLE_SPEED_PID;
-        addRequest(manager, manager->obd2Bus, &request, "vehicle_speed",
-                false, false, 1, 0, NULL, checkIgnitionStatus);
+        addRequest(manager, manager->obd2Bus, &request, "vehicle_speed", false,
+                NULL, checkIgnitionStatus);
         time::tick(&IGNITION_STATUS_TIMER);
     }
 }
@@ -96,10 +96,9 @@ static void checkSupportedPids(DiagnosticsManager* manager,
                     if(OBD2_PIDS[i].pid == pid) {
                         debug("Vehicle supports PID %d", pid);
                         addRecurringRequest(manager, manager->obd2Bus, &request,
-                                OBD2_PIDS[i].name, false, false, 1, 0,
+                                OBD2_PIDS[i].name, false,
                                 openxc::signals::handlers::handleObd2Pid,
-                                checkIgnitionStatus,
-                                OBD2_PIDS[i].frequency);
+                                checkIgnitionStatus, OBD2_PIDS[i].frequency);
                         break;
                     }
                 }
@@ -161,7 +160,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
                     pid: 0x0};
             for(int i = 0x0; i <= 0x80; i += 0x20) {
                 request.pid = i;
-                addRequest(manager, manager->obd2Bus, &request, NULL, false, false, 1, 0,
+                addRequest(manager, manager->obd2Bus, &request, NULL, false,
                         NULL, checkSupportedPids);
             }
         }

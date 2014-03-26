@@ -430,25 +430,16 @@ maximum allowed frequency is 10Hz.
 
 ``pid`` - (optional) If the mode uses PIDs, the pid to request.
 
-``name`` - (optional) If defined, the output format of the diagnostic
-response will be of the typical translated data format (i.e. an object with a
-``name`` and ``value``). The value will be the payload.
-
-``parse_payload`` - (optional, defaults to ``false``) A boolean, which if
-``true``, will cause a parsed version of the payload in a diagnostic response to
-be included with the published message. The parsed payload is simply the entire
-payload array interpreted as an integer.
-
-``factor`` -  (optional, defaults to ``1.0``) If ``parse_payload`` is ``true``,
-the parsed payload will be multiplied by this factor before returning.
-
-``offset`` -  (optional, defaults to ``0``) If ``parse_payload`` is ``true``,
-the parsed payload will be offset by this amount after being multiplied by the
-``factor``.
+``name`` - (optional) A human readable, string name for
+  this request. If provided, the response will have a ``name`` field (much like
+  a normal translated message) with this value in place of ``bus``, ``id``,
+  ``mode`` and ``pid``.
 
 ``decoder`` - (optional) When using a ``name``, you can also specify a custom
 decoder function to parse the payload. This field is the name of a function
-(that matches the ``DiagnosticResponseDecoder`` function prototype).
+(that matches the ``DiagnosticResponseDecoder`` function prototype). When a
+decoder is specified, the decoded value will be returned in the ``value`` field
+in place of ``payload``.
 
 ``callback`` - (optional) This field is the name of a function
 (that matches the ``DiagnosticResponseCallback`` function prototype) that should

@@ -82,19 +82,14 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
     int i = 0;
     while(usbDevice->configured &&
             usbDevice->device.HandleBusy(endpoint->deviceToHostHandle)) {
-        ++i;
-        if(i > USB_HANDLE_MAX_WAIT_COUNT) {
+        if(++i > USB_HANDLE_MAX_WAIT_COUNT) {
             // The reason we want to exit this loop early is that if USB is
             // attached and configured, but the host isn't sending an IN
             // requests, we will block here forever. As it is, it still slows
             // down UART transfers quite a bit, so setting configured = false
             // ASAP is important.
-
-            // This can get really noisy when running but I want to leave it in
-            // because it' useful to enable when debugging.
-            // debug("USB most likely not connected or at least not requesting "
-                    // "IN transfers - bailing out of handle waiting");
-            // TODO if USB is attached but not reading, this can block so much
+            //
+            // TODO If USB is attached but not reading, this can block so much
             // that the watchdog doesn't get fed. There has to be a better way
             // to use USB on the PIC32!
             openxc::power::feedWatchdog();
@@ -135,12 +130,6 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
                 // buffer after we copy the message into it - the Microchip library
                 // doesn't copy the data to its own internal buffer. See #171 for
                 // background on this issue.
-                // TODO instead of dropping, replace POP above with a SNAPSHOT
-                // and POP off only exactly how many bytes were sent after the
-                // fact.
-                // TODO in order for this not to fail too often I had to increase
-                // the USB_HANDLE_MAX_WAIT_COUNT. that may be OK since now we have
-                // VBUS detection.
                 if(!waitForHandle(usbDevice, endpoint)) {
                     debug("USB not responding in a timely fashion, dropped data");
                     return;

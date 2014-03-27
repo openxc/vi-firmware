@@ -73,7 +73,6 @@ void EVENT_USB_Device_ControlRequest() {
 
         int bytesReceived = 0;
         while(bytesReceived < USB_ControlRequest.wLength) {
-            // TODO could this get stuck?
             while(!Endpoint_IsOUTReceived());
             while(Endpoint_BytesInEndpoint()) {
                 uint8_t byte = Endpoint_Read_8();

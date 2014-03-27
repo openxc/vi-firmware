@@ -5,6 +5,8 @@
 #include "config.h"
 #include "gpio.h"
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
 #ifdef CHIPKIT
 
 #define USB_VBUS_ANALOG_INPUT A0
@@ -27,6 +29,30 @@ using openxc::config::getConfiguration;
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
+/* Private: Arm the given endpoint for a read from the device to host.
+ *
+ * This also puts a NUL char in the beginning of the buffer so you don't get
+ * confused that it's still a valid message.
+ *
+ * device - the CAN USB device to arm the endpoint on
+ * endpoint - the endpoint to arm.
+ * buffer - the destination buffer for the next OUT transfer.
+ */
+static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
+    endpoint->receiveBuffer[0] = 0;
+    endpoint->hostToDeviceHandle = usbDevice->device.GenRead(
+            endpoint->address, (uint8_t*)endpoint->receiveBuffer,
+            endpoint->size);
+}
+
+static uint8_t INCOMING_EP0_DATA_BUFFER[256];
+static size_t INCOMING_EP0_DATA_SIZE;
+static void handleCompletedEP0OutTransfer() {
+    commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
+            INCOMING_EP0_DATA_BUFFER, INCOMING_EP0_DATA_SIZE);
+    memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
+}
+
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
@@ -42,6 +68,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
             if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
                 getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+                armForRead(&getConfiguration()->usb, endpoint);
             } else {
                 getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
@@ -50,10 +77,19 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
 
     case EVENT_EP0_REQUEST:
-        // TODO read payload
-        commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
-                NULL, 0);
+    {
+        if((SetupPkt.bmRequestType >> 7 == 0) && SetupPkt.bRequest >= 0x80
+                && SetupPkt.wLength > 0) {
+            getConfiguration()->usb.device.EP0Receive(INCOMING_EP0_DATA_BUFFER,
+                    MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
+                        (void*)handleCompletedEP0OutTransfer);
+        } else {
+            commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
+                    NULL, 0);
+        }
+
         break;
+    }
 
     default:
         break;
@@ -167,22 +203,6 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
     // So, easy solution is just go right to the control register to power off
     // the USB peripheral.
     U1PWRCCLR = (1 << 0);
-}
-
-/* Private: Arm the given endpoint for a read from the device to host.
- *
- * This also puts a NUL char in the beginning of the buffer so you don't get
- * confused that it's still a valid message.
- *
- * device - the CAN USB device to arm the endpoint on
- * endpoint - the endpoint to arm.
- * buffer - the destination buffer for the next OUT transfer.
- */
-void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
-    endpoint->receiveBuffer[0] = 0;
-    endpoint->hostToDeviceHandle = usbDevice->device.GenRead(
-            endpoint->address, (uint8_t*)endpoint->receiveBuffer,
-            endpoint->size);
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,

@@ -28,13 +28,11 @@ version to a USB, Bluetooth or network interface.
 
 .. toctree::
     :maxdepth: 2
-    :hidden:
 
     getting-started/getting-started
 
 .. toctree::
     :maxdepth: 1
-    :hidden:
 
     config/config
     compile/compiling
@@ -44,7 +42,6 @@ version to a USB, Bluetooth or network interface.
 
 .. toctree::
     :maxdepth: 1
-    :hidden:
 
     testing
     contributing

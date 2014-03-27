@@ -23,9 +23,9 @@ together with the community to reverse engineer it!
     code-examples
     write-examples
     diagnostic
-    faq
     bit-numbering
     reference
+    faq
 
 Compile-time Configuration Options
 ==================================

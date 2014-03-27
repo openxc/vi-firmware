@@ -4,14 +4,15 @@ Diagnostic Configuration Examples
 
 The firmware configuration examples shown so far are for so-called "normal mode"
 CAN messages, that are sent and received without any formal request by a node on
-the bus. Diagnostic type messages use a request / response style protocol, but
-you can add them to a VI config file to create a recurring request (e.g. request
-the engine RPM once per second).
+the bus. Diagnostic type messages use a request / response style protocol, and
+are also supported by the VI firmware. You can add pre-defined, diagnostic
+recurring requests to a VI config file (e.g. request the engine RPM once per
+second).
 
 To perform a one-time request, you don't need anything special in the
 configuration. Make sure the CAN bus is configured as ``raw_writable`` (the
-default build is correct), and then use one of the support library tools like
-``openxc-diag`` to send a request.
+default build with no configuraiton file is correct), and then use one of the
+support library tools like ``openxc-diag`` to send a request.
 
 .. contents::
     :local:
@@ -50,7 +51,11 @@ It's also important that the CAN controller is configured as writable with the
 ``raw_writable`` flag, otherwise the VI will not be able to send the diagnostic
 request.
 
-The response will look like:
+With this configuration, the VI will publish the diagnostic response received
+from the bus using the
+`OpenXC diagnostic response message format
+<https://github.com/openxc/openxc-message-format#responses>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: javascript
 
@@ -98,16 +103,20 @@ Besides changing the ``mode`` and ``pid``, we added a ``decoder``. The
 and knows how to decode a number of the most interesting and widely implemented
 OBD-II PIDs.
 
-The response will look like:
+With this configuration, the VI will publish the diagnostic response received
+from the bus using the
+`OpenXC diagnostic response message format
+<https://github.com/openxc/openxc-message-format#responses>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: javascript
 
     {"bus": 1,
       "id": 2016,
-      "mode": 1,
-      "pid": 12,
+      "mode": 34,
+      "pid": 42,
       "success": true,
-      "value": 412}
+      "payload": "0x1234"}
 
 Unlike the configuration example without a ``decoder``, this response has a
 ``value`` instead of the raw ``payload``. The value is whatever your ``decoder``
@@ -143,9 +152,12 @@ message type.
    }
 
 We simply added a ``name`` field to the diagnostic message configuration. This
-will change the output format for the response to:
+will change the output format to the
+`OpenXC single-valued, translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
-::
+.. code-block:: js
 
     {"name": "engine_speed", "value": 45}
 

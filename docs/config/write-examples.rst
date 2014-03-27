@@ -2,16 +2,9 @@
 Writable Configuration Examples
 ===============================
 
-A "write" to the VI is an OpenXC formatted message sent in reverse - from an
-application running on a host device back through e.g. USB or Bluetooth to the
-VI. By default, any data sent back to the VI is ignored.
-
-For applications that need to write data back to the CAN bus, whether for
-actuation, personalization or diagnostics, you can configure a range of writing
-styles to be permitted. At a high level, you can configure the VI to accept
-writes for raw CAN messages, translated signals, translated signals with custom
-logic on the VI to perform transformations, and completely arbitrary sets of CAN
-writes from a single request from the user.
+For applications that need to send data back to the vehicle, you can configure a
+variety of CAN writes: raw CAN messages, performing reverse translation of an
+individual CAN signal, or send diagnostic requests.
 
 Most of these examples build on configurations started for reading data from the
 bus, so you are strongly encouraged to read, understand and try the
@@ -60,6 +53,16 @@ true, an OpenXC message sent back to the VI from an app with the name
 ``my_openxc_measurement`` will be translated to a CAN signal in a new message
 and written to the bus.
 
+If the VI is configured to use the JSON output format, sending this `OpenXC
+single-valued message
+<https://github.com/openxc/openxc-message-format#single-valued>`_ to the VI via
+USB or UART (Bluetooth) would trigger a CAN write:
+
+.. code-block:: js
+
+   {"name": "my_openxc_measurement", "value": 42}
+
+
 Translated Boolean Signal Write Request
 =======================================
 
@@ -96,6 +99,15 @@ In addition to setting ``writable`` to true, We set the ``write_handler`` for
 the signal to the built-in ``booleanWriter``. This will handle converting a
 ``true`` or ``false`` value from the user back to a 1 or 0 in the outgoing CAN
 message.
+
+If the VI is configured to use the JSON output format, sending this `OpenXC
+single-valued message
+<https://github.com/openxc/openxc-message-format#single-valued>`_ to the VI via
+USB or UART (Bluetooth) would trigger a CAN write:
+
+.. code-block:: js
+
+   {"name": "my_boolean_request", "value": true}
 
 Translated State-based Signal Write Request
 ===========================================
@@ -143,6 +155,15 @@ automatically configured to use the built-in ``stateWriter`` as its
 ``write_handler`` because the signal has a ``states`` array. If a user sends the
 VI the value ``c`` in a write request with the name ``my_state_request``, it
 will be encoded as ``2`` in the CAN signal in the outgoing message.
+
+If the VI is configured to use the JSON output format, sending this `OpenXC
+single-valued message
+<https://github.com/openxc/openxc-message-format#single-valued>`_ to the VI via
+USB or UART (Bluetooth) would trigger a CAN write:
+
+.. code-block:: js
+
+   {"name": "my_state_request", "value": "a"}
 
 Translated, Transformed Written Signal
 =======================================

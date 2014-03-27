@@ -54,7 +54,8 @@ the name of the signal for OpenXC app developers to be
 
 With this configuration, the VI will publish the received CAN signal using the
 `OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_ as:
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: js
 
@@ -136,7 +137,8 @@ values (``true`` or ``false``).
 
 With this configuration, the VI will publish the received CAN signal using the
 `OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_ as:
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: js
 
@@ -192,7 +194,8 @@ automatically will set the ``handler`` to the ``stateHandler``, one of the
 
 With this configuration, the VI will publish the received CAN signal using the
 `OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_ as:
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: js
 
@@ -294,7 +297,8 @@ We added the second message object and made sure to set its ``bus`` field to
 
 With this configuration, the VI will publish the received CAN signals using the
 `OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_ as:
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: js
 

@@ -1,5 +1,5 @@
 =============================
-Custom Firmware Code Examples
+Custom Handler Configuration
 =============================
 
 Sometimes a bit of C++ is required beyond the JSON configuration to implement

@@ -31,7 +31,7 @@ any information.
 With this configuration, the VI will publish all CAN messages it receives using
 the `OpenXC raw CAN message format
 <https://github.com/openxc/openxc-message-format#raw-can-message-format>`_,
-e.g.:
+e.g. when using the JSON output format:
 
 .. code-block:: js
 
@@ -165,7 +165,8 @@ With this configuration, the VI will publish a mixed stream of OpenXC messages,
 both the `raw CAN message format
 <https://github.com/openxc/openxc-message-format#raw-can-message-format>`_, and
 the `translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g.:
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
 
 .. code-block:: js
 

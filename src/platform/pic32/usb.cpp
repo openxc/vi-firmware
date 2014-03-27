@@ -1,6 +1,7 @@
 #include "interface/usb.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include "power.h"
 #include "config.h"
 #include "gpio.h"
 
@@ -93,6 +94,10 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
             // because it' useful to enable when debugging.
             // debug("USB most likely not connected or at least not requesting "
                     // "IN transfers - bailing out of handle waiting");
+            // TODO if USB is attached but not reading, this can block so much
+            // that the watchdog doesn't get fed. There has to be a better way
+            // to use USB on the PIC32!
+            openxc::power::feedWatchdog();
             return false;
         }
     }

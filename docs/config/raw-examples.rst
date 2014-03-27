@@ -28,6 +28,15 @@ any information.
       }
   }
 
+With this configuration, the VI will publish all CAN messages it receives using
+the `OpenXC raw CAN message format
+<https://github.com/openxc/openxc-message-format#raw-can-message-format>`_,
+e.g.:
+
+.. code-block:: js
+
+  {"bus": 1, "id": 1234, "value": "0x12345678"}
+
 Filtered Raw CAN
 =================
 
@@ -52,6 +61,11 @@ controller 1.
 
 We added the ``0x21`` message and assigned it to bus ``hs``, but didn't define
 any signals (it's not necessary when using the raw CAN mode).
+
+This configuration will cause the VI to publish using the
+`OpenXC raw CAN message format
+<https://github.com/openxc/openxc-message-format#raw-can-message-format>`_, but
+you will only received message ``0x21``.
 
 .. _unfiltered-limited:
 
@@ -147,3 +161,13 @@ message co-exist peacefully. If we set ``raw_can_mode`` to ``filtered``, it
 would only send the raw message for ``0x102``, where we're getting the numeric
 signal.
 
+With this configuration, the VI will publish a mixed stream of OpenXC messages,
+both the `raw CAN message format
+<https://github.com/openxc/openxc-message-format#raw-can-message-format>`_, and
+the `translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g.:
+
+.. code-block:: js
+
+   {"bus": 1, "id": 258, "value": "0x12345678"}
+   {"name": "my_openxc_measurement", "value": 42}

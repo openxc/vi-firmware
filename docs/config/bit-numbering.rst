@@ -31,8 +31,9 @@ counting bits from the *rightmost bit*, e.g.:
 When building ``CanSignal`` structs manually, you must use the normal,
 non-inverted bit numbering.
 
-When using JSON mapping format and the code generation tools, you can control
-the bit numbering with the ``bit_numbering_inverted`` flag. By default it
-assumes normal bit ordering **unless** you are using a database-backed mapping,
-in which case it defaults to ``true`` - the DBC files we've seen so far have all
-stored signal information in the inverted format.
+You can control the bit numbering with the ``bit_numbering_inverted`` flag on a
+msesage set or message (where the property will cascade down to all signals) or
+an individual signal in a VI configuration file. By default the VI assumes
+normal bit ordering for each signal **unless** you are using a database-backed
+mapping - the DBC files we've seen so far have all stored signal information in
+the inverted format.

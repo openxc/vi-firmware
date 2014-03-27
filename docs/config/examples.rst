@@ -6,8 +6,9 @@ If you haven't created a custom firmware for the OpenXC VI yet, we recommend the
 `getting started with custom data guide
 <http://openxcplatform.com/firmware/custom-data-example.html>`_.
 
-For all examples, the ``name`` field for message is optional but strongly
-encouraged to help keep track of the mapping.
+For all examples, the ``name`` field for a message is optional but strongly
+encouraged to help keep track of the mapping between a message ID and something
+human readable.
 
 When an example refers to "sending" a translated or raw message, it means
 sending to the app developer via one of the output interfaces (e.g. USB,
@@ -168,7 +169,7 @@ appears as the state strings ``a`` through ``f`` in the JSON for app developers.
        }
    }
 
-We set the ``states`` field for the signal to a JSON object mapping the string
+We set the ``states`` field for the signal to a JSON object, mapping the string
 value for each state to the numerical values to which it corresponds. This
 automatically will set the ``handler`` to the ``stateHandler``, one of the
 :ref:`built-in signal handler functions <value-handlers>`.

@@ -33,23 +33,28 @@ pedal positions from 0 to 100.
 The value on the bus is exactly how we want it to appear in the
 translated version over USB or Bluetooth. We want the name to be
 ``accelerator_pedal_position`` and we want to hide the rest of the
-details.
+details. We want the output format, sent via USB and UART (i.e. Bluetooth) from
+the VI to be the standard translated OpenXC message format (see the `message
+format specification <https://github.com/openxc/openxc-message-format>`_):
+
+.. code-block:: js
+
+   {"name": "accelerator_pedal_position", "value": 42}
+
 
 JSON Configuration
 ==================
 
-The configuration file format used for the VI firmware lis what we call
-a JSON mapping file. `JSON <http://en.wikipedia.org/wiki/JSON>`_ is a
-human-readable data format that's a alternative to XML - we use it
-because it's easy to parse and easy to write by hand and the syntax is
-fairly obvious. Each configuration file, or mapping, is a single JSON
-object.
+The configuration files for the VI firmware are stored as a single `JSON
+<http://en.wikipedia.org/wiki/JSON>`_ object in a file. JSON is a human-readable
+data format that's a alternative to XML - we use it because it's easy to parse,
+(sorta) easy to write by hand and the syntax is fairly obvious.
 
 CAN Bus Definition
 ------------------
 
-We'll start by defining the CAN buses that we want to connect - save
-this in a file called ``accelerator-config.json``:
+We'll start by defining the CAN buses that we want to connect - open a file
+called ``accelerator-config.json`` and add this:
 
 .. code-block:: js
 

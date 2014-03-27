@@ -15,7 +15,6 @@ other flags are optional.
 
 .. toctree::
     :maxdepth: 2
-    :hidden:
 
     makefile-opts
     troubleshooting

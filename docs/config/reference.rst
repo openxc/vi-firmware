@@ -1,6 +1,6 @@
-======================
-Configuration Options
-======================
+===================================
+All Configuration Options Reference
+===================================
 
 There are many configuration options - we recommend looking for your use case in
 the list of :doc:`read <examples>` or :doc:`write <write-examples>` to find a
@@ -26,6 +26,10 @@ Once you've defined your message set in a JSON file, run the
 
     vi-firmware/ $ openxc-generate-firmware-code --message-set mycar.json > src/signals.cpp
 
+.. contents::
+    :local:
+    :depth: 1
+
 Message Set
 ============
 
@@ -33,16 +37,21 @@ Each JSON mapping file defines a "message set," and it should have a name.
 Typically this identifies a particular model year vehicle, or possibly a broader
 vehicle platform. The ``name`` field is required.
 
-``bit_numbering_inverted`` - (optional, ``false`` by default, ``true`` by
-default for database-backed mappings) This flag controls the default :ref:`bit
-numbering <bit-numbering>` for all messages included in this message set. You
-can override the bit numbering for any particular message or mapping, too.
+``bit_numbering_inverted`` (optional)
+  This flag controls the default :ref:`bit numbering <bit-numbering>` for all
+  messages included in this message set. You can override the bit numbering for
+  any particular message or mapping, too.
 
-``max_message_frequency`` - Set a default value for all buses for this attribute
-- see the Can Bus section for a description.
+  ``false`` by default, ``true`` by default for database-backed
+  mappings.
 
-``raw_can_mode`` - Set a default value for all buses for this attribute - see
-the Can Bus section for a description.
+``max_message_frequency``
+  Set a default value for all buses for this attribute - see the :ref:`Can Buses
+  <canbus>` section for a description.
+
+``raw_can_mode``
+  Set a default value for all buses for this attribute - see the :ref:`Can Buses
+  <canbus>` section for a description.
 
 Parent Message Sets
 ===================
@@ -80,48 +89,55 @@ string should be the name of a function with the type signature:
 These functions will be called once each time through the main loop function,
 after reading and processing any CAN messages.
 
+.. _canbus:
+
 CAN Buses
 =========
 
 The key ``buses`` must be an object, where each field is a CAN bus uses by this
 message set, and which CAN controllers are attached on the microcontroller. The
 
-``controller`` - The integer ID of the CAN controller to which this bus is
-attached. The platforms we are using now only have 2 CAN controllers, identified
-here by ``1`` and ``2`` - these are the only acceptable bus addresses. If this
-field is not defined, the bus and any messages associated with it will be
-ignored (but it won't cause an error, so you can swap between buses very
-quickly).
+``controller``
+  The integer ID of the CAN controller to which this bus is attached. The
+  platforms we are using now only have 2 CAN controllers, identified here by
+  ``1`` and ``2`` - these are the only acceptable bus addresses. If this field
+  is not defined, the bus and any messages associated with it will be ignored
+  (but it won't cause an error, so you can swap between buses very quickly).
 
-``speed`` - The CAN bus speed in Kbps, most often 125000 or 500000.
+``speed``
+  The CAN bus speed in Kbps, most often 125000 or 500000.
 
-``raw_can_mode`` - Controls sending raw CAN messages (encoded as JSON objects)
-from the bus over the output channel. Valid modes are ``off`` (the default if
-you don't specify this attribute), ``filtered`` (if messages are defined for the
-bus, will enable CAN filters and only transmit those messages), or
-``unfiltered`` (disable acceptance filters and send all received CAN messages).
-If this attribute is set on a CAN bus object, it will override any default set
-at the message set level (e.g. you can have all buses configured to send
-``filtered`` raw CAN messages, but override one to send ``unfiltered``).
+``raw_can_mode``
+  Controls sending raw CAN messages (encoded as JSON objects) from the bus over
+  the output channel. Valid modes are ``off`` (the default if you don't specify
+  this attribute), ``filtered`` (if messages are defined for the bus, will
+  enable CAN filters and only transmit those messages), or ``unfiltered``
+  (disable acceptance filters and send all received CAN messages). If this
+  attribute is set on a CAN bus object, it will override any default set at the
+  message set level (e.g. you can have all buses configured to send ``filtered``
+  raw CAN messages, but override one to send ``unfiltered``).
 
-``raw_writable`` - Controls whether or not raw CAN messages from the user can be
-written back to this bus, without any sort of translation. This is false by
-default. Even when this is false, messages may still be written to the bus if a
-signal is configured as ``writable``, but they will translated from the user's
-input first.
+``raw_writable``
+  Controls whether or not raw CAN messages from the user can be written back to
+  this bus, without any sort of translation. This is false by default. Even when
+  this is false, messages may still be written to the bus if a signal is
+  configured as ``writable``, but they will translated from the user's input
+  first.
 
-``max_message_frequency`` - The default maximum frequency for all CAN messages
-when using the raw passthrough mode. To put no limit on the frequency, set this
-to 0 or leave it out. If this attribute is set on a CAN bus object, it will
-override any default set at the message set level. This value cascades to all
-CAN message objects for their ``max_frequency`` attribute, which can also be
-overridden at the message level.
+``max_message_frequency``
+  The default maximum frequency for all CAN messages when using the raw
+  passthrough mode. To put no limit on the frequency, set this to 0 or leave it
+  out. If this attribute is set on a CAN bus object, it will override any
+  default set at the message set level. This value cascades to all CAN message
+  objects for their ``max_frequency`` attribute, which can also be overridden at
+  the message level.
 
-``force_send_changed`` - (default: ``true``) Meant to be used in conjunction
-with ``max_message_frequency``, if this is true a raw CAN message will be sent
-regardless of the given frequency if the value has changed (when using raw CAN
-passthrough). Setting the value here, on the CAN bus object, will cascade down
-to all CAN messages unless overridden.
+``force_send_changed`` (optional)
+  Meant to be used in conjunction with ``max_message_frequency``, if this is
+  true a raw CAN message will be sent regardless of the given frequency if the
+  value has changed (when using raw CAN passthrough). Setting the value here, on
+  the CAN bus object, will cascade down to all CAN messages unless overridden.
+  Defaults to ``true``.
 
 .. _messages:
 
@@ -137,54 +153,63 @@ Message
 
 The attributes of each message object are:
 
-``bus`` - The name of one of the previously defined CAN buses where this message
-can be found.
+``bus``
+  The name of one of the previously defined CAN buses where this message can be
+  found.
 
-``bit_numbering_inverted`` - (optional, defaults to the value of the mapping,
-then default of the message set) This flag controls the default :ref:`bit
-numbering <bit-numbering>` for the signals in this message.
+``bit_numbering_inverted`` (optional)
+  This flag controls the default :ref:`bit numbering <bit-numbering>` for the
+  signals in this message. Defaults to the value of the mapping, then default of
+  the message set.
 
-``signals`` - A list of CAN signal objects (described in the :ref:`signal`
-section) that are in this message, with the name of the signal as the key. If
-this is a database-backed mappping, this value must match the signal name in the
-database exactly - otherwise, it's an arbitrary name.
+``signals``
+  A list of CAN signal objects (described in the :ref:`signal` section) that are
+  in this message, with the name of the signal as the key. If this is a
+  database-backed mappping, this value must match the signal name in the
+  database exactly - otherwise, it's an arbitrary name.
 
-``name`` - (optional) The name of the CAN message - this is not required and has
-no meaning in code, it can just be handy to be able to refer back to an original
-CAN message definition in another document.
+``name`` (optional)
+  The name of the CAN message - this is not required and has no meaning in code,
+  it can just be handy to be able to refer back to an original CAN message
+  definition in another document.
 
-``handlers`` - (optional) An array of names of functions that will be compiled
-with the firmware and should be applied to the entire raw message value (see
-:ref:`message-handlers`).
+``handlers`` (optional)
+  An array of names of functions that will be compiled with the firmware and
+  should be applied to the entire raw message value (see
+  :ref:`message-handlers`).
 
-``enabled`` - (optional, true by default) Enable or disable all processing of a
-CAN message. By default, a message is enabled. If this flag is false, the CAN
-message and all its signals will be left out of the generated source code.
+``enabled`` (optional)
+  Enable or disable all processing of a CAN message. By default, a message is
+  enabled. If this flag is false, the CAN message and all its signals will be
+  left out of the generated source code. Defaults to ``true``.
 
-``max_frequency`` - (default: 0, no limit) If sending raw CAN messages to the
-output interfaces, this controls the maximum frequency (in Hz) that the message
-will be process and let through. The default value (``0``) means that all
-messages will be processed, and there is no limit imposed by the firmware. If
-you want to make sure you don't miss a change in value even when rate limiting,
-see the ``force_send_changed`` attribute.
+``max_frequency`` (optional)
+  If sending raw CAN messages to the output interfaces,
+  this controls the maximum frequency (in Hz) that the message will be process
+  and let through. The default value (``0``) means that all messages will be
+  processed, and there is no limit imposed by the firmware. If you want to make
+  sure you don't miss a change in value even when rate limiting, see the
+  ``force_send_changed`` attribute. Defaults to 0 (no limit).
 
-``max_signal_frequency`` - (default: 0, no limit) Setting the max signal
-frequency at the message level will cascade down to all of the signals within
-the message (unless overridden). The default value (``0``) means that all
-signals will be processed, and there is no limit imposed by the firmware. See
-the ``max_frequency`` flag documentation for the signal mapping for more
-information. If you want to make sure you don't miss a change in value even when
-rate limiting, see the ``force_send_changed_signals`` attribute.
+``max_signal_frequency`` (optional)
+  Setting the max signal frequency at the message level will cascade down to all
+  of the signals within the message (unless overridden). The default value
+  (``0``) means that all signals will be processed, and there is no limit
+  imposed by the firmware. See the ``max_frequency`` flag documentation for the
+  signal mapping for more information. If you want to make sure you don't miss a
+  change in value even when rate limiting, see the
+  ``force_send_changed_signals`` attribute. Defaults to 0 (no limit).
 
-``force_send_changed`` - (default: ``true``) Meant to be used in conjunction
-with ``max_frequency``, if this is true a raw CAN message will be sent
-regardless of the given frequency if the value has changed (when using raw CAN
-passthrough).
+``force_send_changed`` (optional)
+  Meant to be used in conjunction with ``max_frequency``, if this is true a raw
+  CAN message will be sent regardless of the given frequency if the value has
+  changed (when using raw CAN passthrough). Defaults to ``true``.
 
-``force_send_changed_signals`` - (default: ``false``) Setting this value on a
-message will cascade down to all of the signals within the message (unless
-overridden). See the ``force_send_changed`` flag documentation for the signal
-mapping for more information.
+``force_send_changed_signals``
+  Setting this value on a message will cascade down to all of the signals within
+  the message (unless overridden). See the ``force_send_changed`` flag
+  documentation for the signal mapping for more information. Defaults to
+  ``false``.
 
 .. _message-handlers:
 
@@ -226,41 +251,48 @@ Signal
 
 The attributes of a ``signal`` object within a ``message`` are:
 
-``generic_name`` - The name of the associated generic signal name (from
-the OpenXC specification) that this should be translated to. Optional -
-if not specified, the signal is read and stored in memory, but not sent
-to the output bus. This is handy for combining the value of multiple
-signals into a composite measurement such as steering wheel angle with
-its sign.
+``generic_name``
+  The name of the associated generic signal name (from the OpenXC specification)
+  that this should be translated to. Optional - if not specified, the signal is
+  read and stored in memory, but not sent to the output bus. This is handy for
+  combining the value of multiple signals into a composite measurement such as
+  steering wheel angle with its sign.
 
-``bit_position`` - (required only if not a database-backed mapping) The staring
-bit position of this signal within the message.
+``bit_position``
+  The starting bit position of this signal within the message. Required unless
+  this is a database-backed mapping.
 
-``bit_size`` - (required only if not a database-backed mapping) The width in
-bits of the signal.
+``bit_size``
+  The width in bits of the signal. Required unless this is a database-backed
+  mapping.
 
-``factor`` - (required only if not a database-backed mapping) The signal value
-is multiplied by this if set. Optional.
+``factor``
+  The signal value is multiplied by this if set. Required unless this is a
+  database-backed mapping.
 
-``offset`` - (required only if not a database-backed mapping) This is added to
-the signal value if set. Optional.
+``offset``
+  This is added to the signal value if set. Required unless this is a
+  database-backed mapping.
 
-``handler`` - (optional) The name of a function that will be compiled with the
-firmware and should be applied to the signal's value after the normal
-translation. See the :ref:`value-handlers` section for details.
+``handler`` (optional)
+  The name of a function that will be compiled with the firmware and should be
+  applied to the signal's value after the normal translation. See the
+  :ref:`value-handlers` section for details.
 
-``ignore`` - (default: false) Setting this to ``true`` on a signal will silence
-output of the signal. The VI will not monitor the signal nor store any of its
-values. This is useful if you are using a custom handler for an entire message,
-want to silence the normal output of the signals it handles, *and* you don't
-need the VI to keep track of the values of any of the signals separately (in the
-``lastValue`` field). If you need to use the previously stored values of any of
-the signals, you can use the ``ignoreHandler`` as a value handler for the
-signal.
+``ignore`` (optional)
+  Setting this to ``true`` on a signal will silence output of the signal. The VI
+  will not monitor the signal nor store any of its values. This is useful if you
+  are using a custom handler for an entire message, want to silence the normal
+  output of the signals it handles, *and* you don't need the VI to keep track of
+  the values of any of the signals separately (in the ``lastValue`` field). If
+  you need to use the previously stored values of any of the signals, you can
+  use the ``ignoreHandler`` as a value handler for the signal. Defaults to
+  ``false``.
 
-``enabled`` - (optional, true by default) Enable or disable all processing of a
-CAN signal. By default, a signal is enabled; if this flag is false, the signal
-will be left out of the generated source code.
+``enabled`` (optional)
+  Enable or disable all processing of a CAN signal. By default, a signal is
+  enabled; if this flag is false, the signal will be left out of the generated
+  source code. Defaults to ``true``.
 
 The difference between ``ignore``, ``enabled`` and using an ``ignoreHandler``
 can be confusing. To summarize the difference:
@@ -279,45 +311,51 @@ can be confusing. To summarize the difference:
   pipeline, but just silence its output. This is useful if you need to track the
   last known value for this signal for a calculation in a custom handler.
 
-``states`` - (required only for state-based signals) This is a mapping between
-the desired descriptive states (e.g. ``off``) and the corresponding numerical
-values from the CAN message (usually an integer). The raw values are specified
-as a list to accommodate multiple raw states being coalesced into a single final
-state (e.g. key off and key removed both mapping to just "off").
+``states``
+  This is a mapping between the desired descriptive states (e.g. ``off``) and
+  the corresponding numerical values from the CAN message (usually an integer).
+  The raw values are specified as a list to accommodate multiple raw states
+  being coalesced into a single final state (e.g. key off and key removed both
+  mapping to just "off"). Required unless this is a database-backed mapping.
 
-``max_frequency`` - (default: 0, no limit) Some CAN signals are sent at a very
-high frequency, likely more often than will ever be useful to an application.
-This attribute sets the maximum frequency (Hz) that the signal will be processed
-and let through. The default value (``0``) means that all values will be
-processed, and there is no limit imposed by the firmware. If you want to make
-sure you don't miss a change in value even when dropping messages, see the
-``force_send_changed`` attribute. You probably don't want to combine this
-attribute with ``send_same`` or else you risk missing a status change message if
-wasn't one of the messages the VI decided to let through.
+``max_frequency`` (optional)
+  Some CAN signals are sent at a very high frequency, likely more often than
+  will ever be useful to an application. This attribute sets the maximum
+  frequency (Hz) that the signal will be processed and let through. The default
+  value (``0``) means that all values will be processed, and there is no limit
+  imposed by the firmware. If you want to make sure you don't miss a change in
+  value even when dropping messages, see the ``force_send_changed`` attribute.
+  You probably don't want to combine this attribute with ``send_same`` or else
+  you risk missing a status change message if wasn't one of the messages the VI
+  decided to let through. Defauls to 0 (no limit).
 
-``send_same`` - (default: ``true``) By default, all signals are translated every
-time they are received from the CAN bus. By setting this to ``false``, you can
-force a signal to be sent only if the value has actually changed. This works
-best with boolean and state based signals.
+``send_same`` (optional)
+  By default, all signals are translated every time they are received from the
+  CAN bus. By setting this to ``false``, you can force a signal to be sent only
+  if the value has actually changed. This works best with boolean and state
+  based signals. Defaults to ``true``.
 
-``force_send_changed`` - (default: ``false``) Meant to be used in conjunction
-with ``max_frequency``, if this is true a signal will be sent regardless of the
-given frequency if the value has changed. This is useful for state-based and
-boolean states, where the state change is the most important thing and you don't
-want that message to be dropped.
+``force_send_changed`` (optional)
+  Meant to be used in conjunction with ``max_frequency``, if this is true a
+  signal will be sent regardless of the given frequency if the value has
+  changed. This is useful for state-based and boolean states, where the state
+  change is the most important thing and you don't want that message to be
+  dropped. Defaults to ``false``.
 
-``writable`` - (default: ``false``) Set this attribute to ``true`` to allow this
-signal to be written back to the CAN bus by an application. OpenXC
-JSON-formatted messages sent back to the VI that are writable are translated
-back into raw CAN messages and written to the bus. By default, the value will be
-interpreted as a floating point number.
+``writable`` (optional)
+  Set this attribute to ``true`` to allow this signal to be written back to the
+  CAN bus by an application. OpenXC JSON-formatted messages sent back to the VI
+  that are writable are translated back into raw CAN messages and written to the
+  bus. By default, the value will be interpreted as a floating point number.
+  Defaults to ``false``.
 
-``write_handler`` - (optional, default is a numerical handler) If the signal is
-writable and is not a plain floating point number (i.e. it is a boolean or state
-value), you can specify a custom function here to encode the value for a CAN
-messages. This is only necessary for boolean types at the moment - if your
-signal has states defined, we assume you need to encode a string state value
-back to its original numerical value.
+``write_handler`` (optional)
+  If the signal is writable and is not a plain floating point number (i.e. it is
+  a boolean or state value), you can specify a custom function here to encode
+  the value for a CAN messages. This is only necessary for boolean types at the
+  moment - if your signal has states defined, we assume you need to encode a
+  string state value back to its original numerical value. Defaults to a
+  built-in numerical handler.
 
 .. _value-handlers:
 
@@ -417,33 +455,38 @@ Diagnostic Message
 
 The attributes of each diagnostic message object are:
 
-``bus`` - The name of one of the previously defined CAN buses where this message
-should be requested.
+``bus``
+  The name of one of the previously defined CAN buses where this message should be requested.
 
-``id`` - the arbitration ID for the request.
+``id``
+  the arbitration ID for the request.
 
-``mode`` - the diagnostic request mode, e.g. Mode 1 for powertrain diagnostic
-requests.
+``mode``
+  The diagnostic request mode, e.g. Mode 1 for powertrain diagnostic requests.
 
-``frequency`` - The frequency in Hz to request this diagnostic message. The
-maximum allowed frequency is 10Hz.
+``frequency``
+  The frequency in Hz to request this diagnostic message. The maximum allowed
+  frequency is 10Hz.
 
-``pid`` - (optional) If the mode uses PIDs, the pid to request.
+``pid`` (optional)
+  If the mode uses PIDs, the pid to request.
 
-``name`` - (optional) A human readable, string name for
-  this request. If provided, the response will have a ``name`` field (much like
-  a normal translated message) with this value in place of ``bus``, ``id``,
-  ``mode`` and ``pid``.
+``name`` (optional)
+  A human readable, string name for this request. If provided, the response will
+  have a ``name`` field (much like a normal translated message) with this value
+  in place of ``bus``, ``id``, ``mode`` and ``pid``.
 
-``decoder`` - (optional) When using a ``name``, you can also specify a custom
-decoder function to parse the payload. This field is the name of a function
-(that matches the ``DiagnosticResponseDecoder`` function prototype). When a
-decoder is specified, the decoded value will be returned in the ``value`` field
-in place of ``payload``.
+``decoder`` (optional)
+  When using a ``name``, you can also specify a custom decoder function to parse
+  the payload. This field is the name of a function (that matches the
+  ``DiagnosticResponseDecoder`` function prototype). When a decoder is
+  specified, the decoded value will be returned in the ``value`` field in place
+  of ``payload``.
 
-``callback`` - (optional) This field is the name of a function
-(that matches the ``DiagnosticResponseCallback`` function prototype) that should
-be called every time a response is received to this request.
+``callback`` (optional)
+  This field is the name of a function (that matches the
+  ``DiagnosticResponseCallback`` function prototype) that should be called every
+  time a response is received to this request.
 
 Mappings
 ========
@@ -457,33 +500,36 @@ set using mappings, see the :ref:`mapped` configuration example.
 
 The ``mappings`` field must be a list of JSON objects with:
 
-``mapping`` - a path to a JSON file containing a single object with the key
-``messages``, containing objects formatted as the :ref:`Messages` section
-describes. In short, you can pull out the ``messages`` key from the main file
-and throw it into a separate file and link it in here. You can also do the same
-with a ``diagnostic_messages`` field containing :ref:`diagnostic-messages`.
+``mapping`` -
+  A path to a JSON file containing a single object with the key ``messages``,
+  containing objects formatted as the :ref:`Messages` section describes. In
+  short, you can pull out the ``messages`` key from the main file and throw it
+  into a separate file and link it in here. You can also do the same with a
+  ``diagnostic_messages`` field containing :ref:`diagnostic-messages`.
 
-``bus`` - (optional) The name of one of the defined CAN buses where these
-messages can be found - this value will be set for all of the messages contained
-the mapping file, but can be overridden by setting ``bus`` again in an individual
-message.
+``bus`` (optional)
+  The name of one of the defined CAN buses where these messages can be found -
+  this value will be set for all of the messages contained the mapping file, but
+  can be overridden by setting ``bus`` again in an individual message.
 
-``database`` - (optional) a path to
-a CAN message database associated with these mappings. Right now, XML exported
-from Vector CANdb++ is supported. If this is defined, you can leave the bit
-position, bit size, factor, offset, max and min values out of the ``mapping``
-file - they will be picked up automatically from the database.
+``database`` (optional)
+  A path to a CAN message database associated with these mappings. Right now,
+  XML exported from Vector CANdb++ is supported. If this is defined, you can
+  leave the bit position, bit size, factor, offset, max and min values out of
+  the ``mapping`` file - they will be picked up automatically from the database.
 
-``bit_numbering_inverted`` - (optional, defaults to the value of the message
-set, or ``true`` if this mapping is database-backed) This flag controls the
-default :ref:`bit numbering <bit-numbering>` for the messages contained in this
-mapping. Messages in the mapping can override the bit numbering by explicitly
-specifying their own value for this flag.
+``bit_numbering_inverted`` (optional)
+  This flag controls the default :ref:`bit numbering <bit-numbering>` for the
+  messages contained in this mapping. Messages in the mapping can override the
+  bit numbering by explicitly specifying their own value for this flag. Defaults
+  to the value of the message set, or ``true`` if this mapping is
+  database-backed.
 
-``enabled`` - (optional, true by default) Enable or disable all processing of
-the CAN messages in a mapping. By default, a mapping is enabled; if this flag is
-false, all CAN message and signals from the mapping will be excluded from the
-generated source code.
+``enabled`` (optional)
+  Enable or disable all processing of the CAN messages in a mapping. By default,
+  a mapping is enabled; if this flag is false, all CAN message and signals from
+  the mapping will be excluded from the generated source code. Defaults to
+  ``true``.
 
 Extra Sources
 =============
@@ -500,17 +546,19 @@ should be called to run arbitrary code in the VI on-demand (e.g. sending
 multiple CAN signals at once). The value of this attribute is a list of objects
 with these attributes:
 
-``name`` - The name of the command to be recognized on the OpenXC translated
-interface.
+``name``
+  The name of the command to be recognized on the OpenXC translated interface.
 
-``enabled`` - (optional, true by default) Enable or disable all processing of a
-command. By default, a command is enabled. If this flag is false, the command
-will be excluded from the generated source code.
+``enabled`` (optional)
+  Enable or disable all processing of a command. By default, a command is
+  enabled. If this flag is false, the command will be excluded from the
+  generated source code. Defaults to ``true``.
 
-``handler`` - The name of a custom command handler function (that matches the
-``CommandHandler`` function prototype from ``canutil.h``) that should
-be called when the named command arrives over the translated VI interface (e.g.
-USB or Bluetooth).
+``handler``
+  The name of a custom command handler function (that matches the
+  ``CommandHandler`` function prototype from ``canutil.h``) that should be
+  called when the named command arrives over the translated VI interface (e.g.
+  USB or Bluetooth).
 
 .. code-block:: c
 

@@ -5,8 +5,6 @@
 #include "config.h"
 #include "gpio.h"
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-
 #ifdef CHIPKIT
 
 #define USB_VBUS_ANALOG_INPUT A0

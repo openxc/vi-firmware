@@ -10,10 +10,6 @@ namespace payload = openxc::payload;
 
 using openxc::util::log::debug;
 
-#ifndef MIN
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic";

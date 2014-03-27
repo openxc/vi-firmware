@@ -13,6 +13,10 @@
 #define MAX_OUTGOING_PAYLOAD_SIZE 256
 #define UART_BAUD_RATE 230400
 
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+
 namespace openxc {
 namespace config {
 

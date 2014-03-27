@@ -23,13 +23,6 @@ The micro-USB port on the Digilent Network Shield is used to send and receive
 OpenXC messages. The mini-USB cable on the Max32 itself is only used for
 re-programming.
 
-So the VI can detect if USB is actually connected when it is self-powered, add a
-jumper wire connecting the 5v input from the micro-USB cable (there's a pin on
-the Network Shield) to analog input 0 (A0). The benefit of this is that if you
-connect USB, then disconnect it, we can detect that in the firmware and stop
-wasting time trying to send data over USB. This will dramatically increase the
-throughput over UART.
-
 UART
 ----
 
@@ -56,9 +49,8 @@ UART. To disable UART, pull A1 high (hard-wire to 5v) or leave it floating.
 
 No data received over UART (i.e. Bluetooth)?
     If you are powering the device via USB but not also reading data via USB, it
-    may be blocked waiting to send data. See the documentation for your specific
-    platform for information on how to enable VBUS detection, or power the
-    device via the OBD pins.
+    may be blocked waiting to send data. Try unplugging the USB connection and
+    powering the device via the OBD connector.
 
 Debug Logging
 -------------

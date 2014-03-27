@@ -5,13 +5,8 @@
 #include "config.h"
 #include "gpio.h"
 
-#ifdef CHIPKIT
-
-#define USB_VBUS_ANALOG_INPUT A0
-
-#endif
-
-#define USB_HANDLE_MAX_WAIT_COUNT 35000
+// TODO can we lower this?
+#define USB_HANDLE_MAX_WAIT_COUNT 1000
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
@@ -89,6 +84,10 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
     }
 
+    case EVENT_SUSPEND:
+        getConfiguration()->usb.configured = false;
+        break;
+
     default:
         break;
     }
@@ -102,14 +101,6 @@ bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
         return true;
     }
     return false;
-}
-
-bool vbusEnabled() {
-#ifdef USB_VBUS_ANALOG_INPUT
-    return analogRead(USB_VBUS_ANALOG_INPUT) > 100;
-#else
-    return true;
-#endif
 }
 
 bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
@@ -133,9 +124,9 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
     return true;
 }
 
-
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
-    if(usbDevice->configured && !vbusEnabled()) {
+    if(usbDevice->configured &&
+            usbDevice->device.GetDeviceState() != CONFIGURED_STATE) {
         debug("USB no longer detected - marking unconfigured");
         usbDevice->configured = false;
         return;
@@ -184,9 +175,6 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-#ifdef USB_VBUS_ANALOG_INPUT
-    gpio::setDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
-#endif
     debug("Done.");
 }
 

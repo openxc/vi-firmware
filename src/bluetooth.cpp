@@ -40,6 +40,13 @@ void writeByte(void* device, uint8_t byte) {
 }
 
 void openxc::bluetooth::configureExternalModule(UartDevice* device) {
+#ifdef CHIPKIT
+    if(!uart::connected(device)) {
+        debug("UART is physically disabled on a chipKIT - not attempting to configure Bluetooth");
+        return;
+    }
+#endif
+
     AtCommanderConfig config = {AT_PLATFORM_RN42};
 
     config.baud_rate_initializer = changeBaudRate;

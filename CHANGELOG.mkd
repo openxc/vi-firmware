@@ -20,6 +20,9 @@
   decoding a signal by hand.
 * BREAKING CHANGE: Changed USB endpoint numbers to allow for optimal performance
   and a new logging channel.
+* BREAKING CHANGE: JSON delimiter for output data changed to '\0' from '\r\n' to
+  match the required delimiter for input data. This requires updates to client
+  libraries.
 
 ## v5.1.3
 

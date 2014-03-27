@@ -111,7 +111,7 @@ START_TEST (test_send_numerical)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\r\n");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\0");
 }
 END_TEST
 
@@ -126,7 +126,7 @@ START_TEST (test_preserve_float_precision)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":42.500000}\r\n");
+            "{\"name\":\"test\",\"value\":42.500000}\0");
 }
 END_TEST
 
@@ -140,7 +140,7 @@ START_TEST (test_send_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":false}\r\n");
+            "{\"name\":\"test\",\"value\":false}\0");
 }
 END_TEST
 
@@ -154,7 +154,7 @@ START_TEST (test_send_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"string\"}\r\n");
+            "{\"name\":\"test\",\"value\":\"string\"}\0");
 }
 END_TEST
 
@@ -169,7 +169,7 @@ START_TEST (test_send_evented_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\r\n");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");
 }
 END_TEST
 
@@ -184,7 +184,7 @@ START_TEST (test_send_evented_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\r\n");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");
 }
 END_TEST
 
@@ -199,7 +199,7 @@ START_TEST (test_send_evented_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\r\n");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
 }
 END_TEST
 
@@ -251,7 +251,7 @@ START_TEST (test_passthrough_message)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"bus\":1,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\r\n");
+            "{\"bus\":1,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\0");
 }
 END_TEST
 
@@ -270,7 +270,7 @@ START_TEST (test_default_handler)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -315,7 +315,7 @@ START_TEST (test_translate_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":42}\r\n");
+            "{\"name\":\"torque_at_transmission\",\"value\":42}\0");
 }
 END_TEST
 
@@ -393,7 +393,7 @@ START_TEST (test_translate_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\r\n");
+            "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
 }
 END_TEST
 
@@ -413,7 +413,7 @@ START_TEST (test_translate_bool)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"brake_pedal_status\",\"value\":false}\r\n");
+            "{\"name\":\"brake_pedal_status\",\"value\":false}\0");
 }
 END_TEST
 
@@ -484,7 +484,7 @@ START_TEST (test_preserve_last_value)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\r\n");
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -500,7 +500,7 @@ START_TEST (test_dont_send_same)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"brake_pedal_status\",\"value\":true}\r\n");
+            "{\"name\":\"brake_pedal_status\",\"value\":true}\0");
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],

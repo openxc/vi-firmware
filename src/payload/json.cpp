@@ -427,17 +427,14 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             debug("Unrecognized message type -- not sending");
         }
 
-        char* message = cJSON_PrintUnformatted(root);
-        if(status && message != NULL) {
-            char messageWithDelimiter[strlen(message) + 3];
-            strncpy(messageWithDelimiter, message, strlen(message));
-            messageWithDelimiter[strlen(message)] = '\0';
-            strncat(messageWithDelimiter, "\r\n", 2);
+        char* serialized = cJSON_PrintUnformatted(root);
+        if(status && serialized != NULL) {
+            // set the length to the strlen + 1, so we include the NULL
+            // character as a delimiter
+            finalLength = MIN(length, strlen(serialized) + 1);
+            memcpy(payload, serialized, finalLength);
 
-            finalLength = MIN(length, strlen(messageWithDelimiter));
-            memcpy(payload, messageWithDelimiter, finalLength);
-
-            free(message);
+            free(serialized);
         } else {
             debug("Converting JSON to string failed -- possibly OOM");
         }

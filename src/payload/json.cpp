@@ -429,13 +429,13 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
 
         char* message = cJSON_PrintUnformatted(root);
         if(status && message != NULL) {
-            char messageWithDelimeter[strlen(message) + 3];
-            strncpy(messageWithDelimeter, message, strlen(message));
-            messageWithDelimeter[strlen(message)] = '\0';
-            strncat(messageWithDelimeter, "\r\n", 2);
+            char messageWithDelimiter[strlen(message) + 3];
+            strncpy(messageWithDelimiter, message, strlen(message));
+            messageWithDelimiter[strlen(message)] = '\0';
+            strncat(messageWithDelimiter, "\r\n", 2);
 
-            finalLength = MIN(length, strlen(messageWithDelimeter));
-            memcpy(payload, messageWithDelimeter, finalLength);
+            finalLength = MIN(length, strlen(messageWithDelimiter));
+            memcpy(payload, messageWithDelimiter, finalLength);
 
             free(message);
         } else {

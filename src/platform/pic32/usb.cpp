@@ -115,11 +115,6 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
             // requests, we will block here forever. As it is, it still slows
             // down UART transfers quite a bit, so setting configured = false
             // ASAP is important.
-            //
-            // TODO If USB is attached but not reading, this can block so much
-            // that the watchdog doesn't get fed. There has to be a better way
-            // to use USB on the PIC32!
-            openxc::power::feedWatchdog();
             return false;
         }
     }

@@ -1,5 +1,6 @@
 #include <payload/payload.h>
 #include <payload/json.h>
+#include "config.h"
 #include <util/log.h>
 #include <cJSON.h>
 #include <stdlib.h>

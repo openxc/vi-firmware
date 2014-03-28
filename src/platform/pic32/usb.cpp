@@ -31,7 +31,7 @@ extern volatile CTRL_TRF_SETUP SetupPkt;
  * buffer - the destination buffer for the next OUT transfer.
  */
 static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
-    endpoint->receiveBuffer[0] = 0;
+    memset(endpoint->receiveBuffer, sizeof(endpoint->receiveBuffer), 0);
     endpoint->hostToDeviceHandle = usbDevice->device.GenRead(
             endpoint->address, (uint8_t*)endpoint->receiveBuffer,
             endpoint->size);

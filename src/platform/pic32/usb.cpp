@@ -5,7 +5,6 @@
 #include "config.h"
 #include "gpio.h"
 
-// TODO can we lower this?
 #define USB_HANDLE_MAX_WAIT_COUNT 1000
 
 namespace gpio = openxc::gpio;
@@ -85,7 +84,10 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     }
 
     case EVENT_SUSPEND:
-        getConfiguration()->usb.configured = false;
+        if(getConfiguration()->usb.configured) {
+            debug("USB no longer detected - marking unconfigured");
+            getConfiguration()->usb.configured = false;
+        }
         break;
 
     default:
@@ -125,13 +127,6 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 }
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
-    if(usbDevice->configured &&
-            usbDevice->device.GetDeviceState() != CONFIGURED_STATE) {
-        debug("USB no longer detected - marking unconfigured");
-        usbDevice->configured = false;
-        return;
-    }
-
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
 

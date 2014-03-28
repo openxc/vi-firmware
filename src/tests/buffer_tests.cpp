@@ -32,7 +32,7 @@ END_TEST
 
 START_TEST (test_missing_callback)
 {
-    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    QUEUE_PUSH(uint8_t, &queue, 128);
     processQueue(&queue, NULL);
     fail_if(called);
     fail_if(QUEUE_EMPTY(uint8_t, &queue));
@@ -42,28 +42,19 @@ END_TEST
 START_TEST (test_success_clears)
 {
     callbackStatus = true;
-    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+    QUEUE_PUSH(uint8_t, &queue, 128);
+    QUEUE_PUSH(uint8_t, &queue, 0);
     processQueue(&queue, callback);
     fail_unless(called);
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
 }
 END_TEST
 
-START_TEST (test_failure_preserves)
+START_TEST (test_failure_clears_too)
 {
     callbackStatus = false;
-    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
-    processQueue(&queue, callback);
-    fail_unless(called);
-    fail_if(QUEUE_EMPTY(uint8_t, &queue));
-}
-END_TEST
-
-START_TEST (test_clear_corrupted)
-{
-    callbackStatus = false;
-    QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
-    QUEUE_PUSH(uint8_t, &queue, (uint8_t) '\0');
+    QUEUE_PUSH(uint8_t, &queue, 128);
+    QUEUE_PUSH(uint8_t, &queue, 0);
     processQueue(&queue, callback);
     fail_unless(called);
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
@@ -73,13 +64,13 @@ END_TEST
 START_TEST (test_full_clears)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &queue, 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
 
     callbackStatus = false;
     processQueue(&queue, callback);
-    fail_unless(called);
+    fail_if(called);
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
 }
 END_TEST
@@ -103,7 +94,7 @@ END_TEST
 START_TEST (test_enqueue_full)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) + 1; i++) {
-        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &queue, 128);
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
 
@@ -116,7 +107,7 @@ END_TEST
 START_TEST (test_enqueue_just_enough_room)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 11; i++) {
-        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &queue, 128);
     }
 
     char* message = "a message";
@@ -128,7 +119,7 @@ END_TEST
 START_TEST (test_enqueue_no_room_for_crlf)
 {
     for(int i = 0; i < QUEUE_MAX_LENGTH(uint8_t) - 9; i++) {
-        QUEUE_PUSH(uint8_t, &queue, (uint8_t) 128);
+        QUEUE_PUSH(uint8_t, &queue, 128);
     }
 
     char* message = "a message";
@@ -143,8 +134,7 @@ Suite* buffersSuite(void) {
     tcase_add_checked_fixture (tc_core, setup, teardown);
     tcase_add_test(tc_core, test_empty_doesnt_call);
     tcase_add_test(tc_core, test_success_clears);
-    tcase_add_test(tc_core, test_failure_preserves);
-    tcase_add_test(tc_core, test_clear_corrupted);
+    tcase_add_test(tc_core, test_failure_clears_too);
     tcase_add_test(tc_core, test_full_clears);
     tcase_add_test(tc_core, test_missing_callback);
     suite_add_tcase(s, tc_core);

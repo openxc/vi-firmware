@@ -22,12 +22,20 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
         return;
     }
 
-    if(callback(snapshot, length)) {
+    bool foundDelimiter = false;
+    for(int i = 0; i < length; i++) {
+        if(snapshot[i] == '\0') {
+            foundDelimiter = true;
+            break;
+        }
+    }
+
+    if(foundDelimiter && callback(snapshot, length)) {
         QUEUE_INIT(uint8_t, queue);
     } else if(QUEUE_FULL(uint8_t, queue)) {
         debug("Incoming write is too long - dumping queue");
         QUEUE_INIT(uint8_t, queue);
-    } else if(strnchr((const char*)snapshot, sizeof(snapshot) - 1, '\0') != NULL) {
+    } else if(foundDelimiter) {
         debug("Incoming buffered write corrupted (%s) -- clearing buffer",
                 snapshot);
         QUEUE_INIT(uint8_t, queue);

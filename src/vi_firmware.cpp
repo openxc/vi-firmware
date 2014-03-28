@@ -17,8 +17,6 @@
 #include "config.h"
 #include "commands.h"
 
-#define WATCHDOG_TIMEOUT_MICROSECONDS 10000000
-
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace usb = openxc::interface::usb;
@@ -124,12 +122,6 @@ void initializeIO() {
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
 
-    // TODO Don't enable this before initializing bluetooth, because that
-    // operation can block the loop longer than the watchdog timeout. Ideally
-    // the watchdog timer is longer than this, but on the PIC32 it's stuck at 1s
-    // for now.
-    power::enableWatchdogTimer(WATCHDOG_TIMEOUT_MICROSECONDS);
-
     debug("Now running with all I/O active");
 }
 
@@ -211,5 +203,4 @@ void firmwareLoop() {
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);
-    openxc::power::feedWatchdog();
 }

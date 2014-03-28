@@ -106,11 +106,18 @@ void openxc::power::enableWatchdogTimer(int microseconds) {
 }
 
 void openxc::power::disableWatchdogTimer() {
+    // TODO this is nuts, but you can't change the WDMOD register until after
+    // the WDT times out. But...we are using a RESET with the WDT, so the whole
+    // board will reset and then we don't have any idea if the WDT should be
+    // disabled or not! This makes it really difficult to use the WDT for both
+    // normal runtime hard freeze protection and periodic wakeup from sleep (to
+    // check if CAN is active via OBD-II). I have to disable the regular WDT for
+    // now for this reason.
     LPC_WDT->WDMOD = 0x0;
 }
 
 void openxc::power::feedWatchdog() {
-	WDT_Feed();
+    WDT_Feed();
 }
 
 extern "C" {

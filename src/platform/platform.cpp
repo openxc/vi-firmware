@@ -39,9 +39,6 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
         debug("Enabling watchdog timer to poll for ignition status via OBD-II");
         power::enableWatchdogTimer(OBD2_IGNITION_CHECK_WATCHDOG_TIMEOUT_MICROSECONDS);
-    } else {
-        debug("Disabling regular WDT so it doesn't wake us up while waiting for CAN");
-        power::disableWatchdogTimer();
     }
 
     // Wait for peripherals to disabled before sleeping

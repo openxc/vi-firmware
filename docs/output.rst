@@ -23,9 +23,17 @@ Translated Writes
 Translated write commands require that the firmware is pre-configured to
 understand the named signal, and also allows it to be written.
 
-::
+.. code-block:: javascript
 
     {"name": "seat_position", "value": 20}
+
+With the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-control write --name seat_position --value 20
 
 RAW CAN Message Writes
 -------------------------
@@ -34,19 +42,30 @@ The RAW CAN message write requires that the VI is configured to allow raw writes
 to the given CAN bus. If the ``bus`` attribute is omitted, it will write the
 message to the first CAN bus found that permits writes.
 
-::
+.. code-block:: javascript
 
     {"bus": 1, "id": 1234, "value": "0x12345678"}
+
+With the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-control write --bus 1 --id 1234 --value 0x12345678
+
+.. _vehicle-diagnostic-requests:
 
 Vehicle Diagnostic Requests
 ---------------------------
 
 Diagnostic requests can either be one-time or recurring (if the ``frequency``
 option is specified). The command requires that the VI is configured to allow
-raw writes to the given cAN bus. If the ``bus`` attribute is omitted, it will
-write the message to the first CAN bus found that permits writes.
+raw writes to the given CAN bus (with the ``raw_writable`` flag in the config
+file). If the ``bus`` attribute is omitted, it will write the message to the
+first CAN bus found that permits writes.
 
-::
+.. code-block:: javascript
 
     { "command": "diagnostic_request",
       "request": {
@@ -58,6 +77,13 @@ write the message to the first CAN bus found that permits writes.
       }
     }
 
+With the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-diag --bus 1 --id 1234 --mode 1 --pid 5
 
 .. _version-query:
 
@@ -67,15 +93,22 @@ Version Query
 This asynchronous command will query for the version of firmware that the VI is
 running:
 
-::
+.. code-block:: javascript
 
     { "command": "version"}
 
 The response is injected into the normal output data stream:
 
-::
+.. code-block:: javascript
 
     { "command_response": "version", "message": "v6.0 (default)"}
+
+You can request the version with the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_:
+
+.. code-block:: sh
+
+    openxc-control version
 
 .. _device-id-query:
 
@@ -84,16 +117,23 @@ Device ID Query
 
 This asynchronous command will query for a unique device ID for the VI:
 
-::
+.. code-block:: javascript
 
     { "command": "device_id"}
 
 If no device ID is available, the response message will be "Unknown". The
 response is injected into the normal output data stream:
 
-::
+.. code-block:: javascript
 
     { "command_response": "device_id", "message": "0012345678"}
+
+You can request the device ID with the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_:
+
+.. code-block:: sh
+
+    openxc-control id
 
 UART (Serial, Bluetooth)
 ========================
@@ -147,7 +187,7 @@ are documented here.
 Control Transfers
 -----------------
 
-The VI accepts a few control transfer requests on the standard endpoint 0.:
+The VI accepts a few control transfer requests on the standard endpoint 0.
 
 Version
 ````````
@@ -155,18 +195,8 @@ Version
 Transfer request type: ``0x80``
 
 The host can retrieve the version of the VI using the ``0x80`` control request.
-The data returned is a string containing the software version of the firmware
-and the configured vehicle platform in the format:
-
-::
-
-    Version: 1.0 (type1)
-
-where ``1.0`` is the software version and ``type1`` is an optional string
-descriptor for the build.
-
-The version can also be obtained with a :ref:`version query <version-query>` sent to
-the main IN endpoint.
+The data returned is the same format as the :ref:`version query
+<version-query>`.
 
 Device ID
 `````````
@@ -174,7 +204,5 @@ Device ID
 Transfer request type: ``0x82``
 
 The host can retrieve a unique device identifier for the VI (if one is
-available) using the ``0x82`` control request.
-
-The version can also be obtained with a :ref:`device ID query <device-id-query>`
-sent to the main IN endpoint.
+available) using the ``0x82`` control request. The data returned is the same
+format as :ref:`device ID query <device-id-query>`.

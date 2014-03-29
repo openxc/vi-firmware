@@ -127,8 +127,6 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
 
     if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
         if(sentFinalIgnitionCheck) {
-            // TODO when it wakes keep in a minimum run level (i.e. don't
-            // turn on bluetooth) until we decide the vehicle is actually on.
             if(manager->initialized && getConfiguration()->powerManagement ==
                         PowerManagement::OBD2_IGNITION_CHECK) {
                 debug("Ceasing diagnostic requests as ignition went off");

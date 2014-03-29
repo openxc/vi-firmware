@@ -6,13 +6,18 @@
 
 namespace power = openxc::power;
 
+using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 
 CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
             CAN::CHANNEL1);
 
-    CanMessage result = {message->msgSID.SID};
+    CanMessage result = {
+        id: message->msgSID.SID,
+        data: 0,
+        length: (uint8_t) message->msgEID.DLC
+    };
     memcpy(result.data, message->data, 8);
     return result;
 }

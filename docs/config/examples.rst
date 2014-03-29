@@ -1,13 +1,14 @@
-===============================
-Basic Configuration Examples
-===============================
+================================
+Read-only Configuration Examples
+================================
 
 If you haven't created a custom firmware for the OpenXC VI yet, we recommend the
 `getting started with custom data guide
 <http://openxcplatform.com/firmware/custom-data-example.html>`_.
 
-For all examples, the ``name`` field for message is optional but strongly
-encouraged to help keep track of the mapping.
+For all examples, the ``name`` field for a message is optional but strongly
+encouraged to help keep track of the mapping between a message ID and something
+human readable.
 
 When an example refers to "sending" a translated or raw message, it means
 sending to the app developer via one of the output interfaces (e.g. USB,
@@ -51,6 +52,15 @@ the name of the signal for OpenXC app developers to be
        }
    }
 
+With this configuration, the VI will publish the received CAN signal using the
+`OpenXC single-valued, translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
+
+.. code-block:: js
+
+   {"name": "my_openxc_measurement", "value": 42}
+
 .. _basic-transformed:
 
 Transformed Numeric Signal
@@ -58,8 +68,8 @@ Transformed Numeric Signal
 
 We want to read the same signal as in the :ref:`One Bus, One Numeric Signal
 <onebus-onesignal>` example, but we want to transform the value with a factor
-and offset before sending it to eh app developer. The value on CAN must be
-multiplied by -1.0 and offset by 1400.
+and offset before publishing it. The value on CAN must be multiplied by -1.0 and
+offset by 1400.
 
 
 .. code-block:: javascript
@@ -125,6 +135,15 @@ We set the ``handler`` for the signal to the ``booleanHandler``, one of the
 the numeric value from the bus (a ``0`` or ``1``) into first-class boolean
 values (``true`` or ``false``).
 
+With this configuration, the VI will publish the received CAN signal using the
+`OpenXC single-valued, translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
+
+.. code-block:: js
+
+   {"name": "my_boolean_measurement", "value": true}
+
 .. _state-based:
 
 One Bus, One State-based Signal
@@ -168,10 +187,19 @@ appears as the state strings ``a`` through ``f`` in the JSON for app developers.
        }
    }
 
-We set the ``states`` field for the signal to a JSON object mapping the string
+We set the ``states`` field for the signal to a JSON object, mapping the string
 value for each state to the numerical values to which it corresponds. This
 automatically will set the ``handler`` to the ``stateHandler``, one of the
 :ref:`built-in signal handler functions <value-handlers>`.
+
+With this configuration, the VI will publish the received CAN signal using the
+`OpenXC single-valued, translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
+
+.. code-block:: js
+
+   {"name": "active_state", "value": "a"}
 
 Combined State-based Signal
 ===========================
@@ -267,6 +295,16 @@ We added the second bus to the ``buses`` field and assigned it to controller 2.
 We added the second message object and made sure to set its ``bus`` field to
 ``ms``.
 
+With this configuration, the VI will publish the received CAN signals using the
+`OpenXC single-valued, translated message format
+<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
+using the JSON output format:
+
+.. code-block:: js
+
+   {"name": "my_first_measurement", "value": 42}
+   {"name": "my_second", "value": 942}
+
 .. _limited-translated:
 
 Limited Translated Signal Rate
@@ -349,8 +387,8 @@ Send Signal on Change Only
 ===========================
 
 We want to limit the rate of a signal as in :ref:`limited-translated-unchanged`,
-but we want to be more strict - the signal should only be translated and sent to
-app developers if it actually changes.
+but we want to be more strict - the signal should only be published if it
+actually changes.
 
 .. code-block:: javascript
 

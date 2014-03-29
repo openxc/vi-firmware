@@ -13,16 +13,16 @@ and in "listen only" mode it does not send these ACKs. With nobody ACKing on the
 bus, the messages never propagate up from the network layer to the VI firmware.
 
 When compiling the VI firmware to use to receive data on a bench test CAN bus,
-use the ``BENCHTEST`` flag to make sure CAN messages are ACked:
+use the ``DEFAULT_CAN_ACK_STATUS`` flag to make sure CAN messages are ACked:
 
 .. code-block:: sh
 
     $ make clean
-    $ BENCHTEST=1 make
+    $ DEFAULT_CAN_ACK_STATUS=1 make
 
-The CAN controllers will also be write-enabled if you use the ``DEBUG`` flag, or
-the ``transmitter`` Makefile target. The ``BENCHTEST`` flag is useful if you
-want to bench test normal, non-debug operation but still send ACKs.
+The CAN controllers will also be write-enabled if either CAN bus is configured
+to accept raw CAN or diagnostic message requests, or a writable translated
+signal is included.
 
 Simulating a CAN Network
 ========================
@@ -70,19 +70,20 @@ work, but these have not been tested.
 Preparing the Transmitter
 =========================
 
-1. Decide which of the VIs is the transmitter, and which is the receiver (the
-   receiver is most like your VI under test).
+1. Decide which of the VIs is the transmitter and which is the receiver. The
+   receiver is most like your VI under test.
 2. Follow the normal firmware build process (the CAN signals defined don't
-   matter, just the bus speeds) but instead of just ``make`` run ``make
-   transmitter``. This changes 2 things: it configures the CAN controllers to be
-   write-enabled and changes the USB product ID from 1 to 2, so you can address
-   the transmitter VI independently from the receiver.
+   matter, just the bus speeds) but set the ``TRANSMITTER`` environment variable:
+   ``TRANSMITTER=1 make``. This changes the USB product ID from 1 to 2,
+   so you can address the transmitter VI independently from the receiver. TODO
+   create a transmitter config file with raw writable bus and no power
+   management.
 
 Preparing the Receiver
 =======================
 
 Compile the VI firmware for the receiver as usual, but instead of just ``make``,
-run ``BENCHTEST=1 make`` This configures the CAN controllers as write-enabled,
+run ``DEFAULT_CAN_ACK_STATUS=1 make`` This configures the CAN controllers as write-enabled,
 so that your VI under test can ACK the CAN messages. If nobody on the bus ACKs,
 you will receive nothing. In a car there are usually many other things ACKing,
 so we can be "listen only".

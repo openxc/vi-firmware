@@ -10,12 +10,11 @@ TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck
 
-NON_TESTABLE_SRCS = handlers.cpp signals.cpp main.cpp vi_firmware.cpp \
-		    emulator.cpp platform/platform.cpp
+NON_TESTABLE_SRCS = signals.cpp main.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
 			  $(LIBS_PATH)/nanopb/pb_decode.c
-TEST_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard tests/platform/*.cpp)
+TEST_CPP_SRCS = $(wildcard tests/platform/*.cpp) $(CROSSPLATFORM_CPP_SRCS)
 TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 
 TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)
@@ -84,11 +83,14 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
+C_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
+CC_SUPRESSED_ERRORS = $(C_SUPRESSED_ERRORS) -Wno-conversion-null
+
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
-unit_tests: CC_FLAGS = -I. -c -w -Wall -Werror -g -ggdb -coverage -std=gnu++0x
-unit_tests: CC_SYMBOLS += -D__TESTS__
+unit_tests: C_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage $(C_SUPRESSED_ERRORS)
+unit_tests: CC_FLAGS =  $(C_FLAGS) $(CC_SUPRESSED_ERRORS)
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
@@ -96,19 +98,19 @@ unit_tests: $(TESTS)
 	@export SHELLOPTS
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, , code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, DEBUG=0, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, , mapped_code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, , copy_passthrough_signals))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, , , emulator))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, LOG_STATS=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 LOG_STATS=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, DEBUG=0, mapped_code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, DEBUG=0, copy_passthrough_signals))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1, , all))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, DEFAULT_METRICS_STATUS=1 DEBUG=0, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 DEFAULT_METRICS_STATUS=1, code_generation_test))
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 #$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_compile_test, NETWORK=1, code_generation_test))
-#$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, NETWORK_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, USB_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, BLUETOOTH_ALLOW_RAW_WRITE=1, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, BINARY_OUTPUT=1, code_generation_test))
+#$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, network_raw_write_compile_test, DEFAULT_ALLOW_RAW_WRITE_NETWORK=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_USB=0, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_UART=1, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, DEBUG=0 DEFAULT_OUTPUT_FORMAT=PROTOBUF, code_generation_test))
 
 copy_passthrough_signals:
 	@echo "Testing example passthrough config in repo for FORDBOARD..."
@@ -142,7 +144,7 @@ $(TEST_OBJDIR)/%.o: %.cpp
 
 $(TEST_OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(C_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)

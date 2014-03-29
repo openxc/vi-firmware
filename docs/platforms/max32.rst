@@ -47,27 +47,21 @@ Bluetooth module like the `BlueSMiRF <https://www.sparkfun.com/products/10269>`_
 from SparkFun, you need to hard-wire GND into this pin to actually enabling
 UART. To disable UART, pull A1 high (hard-wire to 5v) or leave it floating.
 
-An additional item to consider when using UART: typically you will want to rig
-the chipKIT to be self-powered (either from an external power source or the
-vehicle) if you're going to use UART for adding Bluetooth support. There's not
-much point in being wireless if you still need power from USB.
-
-In that case, move the power jumper from the 5v input on the Network Shield
-to A0 (analog input 0). Instead of using 5v to power the board, the firmware can
-use it to detect if USB is actually attached or not. The benefit of this is that
-if you connect USB, then disconnect it, we can detect that in the firmware and
-stop wasting time trying to send data over USB. This will dramatically increase
-the throughput over UART.
+No data received over UART (i.e. Bluetooth)?
+    If you are powering the device via USB but not also reading data via USB, it
+    may be blocked waiting to send data. Try unplugging the USB connection and
+    powering the device via the OBD connector.
 
 Debug Logging
 -------------
 
 In most cases the logging provided via USB is sufficient, but if you are doing
 low-level development and need the simpler UART interface, you can enable it
-with the ``UART_LOGGING`` Makefile flag.
+with the ``UART_LOGGING`` Makefile flag, but be aware that UART logging will
+dramatically decrease the performance of the VI.
 
-On the chipKIT Max32, logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx) at
-115200 baud (if the firmware was compiled with ``DEBUG=1``).
+On the chipKIT Max32, UART logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx)
+at 115200 baud.
 
 LED Lights
 -----------
@@ -88,19 +82,19 @@ Attach the chipKIT to your computer with a mini-USB cable, ``cd`` into the
     $ make flash
 
 If the flash command can't find your chipKIT, you may need to set the
-``MONITOR_PORT`` variable if the serial emulator doesn't show up as
+``SERIAL_PORT`` variable if the serial emulator doesn't show up as
 ``/dev/ttyUSB*`` in Linux, ``/dev/tty.usbserial*`` in Mac OS X or ``com3`` in
 Windows. For example, if the chipKIT shows up as ``/dev/ttyUSB4``:
 
 .. code-block:: sh
 
-    $ MONITOR_PORT=/dev/ttyUSB4 make flash
+    $ SERIAL_PORT=/dev/ttyUSB4 make flash
 
 and if in Windows it appeared as COM4:
 
 .. code-block:: sh
 
-    $ MONITOR_PORT=com4 make flash
+    $ SERIAL_PORT=com4 make flash
 
 IDE Support
 -----------
@@ -156,4 +150,3 @@ All stock chipKITs are programmed with a compatible bootloader at the factory.
 The `PIC32 avrdude bootloader
 <https://github.com/openxc/PIC32-avrdude-bootloader>`_ is also tested and
 working and allows flashing over USB with ``avrdude``.
-

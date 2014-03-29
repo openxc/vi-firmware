@@ -89,7 +89,7 @@ def compile_emulator(target_path):
     with lcd("src"):
         local("make clean", capture=True)
         for board in env.boards:
-            output = local("PLATFORM=%s DEBUG=0 BOOTLOADER=1 make emulator -j4" %
+            output = local("PLATFORM=%s DEBUG=0 BOOTLOADER=1 DEFAULT_EMULATED_DATA_STATUS=1 DEFAULT_POWER_MANAGEMENT=ALWAYS_ON make -j4" %
                     (board['name']), capture=True)
             if output.failed:
                 puts(output)

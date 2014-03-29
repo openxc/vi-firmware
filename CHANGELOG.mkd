@@ -2,16 +2,33 @@
 
 ## v6.0-dev
 
-* Update MPIDE dependency to 2013-08* version.
+* Support configuration of CAN messages acceptance filters on the fly, rather
+  than only at startup. This changed an API, but an internal one, so it is not a
+  breaking change.
 * Add new control command to retrive a unique device ID (only works if Bluetooth
   module is installed right now).
 * Moved debug logging to a secondary USB endpoint by default - re-enable UART
   with UART_LOGGING flag.
+* Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
+  the latest version.
+* Use new version of Arduino-Makefile which depends on the Perl module
+  Device::SerialPort.
+* BREAKING CHANGE: Using CanMessage struct in favor if loose id + data.
+* BREAKING CHANGE: Removed "reset" control command.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
   function prototype, to allow triggering arbitrary new output messages without
   decoding a signal by hand.
 * BREAKING CHANGE: Changed USB endpoint numbers to allow for optimal performance
   and a new logging channel.
+* BREAKING CHANGE: JSON delimiter for output data changed to '\0' from '\r\n' to
+  match the required delimiter for input data. This requires updates to client
+  libraries.
+* Added a watchdog timer to reset the VI if it ever locks up.
+
+## v5.1.3
+
+* On VIs with an RN-42, disable configuration via Bluetooth to make the
+  connection more stable on Samsung Android devices.
 
 ## v5.1.2
 

@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /_static/logo.png
 
-:Version: 5.1.3-dev
+:Version: 6.0-dev
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -29,10 +29,7 @@ version to a USB, Bluetooth or network interface.
 .. toctree::
     :maxdepth: 2
 
-    getting-started
-
-Configuring, Compiling and Testing
-==================================
+    getting-started/getting-started
 
 .. toctree::
     :maxdepth: 1
@@ -40,29 +37,19 @@ Configuring, Compiling and Testing
     config/config
     compile/compiling
     platforms/platforms
-    testing
-
-Advanced Reference
-======================
+    advanced/advanced
+    output
 
 .. toctree::
     :maxdepth: 1
 
-    advanced/advanced
-    output
-
-Contributing
-============
-
-.. toctree::
-    :maxdepth: 0
-
+    testing
     contributing
 
 License
 -------
 
-Copyright (c) 2012-2013 Ford Motor Company
+Copyright (c) 2012-2014 Ford Motor Company
 
 Licensed under the BSD license.
 

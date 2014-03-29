@@ -10,6 +10,7 @@
 #include "usb_config.h"
 #include "util/bytebuffer.h"
 #include "usb_config.h"
+#include "commands.h"
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512
@@ -89,7 +90,7 @@ void initialize(UsbDevice*);
  * callback - A function that handles USB in requests. The callback should
  *      return true if a message was properly received and parsed.
  */
-void read(UsbDevice* device, bool (*callback)(uint8_t*));
+void read(UsbDevice* device, openxc::commands::IncomingMessageCallback callback);
 
 /* Public: Pass the next OUT request message to the callback, if available.
  *
@@ -102,7 +103,8 @@ void read(UsbDevice* device, bool (*callback)(uint8_t*));
  * callback - A function that handles USB in requests. The callback should
  *      return true if a message was properly received and parsed.
  */
-void read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*));
+void read(UsbDevice* device, UsbEndpoint* endpoint,
+        openxc::commands::IncomingMessageCallback callback);
 
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
  * host.
@@ -114,11 +116,14 @@ void processSendQueue(UsbDevice* device);
 /* Public: Send a USB control message on EP0 (the endponit used only for control
  * transfers).
  *
+ * Returns true if a USB host is connected and we sent the transfer.
+ *
+ * device - The USB device to send the control transfer.
  * data - An array of up bytes up to the total size of the endpoint (64 bytes
  *      for USB 2.0)
  * length - The length of the data array.
  */
-void sendControlMessage(uint8_t* data, uint8_t length);
+bool sendControlMessage(UsbDevice* usbDevice, uint8_t* data, size_t length);
 
 /* Public: Disconnect from host and turn off the USB peripheral
  *           (minimal power draw).

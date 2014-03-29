@@ -14,32 +14,11 @@
 
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
-using openxc::signals::initializeFilters;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
-CAN_ERROR configureFilters(CanBus* bus, CanFilter* filters, int filterCount) {
-    if(filterCount > 0) {
-        debugNoNewline("Configuring %d filters...", filterCount);
-        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
-        CAN_ERROR result = CAN_OK;
-        for(int i = 0; i < filterCount; i++) {
-            result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), filters[i].value,
-                    STD_ID_FORMAT);
-            if(result != CAN_OK) {
-                debug("Couldn't add message filter, error %d", result);
-            }
-        }
-        debug("Done.");
-        return result;
-    } else {
-        debug("No filters configured, turning off acceptance filter");
-        // disable acceptable filter so we get all messages
-        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
-        return CAN_OK;
-    }
-}
+extern uint16_t CANAF_std_cnt;
 
-void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
+static void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_CFG_Type PinCfg;
     PinCfg.OpenDrain = 0;
     PinCfg.Pinmode = 0;
@@ -52,7 +31,7 @@ void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_ConfigPin(&PinCfg);
 }
 
-void configureTransceiver() {
+static void configureTransceiver() {
     // make P0.19 high to make sure the TJ1048T is awake
     LPC_GPIO0->FIODIR |= 1 << 19;
     LPC_GPIO0->FIOPIN |= 1 << 19;
@@ -60,20 +39,73 @@ void configureTransceiver() {
     LPC_GPIO0->FIOPIN |= 1 << 6;
 }
 
-bool CAN_CONTROLLER_INITIALIZED = false;
+static void clearAcceptanceFilterTable() {
+    // remove all existing entries - I tried looping over CAN_RemoveEntry until
+    // it returned an error, but that left the AF table in a corrupted state.
+    LPC_CANAF->AFMR = 0x00000001;
+    CANAF_std_cnt = 0;
+    for (int i = 0; i < 512; i++) {
+        LPC_CANAF_RAM->mask[i] = 0x00;
+    }
+
+    LPC_CANAF->SFF_sa = 0x00;
+    LPC_CANAF->SFF_GRP_sa = 0x00;
+    LPC_CANAF->EFF_sa = 0x00;
+    LPC_CANAF->EFF_GRP_sa = 0x00;
+    LPC_CANAF->ENDofTable = 0x00;
+}
+
+bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+    clearAcceptanceFilterTable();
+
+    uint16_t filterCount = 0;
+    CAN_ERROR result = CAN_OK;
+    for(int i = 0; i < busCount; i++) {
+        CanBus* bus = &buses[i];
+        // TODO use FOREACH
+        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
+                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
+                entry = entry->entries.le_next, ++filterCount) {
+           result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
+                                       STD_ID_FORMAT);
+           if(result != CAN_OK) {
+                debug("Couldn't add filter 0x%x to bus %d", entry->filter,
+                        bus->address);
+                break;
+           }
+        }
+    }
+
+    if(filterCount == 0) {
+        debug("No filters configured, turning off acceptance filter");
+        // On the LPC17xx, the AF mode is global - if it's off, it's off for
+        // both controllers. That's why this is outside the loop above, and
+        // we're counting *total* filters, not filters per bus.
+        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
+    } else {
+        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
+    }
+
+    return result == CAN_OK;
+}
 
 void openxc::can::deinitialize(CanBus* bus) { }
 
-void openxc::can::initialize(CanBus* bus, bool writable) {
+void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
+        const int busCount) {
     can::initializeCommon(bus);
     configureCanControllerPins(CAN_CONTROLLER(bus));
     configureTransceiver();
 
+    // Be aware that CAN_Init erase the acceptance filter table for BOTH
+    // controllers, so we need to initialize both CAN controllers before setting
+    // any filters, and then make sure to re-add the filters if we call CAN_Init
+    // again. Here we initialize both buses when the first bus is initialized,
+    // to get it out of the way.
+    static bool CAN_CONTROLLER_INITIALIZED = false;
     if(!CAN_CONTROLLER_INITIALIZED) {
-        // TODO workaround the fact that CAN_Init erase the acceptance filter
-        // table, so we need to initialize both CAN controllers before setting
-        // any filters, and then make sure not to call CAN_Init again.
         for(int i = 0; i < getCanBusCount(); i++) {
+            debug("Initializing bus %d at %d baud", bus->address, getCanBuses()[i].speed);
             CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);
         }
         CAN_CONTROLLER_INITIALIZED = true;
@@ -88,17 +120,15 @@ void openxc::can::initialize(CanBus* bus, bool writable) {
     }
     CAN_ModeConfig(CAN_CONTROLLER(bus), mode, ENABLE);
 
+    if(!configureDefaultFilters(bus, openxc::signals::getMessages(),
+            openxc::signals::getMessageCount(), buses, busCount)) {
+        debug("Unable to initialize CAN acceptance filters");
+    }
+
     // enable receiver interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_RIE, ENABLE);
     // enable transmit interrupt
     CAN_IRQCmd(CAN_CONTROLLER(bus), CANINT_TIE1, ENABLE);
 
     NVIC_EnableIRQ(CAN_IRQn);
-
-    int filterCount;
-    CanFilter* filters = initializeFilters(bus->address, &filterCount);
-    CAN_ERROR result = configureFilters(bus, filters, filterCount);
-    if (result != CAN_OK) {
-        debug("Unable to initialize CAN acceptance filters");
-    }
 }

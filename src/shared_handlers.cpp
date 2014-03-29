@@ -12,6 +12,7 @@ float fuelConsumedSinceRestartLiters = 0;
 
 namespace can = openxc::can;
 
+using openxc::util::log::debug;
 using openxc::can::read::booleanHandler;
 using openxc::can::read::stateHandler;
 using openxc::can::read::sendEventedBooleanMessage;
@@ -20,9 +21,8 @@ using openxc::can::read::sendEventedStringMessage;
 using openxc::can::read::sendNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
-using openxc::can::write::booleanWriter;
-using openxc::can::write::sendSignal;
 using openxc::can::lookupSignal;
+using openxc::pipeline::Pipeline;
 
 const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
 const float openxc::signals::handlers::LITERS_PER_UL = .000001;
@@ -351,8 +351,9 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId,
 }
 
 bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
-        cJSON* value, cJSON* event, CanSignal* signals, int signalCount) {
-    const char* direction = value->valuestring;
+        openxc_DynamicField* value, openxc_DynamicField* event,
+        CanSignal* signals, int signalCount) {
+    const char* direction = value->string_value;
     CanSignal* signal = NULL;
     if(!strcmp("left", direction)) {
         signal = lookupSignal("turn_signal_left", signals, signalCount);
@@ -362,10 +363,7 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
 
     bool sent = true;
     if(signal != NULL) {
-        cJSON* boolObject = cJSON_CreateBool(true);
-        can::write::sendSignal(signal, boolObject, booleanWriter,
-                signals, signalCount, true);
-        cJSON_Delete(boolObject);
+        can::write::encodeAndSendBooleanSignal(signal, true, true);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
         sent = false;

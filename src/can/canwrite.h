@@ -9,30 +9,11 @@ namespace openxc {
 namespace can {
 namespace write {
 
-/* Public: Write the given number to the correct bitfield for the given signal.
- *
- * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
- * value - The value to write.
- * send - An output argument that will be set to false if the value should
- *     not be sent for any reason.
- *
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
- */
-void numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, double value, uint8_t destination[], bool* send);
+void encodeDynamicField(const CanSignal* signal, openxc_DynamicField* field,
+                uint8_t destination[], size_t length, bool* send);
 
-/* Public: Interpret the JSON value as a double, then do the same as
- * numberWriter(CanSignal*, CanSignal*, int, double, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- */
-void numberWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, uint8_t destination[],  bool* send);
+void encodeBoolean(const CanSignal* signal, bool value,
+                uint8_t destination[], size_t length, bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
@@ -41,8 +22,6 @@ void numberWriter(CanSignal* signal, CanSignal* signals,
  * to a single state. See https://github.com/openxc/vi-firmware/issues/185.
  *
  * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
  * value - The string object to write. The value should correspond to a signal
  *         state integer value.
  * send - An output argument that will be set to false if the value should
@@ -51,48 +30,29 @@ void numberWriter(CanSignal* signal, CanSignal* signals,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-void stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, const char* value, uint8_t destination[], bool* send);
+void encodeState(const CanSignal* signal, const char* state,
+                uint8_t destination[], size_t length, bool* send);
 
-/* Public: Interpret the JSON value as a string, then do the same as
- * stateWriter(CanSignal*, CanSignal*, int, const char*, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- */
-void stateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, uint8_t destination[], bool* send);
-
-/* Public: Write the given boolean value to the correct bitfield for the given
- * signal. This will write either a 0 or 1.
+/* Public: Write the given number to the correct bitfield for the given signal.
  *
  * signal - The signal associated with the value.
- * signals - An array of all CAN signals.
- * signalCount - The size of the CAN signals array.
- * value - The boolean to write.
+ * value - The value to write.
  * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
+ * TODO update docs for all of these functions.
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-void booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, bool value, uint8_t destination[], bool* send);
+void encodeNumber(const CanSignal* signal, float value,
+                uint8_t destination[], size_t length, bool* send);
 
-/* Public: Interpret the JSON value as a boolean, then do the same as
- * numberWriter(CanSignal*, CanSignal*, int, bool, bool*).
- *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- */
-void booleanWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, uint8_t destination[], bool* send);
+void buildMessage(CanSignal* signal, int encodedValue,
+                uint8_t destination[]);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Using the provided CanSignal and writer function, convert the cJSON value
+ * Using the provided CanSignal and writer function, convert the value
  * into a numerical value appropriate for the CAN signal. This may include
  * converting a string state value to its numerical equivalent, for example. The
  * writer function must know how to do this conversion.
@@ -100,30 +60,14 @@ void booleanWriter(CanSignal* signal, CanSignal* signals,
  * signal - The CanSignal to send.
  * value - The value to send in the signal. This could be a boolean, number or
  *         string (i.e. a state value).
- * writer - A function to convert from the cJSON value to an encoded byte array.
- * signals - An array of all CAN signals.
- * signalCount - The size of the signals array.
+ * writer - A function to convert from the value to an encoded uint64_t.
  * force - true if the signals should be sent regardless of the writable status
  *         in the CAN message structure.
  *
- * Be aware that this function is not responsible for any memory allocated for
- * the 'value' parameter - be sure to call cJSON_Delete() on it after calling
- * this function if you created it with one of the cJSON_Create*() functions.
- *
  * Returns true if the message was sent successfully.
  */
-bool sendSignal(CanSignal* signal, cJSON* value,
-        void (*writer)(CanSignal*, CanSignal*, int, cJSON*, uint8_t[], bool*),
-        CanSignal* signals, int signalCount, bool force);
-
-/* Public: Write a CAN signal with the given value to the bus.
- *
- * Just like the above function sendSignal(), but the value of force defaults
- * to false.
- */
-bool sendSignal(CanSignal* signal, cJSON* value,
-        void (*writer)(CanSignal*, CanSignal*, int, cJSON*, uint8_t[], bool*),
-        CanSignal* signals, int signalCount);
+bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value,
+        SignalEncoder writer, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
@@ -132,20 +76,21 @@ bool sendSignal(CanSignal* signal, cJSON* value,
  *
  * See above for argument descriptions.
  */
-bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
-        int signalCount, bool force);
+bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value, bool force);
 
-/* Public: Write a CAN signal with the given value to the bus.
- *
- * Just like the above function sendSignal(), but the value of force defaults
- * to false.
- */
-bool sendSignal(CanSignal* signal, cJSON* value, CanSignal* signals,
-        int signalCount);
+bool sendEncodedSignal(CanSignal* signal, uint64_t value, bool force);
+
+bool encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force);
+bool encodeAndSendStateSignal(CanSignal* signal, const char* value, bool force);
+bool encodeAndSendNumericSignal(CanSignal* signal, float value, bool force);
 
 /* Public: The lowest-level API available to send a CAN message. The byte order
  * of the data is swapped, but otherwise this function queues the data to write
  * out to CAN without any additional processing.
+ *
+ * If the 'length' field of the CanMessage struct is 0, the message size is
+ * assumed to be 8 (i.e. it will use the entire contents of the 'data' field, so
+ * make sure it's all valid or zereod out!).
  *
  * bus - the bus to send the message.
  * message - the CAN message this data should be sent in. The byte order of the
@@ -157,18 +102,32 @@ void enqueueMessage(CanBus* bus, CanMessage* message);
  *
  * bus - The CanBus instance that has a queued to be flushed out to CAN.
  */
-void processWriteQueue(CanBus* bus);
+void flushOutgoingCanMessageQueue(CanBus* bus);
 
-/* Public: Write a CAN message with the given data and node ID to the bus.
+/* Public: Write a CAN message with the given data and node ID to the bus
+ * immeidately.
  *
- * Defined per-platform.
+ * You should usually use enqueueMessage, unless you absolutely need the message
+ * written to the bus right now.
  *
  * bus - The CAN bus to send the message on.
- * request - the CanMessage requested to send.
+ * request - the CanMessage message to send.
  *
  * Returns true if the message was sent successfully.
  */
-bool sendMessage(CanBus* bus, CanMessage request);
+bool sendCanMessage(const CanBus* bus, const CanMessage* request);
+
+/* Private: Actually, finally write a CAN message with the given data and node
+ * ID to the bus.
+ *
+ * Defined per-platform. Users should use enqueueMessage instead.
+ *
+ * bus - The CAN bus to send the message on.
+ * request - the CanMessage message to send.
+ *
+ * Returns true if the message was sent successfully.
+ */
+bool sendMessage(const CanBus* bus, const CanMessage* request);
 
 } // namespace write
 } // namespace can

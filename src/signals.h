@@ -1,54 +1,64 @@
 #ifndef _SIGNALS_H_
 #define _SIGNALS_H_
 
+#include "diagnostics.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
 
-using openxc::can::CanFilter;
-
 namespace openxc {
+
+/* All of the functions in this namespace are declared as weak symbols, and a
+ * default no-op implementation is provided in default_signals.cpp. The build
+ * will complete successfully without any additional implementation but the VI
+ * will not read or send any CAN messages. You must provide your own
+ * implementation of these functions in a separate file named signals.cpp, which
+ * will override the defaults. Watch out, other filenames may not be built in
+ * the correct order and they will not override the default implementations!
+ */
 namespace signals {
 
 /** Public: Return the currently active CAN configuration. */
-CanMessageSet* getActiveMessageSet();
+CanMessageSet* getActiveMessageSet() __attribute__((weak));
 
 /** Public: Retrive a list of all possible CAN configurations.
  *
  * Returns a pointer to an array of all configurations.
  */
-CanMessageSet* getMessageSets();
+CanMessageSet* getMessageSets() __attribute__((weak));
 
 /** Public: Return the length of the array returned by getMessageSets() */
-int getMessageSetCount();
+int getMessageSetCount() __attribute__((weak));
 
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
  *
+ * diagnosticsManager - TODO
+ *
  * TODO should this also be called when the configuration is switched?
  */
-void initialize();
+void initialize(openxc::diagnostics::DiagnosticsManager* diagnosticsManager) __attribute__((weak));
 
 /* Public: Any additional processing that should happen each time through the
  * main firmware loop, in addition to the built-in CAN message handling. This
  * function is called once at the end of every iteration of the main loop.
  */
-void loop();
+void loop() __attribute__((weak));
 
 /* Public: Return the number of CAN buses configured in the active
  * configuration. This is limited to 2, as the hardware controller only has 2
  * CAN channels.
  */
-int getCanBusCount();
+int getCanBusCount() __attribute__((weak));
 
 /* Public: Return an array of all CAN messages to be processed in the active
  * configuration.
  */
-CanMessageDefinition* getMessages();
+CanMessageDefinition* getMessages() __attribute__((weak));
 
 /* Public: Return an array of all CAN signals to be processed in the active
  * configuration.
  */
-CanSignal* getSignals();
+CanSignal* getSignals() __attribute__((weak));
 
 /* Public: Return an array of all OpenXC CAN commands enabled in the active
  * configuration that can write back to CAN with a custom handler.
@@ -56,21 +66,21 @@ CanSignal* getSignals();
  * Commands not defined here are handled using a 1-1 mapping from the signals
  * list.
  */
-CanCommand* getCommands();
+CanCommand* getCommands() __attribute__((weak));
 
 /* Public: Return the length of the array returned by getCommandCount(). */
-int getCommandCount();
+int getCommandCount() __attribute__((weak));
 
 /* Public: Return the length of the array returned by getSignals(). */
-int getSignalCount();
+int getSignalCount() __attribute__((weak));
 
 /* Public: Return the length of the array returned by getMessages(). */
-int getMessageCount();
+int getMessageCount() __attribute__((weak));
 
 /* Public: Return an array of the metadata for the 2 CAN buses you want to
  * monitor. The size of this array is fixed at 2.
  */
-CanBus* getCanBuses();
+CanBus* getCanBuses() __attribute__((weak));
 
 /* Public: Decode CAN signals from raw CAN messages, translate from engineering
  * units to something more human readable, and send the resulting value over USB
@@ -82,26 +92,9 @@ CanBus* getCanBuses();
  * field.
  *
  * bus - The CAN bus this message was received on.
- * id - The 11-bit ID of the incoming CAN message.
- * data - The 8 byte data field of the CAN messages.
+ * message - The received CAN message.
  */
-void decodeCanMessage(Pipeline* pipeline, CanBus* bus, int id, uint8_t data[]);
-
-/* Public: Initialize an array of the CAN message filters that should be set for
- * the CAN module with the given address, given the currently active
- * configuration.
- *
- * If an array is of length 0, the CAN acceptance filter will be disabled and
- * all CAN messages will be passed through the translation stack.
- *
- * address - The address of the CAN module to retreive the filters for.
- * count - An OUT variable that will be set to the length of the returned
- *         filters array.
- *
- * Returns an array of CanFilters that should be initialized on the CAN
- * module with the given address.
- */
-CanFilter* initializeFilters(uint8_t address, int* count);
+void decodeCanMessage(openxc::pipeline::Pipeline* pipeline, CanBus* bus, CanMessage* message) __attribute__((weak));
 
 } // namespace signals
 } // namespace openxc

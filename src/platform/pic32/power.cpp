@@ -2,6 +2,8 @@
 #include "util/log.h"
 #include <plib.h>
 
+using openxc::util::log::debug;
+
 void openxc::power::initialize() {
 }
 
@@ -32,4 +34,21 @@ void openxc::power::suspend() {
 
 void openxc::power::handleWake() {
     SoftReset();
+}
+
+void openxc::power::enableWatchdogTimer(int microseconds) {
+    // TODO argh, can't change postscaler value from software because it's
+    // configured with a #pragma directive in the bootloader. The time for the
+    // WDT is permanently set at about 1 second. We could write to the
+    // configuration register in flash memory, but we'd want to make sure that
+    // only happened once because flash has a 10k write limit.
+    EnableWDT();
+}
+
+void openxc::power::disableWatchdogTimer() {
+    DisableWDT();
+}
+
+void openxc::power::feedWatchdog() {
+    ClearWDT();
 }

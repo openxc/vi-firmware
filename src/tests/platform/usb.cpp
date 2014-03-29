@@ -1,15 +1,46 @@
 #include "interface/usb.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include <stdio.h>
+#include <stdarg.h>
+
+using openxc::commands::IncomingMessageCallback;
 
 bool USB_PROCESSED = false;
+uint8_t LAST_CONTROL_COMMAND_PAYLOAD[256];
+size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH = 0;;
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_PROCESSED = true;
+    for(int i = 0; i < ENDPOINT_COUNT; i++) {
+        UsbEndpoint* endpoint = &usbDevice->endpoints[i];
+        if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
+            printf("USB endpoint %d buffer:\n", i);
+            uint8_t snapshot[QUEUE_LENGTH(uint8_t, &endpoint->queue) + 1];
+            QUEUE_SNAPSHOT(uint8_t, &endpoint->queue, snapshot, sizeof(snapshot));
+            for(size_t i = 0; i < sizeof(snapshot) - 1; i++) {
+                if(snapshot[i] == 0) {
+                    printf("\n");
+                } else {
+                    printf("%c", snapshot[i]);
+                }
+            }
+        }
+    }
 }
 
 void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
 }
 
-void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint, bool (*callback)(uint8_t*)) { }
+void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
+        IncomingMessageCallback callback) { }
+
+void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) { }
+
+bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
+        uint8_t* data, size_t length) {
+    memcpy(LAST_CONTROL_COMMAND_PAYLOAD, data, length);
+    LAST_CONTROL_COMMAND_PAYLOAD_LENGTH = length;
+    return true;
+}

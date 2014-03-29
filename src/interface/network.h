@@ -6,6 +6,8 @@
 #endif // __USE_NETWORK__
 
 #include "util/bytebuffer.h"
+#include "commands.h"
+#include <stdlib.h>
 
 #define USE_DHCP
 
@@ -57,7 +59,8 @@ void initialize(NetworkDevice* device);
  */
 void processSendQueue(NetworkDevice* device);
 
-void read(NetworkDevice* device, bool (*callback)(uint8_t*));
+void read(NetworkDevice* device,
+        openxc::commands::IncomingMessageCallback callback);
 
 } // namespace network
 } // namespace interface

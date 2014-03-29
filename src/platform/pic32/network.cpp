@@ -13,6 +13,7 @@
 #define DEFAULT_MAC_ADDRESS {0, 0, 0, 0, 0, 0}
 #define DEFAULT_IP_ADDRESS {192, 168, 1, 100}
 
+using openxc::util::log::debug;
 using openxc::util::bytebuffer::processQueue;
 
 Server server = Server(DEFAULT_NETWORK_PORT);
@@ -55,7 +56,8 @@ void openxc::interface::network::processSendQueue(NetworkDevice* device) {
     }
 }
 
-void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(uint8_t*)) {
+void openxc::interface::network::read(NetworkDevice* device,
+        IncomingMessageCallback callback) {
     Client client = device->server->available();
     if(client) {
         uint8_t byte;
@@ -69,7 +71,8 @@ void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(ui
 
 #else
 
-void openxc::interface::network::read(NetworkDevice* device, bool (*callback)(uint8_t*)) { }
+void openxc::interface::network::read(NetworkDevice* device,
+        openxc::commands::IncomingMessageCallback callback) { }
 void openxc::interface::network::initialize(NetworkDevice* device) { }
 void openxc::interface::network::processSendQueue(NetworkDevice* device) { }
 

@@ -2,7 +2,9 @@
 #include "canutil_pic32.h"
 #include "util/log.h"
 
-bool openxc::can::write::sendMessage(CanBus* bus, CanMessage request) {
+using openxc::util::log::debug;
+
+bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* request) {
     CAN::TxMessageBuffer* message = CAN_CONTROLLER(bus)->getTxMessageBuffer(
             CAN::CHANNEL0);
     if (message != NULL) {
@@ -11,9 +13,9 @@ bool openxc::can::write::sendMessage(CanBus* bus, CanMessage request) {
         message->messageWord[2] = 0;
         message->messageWord[3] = 0;
 
-        message->msgSID.SID = request.id;
+        message->msgSID.SID = request->id;
         message->msgEID.IDE = 0;
-        message->msgEID.DLC = 8;
+        message->msgEID.DLC = request->length;
         memcpy(message->data, request.data, 8);
 
         // Mark message as ready to be processed

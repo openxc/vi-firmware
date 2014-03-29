@@ -13,14 +13,11 @@ namespace openxc {
 namespace pipeline {
 
 typedef enum {
-    JSON,
-    PROTO
-} OutputFormat;
-
-typedef enum {
     TRANSLATED,
     RAW,
-    LOG
+    DIAGNOSTIC,
+    LOG,
+    COMMAND_RESPONSE,
 } MessageClass;
 
 /* Public: A container for all output devices that want to be notified of new
@@ -36,11 +33,22 @@ typedef enum {
  * sendQueues?
  */
 typedef struct {
-    OutputFormat outputFormat;
     UsbDevice* usb;
     UartDevice* uart;
     NetworkDevice* network;
 } Pipeline;
+
+/* Public: Serialize the message to a bytestream (conforming to the OpenXC
+ * standard and the currently selected payload format) and send it out to the
+ * pipeline.
+ *
+ * This will accept both raw and translated typed messages.
+ *
+ * message - A message structure containing the type and data for the message.
+ * pipeline - The pipeline to send on.
+ */
+void sendVehicleMessage(openxc_VehicleMessage* message,
+        openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Queue the message to send on all of the interfaces registered with
  *      the pipeline. If the any of the queues does not have sufficient capacity

@@ -4,6 +4,9 @@
 #include "util/bytebuffer.h"
 #include "gpio.h"
 #include "usb_config.h"
+#include "config.h"
+#include "emqueue.h"
+#include "commands.h"
 
 #include "LPC17xx.h"
 #include "lpc17xx_pinsel.h"
@@ -20,13 +23,17 @@ extern "C" {
 #define USB_DM_PIN 30
 #define USB_DM_FUNCNUM 1
 
-#define USB_HOST_DETECT_DEBOUNCE_VALUE 1000
+#define USB_HOST_DETECT_INACTIVE_VALUE 400
+#define USB_HOST_DETECT_ACTIVE_VALUE 50
 
 #define USB_CONNECT_PORT 2
 #define USB_CONNECT_PIN 9
 
 namespace gpio = openxc::gpio;
+namespace commands = openxc::commands;
 
+using openxc::config::getConfiguration;
+using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::usb::UsbEndpoint;
 using openxc::interface::usb::UsbEndpointDirection;
@@ -34,12 +41,9 @@ using openxc::util::bytebuffer::processQueue;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 
-extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t);
-
 void configureEndpoints() {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
-        UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
+        UsbEndpoint* endpoint = &getConfiguration()->usb.endpoints[i];
         Endpoint_ConfigureEndpoint(endpoint->address,
                 EP_TYPE_BULK,
                 endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT ?
@@ -51,8 +55,7 @@ void configureEndpoints() {
 extern "C" {
 
 void EVENT_USB_Device_Disconnect() {
-    debug("USB no longer detected - marking unconfigured");
-    USB_DEVICE.configured = false;
+    getConfiguration()->usb.configured = false;
 }
 
 void EVENT_USB_Device_ControlRequest() {
@@ -60,16 +63,49 @@ void EVENT_USB_Device_ControlRequest() {
         return;
     }
 
-    handleControlRequest(USB_ControlRequest.bRequest);
+    QUEUE_TYPE(uint8_t) payloadQueue;
+    QUEUE_INIT(uint8_t, &payloadQueue);
+
+    // Don't try and read payload of system-level control requests
+    if((USB_ControlRequest.bmRequestType >> 7 == 0) &&
+            USB_ControlRequest.bRequest >= 0x80) {
+        Endpoint_ClearSETUP();
+
+        int bytesReceived = 0;
+        while(bytesReceived < USB_ControlRequest.wLength) {
+            while(!Endpoint_IsOUTReceived());
+            while(Endpoint_BytesInEndpoint()) {
+                uint8_t byte = Endpoint_Read_8();
+                if(!QUEUE_PUSH(uint8_t, &payloadQueue, byte)) {
+                    debug("Dropped control command write from host -- queue is full");
+                    break;
+                }
+                ++bytesReceived;
+            }
+            Endpoint_ClearOUT();
+        }
+
+        Endpoint_ClearStatusStage();
+    }
+
+    int length = QUEUE_LENGTH(uint8_t, &payloadQueue);
+    uint8_t snapshot[length];
+    if(length > 0) {
+        QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
+    }
+
+    commands::handleControlCommand(
+            commands::Command(USB_ControlRequest.bRequest),
+            snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {
-    USB_DEVICE.configured = false;
+    getConfiguration()->usb.configured = false;
     configureEndpoints();
-    // don't use debug logging in here because if the function doesn't return
-    // quick enough, the control transfer can fail because it times out
-    debug("USB Configured");
-    USB_DEVICE.configured = true;
+    // Don't use debug() in here, because if UART logging is enabled, that
+    // breaks most if not all USB control commands because we don't response
+    // fast enough.
+    getConfiguration()->usb.configured = true;
 }
 
 }
@@ -120,20 +156,29 @@ bool vbusDetected() {
  *
  * Returns true of there is measurable activity on the D- USB line.
  */
-bool usbHostDetected() {
+bool usbHostDetected(UsbDevice* usbDevice) {
     static int debounce = 0;
+    static float average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
 
     if(gpio::getValue(USB_DM_PORT, USB_DM_PIN) == GPIO_VALUE_LOW) {
         ++debounce;
     } else {
+        average = average * .9 + debounce * .1;
         debounce = 0;
     }
 
-    if(debounce > USB_HOST_DETECT_DEBOUNCE_VALUE) {
-        debounce = 0;
-        return false;
+    bool hostDetected = true;
+    if(!usbDevice->configured && average < USB_HOST_DETECT_ACTIVE_VALUE) {
+        EVENT_USB_Device_ConfigurationChanged();
     }
-    return true;
+
+    if(debounce > USB_HOST_DETECT_INACTIVE_VALUE * 2 ||
+            average > USB_HOST_DETECT_INACTIVE_VALUE) {
+        debounce = 0;
+        average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
+        hostDetected = false;
+    }
+    return hostDetected;
 }
 
 /* Private: Configure I/O pins used to detect if USB is connected to a host. */
@@ -153,29 +198,59 @@ void configureUsbDetection() {
     PINSEL_ConfigPin(&hostDetectPinConfig);
 }
 
-void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
+bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
+        uint8_t* data, size_t length) {
+    if(!usbDevice->configured) {
+        return false;
+    }
+
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
     Endpoint_ClearSETUP();
     Endpoint_Write_Control_Stream_LE(data, length);
+    // TODO I think it needs to be ClearIN since this is a device -> host
+    // request, but a simple switch breaks it
     Endpoint_ClearOUT();
 
     Endpoint_SelectEndpoint(previousEndpoint);
+    return true;
 }
 
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
-    if(usbDevice->configured && (USB_DeviceState != DEVICE_STATE_Configured
-                || !vbusDetected() || !usbHostDetected())) {
-        EVENT_USB_Device_Disconnect();
-    } else if(usbDevice->configured) {
-        for(int i = 0; i < ENDPOINT_COUNT; i++) {
-            UsbEndpoint* endpoint = &usbDevice->endpoints[i];
-            if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
-                flushQueueToHost(usbDevice, endpoint);
+    if(!usbDevice->configured) {
+        usbHostDetected(usbDevice);
+    }
+
+    if(usbDevice->configured) {
+        if((USB_DeviceState != DEVICE_STATE_Configured || !vbusDetected())
+                || !usbHostDetected(usbDevice)) {
+            // On Windows the USB device will be configured when plugged in for
+            // the first time, regardless of if you are actively using it in an
+            // application. Windows will *not* send the USB configured event
+            // when an application connects.
+            //
+            // On Linux and Mac, the USB configured event triggers each time a
+            // new connection is made to the device.
+            //
+            // This means that if vbus is high (i.e. USB *might* be connected),
+            // that's the only time we should check the usbHostDetected()
+            // workaround. If we call that on Windows when USB is attached, it
+            // will *unconfigure* the USB device from the VI side but not
+            // reconfigure it until you disconnect and reconnect the device to
+            // the PC! If the debounce value is small (which is ideal...) that
+            // could happen even before your app has a chance to load the
+            // device.
+            EVENT_USB_Device_Disconnect();
+        } else {
+            for(int i = 0; i < ENDPOINT_COUNT; i++) {
+                UsbEndpoint* endpoint = &usbDevice->endpoints[i];
+                if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
+                    flushQueueToHost(usbDevice, endpoint);
+                }
             }
         }
     }
@@ -186,24 +261,30 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     USB_Init();
     ::USB_Connect();
     configureUsbDetection();
-
-    debug("Done.");
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
-        bool (*callback)(uint8_t*)) {
+        openxc::commands::IncomingMessageCallback callback) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);
 
+    bool receivedData = false;
     while(Endpoint_IsOUTReceived()) {
         while(Endpoint_BytesInEndpoint()) {
             if(!QUEUE_PUSH(uint8_t, &endpoint->queue, Endpoint_Read_8())) {
                 debug("Dropped write from host -- queue is full");
             }
+            receivedData = true;
         }
-        processQueue(&endpoint->queue, callback);
         Endpoint_ClearOUT();
     }
+
+    if(receivedData) {
+        while(processQueue(&endpoint->queue, callback)) {
+            continue;
+        }
+    }
+
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

@@ -30,6 +30,8 @@ extern const Palette COLORS;
 
 void initialize();
 
+void initializeCommon();
+
 void deinitialize();
 
 /* Public: Display the given color on the light.
@@ -69,6 +71,8 @@ void disable(Light light, int duration);
  * duration - the amount of time the light should remain lighted during the flash.
  */
 void flash(Light light, RGB color, int duration);
+
+bool colors_equal(const RGB colorA, const RGB colorB);
 
 } // namespace lights
 } // namespace openxc

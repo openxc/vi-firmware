@@ -1,8 +1,8 @@
 BOARD_TAG = mega_pic32
 
-ARDUINO_LIBS = chipKITUSBDevice chipKITUSBDevice/utility cJSON emqueue \
-			   emhashmap/emlist emhashmap AT-commander/atcommander \
-			   nanopb bitfield-c/src
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON \
+			   emqueue AT-commander/atcommander \
+			   nanopb bitfield-c/src isotp-c/src uds-c/src
 ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
@@ -23,14 +23,13 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-MPIDE_DIR ?= $(DEPENDENCIES_MPIDE_DIR)
+ifeq ($(MPIDE_DIR),)
+	MPIDE_DIR = $(DEPENDENCIES_MPIDE_DIR)
+endif
+
 MPIDE_EXISTS = $(shell test -d $(MPIDE_DIR); echo $$?)
 ifneq ($(MPIDE_EXISTS),0)
 $(error MPIDE missing from path "$(MPIDE_DIR)" - run "script/bootstrap.sh")
-endif
-
-ifndef CAN_EMULATOR
-ARDUINO_LIBS += chipKITCAN
 endif
 
 NO_CORE_MAIN_FUNCTION = 1
@@ -60,10 +59,11 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-EXTRA_CFLAGS += -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
+EXTRA_BOTH_FLAGS = -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
-				  -I $(LIBS_PATH)/nanopb -std=gnu++0x
-EXTRA_CXXFLAGS += $(EXTRA_CFLAGS)
+				  -I $(LIBS_PATH)/nanopb
+EXTRA_CFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_C_FLAGS)
+EXTRA_CXXFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_CPP_FLAGS)
 
 # bump the head up to 32K from the default
 EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
@@ -76,12 +76,10 @@ ifneq ($(MICROCHIP_USB_LIBRARY_EXISTS),0)
 $(error chipKIT USB device library missing - run "script/bootstrap.sh" to download)
 endif
 
-ifndef CAN_EMULATOR
 EXPECTED_CAN_LIBRARY_PATH = $(LIBS_PATH)/chipKITCAN
 MICROCHIP_CAN_LIBRARY_EXISTS = $(shell test -d $(EXPECTED_CAN_LIBRARY_PATH); echo $$?)
 ifneq ($(MICROCHIP_CAN_LIBRARY_EXISTS),0)
 $(error chipKIT CAN library missing - run "script/bootstrap.sh" to download)
-endif
 endif
 
 ifdef NETWORK
@@ -92,13 +90,13 @@ $(error chipKIT Network library missing - run "script/bootstrap.sh" to download)
 endif
 endif
 
-ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/arduino-mk/chipKIT.mk; echo $$?)
+ARDUINO_MK_EXISTS = $(shell test -e $(LIBS_PATH)/arduino.mk/chipKIT.mk; echo $$?)
 ifneq ($(ARDUINO_MK_EXISTS),0)
 $(error arduino.mk library missing - run "script/bootstrap.sh")
 endif
 
 USER_LIB_PATH = $(LIBS_PATH)
-ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk/arduino-mk
+ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)

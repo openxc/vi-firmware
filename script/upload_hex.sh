@@ -13,7 +13,7 @@ KERNEL=`uname`
 HEX_FILE="$1"
 PORT=$2
 
-source $DIR/bootstrap_for_flashing.sh
+source $DIR/bootstrap/flashing_chipkit.sh
 
 if [ -z $PORT ]; then
     if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then

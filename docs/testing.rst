@@ -1,38 +1,24 @@
-=======
-Testing
-=======
-
-Windows USB Device Driver
-=========================
-
-On Windows, a driver is required to use the VI's USB interface. A
-driver is available in the `conf/windows-driver
-<https://github.com/openxc/vi-firmware/tree/master/conf/windows-driver>`_
-folder. The driver supports both 32- and 64-bit Windows. The driver is generated
-using the `libusb-win32 <http://sourceforge.net/apps/trac/libusb-win32/wiki>`_
-project.
+=======================
+Developing the Firmware
+=======================
 
 Python Library
 ==============
 
-The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
-useful for testing the VI with a regular computer, to verify the
-data received from a vehicle before introducing an Android device. A quick
-"smoke test" using the Python tools is described in the `Getting Started Guide
+The `OpenXC Python library`_, in particular the ``openxc-dashboard`` tool, is
+useful for testing a VI. A quick "smoke test" using the Python tools is
+described in the `Getting Started Guide
 <http://openxcplatform.com/python/getting-started.html>`_ for Python developers
 at the OpenXC website.
 
-Keep in mind when bench testing - the VI will go into a low power suspend mode
-if no CAN activity has been detected for 30 seconds. If you compile with the
-`DEBUG` flag, it will not suspend.
+Keep in mind when bench testing that the VI will suspend if no CAN bus activity
+is detected. Compiled with ``DEFAULT_POWER_MANAGEMENT=ALWAYS_ON`` to stop this
+behavior, but don't leave it plugged into your car with power management off.
 
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 
-Debugging information
-=====================
-
-Viewing Debugging data
-----------------------
+Debugging
+==========
 
 To view debugging information, first compile the firmware with the
 debugging flag:
@@ -52,25 +38,13 @@ When compiled with ``DEBUG=1``, two things happen:
   via UART with the ``UART_LOGGING`` flag, but there may be a performance
   hit - see the :doc:`/compile/makefile-opts`.
 
-To view the logs via USB, you can use the command line tools from the OpenXC
-Python library and supply the ``--log-mode`` flag - see the help text for any of
-those tools for more information.
+To view the logs via USB, you can use the ``--log-mode`` flag with the Python
+CLI tools. See the ``--help`` text for any of those tools for more information.
 
 To view UART logs, you can use an FTDI cable and any of the many available
-serial terminal monitoring programs, e.g. ``screen``, ``minicom``, etc.
-
-Emulator
-=========
-
-The repository includes a rudimentary vehicle emulator version of the firmware:
-
-::
-
-    $ make clean
-    $ make emulator
-
-The emulator generates fakes values for many OpenXC signals and sends out
-translated OpenXC messages as if it were plugged into a real vehicle.
+serial terminal monitoring programs, e.g. ``screen``, ``minicom``, etc. The pins
+for this UART output are different for each board, so see the :doc:`platform
+specific docs </platforms/platforms>`.
 
 Test Suite
 ===========
@@ -79,39 +53,13 @@ The non-embedded platform specific code in this repository includes a unit test
 suite. It's a good idea to run the test suite before committing any changes to
 the git repository.
 
-Dependencies
-------------
-
-The test suite uses the `check <http://check.sourceforge.net>`_ library.
-
-Ubuntu
-~~~~~~~~~~
-
-.. code-block:: sh
-
-    $ sudo apt-get install check
-
-OS X
-~~~~~~~~~~
-
-Install `Homebrew`_, then ``check``:
-
-.. code-block:: sh
-
-    $ brew install check
-
-Arch Linux
-~~~~~~~~~~
-
-.. code-block:: sh
-
-    $ sudo pacman -S check
+The test suite uses the `check <http://check.sourceforge.net>`_ library. It
+should already be installed if you used ``bootstrap.sh`` to set up your
+development environment.
 
 Running the Suite
 -----------------
 
 .. code-block:: sh
 
-    vi-firmware/src $ make clean && make test -s
-
-.. _`Homebrew`: http://mxcl.github.com/homebrew/
+    vi-firmware/src $ make clean && make test

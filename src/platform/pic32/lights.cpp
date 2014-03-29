@@ -55,6 +55,7 @@ void openxc::lights::enable(Light light, RGB color) {
 }
 
 void openxc::lights::initialize() {
+    initializeCommon();
     #if defined(USER_LED_A_SUPPORT)
     gpio::setDirection(0, USER_LED_A_PIN, GPIO_DIRECTION_OUTPUT);
     #endif

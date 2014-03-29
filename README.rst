@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 5.1.3-dev
+:Version: 6.0-dev
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -65,10 +65,6 @@ License
 Copyright (c) 2012-2013 Ford Motor Company
 
 Licensed under the BSD license.
-
-The Windows driver for the VI and its installer available in
-`conf/windows-driver` is licensed under the GPL. The installer for the driver
-is licensed under the LGPL.
 
 This repository includes links to other source code repositories (as git
 submodules) that may be distributed under different licenses. See those

@@ -1,8 +1,10 @@
 #include <check.h>
 #include <stdint.h>
+#include "signals.h"
 #include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
+#include "config.h"
 #include "cJSON.h"
 
 namespace can = openxc::can;
@@ -12,60 +14,32 @@ using openxc::can::lookupSignalState;
 using openxc::can::lookupMessageDefinition;
 using openxc::can::registerMessageDefinition;
 using openxc::can::unregisterMessageDefinition;
-
-const int CAN_BUS_COUNT = 2;
-CanBus CAN_BUSES[CAN_BUS_COUNT] = {
-    { },
-    { }
-};
+using openxc::signals::getCanBusCount;
+using openxc::signals::getCanBuses;
+using openxc::signals::getMessages;
+using openxc::signals::getMessageCount;
+using openxc::signals::getSignals;
+using openxc::signals::getSignalCount;
+using openxc::signals::getCommands;
+using openxc::signals::getCommandCount;
 
 void setup() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
-        can::initializeCommon(&CAN_BUSES[i]);
+    for(int i = 0; i < getCanBusCount(); i++) {
+        can::initializeCommon(&getCanBuses()[i]);
     }
 }
 
 void teardown() {
-    for(int i = 0; i < CAN_BUS_COUNT; i++) {
-        can::destroy(&CAN_BUSES[i]);
+    for(int i = 0; i < getCanBusCount(); i++) {
+        can::destroy(&getCanBuses()[i]);
     }
 }
-
-const int MESSAGE_COUNT = 3;
-CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
-    {&CAN_BUSES[0], 0},
-    {&CAN_BUSES[0], 1},
-    {&CAN_BUSES[1], 2},
-};
-
-CanSignalState SIGNAL_STATES[1][6] = {
-    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
-        {5, "neutral"}, {6, "second"}, },
-};
-
-const int SIGNAL_COUNT = 5;
-CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000, -5000.000000,
-        33522.000000, {0}, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000, 0.000000,
-        0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true, NULL, false, 4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
-        false, false, NULL, 0, true},
-    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000},
-    {&MESSAGES[2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
-        false, false, NULL, 0, true},
-};
-
-const int COMMAND_COUNT = 1;
-CanCommand COMMANDS[COMMAND_COUNT] = {
-    {"turn_signal_status", NULL},
-};
 
 uint32_t MESSAGE_ID = 42;
 
 START_TEST (test_can_signal_struct)
 {
-    CanSignal signal = SIGNALS[0];
+    CanSignal signal = getSignals()[0];
     ck_assert_int_eq(signal.message->id, 0);
     ck_assert_str_eq(signal.genericName, "torque_at_transmission");
     ck_assert_int_eq(signal.bitPosition, 2);
@@ -75,14 +49,14 @@ START_TEST (test_can_signal_struct)
     ck_assert_int_eq(signal.minValue, -5000.0);
     ck_assert_int_eq(signal.maxValue, 33522.0);
 
-    signal = SIGNALS[1];
+    signal = getSignals()[1];
     ck_assert_int_eq(signal.lastValue, 4.0);
 }
 END_TEST
 
 START_TEST (test_can_signal_states)
 {
-    CanSignal signal = SIGNALS[1];
+    CanSignal signal = getSignals()[1];
     ck_assert_int_eq(signal.message->id, 1);
     ck_assert_int_eq(signal.stateCount, 6);
     ck_assert_int_eq(signal.states[0].value, 1);
@@ -92,55 +66,49 @@ END_TEST
 
 START_TEST (test_lookup_signal)
 {
-    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT) == NULL);
-    fail_unless(lookupSignal("torque_at_transmission", SIGNALS, SIGNAL_COUNT)
-            == &SIGNALS[0]);
-    fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
-            SIGNAL_COUNT) == &SIGNALS[1]);
+    fail_unless(lookupSignal("does_not_exist", getSignals(), getSignalCount()) == NULL);
+    fail_unless(lookupSignal("torque_at_transmission", getSignals(), getSignalCount())
+            == &getSignals()[0]);
+    fail_unless(lookupSignal("transmission_gear_position", getSignals(),
+            getSignalCount()) == &getSignals()[1]);
 }
 END_TEST
 
 START_TEST (test_lookup_writable_signal)
 {
-    fail_unless(lookupSignal("does_not_exist", SIGNALS, SIGNAL_COUNT, true
+    fail_unless(lookupSignal("does_not_exist", getSignals(), getSignalCount(), true
                 ) == NULL);
-    fail_unless(lookupSignal("transmission_gear_position", SIGNALS,
-            SIGNAL_COUNT, false) == &SIGNALS[1]);
-    fail_unless(lookupSignal("command", SIGNALS,
-            SIGNAL_COUNT, false) == &SIGNALS[3]);
-    fail_unless(lookupSignal("command", SIGNALS,
-            SIGNAL_COUNT, true) == &SIGNALS[4]);
+    fail_unless(lookupSignal("transmission_gear_position", getSignals(),
+            getSignalCount(), false) == &getSignals()[1]);
+    fail_unless(lookupSignal("command", getSignals(),
+            getSignalCount(), false) == &getSignals()[4]);
+    fail_unless(lookupSignal("command", getSignals(),
+            getSignalCount(), true) == &getSignals()[5]);
 }
 END_TEST
 
 START_TEST (test_lookup_signal_state_by_name)
 {
-    fail_unless(lookupSignalState("does_not_exist", &SIGNALS[1], SIGNALS,
-                SIGNAL_COUNT) == NULL);
-    fail_unless(lookupSignalState("reverse", &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
-            == &SIGNAL_STATES[0][0]);
-    fail_unless(lookupSignalState("third", &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
-            == &SIGNAL_STATES[0][1]);
+    fail_unless(lookupSignalState("does_not_exist", &getSignals()[1]) == NULL);
+    fail_unless(lookupSignalState("reverse", &getSignals()[1]) == &getSignals()[1].states[0]);
+    fail_unless(lookupSignalState("third", &getSignals()[1]) == &getSignals()[1].states[1]);
 }
 END_TEST
 
 START_TEST (test_lookup_signal_state_by_value)
 {
-    fail_unless(lookupSignalState(MESSAGE_ID, &SIGNALS[1], SIGNALS,
-                SIGNAL_COUNT) == NULL);
-    fail_unless(lookupSignalState(1, &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
-            == &SIGNAL_STATES[0][0]);
-    fail_unless(lookupSignalState(2, &SIGNALS[1], SIGNALS, SIGNAL_COUNT)
-            == &SIGNAL_STATES[0][1]);
+    fail_unless(lookupSignalState(MESSAGE_ID, &getSignals()[1]) == NULL);
+    fail_unless(lookupSignalState(1, &getSignals()[1]) == &getSignals()[1].states[0]);
+    fail_unless(lookupSignalState(2, &getSignals()[1]) == &getSignals()[1].states[1]);
 }
 END_TEST
 
 START_TEST (test_lookup_command)
 {
-    fail_unless(lookupCommand("does_not_exist", COMMANDS, COMMAND_COUNT
+    fail_unless(lookupCommand("does_not_exist", getCommands(), getCommandCount()
                 ) == NULL);
-    fail_unless(lookupCommand("turn_signal_status", COMMANDS, COMMAND_COUNT)
-            == &COMMANDS[0]);
+    fail_unless(lookupCommand("turn_signal_status", getCommands(), getCommandCount())
+            == &getCommands()[0]);
 }
 END_TEST
 
@@ -154,80 +122,80 @@ END_TEST
 
 START_TEST (test_get_can_message_definition_predefined)
 {
-    CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0], 1,
-            MESSAGES, MESSAGE_COUNT);
-    ck_assert(message == &MESSAGES[1]);
+    CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0], 1,
+            getMessages(), getMessageCount());
+    ck_assert(message == &getMessages()[1]);
 }
 END_TEST
 
 START_TEST (test_get_can_message_definition_undefined)
 {
-    CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0], 999,
-            MESSAGES, MESSAGE_COUNT);
+    CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0], 999,
+            getMessages(), getMessageCount());
     ck_assert(message == NULL);
 }
 END_TEST
 
 START_TEST (test_register_can_message)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
-            MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
+            MESSAGE_ID, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
-    ck_assert(message->bus == &CAN_BUSES[0]);
+    ck_assert(message->bus == &getCanBuses()[0]);
 }
 END_TEST
 
 START_TEST (test_register_can_message_twice)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
-            MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
+            MESSAGE_ID, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
-    ck_assert(message->bus == &CAN_BUSES[0]);
+    ck_assert(message->bus == &getCanBuses()[0]);
 }
 END_TEST
 
 START_TEST (test_register_can_message_diff_bus)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    ck_assert(registerMessageDefinition(&CAN_BUSES[1], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    CanMessageDefinition* message = lookupMessageDefinition(&CAN_BUSES[0],
-            MESSAGE_ID, MESSAGES, MESSAGE_COUNT);
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[1], MESSAGE_ID, getMessages(), getMessageCount()));
+    CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
+            MESSAGE_ID, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
-    ck_assert(message->bus == &CAN_BUSES[0]);
+    ck_assert(message->bus == &getCanBuses()[0]);
 
-    message = lookupMessageDefinition(&CAN_BUSES[1], MESSAGE_ID, MESSAGES,
-            MESSAGE_COUNT);
+    message = lookupMessageDefinition(&getCanBuses()[1], MESSAGE_ID, getMessages(),
+            getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
-    ck_assert(message->bus == &CAN_BUSES[1]);
+    ck_assert(message->bus == &getCanBuses()[1]);
 }
 END_TEST
 
 START_TEST (test_unregister_can_message)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
-            MESSAGES, MESSAGE_COUNT) != NULL);
-    ck_assert(unregisterMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
-    ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
-            MESSAGES, MESSAGE_COUNT) == NULL);
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
+            getMessages(), getMessageCount()) != NULL);
+    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID));
+    ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
+            getMessages(), getMessageCount()) == NULL);
 }
 END_TEST
 
 START_TEST (test_unregister_can_message_not_registered)
 {
-    ck_assert(registerMessageDefinition(&CAN_BUSES[0], MESSAGE_ID, MESSAGES, MESSAGE_COUNT));
-    ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
-            MESSAGES, MESSAGE_COUNT) != NULL);
-    ck_assert(unregisterMessageDefinition(&CAN_BUSES[0], MESSAGE_ID));
-    ck_assert(lookupMessageDefinition(&CAN_BUSES[0], MESSAGE_ID,
-            MESSAGES, MESSAGE_COUNT) == NULL);
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
+            getMessages(), getMessageCount()) != NULL);
+    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID));
+    ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
+            getMessages(), getMessageCount()) == NULL);
 }
 END_TEST
 

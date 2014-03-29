@@ -1,7 +1,9 @@
 #include "can/canread.h"
+#include "canutil_lpc17xx.h"
 #include "signals.h"
 #include "util/log.h"
 
+using openxc::util::log::debug;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 
@@ -9,14 +11,17 @@ CanMessage receiveCanMessage(CanBus* bus) {
     CAN_MSG_Type message;
     CAN_ReceiveMsg(CAN_CONTROLLER(bus), &message);
 
-    CanMessage result = {message.id};
+    CanMessage result = {
+        id: message.id,
+        data: 0,
+        length: message.len
+    };
+
     // TODO is this backwards?
     memcpy(result.data, message->dataB, 4);
     memcpy(result.data[3], message->dataA, 4);
     return result;
 }
-
-#ifndef CAN_EMULATOR
 
 extern "C" {
 
@@ -41,5 +46,3 @@ void CAN_IRQHandler() {
 }
 
 }
-
-#endif // CAN_EMULATOR

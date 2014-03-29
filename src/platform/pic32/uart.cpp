@@ -40,7 +40,6 @@
 
 #endif
 
-
 // See http://www.chipkit.org/forum/viewtopic.php?f=19&t=711
 #define _UARTMODE_BRGH 3
 
@@ -49,6 +48,7 @@
 
 namespace gpio = openxc::gpio;
 
+using openxc::util::log::debug;
 using openxc::util::bytebuffer::processQueue;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
@@ -57,7 +57,7 @@ extern HardwareSerial Serial;
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
 void openxc::interface::uart::read(UartDevice* device,
-        bool (*callback)(uint8_t*)) {
+        openxc::commands::IncomingMessageCallback callback) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
         if(bytesAvailable > 0) {

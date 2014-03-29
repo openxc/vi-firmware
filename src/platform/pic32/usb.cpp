@@ -1,55 +1,93 @@
 #include "interface/usb.h"
 #include "util/bytebuffer.h"
 #include "util/log.h"
+#include "power.h"
+#include "config.h"
 #include "gpio.h"
 
-#ifdef CHIPKIT
-
-#define USB_VBUS_ANALOG_INPUT A0
-
-#endif
-
-#define USB_HANDLE_MAX_WAIT_COUNT 35000
+#define USB_HANDLE_MAX_WAIT_COUNT 1000
 
 namespace gpio = openxc::gpio;
+namespace commands = openxc::commands;
 
+using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::usb::UsbEndpoint;
 using openxc::interface::usb::UsbEndpointDirection;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::util::bytebuffer::processQueue;
+using openxc::config::getConfiguration;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
-extern UsbDevice USB_DEVICE;
-extern bool handleControlRequest(uint8_t);
+
+/* Private: Arm the given endpoint for a read from the device to host.
+ *
+ * This also puts a NUL char in the beginning of the buffer so you don't get
+ * confused that it's still a valid message.
+ *
+ * device - the CAN USB device to arm the endpoint on
+ * endpoint - the endpoint to arm.
+ * buffer - the destination buffer for the next OUT transfer.
+ */
+static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
+    memset(endpoint->receiveBuffer, sizeof(endpoint->receiveBuffer), 0);
+    endpoint->hostToDeviceHandle = usbDevice->device.GenRead(
+            endpoint->address, (uint8_t*)endpoint->receiveBuffer,
+            endpoint->size);
+}
+
+static uint8_t INCOMING_EP0_DATA_BUFFER[256];
+static size_t INCOMING_EP0_DATA_SIZE;
+static void handleCompletedEP0OutTransfer() {
+    commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
+            INCOMING_EP0_DATA_BUFFER, INCOMING_EP0_DATA_SIZE);
+    memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
+}
 
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
-    USB_DEVICE.device.DefaultCBEventHandler(event, pdata, size);
+    getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
 
-    // TODO why can't we use USB_EVENT as the type anymore? rejects
-    // EVENT_EP0_REQUEST as a switch case
-    switch((int)event) {
+    switch(event) {
     case EVENT_CONFIGURED:
         debug("USB Configured");
-        USB_DEVICE.configured = true;
+        getConfiguration()->usb.configured = true;
 
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
-            UsbEndpoint* endpoint = &USB_DEVICE.endpoints[i];
+            UsbEndpoint* endpoint = &getConfiguration()->usb.endpoints[i];
             if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
-                USB_DEVICE.device.EnableEndpoint(endpoint->address,
+                getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+                armForRead(&getConfiguration()->usb, endpoint);
             } else {
-                USB_DEVICE.device.EnableEndpoint(endpoint->address,
+                getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_IN_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
             }
         }
         break;
 
     case EVENT_EP0_REQUEST:
-        handleControlRequest(SetupPkt.bRequest);
+    {
+        if((SetupPkt.bmRequestType >> 7 == 0) && SetupPkt.bRequest >= 0x80
+                && SetupPkt.wLength > 0) {
+            getConfiguration()->usb.device.EP0Receive(INCOMING_EP0_DATA_BUFFER,
+                    MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
+                        (void*)handleCompletedEP0OutTransfer);
+        } else {
+            commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
+                    NULL, 0);
+        }
+
+        break;
+    }
+
+    case EVENT_SUSPEND:
+        if(getConfiguration()->usb.configured) {
+            debug("USB no longer detected - marking unconfigured");
+            getConfiguration()->usb.configured = false;
+        }
         break;
 
     default:
@@ -58,48 +96,32 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     return true;
 }
 
-void openxc::interface::usb::sendControlMessage(uint8_t* data, uint8_t length) {
-    USB_DEVICE.device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
-}
-
-bool vbusEnabled() {
-#ifdef USB_VBUS_ANALOG_INPUT
-    return analogRead(USB_VBUS_ANALOG_INPUT) > 100;
-#else
-    return true;
-#endif
+bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
+        uint8_t* data, size_t length) {
+    if(usbDevice->configured) {
+        usbDevice->device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
+        return true;
+    }
+    return false;
 }
 
 bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
     int i = 0;
     while(usbDevice->configured &&
             usbDevice->device.HandleBusy(endpoint->deviceToHostHandle)) {
-        ++i;
-        if(i > USB_HANDLE_MAX_WAIT_COUNT) {
+        if(++i > USB_HANDLE_MAX_WAIT_COUNT) {
             // The reason we want to exit this loop early is that if USB is
             // attached and configured, but the host isn't sending an IN
             // requests, we will block here forever. As it is, it still slows
             // down UART transfers quite a bit, so setting configured = false
             // ASAP is important.
-
-            // This can get really noisy when running but I want to leave it in
-            // because it' useful to enable when debugging.
-            // debug("USB most likely not connected or at least not requesting "
-                    // "IN transfers - bailing out of handle waiting");
             return false;
         }
     }
     return true;
 }
 
-
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
-    if(usbDevice->configured && !vbusEnabled()) {
-        debug("USB no longer detected - marking unconfigured");
-        usbDevice->configured = false;
-        return;
-    }
-
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
 
@@ -123,12 +145,6 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
                 // buffer after we copy the message into it - the Microchip library
                 // doesn't copy the data to its own internal buffer. See #171 for
                 // background on this issue.
-                // TODO instead of dropping, replace POP above with a SNAPSHOT
-                // and POP off only exactly how many bytes were sent after the
-                // fact.
-                // TODO in order for this not to fail too often I had to increase
-                // the USB_HANDLE_MAX_WAIT_COUNT. that may be OK since now we have
-                // VBUS detection.
                 if(!waitForHandle(usbDevice, endpoint)) {
                     debug("USB not responding in a timely fashion, dropped data");
                     return;
@@ -149,9 +165,6 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
-#ifdef USB_VBUS_ANALOG_INPUT
-    gpio::setDirection(0, USB_VBUS_ANALOG_INPUT, GPIO_DIRECTION_INPUT);
-#endif
     debug("Done.");
 }
 
@@ -159,33 +172,17 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
     // disable USB (notifies stack we are disabling)
     USBModuleDisable();
 
-    // power off the USB peripheral
-    // TODO could not find a ready-made function or macro
+    // Could not find a ready-made function or macro
     // in the USB library to actually turn off the module.
     // USBModuleDisable() is close to what we want, but it
     // sets the ON bit to 1 for some reason.
-    // so, easy solution is just go right to the control register, for now
+    // So, easy solution is just go right to the control register to power off
+    // the USB peripheral.
     U1PWRCCLR = (1 << 0);
 }
 
-/* Private: Arm the given endpoint for a read from the device to host.
- *
- * This also puts a NUL char in the beginning of the buffer so you don't get
- * confused that it's still a valid message.
- *
- * device - the CAN USB device to arm the endpoint on
- * endpoint - the endpoint to arm.
- * buffer - the destination buffer for the next OUT transfer.
- */
-void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
-    endpoint->receiveBuffer[0] = 0;
-    endpoint->hostToDeviceHandle = usbDevice->device.GenRead(
-            endpoint->address, (uint8_t*)endpoint->receiveBuffer,
-            endpoint->size);
-}
-
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
-        bool (*callback)(uint8_t*)) {
+        commands::IncomingMessageCallback callback) {
     if(!device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         if(endpoint->receiveBuffer[0] != '\0') {
             for(int i = 0; i < endpoint->size; i++) {
@@ -194,7 +191,9 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
                     debug("Dropped write from host -- queue is full");
                 }
             }
-            processQueue(&endpoint->queue, callback);
+            while(processQueue(&endpoint->queue, callback)) {
+                continue;
+            }
         }
         armForRead(device, endpoint);
     }

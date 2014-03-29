@@ -4,21 +4,14 @@
 
 const int openxc::interface::uart::MAX_MESSAGE_SIZE = 128;
 
-using openxc::util::log::debugNoNewline;
-
+using openxc::util::log::debug;
 
 void openxc::interface::uart::initializeCommon(UartDevice* device) {
     if(device != NULL) {
-        debugNoNewline("Initializing UART.....");
+        debug("Initializing UART.....");
         QUEUE_INIT(uint8_t, &device->receiveQueue);
         QUEUE_INIT(uint8_t, &device->sendQueue);
 
-        device->allowRawWrites =
-#ifdef UART_ALLOW_RAW_WRITE
-            true
-#else
-            false
-#endif
-            ;
+        device->allowRawWrites = DEFAULT_ALLOW_RAW_WRITE_UART;
     }
 }

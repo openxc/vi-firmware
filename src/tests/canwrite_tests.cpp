@@ -1,282 +1,353 @@
 #include <check.h>
 #include <stdint.h>
+#include "signals.h"
 #include "can/canutil.h"
 #include "can/canwrite.h"
-#include "cJSON.h"
 
 namespace can = openxc::can;
 
-using openxc::can::write::numberWriter;
-using openxc::can::write::booleanWriter;
-using openxc::can::write::stateWriter;
-
-CanBus bus = {115200, 0x101};
-
-CanMessageDefinition MESSAGES[3] = {
-    {&bus, 0},
-    {&bus, 1},
-    {&bus, 2},
-};
-
-CanSignalState SIGNAL_STATES[1][6] = {
-    { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
-        {5, "neutral"}, {6, "second"}, },
-};
-
-const int SIGNAL_COUNT = 4;
-CanSignal SIGNALS[SIGNAL_COUNT] = {
-    {&MESSAGES[0], "torque_at_transmission", 2, 6, 1001.0, -30000.000000,
-        -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
-    {&MESSAGES[1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
-        0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0], 6, true, NULL,
-        4.0},
-    {&MESSAGES[2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
-        0.000000, {0}, false, false, NULL, 0, true},
-    {&MESSAGES[3], "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
-        {0}, false, false, SIGNAL_STATES[0], 6, true, NULL, 4.0},
-};
-
-const int COMMAND_COUNT = 1;
-CanCommand COMMANDS[COMMAND_COUNT] = {
-    {"turn_signal_status", NULL},
-};
+using openxc::can::write::encodeDynamicField;
+using openxc::can::write::encodeBoolean;
+using openxc::can::write::encodeNumber;
+using openxc::can::write::encodeState;
+using openxc::can::write::buildMessage;
+using openxc::signals::getSignalCount;
+using openxc::signals::getSignals;
+using openxc::signals::getCanBuses;
 
 void setup() {
-    for(int i = 0; i < SIGNAL_COUNT; i++) {
-        SIGNALS[i].writable = true;
-        SIGNALS[i].received = false;
-        SIGNALS[i].sendSame = true;
-        SIGNALS[i].frequencyClock = {0};
+    for(int i = 0; i < getSignalCount(); i++) {
+        getSignals()[i].writable = true;
+        getSignals()[i].received = false;
+        getSignals()[i].sendSame = true;
+        getSignals()[i].frequencyClock = {0};
     }
-    QUEUE_INIT(CanMessage, &bus.sendQueue);
+    QUEUE_INIT(CanMessage, &getCanBuses()[0].sendQueue);
 }
 
-START_TEST (test_number_writer)
+START_TEST (test_build_message)
 {
-    bool send = true;
-    uint64_t value = numberWriter(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, 0xa,
-            &send);
+    uint64_t value = buildMessage(&getSignals()[6], 30);
     ck_assert_int_eq(value, 0x1e00000000000000LLU);
-    fail_unless(send);
 
-    value = numberWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, 0x6, &send);
+    value = buildMessage(&getSignals()[1], 6);
     ck_assert_int_eq(value, 0x6000000000000000LLU);
-    fail_unless(send);
-}
-END_TEST
 
-START_TEST (test_boolean_writer)
-{
-    bool send = true;
-    uint64_t value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, true,
-            &send);
+    value = buildMessage(&getSignals()[2], 1);
     ck_assert_int_eq(value, 0x8000000000000000LLU);
-    fail_unless(send);
 
-    value = booleanWriter(&SIGNALS[2], SIGNALS, SIGNAL_COUNT, false, &send);
-    ck_assert_int_eq(value, 0x0000000000000000LLU);
-    fail_unless(send);
+    value = buildMessage(&getSignals()[2], 0);
+    ck_assert_int_eq(value, 0);
 }
 END_TEST
 
-START_TEST (test_state_writer)
+START_TEST (test_encode_invalid_field)
 {
-    bool send = true;
-    uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateString(SIGNAL_STATES[0][1].name), &send);
-    ck_assert_int_eq(value, 0x2000000000000000LLU);
-    fail_unless(send);
-}
-END_TEST
+    openxc_DynamicField field;
+    field.has_type = false;
 
-START_TEST (test_state_writer_null_string)
-{
     bool send = true;
-    uint64_t value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            (const char*)NULL, &send);
-    fail_if(send);
-
-    send = true;
-    value = stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            (cJSON*)NULL, &send);
+    encodeDynamicField(&getSignals()[6], &field, &send);
     fail_if(send);
 }
 END_TEST
 
-START_TEST (test_write_not_allowed)
+START_TEST (test_encode_number)
 {
-    SIGNALS[1].writable = false;
-    can::write::sendSignal(&SIGNALS[1], cJSON_CreateNumber(0x6),
-            SIGNALS, SIGNAL_COUNT);
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    bool send = true;
+    ck_assert_int_eq(encodeNumber(&getSignals()[6], 0xa, &send), 30);
+    fail_unless(send);
+
+    ck_assert_int_eq(encodeNumber(&getSignals()[1], 0x6, &send), 6);
+    fail_unless(send);
 }
 END_TEST
 
-START_TEST (test_write_unknown_state)
+START_TEST (test_encode_boolean)
 {
     bool send = true;
-    stateWriter(&SIGNALS[1], SIGNALS, SIGNAL_COUNT,
-            cJSON_CreateString("not_a_state"), &send);
+    ck_assert_int_eq(encodeBoolean(&getSignals()[2], true, &send), 1);
+    fail_unless(send);
+    ck_assert_int_eq(encodeBoolean(&getSignals()[2], false, &send), 0);
+    fail_unless(send);
+}
+END_TEST
+
+START_TEST (test_encode_state)
+{
+    bool send = true;
+    ck_assert_int_eq(encodeState(&getSignals()[1],
+                getSignals()[1].states[1].name, &send), 2);
+    fail_unless(send);
+}
+END_TEST
+
+START_TEST (test_encode_null_state)
+{
+    bool send = true;
+    encodeState(&getSignals()[1], (const char*)NULL, &send);
+    fail_if(send);
+
+    encodeState(&getSignals()[1], NULL, &send);
     fail_if(send);
 }
 END_TEST
 
-START_TEST (test_enqueue)
+START_TEST (test_encode_unknown_state)
+{
+    bool send = true;
+    encodeState(&getSignals()[1], "not_a_state", &send);
+    fail_if(send);
+}
+END_TEST
+
+START_TEST (test_enqueue_message)
 {
     CanMessage message = {42, 0x123456};
-    can::write::enqueueMessage(&bus, &message);
+    can::write::enqueueMessage(&getCanBuses()[0], &message);
 
-    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &bus.sendQueue));
+    ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &getCanBuses()[0].sendQueue));
 }
 END_TEST
 
 START_TEST (test_swaps_byte_order)
 {
     CanMessage message = {42, 0x123456};
-    can::write::enqueueMessage(&bus, &message);
+    can::write::enqueueMessage(&getCanBuses()[0], &message);
 
-    CanMessage queuedMessage = QUEUE_POP(CanMessage, &bus.sendQueue);
+    CanMessage queuedMessage = QUEUE_POP(CanMessage,
+            &getCanBuses()[0].sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x5634120000000000LLU);
+}
+END_TEST
+
+START_TEST (test_write_not_allowed)
+{
+    getSignals()[1].writable = false;
+    can::write::encodeAndSendNumericSignal(&getSignals()[1], 0x6, false);
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
 START_TEST (test_send_with_null_writer)
 {
-    fail_unless(can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
-                NULL, SIGNALS, SIGNAL_COUNT));
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_NUM;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::encodeAndSendSignal(
+                &getSignals()[6], &field, NULL, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
-            &SIGNALS[0].message->bus->sendQueue);
+            &getSignals()[6].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x1e);
 }
 END_TEST
 
 START_TEST (test_send_using_default)
 {
-    fail_unless(can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa),
-                SIGNALS, SIGNAL_COUNT));
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_NUM;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::encodeAndSendSignal(
+                &getSignals()[6], &field, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
-            &SIGNALS[0].message->bus->sendQueue);
+            &getSignals()[6].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x1e);
 }
 END_TEST
 
 START_TEST (test_send_with_custom_with_states)
 {
-    fail_unless(can::write::sendSignal(&SIGNALS[1],
-                cJSON_CreateString(SIGNAL_STATES[0][1].name), SIGNALS,
-                SIGNAL_COUNT));
+    fail_unless(can::write::encodeAndSendStateSignal(&getSignals()[1],
+                getSignals()[1].states[1].name, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
-            &SIGNALS[1].message->bus->sendQueue);
+            &getSignals()[1].message->bus->sendQueue);
     ck_assert_int_eq(queuedMessage.data, 0x20);
 }
 END_TEST
 
-uint64_t customStateWriter(CanSignal* signal, CanSignal* signals,
-        int signalCount, cJSON* value, bool* send) {
+uint64_t customStateWriter(CanSignal* signal, openxc_DynamicField* value,
+        bool* send) {
     *send = false;
     return 0;
 }
 
 START_TEST (test_send_with_custom_says_no_send)
 {
-    fail_if(can::write::sendSignal(&SIGNALS[1],
-                cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
-                SIGNALS, SIGNAL_COUNT));
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_STRING;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
+    fail_if(can::write::encodeAndSendSignal(&getSignals()[1], &field,
+                customStateWriter, false));
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
 START_TEST (test_force_send)
 {
-    fail_if(can::write::sendSignal(&SIGNALS[1],
-                cJSON_CreateString(SIGNAL_STATES[0][1].name), customStateWriter,
-                SIGNALS, SIGNAL_COUNT, true));
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_STRING;
+    field.has_string_value = true;
+    strcpy(field.string_value, getSignals()[1].states[1].name);
+
+    fail_unless(can::write::encodeAndSendSignal(&getSignals()[1],
+                &field, customStateWriter, true));
     ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage,
-                &SIGNALS[1].message->bus->sendQueue));
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
-START_TEST (test_write_empty)
+START_TEST (test_flush_empty)
 {
-    can::write::processWriteQueue(&bus);
+    can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
 }
 END_TEST
 
-START_TEST (test_no_write_handler)
+START_TEST (test_no_flush_handler)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-            SIGNAL_COUNT);
-    bus.writeHandler = NULL;
-    can::write::processWriteQueue(&bus);
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    // TODO might be duplciate about test_send_using_default
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_NUM;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::encodeAndSendSignal(
+                &getSignals()[6], &field, false));
+    getCanBuses()[0].writeHandler = NULL;
+    can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
-bool writeHandler(CanBus* bus, CanMessage message) {
+bool writeHandler(const CanBus* bus, const CanMessage* message) {
     return false;
 }
 
-START_TEST (test_failed_write_handler)
+START_TEST (test_failed_flush_handler)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-            SIGNAL_COUNT);
-    bus.writeHandler = writeHandler;
-    can::write::processWriteQueue(&bus);
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    openxc_DynamicField field;
+    field.has_type = true;
+    field.type = openxc_DynamicField_Type_NUM;
+    field.has_numeric_value = true;
+    field.numeric_value = 0xa;
+
+    fail_unless(can::write::encodeAndSendSignal(
+                &getSignals()[6], &field, false));
+    getCanBuses()[0].writeHandler = writeHandler;
+    can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
-START_TEST (test_successful_write)
+START_TEST (test_send_numeric)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-            SIGNAL_COUNT);
-    can::write::processWriteQueue(&bus);
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    can::write::encodeAndSendNumericSignal(&getSignals()[6], 0xa, false);
+    fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
+    CanMessage message = QUEUE_POP(CanMessage,
+            &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(__builtin_bswap64(message.data), 0x1e00000000000000LLU);
 }
 END_TEST
 
-START_TEST (test_write_multiples)
+START_TEST (test_send_boolean)
 {
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-            SIGNAL_COUNT);
-    can::write::sendSignal(&SIGNALS[0], cJSON_CreateNumber(0xa), SIGNALS,
-            SIGNAL_COUNT);
-    can::write::processWriteQueue(&bus);
-    fail_unless(QUEUE_EMPTY(CanMessage, &SIGNALS[1].message->bus->sendQueue));
+    can::write::encodeAndSendBooleanSignal(&getSignals()[2], true, false);
+    fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
+    CanMessage message = QUEUE_POP(CanMessage,
+            &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(__builtin_bswap64(message.data), 0x8000000000000000LLU);
+}
+END_TEST
+
+START_TEST (test_send_state)
+{
+    can::write::encodeAndSendStateSignal(&getSignals()[1],
+            getSignals()[1].states[1].name, false);
+    fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
+    CanMessage message = QUEUE_POP(CanMessage,
+            &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(__builtin_bswap64(message.data), 0x2000000000000000LLU);
+}
+END_TEST
+
+START_TEST (test_send_multiples)
+{
+    can::write::encodeAndSendNumericSignal(&getSignals()[6], 0xa, false);
+    can::write::encodeAndSendNumericSignal(&getSignals()[6], 0xa, false);
+    fail_if(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
+    can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
+}
+END_TEST
+
+START_TEST (test_basic_flush)
+{
+    can::write::encodeAndSendNumericSignal(&getSignals()[6], 0xa, false);
+    fail_if(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
+    can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
+    fail_unless(QUEUE_EMPTY(CanMessage,
+                &getSignals()[1].message->bus->sendQueue));
 }
 END_TEST
 
 Suite* canwriteSuite(void) {
     Suite* s = suite_create("canwrite");
-    TCase *tc_core = tcase_create("core");
-    tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_number_writer);
-    tcase_add_test(tc_core, test_boolean_writer);
-    tcase_add_test(tc_core, test_state_writer);
-    tcase_add_test(tc_core, test_state_writer_null_string);
-    tcase_add_test(tc_core, test_write_not_allowed);
-    tcase_add_test(tc_core, test_write_unknown_state);
-    suite_add_tcase(s, tc_core);
 
-    TCase *tc_enqueue = tcase_create("enqueue");
-    tcase_add_checked_fixture(tc_enqueue, setup, NULL);
-    tcase_add_test(tc_enqueue, test_enqueue);
-    tcase_add_test(tc_enqueue, test_swaps_byte_order);
-    tcase_add_test(tc_enqueue, test_send_using_default);
-    tcase_add_test(tc_enqueue, test_send_with_null_writer);
-    tcase_add_test(tc_enqueue, test_send_with_custom_with_states);
-    tcase_add_test(tc_enqueue, test_send_with_custom_says_no_send);
-    tcase_add_test(tc_enqueue, test_force_send);
-    suite_add_tcase(s, tc_enqueue);
+    TCase *tc_builders = tcase_create("builders");
+    tcase_add_checked_fixture(tc_builders, setup, NULL);
+    tcase_add_test(tc_builders, test_build_message);
+    suite_add_tcase(s, tc_builders);
 
-    TCase *tc_write = tcase_create("write");
-    tcase_add_checked_fixture(tc_write, setup, NULL);
-    tcase_add_test(tc_write, test_write_empty);
-    tcase_add_test(tc_write, test_no_write_handler);
-    tcase_add_test(tc_write, test_failed_write_handler);
-    tcase_add_test(tc_write, test_successful_write);
-    tcase_add_test(tc_write, test_write_multiples);
-    suite_add_tcase(s, tc_write);
+    TCase *tc_encoders = tcase_create("encoders");
+    tcase_add_checked_fixture(tc_encoders, setup, NULL);
+    tcase_add_test(tc_encoders, test_encode_number);
+    tcase_add_test(tc_encoders, test_encode_boolean);
+    tcase_add_test(tc_encoders, test_encode_state);
+    tcase_add_test(tc_encoders, test_encode_null_state);
+    tcase_add_test(tc_encoders, test_encode_unknown_state);
+    tcase_add_test(tc_encoders, test_encode_invalid_field);
+    suite_add_tcase(s, tc_encoders);
+
+    TCase *tc_send = tcase_create("send");
+    tcase_add_checked_fixture(tc_send, setup, NULL);
+    tcase_add_test(tc_send, test_enqueue_message);
+    tcase_add_test(tc_send, test_swaps_byte_order);
+    tcase_add_test(tc_send, test_send_using_default);
+    tcase_add_test(tc_send, test_send_with_null_writer);
+    tcase_add_test(tc_send, test_send_with_custom_with_states);
+    tcase_add_test(tc_send, test_send_with_custom_says_no_send);
+    tcase_add_test(tc_send, test_write_not_allowed);
+    tcase_add_test(tc_send, test_send_numeric);
+    tcase_add_test(tc_send, test_send_boolean);
+    tcase_add_test(tc_send, test_send_state);
+    tcase_add_test(tc_send, test_send_multiples);
+    tcase_add_test(tc_send, test_force_send);
+    suite_add_tcase(s, tc_send);
+
+    TCase *tc_flush = tcase_create("flush");
+    tcase_add_checked_fixture(tc_flush, setup, NULL);
+    tcase_add_test(tc_flush, test_flush_empty);
+    tcase_add_test(tc_flush, test_basic_flush);
+    tcase_add_test(tc_flush, test_no_flush_handler);
+    tcase_add_test(tc_flush, test_failed_flush_handler);
+    suite_add_tcase(s, tc_flush);
 
     return s;
 }

@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_clkpwr.h"
+#include "lpc17xx_wdt.h"
 
 #define POWER_CONTROL_PORT 2
 #define POWER_CONTROL_PIN 13
@@ -15,7 +16,7 @@ namespace gpio = openxc::gpio;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
-using openxc::util::log::debugNoNewline;
+using openxc::util::log::debug;
 
 const uint32_t DISABLED_PERIPHERALS[] = {
     CLKPWR_PCONP_PCTIM0,
@@ -31,7 +32,7 @@ const uint32_t DISABLED_PERIPHERALS[] = {
 
 void setPowerPassthroughStatus(bool enabled) {
     int pinStatus;
-    debugNoNewline("Switching 12v power passthrough ");
+    debug("Switching 12v power passthrough ");
     if(enabled) {
         debug("on");
         pinStatus = 0;
@@ -44,7 +45,6 @@ void setPowerPassthroughStatus(bool enabled) {
 }
 
 void openxc::power::initialize() {
-    debug("Initializing power controls...");
     // Configure 12v passthrough control as a digital output
     PINSEL_CFG_Type powerPassthroughPinConfig;
     powerPassthroughPinConfig.OpenDrain = 0;
@@ -57,15 +57,11 @@ void openxc::power::initialize() {
     gpio::setDirection(POWER_CONTROL_PORT, POWER_CONTROL_PIN, GPIO_DIRECTION_OUTPUT);
     setPowerPassthroughStatus(true);
 
-    debug("Done.");
-
-    debugNoNewline("Turning off unused peripherals...");
+    debug("Turning off unused peripherals");
     for(unsigned int i = 0; i < sizeof(DISABLED_PERIPHERALS) /
             sizeof(DISABLED_PERIPHERALS[0]); i++) {
         CLKPWR_ConfigPPWR(DISABLED_PERIPHERALS[i], DISABLE);
     }
-
-    debug("Done.");
 
     PINSEL_CFG_Type programButtonPinConfig;
     programButtonPinConfig.OpenDrain = 0;
@@ -77,7 +73,7 @@ void openxc::power::initialize() {
 }
 
 void openxc::power::handleWake() {
-    // TODO This isn't especially graceful, we just reset the device after a
+    // This isn't especially graceful, we just reset the device after a
     // wakeup. Then again, it makes the code a hell of a lot simpler because we
     // only have to worry about initialization of core peripherals in one spot,
     // setup() in vi_firmware.cpp and main.cpp. I'll leave this for now and we
@@ -98,7 +94,30 @@ void openxc::power::suspend() {
     // Disable brown-out detection when we go into lower power
     LPC_SC->PCON |= (1 << 2);
 
+    // TODO do we need to disable and disconnect the main PLL0 before ending
+    // deep sleep, accoridn gto errata lpc1768-16.march2010? it's in some
+    // example code from NXP.
     CLKPWR_DeepSleep();
+}
+
+void openxc::power::enableWatchdogTimer(int microseconds) {
+    WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
+    WDT_Start(microseconds);
+}
+
+void openxc::power::disableWatchdogTimer() {
+    // TODO this is nuts, but you can't change the WDMOD register until after
+    // the WDT times out. But...we are using a RESET with the WDT, so the whole
+    // board will reset and then we don't have any idea if the WDT should be
+    // disabled or not! This makes it really difficult to use the WDT for both
+    // normal runtime hard freeze protection and periodic wakeup from sleep (to
+    // check if CAN is active via OBD-II). I have to disable the regular WDT for
+    // now for this reason.
+    LPC_WDT->WDMOD = 0x0;
+}
+
+void openxc::power::feedWatchdog() {
+    WDT_Feed();
 }
 
 extern "C" {

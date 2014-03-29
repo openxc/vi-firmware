@@ -17,7 +17,7 @@
                     "bit_size": 12},
                 "EngSpd": {
                     "generic_name": "engine_speed",
-                    "send_frequency": 15,
+                    "max_frequency": 5,
                     "bit_position": 12,
                     "bit_size": 8},
                 "GrshftPos": {
@@ -39,7 +39,7 @@
                     "bit_size": 12
                 }
             },
-            "handler": "handleSteeringWheelMessage"
+            "handlers": ["handleSteeringWheelMessage"]
         },
         "0x49": {
             "name": "BrkSt",
@@ -61,16 +61,14 @@
                     "handler": "booleanHandler",
                     "bit_position": 0,
                     "bit_size": 0,
-                    "writable": true,
-                    "write_handler": "booleanWriter"
+                    "writable": true
                 },
                 "TurnSignalRight": {
                     "generic_name": "turn_signal_right",
                     "handler": "booleanHandler",
                     "bit_position": 1,
                     "bit_size": 0,
-                    "writable": true,
-                    "write_handler": "booleanWriter"
+                    "writable": true
                 }
             }
         }

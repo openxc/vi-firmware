@@ -117,7 +117,6 @@ void openxc::diagnostics::obd2::initialize(DiagnosticsManager* manager) {
 // * If normal CAN is blocked, we rely on a watchdog to wake us up every 15
 // seconds to start this process over again.
 void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
-    static bool ignitionWasOn = false;
     static bool pidSupportQueried = false;
     static bool sentFinalIgnitionCheck = false;
 
@@ -126,15 +125,12 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
     }
 
     if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
-        if(sentFinalIgnitionCheck) {
-            if(manager->initialized && getConfiguration()->powerManagement ==
+        if(sentFinalIgnitionCheck && getConfiguration()->powerManagement ==
                         PowerManagement::OBD2_IGNITION_CHECK) {
-                debug("Ceasing diagnostic requests as ignition went off");
-                diagnostics::reset(manager);
-                manager->initialized = false;
-                pidSupportQueried = false;
-            }
-            ignitionWasOn = false;
+            debug("Ceasing diagnostic requests as ignition went off");
+            diagnostics::reset(manager);
+            manager->initialized = false;
+            pidSupportQueried = false;
         } else {
             // We haven't received an ignition in 5 seconds. Either the user didn't
             // have either OBD-II request configured as a recurring request (which
@@ -145,7 +141,6 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
             sentFinalIgnitionCheck = true;
         }
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
-        ignitionWasOn = true;
         sentFinalIgnitionCheck = false;
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {

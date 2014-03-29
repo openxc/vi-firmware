@@ -7,11 +7,11 @@ QUEUE_DEFINE(uint8_t)
 using openxc::util::log::debug;
 using openxc::commands::IncomingMessageCallback;
 
-void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
+bool openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
         IncomingMessageCallback callback) {
     int length = QUEUE_LENGTH(uint8_t, queue);
     if(length == 0) {
-        return;
+        return false;
     }
 
     uint8_t snapshot[length];
@@ -19,10 +19,11 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
     if(callback == NULL) {
         debug("Callback is NULL (%p) -- unable to handle queue at %p",
                 callback, queue);
-        return;
+        return false;
     }
 
     const char* delimiter = strnchr((const char*)snapshot, length - 1, '\0');
+    bool foundMessage = false;
     if(delimiter != NULL) {
         size_t messageLength = (size_t)(delimiter - (const char*)snapshot) + 1;
         uint8_t message[messageLength];
@@ -31,10 +32,12 @@ void openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
             QUEUE_POP(uint8_t, queue);
         }
         callback(message, messageLength);
+        foundMessage = true;
     } else if(QUEUE_FULL(uint8_t, queue)) {
         debug("Incoming write is too long - dumping queue");
         QUEUE_INIT(uint8_t, queue);
     }
+    return foundMessage;
 }
 
 bool openxc::util::bytebuffer::messageFits(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,

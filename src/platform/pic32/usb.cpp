@@ -191,7 +191,9 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
                     debug("Dropped write from host -- queue is full");
                 }
             }
-            processQueue(&endpoint->queue, callback);
+            while(processQueue(&endpoint->queue, callback)) {
+                continue;
+            }
         }
         armForRead(device, endpoint);
     }

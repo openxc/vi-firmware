@@ -94,6 +94,7 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
     if(config::getConfiguration()->uartLogging &&
             messageClass == MessageClass::LOG) {
         openxc::util::log::debugUart((const char*)message);
+        openxc::util::log::debugUart("\r\n");
     }
 }
 

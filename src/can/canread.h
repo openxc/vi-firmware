@@ -45,17 +45,17 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int,
  * signalCount - The length of the signals array.
  */
 void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, CanSignal* signals, int signalCount);
+        const uint8_t data[], CanSignal* signals, int signalCount);
 
 void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, NumericalHandler handler, CanSignal* signals,
+        const uint8_t data[], NumericalHandler handler, CanSignal* signals,
         int signalCount);
 
 void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, BooleanHandler handler, CanSignal* signals,
+        const uint8_t data[], BooleanHandler handler, CanSignal* signals,
         int signalCount);
 void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        uint64_t data, StringHandler handler, CanSignal* signals,
+        const uint8_t data[], StringHandler handler, CanSignal* signals,
         int signalCount);
 
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate

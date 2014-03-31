@@ -15,10 +15,10 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {
         id: message->msgSID.SID,
-        data: 0,
+        data: {0},
         length: (uint8_t) message->msgEID.DLC
     };
-    memcpy(result.data, message->data, 8);
+    memcpy(result.data, message->data, CAN_MESSAGE_SIZE);
     return result;
 }
 

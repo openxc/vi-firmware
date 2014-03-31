@@ -9,11 +9,11 @@ namespace openxc {
 namespace can {
 namespace write {
 
-void encodeDynamicField(const CanSignal* signal, openxc_DynamicField* field,
-                uint8_t destination[], size_t length, bool* send);
+uint64_t encodeDynamicField(const CanSignal* signal, openxc_DynamicField* field,
+                bool* send);
 
-void encodeBoolean(const CanSignal* signal, bool value,
-                uint8_t destination[], size_t length, bool* send);
+uint64_t encodeBoolean(const CanSignal* signal, bool value,
+                bool* send);
 
 /* Public: Convert the string value to the correct integer value for the given
  * CAN signal and write it to the signal's bitfield.
@@ -30,8 +30,8 @@ void encodeBoolean(const CanSignal* signal, bool value,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-void encodeState(const CanSignal* signal, const char* state,
-                uint8_t destination[], size_t length, bool* send);
+uint64_t encodeState(const CanSignal* signal, const char* state,
+                bool* send);
 
 /* Public: Write the given number to the correct bitfield for the given signal.
  *
@@ -44,11 +44,10 @@ void encodeState(const CanSignal* signal, const char* state,
  * Returns a 64-bit data block with the bit field for the signal set to the
  * encoded value.
  */
-void encodeNumber(const CanSignal* signal, float value,
-                uint8_t destination[], size_t length, bool* send);
+uint64_t encodeNumber(const CanSignal* signal, float value, bool* send);
 
-void buildMessage(CanSignal* signal, int encodedValue,
-                uint8_t destination[]);
+void buildMessage(const CanSignal* signal, int encodedValue,
+                uint8_t destination[], size_t length);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *

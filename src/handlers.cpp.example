@@ -2,8 +2,8 @@
 
 using openxc::can::read::sendNumericalMessage;
 
-void handleSteeringWheelMessage(int messageId, uint64_t data, CanSignal* signals,
-        int signalCount, Pipeline* pipeline) {
+void handleSteeringWheelMessage(int messageId, uint8_t data[],
+        CanSignal* signals, int signalCount, Pipeline* pipeline) {
     sendNumericalMessage("latitude", 42.0, pipeline);
 }
 

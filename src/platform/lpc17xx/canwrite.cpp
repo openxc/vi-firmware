@@ -10,8 +10,8 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
     message.len = request->length;
     message.type = DATA_FRAME;
     message.format = STD_ID_FORMAT;
-    memcpy(message.dataA, &request.data[3], 4);
-    memcpy(message.dataB, request.data, 4);
+    memcpy(message.dataA, &(request->data[3]), 4);
+    memcpy(message.dataB, request->data, 4);
 
     return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
 }

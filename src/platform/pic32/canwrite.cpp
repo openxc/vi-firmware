@@ -16,7 +16,7 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
         message->msgSID.SID = request->id;
         message->msgEID.IDE = 0;
         message->msgEID.DLC = request->length;
-        memcpy(message->data, request.data, 8);
+        memcpy(message->data, request->data, CAN_MESSAGE_SIZE);
 
         // Mark message as ready to be processed
         CAN_CONTROLLER(bus)->updateChannel(CAN::CHANNEL0);

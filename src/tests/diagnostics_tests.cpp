@@ -31,7 +31,7 @@ DiagnosticRequest request = {
 
 CanMessage message = {
    id: request.arbitration_id + 0x8,
-   data: __builtin_bswap64(0x341024500000000),
+   data: {0x03, 0x41, 0x02, 0x45},
    length: 8
 };
 
@@ -245,8 +245,8 @@ START_TEST (test_add_basic_request)
             &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-            &message, &getConfiguration()->pipeline);
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager,
+          &getCanBuses()[0], &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -610,11 +610,6 @@ START_TEST(test_command_single_response_default)
              &getConfiguration()->diagnosticsManager, &command));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
@@ -644,11 +639,6 @@ START_TEST(test_command_multiple_responses_default_broadcast)
              &getConfiguration()->diagnosticsManager, &command));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
@@ -680,11 +670,6 @@ START_TEST(test_command_multiple_responses)
              &getConfiguration()->diagnosticsManager, &command));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
@@ -702,11 +687,6 @@ START_TEST(test_broadcast_accept_multiple_responses)
             &getCanBuses()[0], &request, NULL, true));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
@@ -727,11 +707,6 @@ START_TEST(test_broadcast_response_arb_id)
             &getCanBuses()[0], &request));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());
@@ -751,11 +726,6 @@ START_TEST(test_passthrough_decoder)
              &getCanBuses()[0], &request, "this_will_have_value", false));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
-    CanMessage message = {
-         id: 0x7e8,
-         data: __builtin_bswap64(0x341024500000000),
-         length: 8
-    };
     diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
             &message, &getConfiguration()->pipeline);
     fail_if(outputQueueEmpty());

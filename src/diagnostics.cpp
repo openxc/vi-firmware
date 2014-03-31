@@ -112,14 +112,13 @@ static void cleanupActiveRequests(DiagnosticsManager* manager, bool force) {
 }
 
 static bool sendDiagnosticCanMessage(CanBus* bus,
-        const uint32_t arbitrationId, const uint8_t* data,
+        const uint32_t arbitrationId, const uint8_t data[],
         const uint8_t size) {
     CanMessage message = {
         id: arbitrationId,
-        data: get_bitfield(data, size, 0, size * CHAR_BIT)
-            << (64 - CHAR_BIT * size),
-        length: size
     };
+    memcpy(message.data, data, size);
+    message.length = size;
     openxc::can::write::enqueueMessage(bus, &message);
     return true;
 }
@@ -323,14 +322,12 @@ static void receiveCanMessage(DiagnosticsManager* manager,
         DiagnosticRequestListEntry* entry,
         CanMessage* message, Pipeline* pipeline) {
     if(bus == entry->request.bus && entry->request.inFlight) {
-        ArrayOrBytes combined;
-        combined.whole = message->data;
         DiagnosticResponse response = diagnostic_receive_can_frame(
                 // TODO eek, is bus address and array index this tightly
                 // coupled?
                 &manager->shims[bus->address - 1],
-                &entry->request.handle, message->id, combined.bytes,
-                sizeof(combined.bytes));
+                &entry->request.handle, message->id, message->data,
+                message->length);
         if(response.completed && entry->request.handle.completed) {
             if(entry->request.handle.success) {
                 relayDiagnosticResponse(manager, &entry->request, &response,

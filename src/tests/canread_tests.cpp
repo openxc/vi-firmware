@@ -29,7 +29,7 @@ using openxc::signals::getMessages;
 using openxc::signals::getMessageCount;
 using openxc::config::getConfiguration;
 
-const uint64_t BIG_ENDIAN_TEST_DATA = __builtin_bswap64(0xEB00000000000000);
+const uint8_t TEST_DATA[8] = {0xEB};
 
 extern unsigned long FAKE_TIME;
 extern void initializeVehicleInterface();
@@ -206,7 +206,7 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {getMessages()[2].id, 0x1234};
+    CanMessage message = {getMessages()[2].id, {0x12, 0x34}};
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -214,7 +214,8 @@ START_TEST (test_passthrough_force_send_changed)
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
-    message.data = 0x5678;
+    message.data[0] = 0x56;
+    message.data[1] = 0x78;
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -224,7 +225,7 @@ END_TEST
 START_TEST (test_passthrough_limited_frequency)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {getMessages()[1].id, 0x1234};
+    CanMessage message = {getMessages()[1].id, {0x12, 0x34}};
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -242,7 +243,8 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
+    CanMessage message = {42,
+        {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF1},  8};
     can::read::passthroughMessage(&getCanBuses()[0], &message, NULL, 0,
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -251,7 +253,7 @@ START_TEST (test_passthrough_message)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"bus\":1,\"id\":42,\"data\":\"0xf1debc9a78563412\"}\0");
+            "{\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");
 }
 END_TEST
 
@@ -263,7 +265,7 @@ float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 START_TEST (test_default_handler)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -289,17 +291,17 @@ bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_respects_send_value)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, ignoreHandler, getSignals(),
+            TEST_DATA, ignoreHandler, getSignals(),
             getSignalCount());
     fail_unless(queueEmpty());
 
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, noSendStringHandler, getSignals(),
+            TEST_DATA, noSendStringHandler, getSignals(),
             getSignalCount());
     fail_unless(queueEmpty());
 
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, noSendBooleanTranslateHandler, getSignals(),
+            TEST_DATA, noSendBooleanTranslateHandler, getSignals(),
             getSignalCount());
     fail_unless(queueEmpty());
 }
@@ -308,7 +310,7 @@ END_TEST
 START_TEST (test_translate_float)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, floatHandler, getSignals(), getSignalCount());
+            TEST_DATA, floatHandler, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -330,10 +332,10 @@ START_TEST (test_translate_float_handler_called_every_time)
 {
     frequencyTestCounter = 0;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, getSignals(),
+            TEST_DATA, floatHandlerFrequencyTest, getSignals(),
             getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, floatHandlerFrequencyTest, getSignals(),
+            TEST_DATA, floatHandlerFrequencyTest, getSignals(),
             getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -349,10 +351,10 @@ START_TEST (test_translate_bool_handler_called_every_time)
 {
     frequencyTestCounter = 0;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, getSignals(),
+            TEST_DATA, boolHandlerFrequencyTest, getSignals(),
             getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, boolHandlerFrequencyTest, getSignals(),
+            TEST_DATA, boolHandlerFrequencyTest, getSignals(),
             getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -368,10 +370,10 @@ START_TEST (test_translate_str_handler_called_every_time)
 {
     frequencyTestCounter = 0;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, getSignals(),
+            TEST_DATA, strHandlerFrequencyTest, getSignals(),
             getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, strHandlerFrequencyTest, getSignals(),
+            TEST_DATA, strHandlerFrequencyTest, getSignals(),
             getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
@@ -385,7 +387,7 @@ const char* stringHandler(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_string)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, stringHandler, getSignals(),
+            TEST_DATA, stringHandler, getSignals(),
             getSignalCount());
     fail_if(queueEmpty());
 
@@ -405,7 +407,7 @@ bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_bool)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            BIG_ENDIAN_TEST_DATA, booleanTranslateHandler, getSignals(),
+            TEST_DATA, booleanTranslateHandler, getSignals(),
             getSignalCount());
     fail_if(queueEmpty());
 
@@ -420,7 +422,7 @@ END_TEST
 START_TEST (test_always_send_first)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
@@ -428,11 +430,11 @@ END_TEST
 START_TEST (test_unlimited_frequency)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
@@ -442,23 +444,23 @@ START_TEST (test_limited_frequency)
     getSignals()[0].frequencyClock.frequency = 1;
     FAKE_TIME = 2000;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
     // mock waiting 1 second
     FAKE_TIME += 1000;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 }
 END_TEST
@@ -471,12 +473,13 @@ float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
 START_TEST (test_preserve_last_value)
 {
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            BIG_ENDIAN_TEST_DATA, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
 
+    uint8_t data[8] = {0x12, 0x34, 0x12, 0x30};
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            0x1234123000000000, preserveHandler, getSignals(),
+            data, preserveHandler, getSignals(),
             getSignalCount());
     fail_if(queueEmpty());
 
@@ -492,7 +495,7 @@ START_TEST (test_dont_send_same)
 {
     getSignals()[2].sendSame = false;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            BIG_ENDIAN_TEST_DATA, booleanHandler, getSignals(),
+            TEST_DATA, booleanHandler, getSignals(),
             getSignalCount());
     fail_if(queueEmpty());
 
@@ -504,7 +507,7 @@ START_TEST (test_dont_send_same)
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            BIG_ENDIAN_TEST_DATA, booleanHandler, getSignals(),
+            TEST_DATA, booleanHandler, getSignals(),
             getSignalCount());
     fail_unless(queueEmpty());
 }

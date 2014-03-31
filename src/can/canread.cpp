@@ -174,32 +174,36 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
         // spam the log about it.
         }
     } else if(time::conditionalTick(&messageDefinition->frequencyClock) ||
-            (message->data != messageDefinition->lastValue &&
+            (memcmp(message->data, messageDefinition->lastValue,
+                    CAN_MESSAGE_SIZE) &&
                  messageDefinition->forceSendChanged)) {
         send = true;
     } else {
         send = false;
     }
 
+    size_t adjustedSize = message->length == 0 ?
+            CAN_MESSAGE_SIZE : message->length;
     if(send) {
         openxc_VehicleMessage vehicleMessage = {0};
         vehicleMessage.has_type = true;
         vehicleMessage.type = openxc_VehicleMessage_Type_RAW;
         vehicleMessage.has_raw_message = true;
         vehicleMessage.raw_message = {0};
+        vehicleMessage.raw_message.has_message_id = true;
         vehicleMessage.raw_message.message_id = message->id;
-        vehicleMessage.raw_message.message_id = id;
         vehicleMessage.raw_message.has_bus = true;
         vehicleMessage.raw_message.bus = bus->address;
         vehicleMessage.raw_message.has_data = true;
-        vehicleMessage.raw_message.data.size = message->length;
-        memcpy(vehicleMessage.raw_message.data.bytes, data, message->length);
+        vehicleMessage.raw_message.data.size = adjustedSize;
+        memcpy(vehicleMessage.raw_message.data.bytes, message->data,
+                adjustedSize);
 
         sendVehicleMessage(&vehicleMessage, pipeline);
     }
 
     if(messageDefinition != NULL) {
-        memcpy(messageDefinition->lastValue, data, CAN_MESSAGE_SIZE);
+        memcpy(messageDefinition->lastValue, message->data, adjustedSize);
     }
 }
 

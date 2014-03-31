@@ -27,17 +27,32 @@ void setup() {
 
 START_TEST (test_build_message)
 {
-    uint64_t value = buildMessage(&getSignals()[6], 30);
-    ck_assert_int_eq(value, 0x1e00000000000000LLU);
+    uint8_t data[8] = {0};
+    buildMessage(&getSignals()[6], 30, data, sizeof(data));
+    ck_assert_int_eq(data[0], 0x1e);
+    for(size_t i = 1; i < sizeof(data); i++) {
+        ck_assert_int_eq(data[i], 0x0);
+    }
 
-    value = buildMessage(&getSignals()[1], 6);
-    ck_assert_int_eq(value, 0x6000000000000000LLU);
+    memset(data, 0, sizeof(data));
+    buildMessage(&getSignals()[1], 6, data, sizeof(data));
+    ck_assert_int_eq(data[0], 0x60);
+    for(size_t i = 1; i < sizeof(data); i++) {
+        ck_assert_int_eq(data[i], 0x0);
+    }
 
-    value = buildMessage(&getSignals()[2], 1);
-    ck_assert_int_eq(value, 0x8000000000000000LLU);
+    memset(data, 0, sizeof(data));
+    buildMessage(&getSignals()[2], 1, data, sizeof(data));
+    ck_assert_int_eq(data[0], 0x80);
+    for(size_t i = 1; i < sizeof(data); i++) {
+        ck_assert_int_eq(data[i], 0x0);
+    }
 
-    value = buildMessage(&getSignals()[2], 0);
-    ck_assert_int_eq(value, 0);
+    memset(data, 0, sizeof(data));
+    buildMessage(&getSignals()[2], 0, data, sizeof(data));
+    for(size_t i = 0; i < sizeof(data); i++) {
+        ck_assert_int_eq(data[i], 0x0);
+    }
 }
 END_TEST
 
@@ -103,7 +118,10 @@ END_TEST
 
 START_TEST (test_enqueue_message)
 {
-    CanMessage message = {42, 0x123456};
+    CanMessage message = {
+        id: 42,
+        data: {0x12, 0x34, 0x56}
+    };
     can::write::enqueueMessage(&getCanBuses()[0], &message);
 
     ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &getCanBuses()[0].sendQueue));
@@ -112,12 +130,18 @@ END_TEST
 
 START_TEST (test_swaps_byte_order)
 {
-    CanMessage message = {42, 0x123456};
+    CanMessage message = {
+        id: 42,
+        data: {0x12, 0x34, 0x56}
+    };
     can::write::enqueueMessage(&getCanBuses()[0], &message);
 
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getCanBuses()[0].sendQueue);
-    ck_assert_int_eq(queuedMessage.data, 0x5634120000000000LLU);
+    ck_assert_int_eq(queuedMessage.data[0], 0x12);
+    ck_assert_int_eq(queuedMessage.data[1], 0x34);
+    ck_assert_int_eq(queuedMessage.data[2], 0x56);
+    ck_assert_int_eq(queuedMessage.data[3], 0x0);
 }
 END_TEST
 
@@ -142,7 +166,7 @@ START_TEST (test_send_with_null_writer)
                 &getSignals()[6], &field, NULL, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[6].message->bus->sendQueue);
-    ck_assert_int_eq(queuedMessage.data, 0x1e);
+    ck_assert_int_eq(queuedMessage.data[0], 0x1e);
 }
 END_TEST
 
@@ -158,7 +182,7 @@ START_TEST (test_send_using_default)
                 &getSignals()[6], &field, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[6].message->bus->sendQueue);
-    ck_assert_int_eq(queuedMessage.data, 0x1e);
+    ck_assert_int_eq(queuedMessage.data[0], 0x1e);
 }
 END_TEST
 
@@ -168,7 +192,7 @@ START_TEST (test_send_with_custom_with_states)
                 getSignals()[1].states[1].name, false));
     CanMessage queuedMessage = QUEUE_POP(CanMessage,
             &getSignals()[1].message->bus->sendQueue);
-    ck_assert_int_eq(queuedMessage.data, 0x20);
+    ck_assert_int_eq(queuedMessage.data[0], 0x20);
 }
 END_TEST
 
@@ -259,7 +283,7 @@ START_TEST (test_send_numeric)
     fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
     CanMessage message = QUEUE_POP(CanMessage,
             &getCanBuses()[0].sendQueue);
-    ck_assert_int_eq(__builtin_bswap64(message.data), 0x1e00000000000000LLU);
+    ck_assert_int_eq(message.data[0], 0x1e);
 }
 END_TEST
 
@@ -269,7 +293,7 @@ START_TEST (test_send_boolean)
     fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
     CanMessage message = QUEUE_POP(CanMessage,
             &getCanBuses()[0].sendQueue);
-    ck_assert_int_eq(__builtin_bswap64(message.data), 0x8000000000000000LLU);
+    ck_assert_int_eq(message.data[0], 0x80);
 }
 END_TEST
 
@@ -280,7 +304,7 @@ START_TEST (test_send_state)
     fail_if(QUEUE_EMPTY(CanMessage, &getCanBuses()[0].sendQueue));
     CanMessage message = QUEUE_POP(CanMessage,
             &getCanBuses()[0].sendQueue);
-    ck_assert_int_eq(__builtin_bswap64(message.data), 0x2000000000000000LLU);
+    ck_assert_int_eq(message.data[0], 0x20);
 }
 END_TEST
 

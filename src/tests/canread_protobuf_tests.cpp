@@ -72,10 +72,12 @@ START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
     CanMessage message = {42, {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF1}};
-    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0, &getConfiguration()->pipeline);
+    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0,
+            &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
-    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
+    openxc_VehicleMessage decodedMessage = decodeProtobufMessage(
+            &getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
     ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
     for(int i = 0; i < 8; i++) {

@@ -153,7 +153,14 @@ START_TEST (test_raw_write)
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
     ck_assert_int_eq(message.id, 42);
-    ck_assert_int_eq(message.data, __builtin_bswap64(0x1234567812345678LLU));
+    ck_assert_int_eq(message.data[0], 0x12);
+    ck_assert_int_eq(message.data[1], 0x34);
+    ck_assert_int_eq(message.data[2], 0x56);
+    ck_assert_int_eq(message.data[3], 0x78);
+    ck_assert_int_eq(message.data[4], 0x12);
+    ck_assert_int_eq(message.data[5], 0x34);
+    ck_assert_int_eq(message.data[6], 0x56);
+    ck_assert_int_eq(message.data[7], 0x78);
 }
 END_TEST
 
@@ -166,7 +173,9 @@ START_TEST (test_raw_write_less_than_full_message)
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
     ck_assert_int_eq(message.id, 42);
-    ck_assert_int_eq(message.data, __builtin_bswap64(0x1234000000000000LLU));
+    ck_assert_int_eq(message.data[0], 0x12);
+    ck_assert_int_eq(message.data[1], 0x34);
+    ck_assert_int_eq(message.data[2], 0x0);
     // TODO pending
     // ck_assert_int_eq(message.length, 2);
 }
@@ -204,7 +213,14 @@ START_TEST (test_diagnostic_request_with_payload)
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
     ck_assert_int_eq(message.id, 2);
-    ck_assert_int_eq(message.data, __builtin_bswap64(0x0301123400000000LLU));
+    ck_assert_int_eq(message.data[0], 0x3);
+    ck_assert_int_eq(message.data[1], 0x01);
+    ck_assert_int_eq(message.data[2], 0x12);
+    ck_assert_int_eq(message.data[3], 0x34);
+    ck_assert_int_eq(message.data[4], 0x00);
+    ck_assert_int_eq(message.data[5], 0x00);
+    ck_assert_int_eq(message.data[6], 0x00);
+    ck_assert_int_eq(message.data[7], 0x00);
 }
 END_TEST
 

@@ -9,65 +9,69 @@ using openxc::util::log::debug;
 
 QUEUE_DEFINE(CanMessage);
 
-void openxc::can::write::buildMessage(CanSignal* signal, int value,
-        uint8_t data[]) {
+void openxc::can::write::buildMessage(const CanSignal* signal, int value,
+        uint8_t data[], size_t length) {
     bitfield_encode_float(value, signal->bitPosition, signal->bitSize,
-            signal->factor, signal->offset, data);
+            signal->factor, signal->offset, data, length);
 }
 
-uint64_t openxc::can::write::encodeBoolean(const CanSignal* signal, bool value, bool* send) {
+uint64_t openxc::can::write::encodeBoolean(const CanSignal* signal, bool value,
+        bool* send) {
     return encodeNumber(signal, float(value), send);
 }
 
-uint64_t openxc::can::write::encodeState(const CanSignal* signal, const char* state, bool* send) {
-    uint64_t result = 0;
+uint64_t openxc::can::write::encodeState(const CanSignal* signal, const char* state,
+        bool* send) {
+    uint64_t value = 0;
     if(state == NULL) {
         debug("Can't write state of NULL -- not sending");
         *send = false;
     } else {
         const CanSignalState* signalState = lookupSignalState(state, signal);
         if(signalState != NULL) {
-            result = signalState->value;
+            value = signalState->value;
         } else {
             debug("Couldn't find a valid signal state for \"%s\"", state);
             *send = false;
         }
     }
-    return encodeNumber(signal, result, send);
+    return value;
 }
 
-uint64_t openxc::can::write::encodeNumber(const CanSignal* signal, float value, bool* send) {
+uint64_t openxc::can::write::encodeNumber(const CanSignal* signal, float value,
+        bool* send) {
     return float_to_fixed_point(value, signal->factor, signal->offset);
 }
 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     CanMessage outgoingMessage = {
-            id: message->id,
-            length: (uint8_t)(message->length == 0 ? 8 : message->length)
+        id: message->id
     };
     memcpy(outgoingMessage.data, message->data, CAN_MESSAGE_SIZE);
+    outgoingMessage.length = (uint8_t)(message->length == 0 ?
+            CAN_MESSAGE_SIZE : message->length);
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
 uint64_t openxc::can::write::encodeDynamicField(const CanSignal* signal,
         openxc_DynamicField* field, bool* send) {
-    float encodedValue = 0;
+    uint64_t value = 0;
     switch(field->type) {
         case openxc_DynamicField_Type_STRING:
-            encodedValue = encodeState(signal, field->string_value, send);
+            value = encodeState(signal, field->string_value, send);
             break;
         case openxc_DynamicField_Type_NUM:
-            encodedValue = encodeNumber(signal, field->numeric_value, send);
+            value = encodeNumber(signal, field->numeric_value, send);
             break;
         case openxc_DynamicField_Type_BOOL:
-            encodedValue = encodeBoolean(signal, field->numeric_value, send);
+            value = encodeBoolean(signal, field->numeric_value, send);
             break;
         default:
             debug("Dynamic field didn't have a value, can't encode");
             *send = false;
             break;
     }
-    return encodedValue;
+    return value;
 }
 
 bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
@@ -143,8 +147,13 @@ void openxc::can::write::flushOutgoingCanMessageQueue(CanBus* bus) {
 }
 
 bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
-    debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02llx",
-            bus->address, message->id, __builtin_bswap64(message->data));
+    debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
+                bus->address, message->id);
+    // TODO build this up in a single string before sending
+    for(int i = 0; i < 8; i++) {
+        debug("%02x ", ((uint8_t*)&message->data)[i]);
+    }
+
     bool status = true;
     if(bus->writeHandler == NULL) {
         debug("No function available for writing to CAN -- dropped");

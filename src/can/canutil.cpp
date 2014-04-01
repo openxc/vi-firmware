@@ -152,6 +152,7 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands,
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
 CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
+        CanMessageFormat format,
         CanMessageDefinition* messages, int messageCount) {
     CanMessageDefinition* message = NULL;
     for(int i = 0; i < messageCount; i++) {
@@ -163,9 +164,10 @@ CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
 }
 
 CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
-        uint32_t id, CanMessageDefinition* predefinedMessages,
+        uint32_t id, CanMessageFormat format,
+        CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount) {
-    CanMessageDefinition* message = lookupMessage(bus, id,
+    CanMessageDefinition* message = lookupMessage(bus, id, format,
             predefinedMessages, predefinedMessageCount);
     if(message == NULL) {
         CanMessageDefinitionListEntry* entry;
@@ -191,8 +193,10 @@ CanBus* openxc::can::lookupBus(uint8_t address, CanBus* buses, const int busCoun
 }
 
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format,
         CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
-    CanMessageDefinition* message = lookupMessageDefinition(bus, id, NULL, 0);
+    CanMessageDefinition* message = lookupMessageDefinition(
+            bus, id, format, NULL, 0);
     if(message == NULL && LIST_FIRST(&bus->freeMessageDefinitions) != NULL) {
         CanMessageDefinitionListEntry* entry = LIST_FIRST(
                 &bus->freeMessageDefinitions);
@@ -208,7 +212,8 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
     return message != NULL;
 }
 
-bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
+bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format) {
     CanMessageDefinitionListEntry* entry, *match = NULL;
     LIST_FOREACH(entry, &bus->dynamicMessages, entries) {
         if(entry->definition.id == id) {
@@ -351,7 +356,7 @@ bool openxc::can::configureDefaultFilters(CanBus* bus,
             if(messages[i].bus == bus) {
                 ++filterCount;
                 status = status && addAcceptanceFilter(bus, messages[i].id,
-                        buses, busCount);
+                        messages[i].format, buses, busCount);
                 if(!status) {
                     debug("Couldn't add filter 0x%x to bus %d",
                             messages[i].id, bus->address);
@@ -378,7 +383,7 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
 }
 
 bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
-        CanBus* buses, int busCount) {
+        CanMessageFormat format, CanBus* buses, int busCount) {
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
             entry != NULL; entry = entry->entries.le_next) {
         if(entry->filter == id) {
@@ -413,7 +418,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
 }
 
 void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
-        CanBus* buses, const int busCount) {
+        CanMessageFormat format, CanBus* buses, const int busCount) {
     AcceptanceFilterListEntry* entry;
     for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
             entry = entry->entries.le_next) {

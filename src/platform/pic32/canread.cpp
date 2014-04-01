@@ -15,9 +15,17 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {
         id: message->msgSID.SID,
+        format: CanMessageFormat::STANDARD,
         data: 0,
         length: (uint8_t) message->msgEID.DLC
     };
+
+    if(message->msgEID.IDE) {
+        result.id <<= 18;
+        result.id += message->msgEID.EID;
+        result.format = CanMessageFormat::EXTENDED;
+    }
+
     // Copy incoming data, flipping byte order to little-endian storage (can't
     // just use memcpy).
     result.data = message->data[0];

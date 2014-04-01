@@ -26,10 +26,18 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
         message->messageWord[2] = 0;
         message->messageWord[3] = 0;
 
-        message->msgSID.SID = request->id;
-        message->msgEID.IDE = 0;
+        if(request->format == CanMessageFormat::STANDARD) {
+            message->msgEID.IDE = 0;
+            message->msgSID.SID = request->id;
+        } else {
+            message->msgEID.IDE = 1;
+            message->msgSID.SID = request->id >> 18;
+            // This will truncate the front 11 bits, which is fine because we
+            // stored them in the SID field
+            message->msgEID.EID = request->id;
+        }
         message->msgEID.DLC = request->length;
-        memset(message->data, 0, request->length);
+        memset(message->data, 0, 8);
         copyToMessageBuffer(request->data, message->data);
 
         // Mark message as ready to be processed

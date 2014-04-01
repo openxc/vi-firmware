@@ -268,15 +268,23 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);
 
+    bool receivedData = false;
     while(Endpoint_IsOUTReceived()) {
         while(Endpoint_BytesInEndpoint()) {
             if(!QUEUE_PUSH(uint8_t, &endpoint->queue, Endpoint_Read_8())) {
                 debug("Dropped write from host -- queue is full");
             }
+            receivedData = true;
         }
-        processQueue(&endpoint->queue, callback);
         Endpoint_ClearOUT();
     }
+
+    if(receivedData) {
+        while(processQueue(&endpoint->queue, callback)) {
+            continue;
+        }
+    }
+
     Endpoint_SelectEndpoint(previousEndpoint);
 }
 

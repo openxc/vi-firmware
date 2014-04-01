@@ -10,9 +10,8 @@ recurring requests to a VI config file (e.g. request the engine RPM once per
 second).
 
 To perform a one-time request, you don't need anything special in the
-configuration. Make sure the CAN bus is configured as ``raw_writable`` (the
-default build with no configuraiton file is correct), and then use one of the
-support library tools like ``openxc-diag`` to send a request.
+configuration - just use a :ref:`diagnostic request command
+<vehicle-diagnostic-requests>`.
 
 .. contents::
     :local:

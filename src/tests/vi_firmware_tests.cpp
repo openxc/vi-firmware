@@ -5,6 +5,7 @@
 #include "lights.h"
 #include "config.h"
 #include "pipeline.h"
+#include "power.h"
 
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
@@ -74,13 +75,13 @@ START_TEST (test_update_data_lights_suspend)
     FAKE_TIME += (openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000) * 2;
 
     checkBusActivity();
-#ifdef __DEBUG__
-    ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
-                openxc::lights::COLORS.red));
-#else
-    ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
-                openxc::lights::COLORS.black));
-#endif // __DEBUG__
+    if(getConfiguration()->powerManagement == openxc::config::PowerManagement::ALWAYS_ON) {
+        ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
+                    openxc::lights::COLORS.red));
+    } else {
+        ck_assert(openxc::lights::colors_equal(LIGHT_A_LAST_COLOR,
+                    openxc::lights::COLORS.black));
+    }
 
 }
 END_TEST

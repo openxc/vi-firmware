@@ -193,23 +193,29 @@ static bool handleTranslated(openxc_VehicleMessage* message) {
 
 bool openxc::commands::handleControlCommand(Command command, uint8_t payload[],
         size_t payloadLength) {
+    bool recognized = true;
     switch(command) {
     case Command::VERSION:
-        return handleVersionCommand();
+        handleVersionCommand();
+        break;
     case Command::DEVICE_ID:
-        return handleDeviceIdCommmand();
+        handleDeviceIdCommmand();
+        break;
     case Command::COMPLEX_COMMAND:
-        return handleIncomingMessage(payload, payloadLength);
+        handleIncomingMessage(payload, payloadLength);
+        break;
     default:
-        return false;
+        recognized = false;
+        break;
     }
+    return recognized;
 }
 
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
-    bool foundMessage = payload::deserialize(payload, length, &message,
-            getConfiguration()->payloadFormat);
-    if(foundMessage) {
+    bool status = true;
+    if(payload::deserialize(payload, length, &message,
+                getConfiguration()->payloadFormat)) {
         if(validate(&message)) {
             switch(message.type) {
             case openxc_VehicleMessage_Type_RAW:
@@ -223,13 +229,16 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
                 break;
             default:
                 debug("Incoming message had unrecognized type: %d", message.type);
+                status = false;
                 break;
             }
         } else {
             debug("Incoming message is complete but invalid");
         }
+    } else {
+        status = false;
     }
-    return foundMessage;
+    return status;
 }
 
 static bool validateRaw(openxc_VehicleMessage* message) {

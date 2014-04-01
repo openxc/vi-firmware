@@ -196,7 +196,9 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         // TOOD this check may be unnecessary, but I don't think it can hurt -
         // confirm on a device
         if(length > 0) {
-            processQueue(&endpoint->queue, callback);
+            while(processQueue(&endpoint->queue, callback)) {
+                continue;
+            }
         }
 
         armForRead(device, endpoint);

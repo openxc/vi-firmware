@@ -8,18 +8,23 @@ using openxc::util::bytebuffer::processQueue;
 QUEUE_TYPE(uint8_t) queue;
 bool called;
 bool callbackStatus;
+int calledTimes;
 
 void setup() {
     QUEUE_INIT(uint8_t, &queue);
     called = false;
     callbackStatus = false;
+    calledTimes = 0;
 }
 
 void teardown() {
 }
 
+uint8_t received_message[8];
 bool callback(uint8_t* message, size_t length) {
     called = true;
+    calledTimes++;
+    memcpy(received_message, message, length);
     return callbackStatus;
 }
 
@@ -36,6 +41,32 @@ START_TEST (test_missing_callback)
     processQueue(&queue, NULL);
     fail_if(called);
     fail_if(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_parse_multiple)
+{
+    callbackStatus = true;
+    QUEUE_PUSH(uint8_t, &queue, 128);
+    QUEUE_PUSH(uint8_t, &queue, 0);
+    QUEUE_PUSH(uint8_t, &queue, 64);
+    QUEUE_PUSH(uint8_t, &queue, 0);
+
+    processQueue(&queue, callback);
+    processQueue(&queue, callback);
+    ck_assert_int_eq(calledTimes, 2);
+    fail_unless(QUEUE_EMPTY(uint8_t, &queue));
+}
+END_TEST
+
+START_TEST (test_data_sent_to_callback)
+{
+    callbackStatus = true;
+    QUEUE_PUSH(uint8_t, &queue, 128);
+    QUEUE_PUSH(uint8_t, &queue, 0);
+    processQueue(&queue, callback);
+    ck_assert_int_eq(received_message[0], 128);
+    ck_assert_int_eq(received_message[1], 0);
 }
 END_TEST
 
@@ -134,9 +165,11 @@ Suite* buffersSuite(void) {
     tcase_add_checked_fixture (tc_core, setup, teardown);
     tcase_add_test(tc_core, test_empty_doesnt_call);
     tcase_add_test(tc_core, test_success_clears);
+    tcase_add_test(tc_core, test_data_sent_to_callback);
     tcase_add_test(tc_core, test_failure_clears_too);
     tcase_add_test(tc_core, test_full_clears);
     tcase_add_test(tc_core, test_missing_callback);
+    tcase_add_test(tc_core, test_parse_multiple);
     suite_add_tcase(s, tc_core);
 
     TCase *tc_conditional = tcase_create("conditional");

@@ -22,11 +22,12 @@ void openxc::util::log::debug(const char* format, ...) {
     va_start(args, format);
 
     char buffer[MAX_LOG_LINE_LENGTH];
-    vsnprintf(buffer, MAX_LOG_LINE_LENGTH - 2, format, args);
-    strncat(buffer, "\r\n", 2);
+    vsnprintf(buffer, MAX_LOG_LINE_LENGTH, format, args);
 
+    // Send strlen + 1 so we make sure to include the NULL character as a
+    // delimiter
     pipeline::sendMessage(&getConfiguration()->pipeline, (uint8_t*) buffer,
-            strnlen(buffer, MAX_LOG_LINE_LENGTH), MessageClass::LOG);
+            strnlen(buffer, MAX_LOG_LINE_LENGTH) + 1, MessageClass::LOG);
 
     va_end(args);
 #endif // __DEBUG__

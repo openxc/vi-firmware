@@ -62,6 +62,14 @@ USB or UART (Bluetooth) would trigger a CAN write:
 
    {"name": "my_openxc_measurement", "value": 42}
 
+With the tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-control write --name my_openxc_measurement --value 42
+
 
 Translated Boolean Signal Write Request
 =======================================
@@ -108,6 +116,13 @@ USB or UART (Bluetooth) would trigger a CAN write:
 .. code-block:: js
 
    {"name": "my_boolean_request", "value": true}
+
+With the tools from the _`OpenXC Python library` you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-control write --name my_boolean_request --value true
 
 Translated State-based Signal Write Request
 ===========================================
@@ -164,6 +179,16 @@ USB or UART (Bluetooth) would trigger a CAN write:
 .. code-block:: js
 
    {"name": "my_state_request", "value": "a"}
+
+With the tools from the _`OpenXC Python library` you can send that from a
+terminal with the command:
+
+.. code-block:: sh
+
+    openxc-control write --name my_state_request --value "\"a\""
+
+Becuase of the way string escaping works from the command prompt, you have to
+add escaped ``\"`` characters so the tool knows you want to send a string.
 
 Translated, Transformed Written Signal
 =======================================

@@ -20,6 +20,8 @@ using openxc::commands::validate;
 using openxc::commands::Command;
 using openxc::config::getConfiguration;
 using openxc::config::getFirmwareDescriptor;
+using openxc::signals::getCanBuses;
+using openxc::signals::getCanBusCount;
 
 extern void initializeVehicleInterface();
 
@@ -43,6 +45,16 @@ static bool canQueueEmpty(int bus) {
     return QUEUE_EMPTY(CanMessage, &getCanBuses()[bus].sendQueue);
 }
 
+static void resetQueues() {
+    usb::initialize(&getConfiguration()->usb);
+    getConfiguration()->usb.configured = true;
+    for(int i = 0; i < getCanBusCount(); i++) {
+        openxc::can::initializeCommon(&getCanBuses()[i]);
+        fail_unless(canQueueEmpty(i));
+    }
+    fail_unless(outputQueueEmpty());
+}
+
 void setup() {
     getConfiguration()->desiredRunLevel = openxc::config::RunLevel::ALL_IO;
     getConfiguration()->obd2BusAddress = 0;
@@ -51,6 +63,7 @@ void setup() {
     fail_unless(canQueueEmpty(0));
     getActiveMessageSet()->busCount = 2;
     getCanBuses()[0].rawWritable = true;
+    resetQueues();
 
     RAW_MESSAGE.has_type = true;
     RAW_MESSAGE.type = openxc_VehicleMessage_Type_RAW;

@@ -161,7 +161,11 @@ void receiveRawWriteRequest(cJSON* idObject, cJSON* root) {
 
     char* dataString = dataObject->valuestring;
     char* end;
-    CanMessage message = {id, strtoull(dataString, &end, 16)};
+    CanMessage message = {
+        id: id,
+        format: id > 2047 ? CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD,
+        data: strtoull(dataString, &end, 16)
+    };
     can::write::enqueueMessage(matchingBus, &message);
 }
 
@@ -224,7 +228,7 @@ bool receiveWriteRequest(uint8_t* message) {
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(pipeline, bus, message.id, message.data);
+        decodeCanMessage(pipeline, bus, message.id, message.format, message.data);
         bus->lastMessageReceived = time::systemTimeMs();
 
         ++bus->messagesReceived;

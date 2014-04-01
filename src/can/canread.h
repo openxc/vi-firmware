@@ -29,6 +29,7 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, openxc::pipeli
  * CAN message stream.
  *
  * id - the ID of the CAN message.
+ * format - the format of the ID.
  * data - 64 bits of data from the message.
  * messages - the list of all CAN messages - if NULL or of length zero, will
  * process all messages.
@@ -36,8 +37,9 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int, openxc::pipeli
  * pipeline - The pipeline to send the raw message over as an integer ID
  *      and hex data as an ASCII encoded string.
  */
-void passthroughMessage(CanBus* bus, uint32_t id, uint64_t data,
-        CanMessageDefinition* messages, int messageCount, openxc::pipeline::Pipeline* pipeline);
+void passthroughMessage(CanBus* bus, uint32_t id, CanMessageFormat format,
+        uint64_t data, CanMessageDefinition* messages, int messageCount,
+        openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the pipeline;

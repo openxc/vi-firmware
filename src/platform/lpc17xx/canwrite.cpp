@@ -18,7 +18,11 @@ bool openxc::can::write::sendMessage(CanBus* bus, CanMessage request) {
     message.id =  request.id;
     message.len = 8;
     message.type = DATA_FRAME;
-    message.format = STD_ID_FORMAT;
+    if(request.format == CanMessageFormat::STANDARD) {
+        message.format = STD_ID_FORMAT;
+    } else {
+        message.format = EXT_ID_FORMAT;
+    }
     copyToMessageBuffer(request.data, message.dataA, message.dataB);
 
     return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;

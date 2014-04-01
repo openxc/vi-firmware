@@ -84,8 +84,11 @@ uint64_t openxc::can::write::encodeSignal(CanSignal* signal, float value) {
 }
 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
-    CanMessage outgoingMessage = {message->id,
-            __builtin_bswap64(message->data)};
+    CanMessage outgoingMessage = {
+        id: message->id,
+        format: message->format,
+        data: __builtin_bswap64(message->data)
+    };
     QUEUE_PUSH(CanMessage, &bus->sendQueue, outgoingMessage);
 }
 
@@ -121,7 +124,11 @@ bool openxc::can::write::sendSignal(CanSignal* signal, cJSON* value,
 
     uint64_t data = writer(signal, signals, signalCount, value, &send);
     if(force || send) {
-        CanMessage message = {signal->message->id, data};
+        CanMessage message = {
+            id: signal->message->id,
+            format: signal->message->format,
+            data: data
+        };
         enqueueMessage(signal->message->bus, &message);
     } else {
         debug("Writing not allowed for signal with name %s",

@@ -137,7 +137,7 @@ END_TEST
 
 START_TEST (test_enqueue)
 {
-    CanMessage message = {42, 0x123456};
+    CanMessage message = {42, CanMessageFormat::STANDARD, 0x123456};
     can::write::enqueueMessage(&bus, &message);
 
     ck_assert_int_eq(1, QUEUE_LENGTH(CanMessage, &bus.sendQueue));
@@ -146,7 +146,7 @@ END_TEST
 
 START_TEST (test_swaps_byte_order)
 {
-    CanMessage message = {42, 0x123456};
+    CanMessage message = {42, CanMessageFormat::STANDARD, 0x123456};
     can::write::enqueueMessage(&bus, &message);
 
     CanMessage queuedMessage = QUEUE_POP(CanMessage, &bus.sendQueue);

@@ -156,6 +156,7 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands,
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
 CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
+        CanMessageFormat format,
         CanMessageDefinition* messages, int messageCount) {
     CanMessageDefinition* message = NULL;
     for(int i = 0; i < messageCount; i++) {
@@ -167,9 +168,10 @@ CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
 }
 
 CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
-        uint32_t id, CanMessageDefinition* predefinedMessages,
+        uint32_t id, CanMessageFormat format,
+        CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount) {
-    CanMessageDefinition* message = lookupMessage(bus, id,
+    CanMessageDefinition* message = lookupMessage(bus, id, format,
             predefinedMessages, predefinedMessageCount);
     if(message == NULL) {
         message = (CanMessageDefinition*)emhashmap_get(
@@ -179,8 +181,9 @@ CanMessageDefinition* openxc::can::lookupMessageDefinition(CanBus* bus,
 }
 
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
-        CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
-    CanMessageDefinition* message = lookupMessageDefinition(bus, id, NULL, 0);
+        CanMessageFormat format, CanMessageDefinition* predefinedMessages,
+        int predefinedMessageCount) {
+    CanMessageDefinition* message = lookupMessageDefinition(bus, id, format, NULL, 0);
     if(message == NULL) {
         message = new CanMessageDefinition();
         if(message != NULL) {
@@ -196,7 +199,8 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
     return message != NULL;
 }
 
-bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id) {
+bool openxc::can::unregisterMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format) {
     CanMessageDefinition* message = (CanMessageDefinition*) emhashmap_remove(
             bus->dynamicMessages, id);
     if(message != NULL) {
@@ -331,7 +335,7 @@ bool openxc::can::configureDefaultFilters(CanBus* buses, const int busCount,
             if(messages[i].bus == bus) {
                 ++filterCount;
                 status = status && addAcceptanceFilter(buses, busCount, bus,
-                        messages[i].id);
+                        messages[i].id, messages[i].format);
                 if(!status) {
                     debug("Couldn't add filter 0x%x to bus %d",
                             messages[i].id, bus->address);
@@ -360,7 +364,7 @@ static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
 }
 
 bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
-        CanBus* bus, uint32_t id) {
+        CanBus* bus, uint32_t id, CanMessageFormat format) {
     // TODO for a diagnostic request, when does a filter get removed? if a
     // request is completed and no other active requsts have the same id
     for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
@@ -387,7 +391,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* buses, const int busCount,
 }
 
 void openxc::can::removeAcceptanceFilter(CanBus* buses, const int busCount,
-        CanBus* bus, uint32_t id) {
+        CanBus* bus, uint32_t id, CanMessageFormat format) {
     AcceptanceFilterListEntry* entry;
     for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
             entry = entry->entries.le_next) {

@@ -38,8 +38,8 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
 const int MESSAGE_COUNT = 3;
 CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
     {&CAN_BUSES[0], 0},
-    {&CAN_BUSES[0], 1, {10}},
-    {&CAN_BUSES[0], 2, {1}, true},
+    {&CAN_BUSES[0], 1, CanMessageFormat::STANDARD, {10}},
+    {&CAN_BUSES[0], 2, CanMessageFormat::STANDARD, {1}, true},
 };
 
 CanSignalState SIGNAL_STATES[1][6] = {
@@ -107,9 +107,9 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42, 0x123456789ABCDEF1LLU};
-    can::read::passthroughMessage(&CAN_BUSES[0], message.id, message.data,
-            NULL, 0, &PIPELINE);
+    CanMessage message = {42, CanMessageFormat::STANDARD, 0x123456789ABCDEF1LLU};
+    can::read::passthroughMessage(&CAN_BUSES[0], message.id, message.format,
+            message.data, NULL, 0, &PIPELINE);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&PIPELINE);

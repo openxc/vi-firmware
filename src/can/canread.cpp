@@ -339,15 +339,16 @@ void openxc::can::read::sendVehicleMessage(openxc_VehicleMessage* message, Pipel
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, uint32_t id,
-        uint64_t data, CanMessageDefinition* messages, int messageCount,
-        Pipeline* pipeline) {
+        CanMessageFormat format, uint64_t data, CanMessageDefinition* messages,
+        int messageCount, Pipeline* pipeline) {
     bool send = true;
     CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus, id,
-            messages, messageCount);
+            format, messages, messageCount);
     if(messageDefinition == NULL) {
         debug("Adding new message definition for message %d on bus %d",
                 id, bus->address);
-        send = registerMessageDefinition(bus, id, messages, messageCount);
+        send = registerMessageDefinition(bus, id, format, messages,
+                messageCount);
     } else if(time::shouldTick(&messageDefinition->frequencyClock) ||
             (data != messageDefinition->lastValue &&
                  messageDefinition->forceSendChanged)) {

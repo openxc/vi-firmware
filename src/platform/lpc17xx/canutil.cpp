@@ -66,7 +66,8 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
                 entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
                 entry = entry->entries.le_next, ++filterCount) {
            result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
-                                       STD_ID_FORMAT);
+                   entry->format == CanMessageFormat::STANDARD ?
+                       STD_ID_FORMAT : EXT_ID_FORMAT);
            if(result != CAN_OK) {
                 debug("Couldn't add filter 0x%x to bus %d", entry->filter,
                         bus->address);

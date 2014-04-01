@@ -46,12 +46,11 @@ static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
-                CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
+                CAN::EID, CAN::FILTER_MASK_ANY_TYPE);
     } else {
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
-            CAN::FILTER_MASK_IDE_TYPE);
-        CAN_CONTROLLER(bus)->configureFilter(
-                CAN::FILTER0, 0, CAN::SID);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::EID,
+            CAN::FILTER_MASK_ANY_TYPE);
+        CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::EID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
                 CAN::FILTER0, CAN::FILTER_MASK0, CAN::CHANNEL1);
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0,
@@ -76,7 +75,9 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             // Must disable before changing or else the filters do not work!
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
             CAN_CONTROLLER(bus)->configureFilter(
-                    CAN::FILTER(filterCount), entry->filter, CAN::SID);
+                    CAN::FILTER(filterCount), entry->filter,
+                    entry->format == CanMessageFormat::STANDARD ?
+                        CAN::SID : CAN::EID);
             CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
                     CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);

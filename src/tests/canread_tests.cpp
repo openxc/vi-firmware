@@ -31,8 +31,8 @@ CanBus CAN_BUSES[CAN_BUS_COUNT] = {
 const int MESSAGE_COUNT = 3;
 CanMessageDefinition MESSAGES[MESSAGE_COUNT] = {
     {&CAN_BUSES[0], 0},
-    {&CAN_BUSES[0], 1, {10}},
-    {&CAN_BUSES[0], 2, {1}, true},
+    {&CAN_BUSES[0], 1, CanMessageFormat::STANDARD, {10}},
+    {&CAN_BUSES[0], 2, CanMessageFormat::STANDARD, {1}, true},
 };
 
 CanSignalState SIGNAL_STATES[1][6] = {
@@ -59,7 +59,8 @@ CanCommand COMMANDS[COMMAND_COUNT] = {
 extern Pipeline PIPELINE;
 extern UsbDevice USB_DEVICE;
 
-QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE =
+        &PIPELINE.usb->endpoints[IN_ENDPOINT_INDEX].queue;
 
 bool queueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
@@ -106,11 +107,14 @@ END_TEST
 START_TEST (test_boolean_handler)
 {
     bool send = true;
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 1.0, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE,
+                1.0, &send));
     fail_unless(send);
-    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 0.5, &send));
+    fail_unless(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE,
+                0.5, &send));
     fail_unless(send);
-    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE, 0, &send));
+    fail_if(booleanHandler(&SIGNALS[0], SIGNALS, SIGNAL_COUNT, &PIPELINE,
+                0, &send));
     fail_unless(send);
 }
 END_TEST
@@ -126,7 +130,8 @@ END_TEST
 START_TEST (test_state_handler)
 {
     bool send = true;
-    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &PIPELINE, 2, &send),
+    ck_assert_str_eq(stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &PIPELINE,
+                2, &send),
             SIGNAL_STATES[0][1].name);
     fail_unless(send);
     stateHandler(&SIGNALS[1], SIGNALS, SIGNAL_COUNT, &PIPELINE, 42, &send);
@@ -235,15 +240,18 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id,
+            CanMessageFormat::STANDARD, 0x1234,
+            MESSAGES, MESSAGE_COUNT, &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x1234, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id,
+            CanMessageFormat::STANDARD, 0x1234, MESSAGES, MESSAGE_COUNT,
+            &PIPELINE);
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id, 0x5678, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[2].id,
+            CanMessageFormat::STANDARD, 0x5678, MESSAGES, MESSAGE_COUNT,
+            &PIPELINE);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -252,16 +260,19 @@ START_TEST (test_passthrough_limited_frequency)
 {
     MESSAGES[1].frequencyClock.timeFunction = timeMock;
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id,
+            CanMessageFormat::STANDARD, 0x1234, MESSAGES, MESSAGE_COUNT,
+            &PIPELINE);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id,
+            CanMessageFormat::STANDARD, 0x1234, MESSAGES, MESSAGE_COUNT,
+            &PIPELINE);
     fail_unless(queueEmpty());
     fakeTime += 2000;
-    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id, 0x1234, MESSAGES,
-            MESSAGE_COUNT, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], MESSAGES[1].id,
+            CanMessageFormat::STANDARD, 0x1234, MESSAGES, MESSAGE_COUNT,
+            &PIPELINE);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -269,7 +280,9 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    can::read::passthroughMessage(&CAN_BUSES[0], 42, 0x123456789ABCDEF1LLU, NULL, 0, &PIPELINE);
+    can::read::passthroughMessage(&CAN_BUSES[0], 42,
+            CanMessageFormat::STANDARD, 0x123456789ABCDEF1LLU, NULL, 0,
+            &PIPELINE);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];

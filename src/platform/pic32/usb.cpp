@@ -183,7 +183,8 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         commands::IncomingMessageCallback callback) {
-    if(!device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
+    if(endpoint->hostToDeviceHandle != 0 &&
+            !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         size_t length = device->device.HandleGetLength(
                 endpoint->hostToDeviceHandle);
         for(int i = 0; i < endpoint->size && i < length; i++) {
@@ -193,8 +194,6 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
             }
         }
 
-        // TOOD this check may be unnecessary, but I don't think it can hurt -
-        // confirm on a device
         if(length > 0) {
             while(processQueue(&endpoint->queue, callback)) {
                 continue;

@@ -32,7 +32,6 @@ void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) { }
 void openxc::signals::loop() { }
 
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, CanMessage* message) {
-    debug("DEFAULT");
 }
 
 CanCommand* openxc::signals::getCommands() {

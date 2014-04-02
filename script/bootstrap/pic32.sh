@@ -60,29 +60,9 @@ _popd
 _popd
 set -e
 
-## Perl's Device::SerialPort for Arduino-Makefile
+## Python pyserial module for the reset script in Arduino-Makefile
 
-if ! command -v perldoc >/dev/null 2>&1; then
-    die "Missing Perl - required to restart the chipKIT. Please install it separately and re-run bootstrap."
-else
-    if ! perldoc -l Device::SerialPort; then
-        if [ $OS == "linux" ]; then
-            if [ $DISTRO == "arch" ]; then
-                _install "base-devel"
-            elif [ $DISTRO == "Ubuntu" ]; then
-                _install "libdevice-serialport-perl"
-            fi
-        else
-            if [ $OS == "windows" ]; then
-                _pushd /usr/bin
-                ln -fs gcc.exe gcc-4
-                ln -fss g++.exe g++-4
-                _popd
-            fi
-            cpan Device::SerialPort
-        fi
-    fi
-fi
+$PIP_SUDO_CMD pip install --upgrade pyserial
 
 echo
 echo "${bldgreen}PIC32 / chipKIT compilation dependencies installed.$txtrst"

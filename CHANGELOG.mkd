@@ -11,8 +11,8 @@
   with UART_LOGGING flag.
 * Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
   the latest version.
-* Use new version of Arduino-Makefile which depends on the Perl module
-  Device::SerialPort.
+* Use new version of Arduino-Makefile which depends on the Python and the
+  PySerial module.
 * BREAKING CHANGE: Using CanMessage struct in favor if loose id + data.
 * BREAKING CHANGE: Removed "reset" control command.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler

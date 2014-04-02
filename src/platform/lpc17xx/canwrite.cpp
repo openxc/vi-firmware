@@ -9,7 +9,11 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
     message.id =  request->id;
     message.len = request->length;
     message.type = DATA_FRAME;
-    message.format = STD_ID_FORMAT;
+    if(request->format == CanMessageFormat::STANDARD) {
+        message.format = STD_ID_FORMAT;
+    } else {
+        message.format = EXT_ID_FORMAT;
+    }
     memcpy(message.dataA, &(request->data[3]), 4);
     memcpy(message.dataB, request->data, 4);
 

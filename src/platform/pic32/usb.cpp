@@ -183,18 +183,23 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         commands::IncomingMessageCallback callback) {
-    if(!device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
-        if(endpoint->receiveBuffer[0] != '\0') {
-            for(int i = 0; i < endpoint->size; i++) {
-                if(!QUEUE_PUSH(uint8_t, &endpoint->queue,
-                            endpoint->receiveBuffer[i])) {
-                    debug("Dropped write from host -- queue is full");
-                }
+    if(endpoint->hostToDeviceHandle != 0 &&
+            !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
+        size_t length = device->device.HandleGetLength(
+                endpoint->hostToDeviceHandle);
+        for(int i = 0; i < endpoint->size && i < length; i++) {
+            if(!QUEUE_PUSH(uint8_t, &endpoint->queue,
+                        endpoint->receiveBuffer[i])) {
+                debug("Dropped write from host -- queue is full");
             }
+        }
+
+        if(length > 0) {
             while(processQueue(&endpoint->queue, callback)) {
                 continue;
             }
         }
+
         armForRead(device, endpoint);
     }
 }

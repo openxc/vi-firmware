@@ -36,8 +36,8 @@ const int MAX_MESSAGE_COUNT = 4;
 CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
     { // message set: passthrough
         {&CAN_BUSES[0][0], 0},
-        {&CAN_BUSES[0][0], 1, {10}},
-        {&CAN_BUSES[0][0], 2, {1}, true},
+        {&CAN_BUSES[0][0], 1, CanMessageFormat::STANDARD, {10}},
+        {&CAN_BUSES[0][0], 2, CanMessageFormat::STANDARD, {1}, true},
         {&CAN_BUSES[0][0], 3}
     },
     { // message set: shared_handler_tests

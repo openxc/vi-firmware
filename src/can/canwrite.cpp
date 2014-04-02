@@ -45,7 +45,8 @@ uint64_t openxc::can::write::encodeNumber(const CanSignal* signal, float value,
 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     CanMessage outgoingMessage = {
-        id: message->id
+        id: message->id,
+        format: message->format
     };
     memcpy(outgoingMessage.data, message->data, CAN_MESSAGE_SIZE);
     outgoingMessage.length = (uint8_t)(message->length == 0 ?
@@ -129,7 +130,10 @@ bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bo
     buildMessage(signal, value, data, sizeof(data));
     if(force || send) {
         send = true;
-        CanMessage message = {signal->message->id};
+        CanMessage message = {
+            id: signal->message->id,
+            format: signal->message->format
+        };
         memcpy(message.data, data, CAN_MESSAGE_SIZE);
         enqueueMessage(signal->message->bus, &message);
     } else {

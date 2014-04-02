@@ -15,10 +15,17 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {
         id: message->msgSID.SID,
+        format: CanMessageFormat::STANDARD,
         data: {0},
         length: (uint8_t) message->msgEID.DLC
     };
     memcpy(result.data, message->data, CAN_MESSAGE_SIZE);
+
+    if(message->msgEID.IDE) {
+        result.id <<= 18;
+        result.id += message->msgEID.EID;
+        result.format = CanMessageFormat::EXTENDED;
+    }
     return result;
 }
 

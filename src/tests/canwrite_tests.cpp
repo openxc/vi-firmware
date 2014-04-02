@@ -120,6 +120,7 @@ START_TEST (test_enqueue_message)
 {
     CanMessage message = {
         id: 42,
+        format: CanMessageFormat::STANDARD,
         data: {0x12, 0x34, 0x56}
     };
     can::write::enqueueMessage(&getCanBuses()[0], &message);
@@ -132,6 +133,7 @@ START_TEST (test_swaps_byte_order)
 {
     CanMessage message = {
         id: 42,
+        format: CanMessageFormat::STANDARD,
         data: {0x12, 0x34, 0x56}
     };
     can::write::enqueueMessage(&getCanBuses()[0], &message);

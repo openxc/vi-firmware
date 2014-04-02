@@ -165,9 +165,10 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
         CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
     bool send = true;
     CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus,
-            message->id, messages, messageCount);
+            message->id, message->format, messages, messageCount);
     if(messageDefinition == NULL) {
-        if(registerMessageDefinition(bus, message->id, messages, messageCount)) {
+        if(registerMessageDefinition(bus, message->id, message->format,
+                    messages, messageCount)) {
             debug("Added new message definition for message %d on bus %d",
                     message->id, bus->address);
         // else you couldn't add it to the list for some reason, but don't

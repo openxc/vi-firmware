@@ -206,7 +206,11 @@ END_TEST
 START_TEST (test_passthrough_force_send_changed)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {getMessages()[2].id, {0x12, 0x34}};
+    CanMessage message = {
+        id: getMessages()[2].id,
+        format: CanMessageFormat::STANDARD,
+        data: {0x12, 0x34}
+    };
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -225,7 +229,11 @@ END_TEST
 START_TEST (test_passthrough_limited_frequency)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {getMessages()[1].id, {0x12, 0x34}};
+    CanMessage message = {
+        id: getMessages()[1].id,
+        format: CanMessageFormat::STANDARD,
+        data: {0x12, 0x34}
+    };
     can::read::passthroughMessage(&getCanBuses()[0], &message, getMessages(),
             getMessageCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
@@ -243,8 +251,12 @@ END_TEST
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42,
-        {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF1},  8};
+    CanMessage message = {
+        id: 42,
+        format: CanMessageFormat::STANDARD,
+        data: {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF1},
+        length: 8
+    };
     can::read::passthroughMessage(&getCanBuses()[0], &message, NULL, 0,
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());

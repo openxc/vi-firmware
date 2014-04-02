@@ -61,14 +61,15 @@ static void cancelRequest(DiagnosticsManager* manager,
                 filter < OBD2_FUNCTIONAL_RESPONSE_START +
                     OBD2_FUNCTIONAL_RESPONSE_COUNT;
                 filter++) {
-            removeAcceptanceFilter(entry->request.bus, filter, getCanBuses(),
+            removeAcceptanceFilter(entry->request.bus, filter,
+                    CanMessageFormat::STANDARD, getCanBuses(),
                     getCanBusCount());
         }
     } else {
         removeAcceptanceFilter(entry->request.bus,
                 entry->request.arbitration_id +
                     DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
-                getCanBuses(), getCanBusCount());
+                CanMessageFormat::STANDARD, getCanBuses(), getCanBusCount());
     }
 }
 
@@ -116,9 +117,11 @@ static bool sendDiagnosticCanMessage(CanBus* bus,
         const uint8_t size) {
     CanMessage message = {
         id: arbitrationId,
+        format: arbitrationId > 2047 ? CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD,
+        data: {0},
+        length: size
     };
     memcpy(message.data, data, size);
-    message.length = size;
     openxc::can::write::enqueueMessage(bus, &message);
     return true;
 }
@@ -424,12 +427,13 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
                         OBD2_FUNCTIONAL_RESPONSE_COUNT;
                     filter++) {
                 filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
-                        getCanBuses(), getCanBusCount());
+                        CanMessageFormat::STANDARD, getCanBuses(), getCanBusCount());
             }
         } else {
             filterStatus = addAcceptanceFilter(bus,
                     request->arbitration_id +
                             DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
+                    CanMessageFormat::STANDARD,
                     getCanBuses(), getCanBusCount());
         }
 

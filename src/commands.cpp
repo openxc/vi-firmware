@@ -121,13 +121,14 @@ static bool handleRaw(openxc_VehicleMessage* message) {
                     rawMessage->bus);
             status = false;
         } else if(matchingBus->rawWritable) {
-                uint8_t size = rawMessage->data.size;
-                CanMessage message = {
-                    id: rawMessage->message_id
-                };
-                memcpy(message.data, rawMessage->data.bytes, size);
-                message.length = size;
-                can::write::enqueueMessage(matchingBus, &message);
+            uint8_t size = rawMessage->data.size;
+            CanMessage message = {
+                id: rawMessage->message_id,
+                format: rawMessage->message_id > 2047 ? CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD
+            };
+            memcpy(message.data, rawMessage->data.bytes, size);
+            message.length = size;
+            can::write::enqueueMessage(matchingBus, &message);
         } else {
             debug("Raw CAN writes not allowed for bus %d", matchingBus->address);
             status = false;

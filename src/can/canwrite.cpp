@@ -151,12 +151,17 @@ void openxc::can::write::flushOutgoingCanMessageQueue(CanBus* bus) {
 }
 
 bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
-    debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x",
-                bus->address, message->id);
-    // TODO build this up in a single string before sending
-    for(int i = 0; i < 8; i++) {
-        debug("%02x ", ((uint8_t*)&message->data)[i]);
-    }
+    debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02x%02x%02x%02x%02x%02x%02x%02x",
+        bus->address, message->id,
+        ((uint8_t*)&message->data)[0],
+        ((uint8_t*)&message->data)[1],
+        ((uint8_t*)&message->data)[2],
+        ((uint8_t*)&message->data)[3],
+        ((uint8_t*)&message->data)[4],
+        ((uint8_t*)&message->data)[5],
+        ((uint8_t*)&message->data)[6],
+        ((uint8_t*)&message->data)[7]
+    );
 
     bool status = true;
     if(bus->writeHandler == NULL) {

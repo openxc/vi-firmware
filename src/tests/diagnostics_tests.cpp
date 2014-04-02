@@ -31,6 +31,7 @@ DiagnosticRequest request = {
 
 CanMessage message = {
    id: request.arbitration_id + 0x8,
+   format: CanMessageFormat::STANDARD,
    data: __builtin_bswap64(0x341024500000000),
    length: 8
 };
@@ -612,6 +613,7 @@ START_TEST(test_command_single_response_default)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };
@@ -646,6 +648,7 @@ START_TEST(test_command_multiple_responses_default_broadcast)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };
@@ -682,6 +685,7 @@ START_TEST(test_command_multiple_responses)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };
@@ -704,6 +708,7 @@ START_TEST(test_broadcast_accept_multiple_responses)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };
@@ -729,6 +734,7 @@ START_TEST(test_broadcast_response_arb_id)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };
@@ -753,6 +759,7 @@ START_TEST(test_passthrough_decoder)
     fail_if(canQueueEmpty(0));
     CanMessage message = {
          id: 0x7e8,
+         format: CanMessageFormat::STANDARD,
          data: __builtin_bswap64(0x341024500000000),
          length: 8
     };

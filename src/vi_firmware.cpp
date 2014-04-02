@@ -121,8 +121,6 @@ void initializeIO() {
 
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
-
-    debug("Now running with all I/O active");
 }
 
 void initializeVehicleInterface() {

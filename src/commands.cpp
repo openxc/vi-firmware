@@ -124,6 +124,7 @@ static bool handleRaw(openxc_VehicleMessage* message) {
                 uint8_t size = rawMessage->data.size;
                 CanMessage message = {
                     id: rawMessage->message_id,
+                    format: rawMessage->message_id > 2047 ? CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD,
                     data: get_bitfield(rawMessage->data.bytes,
                             size, 0, size * CHAR_BIT) << (64 - CHAR_BIT * size)
                 };

@@ -45,6 +45,7 @@ uint64_t openxc::can::write::encodeNumber(const CanSignal* signal, float value, 
 void openxc::can::write::enqueueMessage(CanBus* bus, CanMessage* message) {
     CanMessage outgoingMessage = {
             id: message->id,
+            format: message->format,
             data: __builtin_bswap64(message->data),
             length: (uint8_t)(message->length == 0 ? 8 : message->length)
     };
@@ -126,7 +127,11 @@ bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bo
     uint64_t data = buildMessage(signal, value);
     if(force || send) {
         send = true;
-        CanMessage message = {signal->message->id, data};
+        CanMessage message = {
+            id: signal->message->id,
+            format: signal->message->format,
+            data: data
+        };
         enqueueMessage(signal->message->bus, &message);
     } else {
         debug("Writing not allowed for signal with name %s",

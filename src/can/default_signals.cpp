@@ -4,7 +4,9 @@
 #include "signals.h"
 #include "config.h"
 #include "shared_handlers.h"
+#include "util/log.h"
 
+using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::diagnostics::DiagnosticsManager;
 
@@ -30,6 +32,7 @@ void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) { }
 void openxc::signals::loop() { }
 
 void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, CanMessage* message) {
+    debug("DEFAULT");
 }
 
 CanCommand* openxc::signals::getCommands() {

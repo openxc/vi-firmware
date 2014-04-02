@@ -35,10 +35,15 @@ void setup() {
     fail_unless(canQueueEmpty(0));
 }
 
+CanMessage message = {
+    id: 0x1,
+    format: CanMessageFormat::STANDARD,
+    data: 0x2
+};
+
 START_TEST (test_update_data_lights_can_active)
 {
     CanBus* bus = &getCanBuses()[0];
-    CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
     receiveCan(&getConfiguration()->pipeline, bus);
 
@@ -56,7 +61,6 @@ START_TEST (test_update_data_lights_can_inactive)
                 openxc::lights::COLORS.red));
 
     CanBus* bus = &getCanBuses()[0];
-    CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
     receiveCan(&getConfiguration()->pipeline, bus);
 
@@ -68,7 +72,6 @@ END_TEST
 START_TEST (test_update_data_lights_suspend)
 {
     CanBus* bus = &getCanBuses()[0];
-    CanMessage message = {0x1, 0x2};
     QUEUE_PUSH(CanMessage, &bus->receiveQueue, message);
     receiveCan(&getConfiguration()->pipeline, bus);
 

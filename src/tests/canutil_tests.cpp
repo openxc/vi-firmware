@@ -123,7 +123,7 @@ END_TEST
 START_TEST (test_get_can_message_definition_predefined)
 {
     CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0], 1,
-            getMessages(), getMessageCount());
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount());
     ck_assert(message == &getMessages()[1]);
 }
 END_TEST
@@ -131,16 +131,16 @@ END_TEST
 START_TEST (test_get_can_message_definition_undefined)
 {
     CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0], 999,
-            getMessages(), getMessageCount());
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount());
     ck_assert(message == NULL);
 }
 END_TEST
 
 START_TEST (test_register_can_message)
 {
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
     CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
-            MESSAGE_ID, getMessages(), getMessageCount());
+            MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
     ck_assert(message->bus == &getCanBuses()[0]);
@@ -149,10 +149,10 @@ END_TEST
 
 START_TEST (test_register_can_message_twice)
 {
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
     CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
-            MESSAGE_ID, getMessages(), getMessageCount());
+            MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
     ck_assert(message->bus == &getCanBuses()[0]);
@@ -161,15 +161,15 @@ END_TEST
 
 START_TEST (test_register_can_message_diff_bus)
 {
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
-    ck_assert(registerMessageDefinition(&getCanBuses()[1], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[1], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
     CanMessageDefinition* message = lookupMessageDefinition(&getCanBuses()[0],
-            MESSAGE_ID, getMessages(), getMessageCount());
+            MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
     ck_assert(message->bus == &getCanBuses()[0]);
 
-    message = lookupMessageDefinition(&getCanBuses()[1], MESSAGE_ID, getMessages(),
+    message = lookupMessageDefinition(&getCanBuses()[1], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(),
             getMessageCount());
     ck_assert(message != NULL);
     ck_assert_int_eq(message->id, MESSAGE_ID);
@@ -179,23 +179,23 @@ END_TEST
 
 START_TEST (test_unregister_can_message)
 {
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
     ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
-            getMessages(), getMessageCount()) != NULL);
-    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID));
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount()) != NULL);
+    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD));
     ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
-            getMessages(), getMessageCount()) == NULL);
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount()) == NULL);
 }
 END_TEST
 
 START_TEST (test_unregister_can_message_not_registered)
 {
-    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, getMessages(), getMessageCount()));
+    ck_assert(registerMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD, getMessages(), getMessageCount()));
     ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
-            getMessages(), getMessageCount()) != NULL);
-    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID));
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount()) != NULL);
+    ck_assert(unregisterMessageDefinition(&getCanBuses()[0], MESSAGE_ID, CanMessageFormat::STANDARD));
     ck_assert(lookupMessageDefinition(&getCanBuses()[0], MESSAGE_ID,
-            getMessages(), getMessageCount()) == NULL);
+            CanMessageFormat::STANDARD, getMessages(), getMessageCount()) == NULL);
 }
 END_TEST
 

@@ -18,6 +18,17 @@
 
 typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
 
+/* Public: The ID format for a CAN message.
+ *
+ * STANDARD - standard 11-bit CAN arbitration ID.
+ * EXTENDED - an extended frame, with a 29-bit arbitration ID.
+ */
+enum CanMessageFormat {
+    STANDARD,
+    EXTENDED,
+};
+typedef enum CanMessageFormat CanMessageFormat;
+
 /* Public: A state encoded (SED) signal's mapping from numerical values to
  * OpenXC state names.
  *
@@ -97,6 +108,7 @@ typedef struct CanSignal CanSignal;
 struct CanMessageDefinition {
     struct CanBus* bus;
     uint32_t id;
+    CanMessageFormat format;
     openxc::util::time::FrequencyClock frequencyClock;
     bool forceSendChanged;
     uint64_t lastValue;
@@ -112,6 +124,7 @@ typedef struct CanMessageDefinition CanMessageDefinition;
  */
 struct CanMessage {
     uint32_t id;
+    CanMessageFormat format;
     uint64_t data;
     uint8_t length;
 };
@@ -124,13 +137,15 @@ QUEUE_DECLARE(CanMessage, 8);
  *
  * This struct is meant to be used with a LIST type from <sys/queue.h>.
  *
- * filter - The value for the CAN acceptance filter.
+ * filter - the value for the CAN acceptance filter.
+ * format - the format of the ID for the filter.
  * activeUserCount - The number of active consumers of this filter's messages.
  *      When 0, this filter can be removed.
  */
 struct AcceptanceFilterListEntry {
-    uint16_t filter;
+    uint32_t filter;
     uint8_t activeUserCount;
+    CanMessageFormat format;
     LIST_ENTRY(AcceptanceFilterListEntry) entries;
 };
 
@@ -369,12 +384,14 @@ const CanSignalState* lookupSignalState(int value, const CanSignal* signal);
  *
  * bus - The CanBus to search for the message.
  * id - The ID of the CAN message.
+ * format - the format of the ID of the message.
  * predefinedMessages - The list of predefined CAN messages to search.
  * predefinedMessageCount - The length of the predefined messages array.
  *
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
 CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
@@ -393,6 +410,7 @@ CanBus* lookupBus(uint8_t address, CanBus* buses, const int busCount);
  *
  * bus - The CanBus to register the message on.
  * id - The ID of the new CAN message definition.
+ * format - the format of the ID of the message.
  * predefinedMessages - The list of predefined CAN messages to search for an
  *      existing match.
  * predefinedMessageCount - The length of the predefined messages array.
@@ -400,6 +418,7 @@ CanBus* lookupBus(uint8_t address, CanBus* buses, const int busCount);
  * Returns true if the message definition was registered successfully.
  */
 bool registerMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
@@ -408,11 +427,13 @@ bool registerMessageDefinition(CanBus* bus, uint32_t id,
  *
  * bus - The CanBus to search for the message definition.
  * id - The ID of the CAN message.
+ * format - the format of the ID of the message.
  *
  * Returns true if the message was found and unregistered successfully. If the
  * message was not registered, returns false.
  */
-bool unregisterMessageDefinition(CanBus* bus, uint32_t id);
+bool unregisterMessageDefinition(CanBus* bus, uint32_t id,
+        CanMessageFormat format);
 
 /* Public: Based on the predefined CAN messages for a bus, add the required
  * CAN acceptance filters to receive all messages.
@@ -438,6 +459,7 @@ bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages,
  *
  * bus - The CanBus to initialize the filter on.
  * id - The value of the new filter.
+ * format - the format of the ID for the new filter.
  * buses - An array of all active CanBus instances.
  * busCount - The length of the buses array.
  *
@@ -445,22 +467,23 @@ bool configureDefaultFilters(CanBus* bus, const CanMessageDefinition* messages,
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses,
-        const int busCount);
+bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
+        CanBus* buses, const int busCount);
 
 /* Public: Remove a CAN message acceptance filter from the given bus.
  *
- * buses - An array of all active CanBus instances.
- * busCount - The length of the buses array.
  * bus - The CanBus to remove the filter from.
  * id - The value of the new filter.
+ * format - the format of the ID for the filter.
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
  *
  * Returns true if the filter was added or already existed. Returns false if the
  * filter could not be added because of a CAN controller error or because all
  * available filter slots are taken.
  */
-void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanBus* buses,
-        const int busCount);
+void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
+        CanBus* buses, const int busCount);
 
 /* Public: Apply the CAN acceptance filter configuration from software (on the
  * CanBus struct) to the actual hardware CAN controllers.

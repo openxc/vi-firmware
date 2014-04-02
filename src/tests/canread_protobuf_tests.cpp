@@ -71,8 +71,14 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
 START_TEST (test_passthrough_message)
 {
     fail_unless(queueEmpty());
-    CanMessage message = {42, 0x123456789ABCDEF1LLU, 8};
-    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0, &getConfiguration()->pipeline);
+    CanMessage message = {
+        id: 42,
+        format: CanMessageFormat::STANDARD,
+        data: 0x123456789ABCDEF1LLU,
+        length: 8
+    };
+    can::read::passthroughMessage(&(getCanBuses()[0]), &message, NULL, 0,
+            &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);

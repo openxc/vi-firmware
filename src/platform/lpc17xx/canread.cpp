@@ -13,6 +13,8 @@ CanMessage receiveCanMessage(CanBus* bus) {
 
     CanMessage result = {
         id: message.id,
+        format: message.format == STD_ID_FORMAT ?
+            CanMessageFormat::STANDARD : CanMessageFormat::EXTENDED,
         data: 0,
         length: message.len
     };

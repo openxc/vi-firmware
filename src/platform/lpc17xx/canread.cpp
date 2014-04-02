@@ -19,9 +19,8 @@ CanMessage receiveCanMessage(CanBus* bus) {
         length: message.len
     };
 
-    // TODO is this backwards?
-    memcpy(result.data, message.dataB, 4);
-    memcpy(&result.data[3], message.dataA, 4);
+    memcpy(result.data, message.dataA, 4);
+    memcpy(&result.data[4], message.dataB, 4);
     return result;
 }
 

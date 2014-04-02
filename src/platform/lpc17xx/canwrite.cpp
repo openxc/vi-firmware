@@ -14,8 +14,8 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
     } else {
         message.format = EXT_ID_FORMAT;
     }
-    memcpy(message.dataA, &(request->data[3]), 4);
-    memcpy(message.dataB, request->data, 4);
+    memcpy(message.dataA, request->data, 4);
+    memcpy(message.dataB, &(request->data[4]), 4);
 
     return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
 }

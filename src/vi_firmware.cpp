@@ -145,8 +145,6 @@ void initializeVehicleInterface() {
     getConfiguration()->runLevel = RunLevel::CAN_ONLY;
 
     if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
-            // TODO this....or maybe it's not necessary
-            // && we are starting up because of wdt) {
         getConfiguration()->desiredRunLevel = RunLevel::CAN_ONLY;
     } else {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;

@@ -242,7 +242,6 @@ END_TEST
 
 START_TEST (test_no_flush_handler)
 {
-    // TODO might be duplciate about test_send_using_default
     openxc_DynamicField field;
     field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
@@ -254,7 +253,7 @@ START_TEST (test_no_flush_handler)
     getCanBuses()[0].writeHandler = NULL;
     can::write::flushOutgoingCanMessageQueue(&getCanBuses()[0]);
     fail_unless(QUEUE_EMPTY(CanMessage,
-                &getSignals()[1].message->bus->sendQueue));
+                &getSignals()[6].message->bus->sendQueue));
 }
 END_TEST
 

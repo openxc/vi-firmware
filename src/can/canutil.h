@@ -7,6 +7,7 @@
 #include <sys/queue.h>
 #include "util/timer.h"
 #include "util/statistics.h"
+#include "pipeline.h"
 #include "emqueue.h"
 #include "cJSON.h"
 #include "openxc.pb.h"
@@ -18,6 +19,17 @@
 
 #define CAN_MESSAGE_SIZE 8
 
+
+/* Public: The type signatures for CAN signal decoding. It should accept
+ * a raw float CAN signal (parsed from a CAN message, with any defined factor
+ * and offset transformations applied) and returns a final, decoded value in an
+ * openxc_DynamicField struct.
+ *
+ * pipeline -  you may want to generate arbitrary additional messages for
+ * publishing.
+ */
+typedef openxc_DynamicField (*SignalDecoder)(struct CanSignal*,
+        struct CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
 typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
 
 /* Public: The ID format for a CAN message.
@@ -68,7 +80,7 @@ typedef struct CanSignalState CanSignalState;
  * stateCount  - The length of the states array.
  * writable    - True if the signal is allowed to be written from the USB host
  *               back to CAN. Defaults to false.
- * writeHandler - An optional function to encode a signal value to be written to
+ * encoder - An optional function to encode a signal value to be written to
  *                CAN into a byte array. If null, the default encoder is used.
  * received    - Marked true if this signal has ever been received.
  * lastValue   - The last received value of the signal. Defaults to undefined.
@@ -88,7 +100,8 @@ struct CanSignal {
     const CanSignalState* states;
     uint8_t stateCount;
     bool writable;
-    SignalEncoder writeHandler;
+    SignalDecoder decoder;
+    SignalEncoder encoder;
     bool received;
     float lastValue;
 };

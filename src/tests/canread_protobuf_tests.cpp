@@ -14,16 +14,13 @@ namespace usb = openxc::interface::usb;
 namespace can = openxc::can;
 
 using openxc::util::log::debug;
-using openxc::can::read::booleanHandler;
-using openxc::can::read::ignoreHandler;
-using openxc::can::read::stateHandler;
-using openxc::can::read::passthroughHandler;
-using openxc::can::read::sendEventedBooleanMessage;
-using openxc::can::read::sendEventedStringMessage;
-using openxc::can::read::sendEventedFloatMessage;
-using openxc::can::read::sendBooleanMessage;
-using openxc::can::read::sendNumericalMessage;
-using openxc::can::read::sendStringMessage;
+using openxc::can::read::booleanDecoder;
+using openxc::can::read::ignoreDecoder;
+using openxc::can::read::stateDecoder;
+using openxc::can::read::noopDecoder;
+using openxc::can::read::publishBooleanMessage;
+using openxc::can::read::publishNumericalMessage;
+using openxc::can::read::publishStringMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
@@ -93,7 +90,7 @@ END_TEST
 START_TEST (test_send_numeric_value)
 {
     fail_unless(queueEmpty());
-    sendNumericalMessage("test", 42, &getConfiguration()->pipeline);
+    publishNumericalMessage("test", 42, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -107,7 +104,7 @@ START_TEST (test_preserve_float_precision)
 {
     fail_unless(queueEmpty());
     float value = 42.5;
-    sendNumericalMessage("test", value, &getConfiguration()->pipeline);
+    publishNumericalMessage("test", value, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -120,7 +117,7 @@ END_TEST
 START_TEST (test_send_boolean)
 {
     fail_unless(queueEmpty());
-    sendBooleanMessage("test", false, &getConfiguration()->pipeline);
+    publishBooleanMessage("test", false, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -133,7 +130,7 @@ END_TEST
 START_TEST (test_send_string)
 {
     fail_unless(queueEmpty());
-    sendStringMessage("test", "string", &getConfiguration()->pipeline);
+    publishStringMessage("test", "string", &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -143,17 +140,9 @@ START_TEST (test_send_string)
 }
 END_TEST
 
-// TODO we can't handle evented measurements...would be too many sub-types
-
-const char* stringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return "foo";
-}
-
 START_TEST (test_translate_string)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[1], TEST_DATA,
-            stringHandler, getSignals(), getSignalCount());
+    publishStringMessage("transmission_gear_position", "foo", &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -163,15 +152,9 @@ START_TEST (test_translate_string)
 }
 END_TEST
 
-bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return false;
-}
-
 START_TEST (test_translate_bool)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2], TEST_DATA,
-            booleanTranslateHandler, getSignals(), getSignalCount());
+    publishBooleanMessage("brake_pedal_status", false, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
@@ -181,15 +164,9 @@ START_TEST (test_translate_bool)
 }
 END_TEST
 
-float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send) {
-    return 42;
-}
-
 START_TEST (test_translate_float)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0], TEST_DATA,
-            floatHandler, getSignals(), getSignalCount());
+    publishNumericalMessage("torque_at_transmission", 42, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);

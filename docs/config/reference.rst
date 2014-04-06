@@ -274,19 +274,19 @@ The attributes of a ``signal`` object within a ``message`` are:
   This is added to the signal value if set. Required unless this is a
   database-backed mapping.
 
-``handler`` (optional)
+``encoder`` (optional)
   The name of a function that will be compiled with the firmware and should be
   applied to the signal's value after the normal translation. See the
-  :ref:`value-handlers` section for details.
+  :ref:`signal-decoders` section for details.
 
 ``ignore`` (optional)
   Setting this to ``true`` on a signal will silence output of the signal. The VI
   will not monitor the signal nor store any of its values. This is useful if you
-  are using a custom handler for an entire message, want to silence the normal
+  are using a custom decoder for an entire message, want to silence the normal
   output of the signals it handles, *and* you don't need the VI to keep track of
   the values of any of the signals separately (in the ``lastValue`` field). If
   you need to use the previously stored values of any of the signals, you can
-  use the ``ignoreHandler`` as a value handler for the signal. Defaults to
+  use the ``ignoreDecoder`` as the decoder for the signal. Defaults to
   ``false``.
 
 ``enabled`` (optional)
@@ -294,7 +294,7 @@ The attributes of a ``signal`` object within a ``message`` are:
   enabled; if this flag is false, the signal will be left out of the generated
   source code. Defaults to ``true``.
 
-The difference between ``ignore``, ``enabled`` and using an ``ignoreHandler``
+The difference between ``ignore``, ``enabled`` and using an ``ignoreDecoder``
 can be confusing. To summarize the difference:
 
 * The ``enabled`` flag is the master control switch for a signal - when this is
@@ -305,11 +305,11 @@ can be confusing. To summarize the difference:
 * The ``ignore`` flag will not exclude a signal from the firmware, but it will
   not include it in the normal message processing pipeline. The most common use
   case is when you need to reference the bit field information for the signal
-  from a custom handler.
-* Finally, use the ``ignoreHandler`` for your signal's ``handler`` to both
+  from a custom decoder.
+* Finally, use the ``ignoreDecoder`` for your signal's ``decoder`` to both
   include it in the firmware and handle it during the normal message processing
   pipeline, but just silence its output. This is useful if you need to track the
-  last known value for this signal for a calculation in a custom handler.
+  last known value for this signal for a calculation in a custom decoder.
 
 ``states``
   This is a mapping between the desired descriptive states (e.g. ``off``) and
@@ -349,7 +349,7 @@ can be confusing. To summarize the difference:
   bus. By default, the value will be interpreted as a floating point number.
   Defaults to ``false``.
 
-``write_handler`` (optional)
+``encoder`` (optional)
   If the signal is writable and is not a plain floating point number (i.e. it is
   a boolean or state value), you can specify a custom function here to encode
   the value for a CAN messages. This is only necessary for boolean types at the
@@ -357,39 +357,36 @@ can be confusing. To summarize the difference:
   string state value back to its original numerical value. Defaults to a
   built-in numerical handler.
 
-.. _value-handlers:
+.. _signal-decoders:
 
-Value Handlers
+Signal Decoder
 --------------
 
-The default value handler for each signal is a simple passthrough,
-translating the signal's value from engineering units to something more
-usable (using the defined factor and offset). Some signals require
-additional processing that you may wish to do within the VI and
-not on the host device. Other signals may need to be combined to make a
-composite signal that's more meaningful to developers.
+The default decoder for each signal is a simple passthrough, translating the
+signal's value from engineering units to something more usable (using the
+defined factor and offset). Some signals require additional processing that you
+may wish to do within the VI and not on the host device. Other signals may need
+to be combined to make a composite signal that's more meaningful to developers.
 
 An good example is steering wheel angle. For an app developer to get a
 value that ranges from e.g. -350 to +350, we need to combine two
 different signals - the angle and the sign. If you want to make this
-combination happen inside the VI, you can use a custom handler.
+combination happen inside the VI, you can use a custom decoder.
 
-You may also need a custom handler to return a value of a type other
-than float. A handler is provided for dealing with boolean values, the
-``booleanHandler`` - if you specify that as your signal's
-``handler`` the resulting JSON will contain ``true`` for 1.0 and
-``false`` for 0.0. If you want to translate integer state values to
-string names (for parsing as an enum, for example) you will need to
-write a value handler that returns a ``char*``.
+You may also need a custom decoder to return a value of a type other than float.
+A decoder is provided for dealing with boolean values, the ``booleanDecoder`` -
+if you specify that as your signal's ``decoder`` the resulting JSON will contain
+``true`` for 1.0 and ``false`` for 0.0. There is also a ``stateDecoder`` for
+translating integer state values to string names.
 
 For this example, we want to modify the value of ``steering_wheel_angle``
 by setting the sign positive or negative based on the value of the other
 signal (``steering_angle_sign``). Every time a CAN signal is received, the
-new value is stored in memory. Our custom handler
-``handleSteeringWheelAngle`` will use that to adjust the raw steering
-wheel angle value. Modify the input JSON file to set the ``handler``
+new value is stored in memory. Our custom decoder
+``decodeSteeringWheelAngle`` will use that to adjust the raw steering
+wheel angle value. Modify the input JSON file to set the ``decoder``
 attribute for the steering wheel angle signal to
-``handleSteeringWheelAngle``.
+``decodeSteeringWheelAngle``.
 
 Add this to the top of ``signals.cpp`` (or if using the mapping file, add it to
 a separate ``.cpp`` file and then add that filename to the ``extra_sources``
@@ -397,28 +394,21 @@ field):
 
 .. code-block:: c
 
-    float handleSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-            int signalCount, float value, bool* send) {
+    openxc_DynamicField decodeSteeringWheelAngle(CanSignal* signal,
+        CanSignal* signals, int signalCount, float value, bool* send) {
         if(signal->lastValue == 0) {
             // left turn
             value *= -1;
         }
-        return value;
+        return openxc::payload::wrapNumber(value);
     }
 
-The valid return types for value handlers are ``bool``, ``float`` and
-``char*`` - the function prototype must match one of:
+The function declaration of a custom decoder must match:
 
 .. code-block:: c
 
-    char* customHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-            float value, bool* send);
-
-    float customHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-            float value, bool* send);
-
-    bool customhandler(cansignal* signal, cansignal* signals, int signalCount,
-            float value, bool* send);
+    openxc_DynamicField customDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send);
 
 where ``signal`` is a pointer to the ``CanSignal`` this is handling,
 ``signals`` is an array of all signals, ``value`` is the raw value
@@ -431,9 +421,9 @@ useful if you don't want to keep notifying the same status over and over
 again, but only in the event of a change in value (you can use the
 ``lastValue`` field on the CanSignal object to determine if this is true).
 It's also good practice to inspect the value of ``send`` when your custom
-handler is called - the normal translation workflow may have decided the
+decoder is called - the normal translation workflow may have decided the
 data shouldn't be sent (e.g. the value hasn't changed and ``sendSame ==
-false``). Handlers are called every time a signal is received, even if
+false``). Decoders are called every time a signal is received, even if
 ``send == false``, so that you have the flexibility to implement custom
 processing that depends on receiving every data point.
 
@@ -535,8 +525,8 @@ Extra Sources
 =============
 
 The ``extra_sources`` key is an optional list of C++ source files that should be
-injected into the generated ``signals.cpp`` file. These may include value
-handlers, message handlers, initializers or custom loopers.
+injected into the generated ``signals.cpp`` file. These may include signal
+decoders, message handlers, initializers or custom loopers.
 
 Commands
 ========

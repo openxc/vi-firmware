@@ -13,12 +13,11 @@ float fuelConsumedSinceRestartLiters = 0;
 namespace can = openxc::can;
 
 using openxc::util::log::debug;
-using openxc::can::read::booleanHandler;
-using openxc::can::read::stateHandler;
-using openxc::can::read::sendEventedBooleanMessage;
-using openxc::can::read::sendEventedFloatMessage;
-using openxc::can::read::sendEventedStringMessage;
-using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::booleanDecoder;
+using openxc::can::read::stateDecoder;
+using openxc::can::read::noopDecoder;
+using openxc::can::read::publishVehicleMessage;
+using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::preTranslate;
 using openxc::can::read::postTranslate;
 using openxc::can::lookupSignal;
@@ -49,11 +48,16 @@ void openxc::signals::handlers::sendDoorStatus(const char* doorId,
 
     bool send = true;
     float rawAjarStatus = preTranslate(signal, data, &send);
-    bool ajarStatus = booleanHandler(signal, signals, signalCount, pipeline,
-            rawAjarStatus, &send);
+    openxc_DynamicField ajarStatus = booleanDecoder(signal, signals,
+            signalCount, pipeline, rawAjarStatus, &send);
     if(send) {
-        sendEventedBooleanMessage(DOOR_STATUS_GENERIC_NAME, doorId, ajarStatus,
-                pipeline);
+        openxc_DynamicField doorIdValue = {0};
+        doorIdValue.has_type = true;
+        doorIdValue.type = openxc_DynamicField_Type_STRING;
+        doorIdValue.has_string_value = true;
+        strcpy(doorIdValue.string_value, doorId);
+        publishVehicleMessage(DOOR_STATUS_GENERIC_NAME, &doorIdValue,
+                &ajarStatus, pipeline);
     }
     postTranslate(signal, rawAjarStatus);
 }
@@ -92,10 +96,17 @@ void openxc::signals::handlers::sendTirePressure(const char* tireId,
 
     bool send = true;
     float rawPressure = preTranslate(signal, data, &send);
-    float pressure = rawPressure * conversionFactor;
+    openxc_DynamicField pressure = noopDecoder(signal, signals, signalCount,
+            pipeline, rawPressure * conversionFactor, &send);
     if(send) {
-        sendEventedFloatMessage(TIRE_PRESSURE_GENERIC_NAME, tireId, pressure,
-                pipeline);
+        openxc_DynamicField tireIdValue = {0};
+        tireIdValue.has_type = true;
+        tireIdValue.type = openxc_DynamicField_Type_STRING;
+        tireIdValue.has_string_value = true;
+        strcpy(tireIdValue.string_value, tireId);
+
+        publishVehicleMessage(TIRE_PRESSURE_GENERIC_NAME, &tireIdValue,
+                &pressure, pipeline);
     }
     postTranslate(signal, rawPressure);
 }
@@ -265,8 +276,8 @@ void openxc::signals::handlers::handleGpsMessage(int messageId, uint8_t data[],
         }
         longitude += longitudeDegrees;
 
-        sendNumericalMessage("latitude", latitude, pipeline);
-        sendNumericalMessage("longitude", longitude, pipeline);
+        publishNumericalMessage("latitude", latitude, pipeline);
+        publishNumericalMessage("longitude", longitude, pipeline);
     }
 
     postTranslate(latitudeDegreesSignal, latitudeDegrees);
@@ -330,20 +341,20 @@ void openxc::signals::handlers::handleButtonEventMessage(int messageId,
     float rawButtonType = preTranslate(buttonTypeSignal, data, &send);
     float rawButtonState = preTranslate(buttonStateSignal, data, &send);
 
-    const char* buttonType = stateHandler(buttonTypeSignal, signals,
+    openxc_DynamicField buttonType = stateDecoder(buttonTypeSignal, signals,
             signalCount, pipeline, rawButtonType, &send);
-    if(!send || buttonType == NULL) {
+    if(!send) {
         debug("Unable to find button type corresponding to %f",
                 rawButtonType);
     } else {
-        const char* buttonState = stateHandler(buttonStateSignal, signals,
-                signalCount, pipeline, rawButtonState, &send);
-        if(!send || buttonState == NULL) {
+        openxc_DynamicField buttonState = stateDecoder(buttonStateSignal,
+                signals, signalCount, pipeline, rawButtonState, &send);
+        if(!send) {
             debug("Unable to find button state corresponding to %f",
                     rawButtonState);
         } else {
-            sendEventedStringMessage(BUTTON_EVENT_GENERIC_NAME, buttonType,
-                    buttonState, pipeline);
+            publishVehicleMessage(BUTTON_EVENT_GENERIC_NAME, &buttonType,
+                    &buttonState, pipeline);
         }
     }
     postTranslate(buttonTypeSignal, rawButtonType);
@@ -384,23 +395,33 @@ void sendOccupancyStatus(const char* seatId, uint8_t data[],
     float rawLowerStatus = preTranslate(lowerSignal, data, &send);
     float rawUpperStatus = preTranslate(upperSignal, data, &send);
 
-    bool lowerStatus = booleanHandler(NULL, signals, signalCount,
+    openxc_DynamicField lowerStatus = booleanDecoder(NULL, signals, signalCount,
             pipeline, rawLowerStatus, &send);
-    bool upperStatus = booleanHandler(NULL, signals, signalCount,
+    openxc_DynamicField upperStatus = booleanDecoder(NULL, signals, signalCount,
             pipeline, rawUpperStatus, &send);
     if(send) {
-        if(lowerStatus) {
-            if(upperStatus) {
-                sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                        "adult", pipeline);
+        openxc_DynamicField seatIdValue = {0};
+        seatIdValue.has_type = true;
+        seatIdValue.type = openxc_DynamicField_Type_STRING;
+        seatIdValue.has_string_value = true;
+        strcpy(seatIdValue.string_value, seatId);
+
+        openxc_DynamicField occupancyEvent = {0};
+        occupancyEvent.has_type = true;
+        occupancyEvent.type = openxc_DynamicField_Type_STRING;
+        occupancyEvent.has_string_value = true;
+
+        if(lowerStatus.boolean_value) {
+            if(upperStatus.boolean_value) {
+                strcpy(occupancyEvent.string_value, "adult");
             } else {
-                sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                        "child", pipeline);
+                strcpy(occupancyEvent.string_value, "child");
             }
         } else {
-            sendEventedStringMessage(OCCUPANCY_STATUS_GENERIC_NAME, seatId,
-                    "empty", pipeline);
+            strcpy(occupancyEvent.string_value, "empty");
         }
+        publishVehicleMessage(OCCUPANCY_STATUS_GENERIC_NAME,
+                &seatIdValue, &occupancyEvent, pipeline);
     }
     postTranslate(lowerSignal, rawLowerStatus);
     postTranslate(upperSignal, rawUpperStatus);

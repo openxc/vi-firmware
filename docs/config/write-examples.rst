@@ -103,14 +103,14 @@ name of the signal that will be sent to the VI to be ``my_boolean_request``.
                        "bit_position": 3,
                        "bit_size": 1,
                        "writable": true,
-                       "write_handler": "booleanWriter"
+                       "encoder": "booleanWriter"
                    }
                }
            }
        }
    }
 
-In addition to setting ``writable`` to true, We set the ``write_handler`` for
+In addition to setting ``writable`` to true, We set the ``encoder`` for
 the signal to the built-in ``booleanWriter``. This will handle converting a
 ``true`` or ``false`` value from the user back to a 1 or 0 in the outgoing CAN
 message.
@@ -174,7 +174,7 @@ we want the app developer to send the strings ``a`` through ``f`` to the VI.
 
 The ``writable`` field is all that is required - the signal will be
 automatically configured to use the built-in ``stateWriter`` as its
-``write_handler`` because the signal has a ``states`` array. If a user sends the
+``encoder`` because the signal has a ``states`` array. If a user sends the
 VI the value ``c`` in a write request with the name ``my_state_request``, it
 will be encoded as ``2`` in the CAN signal in the outgoing message.
 
@@ -225,7 +225,7 @@ handler to make the transformation. Here's the JSON configuration:
                        "bit_size": 7,
                        "factor": -1.0,
                        "offset": 1400,
-                       "write_handler": "ourRoundingWriteHandler"
+                       "encoder": "ourRoundingWriteHandler"
                    }
                }
            }
@@ -235,7 +235,7 @@ handler to make the transformation. Here's the JSON configuration:
        ]
    }
 
-We set the ``write_handler`` for the signal to ``ourRoundingWriteHandler``, and we'll
+We set the ``encoder`` for the signal to ``ourRoundingWriteHandler``, and we'll
 define that in a separate file named ``my_handlers.cpp``. The ``extra_sources``
 field is also set, meaning that our custom C/C++ code will be included with the
 firmware build.

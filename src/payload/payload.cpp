@@ -7,6 +7,33 @@ namespace payload = openxc::payload;
 
 using openxc::util::log::debug;
 
+openxc_DynamicField openxc::payload::wrapNumber(float value) {
+    openxc_DynamicField sabot = {0};
+    sabot.has_type = true;
+    sabot.type = openxc_DynamicField_Type_NUM;
+    sabot.has_numeric_value = true;
+    sabot.numeric_value = value;
+    return sabot;
+}
+
+openxc_DynamicField openxc::payload::wrapString(const char* value) {
+    openxc_DynamicField sabot = {0};
+    sabot.has_type = true;
+    sabot.type = openxc_DynamicField_Type_NUM;
+    sabot.has_string_value = true;
+    strcpy(sabot.string_value, value);
+    return sabot;
+}
+
+openxc_DynamicField openxc::payload::wrapBoolean(bool value) {
+    openxc_DynamicField sabot = {0};
+    sabot.has_type = true;
+    sabot.type = openxc_DynamicField_Type_BOOL;
+    sabot.has_boolean_value = true;
+    sabot.boolean_value = value;
+    return sabot;
+}
+
 bool openxc::payload::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message, PayloadFormat format) {
     bool status = false;

@@ -51,7 +51,7 @@ static bool handleVersionCommand() {
     memset(message.command_response.message, 0,
             sizeof(message.command_response.message));
     strncpy(message.command_response.message, descriptor, sizeof(descriptor));
-    pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
+    pipeline::publish(&message, &getConfiguration()->pipeline);
 
     return true;
 }
@@ -76,7 +76,7 @@ static bool handleDeviceIdCommmand() {
                 sizeof(message.command_response.message));
         strncpy(message.command_response.message, uart->deviceId,
                 deviceIdLength);
-        pipeline::sendVehicleMessage(&message, &getConfiguration()->pipeline);
+        pipeline::publish(&message, &getConfiguration()->pipeline);
     }
     return true;
 }

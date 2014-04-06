@@ -77,18 +77,17 @@ uint64_t openxc::can::write::encodeDynamicField(const CanSignal* signal,
 
 bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
         openxc_DynamicField* value, bool force) {
-    return encodeAndSendSignal(signal, value, signal->writeHandler, force);
+    return encodeAndSendSignal(signal, value, signal->encoder, force);
 }
 
 bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
-        openxc_DynamicField* value, SignalEncoder writer, bool force) {
+        openxc_DynamicField* value, SignalEncoder encoder, bool force) {
     bool send = true;
     uint64_t encodedValue = 0;
-    if(writer == NULL) {
+    if(encoder == NULL) {
         encodedValue = encodeDynamicField(signal, value, &send);
     } else {
-        // TODO do we need to pass the full payload into the handler?
-        encodedValue = writer(signal, value, &send);
+        encodedValue = encoder(signal, value, &send);
     }
 
     if(force || send) {

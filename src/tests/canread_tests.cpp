@@ -11,16 +11,14 @@
 namespace usb = openxc::interface::usb;
 namespace can = openxc::can;
 
-using openxc::can::read::booleanHandler;
-using openxc::can::read::ignoreHandler;
-using openxc::can::read::stateHandler;
-using openxc::can::read::passthroughHandler;
-using openxc::can::read::sendEventedBooleanMessage;
-using openxc::can::read::sendEventedStringMessage;
-using openxc::can::read::sendEventedFloatMessage;
-using openxc::can::read::sendBooleanMessage;
-using openxc::can::read::sendNumericalMessage;
-using openxc::can::read::sendStringMessage;
+using openxc::can::read::booleanDecoder;
+using openxc::can::read::ignoreDecoder;
+using openxc::can::read::stateDecoder;
+using openxc::can::read::noopDecoder;
+using openxc::can::read::publishBooleanMessage;
+using openxc::can::read::publishNumericalMessage;
+using openxc::can::read::publishStringMessage;
+using openxc::can::read::publishVehicleMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
@@ -52,15 +50,16 @@ void setup() {
         getSignals()[i].received = false;
         getSignals()[i].sendSame = true;
         getSignals()[i].frequencyClock = {0};
+        getSignals()[i].decoder = NULL;
     }
 }
 
 START_TEST (test_passthrough_handler)
 {
     bool send = true;
-    ck_assert_int_eq(passthroughHandler(&getSignals()[0], getSignals(),
-            getSignalCount(), &getConfiguration()->pipeline, 42.0, &send),
-            42.0);
+    openxc_DynamicField decoded = noopDecoder(&getSignals()[0], getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline, 42.0, &send);
+    ck_assert_int_eq(decoded.numeric_value, 42.0);
     fail_unless(send);
 }
 END_TEST
@@ -68,14 +67,17 @@ END_TEST
 START_TEST (test_boolean_handler)
 {
     bool send = true;
-    fail_unless(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(),
-                &getConfiguration()->pipeline, 1.0, &send));
+    openxc_DynamicField decoded = booleanDecoder(&getSignals()[0], getSignals(), getSignalCount(),
+                &getConfiguration()->pipeline, 1.0, &send);
+    ck_assert(decoded.boolean_value);
     fail_unless(send);
-    fail_unless(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(),
-                &getConfiguration()->pipeline, 0.5, &send));
+    decoded = booleanDecoder(&getSignals()[0], getSignals(), getSignalCount(),
+                &getConfiguration()->pipeline, 0.5, &send);
+    ck_assert(decoded.boolean_value);
     fail_unless(send);
-    fail_if(booleanHandler(&getSignals()[0], getSignals(), getSignalCount(),
-                &getConfiguration()->pipeline, 0, &send));
+    decoded = booleanDecoder(&getSignals()[0], getSignals(), getSignalCount(),
+                &getConfiguration()->pipeline, 0, &send);
+    ck_assert(!decoded.boolean_value);
     fail_unless(send);
 }
 END_TEST
@@ -83,7 +85,7 @@ END_TEST
 START_TEST (test_ignore_handler)
 {
     bool send = true;
-    ignoreHandler(&getSignals()[0], getSignals(), getSignalCount(),
+    ignoreDecoder(&getSignals()[0], getSignals(), getSignalCount(),
             &getConfiguration()->pipeline, 1.0, &send);
     fail_if(send);
 }
@@ -92,11 +94,11 @@ END_TEST
 START_TEST (test_state_handler)
 {
     bool send = true;
-    ck_assert_str_eq(stateHandler(&getSignals()[1], getSignals(),
-                getSignalCount(), &getConfiguration()->pipeline, 2, &send),
-            getSignals()[1].states[1].name);
+    openxc_DynamicField decoded = stateDecoder(&getSignals()[1], getSignals(),
+                getSignalCount(), &getConfiguration()->pipeline, 2, &send);
+    ck_assert_str_eq(decoded.string_value, getSignals()[1].states[1].name);
     fail_unless(send);
-    stateHandler(&getSignals()[1], getSignals(), getSignalCount(),
+    stateDecoder(&getSignals()[1], getSignals(), getSignalCount(),
             &getConfiguration()->pipeline, 42, &send);
     fail_if(send);
 }
@@ -105,7 +107,7 @@ END_TEST
 START_TEST (test_send_numerical)
 {
     fail_unless(queueEmpty());
-    sendNumericalMessage("test", 42, &getConfiguration()->pipeline);
+    publishNumericalMessage("test", 42, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -119,7 +121,7 @@ START_TEST (test_preserve_float_precision)
 {
     fail_unless(queueEmpty());
     float value = 42.5;
-    sendNumericalMessage("test", value, &getConfiguration()->pipeline);
+    publishNumericalMessage("test", value, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -133,7 +135,7 @@ END_TEST
 START_TEST (test_send_boolean)
 {
     fail_unless(queueEmpty());
-    sendBooleanMessage("test", false, &getConfiguration()->pipeline);
+    publishBooleanMessage("test", false, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -147,7 +149,7 @@ END_TEST
 START_TEST (test_send_string)
 {
     fail_unless(queueEmpty());
-    sendStringMessage("test", "string", &getConfiguration()->pipeline);
+    publishStringMessage("test", "string", &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -161,8 +163,20 @@ END_TEST
 START_TEST (test_send_evented_boolean)
 {
     fail_unless(queueEmpty());
-    sendEventedBooleanMessage("test", "value", false,
-            &getConfiguration()->pipeline);
+
+    openxc_DynamicField value = {0};
+    value.has_type = true;
+    value.type = openxc_DynamicField_Type_STRING;
+    value.has_string_value = true;
+    strcpy(value.string_value, "value");
+
+    openxc_DynamicField event = {0};
+    event.has_type = true;
+    event.type = openxc_DynamicField_Type_BOOL;
+    event.has_boolean_value = true;
+    event.boolean_value = false;
+
+    publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -176,8 +190,20 @@ END_TEST
 START_TEST (test_send_evented_string)
 {
     fail_unless(queueEmpty());
-    sendEventedStringMessage("test", "value", "event",
-            &getConfiguration()->pipeline);
+
+    openxc_DynamicField value = {0};
+    value.has_type = true;
+    value.type = openxc_DynamicField_Type_STRING;
+    value.has_string_value = true;
+    strcpy(value.string_value, "value");
+
+    openxc_DynamicField event = {0};
+    event.has_type = true;
+    event.type = openxc_DynamicField_Type_STRING;
+    event.has_string_value = true;
+    strcpy(event.string_value, "event");
+
+    publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -191,8 +217,19 @@ END_TEST
 START_TEST (test_send_evented_float)
 {
     fail_unless(queueEmpty());
-    sendEventedFloatMessage("test", "value", 43.0,
-            &getConfiguration()->pipeline);
+    openxc_DynamicField value = {0};
+    value.has_type = true;
+    value.type = openxc_DynamicField_Type_STRING;
+    value.has_string_value = true;
+    strcpy(value.string_value, "value");
+
+    openxc_DynamicField event = {0};
+    event.has_type = true;
+    event.type = openxc_DynamicField_Type_NUM;
+    event.has_numeric_value = true;
+    event.numeric_value = 43.0;
+
+    publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -269,9 +306,14 @@ START_TEST (test_passthrough_message)
 }
 END_TEST
 
-float floatHandler(CanSignal* signal, CanSignal* signals, int signalCount,
+openxc_DynamicField floatDecoder(CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    return 42;
+    openxc_DynamicField decodedValue = {0};
+    decodedValue.has_type = true;
+    decodedValue.type = openxc_DynamicField_Type_NUM;
+    decodedValue.has_numeric_value = true;
+    decodedValue.numeric_value = 42;
+    return decodedValue;
 }
 
 START_TEST (test_default_handler)
@@ -288,41 +330,20 @@ START_TEST (test_default_handler)
 }
 END_TEST
 
-const char* noSendStringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    *send = false;
-    return NULL;
-}
-
-bool noSendBooleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    *send = false;
-    return false;
-}
-
 START_TEST (test_translate_respects_send_value)
 {
+    getSignals()[0].decoder = ignoreDecoder;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, ignoreHandler, getSignals(),
-            getSignalCount());
-    fail_unless(queueEmpty());
-
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, noSendStringHandler, getSignals(),
-            getSignalCount());
-    fail_unless(queueEmpty());
-
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, noSendBooleanTranslateHandler, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_translate_float)
 {
+    getSignals()[0].decoder = floatDecoder;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, floatHandler, getSignals(), getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -334,73 +355,39 @@ START_TEST (test_translate_float)
 END_TEST
 
 int frequencyTestCounter = 0;
-float floatHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField floatDecoderFrequencyTest(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
     frequencyTestCounter++;
-    return 42;
+    return floatDecoder(signal, signals, signalCount, pipeline, value, send);
 }
 
 START_TEST (test_translate_float_handler_called_every_time)
 {
     frequencyTestCounter = 0;
+    getSignals()[0].decoder = floatDecoderFrequencyTest;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, floatHandlerFrequencyTest, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, floatHandlerFrequencyTest, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
 
-bool boolHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField stringDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
-    frequencyTestCounter++;
-    return true;
-}
-
-START_TEST (test_translate_bool_handler_called_every_time)
-{
-    frequencyTestCounter = 0;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, boolHandlerFrequencyTest, getSignals(),
-            getSignalCount());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, boolHandlerFrequencyTest, getSignals(),
-            getSignalCount());
-    ck_assert_int_eq(frequencyTestCounter, 2);
-}
-END_TEST
-
-const char* strHandlerFrequencyTest(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    frequencyTestCounter++;
-    return "Dude.";
-}
-
-START_TEST (test_translate_str_handler_called_every_time)
-{
-    frequencyTestCounter = 0;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, strHandlerFrequencyTest, getSignals(),
-            getSignalCount());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, strHandlerFrequencyTest, getSignals(),
-            getSignalCount());
-    ck_assert_int_eq(frequencyTestCounter, 2);
-}
-END_TEST
-
-const char* stringHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return "foo";
+    openxc_DynamicField decodedValue = {0};
+    decodedValue.has_type = true;
+    decodedValue.type = openxc_DynamicField_Type_STRING;
+    decodedValue.has_string_value = true;
+    strcpy(decodedValue.string_value, "foo");
+    return decodedValue;
 }
 
 START_TEST (test_translate_string)
 {
+    getSignals()[0].decoder = stringDecoder;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, stringHandler, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -408,26 +395,6 @@ START_TEST (test_translate_string)
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
             "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
-}
-END_TEST
-
-bool booleanTranslateHandler(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return false;
-}
-
-START_TEST (test_translate_bool)
-{
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            TEST_DATA, booleanTranslateHandler, getSignals(),
-            getSignalCount());
-    fail_if(queueEmpty());
-
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
-    snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"brake_pedal_status\",\"value\":false}\0");
 }
 END_TEST
 
@@ -477,9 +444,14 @@ START_TEST (test_limited_frequency)
 }
 END_TEST
 
-float preserveHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send) {
-    return signal->lastValue;
+openxc_DynamicField preserveDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
+    openxc_DynamicField decodedValue = {0};
+    decodedValue.has_type = true;
+    decodedValue.type = openxc_DynamicField_Type_NUM;
+    decodedValue.has_numeric_value = true;
+    decodedValue.numeric_value = signal->lastValue;
+    return decodedValue;
 }
 
 START_TEST (test_preserve_last_value)
@@ -490,9 +462,9 @@ START_TEST (test_preserve_last_value)
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
 
     uint8_t data[8] = {0x12, 0x34, 0x12, 0x30};
+    getSignals()[0].decoder = preserveDecoder;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            data, preserveHandler, getSignals(),
-            getSignalCount());
+            data, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -506,9 +478,9 @@ END_TEST
 START_TEST (test_dont_send_same)
 {
     getSignals()[2].sendSame = false;
+    getSignals()[2].decoder = booleanDecoder;
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            TEST_DATA, booleanHandler, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -519,8 +491,7 @@ START_TEST (test_dont_send_same)
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            TEST_DATA, booleanHandler, getSignals(),
-            getSignalCount());
+            TEST_DATA, getSignals(), getSignalCount());
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -553,7 +524,6 @@ Suite* canreadSuite(void) {
     tcase_add_checked_fixture(tc_translate, setup, NULL);
     tcase_add_test(tc_translate, test_translate_float);
     tcase_add_test(tc_translate, test_translate_string);
-    tcase_add_test(tc_translate, test_translate_bool);
     tcase_add_test(tc_translate, test_limited_frequency);
     tcase_add_test(tc_translate, test_unlimited_frequency);
     tcase_add_test(tc_translate, test_always_send_first);
@@ -563,8 +533,6 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_translate_respects_send_value);
     tcase_add_test(tc_translate,
             test_translate_float_handler_called_every_time);
-    tcase_add_test(tc_translate, test_translate_bool_handler_called_every_time);
-    tcase_add_test(tc_translate, test_translate_str_handler_called_every_time);
     suite_add_tcase(s, tc_translate);
 
     return s;

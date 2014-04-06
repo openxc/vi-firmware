@@ -49,7 +49,7 @@ typedef struct {
  * message - A message structure containing the type and data for the message.
  * pipeline - The pipeline to send on.
  */
-void sendVehicleMessage(openxc_VehicleMessage* message,
+void publish(openxc_VehicleMessage* message,
         openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Queue the message to send on all of the interfaces registered with

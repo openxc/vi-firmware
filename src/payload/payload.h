@@ -45,6 +45,10 @@ bool deserialize(uint8_t payload[], size_t length, openxc_VehicleMessage* messag
 int serialize(openxc_VehicleMessage* message, uint8_t payload[], size_t length,
         PayloadFormat format);
 
+openxc_DynamicField wrapNumber(float value);
+openxc_DynamicField wrapString(const char* value);
+openxc_DynamicField wrapBoolean(bool value);
+
 } // namespace payload
 } // namespace openxc
 

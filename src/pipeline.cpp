@@ -108,7 +108,7 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
     }
 }
 
-void openxc::pipeline::sendVehicleMessage(openxc_VehicleMessage* message,
+void openxc::pipeline::publish(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
     size_t length = payload::serialize(message, payload, sizeof(payload),

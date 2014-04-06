@@ -17,7 +17,7 @@ using openxc::util::log::debug;
 using openxc::can::lookupBus;
 using openxc::can::addAcceptanceFilter;
 using openxc::can::removeAcceptanceFilter;
-using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::publishNumericalMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
@@ -301,7 +301,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
             strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-        sendNumericalMessage(request->name, value, pipeline);
+        publishNumericalMessage(request->name, value, pipeline);
     } else {
         // If no name, send full details of response but still include 'value'
         // instead of 'payload' if they provided a decoder. The one case you
@@ -309,7 +309,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         // another parameter for that but it's onerous to carry that around.
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
                 request->bus, request, response, value);
-        pipeline::sendVehicleMessage(&message, pipeline);
+        pipeline::publish(&message, pipeline);
     }
 
     if(request->callback != NULL) {

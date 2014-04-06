@@ -1,15 +1,15 @@
 #include "can/canread.h"
 
-using openxc::can::read::sendNumericalMessage;
+using openxc::can::read::publishNumericalMessage;
 
 void handleSteeringWheelMessage(int messageId, uint8_t data[],
         CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    sendNumericalMessage("latitude", 42.0, pipeline);
+    publishNumericalMessage("latitude", 42.0, pipeline);
 }
 
-float handleInvertedSteeringWheel(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return value * -1;
+openxc_DynamicField handleInverted(CanSignal* signal, CanSignal* signals,
+        int signalCount, float value, bool* send) {
+    return openxc::payload::wrapNumber(value * -1);
 }
 
 void initializeMyStuff() { }

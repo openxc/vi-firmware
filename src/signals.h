@@ -4,6 +4,9 @@
 #include "diagnostics.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
+// Not used directly in this header, but keep it around so handlers don't need
+// to include it explicitly.
+#include "openxc.pb.h"
 
 namespace openxc {
 

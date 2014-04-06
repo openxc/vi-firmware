@@ -9,20 +9,6 @@ namespace openxc {
 namespace can {
 namespace read {
 
-/* Public: The three valid type signatures for CAN signal decoding. Each accepts
- * a raw float CAN signal (parsed from a CAN message, with any defined factor
- * and offset transformations applied) and returns a final, decoded value.
- *
- * Each version of the type signature returns a different native type - float,
- * bool or string.
- */
-typedef float (*NumericalHandler)(CanSignal*, CanSignal*, int,
-                openxc::pipeline::Pipeline*, float, bool*);
-typedef bool (*BooleanHandler)(CanSignal*, CanSignal*, int,
-                openxc::pipeline::Pipeline*, float, bool*);
-typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int,
-                openxc::pipeline::Pipeline*, float, bool*);
-
 /* Public: Parse a CAN signal from a CAN message, apply the required
  * transforations and send the result to the pipeline.
  *
@@ -30,6 +16,7 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int,
  * different native data type. This version omits the 'handler' argument and
  * interprets the signal as a simple floating point number.
  *
+ * TODO update.
  * The version accepting a StringHandler runs the float value through the
  * handler function to convert it to a string describing a valid state for the
  * CAN signal. No error checking is performed on the handler, so if a NULL is
@@ -39,24 +26,11 @@ typedef const char* (*StringHandler)(CanSignal*, CanSignal*, int,
  * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
- * handler - (not in all versions of the function) a function that performs
- *      extra processing on the float value.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  */
 void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
         const uint8_t data[], CanSignal* signals, int signalCount);
-
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        const uint8_t data[], NumericalHandler handler, CanSignal* signals,
-        int signalCount);
-
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        const uint8_t data[], BooleanHandler handler, CanSignal* signals,
-        int signalCount);
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        const uint8_t data[], StringHandler handler, CanSignal* signals,
-        int signalCount);
 
 /* Public: Perform no parsing or processing of the CAN message, just encapsulate
  * it in a message with "id" and "data" attributes and send it out to the
@@ -86,31 +60,17 @@ void passthroughMessage(CanBus* bus, CanMessage* message,
  * value - The numerical value for the value field of the OpenXC message.
  * pipeline - The pipeline to send on.
  */
-void sendNumericalMessage(const char* name, float value,
+void publishNumericalMessage(const char* name, float value,
         openxc::pipeline::Pipeline* pipeline);
-void sendStringMessage(const char* name, const char* value,
+void publishStringMessage(const char* name, const char* value,
         openxc::pipeline::Pipeline* pipeline);
-void sendBooleanMessage(const char* name, bool value,
+void publishBooleanMessage(const char* name, bool value,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Create a new OpenXC message including an 'event' and send it to the
- * pipeline.
- *
- * There are three versions of this function, each taking a different type for
- * the 'event' field - a float, char* or bool. The 'value' field is always a
- * string for evented messages.
- *
- * name - The value for the name field of the OpenXC message.
- * value - The string value for the value field of the OpenXC message.
- * event - The boolean event for the event field of the OpenXC message.
- * pipeline - The pipeline to send on.
- */
-void sendEventedBooleanMessage(const char* name, const char* value, bool event,
-        openxc::pipeline::Pipeline* pipeline);
-void sendEventedStringMessage(const char* name, const char* value,
-        const char* event, openxc::pipeline::Pipeline* pipeline);
-void sendEventedFloatMessage(const char* name, const char* value, float event,
-        openxc::pipeline::Pipeline* pipeline);
+void publishVehicleMessage(const char* name, openxc_DynamicField* value,
+        openxc_DynamicField* event, openxc::pipeline::Pipeline* pipeline);
+void publishVehicleMessage(const char* name, openxc_DynamicField* value,
+                openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Finds and returns the corresponding string state for an integer
  *         value.
@@ -128,8 +88,9 @@ void sendEventedFloatMessage(const char* name, const char* value, float event,
  * possible states, otherwise NULL. If an equivalent isn't found, send is sent
  * to false.
  */
-const char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField stateDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
+        bool* send);
 
 /* Public: Coerces a numerical value to a boolean.
  *
@@ -145,8 +106,9 @@ const char* stateHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  * Returns a boolean equivalent for value. The value of send will not be
  * changed.
  */
-bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField booleanDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
+        bool* send);
 
 /* Public: Store the value of a signal, but flip the send flag to false.
  *
@@ -159,10 +121,11 @@ bool booleanHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns the original value unmodified and sets send to false;
  */
-float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField ignoreDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
+        bool* send);
 
-/* Public: Store the value of a signal, but flip the send flag to false.
+/* Public: TODO
  *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals.
@@ -175,8 +138,9 @@ float ignoreHandler(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns the original value unmodified and doesn't modify send.
  */
-float passthroughHandler(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField noopDecoder(CanSignal* signal, CanSignal* signals,
+        int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
+        bool* send);
 
 /* Public: Determine if the received signal should be sent out and update
  * signal metadata.

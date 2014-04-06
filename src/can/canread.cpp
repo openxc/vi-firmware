@@ -10,8 +10,9 @@ using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
-using openxc::pipeline::sendVehicleMessage;
+using openxc::pipeline::publish;
 
+namespace pipeline = openxc::pipeline;
 namespace time = openxc::util::time;
 
 float openxc::can::read::preTranslate(CanSignal* signal, const uint8_t data[],
@@ -38,32 +39,39 @@ void openxc::can::read::postTranslate(CanSignal* signal, float value) {
     signal->lastValue = value;
 }
 
-float openxc::can::read::passthroughHandler(CanSignal* signal,
+openxc_DynamicField openxc::can::read::noopDecoder(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return value;
+    return payload::wrapNumber(value);
 }
 
-bool openxc::can::read::booleanHandler(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField openxc::can::read::booleanDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return value == 0.0 ? false : true;
+    return payload::wrapBoolean(value == 0.0 ? false : true);
 }
 
-float openxc::can::read::ignoreHandler(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField openxc::can::read::ignoreDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
     *send = false;
-    return value;
+    openxc_DynamicField decodedValue = {0};
+    return decodedValue;
 }
 
-const char* openxc::can::read::stateHandler(CanSignal* signal,
+openxc_DynamicField openxc::can::read::stateDecoder(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
+    openxc_DynamicField decodedValue = {0};
+    decodedValue.has_type = true;
+    decodedValue.type = openxc_DynamicField_Type_STRING;
+    decodedValue.has_string_value = true;
+
     const CanSignalState* signalState = lookupSignalState(value, signal);
     if(signalState != NULL) {
-        return signalState->name;
+        strcpy(decodedValue.string_value, signalState->name);
+    } else {
+        *send = false;
     }
-    *send = false;
-    return NULL;
+    return decodedValue;
 }
 
 static void buildBaseTranslated(openxc_VehicleMessage* message,
@@ -77,88 +85,71 @@ static void buildBaseTranslated(openxc_VehicleMessage* message,
     message->translated_message.has_type = true;
 }
 
-void openxc::can::read::sendNumericalMessage(const char* name, float value,
-        Pipeline* pipeline) {
+void openxc::can::read::publishVehicleMessage(const char* name,
+        openxc_DynamicField* value, openxc_DynamicField* event,
+        openxc::pipeline::Pipeline* pipeline) {
     openxc_VehicleMessage message = {0};
     buildBaseTranslated(&message, name);
-    message.translated_message.type = openxc_TranslatedMessage_Type_NUM;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_numeric_value = true;
-    message.translated_message.value.numeric_value = value;
+    if(event == NULL) {
+        switch(value->type) {
+            case openxc_DynamicField_Type_STRING:
+                message.translated_message.type = openxc_TranslatedMessage_Type_STRING;
+                break;
+            case openxc_DynamicField_Type_NUM:
+                message.translated_message.type = openxc_TranslatedMessage_Type_NUM;
+                break;
+            case openxc_DynamicField_Type_BOOL:
+                message.translated_message.type = openxc_TranslatedMessage_Type_BOOL;
+                break;
+        }
+    } else {
+        switch(event->type) {
+            case openxc_DynamicField_Type_STRING:
+                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_STRING;
+                break;
+            case openxc_DynamicField_Type_NUM:
+                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_NUM;
+                break;
+            case openxc_DynamicField_Type_BOOL:
+                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_BOOL;
+                break;
+        }
+    }
 
-    sendVehicleMessage(&message, pipeline);
+    if(value != NULL) {
+        message.translated_message.has_value = true;
+        message.translated_message.value = *value;
+    }
+
+    if(event != NULL) {
+        message.translated_message.has_event = true;
+        message.translated_message.event = *event;
+    }
+
+    pipeline::publish(&message, pipeline);
 }
 
-void openxc::can::read::sendBooleanMessage(const char* name, bool value,
-        Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    message.translated_message.type = openxc_TranslatedMessage_Type_BOOL;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_boolean_value = true;
-    message.translated_message.value.boolean_value = value;
-
-    sendVehicleMessage(&message, pipeline);
+void openxc::can::read::publishVehicleMessage(const char* name,
+        openxc_DynamicField* value, openxc::pipeline::Pipeline* pipeline) {
+    publishVehicleMessage(name, value, NULL, pipeline);
 }
 
-void openxc::can::read::sendStringMessage(const char* name, const char* value,
-        Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    message.translated_message.type = openxc_TranslatedMessage_Type_STRING;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_string_value = true;
-    strcpy(message.translated_message.value.string_value, value);
-
-    sendVehicleMessage(&message, pipeline);
+void openxc::can::read::publishNumericalMessage(const char* name, float value,
+        openxc::pipeline::Pipeline* pipeline) {
+    openxc_DynamicField decodedValue = payload::wrapNumber(value);
+    publishVehicleMessage(name, &decodedValue, pipeline);
 }
 
-void openxc::can::read::sendEventedFloatMessage(const char* name,
-        const char* value, float event,
-        Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_NUM;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_string_value = true;
-    strcpy(message.translated_message.value.string_value, value);
-    message.translated_message.has_event = true;
-    message.translated_message.event.has_numeric_value = true;
-    message.translated_message.event.numeric_value = event;
-
-    sendVehicleMessage(&message, pipeline);
+void openxc::can::read::publishStringMessage(const char* name, const char* value,
+        openxc::pipeline::Pipeline* pipeline) {
+    openxc_DynamicField decodedValue = payload::wrapString(value);
+    publishVehicleMessage(name, &decodedValue, pipeline);
 }
 
-void openxc::can::read::sendEventedBooleanMessage(const char* name,
-        const char* value, bool event, Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    message.translated_message.type =
-            openxc_TranslatedMessage_Type_EVENTED_BOOL;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_string_value = true;
-    strcpy(message.translated_message.value.string_value, value);
-    message.translated_message.has_event = true;
-    message.translated_message.event.has_boolean_value = true;
-    message.translated_message.event.boolean_value = event;
-
-    sendVehicleMessage(&message, pipeline);
-}
-
-void openxc::can::read::sendEventedStringMessage(const char* name,
-        const char* value, const char* event, Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    message.translated_message.type =
-            openxc_TranslatedMessage_Type_EVENTED_STRING;
-    message.translated_message.has_value = true;
-    message.translated_message.value.has_string_value = true;
-    strcpy(message.translated_message.value.string_value, value);
-    message.translated_message.has_event = true;
-    message.translated_message.event.has_string_value = true;
-    strcpy(message.translated_message.event.string_value, event);
-
-    sendVehicleMessage(&message, pipeline);
+void openxc::can::read::publishBooleanMessage(const char* name, bool value,
+        openxc::pipeline::Pipeline* pipeline) {
+    openxc_DynamicField decodedValue = payload::wrapBoolean(value);
+    publishVehicleMessage(name, &decodedValue, pipeline);
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
@@ -200,7 +191,7 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
         memcpy(vehicleMessage.raw_message.data.bytes, message->data,
                 adjustedSize);
 
-        sendVehicleMessage(&vehicleMessage, pipeline);
+        pipeline::publish(&vehicleMessage, pipeline);
     }
 
     if(messageDefinition != NULL) {
@@ -208,51 +199,16 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     }
 }
 
-void openxc::can::read::translateSignal(Pipeline* pipeline,
-        CanSignal* signal, const uint8_t data[],
-        const NumericalHandler handler, CanSignal* signals,
-        const int signalCount) {
+void openxc::can::read::translateSignal(openxc::pipeline::Pipeline* pipeline,
+        CanSignal* signal, const uint8_t data[], CanSignal* signals,
+        int signalCount) {
     bool send = true;
     float value = preTranslate(signal, data, &send);
-    float processedValue = handler(signal, signals, signalCount, pipeline,
-            value, &send);
+    SignalDecoder decoder = signal->decoder == NULL ? noopDecoder : signal->decoder;
+    openxc_DynamicField decodedValue = decoder(signal, signals,
+            signalCount, pipeline, value, &send);
     if(send) {
-        sendNumericalMessage(signal->genericName, processedValue, pipeline);
+        publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
     postTranslate(signal, value);
-}
-
-void openxc::can::read::translateSignal(Pipeline* pipeline,
-        CanSignal* signal, const uint8_t data[],
-        const StringHandler handler, CanSignal* signals,
-        const int signalCount) {
-    bool send = true;
-    float value = preTranslate(signal, data, &send);
-    const char* stringValue = handler(signal, signals, signalCount, pipeline,
-            value, &send);
-    if(stringValue != NULL && send) {
-        sendStringMessage(signal->genericName, stringValue, pipeline);
-    }
-    postTranslate(signal, value);
-}
-
-void openxc::can::read::translateSignal(Pipeline* pipeline,
-        CanSignal* signal, const uint8_t data[],
-        const BooleanHandler handler, CanSignal* signals,
-        const int signalCount) {
-    bool send = true;
-    float value = preTranslate(signal, data, &send);
-    bool booleanValue = handler(signal, signals, signalCount, pipeline, value,
-            &send);
-    if(send) {
-        sendBooleanMessage(signal->genericName, booleanValue, pipeline);
-    }
-    postTranslate(signal, value);
-}
-
-void openxc::can::read::translateSignal(Pipeline* pipeline,
-        CanSignal* signal,
-        const uint8_t data[], CanSignal* signals, const int signalCount) {
-    translateSignal(pipeline, signal, data, passthroughHandler, signals,
-            signalCount);
 }

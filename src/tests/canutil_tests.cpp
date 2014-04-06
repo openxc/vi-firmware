@@ -199,6 +199,13 @@ START_TEST (test_unregister_can_message_not_registered)
 }
 END_TEST
 
+START_TEST (test_unregister_predefined)
+{
+    // it should have no effect
+    ck_assert(!unregisterMessageDefinition(&getCanBuses()[0], 1, CanMessageFormat::STANDARD));
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -222,7 +229,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_message_def, test_register_can_message_diff_bus);
     tcase_add_test(tc_message_def, test_unregister_can_message);
     tcase_add_test(tc_message_def, test_unregister_can_message_not_registered);
-    // TODO test removing a predefined message - it should do nothing for now
+    tcase_add_test(tc_message_def, test_unregister_predefined);
     suite_add_tcase(s, tc_message_def);
 
     return s;

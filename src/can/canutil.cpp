@@ -375,17 +375,17 @@ bool openxc::can::configureDefaultFilters(CanBus* bus,
 }
 
 static AcceptanceFilterListEntry* popListEntry(AcceptanceFilterList* list) {
-    AcceptanceFilterListEntry* result = list->lh_first;
+    AcceptanceFilterListEntry* result = LIST_FIRST(list);
     if(result != NULL) {
-        LIST_REMOVE(list->lh_first, entries);
+        LIST_REMOVE(result, entries);
     }
     return result;
 }
 
 bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
         CanMessageFormat format, CanBus* buses, int busCount) {
-    for(AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-            entry != NULL; entry = entry->entries.le_next) {
+    AcceptanceFilterListEntry* entry;
+    LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
         if(entry->filter == id) {
             ++entry->activeUserCount;
             debug("Filter for 0x%x already exists -- bumped user count to %d",
@@ -420,8 +420,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
 void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
         CanMessageFormat format, CanBus* buses, const int busCount) {
     AcceptanceFilterListEntry* entry;
-    for(entry = bus->acceptanceFilters.lh_first; entry != NULL;
-            entry = entry->entries.le_next) {
+    LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
         if(entry->filter == id) {
             break;
         }

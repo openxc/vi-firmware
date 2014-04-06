@@ -62,11 +62,12 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
     CAN_ERROR result = CAN_OK;
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];
-        // TODO use FOREACH
-        for(const AcceptanceFilterListEntry* entry = bus->acceptanceFilters.lh_first;
-                entry != NULL && filterCount < MAX_ACCEPTANCE_FILTERS;
-                entry = entry->entries.le_next, ++filterCount) {
-           result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
+        AcceptanceFilterListEntry* entry;
+        LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
+            if(++filterCount > MAX_ACCEPTANCE_FILTERS) {
+                break;
+            }
+            result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
                    entry->format == CanMessageFormat::STANDARD ?
                        STD_ID_FORMAT : EXT_ID_FORMAT);
            if(result != CAN_OK) {

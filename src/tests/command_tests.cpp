@@ -199,7 +199,7 @@ START_TEST (test_named_diagnostic_request)
     fail_if(canQueueEmpty(0));
 
     ck_assert_str_eq(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests
-                )->request.name, "foobar");
+                )->name, "foobar");
 }
 END_TEST
 
@@ -249,7 +249,7 @@ START_TEST (test_recognized_obd2_request_overridden)
 {
     const char* request = "{\"command\": \"diagnostic_request\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
-    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->request.decoder == openxc::diagnostics::passthroughDecoder);
+    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder == openxc::diagnostics::passthroughDecoder);
 }
 END_TEST
 
@@ -259,7 +259,7 @@ START_TEST (test_recognized_obd2_request)
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
-    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->request.decoder
+    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder
             == openxc::diagnostics::obd2::handleObd2Pid);
 }
 END_TEST

@@ -53,19 +53,14 @@ struct ActiveDiagnosticRequest {
     bool inFlight;
     openxc::util::time::FrequencyClock frequencyClock;
     openxc::util::time::FrequencyClock timeoutClock;
+
+    TAILQ_ENTRY(ActiveDiagnosticRequest) queueEntries;
+    LIST_ENTRY(ActiveDiagnosticRequest) listEntries;
 };
 typedef struct ActiveDiagnosticRequest ActiveDiagnosticRequest;
 
-struct DiagnosticRequestListEntry {
-    ActiveDiagnosticRequest request;
-    // TODO these couuld be pushed down into ActiveDiagnosticRequest to save 4
-    // bytes per entry
-    TAILQ_ENTRY(DiagnosticRequestListEntry) queueEntries;
-    LIST_ENTRY(DiagnosticRequestListEntry) listEntries;
-};
-
-LIST_HEAD(DiagnosticRequestList, DiagnosticRequestListEntry);
-TAILQ_HEAD(DiagnosticRequestQueue, DiagnosticRequestListEntry);
+LIST_HEAD(DiagnosticRequestList, ActiveDiagnosticRequest);
+TAILQ_HEAD(DiagnosticRequestQueue, ActiveDiagnosticRequest);
 
 struct DiagnosticsManager {
     DiagnosticShims shims[MAX_SHIM_COUNT];
@@ -73,7 +68,7 @@ struct DiagnosticsManager {
     DiagnosticRequestQueue recurringRequests;
     DiagnosticRequestList nonrecurringRequests;
     DiagnosticRequestList freeRequestEntries;
-    DiagnosticRequestListEntry requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
+    ActiveDiagnosticRequest requestListEntries[MAX_SIMULTANEOUS_DIAG_REQUESTS];
     bool initialized;
 };
 typedef struct DiagnosticsManager DiagnosticsManager;

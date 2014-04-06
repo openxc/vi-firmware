@@ -12,7 +12,6 @@
 #define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
 
 using openxc::diagnostics::ActiveDiagnosticRequest;
-using openxc::diagnostics::DiagnosticRequestListEntry;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::util::log::debug;
 using openxc::can::lookupBus;
@@ -54,35 +53,34 @@ static bool requestCompleted(ActiveDiagnosticRequest* request) {
  * CAN filters it used.
  */
 static void cancelRequest(DiagnosticsManager* manager,
-        DiagnosticRequestListEntry* entry) {
+        ActiveDiagnosticRequest* entry) {
     LIST_INSERT_HEAD(&manager->freeRequestEntries, entry, listEntries);
-    if(entry->request.arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
+    if(entry->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
         for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START;
                 filter < OBD2_FUNCTIONAL_RESPONSE_START +
                     OBD2_FUNCTIONAL_RESPONSE_COUNT;
                 filter++) {
-            removeAcceptanceFilter(entry->request.bus, filter,
+            removeAcceptanceFilter(entry->bus, filter,
                     CanMessageFormat::STANDARD, getCanBuses(),
                     getCanBusCount());
         }
     } else {
-        removeAcceptanceFilter(entry->request.bus,
-                entry->request.arbitration_id +
+        removeAcceptanceFilter(entry->bus,
+                entry->arbitration_id +
                     DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET,
                 CanMessageFormat::STANDARD, getCanBuses(), getCanBusCount());
     }
 }
 
 static void cleanupRequest(DiagnosticsManager* manager,
-        DiagnosticRequestListEntry* entry, bool force) {
-    ActiveDiagnosticRequest* request = &entry->request;
-    if(force || (entry->request.inFlight && requestCompleted(&entry->request))) {
-        entry->request.inFlight = false;
+        ActiveDiagnosticRequest* entry, bool force) {
+    if(force || (entry->inFlight && requestCompleted(entry))) {
+        entry->inFlight = false;
 
         char request_string[128] = {0};
-        diagnostic_request_to_string(&request->handle.request,
+        diagnostic_request_to_string(&entry->handle.request,
                 request_string, sizeof(request_string));
-        if(request->recurring) {
+        if(entry->recurring) {
             TAILQ_REMOVE(&manager->recurringRequests, entry, queueEntries);
             if(force) {
                 cancelRequest(manager, entry);
@@ -102,7 +100,7 @@ static void cleanupRequest(DiagnosticsManager* manager,
 
 // clean up the request list, move as many to the free list as possible
 static void cleanupActiveRequests(DiagnosticsManager* manager, bool force) {
-    DiagnosticRequestListEntry* entry, *tmp;
+    ActiveDiagnosticRequest* entry, *tmp;
     LIST_FOREACH_SAFE(entry, &manager->nonrecurringRequests, listEntries, tmp) {
         cleanupRequest(manager, entry, force);
     }
@@ -189,15 +187,15 @@ static inline bool conflicting(ActiveDiagnosticRequest* request,
  */
 static inline bool clearToSend(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request) {
-    DiagnosticRequestListEntry* entry;
+    ActiveDiagnosticRequest* entry;
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
-        if(conflicting(request, &entry->request)) {
+        if(conflicting(request, entry)) {
             return false;
         }
     }
 
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
-        if(conflicting(request, &entry->request)) {
+        if(conflicting(request, entry)) {
             return false;
         }
     }
@@ -211,8 +209,7 @@ static inline bool shouldSend(ActiveDiagnosticRequest* request) {
 }
 
 static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
-        DiagnosticRequestListEntry* entry) {
-    ActiveDiagnosticRequest* request = &entry->request;
+        ActiveDiagnosticRequest* request) {
     if(request->bus == bus && shouldSend(request) &&
             clearToSend(manager, request)) {
         time::tick(&request->frequencyClock);
@@ -221,7 +218,7 @@ static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
         request->timeoutClock = {0};
         request->timeoutClock.frequency = 10;
         time::tick(&request->timeoutClock);
-        entry->request.inFlight = true;
+        request->inFlight = true;
     }
 }
 
@@ -229,7 +226,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
     cleanupActiveRequests(manager, false);
 
-    DiagnosticRequestListEntry* entry;
+    ActiveDiagnosticRequest* entry;
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
         sendRequest(manager, bus, entry);
     }
@@ -322,18 +319,17 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
 
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
-        DiagnosticRequestListEntry* entry,
+        ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
-    if(bus == entry->request.bus && entry->request.inFlight) {
+    if(bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
                 // TODO eek, is bus address and array index this tightly
                 // coupled?
                 &manager->shims[bus->address - 1],
-                &entry->request.handle, message->id, message->data,
-                message->length);
-        if(response.completed && entry->request.handle.completed) {
-            if(entry->request.handle.success) {
-                relayDiagnosticResponse(manager, &entry->request, &response,
+                &entry->handle, message->id, message->data, message->length);
+        if(response.completed && entry->handle.completed) {
+            if(entry->handle.success) {
+                relayDiagnosticResponse(manager, entry, &response,
                         pipeline);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
@@ -344,7 +340,7 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
-    DiagnosticRequestListEntry* entry;
+    ActiveDiagnosticRequest* entry;
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
         receiveCanMessage(manager, bus, entry, message, pipeline);
     }
@@ -358,12 +354,12 @@ void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
 /* Note that this pops it off of whichver list it was on and returns it, so make
  * sure to add it to some other list or it'll be lost.
  */
-static DiagnosticRequestListEntry* lookupRecurringRequest(
+static ActiveDiagnosticRequest* lookupRecurringRequest(
         DiagnosticsManager* manager, const CanBus* bus,
         const DiagnosticRequest* request) {
-    DiagnosticRequestListEntry* existingEntry = NULL, *entry, *tmp;
+    ActiveDiagnosticRequest* existingEntry = NULL, *entry, *tmp;
     TAILQ_FOREACH_SAFE(entry, &manager->recurringRequests, queueEntries, tmp) {
-        ActiveDiagnosticRequest* candidate = &entry->request;
+        ActiveDiagnosticRequest* candidate = entry;
         if(candidate->bus == bus && diagnostic_request_equals(
                     &candidate->handle.request, request)) {
             TAILQ_REMOVE(&manager->recurringRequests, entry, queueEntries);
@@ -376,7 +372,7 @@ static DiagnosticRequestListEntry* lookupRecurringRequest(
 
 bool openxc::diagnostics::cancelRecurringRequest(
         DiagnosticsManager* manager, CanBus* bus, DiagnosticRequest* request) {
-    DiagnosticRequestListEntry* entry = lookupRecurringRequest(manager, bus,
+    ActiveDiagnosticRequest* entry = lookupRecurringRequest(manager, bus,
             request);
     if(entry != NULL) {
         cancelRequest(manager, entry);
@@ -404,7 +400,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
     cleanupActiveRequests(manager, false);
 
-    DiagnosticRequestListEntry* entry = NULL;
+    ActiveDiagnosticRequest* entry = NULL;
     if(frequencyHz != 0.0) {
         entry = lookupRecurringRequest(manager, bus, request);
     }
@@ -444,31 +440,30 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         }
     }
 
-    entry->request.bus = bus;
-    entry->request.arbitration_id = request->arbitration_id;
-    entry->request.handle = generate_diagnostic_request(
+    entry->bus = bus;
+    entry->arbitration_id = request->arbitration_id;
+    entry->handle = generate_diagnostic_request(
             &manager->shims[bus->address - 1], request, NULL);
     if(name != NULL) {
-        strncpy(entry->request.name, name, MAX_GENERIC_NAME_LENGTH);
+        strncpy(entry->name, name, MAX_GENERIC_NAME_LENGTH);
     } else {
-        entry->request.name[0] = '\0';
+        entry->name[0] = '\0';
     }
-    entry->request.waitForMultipleResponses = waitForMultipleResponses;
+    entry->waitForMultipleResponses = waitForMultipleResponses;
 
-    entry->request.decoder = decoder;
-    entry->request.callback = callback;
-    entry->request.recurring = frequencyHz != 0;
-    entry->request.frequencyClock = {0};
-    entry->request.frequencyClock.frequency =
-            entry->request.recurring ? frequencyHz : 0;
+    entry->decoder = decoder;
+    entry->callback = callback;
+    entry->recurring = frequencyHz != 0;
+    entry->frequencyClock = {0};
+    entry->frequencyClock.frequency = entry->recurring ? frequencyHz : 0;
     // time out after 100ms
-    entry->request.timeoutClock = {0};
-    entry->request.timeoutClock.frequency = 10;
-    entry->request.inFlight = false;
+    entry->timeoutClock = {0};
+    entry->timeoutClock.frequency = 10;
+    entry->inFlight = false;
 
     char request_string[128] = {0};
-    diagnostic_request_to_string(&entry->request.handle.request,
-            request_string, sizeof(request_string));
+    diagnostic_request_to_string(&entry->handle.request, request_string,
+            sizeof(request_string));
     if(usedFreeEntry) {
         LIST_REMOVE(entry, listEntries);
         debug("Added new diagnostic request (freq: %f) on bus %d: %s",
@@ -479,7 +474,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
                 request_string);
     }
 
-    if(entry->request.recurring) {
+    if(entry->recurring) {
         TAILQ_INSERT_HEAD(&manager->recurringRequests, entry, queueEntries);
     } else {
         LIST_INSERT_HEAD(&manager->nonrecurringRequests, entry, listEntries);

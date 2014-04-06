@@ -9,8 +9,6 @@
 #include "pipeline.h"
 #include <payload/payload.h>
 
-// TODO find a good home for this
-#define MAX_OUTGOING_PAYLOAD_SIZE 256
 #define UART_BAUD_RATE 230400
 
 #ifndef MIN

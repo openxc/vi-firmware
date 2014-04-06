@@ -9,6 +9,8 @@ using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
 
+#define MAX_OUTGOING_PAYLOAD_SIZE 256
+
 namespace openxc {
 namespace pipeline {
 

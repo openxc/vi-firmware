@@ -1,6 +1,12 @@
-====================================
-Low-level CAN Configuration Examples
-====================================
+========================================
+Read-only Raw CAN Configuration Examples
+========================================
+
+If you don't care about abstracting the details of CAN messages from developers
+(or perhaps you're the only developer and you're working directly with CAN
+data), you can configure the VI to output full, low-level CAN messages. You can
+read every message or a filtered subset, but be aware that not every VI has
+enough horsepower to send every CAN messages through as JSON.
 
 .. contents::
     :local:
@@ -36,6 +42,8 @@ e.g. when using the JSON output format:
 .. code-block:: js
 
   {"bus": 1, "id": 1234, "value": "0x12345678"}
+
+.. _filtered-raw-can:
 
 Filtered Raw CAN
 =================

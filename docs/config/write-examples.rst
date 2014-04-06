@@ -62,14 +62,21 @@ USB or UART (Bluetooth) would trigger a CAN write:
 
    {"name": "my_openxc_measurement", "value": 42}
 
-With the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
+With the tools from the `OpenXC Python library <openxc-python>`_ you can send that from a
 terminal with the command:
+
+.. _openxc-python: http://python.openxcplatform.com/en/latest/
 
 .. code-block:: sh
 
     openxc-control write --name my_openxc_measurement --value 42
 
+and if you compiled the firmware with ``DEBUG=1``, you can view the view the
+logs to make sure the write went through with this command:
+
+.. code-block:: sh
+
+    openxc-control write --name my_openxc_measurement --value 42 --log-mode stderr
 
 Translated Boolean Signal Write Request
 =======================================
@@ -117,8 +124,8 @@ USB or UART (Bluetooth) would trigger a CAN write:
 
    {"name": "my_boolean_request", "value": true}
 
-With the tools from the _`OpenXC Python library` you can send that from a
-terminal with the command:
+With the tools from the `OpenXC Python library <openxc-python>`_ you can send
+that from a terminal with the command:
 
 .. code-block:: sh
 
@@ -180,7 +187,7 @@ USB or UART (Bluetooth) would trigger a CAN write:
 
    {"name": "my_state_request", "value": "a"}
 
-With the tools from the _`OpenXC Python library` you can send that from a
+With the tools from the `OpenXC Python library <openxc-python>`_ you can send that from a
 terminal with the command:
 
 .. code-block:: sh

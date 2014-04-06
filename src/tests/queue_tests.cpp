@@ -3,7 +3,7 @@
 #include "emqueue.h"
 #include <stdio.h>
 #include <stdlib.h>
-// TODO we don't really need this but it gets around an issue with multiple
+// we don't really need this but it gets around an issue with multiple
 // definitions of the byte queue
 #include "util/bytebuffer.h"
 

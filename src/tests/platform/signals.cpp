@@ -130,7 +130,6 @@ openxc_DynamicField LAST_COMMAND_EVENT;
 bool turnSignalCommandHandler(const char* name, openxc_DynamicField* value,
         openxc_DynamicField* event, CanSignal* signals, int signalCount) {
     strcpy(LAST_COMMAND_NAME, name);
-    // TODO will this copy the string value?
     LAST_COMMAND_VALUE = *value;
     if(event != NULL) {
         LAST_COMMAND_EVENT = *event;

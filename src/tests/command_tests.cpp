@@ -167,8 +167,7 @@ END_TEST
 START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
-                strlen(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -176,8 +175,7 @@ START_TEST (test_raw_write_less_than_full_message)
     ck_assert_int_eq(message.data[0], 0x12);
     ck_assert_int_eq(message.data[1], 0x34);
     ck_assert_int_eq(message.data[2], 0x0);
-    // TODO pending
-    // ck_assert_int_eq(message.length, 2);
+    ck_assert_int_eq(message.length, 2);
 }
 END_TEST
 

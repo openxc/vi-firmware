@@ -35,9 +35,10 @@ int getMessageSetCount() __attribute__((weak));
 /* Public: Perform any one-time initialization necessary. This is called when
  * the microcontroller first starts.
  *
- * diagnosticsManager - TODO
- *
- * TODO should this also be called when the configuration is switched?
+ * diagnosticsManager - The active DiagnosticManager, for adding default
+ *      diagnostic requests. When you add pre-defined, recurring diagnostic
+ *      requests to a VI config file, the Python code generator will initialize
+ *      them in this function.
  */
 void initialize(openxc::diagnostics::DiagnosticsManager* diagnosticsManager) __attribute__((weak));
 

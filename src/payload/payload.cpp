@@ -35,7 +35,7 @@ openxc_DynamicField openxc::payload::wrapBoolean(bool value) {
 }
 
 bool openxc::payload::deserialize(uint8_t payload[], size_t length,
-        openxc_VehicleMessage* message, PayloadFormat format) {
+        PayloadFormat format, openxc_VehicleMessage* message) {
     bool status = false;
     if(format == PayloadFormat::JSON) {
         status = payload::json::deserialize(payload, length, message);

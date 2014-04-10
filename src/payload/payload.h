@@ -19,17 +19,16 @@ typedef enum {
  *
  * payload - The bytestream payload to parse a message from.
  * length -  The length of the payload.
- * message - An output parameter, the object to store the deserialized message.
- *      TODO move OUT params to end of argument list
  * format - The expected format of the message serialized in the payload.
+ * message - An output parameter, the object to store the deserialized message.
  *
  * Returns true if the payload contained a valid message in the given format,
  * and it was deserialized into the openxc_VehicleMessage parameter
  * successfully. The message may have domain specific validation errors, but it
  * at least was parsed properly.
  */
-bool deserialize(uint8_t payload[], size_t length, openxc_VehicleMessage* message,
-        PayloadFormat format);
+bool deserialize(uint8_t payload[], size_t length, PayloadFormat format,
+        openxc_VehicleMessage* message);
 
 /* Public: Serialize an OpenXC message into a payload of bytes.
  *

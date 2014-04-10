@@ -215,8 +215,8 @@ bool openxc::commands::handleControlCommand(Command command, uint8_t payload[],
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
     bool status = true;
-    if(payload::deserialize(payload, length, &message,
-                getConfiguration()->payloadFormat)) {
+    if(payload::deserialize(payload, length,
+                getConfiguration()->payloadFormat, &message)) {
         if(validate(&message)) {
             switch(message.type) {
             case openxc_VehicleMessage_Type_RAW:

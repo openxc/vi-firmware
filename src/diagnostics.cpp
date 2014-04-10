@@ -293,10 +293,6 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         value = request->decoder(response, value);
     }
 
-    // TODO if name, implies no id+mode+pid+bus or payload, and adds value
-    // (parsed value)
-    // if includes decoder, include value instead of payload but leave the rest.
-
     if(response->success && request->name != NULL &&
             strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response

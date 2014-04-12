@@ -17,6 +17,11 @@ typedef enum {
 /* Public: Deserialize an OpenXC message from the given payload, using the given
  * format.
  *
+ * The payload must be in one of the formats defined by the OpenXC message
+ * format:
+ *
+ * https://github.com/openxc/openxc-message-format
+ *
  * payload - The bytestream payload to parse a message from.
  * length -  The length of the payload.
  * format - The expected format of the message serialized in the payload.
@@ -30,7 +35,8 @@ typedef enum {
 bool deserialize(uint8_t payload[], size_t length, PayloadFormat format,
         openxc_VehicleMessage* message);
 
-/* Public: Serialize an OpenXC message into a payload of bytes.
+/* Public: Serialize an OpenXC message into a payload of bytes using the OpenXC
+ * message format (https://github.com/openxc/openxc-message-format).
  *
  * message - The message to serialize.
  * payload - The buffer to store the payload - must be allocated by the caller.
@@ -44,6 +50,8 @@ bool deserialize(uint8_t payload[], size_t length, PayloadFormat format,
 int serialize(openxc_VehicleMessage* message, uint8_t payload[], size_t length,
         PayloadFormat format);
 
+/* Public: Helper functions to wrap values in an openxc_DynamicField
+ */
 openxc_DynamicField wrapNumber(float value);
 openxc_DynamicField wrapString(const char* value);
 openxc_DynamicField wrapBoolean(bool value);

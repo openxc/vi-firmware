@@ -101,10 +101,14 @@ typedef struct CanSignalState CanSignalState;
  * stateCount  - The length of the states array.
  * writable    - True if the signal is allowed to be written from the USB host
  *               back to CAN. Defaults to false.
- * encoder - An optional function to encode a signal value to be written to
- *                CAN into a byte array. If null, the default encoder is used.
- * received    - Marked true if this signal has ever been received.
- * lastValue   - The last received value of the signal. Defaults to undefined.
+ * decoder     - An optional function to decode a signal from the bus to a human
+ *      readable value. If NULL, the default numerical decoder is used.
+ * encoder     - An optional function to encode a signal value to be written to
+ *                CAN into a byte array. If NULL, the default numerical encoder
+ *                is used.
+ * received    - True if this signal has ever been received.
+ * lastValue   - The last received value of the signal. If 'received' is false,
+ *      this value is undefined.
  */
 struct CanSignal {
     struct CanMessageDefinition* message;
@@ -134,12 +138,15 @@ typedef struct CanSignal CanSignal;
  *
  * bus - A pointer to the bus this message is on.
  * id - The ID of the message.
+ * format - the format of the message's ID.
  * frequencyClock - an optional frequency clock to control the output of this
  *      message, if sent raw, or simply to mark the max frequency for custom
  *      handlers to retrieve.
  * forceSendChanged - If true, regardless of the frequency, it will send CAN
  *      message if it has changed when using raw passthrough.
  * lastValue - The last received value of the message. Defaults to undefined.
+ *      This is required for the forceSendChanged functionality, as the stack
+ *      needs to compare an incoming CAN message with the previous frame.
  */
 struct CanMessageDefinition {
     struct CanBus* bus;
@@ -155,6 +162,7 @@ typedef struct CanMessageDefinition CanMessageDefinition;
  * buffers.
  *
  * id - The ID of the message.
+ * format - the format of the message's ID.
  * data  - The message's data field.
  * length - the length of the data array (max 8).
  */
@@ -168,15 +176,14 @@ typedef struct CanMessage CanMessage;
 
 QUEUE_DECLARE(CanMessage, 8);
 
-
 /* Private: An entry in the list of acceptance filters for each CanBus.
  *
  * This struct is meant to be used with a LIST type from <sys/queue.h>.
  *
  * filter - the value for the CAN acceptance filter.
- * format - the format of the ID for the filter.
  * activeUserCount - The number of active consumers of this filter's messages.
  *      When 0, this filter can be removed.
+ * format - the format of the ID for the filter.
  */
 struct AcceptanceFilterListEntry {
     uint32_t filter;
@@ -215,10 +222,20 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the
  *      acceptanceFilters and freeAcceptanceFilters list.
+ * dynamicMessages - a list of CAN message IDs ever received on this bus. This
+ *      is used for message frequency control and metrics.
+ * freeMessageDefinitions - a list of available slots for dynamic message
+ *      definitions.
+ * definitionEntries - static memory allocated for entires in the
+ *      dynamicMessages and freeMessageDefinitions list.
  * writeHandler - a function that actually writes out a CanMessage object to the
  *      CAN interface (implementation is platform specific);
  * lastMessageReceived - the time (in ms) when the last CAN message was
  *      received. If no message has been received, it should be 0.
+ * messagesReceived - A count of the number of CAN messages received.
+ * messagesDropped - A count of the number of CAN messages we knowingly dropped
+ * - i.e. we received an interrupt with a new CAN message but the incoming CAN
+ *   message queue was full.
  * sendQueue - a queue of CanMessage instances that need to be written to CAN.
  * receiveQueue - a queue of messages received from CAN that have yet to be
  *      translated.
@@ -282,34 +299,38 @@ namespace can {
 
 extern const int CAN_ACTIVE_TIMEOUT_S;
 
-/* Public: The function definition for completely custom OpenXC command
- * handlers.
+/* Public: The type signature for a function to handle a custom OpenXC command.
  *
- * name - the name field in the message received over USB.
- * value - the value of the message, parsed by the cJSON library and able to be
- *         read as a string, boolean, float or int.
- * event - an optional event, may be null if the OpenXC message didn't include
- *          it.
+ * Commands use the "translated" message format, and have at least a name and
+ * value.
+ *
+ * name - the name of the received command.
+ * value - the value of the received command, in a DynamicField. The actual type
+ *      may be a number, string or bool.
+ * event - an optional event from the received command, in a DynamicField. The
+ *      actual type may be a number, string or bool.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- *
- * Returns true if the command caused something to be sent over CAN.
  */
-typedef bool (*CommandHandler)(const char* name, openxc_DynamicField* value,
+typedef void (*CommandHandler)(const char* name, openxc_DynamicField* value,
         openxc_DynamicField* event, CanSignal* signals, int signalCount);
 
-/* Public: A command to read from USB and possibly write back to CAN.
+/* Public: The structure to represent a supported custom OpenXC command.
  *
  * For completely customized CAN commands without a 1-1 mapping between an
  * OpenXC message from the host and a CAN signal, you can define the name of the
- * command and a custom function to handle it in the translator. An example is
+ * command and a custom function to handle it in the VI. An example is
  * the "turn_signal_status" command in OpenXC, which has a value of "left" or
  * "right". The vehicle may have separate CAN signals for the left and right
- * turn signals, so you will need to implement a custom command handler to
+ * turn signals, so you will need to implement a custom command handler to send
+ * the correct signals.
  *
- * genericName - The name of message received over USB.
- * handler - An function to actually process the received command's value
- *                and write it to CAN in the proper signals.
+ * Command handlers are also useful if you want to trigger multiple CAN messages
+ * or signals from a signal OpenXC message.
+ *
+ * genericName - The name of the command.
+ * handler - An function to process the received command's data and perform some
+ *      action.
  */
 typedef struct {
     const char* genericName;
@@ -321,8 +342,10 @@ typedef struct {
  * This function must be defined for each platform - it's hardware dependent.
  *
  * bus - A CanBus struct defining the bus's metadata for initialization.
- * writable - configure the controller in a writable mode. If False, it will be
+ * writable - configure the controller in a writable mode. If false, it will be
  *      configured as "listen only" and will not allow writes or even CAN ACKs.
+ * buses - An array of all CAN buses.
+ * busCount - The length of the buses array.
  */
 void initialize(CanBus* bus, bool writable, CanBus* buses, const int busCount);
 
@@ -407,7 +430,7 @@ const CanSignalState* lookupSignalState(const char* name, const CanSignal* signa
  * Use this to find the string equivalent value to write over USB when a float
  * value is received from CAN.
  *
- * value - the numerical value equivalent for the state.
+ * value - The numerical value equivalent for the state.
  * name - The string name of the desired signal state.
  * signal - The CanSignal that should include this state.
  *
@@ -420,7 +443,7 @@ const CanSignalState* lookupSignalState(int value, const CanSignal* signal);
  *
  * bus - The CanBus to search for the message.
  * id - The ID of the CAN message.
- * format - the format of the ID of the message.
+ * format - The format of the ID of the message.
  * predefinedMessages - The list of predefined CAN messages to search.
  * predefinedMessageCount - The length of the predefined messages array.
  *
@@ -431,6 +454,13 @@ CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
+/* Public: Search all active CAN buses for one using the given controller
+ * address.
+ *
+ * address - The CAN controller address to search for, e.g. 1 or 2.
+ * buses - An array of all active CanBus instances.
+ * busCount - The length of the buses array.
+ */
 CanBus* lookupBus(uint8_t address, CanBus* buses, const int busCount);
 
 /* Public: Configure a new CAN message on the given bus.

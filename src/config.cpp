@@ -25,8 +25,16 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         messageSetIndex: 0,
         version: "6.0-dev",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
-        initialized: false,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
+        obd2BusAddress: DEFAULT_OBD2_BUS,
+        powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
+        sendCanAcks: DEFAULT_CAN_ACK_STATUS,
+        emulatedData: DEFAULT_EMULATED_DATA_STATUS,
+        uartLogging: DEFAULT_UART_LOGGING_STATUS,
+        calculateMetrics: DEFAULT_METRICS_STATUS,
+        desiredRunLevel: RunLevel::CAN_ONLY,
+        initialized: false,
+        runLevel: RunLevel::NOT_RUNNING,
         uart: {
             baudRate: UART_BAUD_RATE
         },
@@ -43,14 +51,6 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         },
         diagnosticsManager: {},
         pipeline: {},
-        obd2BusAddress: DEFAULT_OBD2_BUS,
-        powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
-        sendCanAcks: DEFAULT_CAN_ACK_STATUS,
-        emulatedData: DEFAULT_EMULATED_DATA_STATUS,
-        uartLogging: DEFAULT_UART_LOGGING_STATUS,
-        calculateMetrics: DEFAULT_METRICS_STATUS,
-        runLevel: RunLevel::NOT_RUNNING,
-        desiredRunLevel: RunLevel::CAN_ONLY,
     };
 
     if(!CONFIG.initialized) {

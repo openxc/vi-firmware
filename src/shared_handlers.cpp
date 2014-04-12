@@ -330,7 +330,7 @@ void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,
     }
 }
 
-bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
+void openxc::signals::handlers::handleTurnSignalCommand(const char* name,
         openxc_DynamicField* value, openxc_DynamicField* event,
         CanSignal* signals, int signalCount) {
     const char* direction = value->string_value;
@@ -341,12 +341,9 @@ bool openxc::signals::handlers::handleTurnSignalCommand(const char* name,
         signal = lookupSignal("turn_signal_right", signals, signalCount);
     }
 
-    bool sent = true;
     if(signal != NULL) {
         can::write::encodeAndSendBooleanSignal(signal, true, true);
     } else {
         debug("Unable to find signal for %s turn signal", direction);
-        sent = false;
     }
-    return sent;
 }

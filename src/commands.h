@@ -12,17 +12,20 @@ namespace commands {
 #define DEVICE_ID_CONTROL_COMMAND 0x82
 #define DIAGNOSTIC_REQUEST_CONTROL_COMMAND 0x83
 
+/* Public: USB control message identifiers for control commands.
+ *
+ * These map from USB control message IDs to commands that can also be send in
+ * the normal data stream.
+ */
 typedef enum {
     VERSION = 0x80,
     DEVICE_ID = 0x82,
     COMPLEX_COMMAND = 0x83
-} Command;
-
-typedef bool (*IncomingMessageCallback)(uint8_t*, size_t);
+} UsbControlCommand;
 
 bool handleIncomingMessage(uint8_t payload[], size_t payloadLength);
 
-bool handleControlCommand(Command command, uint8_t payload[],
+bool handleControlCommand(UsbControlCommand command, uint8_t payload[],
         size_t payloadLength);
 
 /* Public: Validate the data in an OpenXC message;

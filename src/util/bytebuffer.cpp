@@ -5,7 +5,7 @@
 QUEUE_DEFINE(uint8_t)
 
 using openxc::util::log::debug;
-using openxc::commands::IncomingMessageCallback;
+using openxc::util::bytebuffer::IncomingMessageCallback;
 
 bool openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
         IncomingMessageCallback callback) {

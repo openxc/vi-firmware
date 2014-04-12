@@ -1,4 +1,3 @@
-
 #if defined(FORDBOARD)
 
     #define BLUETOOTH_SUPPORT

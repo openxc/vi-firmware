@@ -61,7 +61,7 @@ void changeBaudRate(UartDevice* device, int baud);
  * device - The UART device to check for incoming data.
  * callback - A function to call with any received data.
  */
-void read(UartDevice* device, openxc::commands::IncomingMessageCallback callback);
+void read(UartDevice* device, openxc::util::bytebuffer::IncomingMessageCallback callback);
 
 /* Public: Perform platform-agnostic UART initialization.
  */

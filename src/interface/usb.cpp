@@ -18,7 +18,7 @@ void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::read(UsbDevice* device,
-        openxc::commands::IncomingMessageCallback callback) {
+        openxc::util::bytebuffer::IncomingMessageCallback callback) {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &device->endpoints[i];
         if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {

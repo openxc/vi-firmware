@@ -6,6 +6,11 @@
 namespace openxc {
 namespace emulator {
 
+/* Public: Generate and inject fake vehicle data into the Pipeline.
+ *
+ * This is useful to test general connectivity with a VI on a bench without
+ * having a real vehicle.
+ */
 void generateFakeMeasurements(openxc::pipeline::Pipeline* pipeline);
 
 } // namespace emulator

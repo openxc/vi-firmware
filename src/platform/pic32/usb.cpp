@@ -40,8 +40,10 @@ static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
-    commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
-            INCOMING_EP0_DATA_BUFFER, INCOMING_EP0_DATA_SIZE);
+    commands::handleControlCommand(
+            commands::UsbControlCommand(SetupPkt.bRequest),
+            INCOMING_EP0_DATA_BUFFER,
+            INCOMING_EP0_DATA_SIZE);
     memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
 }
 
@@ -57,7 +59,8 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
         for(int i = 0; i < ENDPOINT_COUNT; i++) {
             UsbEndpoint* endpoint = &getConfiguration()->usb.endpoints[i];
-            if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
+            if(endpoint->direction ==
+                    UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
                 getConfiguration()->usb.device.EnableEndpoint(endpoint->address,
                         USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
                 armForRead(&getConfiguration()->usb, endpoint);
@@ -76,8 +79,8 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
                     MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
                         (void*)handleCompletedEP0OutTransfer);
         } else {
-            commands::handleControlCommand(commands::Command(SetupPkt.bRequest),
-                    NULL, 0);
+            commands::handleControlCommand(
+                    commands::UsbControlCommand(SetupPkt.bRequest), NULL, 0);
         }
 
         break;
@@ -141,10 +144,10 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
 
             int nextByteIndex = 0;
             while(nextByteIndex < byteCount) {
-                // Make sure the USB write is 100% complete before messing with this
-                // buffer after we copy the message into it - the Microchip library
-                // doesn't copy the data to its own internal buffer. See #171 for
-                // background on this issue.
+                // Make sure the USB write is 100% complete before messing with
+                // this buffer after we copy the message into it - the Microchip
+                // library doesn't copy the data to its own internal buffer. See
+                // #171 for background on this issue.
                 if(!waitForHandle(usbDevice, endpoint)) {
                     debug("USB not responding in a timely fashion, dropped data");
                     return;
@@ -182,7 +185,7 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
-        commands::IncomingMessageCallback callback) {
+        util::bytebuffer::IncomingMessageCallback callback) {
     if(endpoint->hostToDeviceHandle != 0 &&
             !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         size_t length = device->device.HandleGetLength(

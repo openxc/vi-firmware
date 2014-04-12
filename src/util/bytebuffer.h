@@ -10,6 +10,15 @@ namespace openxc {
 namespace util {
 namespace bytebuffer {
 
+/* Public: The type signature for a callback to receive new command data.
+ *
+ * buffer - The received command buffer.
+ * length - The length of the buffer
+ *
+ * The callback should return true if there were no errors.
+ */
+typedef bool (*IncomingMessageCallback)(uint8_t* buffer, size_t length);
+
 /* Public: Search for a complete message in the queue, remove it and pass it to
  * the callback. If no message is found, reset the queue back to empty if it's
  * full.
@@ -20,8 +29,7 @@ namespace bytebuffer {
  *
  * Returns true if a completed message was found in the queue and removed.
  */
-bool processQueue(QUEUE_TYPE(uint8_t)* queue,
-                openxc::commands::IncomingMessageCallback callback);
+bool processQueue(QUEUE_TYPE(uint8_t)* queue, IncomingMessageCallback callback);
 
 /* Public: Add the message to the byte queue if there is room.
  *

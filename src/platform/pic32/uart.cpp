@@ -57,7 +57,7 @@ extern HardwareSerial Serial;
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
 void openxc::interface::uart::read(UartDevice* device,
-        openxc::commands::IncomingMessageCallback callback) {
+        openxc::util::bytebuffer::IncomingMessageCallback callback) {
     if(device != NULL) {
         int bytesAvailable = ((HardwareSerial*)device->controller)->available();
         if(bytesAvailable > 0) {

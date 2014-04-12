@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-using openxc::commands::IncomingMessageCallback;
+using openxc::util::bytebuffer::IncomingMessageCallback;
 
 bool USB_PROCESSED = false;
 uint8_t LAST_CONTROL_COMMAND_PAYLOAD[256];

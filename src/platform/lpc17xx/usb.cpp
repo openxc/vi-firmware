@@ -95,7 +95,7 @@ void EVENT_USB_Device_ControlRequest() {
     }
 
     commands::handleControlCommand(
-            commands::Command(USB_ControlRequest.bRequest),
+            commands::UsbControlCommand(USB_ControlRequest.bRequest),
             snapshot, length);
 }
 
@@ -264,7 +264,7 @@ void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
-        openxc::commands::IncomingMessageCallback callback) {
+        openxc::util::bytebuffer::IncomingMessageCallback callback) {
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);
 

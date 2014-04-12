@@ -17,7 +17,7 @@ using openxc::signals::getActiveMessageSet;
 using openxc::commands::handleIncomingMessage;
 using openxc::commands::handleControlCommand;
 using openxc::commands::validate;
-using openxc::commands::Command;
+using openxc::commands::UsbControlCommand;
 using openxc::config::getConfiguration;
 using openxc::config::getFirmwareDescriptor;
 using openxc::signals::getCanBuses;
@@ -459,7 +459,7 @@ END_TEST
 
 START_TEST (test_version_control_command)
 {
-    ck_assert(handleControlCommand(Command::VERSION, NULL, 0));
+    ck_assert(handleControlCommand(UsbControlCommand::VERSION, NULL, 0));
     char firmwareDescriptor[256] = {0};
     getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
@@ -480,7 +480,7 @@ END_TEST
 START_TEST (test_device_id_control_command)
 {
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(handleControlCommand(Command::DEVICE_ID, NULL, 0));
+    ck_assert(handleControlCommand(UsbControlCommand::DEVICE_ID, NULL, 0));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
     ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, getConfiguration()->uart.deviceId) != NULL);
 }
@@ -488,7 +488,7 @@ END_TEST
 
 START_TEST (test_complex_control_command)
 {
-    ck_assert(handleControlCommand(Command::COMPLEX_COMMAND,
+    ck_assert(handleControlCommand(UsbControlCommand::COMPLEX_COMMAND,
                 (uint8_t*)WRITABLE_TRANSLATED_REQUEST,
                 strlen(WRITABLE_TRANSLATED_REQUEST)));
     fail_if(canQueueEmpty(0));
@@ -497,7 +497,7 @@ END_TEST
 
 START_TEST (test_unrecognized_control_command)
 {
-    ck_assert(!handleControlCommand(Command(1), NULL, 0));
+    ck_assert(!handleControlCommand(UsbControlCommand(1), NULL, 0));
 }
 END_TEST
 

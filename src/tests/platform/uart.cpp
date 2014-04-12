@@ -3,7 +3,7 @@
 #include "util/log.h"
 #include <cstddef>
 
-using openxc::commands::IncomingMessageCallback;
+using openxc::util::bytebuffer::IncomingMessageCallback;
 using openxc::interface::uart::UartDevice;
 
 bool UART_PROCESSED = false;

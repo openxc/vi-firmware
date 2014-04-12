@@ -90,7 +90,7 @@ void initialize(UsbDevice*);
  * callback - A function that handles USB in requests. The callback should
  *      return true if a message was properly received and parsed.
  */
-void read(UsbDevice* device, openxc::commands::IncomingMessageCallback callback);
+void read(UsbDevice* device, openxc::util::bytebuffer::IncomingMessageCallback callback);
 
 /* Public: Pass the next OUT request message to the callback, if available.
  *
@@ -104,7 +104,7 @@ void read(UsbDevice* device, openxc::commands::IncomingMessageCallback callback)
  *      return true if a message was properly received and parsed.
  */
 void read(UsbDevice* device, UsbEndpoint* endpoint,
-        openxc::commands::IncomingMessageCallback callback);
+        openxc::util::bytebuffer::IncomingMessageCallback callback);
 
 /* Public: Send any bytes in the outgoing data queue over the IN endpoint to the
  * host.

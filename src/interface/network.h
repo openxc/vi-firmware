@@ -60,7 +60,7 @@ void initialize(NetworkDevice* device);
 void processSendQueue(NetworkDevice* device);
 
 void read(NetworkDevice* device,
-        openxc::commands::IncomingMessageCallback callback);
+        openxc::util::bytebuffer::IncomingMessageCallback callback);
 
 } // namespace network
 } // namespace interface

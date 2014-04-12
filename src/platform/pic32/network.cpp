@@ -72,7 +72,7 @@ void openxc::interface::network::read(NetworkDevice* device,
 #else
 
 void openxc::interface::network::read(NetworkDevice* device,
-        openxc::commands::IncomingMessageCallback callback) { }
+        openxc::util::bytebuffer::IncomingMessageCallback callback) { }
 void openxc::interface::network::initialize(NetworkDevice* device) { }
 void openxc::interface::network::processSendQueue(NetworkDevice* device) { }
 

@@ -1,7 +1,7 @@
 #include "interface/network.h"
 #include "commands.h"
 
-using openxc::commands::IncomingMessageCallback;
+using openxc::util::bytebuffer::IncomingMessageCallback;
 
 bool NETWORK_PROCESSED = false;
 

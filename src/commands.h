@@ -23,8 +23,40 @@ typedef enum {
     COMPLEX_COMMAND = 0x83
 } UsbControlCommand;
 
+/* Public: Handle a new command received on an I/O interface.
+ *
+ * This as an implementation of
+ * openxc::util::bytebuffer::IncomingMessageCallback so it can be directly
+ * passed to any module using that interface (e.g. both USB and UART). It will
+ * attempt to deserialize a command from the payload using the currently
+ * configured payload format and perform the desired action, if recognized and
+ * allowed.
+ *
+ * The currently suported commands are:
+ *
+ *   - Raw CAN message writes
+ *   - Translated CAN signal writes
+ *   - Control commands:
+ *       - Diagnostic message requests
+ *       - Firmware version query
+ *       - VI device ID query
+ *
+ * The complete definition for all of the command is in the OpenXC Message
+ * Format (https://github.com/openxc/openxc-message-format).
+ *
+ * Returns true if the message was handled without error.
+ */
 bool handleIncomingMessage(uint8_t payload[], size_t payloadLength);
 
+/* Public: Handle an incoming USB control message.
+ *
+ * This maps USB control messages with a recognized ID to control commands
+ * supported by handleIncomingMessage. If you are attached to a VI via USB, you
+ * can use the control EP0 for these commands instead of publishing them into
+ * the normal bulk data stream.
+ *
+ * Returns true if the control command was recognized.
+ */
 bool handleControlCommand(UsbControlCommand command, uint8_t payload[],
         size_t payloadLength);
 

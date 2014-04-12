@@ -16,8 +16,7 @@ namespace read {
  * will be passed to the decoder before publishing.
  *
  * signal - The details of the signal to decode and forward.
- * data   - The raw bytes of the CAN message that contains the signal.
- * length - The length of the data array.
+ * message   - The received CAN message that should contain this signal.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
  * pipeline -  The pipeline to send the final formatted message on if
@@ -227,6 +226,15 @@ openxc_DynamicField decodeSignal(CanSignal* signal,
 openxc_DynamicField decodeSignal(CanSignal* signal, float value,
         CanSignal* signals, int signalCount, bool* send);
 
+/* Public: Based on a signal's metadata and the most recent value received,
+ * decide if it should be translated and published.
+ *
+ * A signal may decide not to publish if it has a limited frequency and the
+ * timer hasn't expired yet, or if it's configured to only send if the value
+ * changes and the it has not.
+ *
+ * Returns true of the value should be published.
+ */
 bool shouldSend(CanSignal* signal, float value);
 
 } // namespace read

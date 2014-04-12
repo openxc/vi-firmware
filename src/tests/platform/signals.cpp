@@ -127,14 +127,13 @@ char LAST_COMMAND_NAME[128];
 openxc_DynamicField LAST_COMMAND_VALUE;
 openxc_DynamicField LAST_COMMAND_EVENT;
 
-bool turnSignalCommandHandler(const char* name, openxc_DynamicField* value,
+void turnSignalCommandHandler(const char* name, openxc_DynamicField* value,
         openxc_DynamicField* event, CanSignal* signals, int signalCount) {
     strcpy(LAST_COMMAND_NAME, name);
     LAST_COMMAND_VALUE = *value;
     if(event != NULL) {
         LAST_COMMAND_EVENT = *event;
     }
-    return true;
 }
 
 const int MAX_COMMAND_COUNT = 1;

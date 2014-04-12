@@ -121,7 +121,6 @@ bool openxc::can::write::encodeAndSendBooleanSignal(CanSignal* signal, bool valu
     return encodeAndSendSignal(signal, &field, force);
 }
 
-// value is already encoded
 bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bool force) {
     bool send = signal->writable;
 

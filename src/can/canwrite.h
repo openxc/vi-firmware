@@ -9,52 +9,90 @@ namespace openxc {
 namespace can {
 namespace write {
 
+/* Public: Encode a number, string or boolean into an integer, fit for a CAN
+ * signal's bitfield.
+ *
+ * Depending on which type the dynamic field contains, this function will use
+ * the proper encoder to convert it to an integer.
+ *
+ * signal - The CAN signal to encode this value for.
+ * field - The value to encode.
+ * send - An output parameter that will be changed to false if the encode
+ *      failed.
+ *
+ * Returns the encoded integer. If 'send' is changed to false, the field could
+ * not be encoded and the return value is undefined.
+ */
 uint64_t encodeDynamicField(const CanSignal* signal, openxc_DynamicField* field,
                 bool* send);
 
+/* Public: Encode a boolean into an integer, fit for a CAN signal bitfield.
+ *
+ * This is a shortcut for encodeDynamicField(CanSignal*, openxc_DynamicField*,
+ * bool*) that takes care of creating the DynamicField object for you with the
+ * boolean value.
+ *
+ * signal - The CAN signal to encode this value for.
+ * value - The boolean value to encode.
+ * send - An output parameter that will be changed to false if the encode
+ *      failed.
+ *
+ * Returns the encoded integer. If 'send' is changed to false, the field could
+ * not be encoded and the return value is undefined.
+ */
 uint64_t encodeBoolean(const CanSignal* signal, bool value,
                 bool* send);
 
-/* Public: Convert the string value to the correct integer value for the given
- * CAN signal and write it to the signal's bitfield.
+/* Public: Encode a string into an integer, fit for a CAN signal's bitfield.
  *
  * Be aware that the behavior is undefined if there are multiple values assigned
  * to a single state. See https://github.com/openxc/vi-firmware/issues/185.
  *
- * signal - The signal associated with the value.
- * value - The string object to write. The value should correspond to a signal
- *         state integer value.
- * send - An output argument that will be set to false if the value should
- *     not be sent for any reason.
+ * This is a shortcut for encodeDynamicField(CanSignal*, openxc_DynamicField*,
+ * bool*) that takes care of creating the DynamicField object for you with the
+ * string state value.
  *
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
+ * signal - The CAN signal to encode this value for.
+ * value - The string state value to encode.
+ * send - An output parameter that will be changed to false if the encode
+ *      failed.
+ *
+ * Returns the encoded integer. If 'send' is changed to false, the field could
+ * not be encoded and the return value is undefined.
  */
 uint64_t encodeState(const CanSignal* signal, const char* state,
                 bool* send);
 
-/* Public: Write the given number to the correct bitfield for the given signal.
+/* Public: Encode a float into an integer, fit for a CAN signal's bitfield.
  *
- * signal - The signal associated with the value.
- * value - The value to write.
- * send - An output argument that will be set to false if the value should
- *     not be sent for any reason.
+ * This is a shortcut for encodeDynamicField(CanSignal*, openxc_DynamicField*,
+ * bool*) that takes care of creating the DynamicField object for you with the
+ * float value.
  *
- * TODO update docs for all of these functions.
- * Returns a 64-bit data block with the bit field for the signal set to the
- * encoded value.
+ * signal - The CAN signal to encode this value for.
+ * value - The float value to encode.
+ * send - An output parameter that will be changed to false if the encode
+ *      failed.
+ *
+ * Returns the encoded integer. If 'send' is changed to false, the field could
+ * not be encoded and the return value is undefined.
  */
 uint64_t encodeNumber(const CanSignal* signal, float value, bool* send);
 
+/* Public: Write a value into a CAN signal in the destination buffer.
+ *
+ * signal - The CAN signal to write, including the bit position and bit size.
+ * encodedValue - The encoded integer value to write into the CAN signal.
+ * destination - The destination buffer.
+ * length - The length of the destination buffer.
+ */
 void buildMessage(const CanSignal* signal, int encodedValue,
                 uint8_t destination[], size_t length);
 
 /* Public: Write a CAN signal with the given value to the bus.
  *
- * Using the provided CanSignal and writer function, convert the value
- * into a numerical value appropriate for the CAN signal. This may include
- * converting a string state value to its numerical equivalent, for example. The
- * writer function must know how to do this conversion.
+ * Using the provided CanSignal and SignalEncoder function, convert the value
+ * into a numerical value appropriate for the CAN signal.
  *
  * signal - The CanSignal to send.
  * value - The value to send in the signal. This could be a boolean, number or
@@ -77,8 +115,21 @@ bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value,
  */
 bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value, bool force);
 
+// value is already encoded
+/* Public: Write a previously encoded CAN signal to a CAN message on the bus.
+ *
+ * Similar to encodeAndSendSignal(), but the value is already encoded.
+ *
+ * signal - The CanSignal to send.
+ * value - The encoded value to send in the signal.
+ * force - true if the signals should be sent regardless of the writable status
+ *         in the CAN message structure.
+ */
 bool sendEncodedSignal(CanSignal* signal, uint64_t value, bool force);
 
+/* Public: Three shortcut functions to encode and send a signal without manually
+ * creating an openxc_DynamicField.
+ */
 bool encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force);
 bool encodeAndSendStateSignal(CanSignal* signal, const char* value, bool force);
 bool encodeAndSendNumericSignal(CanSignal* signal, float value, bool force);
@@ -104,7 +155,7 @@ void enqueueMessage(CanBus* bus, CanMessage* message);
 void flushOutgoingCanMessageQueue(CanBus* bus);
 
 /* Public: Write a CAN message with the given data and node ID to the bus
- * immeidately.
+ * immediately.
  *
  * You should usually use enqueueMessage, unless you absolutely need the message
  * written to the bus right now.

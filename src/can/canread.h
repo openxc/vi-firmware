@@ -9,56 +9,83 @@ namespace openxc {
 namespace can {
 namespace read {
 
-/* Public: Parse a CAN signal from a CAN message, apply the required
- * transforations and send the result to the pipeline.
+/* Public: Parse a signal from a CAN message, apply any required transforations
+ *      to get a human readable value and public the result to the pipeline.
  *
- * There are 4 versions of this function, each translating the signal into a
- * different native data type. This version omits the 'handler' argument and
- * interprets the signal as a simple floating point number.
+ * If the CanSignal has a non-NULL 'decoder' field, the raw CAN signal value
+ * will be passed to the decoder before publishing.
  *
- * TODO update.
- * The version accepting a StringHandler runs the float value through the
- * handler function to convert it to a string describing a valid state for the
- * CAN signal. No error checking is performed on the handler, so if a NULL is
- * returned by the handler (e.g. because no state was found associated with the
- * float value), bad things may happen.
- *
- * pipeline - The pipeline to send the final formatted message on.
  * signal - The details of the signal to decode and forward.
  * data   - The raw bytes of the CAN message that contains the signal.
+ * length - The length of the data array.
  * signals - an array of all active signals.
  * signalCount - The length of the signals array.
+ * pipeline -  The pipeline to send the final formatted message on if
+ *      there were no errors and (if the signal has a limited frequency) it's
+ *      due to send.
+ *
+ * The decoder returns an openxc_DynamicField, which may contain a number,
+ * string or boolean.
  */
-void translateSignal(openxc::pipeline::Pipeline* pipeline, CanSignal* signal,
-        const uint8_t data[], CanSignal* signals, int signalCount);
+void translateSignal(CanSignal* signal,
+        const CanMessage* message, CanSignal* signals, int signalCount,
+        openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Perform no parsing or processing of the CAN message, just encapsulate
- * it in a message with "id" and "data" attributes and send it out to the
- * pipelines.
+/* Public: Publish a CAN message to the pipeline without any parsing or
+ * processing - just encapsulate it in a VehicleMessage.
  *
  * This is useful for debugging when CAN acceptance filters are disabled. Call
  * this function every time decodeCanMessage is called and you will get a full
  * CAN message stream.
  *
- * message - the received CanMessage.
- * messages - the list of all CAN messages - if NULL or of length zero, will
- * process all messages.
- * messageCount - the length of the messages array.
- * pipeline - The pipeline to send the raw message over as an integer ID
- *      and hex data as an ASCII encoded string.
+ * bus - the CAN bus on which this message was received.
+ * message - the received message.
+ * messages - the list of all CAN messages that should be published. If this
+ *      argument is not NULL and the messageCount is greater than zero, the
+ *      received message must be in this list or it will not be published.
+ * messageCount - The length of the messages array.
+ * pipeline - The pipeline to send the raw message.
  */
 void passthroughMessage(CanBus* bus, CanMessage* message,
         CanMessageDefinition* messages, int messageCount,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Create a new OpenXC message and send it to the pipeline.
+/* Public: Publish a translated vehicle message to the pipeline with a value and
+ * an optional event.
  *
- * There are three versions of this function, each taking a different type for
- * the 'value' field - a float, char* or bool.
+ * If 'event' is NULL, the published message will not have an event field.
  *
  * name - The value for the name field of the OpenXC message.
- * value - The numerical value for the value field of the OpenXC message.
- * pipeline - The pipeline to send on.
+ * value - The value for the value field of the OpenXC message.
+ * event - The event for the event field of the OpenXC message.
+ * pipeline - The pipeline to publish the message.
+ */
+void publishVehicleMessage(const char* name, openxc_DynamicField* value,
+        openxc_DynamicField* event, openxc::pipeline::Pipeline* pipeline);
+
+/* Public: Publish a translated vehicle message to the pipeline with no event.
+ *
+ * This is a shortcut for publishVehicleMessage(const char*, openxc_DynamicField*,
+ * openxc_DynamicField*, Pipeline) where the 'event' is presumed to be NULL.
+ *
+ * name - The value for the name field of the OpenXC message.
+ * value - The value for the value field of the OpenXC message.
+ * pipeline - The pipeline to publish the message.
+ */
+void publishVehicleMessage(const char* name, openxc_DynamicField* value,
+                openxc::pipeline::Pipeline* pipeline);
+
+/* Public: Create a new OpenXC message and publish it on the pipeline.
+ *
+ * There are three versions of this function, each taking a different type for
+ * the 'value' field - a float, char* or bool. These are all shortcuts for calls
+ * to publishVehicleMessage(...) so you don't have to manually build the
+ * openxc_VehicleMessage.
+ *
+ * name - The value for the name field of the OpenXC message.
+ * value - The numerical / string / boolean value for the value field of the
+ *      OpenXC message.
+ * pipeline - The pipeline to publish the message.
  */
 void publishNumericalMessage(const char* name, float value,
         openxc::pipeline::Pipeline* pipeline);
@@ -67,26 +94,24 @@ void publishStringMessage(const char* name, const char* value,
 void publishBooleanMessage(const char* name, bool value,
         openxc::pipeline::Pipeline* pipeline);
 
-void publishVehicleMessage(const char* name, openxc_DynamicField* value,
-        openxc_DynamicField* event, openxc::pipeline::Pipeline* pipeline);
-void publishVehicleMessage(const char* name, openxc_DynamicField* value,
-                openxc::pipeline::Pipeline* pipeline);
-
-/* Public: Finds and returns the corresponding string state for an integer
- *         value.
+/* Public: Find and return the corresponding string state for a CAN signal's
+ * raw integer value.
+ *
+ * This is an implementation of the SignalDecoder type signature, and can be
+ * used directly in the CanSignal.decoder field.
  *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals.
  * signalCount - the length of the signals array.
- * pipeline - The pipeline for outgoing message, to optionally kick off your own
- *      output.
- * value   - The numerical value that maps to a state.
- * send    - An output argument that will be set to false if the value should
+ * pipeline - The pipeline for outgoing message. Required by the SignalDecoder
+ *      type signature but unused in this function.
+ * value - The numerical value that should map to a state.
+ * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
- * Returns a string equivalent for the value if one is found in the signal's
- * possible states, otherwise NULL. If an equivalent isn't found, send is sent
- * to false.
+ * Returns a DynamicField with a string value if a matching state is found in
+ * the signal. If an equivalent isn't found, send is sent to false and the
+ * return value is undefined.
  */
 openxc_DynamicField stateDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
@@ -94,73 +119,115 @@ openxc_DynamicField stateDecoder(CanSignal* signal, CanSignal* signals,
 
 /* Public: Coerces a numerical value to a boolean.
  *
+ * This is an implementation of the SignalDecoder type signature, and can be
+ * used directly in the CanSignal.decoder field.
+ *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals
  * signalCount - The length of the signals array
- * pipeline - The pipeline for outgoing message, to optionally kick off your own
- *      output.
- * value   - The numerical value that will be converted to a boolean.
- * send    - An output argument that will be set to false if the value should
+ * pipeline - The pipeline for outgoing message. Required by the SignalDecoder
+ *      type signature but unused in this function.
+ * value - The numerical value that will be converted to a boolean.
+ * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
- * Returns a boolean equivalent for value. The value of send will not be
- * changed.
+ * Returns a DynamicField with a boolean value of false if the raw signal value
+ * is 0.0, otherwise true. The 'send' argument will not be modified as this
+ * decoder always succeeds.
  */
 openxc_DynamicField booleanDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
-/* Public: Store the value of a signal, but flip the send flag to false.
+/* Public: Update the metadata for a signal and the newly received value, but
+ * stop anything from being published to the pipeline.
+ *
+ * This is an implementation of the SignalDecoder type signature, and can be
+ * used directly in the CanSignal.decoder field.
+ *
+ * This function always flips 'send' to false.
  *
  * signal  - The details of the signal that contains the state mapping.
  * signals - The list of all signals.
  * signalCount - The length of the signals array.
- * value   - The numerical value that will be converted to a boolean.
- * send    - An output argument that will be set to false if the value should
- *     not be sent for any reason.
+ * pipeline - The pipeline for outgoing message. Required by the SignalDecoder
+ *      type signature but unused in this function.
+ * value - The numerical value that will be converted to a boolean.
+ * send - This output argument will always be set to false, so the caller will
+ *      know not to publish this value to the pipeline.
  *
- * Returns the original value unmodified and sets send to false;
+ * The return value is undefined.
  */
 openxc_DynamicField ignoreDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
-/* Public: TODO
+/* Public: Wrap a raw CAN signal value in a DynamicField without modification.
+ *
+ * This is an implementation of the SignalDecoder type signature, and can be
+ * used directly in the CanSignal.decoder field.
  *
  * signal  - The details of the signal that contains the state mapping.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
- * pipeline - The pipeline for outgoing message, to optionally kick off your own
- *      output.
- * value   - The numerical value that will be converted to a boolean.
- * send    - An output argument that will be set to false if the value should
+ * signals - The list of all signals
+ * signalCount - The length of the signals array
+ * pipeline - The pipeline for outgoing message. Required by the SignalDecoder
+ *      type signature but unused in this function.
+ * value - The numerical value that will be wrapped in a DynamicField.
+ * send - An output argument that will be set to false if the value should
  *     not be sent for any reason.
  *
- * Returns the original value unmodified and doesn't modify send.
+ * Returns a DynamicField with the original, unmodified raw CAN signal value as
+ * its numeric value. The 'send' argument will not be modified as this decoder
+ * always succeeds.
  */
 openxc_DynamicField noopDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
-/* Public: Determine if the received signal should be sent out and update
- * signal metadata.
+/* Public: Parse the signal's bitfield from the given data and return the raw
+ * value.
  *
- * signal - The signal to look for in the CAN message data.
- * data - The data of the CAN message.
- * send - Will be flipped to false if the signal should not be sent (e.g. the
- *      signal is on a limited send frequency and the timer is not up yet).
+ * signal - The signal to parse from the data.
+ * data - The data to parse the signal from.
+ * length - The length of the data array.
  *
- * Returns the float value of the signal decoded from the data.
+ * Returns the raw value of the signal parsed as a bitfield from the given byte
+ * array.
  */
-float preTranslate(CanSignal* signal, const uint8_t data[], bool* send);
+float parseSignalBitfield(CanSignal* signal, const CanMessage* message);
 
-/* Public: Update signal metadata after translating and sending.
+/* Public: Parse a signal from a CAN message and apply any required
+ * transforations to get a human readable value.
  *
- * We keep track of the last value of each CAN signal (in its raw float form),
- * but we can't update the value until after all translation has happened,
- * in case a custom handler needs to use the value.
+ * If the CanSignal has a non-NULL 'decoder' field, the raw CAN signal value
+ * will be passed to the decoder before returning.
+ *
+ * signal - The details of the signal to decode and forward.
+ * message   - The CAN message that contains the signal.
+ * signals - an array of all active signals.
+ * signalCount - The length of the signals array.
+ * send - An output parameter that will be flipped to false if the value could
+ *      not be decoded.
+ *
+ * The decoder returns an openxc_DynamicField, which may contain a number,
+ * string or boolean. If 'send' is false, the return value is undefined.
  */
-void postTranslate(CanSignal* signal, float value);
+openxc_DynamicField decodeSignal(CanSignal* signal,
+        const CanMessage* message, CanSignal* signals, int signalCount,
+        bool* send);
+
+/* Public: Decode a transformed, human readable value from an raw CAN signal
+ * already parsed from a CAN message.
+ *
+ * This is the same as decodeSignal(CanSignal*, CanMessage*, CanSignal*, int,
+ * bool*) but you must parse the bitfield value of the signal from the CAN
+ * message yourself. This is useful if you need that raw value for something
+ * else.
+ */
+openxc_DynamicField decodeSignal(CanSignal* signal, float value,
+        CanSignal* signals, int signalCount, bool* send);
+
+bool shouldSend(CanSignal* signal, float value);
 
 } // namespace read
 } // namespace can

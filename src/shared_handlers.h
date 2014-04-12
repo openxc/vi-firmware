@@ -202,7 +202,7 @@ float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleGpsMessage(int messageId, uint8_t data[], CanSignal* signals,
+void handleGpsMessage(CanMessage* message, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
@@ -216,45 +216,8 @@ void handleGpsMessage(int messageId, uint8_t data[], CanSignal* signals,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleButtonEventMessage(int messageId, uint8_t data[],
+void handleButtonEventMessage(CanMessage* message,
         CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
-
-/* Decode a boolean signal (the door ajar status for the door in question) and
- * send an OpenXC JSON message with the value (door ID) and event (ajar status)
- * filled in.
- *
- * This function doesn't match the signature required to be used directly as a
- * message or value handler, but it can be called from another handler.
- *
- * doorId - The name of the door, e.g. rear_left.
- * data - The incoming CAN message data that contains the signal.
- * signal - The CAN signal for door status.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
- * pipeline - The pipeline that wraps the output devices.
- */
-void sendDoorStatus(const char* doorId, uint8_t data[], CanSignal* signal,
-        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
-
-/* Decode a numerical signal (the pressure of the tire in question) and
- * send an OpenXC JSON message with the value (tire ID) and event (tire
- * pressure in psi) filled in.
- *
- * This function doesn't match the signature required to be used directly as a
- * message or value handler, but it can be called from another handler.
- *
- * tireId - The name of the tire, e.g. rear_left.
- * data - The incoming CAN message data that contains the signal.
- * conversionFactor - any conversion factor to convert the value from the bus to
- *      psi.
- * signal - The CAN signal for tire pressure.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
- * pipeline - The pipeline that wraps the output devices.
- */
-void sendTirePressure(const char* tireId, uint8_t data[], float conversionFactor,
-       CanSignal* signal, CanSignal* signals, int signalCount,
-       openxc::pipeline::Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
@@ -267,48 +230,19 @@ bool handleTurnSignalCommand(const char* name, openxc_DynamicField* value,
 
 /** Handle a CAN message that contains the ajar status of all doors.
  */
-void handleDoorStatusMessage(int messageId, uint8_t data[], CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline);
+void handleDoorStatusMessage(CanMessage* Message,
+        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
 
-/**
- * Parse 4 tire pressure signals from a single message send each as an evented
- * OpenXC message, with the value in psi e.g.:
- *
- *      {"name": "tire_pressure", "value": "front_left", "event": 32.1}
- *
- * This assumes the value on the bus for each pressure is psi.
- */
-void handlePsiTirePressureMessage(int messageId, uint8_t data[], CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline);
+void doorStatusDecoder(CanSignal* signal,
+       CanSignal* signals, int signalCount,
+       openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
-/**
- * The same as handlePsiTirePressureMessage, but assumes the value on the bus is
- * in kilpascals and converts to psi before sending the messages.
- */
-void handleKpaTirePressureMessage(int messageId, uint8_t data[], CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline);
+void tirePressureDecoder(CanSignal* signal,
+       CanSignal* signals, int signalCount,
+       openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
-/* Combine the values from two sensors in each seat to determine if there is
- * actually an occupant, and if so their general size (child or adult).
- *
- * The following signals must be defined in the signal array, and they must all
- * be contained in the same CAN message:
- *
- *      * passenger_occupancy_lower
- *      * passenger_occupancy_upper
- *      * TODO add more seats
- *
- * This is a message handler, and takes care of sending the JSON messages.
- *
- * messageId - The ID of the occupant sensor CAN message.
- * data - The CAN message data containing all occupancy information.
- * signals - The list of all signals.
- * signalCount - The length of the signals array.
- * send - (output) Flip this to false if the message should not be sent.
- * pipeline - The pipeline that wraps the output devices.
- */
-void handleOccupancyMessage(int messageId, uint8_t data[],
-              CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
+void handleTirePressureMessage(CanMessage* message, CanSignal* signals,
+        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 } // namespace handlers
 } // namespace signals

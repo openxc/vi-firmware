@@ -15,28 +15,11 @@ using openxc::pipeline::publish;
 namespace pipeline = openxc::pipeline;
 namespace time = openxc::util::time;
 
-float openxc::can::read::preTranslate(CanSignal* signal, const uint8_t data[],
-        bool* send) {
-    float value = bitfield_parse_float(data, CAN_MESSAGE_SIZE,
+float openxc::can::read::parseSignalBitfield(CanSignal* signal,
+        const CanMessage* message) {
+    return bitfield_parse_float(message->data, CAN_MESSAGE_SIZE,
             signal->bitPosition, signal->bitSize, signal->factor,
             signal->offset);
-
-    if(time::conditionalTick(&signal->frequencyClock) ||
-            (value != signal->lastValue && signal->forceSendChanged)) {
-        if(send && (!signal->received || signal->sendSame ||
-                    value != signal->lastValue)) {
-            signal->received = true;
-        } else {
-            *send = false;
-        }
-    } else {
-        *send = false;
-    }
-    return value;
-}
-
-void openxc::can::read::postTranslate(CanSignal* signal, float value) {
-    signal->lastValue = value;
 }
 
 openxc_DynamicField openxc::can::read::noopDecoder(CanSignal* signal,
@@ -45,13 +28,15 @@ openxc_DynamicField openxc::can::read::noopDecoder(CanSignal* signal,
     return payload::wrapNumber(value);
 }
 
-openxc_DynamicField openxc::can::read::booleanDecoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
+openxc_DynamicField openxc::can::read::booleanDecoder(CanSignal* signal,
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     return payload::wrapBoolean(value == 0.0 ? false : true);
 }
 
-openxc_DynamicField openxc::can::read::ignoreDecoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, Pipeline* pipeline, float value, bool* send) {
+openxc_DynamicField openxc::can::read::ignoreDecoder(CanSignal* signal,
+        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+        bool* send) {
     *send = false;
     openxc_DynamicField decodedValue = {0};
     return decodedValue;
@@ -93,25 +78,31 @@ void openxc::can::read::publishVehicleMessage(const char* name,
     if(event == NULL) {
         switch(value->type) {
             case openxc_DynamicField_Type_STRING:
-                message.translated_message.type = openxc_TranslatedMessage_Type_STRING;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_STRING;
                 break;
             case openxc_DynamicField_Type_NUM:
-                message.translated_message.type = openxc_TranslatedMessage_Type_NUM;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_NUM;
                 break;
             case openxc_DynamicField_Type_BOOL:
-                message.translated_message.type = openxc_TranslatedMessage_Type_BOOL;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_BOOL;
                 break;
         }
     } else {
         switch(event->type) {
             case openxc_DynamicField_Type_STRING:
-                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_STRING;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_EVENTED_STRING;
                 break;
             case openxc_DynamicField_Type_NUM:
-                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_NUM;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_EVENTED_NUM;
                 break;
             case openxc_DynamicField_Type_BOOL:
-                message.translated_message.type = openxc_TranslatedMessage_Type_EVENTED_BOOL;
+                message.translated_message.type =
+                        openxc_TranslatedMessage_Type_EVENTED_BOOL;
                 break;
         }
     }
@@ -140,8 +131,8 @@ void openxc::can::read::publishNumericalMessage(const char* name, float value,
     publishVehicleMessage(name, &decodedValue, pipeline);
 }
 
-void openxc::can::read::publishStringMessage(const char* name, const char* value,
-        openxc::pipeline::Pipeline* pipeline) {
+void openxc::can::read::publishStringMessage(const char* name,
+        const char* value, openxc::pipeline::Pipeline* pipeline) {
     openxc_DynamicField decodedValue = payload::wrapString(value);
     publishVehicleMessage(name, &decodedValue, pipeline);
 }
@@ -199,16 +190,55 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     }
 }
 
-void openxc::can::read::translateSignal(openxc::pipeline::Pipeline* pipeline,
-        CanSignal* signal, const uint8_t data[], CanSignal* signals,
-        int signalCount) {
-    bool send = true;
-    float value = preTranslate(signal, data, &send);
-    SignalDecoder decoder = signal->decoder == NULL ? noopDecoder : signal->decoder;
-    openxc_DynamicField decodedValue = decoder(signal, signals,
-            signalCount, pipeline, value, &send);
-    if(send) {
-        publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
+void openxc::can::read::translateSignal(CanSignal* signal,
+        const CanMessage* message,
+        CanSignal* signals, int signalCount,
+        openxc::pipeline::Pipeline* pipeline) {
+    if(signal == NULL || message == NULL) {
+        return;
     }
-    postTranslate(signal, value);
+
+    float value = parseSignalBitfield(signal, message);
+
+    if(shouldSend(signal, value)) {
+        bool send = true;
+        openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
+                value, signals, signalCount, &send);
+        if(send) {
+            openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
+        }
+    }
+    signal->lastValue = value;
+}
+
+bool openxc::can::read::shouldSend(CanSignal* signal, float value) {
+    bool send = true;
+    if(time::conditionalTick(&signal->frequencyClock) ||
+            (value != signal->lastValue && signal->forceSendChanged)) {
+        if(send && (!signal->received || signal->sendSame ||
+                    value != signal->lastValue)) {
+            signal->received = true;
+        } else {
+            send = false;
+        }
+    } else {
+        send = false;
+    }
+    return send;
+}
+
+openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
+        float value, CanSignal* signals, int signalCount, bool* send) {
+    SignalDecoder decoder = signal->decoder == NULL ?
+            noopDecoder : signal->decoder;
+    openxc_DynamicField decodedValue = decoder(signal, signals,
+            signalCount, NULL, value, send);
+    return decodedValue;
+}
+
+openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
+        const CanMessage* message, CanSignal* signals, int signalCount,
+        bool* send) {
+    float value = parseSignalBitfield(signal, message);
+    return decodeSignal(signal, value, signals, signalCount, send);
 }

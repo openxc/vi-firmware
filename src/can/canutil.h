@@ -19,18 +19,39 @@
 
 #define CAN_MESSAGE_SIZE 8
 
-
-/* Public: The type signatures for CAN signal decoding. It should accept
- * a raw float CAN signal (parsed from a CAN message, with any defined factor
- * and offset transformations applied) and returns a final, decoded value in an
- * openxc_DynamicField struct.
+/* Public: The type signature for a CAN signal decoder.
  *
+ * A SignalDecoder transforms a raw floating point CAN signal into a number,
+ * string or boolean.
+ *
+ * signal - The CAN signal that we are decoding.
+ * signals - The list of all signals.
+ * signalCount - The length of the signals array.
  * pipeline -  you may want to generate arbitrary additional messages for
- * publishing.
+ *      publishing.
+ * value - The CAN signal parsed from the message as a raw floating point
+ *      value.
+ * send - An output parameter. If the decoding failed or the CAN signal should
+ *      not send for some other reason, this should be flipped to false.
+ *
+ * Returns a decoded value in an openxc_DynamicField struct.
  */
-typedef openxc_DynamicField (*SignalDecoder)(struct CanSignal*,
-        struct CanSignal*, int, openxc::pipeline::Pipeline*, float, bool*);
-typedef uint64_t (*SignalEncoder)(struct CanSignal*, openxc_DynamicField*, bool*);
+typedef openxc_DynamicField (*SignalDecoder)(struct CanSignal* signal,
+        CanSignal* signals, int signalCount,
+        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+
+/* Public: The type signature for a CAN signal encoder.
+ *
+ * A SignalEncoder transforms a number, string or boolean into a raw floating
+ * point value that fits in the CAN signal.
+ *
+ * signal - The CAN signal to encode.
+ * value - The dynamic field to encode.
+ * send - An output parameter. If the encoding failed or the CAN signal should
+ * not be encoded for some other reason, this will be flipped to false.
+ */
+typedef uint64_t (*SignalEncoder)(struct CanSignal* signal,
+        openxc_DynamicField* value, bool* send);
 
 /* Public: The ID format for a CAN message.
  *

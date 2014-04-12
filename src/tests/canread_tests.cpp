@@ -27,7 +27,11 @@ using openxc::signals::getMessages;
 using openxc::signals::getMessageCount;
 using openxc::config::getConfiguration;
 
-const uint8_t TEST_DATA[8] = {0xEB};
+const CanMessage TEST_MESSAGE = {
+    id: 0,
+    format: STANDARD,
+    data: {0xeb},
+};
 
 extern unsigned long FAKE_TIME;
 extern void initializeVehicleInterface();
@@ -318,8 +322,8 @@ openxc_DynamicField floatDecoder(CanSignal* signal, CanSignal* signals, int sign
 
 START_TEST (test_default_handler)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -333,8 +337,8 @@ END_TEST
 START_TEST (test_translate_respects_send_value)
 {
     getSignals()[0].decoder = ignoreDecoder;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST
@@ -342,8 +346,8 @@ END_TEST
 START_TEST (test_translate_float)
 {
     getSignals()[0].decoder = floatDecoder;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -365,10 +369,10 @@ START_TEST (test_translate_float_handler_called_every_time)
 {
     frequencyTestCounter = 0;
     getSignals()[0].decoder = floatDecoderFrequencyTest;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     ck_assert_int_eq(frequencyTestCounter, 2);
 }
 END_TEST
@@ -386,8 +390,8 @@ openxc_DynamicField stringDecoder(CanSignal* signal, CanSignal* signals,
 START_TEST (test_translate_string)
 {
     getSignals()[0].decoder = stringDecoder;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -400,20 +404,20 @@ END_TEST
 
 START_TEST (test_always_send_first)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 }
 END_TEST
 
 START_TEST (test_unlimited_frequency)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -422,24 +426,24 @@ START_TEST (test_limited_frequency)
 {
     getSignals()[0].frequencyClock.frequency = 1;
     FAKE_TIME = 2000;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
     // mock waiting 1 second
     FAKE_TIME += 1000;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 }
 END_TEST
@@ -456,15 +460,19 @@ openxc_DynamicField preserveDecoder(CanSignal* signal, CanSignal* signals,
 
 START_TEST (test_preserve_last_value)
 {
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
 
-    uint8_t data[8] = {0x12, 0x34, 0x12, 0x30};
+    CanMessage message = {
+        id: 0,
+        format: STANDARD,
+        data: {0x12, 0x34, 0x12, 0x30},
+    };
     getSignals()[0].decoder = preserveDecoder;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[0],
-            data, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[0], &message, getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -479,8 +487,8 @@ START_TEST (test_dont_send_same)
 {
     getSignals()[2].sendSame = false;
     getSignals()[2].decoder = booleanDecoder;
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[2],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -490,8 +498,8 @@ START_TEST (test_dont_send_same)
             "{\"name\":\"brake_pedal_status\",\"value\":true}\0");
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
-    can::read::translateSignal(&getConfiguration()->pipeline, &getSignals()[2],
-            TEST_DATA, getSignals(), getSignalCount());
+    can::read::translateSignal(&getSignals()[2],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
 END_TEST

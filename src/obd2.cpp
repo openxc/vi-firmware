@@ -143,18 +143,26 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
                         PowerManagement::OBD2_IGNITION_CHECK) {
             debug("Ceasing diagnostic requests as ignition went off");
             diagnostics::reset(manager);
-            manager->initialized = false;
+            // Don't reset diagnostics here, because if the CAN bus is still
+            // active we want to keep querying for igntion. If we de-init
+            // diagnosicts here we risk getting stuck awake, but not querying
+            // for any diagnostics messages.
+            sentFinalIgnitionCheck = false;
             pidSupportQueried = false;
+            IGNITION_STATUS_TIMER.frequency = .1;
+            time::tick(&IGNITION_STATUS_TIMER);
         } else {
             // We haven't received an ignition in 5 seconds. Either the user didn't
             // have either OBD-II request configured as a recurring request (which
             // is fine) or they did, but the car stopped responding. Kick off
             // another request to see which is true. It will take 5+5 seconds after
-            // ignition off to decide we should shut down.
+            // ignition off to decide we should cancel all outstanding requests.
+            IGNITION_STATUS_TIMER.frequency = .2;
             requestIgnitionStatus(manager);
             sentFinalIgnitionCheck = true;
         }
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
+        IGNITION_STATUS_TIMER.frequency = .5;
         sentFinalIgnitionCheck = false;
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {

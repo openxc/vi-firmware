@@ -6,6 +6,10 @@ There are many :doc:`makefile-opts`, so it may be difficult to tell which you
 need to configure to get a working build. This page collects a few examples of
 popular configurations.
 
+.. contents::
+    :local:
+    :depth: 1
+
 Default Build
 =============
 
@@ -96,3 +100,49 @@ Notice we changed:
   actively infers if the ignition is on and stops sending diagnostic queries if
   we think the car is off. The combination of an engine and vehicle speed check
   should be compatible with hybrid vehicles.
+
+Emulated Data Build
+===================
+
+If you want to test connectivity to a VI from your client device without going
+to a vehicle, but you don't care about the actual vehicle data being generated,
+you can compile a build that generates random vehicle data and sends it via the
+normal I/O interfaces.
+
+If you are building an app, you'll want to use a _`trace file
+<http://openxcplatform.com/resources/traces.html>` or the _`vehicle simulator
+<https://github.com/openxc/openxc-vehicle-simulator>`.
+
+The config a VI to emulate a vehicle:
+
+.. code-block:: sh
+
+    $ export DEFAULT_EMULATED_DATA_STATUS=1
+    $ export DEFAULT_POWER_MANAGEMENT=ALWAYS_ON
+    $ make
+    <...snip lots of output...>
+
+    Compiled with options:
+    -      FORDBOARD = PLATFORM
+    -      1         = BOOTLOADER
+    -      0         = DEBUG
+    -      0         = DEFAULT_METRICS_STATUS
+    -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
+    -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
+    -      0         = DEFAULT_ALLOW_RAW_WRITE_NETWORK
+    -      0         = DEFAULT_UART_LOGGING_STATUS
+    -      JSON      = DEFAULT_OUTPUT_FORMAT
+    -      0         = DEFAULT_EMULATED_DATA_STATUS
+    -      OBD2_IGNIT= DEFAULT_POWER_MANAGEMENT
+    -      0x1       = DEFAULT_USB_PRODUCT_ID
+    -      0         = DEFAULT_CAN_ACK_STATUS
+    -      1         = DEFAULT_OBD2_BUS
+    -      1         = DEFAULT_RECURRING_OBD2_REQUESTS_STATUS
+
+There are 2 changes from the default build:
+
+* ``DEFAULT_EMULATED_DATA_STATUS`` is ``1``, which will cause fake data to be
+  generated and published from the VI.
+* ``DEFAULT_POWER_MANAGEMENT`` is ``ALWAYS_ON``, so the VI will not go to sleep
+  while plugged in. Make sure to clear this configuration option before making a
+  build to run in a vehicle, or you could drain the battery!

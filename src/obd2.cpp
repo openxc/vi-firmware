@@ -8,9 +8,8 @@
 
 namespace time = openxc::util::time;
 
-using openxc::diagnostics::DiagnosticsManager;
-using openxc::diagnostics::obd2::Obd2Pid;
 using openxc::util::log::debug;
+using openxc::diagnostics::DiagnosticsManager;
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::config::getConfiguration;
 using openxc::config::PowerManagement;
@@ -24,6 +23,21 @@ static bool VEHICLE_IN_MOTION = false;
 
 static openxc::util::time::FrequencyClock IGNITION_STATUS_TIMER = {0.5};
 
+/* Private: A representation of an OBD-II PID.
+ *
+ * pid - The 1 byte PID.
+ * name - A human readable name to use for this PID when published.
+ * frequency - The frequency to request this PID if supported by the vehicle
+ *      when automatic, recurring OBD-II requests are enabled.
+ */
+typedef struct {
+    uint8_t pid;
+    const char* name;
+    float frequency;
+} Obd2Pid;
+
+/* Private: Pre-defined OBD-II PIDs to query for if supported by the vehicle.
+ */
 const Obd2Pid OBD2_PIDS[] = {
     { pid: ENGINE_SPEED_PID, name: "engine_speed", frequency: 5 },
     { pid: VEHICLE_SPEED_PID, name: "vehicle_speed", frequency: 5 },

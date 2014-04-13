@@ -168,6 +168,10 @@ void reset(DiagnosticsManager* manager);
 
 /* Public: Add and send a new recurring diagnostic request.
  *
+ * This also adds any neccessary CAN acceptance filters so we can receive the
+ * response. If the request is to the functional broadcast ID (0x7df) filters
+ * are added for all functional addresses (0x7e8 to 0x7f0).
+ *
  * At most one recurring request can be active for the same arbitration ID, mode
  * and (if set) PID on the same bus at one time. If one already exists, its
  * frequency (and other parmaeters) will be updated with new values provided and
@@ -179,7 +183,11 @@ void reset(DiagnosticsManager* manager);
  * name - An optional human readable name this response, to be used when
  *      publishing received responses. If the name is NULL, the published output
  *      will use the raw OBD-II response format.
- * waitForMultipleResponses -
+ * waitForMultipleResponses - If false, When any response is received
+ *      for this request it will be removed from the active list. If true, the
+ *      request will remain active until the timeout clock expires, to allow it
+ *      to receive multiple response. Functional broadcast requests will always
+ *      waint for the timeout, regardless of this parameter.
  * decoder - An optional DiagnosticResponseDecoder to parse the payload of
  *      responses to this request. If the decoder is NULL, the output will
  *      include the raw payload instead of a parsed value.
@@ -209,7 +217,11 @@ bool addRecurringRequest(DiagnosticsManager* manager,
  * name - An optional human readable name this response, to be used when
  *      publishing received responses. If the name is NULL, the published output
  *      will use the raw OBD-II response format.
- * waitForMultipleResponses -
+ * waitForMultipleResponses - If false, When any response is received
+ *      for this request it will be removed from the active list. If true, the
+ *      request will remain active until the timeout clock expires, to allow it
+ *      to receive multiple response. Functional broadcast requests will always
+ *      waint for the timeout, regardless of this parameter.
  * decoder - An optional DiagnosticResponseDecoder to parse the payload of
  *      responses to this request. If the decoder is NULL, the output will
  *      include the raw payload instead of a parsed value.

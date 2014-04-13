@@ -16,6 +16,7 @@ other flags are optional.
 .. toctree::
     :maxdepth: 2
 
+    example-builds
     makefile-opts
     troubleshooting
     dependencies

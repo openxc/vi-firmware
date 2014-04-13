@@ -11,6 +11,8 @@ write arbitrary CAN messages back to the bus.
     :local:
     :depth: 1
 
+.. _raw-write-config:
+
 Write a CAN messages
 ====================
 

@@ -32,7 +32,11 @@ namespace config {
  *      OBD-II diagnostic requests and suspend the VI when both are 0 for a few
  *      seconds. The VI will wake up when the CAN bus becomes active and also
  *      periodically will wake up and re-send the requests to be able to detect
- *      when the car is powered on but hides all normal mode CAN messages.
+ *      when the car is powered on but hides all normal mode CAN messages. Short
+ *      of having a standard ignition status message, this combination of data
+ *      points should be sufficient to infer if the vehicle is active and we
+ *      don't risk draining the battery (including hybrids, which may have the
+ *      engine off while driving).
  */
 typedef enum {
     ALWAYS_ON,

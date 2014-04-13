@@ -84,17 +84,38 @@ def release_descriptor(path):
     with lcd(path):
         return local('git describe HEAD', capture=True).rstrip("\n")
 
+def compile_obd2(target_path):
+    with lcd("src"):
+        local("make clean", capture=True)
+        for board in env.boards:
+            output = local("PLATFORM=%s " % (board['name']) +
+                    "DEBUG=1 "
+                    "BOOTLOADER=1 "
+                    "DEFAULT_RECURRING_OBD2_REQUESTS_STATUS=1 "
+                    "DEFAULT_POWER_MANAGEMENT=OBD2_IGNITION_CHECK make -j4",
+                    capture=True)
+            if output.failed:
+                puts(output)
+                abort("Building emulator for %s failed" % board['name'])
+            local("cp build/%s/vi-firmware-%s.%s %s/vi-obd2-firmware-%s-ct%s.%s"
+                    % (board['name'], board['name'], board['extension'],
+                        target_path, board['name'], env.firmware_release,
+                        board['extension']))
 
 def compile_emulator(target_path):
     with lcd("src"):
         local("make clean", capture=True)
         for board in env.boards:
-            output = local("PLATFORM=%s DEBUG=0 BOOTLOADER=1 DEFAULT_EMULATED_DATA_STATUS=1 DEFAULT_POWER_MANAGEMENT=ALWAYS_ON make -j4" %
-                    (board['name']), capture=True)
+            output = local("PLATFORM=%s " % (board['name']) +
+                    "DEBUG=1 "
+                    "BOOTLOADER=1 "
+                    "DEFAULT_EMULATED_DATA_STATUS=1 "
+                    "DEFAULT_POWER_MANAGEMENT=ALWAYS_ON make -j4",
+                    capture=True)
             if output.failed:
                 puts(output)
                 abort("Building emulator for %s failed" % board['name'])
-            local("cp build/%s/vi-firmware-%s.%s %s/canemulator-%s-ct%s.%s"
+            local("cp build/%s/vi-firmware-%s.%s %s/vi-emulator-firmware-%s-ct%s.%s"
                     % (board['name'], board['name'], board['extension'],
                         target_path, board['name'], env.firmware_release,
                         board['extension']))
@@ -123,5 +144,10 @@ def release():
     filename = "openxc-emulator-firmware-%s.zip" % (env.firmware_release)
     emulator_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory,
             filename)
-    compress_release("%s/canemulator-*" % env.temporary_path, emulator_archive)
+    compress_release("%s/vi-emulator-firmware-*" % env.temporary_path,
+            emulator_archive)
 
+    compile_obd2(env.temporary_path)
+    filename = "openxc-obd2-firmware-%s.zip" % (env.firmware_release)
+    obd2_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
+    compress_release("%s/vi-obd2-firmware-*" % env.temporary_path, obd2_archive)

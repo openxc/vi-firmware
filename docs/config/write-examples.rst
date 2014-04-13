@@ -258,6 +258,8 @@ In ``my_handlers.cpp``:
 Signal encoders are responsible for transforming a float, string or boolean
 value into a 64-bit integer, to be used in the outgoing message.
 
+.. _command-example:
+
 Composite Write Request
 =======================
 
@@ -336,8 +338,8 @@ In ``my_handlers.cpp``:
 
 .. code-block:: cpp
 
-   bool handleMyCommand(const char* name, cJSON* value, cJSON* event,
-         CanSignal* signals, int signalCount) {
+   void handleMyCommand(const char* name, openxc_DynamicField* value,
+         openxc_DynamicField* event, CanSignal* signals, int signalCount) {
 
       // Look up the numeric and boolean signals we need to send and abort if
       // either is missing
@@ -345,14 +347,10 @@ In ``my_handlers.cpp``:
             signalCount);
       CanSignal* booleanSignal = lookupSignal("my_value_is_over_100_signal",
             signals, signalCount);
-      if(numericSignal == NULL) {
-         debug("Unable to find numeric signal, can't send trio");
-         // return false, indicating that we didn't successfully handle this
-         // command
-         return false;
+      if(numericSignal == NULL || booleanSignal == NULL) {
+         debug("Unable to find signals, can't send trio");
+         return;
       }
-
-      // Send the arbitrary CAN message:
 
       // Build and enqueue the arbitrary CAN message to be sent - note that none
       // of the CAN messages we enqueue in the handler will be sent until after
@@ -363,35 +361,14 @@ In ``my_handlers.cpp``:
         can::write::enqueueMessage(bus, &message);
       }
 
-      // Send the numeric value:
-
-      // The write API accepts cJSON objects right now as a way to accept
-      // multiple types, so we create a cJSON number object wrapping the value
-      // provided by the user
-      cJSON* numberObject = cJSON_CreateNumber(value);
-      can::write::sendSignal(numericSignal, numberObject, signals, signalCount,
-              // the last parameter is true, meaning we want to force sending
-              // this signal even though it's not marked writable in the
-              // config
+      // Send the numeric signal
+      can::write::encodeAndSendSignal(numericSignal, value,
+             // the last parameter is true, meaning we want to force sending
+             // this signal even though it's not marked writable in the
+             // config
              true);
-      // Make sure to free the cJSON object we created, otherwise it will leak
-      // memory and quickly kill the VI
-      cJSON_Delete(numberObject);
 
-      // Send the boolean value:
-
-      // Like above, create a cJSON object that wraps a boolean - true if the
-      // value sent by the user is greater than 100
-      cJSON* boolObject = cJSON_CreateBool(value > 100);
-      // Send that boolean value in in the boolean signal on the bus, using the
-      // booleanWriter write handler to convert it from a boolean to a number in
-      // the message data
-      can::write::sendSignal(booleanSignal, boolObject, booleanWriter,
-              signals, signalCount,
-              true);
-      // again, make sure to free the cJSON object we created
-      cJSON_Delete(boolObject);
-
-      // we successfully processed the command, so return true to the VI stack
-      return true;
+      // For the boolean signal, send 'true' if the value sent by the user is
+      // greater than 100
+      can::write::encodeAndSendBooleanSignal(booleanSignal, value > 100, true);
    }

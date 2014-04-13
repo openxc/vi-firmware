@@ -49,10 +49,10 @@ typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
  * parsed_payload - The payload of the response, parsed as a float.
  */
 typedef void (*DiagnosticResponseCallback)(
-            struct DiagnosticsManager* manager,
-            const struct ActiveDiagnosticRequest* request,
-            const DiagnosticResponse* response,
-            float parsed_payload);
+        struct DiagnosticsManager* manager,
+        const struct ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response,
+        float parsed_payload);
 
 /* Private: An active diagnostic request, either recurring or one-time.
  *

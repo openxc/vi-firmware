@@ -161,3 +161,81 @@ using the JSON output format:
     {"name": "engine_speed", "value": 45}
 
 where ``value`` is the return value from the ``decoder``.
+
+On-Demand Request from Command Handler
+======================================
+
+You can generate a new recurring or one-off diagnostic request from any custom
+command handler signal decoder, or CAN message handler. Take a look at the
+``diagnostics.h`` module for functions that may be useful.
+
+For this example, we want to generate a mode 3 diagnostic request to get trouble
+codes when a "collect_trouble_codes" command is sent. We will register a
+callback function to handle the payload of the response to parse out the trouble
+code we are looking for. Here's our VI config:
+
+.. code-block:: javascript
+
+   {   "buses": {
+           "hs": {
+               "controller": 1,
+               "raw_writable": true,
+               "speed": 500000
+           }
+       },
+       "commands": [
+           {"name": "collect_trouble_codes",
+            "handler": "collectTroubleCodes"}
+       ],
+       "extra_sources": [
+         "my_handlers.cpp"
+       ]
+   }
+
+Just as in the :ref:`command-example`, we added a ``commands`` field with one
+custom command, mapping ``collect_trouble_codes`` to the command handler
+function ``collectTroubleCodes`` (to be defined in ``my_handlers.cpp``).
+
+In ``my_handlers.cpp``:
+
+.. code-block:: cpp
+
+   void handleTroubleCodeResponse(
+            DiagnosticsManager* manager,
+            const ActiveDiagnosticRequest* request,
+            const DiagnosticResponse* response,
+            float parsed_payload) {
+       // Received a response to our mode 3 request
+
+       // response->payload is an array (with length response->payload_length)
+       // that contains the trouble code data - do whatever you need to do to parse
+       // out your trouble codes.
+
+       // If you need to send anything out on the I/O interfaces (e.g. to let
+       // a client know about a particular trouble code), you can use the
+       // openxc::pipeline::publish(...) function.
+   }
+
+   void handleMyCommand(const char* name, openxc_DynamicField* value,
+         openxc_DynamicField* event, CanSignal* signals, int signalCount) {
+
+      // Build and broadcast a non-recurring mode 3 diagnostic request
+      DiagnosticRequest request = {
+          arbitration_id: 0x7df,
+          mode: 3
+      };
+
+      addRequest(&getConfiguration()->diagnosticsManager,
+         // use the CAN bus on controller 0 (this is a little bit dangerous,
+         // you'll want to do some error checking to amke sure this bus exists.
+         getCanBuses()[0],
+         &request,
+         NULL, // no human readable name
+         false, // don't wait for multiple responses
+         NULL, // no response decoder
+         handleTroubleCodeResponse); // when a response is received, call our handler
+   }
+
+This combination of a command handler and diagnostic response callback requests
+trouble codes from the vehicle whenever the command is received, and can take
+any action on the response (in the callback.

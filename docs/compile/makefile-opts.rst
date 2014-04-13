@@ -140,7 +140,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
   Change the default USB product ID for the device. This is useful if you want
   to address 2 VIs connected to the same computer.
 
-  Values: ``0x0`` to ``0xffff`
+  Values: ``0x0`` to ``0xffff``
 
   Default: ``0x1``
 

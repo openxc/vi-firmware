@@ -274,7 +274,7 @@ The attributes of a ``signal`` object within a ``message`` are:
   This is added to the signal value if set. Required unless this is a
   database-backed mapping.
 
-``encoder`` (optional)
+``decoder`` (optional)
   The name of a function that will be compiled with the firmware and should be
   applied to the signal's value after the normal translation. See the
   :ref:`signal-decoders` section for details.
@@ -355,7 +355,7 @@ can be confusing. To summarize the difference:
   the value for a CAN messages. This is only necessary for boolean types at the
   moment - if your signal has states defined, we assume you need to encode a
   string state value back to its original numerical value. Defaults to a
-  built-in numerical handler.
+  built-in numerical encoder.
 
 .. _signal-decoders:
 

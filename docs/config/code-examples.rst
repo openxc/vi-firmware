@@ -24,7 +24,7 @@ want our custom transformation to happen *after* using the existing factor and
 offset.
 
 To accomplish this, we need to know a little C - we will write a custom signal
-handler to make the transformation. Here's the JSON configuration:
+decoder to make the transformation. Here's the JSON configuration:
 
 .. code-block:: javascript
 
@@ -44,7 +44,7 @@ handler to make the transformation. Here's the JSON configuration:
                        "bit_size": 7,
                        "factor": -1.0,
                        "offset": 1400,
-                       "handler": "ourRoundingHandler"
+                       "decoder": "ourRoundingDecoder"
                    }
                }
            }
@@ -54,7 +54,7 @@ handler to make the transformation. Here's the JSON configuration:
        ]
    }
 
-We set the ``handler`` for the signal to ``ourRoundingHandler``, and we'll
+We set the ``decoder`` for the signal to ``ourRoundingDecoder``, and we'll
 define that in a separate file named ``my_handlers.cpp``. We also added the
 ``extra_sources`` field, which is a list of the names of C++ source files on our
 path to be included with the generated firmware code.
@@ -64,7 +64,7 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Round the value down to 0 if it's less than 100. */
-   float ourRoundingHandler(CanSignal* signal, CanSignal* signals,
+   float ourRoundingDecoder(CanSignal* signal, CanSignal* signals,
          int signalCount, float value, bool* send) {
       if(value < 100) {
          value = 0;
@@ -73,11 +73,11 @@ In ``my_handlers.cpp``:
    }
 
 After being transformed with the factor and offset for the signal from the
-configuration file, the value is passed to our handler function. We make
+configuration file, the value is passed to our decoder. We make
 whatever custom transformation required and return the new value.
 
 There are a few other valid type signatures for these :ref:`custom value
-handlers <value-handlers>` - for converting numeric values to boolean or
+decoders <signal-decoders>` - for converting numeric values to boolean or
 state-based signals.
 
 Transformed with Signal Reference
@@ -92,7 +92,7 @@ bit wide, starting from bit 12 - when the value of the sign signal is 0, the
 final value should be negative. We want to the final value to be sent to app
 developers with the name ``my_signed_measurement``.
 
-We will use a custom value handler for the signal to reference the sign
+We will use a custom decoder for the signal to reference the sign
 signal's last value when transforming the absolute value signal.
 
 .. code-block:: javascript
@@ -111,13 +111,13 @@ signal's last value when transforming the absolute value signal.
                        "generic_name": "my_signed_measurement",
                        "bit_position": 2,
                        "bit_size": 5,
-                       "handler": "ourSigningHandler"
+                       "decoder": "ourSigningDecoder"
                    },
                    "My_Sign_Signal": {
                        "generic_name": "sign_of_signal",
                        "bit_position": 12,
                        "bit_size": 1,
-                       "handler": "ignoreHandler"
+                       "decoder": "ignoreDecoder"
                    }
                }
            }
@@ -129,11 +129,11 @@ signal's last value when transforming the absolute value signal.
 
 We don't want to the sign signal to be sent separately on the output interfaces,
 but we need the firmware to read and store its value so we can refer to it from
-our custom handler. We set the sign signal's ``handler`` to ``ignoreHandler``
+our custom decoder. We set the sign signal's ``decoder`` to ``ignoreDecoder``
 which will still process and store the value, but withold it from the output
 data stream.
 
-For the absolute value signal, we set the ``handler`` to a custom function where
+For the absolute value signal, we set the ``decoder`` to a custom function where
 we look up the sign signal and use its value to transform the absolute value. In
 ``my_handlers.cpp``:
 
@@ -141,7 +141,7 @@ we look up the sign signal and use its value to transform the absolute value. In
 
    /* Load the last value for the sign signal and multiply the absolute value
    by it. */
-   float ourRoundingHandler(CanSignal* signal, CanSignal* signals,
+   float ourRoundingDecoder(CanSignal* signal, CanSignal* signals,
          int signalCount, float value, bool* send) {
        CanSignal* signSignal = lookupSignal("sign_of_signal",
                signals, signalCount);
@@ -163,8 +163,8 @@ We use the `lookupSignal`` function to load a struct representing the
 ``lastValue`` attribute of the struct. If for some reason we aren't able to find
 the configured sign signal, ``lookupSignal`` will return NULL and we can stop
 hold the output of the final value by flipping ``*send`` to false. The firmware
-will check the value of ``*send`` after each call to a custom handler to confirm
-if the translation pipeline should continue.
+will check the value of ``*send`` after each call to a decoder to confirm if the
+translation pipeline should continue.
 
 One slight problem with this approach: there is currently no guaranteed
 ordering for the signals. It's possible the ``lastValue`` for the sign signal
@@ -202,7 +202,7 @@ controller 1. The three signals:
        "messages": {
            "0x87": {
                "bus": "hs",
-               "handler": "latitudeMessageHandler",
+               "handlers": ["latitudeMessageHandler"],
                "signals": {
                    "Latitude_Degrees": {
                        "generic_name": "latitude_degrees",
@@ -239,9 +239,11 @@ We made two changes to the configuration from a simple translation config:
   be included in the firmware build so we can access it from a custom message
   handler, but the signals will not be processed by the normal translation
   stack.
-- We set the ``handler`` for the ``0x87`` message (notice that unlike in other
-  examples the ``handler`` is set on the message object in the config, not any
-  of the signals) to our custom message handler, ``latitudeMessageHandler``.
+- We set the ``handlers`` for the ``0x87`` message to an array containing our
+  custom message handler, ``latitudeMessageHandler``. This field should be an
+  array as you can provide multiple message handlers. You could just call
+  multiple handlers from a single handler function, but having them all defined
+  in the configuration file makes the behavior more clear at a glance.
 
 In ``my_handlers.cpp``:
 
@@ -269,8 +271,8 @@ In ``my_handlers.cpp``:
      *
      * This type signature is required for all custom message handlers.
      */
-    void latitudeMessageHandler(int messageId, uint64_t data,
-            CanSignal* signals, int signalCount, Pipeline* pipeline) {
+    void latitudeMessageHandler(CanMessage* message, CanSignal* signals,
+            int signalCount, Pipeline* pipeline) {
         // Retrieve the CanSignal struct representations of the 3 latitude
         // component signals. These are still included in the firmware build
         // when the 'ignore' flag was true for the signals.
@@ -325,7 +327,7 @@ In ``my_handlers.cpp``:
 A more complete, functional example of a message handler is included in the VI
 firmware repository - one that handles `both latitude and longitude in a CAN
 message
-<https://github.com/openxc/vi-firmware/blob/master/src/shared_handlers.h#L204>`_.
+<https://github.com/openxc/vi-firmware/blob/master/src/shared_handlers.h#L205>`_.
 There is also additional documentation on the :ref:`message handler type
 signature <message-handlers>`.
 
@@ -335,7 +337,7 @@ Initializer Function
 =====================
 
 We want to initialize a counter when the VI powers up that we will use from some
-custom CAN signal handlers.
+custom signal decoder.
 
 .. code-block:: javascript
 
@@ -442,7 +444,7 @@ Ignore Depending on Value
 ==========================
 
 We want to ignore a signal (and not translate it and send over USB/Bluetooth) if
-the value matches certain critera. We'll use a custom handler as in
+the value matches certain critera. We'll use a custom decoder as in
 :ref:`custom-transformed` but instead of modifying the value of the signal,
 we'll use the ``send`` flag to tell the VI if it should process the value or
 not.
@@ -465,7 +467,7 @@ not.
                        "bit_size": 7,
                        "factor": -1.0,
                        "offset": 1400,
-                       "handler": "ourFilteringHandler"
+                       "decoder": "ourFilteringDecoder"
                    }
                }
            }
@@ -480,7 +482,7 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Ignore the signal if the value is less than 100 */
-   float ourFilteringHandler(CanSignal* signal, CanSignal* signals,
+   float ourFilteringDecoder(CanSignal* signal, CanSignal* signals,
          int signalCount, float value, bool* send) {
       if(value < 100) {
          *send = false;

@@ -205,7 +205,7 @@ below 100 down to 0 before sending (similar to the read-only example
 :ref:`custom-transformed`).
 
 To accomplish this, we need to know a little C - we will write a custom signal
-handler to make the transformation. Here's the JSON configuration:
+encoder to make the transformation. Here's the JSON configuration:
 
 .. code-block:: javascript
 
@@ -225,7 +225,7 @@ handler to make the transformation. Here's the JSON configuration:
                        "bit_size": 7,
                        "factor": -1.0,
                        "offset": 1400,
-                       "encoder": "ourRoundingWriteHandler"
+                       "encoder": "ourRoundingWriteEncoder"
                    }
                }
            }
@@ -235,7 +235,7 @@ handler to make the transformation. Here's the JSON configuration:
        ]
    }
 
-We set the ``encoder`` for the signal to ``ourRoundingWriteHandler``, and we'll
+We set the ``encoder`` for the signal to ``ourRoundingWriteEncoder``, and we'll
 define that in a separate file named ``my_handlers.cpp``. The ``extra_sources``
 field is also set, meaning that our custom C/C++ code will be included with the
 firmware build.
@@ -245,7 +245,7 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Round the value down to 0 if it's less than 100 before writing to CAN. */
-   uint64_t ourRoundingWriteHandler(CanSignal* signal, CanSignal* signals,
+   uint64_t ourRoundingWriteEncoder(CanSignal* signal, CanSignal* signals,
         int signalCount, double value, bool* send) {
       if(value < 100) {
          value = 0;
@@ -255,8 +255,8 @@ In ``my_handlers.cpp``:
       return encodeSignal(signal, value);
    }
 
-Signal write handlers are responsible for encoding the value into a 64-bit
-value, to be used in the outgoing message.
+Signal encoders are responsible for transforming a float, string or boolean
+value into a 64-bit integer, to be used in the outgoing message.
 
 Composite Write Request
 =======================

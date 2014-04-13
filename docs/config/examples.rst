@@ -123,15 +123,15 @@ as ``true`` or ``false`` in the JSON for app developers.
                        "generic_name": "my_boolean_measurement",
                        "bit_position": 32,
                        "bit_size": 1,
-                       "handler": "booleanHandler"
+                       "decoder": "booleanDecoder"
                    }
                }
            }
        }
    }
 
-We set the ``handler`` for the signal to the ``booleanHandler``, one of the
-:ref:`built-in signal handler functions <value-handlers>` - this will transform
+We set the ``decoder`` for the signal to the ``booleanDecoder``, one of the
+:ref:`built-in signal decoders <signal-decoders>` - this will transform
 the numeric value from the bus (a ``0`` or ``1``) into first-class boolean
 values (``true`` or ``false``).
 
@@ -189,8 +189,8 @@ appears as the state strings ``a`` through ``f`` in the JSON for app developers.
 
 We set the ``states`` field for the signal to a JSON object, mapping the string
 value for each state to the numerical values to which it corresponds. This
-automatically will set the ``handler`` to the ``stateHandler``, one of the
-:ref:`built-in signal handler functions <value-handlers>`.
+automatically will set the ``decoder`` to the ``stateDecoder``, one of the
+:ref:`built-in signal decoder functions <signal-decoders>`.
 
 With this configuration, the VI will publish the received CAN signal using the
 `OpenXC single-valued, translated message format

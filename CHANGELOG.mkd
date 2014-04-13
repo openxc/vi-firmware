@@ -23,7 +23,7 @@
 * BREAKING CHANGE: JSON delimiter for output data changed to '\0' from '\r\n' to
   match the required delimiter for input data. This requires updates to client
   libraries.
-* Added a watchdog timer to reset the VI if it ever locks up.
+* Changed the default platform when compiling from CHIPKIT to FORDBOARD.
 
 ## v5.1.3
 

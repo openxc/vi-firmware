@@ -53,7 +53,8 @@ and save it as ``signals.cpp``:
 
     vi-firmware $ openxc-generate-firmware-code -m passthrough.json > signals.cpp
 
-Compile it! By default this will compile for the chipKIT vehicle interface:
+Compile it! By default this will compile for the Ford reference VI
+(the environment variable ``PLATFORM=FORDBOARD``):
 
   .. code-block:: sh
 

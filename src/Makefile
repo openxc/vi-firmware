@@ -99,7 +99,8 @@ $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
 VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
-PLATFORM ?= CHIPKIT
+# Default PLATFORM is FORDBOARD
+PLATFORM ?= FORDBOARD
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs

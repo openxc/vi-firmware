@@ -177,6 +177,27 @@ void reset(DiagnosticsManager* manager);
  * frequency (and other parmaeters) will be updated with new values provided and
  * a new entry will not be created.
  *
+ * Example:
+ *
+ *     // Creating a functional broadcast, mode 1 request for PID 2.
+ *     DiagnosticRequest request = {
+ *         arbitration_id: 0x7df,
+ *         mode: 1,
+ *         has_pid: true,
+ *         pid: 2
+ *     };
+ *
+ *     // Add a recurring request, to be sent at 1Hz, and published with the
+ *     // name "my_pid_request"
+ *     addRecurringRequest(&getConfiguration()->diagnosticsManager,
+ *          canBus,
+ *          &request,
+ *          "my_pid_request",
+ *          false,
+ *          NULL,
+ *          NULL,
+ *          1);
+ *
  * manager - The manager to manage this request.
  * bus - The bus to send the request.
  * request - The parameters for the request.
@@ -210,6 +231,9 @@ bool addRecurringRequest(DiagnosticsManager* manager,
  *
  * A one-time (aka non-recurring) request can existing in parallel with a
  * recurring request for the same PID or mode, that's not a problem.
+ *
+ * For an example, see the docs for addRecurringRequest. This function is very
+ * similar but leaves out the frequencyHz parameter.
  *
  * manager - The manager to manage this request.
  * bus - The bus to send the request.

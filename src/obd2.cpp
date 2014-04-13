@@ -103,12 +103,13 @@ static void checkSupportedPids(DiagnosticsManager* manager,
         for(int j = CHAR_BIT - 1; j >= 0; j--) {
             if(response->payload[i] >> j & 0x1) {
                 uint16_t pid = response->pid + (i * CHAR_BIT) + j + 1;
-                DiagnosticRequest request = {
-                        arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
-                        mode: 0x1, has_pid: true, pid: pid};
+                debug("Vehicle supports PID 0x%02x", pid);
                 for(size_t i = 0; i < sizeof(OBD2_PIDS) / sizeof(Obd2Pid); i++) {
                     if(OBD2_PIDS[i].pid == pid) {
-                        debug("Vehicle supports PID %d", pid);
+                        debug("Automatically adding recurring request for PID 0x%x", pid);
+                        DiagnosticRequest request = {
+                                arbitration_id: OBD2_FUNCTIONAL_BROADCAST_ID,
+                                mode: 0x1, has_pid: true, pid: pid};
                         addRecurringRequest(manager, manager->obd2Bus, &request,
                                 OBD2_PIDS[i].name, false,
                                 openxc::diagnostics::obd2::handleObd2Pid,

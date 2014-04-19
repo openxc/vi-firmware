@@ -8,7 +8,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
     echo "Installing GCC for ARM Embedded..."
 
-    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_8-2013q4-20131204"
+    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_8-2013q4-20131218"
     if [ $OS == "linux" ]; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-linux.tar.bz2"
     elif [ $OS == "mac" ]; then

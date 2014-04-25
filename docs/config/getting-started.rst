@@ -33,7 +33,7 @@ details.
 JSON Configuration
 ==================
 
-The configuration file format used for the VI firmware lis what we call
+The configuration file format used for the VI firmware is what we call
 a JSON mapping file. `JSON <http://en.wikipedia.org/wiki/JSON>`__ is a
 human-readable data format that's a alternative to XML - we use it
 because it's easy to parse and easy to write by hand and the syntax is

@@ -31,10 +31,8 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     }
 
     lights::deinitialize();
-    if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
-        usb::deinitialize(pipeline->usb);
-        bluetooth::deinitialize();
-    }
+    usb::deinitialize(pipeline->usb);
+    bluetooth::deinitialize();
 
     if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
         debug("Enabling watchdog timer to poll for ignition status via OBD-II");

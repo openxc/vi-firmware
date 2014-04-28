@@ -291,6 +291,7 @@ if ! command -v pip >/dev/null 2>&1; then
     fi
 fi
 
+$SUDO_CMD pip install --upgrade setuptools
 $SUDO_CMD pip install --pre -Ur script/pip-requirements.txt
 
 popd

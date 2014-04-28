@@ -69,7 +69,16 @@ void checkBusActivity() {
     }
 
     if(!BUS_WAS_ACTIVE && busActive) {
-        debug("CAN woke up - enabling LED");
+        debug("CAN woke up");
+        if(getConfiguration()->powerManagement !=
+                PowerManagement::OBD2_IGNITION_CHECK) {
+            // If we are letting the OBD2 ignition check control power, don't go
+            // into ALL_IO just yet - we may have received an OBD-II response
+            // saying the engine RPM and vehicle speed are both 0, and we want
+            // to go back to sleep. In SILENT_CAN power mode it defaults to
+            // ALL_IO at initialization, so this is just a backup.
+            getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
+        }
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         BUS_WAS_ACTIVE = true;
     } else if(!busActive && (BUS_WAS_ACTIVE || time::uptimeMs() >

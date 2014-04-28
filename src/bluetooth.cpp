@@ -163,9 +163,9 @@ void setStatus(bool enabled) {
 #endif
 }
 
-void openxc::bluetooth::initialize(UartDevice* device) {
+void openxc::bluetooth::start(UartDevice* device) {
 #ifdef BLUETOOTH_SUPPORT
-    debug("Initializing Bluetooth...");
+    debug("Starting Bluetooth...");
     setStatus(true);
 
     strcpy(device->deviceId, "Unknown");
@@ -174,6 +174,13 @@ void openxc::bluetooth::initialize(UartDevice* device) {
     uart::initializeCommon(device);
 
     debug("Done.");
+#endif
+}
+
+void openxc::bluetooth::initialize(UartDevice* device) {
+#ifdef BLUETOOTH_SUPPORT
+    debug("Initializing Bluetooth in disabled state...");
+    setStatus(false);
 #endif
 }
 

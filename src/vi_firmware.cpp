@@ -117,7 +117,7 @@ void initializeIO() {
     usb::initialize(&getConfiguration()->usb);
     uart::initialize(&getConfiguration()->uart);
 
-    bluetooth::initialize(&getConfiguration()->uart);
+    bluetooth::start(&getConfiguration()->uart);
 
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
@@ -129,6 +129,7 @@ void initializeVehicleInterface() {
     time::initialize();
     power::initialize();
     lights::initialize();
+    bluetooth::initialize(&getConfiguration()->uart);
 
     srand(time::systemTimeMs());
     initializeAllCan();

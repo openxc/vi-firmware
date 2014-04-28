@@ -6,8 +6,18 @@
 namespace openxc {
 namespace bluetooth {
 
-/* Public: Perform any initialization required to control Bluetooth. */
+/* Public: Perform any initialization required to control Bluetooth.
+ *
+ * The radio will be initialized in a disabled, low to no power state.
+ *
+ */
 void initialize(openxc::interface::uart::UartDevice* device);
+
+/* Public: Start the Bluetooth interface.
+ *
+ * The radio will being advertising and consuming power.
+ */
+void start(openxc::interface::uart::UartDevice* device);
 
 /* Public: Shut down the bluetooth peripheral (save power). */
 void deinitialize();

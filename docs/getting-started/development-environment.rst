@@ -14,7 +14,24 @@ folder.
 Windows
 ^^^^^^^
 
-Download the 32-bit version of `Cygwin <http://www.cygwin.com>`_ and run the
+If you already use Cygwin for development in Windows and are comfortable with
+its command line its quirks that pop up occasionally, the 32-bit version of
+Cygwin is a fully supported build environment for the VI firmware.
+
+If you do not use Cygwin for anything else, you might consider running an Ubuntu
+Linux virtual machine. Ubuntu is also a 100% supported build environment for the
+firmware, and it tends to be more straightforward and easy to set up. If
+debugging strange Cygwin errors isn't something you feel like doing, we strongly
+recommend the Linux virtual machine method.
+
+If you wish to use an Ubuntu Linux virtual machine, follow one of the many
+quickstart guides available online (a `good example
+<http://www.wikihow.com/Install-Ubuntu-on-VirtualBox>`_) to install VirtualBox,
+download an Ubuntu disc image, and install Ubuntu into a virtual machine. Once
+installed, jump down to the :ref:`Linux` section of this guide to wrap up.
+
+If you still wish to use Cygwin, download 32-bit version of `Cygwin
+<http://www.cygwin.com>`__ (even if you're on 64-bit Windows) and run the
 installer - during the installation process, select these packages:
 
 ::
@@ -27,6 +44,8 @@ ignore Windows-style line endings in scripts by running this command:
 .. code-block:: sh
 
    $ set -o igncr && export SHELLOPTS
+
+.. _linux:
 
 Linux
 ^^^^^

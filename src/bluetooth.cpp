@@ -143,6 +143,7 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 
 // Only want to set the directly once because it flips the power on/off.
 void setIoDirection() {
+#ifdef BLUETOOTH_ENABLE_SUPPORT
     static bool directionSet = false;
     if(!directionSet) {
         // be aware that setting the direction here will default it to the off
@@ -151,6 +152,7 @@ void setIoDirection() {
                 GPIO_DIRECTION_OUTPUT);
         directionSet = true;
     }
+#endif
 }
 
 void setStatus(bool enabled) {

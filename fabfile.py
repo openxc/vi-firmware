@@ -89,7 +89,6 @@ def compile_obd2(target_path):
         local("make clean", capture=True)
         for board in env.boards:
             output = local("PLATFORM=%s " % (board['name']) +
-                    "DEBUG=1 "
                     "BOOTLOADER=1 "
                     "DEFAULT_RECURRING_OBD2_REQUESTS_STATUS=1 "
                     "DEFAULT_POWER_MANAGEMENT=OBD2_IGNITION_CHECK make -j4",

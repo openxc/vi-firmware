@@ -1,18 +1,13 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v6.0-dev
+## v6.0
 
-* Support configuration of CAN messages acceptance filters on the fly, rather
-  than only at startup. This changed an API, but an internal one, so it is not a
-  breaking change.
-* Add new control command to retrive a unique device ID (only works if Bluetooth
-  module is installed right now).
-* Moved debug logging to a secondary USB endpoint by default - re-enable UART
-  with UART_LOGGING flag.
-* Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
-  the latest version.
-* Use new version of Arduino-Makefile which depends on the Python and the
-  PySerial module.
+* BREAKING CHANGE: Significantly refactored the `canread` and `canwrite` APIs to
+  making custom handlers much easier to implement.
+* BREAKING CHANGE: Refactor time.h and FrequencyClock API for clarity and
+  usefulness.
+* BREAKING CHANGE: Use uint8_t[] for CAN message payloads everywhere instead of
+  uint64_t to remove confusion about byte order.
 * BREAKING CHANGE: Using CanMessage struct in favor if loose id + data.
 * BREAKING CHANGE: Removed "reset" control command.
 * BREAKING CHANGE: Add "Pipeline" argument to custom signal read handler
@@ -23,7 +18,38 @@
 * BREAKING CHANGE: JSON delimiter for output data changed to '\0' from '\r\n' to
   match the required delimiter for input data. This requires updates to client
   libraries.
-* Changed the default platform when compiling from CHIPKIT to FORDBOARD.
+* BREAKING CHANGE: Changed the default platform when compiling from CHIPKIT to
+  FORDBOARD.
+* BREAKING CHANGE: Standardized most Makefile flags to get ready for dynamic
+  configuration. Check your environment variables against the new compilation
+  docs!
+* Merge "canemulator" build into the mainline branch, controlled with the
+  DEFAULT_EMULATED_DATA_STATUS compile-time flag.
+* Added support for request/response style diagnostic messages, and a special
+  build to automatically query for and set up recurring requests for supported
+  OBD-II PIDs.
+* Fix handling of 32-bit bitfields.
+* Add support for extended CAN IDs (29-bit).
+* Support configuration of CAN messages acceptance filters on the fly, rather
+  than only at startup. This changed an API, but an internal one, so it is not a
+  breaking change.
+* Add new control command to retrive a unique device ID (only works if Bluetooth
+  module is installed right now).
+* Support control commands via UART in additional to USB.
+* Moved debug logging to a secondary USB endpoint by default - re-enable UART
+  with UART_LOGGING flag.
+* Update MPIDE dependency to 2013-08* version. Re-run script/bootstrap.sh to get
+  the latest version.
+* Refactored bootstrap scripts to target specific build environments, so not
+  everyone needs every dependency.
+* Use new version of Arduino-Makefile which depends on Python and the PySerial
+  module.
+* Switch RN-42 Bluetooth modules into pairing mode if they supported so client
+  devices don't need to poll for a connection.
+* Add a power management mode that tries to infer if vehicle is running based on
+  OBD-II engine RPM and vehicle speed.
+* Remove need for external wire indicatin if UART is to be enabled on PIC32
+  after discovering a non-blocking USB status check API call .
 
 ## v5.1.3
 

@@ -30,13 +30,17 @@ extern const float PI;
  * signalCount - The length of the signals array.
  * value - The wheel rotation count parsed from the original message.
  * send - (output) Flip this to false if the message should not be sent.
- * wheelRadius - The wheel radius of the current vehicle in km.
+ * tireRadius - The tire radius of the current vehicle in km. Tire radius is
+ *      used and not wheel radius as the overall tire radius tends to be more
+ *      consistent across vehicles in the same model, while the wheel size may
+ *      change.
  *
  * Returns the absolute distance travelled since the car started.
  */
 float handleMultisizeWheelRotationCount(CanSignal* signal,
-        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
-        bool* send, float wheelRadius);
+        CanSignal* signals, int signalCount,
+        openxc::pipeline::Pipeline* pipeline, float value, bool* send,
+        float tireRadius);
 
 /* Interpret the given signal as a rolling counter of km travelled, but keep
  * a log of the values and output the total km travelled since the car was

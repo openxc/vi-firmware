@@ -286,14 +286,14 @@ float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal*
 
 float openxc::signals::handlers::handleMultisizeWheelRotationCount(
         CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send, float wheelRadius) {
+        Pipeline* pipeline, float value, bool* send, float tireRadius) {
     if(value < signal->lastValue) {
         rotationsSinceRestart += signal->maxValue - signal->lastValue + value;
     } else {
         rotationsSinceRestart += value - signal->lastValue;
     }
     return firstReceivedOdometerValue(signals, signalCount) + (2 * PI *
-            wheelRadius * rotationsSinceRestart);
+            tireRadius * rotationsSinceRestart);
 }
 
 void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,

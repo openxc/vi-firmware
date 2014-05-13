@@ -403,6 +403,7 @@ bool openxc::can::addAcceptanceFilter(CanBus* bus, uint32_t id,
     }
 
     availableFilter->filter = id;
+    availableFilter->format = format;
     availableFilter->activeUserCount = 1;
     LIST_INSERT_HEAD(&bus->acceptanceFilters, availableFilter, entries);
     debug("Added acceptance filter for 0x%x on bus %d", availableFilter->filter,

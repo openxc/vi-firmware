@@ -48,17 +48,17 @@ CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
     },
 };
 
-const int MAX_SIGNAL_STATES = 12;
 const int MAX_SIGNAL_COUNT = 13;
-const CanSignalState SIGNAL_STATES[][MAX_SIGNAL_COUNT][MAX_SIGNAL_STATES] = {
+const CanSignalState SIGNAL_STATES[][2][6] = {
     { // message set: passthrough
         { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
-            {5, "neutral"}, {6, "second"}, },
+            {5, "neutral"}, {6, "second"} },
+        {{0, NULL}, {0, NULL}, {0, NULL}, {0, NULL}, {0, NULL}, {0, NULL}}
     },
     { // message set: shared_handler_tests
         { {1, "right"}, {2, "down"}, {3, "left"}, {4, "ok"}, {5, "up"}, {6, "foo"}},
         { {1, "idle"}, {2, "stuck"}, {3, "held_short"}, {4, "pressed"},
-            {5, "held_long"}, {6, "released"}, },
+            {5, "held_long"}, {6, "released"} }
     },
 };
 

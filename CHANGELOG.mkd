@@ -2,6 +2,9 @@
 
 ## v6.0.1-dev
 
+* Fixed a regression in CAN AF configuration on PIC32 platforms
+  ([#237](https://github.com/openxc/vi-firmware/issues/237))
+
 ## v6.0
 
 * BREAKING CHANGE: Significantly refactored the `canread` and `canwrite` APIs to

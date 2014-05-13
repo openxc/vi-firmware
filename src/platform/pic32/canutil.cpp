@@ -74,15 +74,16 @@ static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     // For the PIC32 we *could* only change the filters for one bus, but to
     // simplify things we'll reset everything like we have to with the LPC1768
+    uint16_t totalFilterCount = 0;
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];
-        uint16_t filterCount = 0;
+        uint16_t busFilterCount = 0;
         CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
 
         bool afFilterStatusSet = false;
         AcceptanceFilterListEntry* entry;
         LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
-            if(filterCount >= MAX_ACCEPTANCE_FILTERS) {
+            if(busFilterCount >= MAX_ACCEPTANCE_FILTERS) {
                 break;
             }
 
@@ -94,36 +95,37 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             }
 
             // Must disable before changing or else the filters do not work!
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), false);
             if(entry->format == CanMessageFormat::STANDARD) {
                 // Standard format message IDs match filter mask 0
                 debug("Added acceptance filter for STD 0x%x on bus %d to AF",
                         entry->filter, bus->address);
                 CAN_CONTROLLER(bus)->configureFilter(
-                        CAN::FILTER(filterCount), entry->filter, CAN::SID);
-                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                        CAN::FILTER(totalFilterCount), entry->filter, CAN::SID);
+                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
                         CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
             } else {
                 // Extended format message IDs match filter mask 1
                 debug("Added acceptance filter for EXT 0x%x on bus %d to AF",
                         entry->filter, bus->address);
                 CAN_CONTROLLER(bus)->configureFilter(
-                        CAN::FILTER(filterCount), entry->filter, CAN::EID);
-                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                        CAN::FILTER(totalFilterCount), entry->filter, CAN::EID);
+                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
                         CAN::FILTER_MASK1, CAN::CHANNEL(CAN_RX_CHANNEL));
             }
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), true);
 
-            ++filterCount;
+            ++totalFilterCount;
+            ++busFilterCount;
         }
 
-        if(filterCount == 0) {
+        if(busFilterCount == 0) {
             debug("No filters configured, turning off acceptance filter");
             setAcceptanceFilterStatus(bus, false);
         } else {
             // Disable the remaining unused filters. When AF is "off" we are
             // actually using filter 0, so we don't want to disable that.
-            for(int disabledFilters = filterCount;
+            for(int disabledFilters = busFilterCount;
                     disabledFilters < MAX_ACCEPTANCE_FILTERS; ++disabledFilters) {
                 CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(disabledFilters), false);
             }

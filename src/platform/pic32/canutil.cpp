@@ -82,7 +82,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         bool afFilterStatusSet = false;
         AcceptanceFilterListEntry* entry;
         LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
-            if(++filterCount > MAX_ACCEPTANCE_FILTERS) {
+            if(filterCount >= MAX_ACCEPTANCE_FILTERS) {
                 break;
             }
 
@@ -113,6 +113,8 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
                         CAN::FILTER_MASK1, CAN::CHANNEL(CAN_RX_CHANNEL));
             }
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
+
+            ++filterCount;
         }
 
         if(filterCount == 0) {

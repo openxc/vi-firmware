@@ -64,7 +64,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         CanBus* bus = &buses[i];
         AcceptanceFilterListEntry* entry;
         LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
-            if(++filterCount > MAX_ACCEPTANCE_FILTERS) {
+            if(filterCount >= MAX_ACCEPTANCE_FILTERS) {
                 break;
             }
             result = CAN_LoadExplicitEntry(CAN_CONTROLLER(bus), entry->filter,
@@ -75,6 +75,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
                         bus->address);
                 break;
            }
+           ++filterCount;
         }
     }
 

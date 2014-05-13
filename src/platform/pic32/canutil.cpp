@@ -45,16 +45,25 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
 static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
-        debug("Enabling primary AF filter mask for bus %d", bus->address);
+        debug("Enabling primary AF filter masks for bus %d", bus->address);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
-                CAN::EID, CAN::FILTER_MASK_ANY_TYPE);
+                CAN::SID, CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK1, 0x1FFFFFFF,
+                CAN::EID, CAN::FILTER_MASK_IDE_TYPE);
     } else {
         debug("Disabling primary AF filter mask to allow all messages through");
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::EID,
-            CAN::FILTER_MASK_ANY_TYPE);
-        CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::EID);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
+            CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::SID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
                 CAN::FILTER0, CAN::FILTER_MASK0, CAN::CHANNEL1);
+
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK1, 0, CAN::EID,
+            CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER1, 0, CAN::EID);
+        CAN_CONTROLLER(bus)->linkFilterToChannel(
+                CAN::FILTER1, CAN::FILTER_MASK1, CAN::CHANNEL1);
+
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0,
                 true);
     }
@@ -86,12 +95,23 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
             // Must disable before changing or else the filters do not work!
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), false);
-            CAN_CONTROLLER(bus)->configureFilter(
-                    CAN::FILTER(filterCount), entry->filter,
-                    entry->format == CanMessageFormat::STANDARD ?
-                        CAN::SID : CAN::EID);
-            CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
-                    CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+            if(entry->format == CanMessageFormat::STANDARD) {
+                // Standard format message IDs match filter mask 0
+                debug("Added acceptance filter for STD 0x%x on bus %d to AF",
+                        entry->filter, bus->address);
+                CAN_CONTROLLER(bus)->configureFilter(
+                        CAN::FILTER(filterCount), entry->filter, CAN::SID);
+                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                        CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+            } else {
+                // Extended format message IDs match filter mask 1
+                debug("Added acceptance filter for EXT 0x%x on bus %d to AF",
+                        entry->filter, bus->address);
+                CAN_CONTROLLER(bus)->configureFilter(
+                        CAN::FILTER(filterCount), entry->filter, CAN::EID);
+                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(filterCount),
+                        CAN::FILTER_MASK1, CAN::CHANNEL(CAN_RX_CHANNEL));
+            }
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
         }
 

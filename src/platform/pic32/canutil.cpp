@@ -45,9 +45,11 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
 static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
+        debug("Enabling primary AF filter mask for bus %d", bus->address);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
                 CAN::EID, CAN::FILTER_MASK_ANY_TYPE);
     } else {
+        debug("Disabling primary AF filter mask to allow all messages through");
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::EID,
             CAN::FILTER_MASK_ANY_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::EID);
@@ -68,10 +70,18 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         uint16_t filterCount = 0;
         CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
 
+        bool afFilterStatusSet = false;
         AcceptanceFilterListEntry* entry;
         LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
             if(++filterCount > MAX_ACCEPTANCE_FILTERS) {
                 break;
+            }
+
+            if(!afFilterStatusSet) {
+                // Must set the master AF filter status first and only once,
+                // because it wipes anything you've configured when you set it.
+                setAcceptanceFilterStatus(bus, true);
+                afFilterStatusSet = true;
             }
 
             // Must disable before changing or else the filters do not work!
@@ -85,17 +95,16 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(filterCount), true);
         }
 
-        // Disable the remaining unused filters.
-        for(int disabledFilters = filterCount;
-                disabledFilters < MAX_ACCEPTANCE_FILTERS; ++disabledFilters) {
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(disabledFilters), false);
-        }
-
         if(filterCount == 0) {
             debug("No filters configured, turning off acceptance filter");
             setAcceptanceFilterStatus(bus, false);
         } else {
-            setAcceptanceFilterStatus(bus, true);
+            // Disable the remaining unused filters. When AF is "off" we are
+            // actually using filter 0, so we don't want to disable that.
+            for(int disabledFilters = filterCount;
+                    disabledFilters < MAX_ACCEPTANCE_FILTERS; ++disabledFilters) {
+                CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(disabledFilters), false);
+            }
         }
 
         switchControllerMode(bus, previousMode);

@@ -17,6 +17,7 @@ using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
 
 extern uint16_t CANAF_std_cnt;
+extern uint16_t CANAF_ext_cnt;
 
 static void configureCanControllerPins(LPC_CAN_TypeDef* controller) {
     PINSEL_CFG_Type PinCfg;
@@ -42,11 +43,11 @@ static void configureTransceiver() {
 static void clearAcceptanceFilterTable() {
     // remove all existing entries - I tried looping over CAN_RemoveEntry until
     // it returned an error, but that left the AF table in a corrupted state.
-    LPC_CANAF->AFMR = 0x00000001;
+    CAN_SetAFMode(LPC_CANAF, CAN_AccOff);
+
     CANAF_std_cnt = 0;
-    for (int i = 0; i < 512; i++) {
-        LPC_CANAF_RAM->mask[i] = 0x00;
-    }
+    CANAF_ext_cnt = 0;
+    memset((void*)LPC_CANAF_RAM->mask, 0, 512);
 
     LPC_CANAF->SFF_sa = 0x00;
     LPC_CANAF->SFF_GRP_sa = 0x00;

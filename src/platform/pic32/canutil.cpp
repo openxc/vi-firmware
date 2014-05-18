@@ -64,8 +64,8 @@ static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
         CAN_CONTROLLER(bus)->linkFilterToChannel(
                 CAN::FILTER1, CAN::FILTER_MASK1, CAN::CHANNEL1);
 
-        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0,
-                true);
+        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0, true);
+        CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER1, true);
     }
     switchControllerMode(bus, previousMode);
     return true;

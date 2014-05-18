@@ -1,0 +1,17 @@
+{   "name": "passthrough",
+    "raw_can_mode": "unfiltered",
+    "max_message_frequency": 1,
+    "force_send_changed": true,
+    "buses": {
+        "hs": {
+            "controller": 1,
+            "raw_writable": true,
+            "speed": 500000
+        },
+        "ms": {
+            "controller": 2,
+            "raw_writable": true,
+            "speed": 125000
+        }
+    }
+}

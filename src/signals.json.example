@@ -35,7 +35,7 @@
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "decoder": "handleInvertedSteeringWheel"},
+                    "decoder": "handleUnsignedSteeringWheelAngle"},
                 "StrAnglSign": {
                     "generic_name": "steering_angle_sign",
                     "decoder": "ignoreDecoder",

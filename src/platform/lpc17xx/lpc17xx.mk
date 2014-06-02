@@ -114,4 +114,4 @@ ispflash: all
 	@lpc21isp -bin $(TARGET_BIN) $(UART_PORT) 115200 1474
 
 clean::
-	rm -rf $(OBJDIR_ROOT)/*
+	rm -rf $(OBJDIR)

@@ -35,10 +35,10 @@
                     "bit_size": 12,
                     "factor": 0.15392,
                     "offset": 0,
-                    "handler": "handleInvertedSteeringWheel"},
+                    "decoder": "handleUnsignedSteeringWheelAngle"},
                 "StrAnglSign": {
                     "generic_name": "steering_angle_sign",
-                    "handler": "ignoreHandler",
+                    "decoder": "ignoreDecoder",
                     "bit_position": 52,
                     "bit_size": 12},
                 "EngSpd": {
@@ -59,7 +59,7 @@
                         "NEUTRAL": [6]}
                     },
                 "StrAnglErr": {
-                    "handler": "ignoreHandler",
+                    "decoder": "ignoreDecoder",
                     "generic_name": "steering_wheel_angle_error",
                     "bit_position": 44,
                     "bit_size": 12
@@ -74,7 +74,7 @@
                 "BrakePedalPosition": {
                     "generic_name": "brake_pedal_status",
                     "send_same": false,
-                    "handler": "booleanHandler",
+                    "decoder": "booleanDecoder",
                     "bit_position": 0,
                     "bit_size": 1
                 }
@@ -86,14 +86,14 @@
             "signals": {
                 "TurnSignalLeft": {
                     "generic_name": "turn_signal_left",
-                    "handler": "booleanHandler",
+                    "decoder": "booleanDecoder",
                     "bit_position": 0,
                     "bit_size": 1,
                     "writable": true
                 },
                 "TurnSignalRight": {
                     "generic_name": "turn_signal_right",
-                    "handler": "booleanHandler",
+                    "decoder": "booleanDecoder",
                     "bit_position": 1,
                     "bit_size": 1,
                     "writable": true

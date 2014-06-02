@@ -4,6 +4,7 @@
 
 * Fixed a regression in CAN AF configuration on PIC32 platforms
   ([#237](https://github.com/openxc/vi-firmware/issues/237))
+* Updated all shared handlers to use new V6.0 API.
 
 ## v6.0
 

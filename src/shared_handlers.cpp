@@ -1,5 +1,6 @@
 #include "shared_handlers.h"
 #include "can/canwrite.h"
+#include "payload/payload.h"
 #include "util/log.h"
 
 #define OCCUPANCY_STATUS_GENERIC_NAME "occupancy_status"
@@ -139,7 +140,7 @@ float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
     return totalOdometerAtRestart;
 }
 
-float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleRollingOdometer(CanSignal* signal, CanSignal* signals,
        int signalCount, float value, bool* send,
        float factor) {
     if(value < signal->lastValue) {
@@ -149,24 +150,24 @@ float handleRollingOdometer(CanSignal* signal, CanSignal* signals,
         rollingOdometerSinceRestart += value - signal->lastValue;
     }
 
-    return firstReceivedOdometerValue(signals, signalCount) +
-        (factor * rollingOdometerSinceRestart);
+    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals, signalCount) +
+        (factor * rollingOdometerSinceRestart));
 }
 
-float openxc::signals::handlers::handleRollingOdometerKilometers(
+openxc_DynamicField openxc::signals::handlers::handleRollingOdometerKilometers(
         CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send, 1);
 }
 
-float openxc::signals::handlers::handleRollingOdometerMiles(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMiles(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
             KM_PER_MILE);
 }
 
-float openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return handleRollingOdometer(signal, signals, signalCount, value, send,
@@ -179,7 +180,7 @@ bool openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
     return value != 0;
 }
 
-float openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
         CanSignal* signals, int signalCount, float value,
         bool* send, float multiplier) {
     if(value < signal->lastValue) {
@@ -188,26 +189,26 @@ float openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
         value = value - signal->lastValue;
     }
     fuelConsumedSinceRestartLiters += multiplier * value;
-    return fuelConsumedSinceRestartLiters;
+    return openxc::payload::wrapNumber(fuelConsumedSinceRestartLiters);
 }
 
-float openxc::signals::handlers::handleFuelFlowGallons(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlowGallons(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_GALLON);
 }
 
-float openxc::signals::handlers::handleFuelFlowMicroliters(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlowMicroliters(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return handleFuelFlow(signal, signals, signalCount, value, send,
             LITERS_PER_UL);
 }
 
-float openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
+openxc_DynamicField openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
         signals, int signalCount, Pipeline* pipeline, float value, bool* send) {
-    return value * -1;
+    return openxc::payload::wrapNumber(value * -1);
 }
 
 void openxc::signals::handlers::handleGpsMessage(CanMessage* message,
@@ -266,9 +267,9 @@ bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
     return value == 2 || value == 3;
 }
 
-float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal*
-        signal, CanSignal* signals, int signalCount, Pipeline* pipeline,
-        float value, bool* send) {
+openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(
+        CanSignal* signal, CanSignal* signals, int signalCount,
+        Pipeline* pipeline, float value, bool* send) {
     CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
             signals, signalCount);
 
@@ -281,7 +282,7 @@ float openxc::signals::handlers::handleUnsignedSteeringWheelAngle(CanSignal*
             value *= -1;
         }
     }
-    return value;
+    return openxc::payload::wrapNumber(value);
 }
 
 float openxc::signals::handlers::handleMultisizeWheelRotationCount(

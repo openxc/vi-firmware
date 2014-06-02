@@ -56,7 +56,7 @@ float handleMultisizeWheelRotationCount(CanSignal* signal,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
@@ -73,7 +73,7 @@ float handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
@@ -90,7 +90,7 @@ float handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
  *
  * Returns total km travelled since the car started.
  */
-float handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the signal as a "strict" boolean - anything besides 0 is true.
@@ -118,7 +118,7 @@ bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in uL) to obtain a
@@ -133,7 +133,7 @@ float handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal to obtain a
@@ -149,7 +149,7 @@ float handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
+openxc_DynamicField handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
               float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
@@ -163,7 +163,7 @@ float handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns value with the sign flipped.
  */
-float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
+openxc_DynamicField handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
         openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Change the sign of the steering wheel angle value depending on the value of
@@ -180,8 +180,9 @@ float handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
  *
  * Returns a signed steering wheel angle value.
  */
-float handleUnsignedSteeringWheelAngle(CanSignal* signal, CanSignal* signals,
-              int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleUnsignedSteeringWheelAngle(CanSignal* signal,
+       CanSignal* signals, int signalCount,
+       openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Combine latitude and longitude signals split into their components (degrees,
  * minutes and fractional minutes) into 2 output message: latitude and longitude

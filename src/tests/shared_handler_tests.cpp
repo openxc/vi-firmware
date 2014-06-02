@@ -41,9 +41,9 @@ void setup() {
 START_TEST (test_inverted_handler)
 {
     bool send = true;
-    float result = handleInverted(&getSignals()[0], getSignals(), getSignalCount(),
+    openxc_DynamicField result = handleInverted(&getSignals()[0], getSignals(), getSignalCount(),
             &getConfiguration()->pipeline, 1, &send);
-    ck_assert(result == -1.0);
+    ck_assert(result.numeric_value == -1.0);
 }
 END_TEST
 
@@ -126,19 +126,19 @@ START_TEST (test_fuel_handler)
     bool send = true;
     float result = 0;
     CanSignal* signal = &getSignals()[6];
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 0, &send, 1);
+    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 0, &send, 1).numeric_value;
     ck_assert_int_eq(0, result);
     signal->lastValue = 0;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 1, &send, 1);
+    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 1, &send, 1).numeric_value;
     ck_assert_int_eq(1, result);
     signal->lastValue = 1;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 255, &send, 1);
+    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 255, &send, 1).numeric_value;
     ck_assert_int_eq(255, result);
     signal->lastValue = 255;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 2, &send, 1);
+    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 2, &send, 1).numeric_value;
     ck_assert_int_eq(257, result);
     signal->lastValue = 2;
 }

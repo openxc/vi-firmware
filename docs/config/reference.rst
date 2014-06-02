@@ -395,7 +395,9 @@ field):
 .. code-block:: c
 
     openxc_DynamicField decodeSteeringWheelAngle(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send) {
+            CanSignal* signals, int signalCount,
+            openxc::pipeline::Pipeline* pipeline,
+            float value, bool* send) {
         if(signal->lastValue == 0) {
             // left turn
             value *= -1;
@@ -408,7 +410,8 @@ The function declaration of a custom decoder must match:
 .. code-block:: c
 
     openxc_DynamicField customDecoder(CanSignal* signal, CanSignal* signals,
-        int signalCount, float value, bool* send);
+        int signalCount, openxc::pipeline::Pipeline* pipeline,
+            float value, bool* send);
 
 where ``signal`` is a pointer to the ``CanSignal`` this is handling,
 ``signals`` is an array of all signals, ``value`` is the raw value
@@ -552,8 +555,8 @@ with these attributes:
 
 .. code-block:: c
 
-    bool (*CommandHandler)(const char* name, cJSON* value, cJSON* event,
-            CanSignal* signals, int signalCount);
+  void (*CommandHandler)(const char* name, openxc_DynamicField* value,
+          openxc_DynamicField* event, CanSignal* signals, int signalCount);
 
 Any message received from the USB host with that given command name will be
 passed to your handler. This is useful for situations where there isn't a 1 to

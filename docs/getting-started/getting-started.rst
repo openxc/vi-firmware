@@ -13,7 +13,7 @@ The first steps for building custom firmware are:
 
 #. Make sure you have one of the :doc:`supported hardware platforms </platforms/platforms>`.
 #. :doc:`Set up your development environment </getting-started/development-environment>`.
-#. `Compile with emulated data output </getting-started/compiling-emulator>` to make
+#. :doc:`Compile with emulated data output </getting-started/compiling-emulator>` to make
    sure your development environment is set up, including whatever tool or
    library you plan to use to interact with the VI.
 #. :doc:`Compile the default configuration </getting-started/default-build>` so you

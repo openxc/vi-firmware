@@ -261,10 +261,10 @@ void openxc::signals::handlers::handleGpsMessage(CanMessage* message,
     publishNumericalMessage("longitude", longitude, pipeline);
 }
 
-bool openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return value == 2 || value == 3;
+    return openxc::payload::wrapBoolean(value == 2 || value == 3);
 }
 
 openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(

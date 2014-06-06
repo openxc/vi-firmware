@@ -226,7 +226,7 @@ void handleButtonEventMessage(CanMessage* message,
 /**
  * We consider dipped beam or auto to be lights on.
  */
-bool handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
             int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 void handleTurnSignalCommand(const char* name, openxc_DynamicField* value,

@@ -37,9 +37,8 @@ extern const float PI;
  *
  * Returns the absolute distance travelled since the car started.
  */
-float handleMultisizeWheelRotationCount(CanSignal* signal,
-        CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send,
+openxc_DynamicField handleMultisizeWheelRotationCount(CanSignal* signal,
+        CanSignal* signals, int signalCount, float value, bool* send,
         float tireRadius);
 
 /* Interpret the given signal as a rolling counter of km travelled, but keep

@@ -285,16 +285,16 @@ openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(
     return openxc::payload::wrapNumber(value);
 }
 
-float openxc::signals::handlers::handleMultisizeWheelRotationCount(
+openxc_DynamicField openxc::signals::handlers::handleMultisizeWheelRotationCount(
         CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send, float tireRadius) {
+        float value, bool* send, float tireRadius) {
     if(value < signal->lastValue) {
         rotationsSinceRestart += signal->maxValue - signal->lastValue + value;
     } else {
         rotationsSinceRestart += value - signal->lastValue;
     }
-    return firstReceivedOdometerValue(signals, signalCount) + (2 * PI *
-            tireRadius * rotationsSinceRestart);
+    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals, 
+            signalCount) + (2 * PI * tireRadius * rotationsSinceRestart));
 }
 
 void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,

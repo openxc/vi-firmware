@@ -174,10 +174,10 @@ openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMeters(CanSi
             KM_PER_M);
 }
 
-bool openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return value != 0;
+    return openxc::payload::wrapBoolean(value != 0);
 }
 
 openxc_DynamicField openxc::signals::handlers::handleFuelFlow(CanSignal* signal,

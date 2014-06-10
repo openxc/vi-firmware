@@ -102,7 +102,7 @@ openxc_DynamicField handleRollingOdometerMeters(CanSignal* signal, CanSignal* si
  *
  * Returns false if value is 0, otherwise true.
  */
-bool handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
+openxc_DynamicField handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
         openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in gallons) to obtain a

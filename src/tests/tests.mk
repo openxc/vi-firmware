@@ -100,6 +100,7 @@ unit_tests: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, DEBUG=0, code_generation_test))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, diag_compile_test, DEBUG=0, diagnostic_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, DEBUG=0, mapped_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, DEBUG=0, copy_passthrough_signals))
@@ -126,6 +127,11 @@ mapped_code_generation_test:
 	@make clean
 	@echo "Testing code generation with a VI config with mapped signals..."
 	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/mapped_signal_set.json > signals.cpp
+
+diagnostic_code_generation_test:
+	@make clean
+	@echo "Testing code generation with a VI config with diagnostic requests..."
+	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/diagnostic.json > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
 COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)

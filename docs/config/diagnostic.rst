@@ -34,6 +34,7 @@ full details of the response out as an OpenXC message.
        },
        "diagnostic_messages": [
            {
+               "bus": "hs",
                "id": 2015,
                "mode": 34,
                "pid": 42,
@@ -67,7 +68,9 @@ using the JSON output format:
 
 Note that the ``id`` of the response is different from the request, because we
 sent the request to the functional broadcast address ``0x7df``. If you use a
-physical address with your request, the ID of the response will match.
+physical address with your request, the ID of the response will match. The
+``bus`` is also different from that specified in the mapping - it's the
+controller ID, not the name of the bus.
 
 Recurring Parsed OBD-II PID Request
 ========================================
@@ -88,6 +91,7 @@ value.
        },
        "diagnostic_messages": [
            {
+               "bus": "hs",
                "id": 2015,
                "mode": 1,
                "pid": 12,
@@ -140,6 +144,7 @@ message type.
        },
        "diagnostic_messages": [
            {
+               "bus": "hs",
                "id": 2015,
                "mode": 1,
                "pid": 12,

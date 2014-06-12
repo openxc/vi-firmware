@@ -20,7 +20,8 @@ TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 TEST_OBJ_FILES = $(TEST_C_SRCS:.c=.o) $(TEST_CPP_SRCS:.cpp=.o)
 TEST_OBJS = $(patsubst %,$(TEST_OBJDIR)/%,$(TEST_OBJ_FILES))
 
-GENERATOR = openxc-generate-firmware-code
+GENERATOR = openxc-generate-firmware-code -s ../examples
+EXAMPLE_CONFIG_DIR = ../examples
 .PRECIOUS: $(TEST_OBJS) $(TESTS:.bin=.o)
 
 define COMPILE_TEST_TEMPLATE
@@ -114,17 +115,17 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, DEBUG=0 D
 
 copy_passthrough_signals:
 	@echo "Testing example passthrough config in repo for FORDBOARD..."
-	$(GENERATOR) -m passthrough.json > signals.cpp
+	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/passthrough.json > signals.cpp
 
 code_generation_test:
 	@make clean
-	@echo "Testing code generation from a non-mapped signals file..."
-	$(GENERATOR) -m signals.json.example > signals.cpp
+	@echo "Testing code generation with a basic VI config..."
+	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/signals.json > signals.cpp
 
 mapped_code_generation_test:
 	@make clean
-	@echo "Testing code generation from a mapped signals file..."
-	$(GENERATOR) -m mapped_signal_set.json.example > signals.cpp
+	@echo "Testing code generation with a VI config with mapped signals..."
+	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/mapped_signal_set.json > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
 COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)

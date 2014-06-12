@@ -1,6 +1,6 @@
 {   "name": "example_messages",
     "extra_sources": [
-        "handlers.cpp.example"
+        "handlers.cpp"
     ],
     "initializers": [
         "initializeMyStuff",

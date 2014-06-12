@@ -4,7 +4,7 @@
         "initializeOtherStuff"
     ],
     "extra_sources": [
-        "handlers.cpp.example"
+        "handlers.cpp"
     ],
     "loopers": [
         "myLooper"
@@ -21,7 +21,7 @@
         }
     ],
     "mappings": [
-        {"mapping": "mapped_signals.json.example",
+        {"mapping": "mapped_signals.json",
             "bus": "hs"}
     ]
 }

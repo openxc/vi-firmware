@@ -365,7 +365,20 @@ openxc_DynamicField floatDecoderFrequencyTest(CanSignal* signal, CanSignal* sign
     return floatDecoder(signal, signals, signalCount, pipeline, value, send);
 }
 
-START_TEST (test_translate_float_handler_called_every_time)
+START_TEST (test_decoder_called_every_time_with_nonzero_frequency)
+{
+    frequencyTestCounter = 0;
+    getSignals()[0].frequencyClock.frequency = 1;
+    getSignals()[0].decoder = floatDecoderFrequencyTest;
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    can::read::translateSignal(&getSignals()[0],
+            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    ck_assert_int_eq(frequencyTestCounter, 2);
+}
+END_TEST
+
+START_TEST (test_decoder_called_every_time_with_unlimited_frequency)
 {
     frequencyTestCounter = 0;
     getSignals()[0].decoder = floatDecoderFrequencyTest;
@@ -540,7 +553,9 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_dont_send_same);
     tcase_add_test(tc_translate, test_translate_respects_send_value);
     tcase_add_test(tc_translate,
-            test_translate_float_handler_called_every_time);
+            test_decoder_called_every_time_with_nonzero_frequency);
+    tcase_add_test(tc_translate,
+            test_decoder_called_every_time_with_unlimited_frequency);
     suite_add_tcase(s, tc_translate);
 
     return s;

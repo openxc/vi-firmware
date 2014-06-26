@@ -200,10 +200,12 @@ void openxc::can::read::translateSignal(CanSignal* signal,
 
     float value = parseSignalBitfield(signal, message);
 
-    if(shouldSend(signal, value)) {
-        bool send = true;
-        openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
-                value, signals, signalCount, &send);
+    bool send = true;
+    // Must call the decoders every time, regardless of if we are going to
+    // decide to send the signal or not.
+    openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
+            value, signals, signalCount, &send);
+    if(send && shouldSend(signal, value)) {
         if(send) {
             openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
         }

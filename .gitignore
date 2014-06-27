@@ -16,3 +16,4 @@ src/libs/chipKIT*
 src/libs/*.zip
 src/signals.cpp
 src/openxc
+examples/signals.cpp

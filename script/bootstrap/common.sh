@@ -153,6 +153,8 @@ if [ -z $COMMON_SOURCED ]; then
                 _install "base-devel"
             elif [ $DISTRO == "Ubuntu" ]; then
                 _install "build-essential"
+                _install "libc6-i386"
+                _install "g++"
             fi
         fi
     fi

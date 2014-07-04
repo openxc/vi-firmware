@@ -9,7 +9,7 @@ import re
 
 VERSION_PATTERN = r'^v\d+(\.\d+)+?$'
 env.releases_directory = "release"
-env.temporary_directory = "openxc-translator-firmware"
+env.temporary_directory = "openxc-vi-firmware"
 env.temporary_path = "/tmp/%(temporary_directory)s" % env
 env.root_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -33,6 +33,7 @@ def prepare_temp_path():
 
 def prepare_releases_path():
     local("mkdir -p %(releases_directory)s" % env)
+    local("cp %(root_dir)s/release-README %(temporary_path)s/README.txt" % env)
 
 
 def compare_versions(x, y):
@@ -140,13 +141,8 @@ def release():
     env.firmware_release = release_descriptor(".")
 
     compile_emulator(env.temporary_path)
-    filename = "openxc-emulator-firmware-%s.zip" % (env.firmware_release)
+    compile_obd2(env.temporary_path)
+    filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
     emulator_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory,
             filename)
-    compress_release("%s/vi-emulator-firmware-*" % env.temporary_path,
-            emulator_archive)
-
-    compile_obd2(env.temporary_path)
-    filename = "openxc-obd2-firmware-%s.zip" % (env.firmware_release)
-    obd2_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
-    compress_release("%s/vi-obd2-firmware-*" % env.temporary_path, obd2_archive)
+    compress_release(env.temporary_path, emulator_archive)

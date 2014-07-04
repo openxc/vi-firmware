@@ -1,0 +1,18 @@
+OpenXC Vehicle Interface Firmware
+=================================
+
+This archive contains pre-compiled builds of the open source OpenXC vehicle
+interface firmware in a few common configurations for each supported platform.
+
+For instructions on how to update your hardware device with one of these files,
+check out the OpenXC website:
+
+http://openxcplatform.com/vehicle-interface/firmware.html
+
+## License
+
+These binaries do not contain any closed source components. They are compiled
+soley from the open source OpenXC vehicle interface firmware
+<http://vi-firmware.openxcplatform.com/> and contains code covered by a few
+different open source licenses
+<http://vi-firmware.openxcplatform.com/en/latest/license-disclosure.html>.

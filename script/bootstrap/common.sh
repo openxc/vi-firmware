@@ -3,8 +3,6 @@
 set -e
 BOOTSTRAP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-pushd $BOOTSTRAP_DIR/..
-
 if [ -z $COMMON_SOURCED ]; then
 
     # TODO this is kind of a hacky way of determining if root is required -
@@ -212,5 +210,3 @@ if [ -z $COMMON_SOURCED ]; then
 
     COMMON_SOURCED=1
 fi
-
-popd

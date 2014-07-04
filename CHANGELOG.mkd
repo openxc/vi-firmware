@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v6.0.2-dev
+
 ## v6.0.1
 
 * Fixed a regression in CAN AF configuration on PIC32 platforms

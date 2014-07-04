@@ -1,10 +1,13 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v6.0.1-dev
+## v6.0.1
 
 * Fixed a regression in CAN AF configuration on PIC32 platforms
   ([#237](https://github.com/openxc/vi-firmware/issues/237))
-* Updated all shared handlers to use new V6.0 API.
+* Updated all shared handlers to use new V6.0 API, fixing the example
+  configurations in the process.
+* Fix a regression where signal handlers were not being called if frequency was
+  not unlimited.
 
 ## v6.0
 

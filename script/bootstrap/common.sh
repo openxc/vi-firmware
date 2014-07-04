@@ -56,9 +56,12 @@ if [ -z $COMMON_SOURCED ]; then
             echo "OPTIONAL: Install the \"ncurses\" package in Cygwin to get colored shell output"
         fi
     else
+        set +e
+        # These exit with 1 when provisioning in a Vagrant box...?
         txtrst=$(tput sgr0) # reset
         bldred=${txtbld}$(tput setaf 1)
         bldgreen=${txtbld}$(tput setaf 2)
+        set -e
     fi
 
 

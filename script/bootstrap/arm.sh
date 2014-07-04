@@ -41,7 +41,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         fi
     else
         GCC_INNER_DIR="gcc-arm-none-eabi-4_8-2014q1"
-        INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE"
+        INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE -C /tmp"
     fi
 
     if ! test -d "$GCC_INNER_DIR"
@@ -50,6 +50,8 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         if [ $OS == "cygwin" ]; then
             echo -n "Press Enter when the GCC for ARM Embedded installer is finished"
             read
+        else
+            cp -R /tmp/$GCC_INNER_DIR .
         fi
     fi
 
@@ -63,10 +65,8 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         fi
     fi
 
-    if ! test -d arm-none-eabi; then
-        echo "Copying GCC binaries to local dependencies folder..."
-        cp -R "$GCC_INNER_DIR"/* .
-    fi
+    echo "Copying GCC binaries to local dependencies folder..."
+    cp -R "$GCC_INNER_DIR"/* .
 
     _popd
     _popd

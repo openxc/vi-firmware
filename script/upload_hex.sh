@@ -2,7 +2,7 @@
 #
 # Upload a PIC32 compatible application compiled to a .hex file to a device.
 #
-#    ./upload_hex.sh <absolute path to hex file>
+#    ./upload_hex.sh <absolute path to hex file> (<optional serial port>)
 #
 # This functionality is mostly copied from the Makefile so normal developers
 # don't need to have that installed.
@@ -14,6 +14,10 @@ HEX_FILE="$1"
 PORT=$2
 
 source $DIR/bootstrap/flashing_chipkit.sh
+
+if [ -z $PORT ]; then
+    PORT=$SERIAL_PORT
+fi
 
 if [ -z $PORT ]; then
     if [ $OS == "windows" ] || [ $OS == "cygwin" ]; then

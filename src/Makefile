@@ -189,3 +189,6 @@ custom_all: custom_all_prefix all
 	@echo ".$(COLOR_RESET)"
 	$(info Compiled with options:)
 	$(call show_options)
+
+clean::
+	rm -rf $(TEST_OBJDIR)

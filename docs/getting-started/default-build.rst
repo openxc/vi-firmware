@@ -16,8 +16,9 @@ and compile for the ``FORDBOARD`` platform:
 .. code-block:: sh
 
     vi-firmware/ $ cd src
+    vi-firmware/src $ export PLATFORM=FORDBOARD
     vi-firmware/src $ make clean
-    vi-firmware/src $ PLATFORM=FORDBOARD make -jj4
+    vi-firmware/src $ make -jj4
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.

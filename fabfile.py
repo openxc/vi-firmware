@@ -87,8 +87,8 @@ def release_descriptor(path):
 
 def compile_obd2(target_path):
     with lcd("src"):
-        local("make clean", capture=True)
         for board in env.boards:
+            local("PLATFORM=%s make clean" % (board['name']), capture=True)
             output = local("PLATFORM=%s " % (board['name']) +
                     "DEBUG=0 "
                     "BOOTLOADER=1 "
@@ -105,8 +105,8 @@ def compile_obd2(target_path):
 
 def compile_emulator(target_path):
     with lcd("src"):
-        local("make clean", capture=True)
         for board in env.boards:
+            local("PLATFORM=%s make clean" % (board['name']), capture=True)
             output = local("PLATFORM=%s " % (board['name']) +
                     "DEBUG=0 "
                     "BOOTLOADER=1 "

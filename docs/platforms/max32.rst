@@ -77,6 +77,7 @@ Attach the chipKIT to your computer with a mini-USB cable, ``cd`` into the
 
 .. code-block:: sh
 
+    $ export PLATFORM=CHIPKIT
     $ make clean
     $ make
     $ make flash

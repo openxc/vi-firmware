@@ -29,8 +29,9 @@ programming hardware. Compile the firmware to run under the bootloader:
 
 .. code-block:: sh
 
+   $ export PLATFORM=FORDBOARD
    $ make clean
-   $ PLATFORM=FORDBOARD make -j4
+   $ make -j4
 
 The compiled firmware will be located at
 ``build/lpc17xx/vi-firmware-lpc17xx.bin``. See `reference VI programming
@@ -44,9 +45,9 @@ Attach a JTAG adapter to your computer and the VI, then compile and flash:
 
 .. code-block:: sh
 
-    $ make clean
     $ export PLATFORM=FORDBOARD
     $ export BOOTLOADER=0
+    $ make clean
     $ make -j4
     $ make flash
 

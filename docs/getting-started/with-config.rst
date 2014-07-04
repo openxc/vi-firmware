@@ -20,8 +20,9 @@ and then re-compile the firmware:
 
 .. code-block:: sh
 
+    vi-firmware/src $ export PLATFORM=FORDBOARD
     vi-firmware/src $ make clean
-    vi-firmware/src $ PLATFORM=FORDBOARD make
+    vi-firmware/src $ make -j4
     Compiling for FORDBOARD...
     ...
     15 Compiling build/FORDBOARD/signals.o

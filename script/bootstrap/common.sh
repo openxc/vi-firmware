@@ -151,11 +151,20 @@ if [ -z $COMMON_SOURCED ]; then
                 _install "base-devel"
             elif [ $DISTRO == "Ubuntu" ]; then
                 _install "build-essential"
-                _install "libc6-i386"
-                _install "g++"
             fi
         fi
     fi
+
+    if [ $DISTRO == "Ubuntu" ] && [ $ARCH == "x86_64" ]; then
+        _install "libc6-i386"
+    fi
+
+    if ! command -v g++ >/dev/null 2>&1; then
+        if [ $DISTRO == "Ubuntu" ]; then
+            _install "g++"
+        fi
+    fi
+
 
     if ! command -v git >/dev/null 2>&1; then
         if [ $OS == "cygwin" ]; then

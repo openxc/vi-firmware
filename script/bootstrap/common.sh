@@ -191,6 +191,10 @@ if [ -z $COMMON_SOURCED ]; then
     if ! command -v pip >/dev/null 2>&1; then
         echo "Installing Pip..."
         if ! command -v easy_install >/dev/null 2>&1; then
+            _install "python-setuptools"
+        fi
+
+        if ! command -v easy_install >/dev/null 2>&1; then
             die "easy_install not available, can't install pip"
         fi
 

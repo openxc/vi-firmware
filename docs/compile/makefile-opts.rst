@@ -24,7 +24,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
   Set to ``1`` to compile with debugging symbols and to enable debug logging. By
   default the logging will be available via the logging USB endpoint - for UART
   output, see the ``UART_LOGGING`` flag. This also implies
-  ``DEFAULT_POWER_MANAGEMNET=ALWAYS_ON`` and ``DEFAULT_CAN_ACK_STATUS=1``.
+  ``DEFAULT_POWER_MANAGEMENT=ALWAYS_ON`` and ``DEFAULT_CAN_ACK_STATUS=1``.
 
   Values: ``0`` or ``1``
 

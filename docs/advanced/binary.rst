@@ -46,8 +46,8 @@ twice the space.
 
 This isn't an issue for most users, as the output interfaces have plenty of
 bandwidth (USB is around 125-160 KB/s and the popular RN-42 Bluetooth tops out
-at 23KB/s) and the data rate of most release VI firwmares is on the order of
-only 3-6KB/s using JSON.
+at 23KB/s), and the actual amount of data sent from the pre-compiled binary
+firmware (from Ford, for example) is only about 3-6KB/s using JSON.
 
 However, some applications need to pull a lot more data out of the car, perhaps
 by reading :doc:`raw CAN messages </advanced/lowlevel>` or reading many signals

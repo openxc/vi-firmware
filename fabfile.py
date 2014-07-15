@@ -5,6 +5,7 @@ from fabric.colors import green, yellow
 from fabric.contrib.console import confirm
 
 from prettyprint import pp
+import copy
 import re
 
 VERSION_PATTERN = r'^v\d+(\.\d+)+?$'
@@ -16,6 +17,25 @@ env.root_dir = os.path.abspath(os.path.dirname(__file__))
 env.boards = [{"name": "FORDBOARD", "extension": "bin"},
     {"name": "CHIPKIT", "extension": "hex"},
     {"name": "CROSSCHASM_C5", "extension": "hex"}]
+
+DEFAULT_COMPILER_OPTIONS = {
+    'DEBUG': False,
+    'BOOTLOADER': True,
+    'TRANSMITTER': False,
+    'DEFAULT_UART_LOGGING_STATUS': False,
+    'DEFAULT_METRICS_STATUS': False,
+    'DEFAULT_CAN_ACK_STATUS': False,
+    'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
+    'DEFAULT_ALLOW_RAW_WRITE_UART': False,
+    'DEFAULT_ALLOW_RAW_WRITE_USB': True,
+    'DEFAULT_OUTPUT_FORMAT': "JSON",
+    'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
+    'DEFAULT_POWER_MANAGEMENT': "SILENT_CAN",
+    'DEFAULT_USB_PRODUCT_ID': 0x1,
+    'DEFAULT_EMULATED_DATA_STATUS': False,
+    'DEFAULT_OBD2_BUS': 1,
+    'NETWORK': False,
+}
 
 def latest_git_tag():
     description = local('git describe master', capture=True).rstrip('\n')
@@ -85,41 +105,31 @@ def release_descriptor(path):
     with lcd(path):
         return local('git describe HEAD', capture=True).rstrip("\n")
 
-def compile_obd2(target_path):
-    with lcd("src"):
-        for board in env.boards:
-            local("PLATFORM=%s make clean" % (board['name']), capture=True)
-            output = local("PLATFORM=%s " % (board['name']) +
-                    "DEBUG=0 "
-                    "BOOTLOADER=1 "
-                    "DEFAULT_RECURRING_OBD2_REQUESTS_STATUS=1 "
-                    "DEFAULT_POWER_MANAGEMENT=OBD2_IGNITION_CHECK make -j4",
-                    capture=True)
-            if output.failed:
-                puts(output)
-                abort("Building emulator for %s failed" % board['name'])
-            local("cp build/%s/vi-firmware-%s.%s %s/vi-obd2-firmware-%s-ct%s.%s"
-                    % (board['name'], board['name'], board['extension'],
-                        target_path, board['name'], env.firmware_release,
-                        board['extension']))
+def build_option(key, value):
+    if isinstance(value, bool):
+        if value:
+            value = "1"
+        else:
+            value = "0"
+    return "%s=%s" % (key, value)
 
-def compile_emulator(target_path):
+def build_options(options):
+    return " ".join((build_option(key, value)
+        for key, value in options.iteritems()))
+
+def compile_firmware(build_name, options, target_path):
     with lcd("src"):
         for board in env.boards:
-            local("PLATFORM=%s make clean" % (board['name']), capture=True)
-            output = local("PLATFORM=%s " % (board['name']) +
-                    "DEBUG=0 "
-                    "BOOTLOADER=1 "
-                    "DEFAULT_EMULATED_DATA_STATUS=1 "
-                    "DEFAULT_POWER_MANAGEMENT=ALWAYS_ON make -j4",
-                    capture=True)
+            options['PLATFORM'] = board['name']
+            local("%s make clean" % build_options(options), capture=True)
+            output = local("%s make -j4" % build_options(options), capture=True)
             if output.failed:
                 puts(output)
-                abort("Building emulator for %s failed" % board['name'])
-            local("cp build/%s/vi-firmware-%s.%s %s/vi-emulator-firmware-%s-ct%s.%s"
+                abort("Building %s for %s failed" % (build_name, board['name']))
+            local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-ct%s.%s"
                     % (board['name'], board['name'], board['extension'],
-                        target_path, board['name'], env.firmware_release,
-                        board['extension']))
+                        target_path, build_name, board['name'],
+                        env.firmware_release, board['extension']))
 
 def compress_release(source, archive_path):
     with lcd(os.path.dirname(source)):
@@ -141,9 +151,16 @@ def release():
 
     env.firmware_release = release_descriptor(".")
 
-    compile_emulator(env.temporary_path)
-    compile_obd2(env.temporary_path)
+    obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+    obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+    compile_firmware("obd2", obd2_options, env.temporary_path)
+
+    emulator_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    emulator_options['DEFAULT_EMULATED_DATA_STATUS'] = True
+    emulator_options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
+    compile_firmware("emulator", emulator_options, env.temporary_path)
+
     filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
-    emulator_archive = "%s/%s/%s" % (env.root_dir, env.releases_directory,
-            filename)
-    compress_release(env.temporary_path, emulator_archive)
+    archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
+    compress_release(env.temporary_path, archive)

@@ -7,6 +7,3 @@ before_install:
     - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs ia32-libs-multiarch; fi
     - script/bootstrap.sh
     - cd src
-notifications:
-  hipchat:
-    - secure: "ZO/hEAoOTZ4FJytMW0m4LZrsdFVM1/V0Hu13zfj8mdcHkf2MyfxthPDecnn5\naZVn4P8mSSwpp39EnAfa9fBcWcDESnKM1YQKPPGkoxZZHIOd2rYhRv34XfpE\n5qNLkQ/lEPQCBEmvIQ5ZJxsiZjGhO7KxWvdNdruH6cdVCYSh4Xo="

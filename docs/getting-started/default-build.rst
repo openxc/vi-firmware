@@ -18,7 +18,7 @@ and compile for the ``FORDBOARD`` platform:
     vi-firmware/ $ cd src
     vi-firmware/src $ export PLATFORM=FORDBOARD
     vi-firmware/src $ make clean
-    vi-firmware/src $ make -jj4
+    vi-firmware/src $ make -j4
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.
@@ -44,4 +44,4 @@ into your car, then attach via USB and run:
 .. code-block:: sh
 
     $ openxc-diag --id 0x7df --mode 1 --pid 0xc
-    {"success": true, "bus": 1, "id": 2016, "mode": 1, "pid": 12, "payload": "0x0"}
+    {"success": true, "bus": 1, "id": 2015, "mode": 1, "pid": 12, "payload": "0x0"}

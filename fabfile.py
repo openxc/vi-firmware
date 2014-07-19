@@ -138,7 +138,7 @@ def compress_release(source, archive_path):
 @task
 def test():
     with(lcd("src")):
-        local("make -j4 test")
+        local("PLATFORM=TESTING make -j4 test")
 
 @task
 def release():
@@ -151,15 +151,18 @@ def release():
 
     env.firmware_release = release_descriptor(".")
 
-    obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-    obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
-    obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
-    compile_firmware("obd2", obd2_options, env.temporary_path)
-
     emulator_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
     emulator_options['DEFAULT_EMULATED_DATA_STATUS'] = True
     emulator_options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
     compile_firmware("emulator", emulator_options, env.temporary_path)
+
+    obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+    compile_firmware("obd2", obd2_options, env.temporary_path)
+
+    translated_obd2_options = obd2_options
+    translated_obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+    compile_firmware("translated_obd2", translated_obd2_options, env.temporary_path)
 
     filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
     archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)

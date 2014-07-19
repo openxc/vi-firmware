@@ -31,10 +31,10 @@ these Makefile options:
     'DEFAULT_OBD2_BUS': 1,
     'NETWORK': False,
 
-## OBD2 Build
+## Translated OBD2 Build
 
-The files with `obd2` in the name are compile for each VI platform with these
-Makeflie options:
+The files with `translated_obd2` in the name are compiled for each VI platform
+with these Makeflie options:
 
     'DEBUG': False,
     'BOOTLOADER': True,
@@ -49,7 +49,7 @@ Makeflie options:
     'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': True,
     'DEFAULT_POWER_MANAGEMENT': "OBD2_IGNITION_CHECK",
     'DEFAULT_USB_PRODUCT_ID': 0x1,
-    'DEFAULT_EMULATED_DATA_STATUS': True,
+    'DEFAULT_EMULATED_DATA_STATUS': False,
     'DEFAULT_OBD2_BUS': 1,
     'NETWORK': False,
 
@@ -60,6 +60,33 @@ recurring requests for those that are, giving each a user-friendly name so they
 are output as simple vehicle messages, e.g.:
 
     {"name": "engine_speed", "value": 540}
+
+## Default OBD2 Build
+
+The files with `obd2` in the name are compiled for each VI platform with these
+Makeflie options:
+
+    'DEBUG': False,
+    'BOOTLOADER': True,
+    'TRANSMITTER': False,
+    'DEFAULT_UART_LOGGING_STATUS': False,
+    'DEFAULT_METRICS_STATUS': False,
+    'DEFAULT_CAN_ACK_STATUS': False,
+    'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
+    'DEFAULT_ALLOW_RAW_WRITE_UART': False,
+    'DEFAULT_ALLOW_RAW_WRITE_USB': True,
+    'DEFAULT_OUTPUT_FORMAT': "JSON",
+    'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
+    'DEFAULT_POWER_MANAGEMENT': "OBD2_IGNITION_CHECK",
+    'DEFAULT_USB_PRODUCT_ID': 0x1,
+    'DEFAULT_EMULATED_DATA_STATUS': False,
+    'DEFAULT_OBD2_BUS': 1,
+    'NETWORK': False,
+
+This firmware is ready to received OBD2 requests over USB or Bluetooth (see the
+message format: https://github.com/openxc/openxc-message-format) but does *not*
+have any pre-defined recurring requests. You probably want this build if you are
+sending your own, custom diagnostic requests.
 
 ## License
 

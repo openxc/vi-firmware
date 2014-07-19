@@ -18,6 +18,7 @@ if [ -z $COMMON_SOURCED ]; then
     fi
 
     KERNEL=`uname`
+    ARCH=`uname -m`
     if [ ${KERNEL:0:7} == "MINGW32" ]; then
         OS="windows"
     elif [ ${KERNEL:0:6} == "CYGWIN" ]; then
@@ -35,6 +36,7 @@ if [ -z $COMMON_SOURCED ]; then
 
         DISTRO=`lsb_release -si`
     fi
+
 
     die() {
         echo >&2 "${bldred}$@${txtrst}"

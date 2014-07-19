@@ -97,7 +97,6 @@ if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
 
 fi
 
-ARCH=`uname -m`
 if [ $OS == "linux" ] && [ $ARCH == "x86_64" ]; then
     if [ $DISTRO == "arch" ]; then
         echo "Make sure lib32-libusb-compat and lib32-readline are installed from the AUR"

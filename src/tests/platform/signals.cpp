@@ -23,10 +23,18 @@ CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
 const int MAX_CAN_BUS_COUNT = 2;
 CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
     { // message set: passthrough
-        { 500000, 1, NULL, 1, false
+        {
+            speed: 500000,
+            address: 1,
+            maxMessageFrequency: 0,
+            rawWritable: false
         },
 
-        { 125000, 2, NULL, 1, false
+        {
+            speed: 125000,
+            address: 2,
+            maxMessageFrequency: 1,
+            rawWritable: false
         },
 
     },

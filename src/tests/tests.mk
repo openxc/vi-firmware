@@ -26,7 +26,7 @@ EXAMPLE_CONFIG_DIR = ../examples
 
 define COMPILE_TEST_TEMPLATE
 $1: $3
-	@make clean > /dev/null
+	$2 make clean > /dev/null
 	$2 make -j4 $4 > /dev/null
 	@echo "$$(GREEN)Passed.$$(COLOR_RESET)"
 endef
@@ -150,11 +150,11 @@ coverage:
 	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
 	@echo "$(GREEN)Coverage information generated in $(TEST_OBJDIR)/coverage/index.html.$(COLOR_RESET)"
 
-$(TEST_OBJDIR)/%.o: %.cpp
+$(TEST_OBJDIR)/%.o: %.cpp .firmware_options
 	@mkdir -p $(dir $@)
 	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 
-$(TEST_OBJDIR)/%.o: %.c
+$(TEST_OBJDIR)/%.o: %.c .firmware_options
 	@mkdir -p $(dir $@)
 	$(CC) $(C_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 

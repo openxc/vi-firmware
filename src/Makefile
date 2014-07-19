@@ -181,6 +181,10 @@ endef
 
 
 .DEFAULT_GOAL = custom_all
+.PHONY: force
+
+.firmware_options: force
+	@echo '$(SYMBOLS)' | cmp -s - $@ || echo '$(SYMBOLS)' > $@
 
 custom_all_prefix:
 	$(info Compiling with options:)

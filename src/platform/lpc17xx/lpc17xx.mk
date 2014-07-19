@@ -96,6 +96,8 @@ gdb: all
 .s.o:
 	$(AS) $(AS_FLAGS) -o $@ $<
 
+$(OBJECTS): .firmware_options
+
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<

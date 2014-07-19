@@ -103,4 +103,10 @@ LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 
 include $(ARDUINO_MAKEFILE_HOME)/chipKIT.mk
 
+# A bit of a hack to inject our dependency on the firmware options into
+# Arduino.mk
+$(LOCAL_OBJS): .firmware_options
+$(OTHER_OBJS): .firmware_options
+$(CORE_LIB): .firmware_options
+
 flash: upload

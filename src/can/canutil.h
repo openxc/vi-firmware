@@ -206,18 +206,12 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  *
  * speed - The bus speed in bits per second (e.g. 500000)
  * address - The address or ID of this node
- * controller - a reference to the CAN controller in the MCU
- *      (platform dependent, needs to be casted to actual type before use).
  * maxMessageFrequency - the default maximum frequency for all CAN messages when
  *      using the raw passthrough mode. To put no limit on the frequency, set
  *      this to 0.
  * rawWritable - True if this CAN bus connection should allow raw CAN messages
  *      writes. This is independent from the CanSignal 'writable' option, which
  *      can be set to still allow translated writes back to this bus.
- * interruptHandler - a function to call by the Interrupt Service Routine when
- *      a previously registered CAN event occurs. (Only used by chipKIT, which
- *      registers a different handler per channel. LPC17xx uses the same global
- *      CAN_IRQHandler.
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the
@@ -243,10 +237,8 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
 struct CanBus {
     unsigned int speed;
     short address;
-    void* controller;
     float maxMessageFrequency;
     bool rawWritable;
-    void (*interruptHandler)();
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];

@@ -9,7 +9,7 @@ namespace power = openxc::power;
 using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 
-CanMessage receiveCanMessage(CanBus* bus) {
+static CanMessage receiveCanMessage(CanBus* bus) {
     CAN::RxMessageBuffer* message = CAN_CONTROLLER(bus)->getRxMessage(
             CAN::CHANNEL1);
 
@@ -29,8 +29,7 @@ CanMessage receiveCanMessage(CanBus* bus) {
     return result;
 }
 
-void handleCanInterrupt(CanBus* bus) {
-
+void openxc::can::pic32::handleCanInterrupt(CanBus* bus) {
     // handle the bus activity wake from sleep event
     if((CAN_CONTROLLER(bus)->getModuleEvent() &
                 CAN::BUS_ACTIVITY_WAKEUP_EVENT) != 0
@@ -67,14 +66,4 @@ void handleCanInterrupt(CanBus* bus) {
         CAN_CONTROLLER(bus)->enableChannelEvent(CAN::CHANNEL1,
                 CAN::RX_CHANNEL_NOT_EMPTY, true);
     }
-}
-
-/* Called by the Interrupt Service Routine whenever an event we registered for
- * occurs - this is where we wake up and decide to process a message. */
-void handleCan1Interrupt() {
-    handleCanInterrupt(&getCanBuses()[0]);
-}
-
-void handleCan2Interrupt() {
-    handleCanInterrupt(&getCanBuses()[1]);
 }

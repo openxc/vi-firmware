@@ -15,8 +15,9 @@
 
 namespace gpio = openxc::gpio;
 
-using openxc::gpio::GpioValue;
+using openxc::signals::getCanBuses;
 using openxc::util::log::debug;
+using openxc::gpio::GpioValue;
 using openxc::gpio::GPIO_VALUE_LOW;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_DIRECTION_OUTPUT;
@@ -158,6 +159,16 @@ void openxc::can::deinitialize(CanBus* bus) {
     #endif
 }
 
+/* Called by the Interrupt Service Routine whenever an event we registered for
+ * occurs - this is where we wake up and decide to process a message. */
+static void handleCan1Interrupt() {
+    openxc::can::pic32::handleCanInterrupt(&getCanBuses()[0]);
+}
+
+static void handleCan2Interrupt() {
+    openxc::can::pic32::handleCanInterrupt(&getCanBuses()[1]);
+}
+
 void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
         const int busCount) {
     can::initializeCommon(bus);
@@ -232,6 +243,8 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     }
     switchControllerMode(bus, mode);
 
-    CAN_CONTROLLER(bus)->attachInterrupt(bus->interruptHandler);
+    // TODO an error if the address isn't valid
+    CAN_CONTROLLER(bus)->attachInterrupt(bus->address == 1 ?
+            handleCan1Interrupt : handleCan2Interrupt);
     debug("Done.");
 }

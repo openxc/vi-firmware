@@ -10,21 +10,11 @@ using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::diagnostics::DiagnosticsManager;
 
-#if defined(__LPC17XX__)
-#define can1 LPC_CAN1
-#elif defined(__PIC32__)
-extern void* can1;
-extern void handleCan1Interrupt();
-#else
-#define can1 NULL
-#endif // __LPC17XX__
-
 CanBus defaultBus = {
-    500000, 1, can1,
-        0, true,
-        #ifdef __PIC32__
-        handleCan1Interrupt,
-        #endif // __PIC32__
+    speed: 500000,
+    address: 1,
+    maxMessageFrequency: 0,
+    rawWritable: true
 };
 
 void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) { }

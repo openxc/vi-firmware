@@ -142,28 +142,37 @@ def test():
 
 @task
 def release():
-    local("script/bootstrap.sh")
-    test()
-    make_tag()
+    with lcd(env.root_dir):
+        signals_file = "src/signals.cpp"
+        moved_signals_file = "%s.bak" % signals_file
+        if os.path.isfile("%s/%s" % (env.root_dir, signals_file)):
+            print("Moved %s out of the way to %s, will not be in released builds" % (
+                    signals_file, moved_signals_file))
+            local("mv %s %s" % (signals_file, moved_signals_file))
 
-    prepare_temp_path()
-    prepare_releases_path()
+        local("script/bootstrap.sh")
 
-    env.firmware_release = release_descriptor(".")
+        test()
+        make_tag()
 
-    emulator_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-    emulator_options['DEFAULT_EMULATED_DATA_STATUS'] = True
-    emulator_options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
-    compile_firmware("emulator", emulator_options, env.temporary_path)
+        prepare_temp_path()
+        prepare_releases_path()
 
-    obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-    obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
-    compile_firmware("obd2", obd2_options, env.temporary_path)
+        env.firmware_release = release_descriptor(".")
 
-    translated_obd2_options = obd2_options
-    translated_obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
-    compile_firmware("translated_obd2", translated_obd2_options, env.temporary_path)
+        emulator_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+        emulator_options['DEFAULT_EMULATED_DATA_STATUS'] = True
+        emulator_options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
+        compile_firmware("emulator", emulator_options, env.temporary_path)
 
-    filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
-    archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
-    compress_release(env.temporary_path, archive)
+        obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+        obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+        compile_firmware("obd2", obd2_options, env.temporary_path)
+
+        translated_obd2_options = obd2_options
+        translated_obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+        compile_firmware("translated_obd2", translated_obd2_options, env.temporary_path)
+
+        filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
+        archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
+        compress_release(env.temporary_path, archive)

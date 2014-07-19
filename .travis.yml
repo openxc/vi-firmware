@@ -1,7 +1,7 @@
 language: c
 compiler:
   - gcc
-script: make test
+script: make test_long
 before_install:
     - sudo apt-get update -qq
     - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs ia32-libs-multiarch; fi

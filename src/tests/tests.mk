@@ -42,20 +42,25 @@ $(foreach platform, $(PLATFORMS), \
 $1: $(foreach platform, $(PLATFORMS), $1-$(platform)) $(foreach platform, $(PLATFORMS), $1-$(platform)-bootloader)
 endef
 
-test: unit_tests
-	@make default_compile_test
-	@make debug_compile_test
-	@make mapped_compile_test
-	@make passthrough_compile_test
-	@make emulator_compile_test
-	@make stats_compile_test
-	@make debug_stats_compile_test
+test_long: test_short
 	# TODO see https://github.com/openxc/vi-firmware/issues/189
 	# @make network_compile_test
 	# @make network_raw_write_compile_test
 	@make usb_raw_write_compile_test
 	@make bluetooth_raw_write_compile_test
 	@make binary_output_compile_test
+	@make emulator_compile_test
+	@make stats_compile_test
+	@make debug_stats_compile_test
+	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
+
+test_short: unit_tests
+	@make default_compile_test
+	@make debug_compile_test
+	@make mapped_compile_test
+	@make passthrough_compile_test
+
+test: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)

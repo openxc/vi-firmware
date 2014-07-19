@@ -138,6 +138,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 ONLY_C_FLAGS =
 ONLY_CPP_FLAGS = -std=gnu++0x
 
+include tests/tests.mk
+
 # This must come after setting the variables like LIBS_PATH, since those are
 # used in the included Makefiles
 ifeq ($(PLATFORM), CHIPKIT)
@@ -148,7 +150,7 @@ else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
 else ifeq ($(PLATFORM), BLUEBOARD)
 include platform/lpc17xx/lpc17xx.mk
-else
+else ifneq ($(PLATFORM), TESTING)
 ifdef PLATFORM
 $(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")
 else
@@ -177,7 +179,6 @@ define show_options
 	$(call show_separator)
 endef
 
-include tests/tests.mk
 
 .DEFAULT_GOAL = custom_all
 

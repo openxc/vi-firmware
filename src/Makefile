@@ -99,8 +99,6 @@ $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
 VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
-# Default PLATFORM is FORDBOARD
-PLATFORM ?= FORDBOARD
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -140,6 +138,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 ONLY_C_FLAGS =
 ONLY_CPP_FLAGS = -std=gnu++0x
 
+# This must come after setting the variables like LIBS_PATH, since those are
+# used in the included Makefiles
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)
@@ -149,7 +149,13 @@ include platform/lpc17xx/lpc17xx.mk
 else ifeq ($(PLATFORM), BLUEBOARD)
 include platform/lpc17xx/lpc17xx.mk
 else
+ifdef PLATFORM
 $(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")
+else
+$(error "There is no longer a default PLATFORM - you must \
+explicitly set one with each call to `make` or `export PLATFORM=X` \
+before running any comands - - choose from $(VALID_PLATFORMS)")
+endif
 endif
 
 define show_options

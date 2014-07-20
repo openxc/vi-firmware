@@ -11,7 +11,7 @@ if [ -z $COMMON_SOURCED ]; then
     if command -v sudo >/dev/null 2>&1; then
         SUDO_CMD="sudo -E"
 
-        if [ -z $CI ]; then
+        if [ -z $CI ] && [ -z $VAGRANT ]; then
             echo "The bootstrap script needs to install a few packages to your system as an admin, and we will use the 'sudo' command - enter your password to continue"
             $SUDO_CMD ls > /dev/null
         fi
@@ -74,7 +74,7 @@ if [ -z $COMMON_SOURCED ]; then
     }
 
     _wait() {
-        if [ -z $CI ]; then
+        if [ -z $CI ] && [ -z $VAGRANT ]; then
             echo "Press Enter when done"
             read
         fi
@@ -135,7 +135,42 @@ if [ -z $COMMON_SOURCED ]; then
 
 
     if [ $OS == "windows" ]; then
-        die "Sorry, the bootstrap script for compiling from source doesn't support the Windows console - try Cygwin."
+        die "Compiling the VI firmware from a Windows prompt is not \
+supported - see the docs for the recommended approach"
+    fi
+
+    if [ $OS == "cygwin" ]; then
+    # TODO need a warning colored promp
+        echo "It looks like you're developing in Cygwin. Cygwin is no \
+longer the recommended build environment for \
+Windows developers. It is unofficially supported by the bootstrap \
+scripts, but the recommended method is to use Vagrant - see the docs for \
+more information."
+        echo -n "Press Enter to continue anyway, or Control-C to cancel"
+        read
+        echo "Continuing with bootstrap..."
+    fi
+
+    if [ $OS == "mac" ]; then
+        echo "It looks like you're developing in Mac OS X. We recommend \
+using Vagrant to compile the VI firmware. OS X is unofficially supported by \
+the bootstrap scripts and you should be able to compile just fine, but you \
+can save yourself some trouble by using the pre-configure Vagrant \
+environment. See the docs for more information."
+        echo -n "Press Enter to continue anyway, or Control-C to cancel"
+        read
+        echo "Continuing with bootstrap..."
+    fi
+
+    if [ $OS == "linux" ] && [ -z $VAGRANT ]; then
+        echo "It looks like you're developing in Linux. We recommend \
+using Vagrant to compile the VI firmware. Ubuntu and Arch Linux are
+supported by the bootstrap scripts and you should be able to compile
+just fine, but you can save yourself some trouble by using the \
+pre-configure Vagrant environment. See the docs for more information."
+        echo -n "Press Enter to continue anyway, or Control-C to cancel"
+        read
+        echo "Continuing with bootstrap..."
     fi
 
     if [ $OS == "mac" ] && ! command -v brew >/dev/null 2>&1; then

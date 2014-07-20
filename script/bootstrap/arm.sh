@@ -74,12 +74,16 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 fi
 
 if [ -z $CI ]; then
-    while true; do
-        read -p "Will you be using a JTAG programmer (y/n) ? " yn
-        case $yn in
-            [Yy]* ) source $BOOTSTRAP_DIR/flashing_arm.sh; break;;
-            [Nn]* ) break;;
-            * ) echo "Please answer yes or no.";;
-        esac
-    done
+    if [ -z $VAGRANT ]; then
+        while true; do
+            read -p "Will you be using a JTAG programmer (y/n) ? " yn
+            case $yn in
+                [Yy]* ) source $BOOTSTRAP_DIR/flashing_arm.sh; break;;
+                [Nn]* ) break;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    else
+        source $BOOTSTRAP_DIR/flashing_arm.sh;
+    fi
 fi

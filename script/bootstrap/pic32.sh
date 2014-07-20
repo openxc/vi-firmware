@@ -16,7 +16,7 @@ _pushd $DEPENDENCIES_FOLDER
 if ! test -e chipkit.zip
 then
     echo
-    if [ -z $CI ]; then
+    if [ -z $CI ] && [ -z $VAGRANT ]; then
         echo "By running this command, you agree to Microchip's licensing agreement at $CHIPKIT_LIBRARY_AGREEMENT_URL"
         echo "Press Enter to verify you have read the license agreement."
         read

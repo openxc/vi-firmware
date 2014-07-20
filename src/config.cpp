@@ -23,7 +23,7 @@ void initialize(openxc::config::Configuration* config) {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "6.0.2-dev",
+        version: "6.0.2",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,

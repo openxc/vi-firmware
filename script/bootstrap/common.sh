@@ -159,6 +159,7 @@ if [ -z $COMMON_SOURCED ]; then
 
     if [ $DISTRO == "Ubuntu" ] && [ $ARCH == "x86_64" ]; then
         _install "libc6-i386"
+        _install "lib32gcc1"
     fi
 
     if ! command -v g++ >/dev/null 2>&1; then

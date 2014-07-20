@@ -162,7 +162,7 @@ environment. See the docs for more information."
         echo "Continuing with bootstrap..."
     fi
 
-    if [ $OS == "linux" ] && [ -z $VAGRANT ]; then
+    if [ $OS == "linux" ] && [ -z $VAGRANT ] && [ -z $CI ]; then
         echo "It looks like you're developing in Linux. We recommend \
 using Vagrant to compile the VI firmware. Ubuntu and Arch Linux are
 supported by the bootstrap scripts and you should be able to compile

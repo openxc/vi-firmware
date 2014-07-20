@@ -199,8 +199,6 @@ def release():
                     signals_file, moved_signals_file))
             local("mv %s %s" % (signals_file, moved_signals_file))
 
-        local("script/bootstrap.sh")
-
         test()
         make_tag()
 

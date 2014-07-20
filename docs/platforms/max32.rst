@@ -77,10 +77,8 @@ Attach the chipKIT to your computer with a mini-USB cable, ``cd`` into the
 
 .. code-block:: sh
 
-    $ export PLATFORM=CHIPKIT
-    $ make clean
-    $ make
-    $ make flash
+    vi-firmware/src/ $ fab chipkit build
+    vi-firmware/src/ $ make flash
 
 If the flash command can't find your chipKIT, you may need to set the
 ``SERIAL_PORT`` variable if the serial emulator doesn't show up as

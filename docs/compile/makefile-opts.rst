@@ -13,6 +13,11 @@ These options are passed as shell environment variables to the Makefile, e.g.
    Try adding the ``-j4`` flag to your calls to ``make`` to build 4 jobs in
    parallel - the speedup can be quite dramatic.
 
+.. note::
+
+   Don't miss the ``Fabric`` helper scripts for the :doc:`most common build
+   configurations <example-builds>`.
+
 ``PLATFORM``
   Select the target :doc:`microcontroller platform </platforms/platforms>`.
 

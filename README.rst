@@ -24,41 +24,11 @@ website`_ or the `vehicle interface documentation`_.
 .. _`vehicle interface`: http://openxcplatform.com/vehicle-interface/firmware.html
 .. _`vehicle interface documentation`: http://vi-firmware.openxcplatform.com
 
-Quick Start
-===========
+Installation
+=============
 
 For the full build instructions, see the `documentation
 <http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`_.
-
-The basics to compile the firmware from source:
-
-Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_ repository
-(don't download the ZIP file, it won't work):
-
-  .. code-block:: sh
-
-    $ git clone https://github.com/openxc/vi-firmware
-
-Run the ``bootstrap.sh`` script:
-
-  .. code-block:: sh
-
-    $ cd vi-firmware
-    vi-firmware $ script/bootstrap.sh
-
-Use the passthrough configuration to generate an implementation of ``signals.h``
-and save it as ``signals.cpp``:
-
-  .. code-block:: sh
-
-    vi-firmware $ openxc-generate-firmware-code -m passthrough.json > signals.cpp
-
-Compile it! By default this will compile for the Ford reference VI
-(the environment variable ``PLATFORM=FORDBOARD``):
-
-  .. code-block:: sh
-
-    vi-firmware $ make
 
 License
 =======

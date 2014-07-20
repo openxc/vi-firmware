@@ -1,10 +1,16 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v6.0.2-dev
+## v6.0.2
 
+* BREAKING CHANGE: The PLATFORM environment variable must now be explicitly set
+  when running any of the `make` goals.
+* BREAKING CHANGE: Move all platform-specific CAN code from generated
+  signals.cpp to vi-firmware internals (requires an update to openxc-python).
 * Include a config for Vagrant to build a VI firmware development environment.
 * Deprecate support for compiling in Cygwin - now recommending Vagrant as it
   will be much more manageable to support.
+* Explicitly set all Makefile options when building binary releases.
+* Add compile shortcuts with Fabric and recommend that for most simple builds.
 
 ## v6.0.1
 

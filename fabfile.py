@@ -1,7 +1,7 @@
 import os
 
 from fabric.api import *
-from fabric.colors import green, yellow
+from fabric.colors import green, yellow, red
 from fabric.contrib.console import confirm
 
 from prettyprint import pp
@@ -14,9 +14,13 @@ env.temporary_directory = "openxc-vi-firmware"
 env.temporary_path = "/tmp/%(temporary_directory)s" % env
 env.root_dir = os.path.abspath(os.path.dirname(__file__))
 
-env.boards = [{"name": "FORDBOARD", "extension": "bin"},
-    {"name": "CHIPKIT", "extension": "hex"},
-    {"name": "CROSSCHASM_C5", "extension": "hex"}]
+env.mode = 'default'
+env.board = None
+env.boards = {
+    "reference": {"name": "FORDBOARD", "extension": "bin"},
+    "chipkit": {"name": "CHIPKIT", "extension": "hex"},
+    "c5": {"name": "CROSSCHASM_C5", "extension": "hex"}
+}
 
 DEFAULT_COMPILER_OPTIONS = {
     'DEBUG': False,
@@ -117,15 +121,11 @@ def build_options(options):
     return " ".join((build_option(key, value)
         for key, value in options.iteritems()))
 
-def compile_firmware(build_name, options, target_path):
+def compile_firmware(build_name, target_path):
     with lcd("src"):
-        for board in env.boards:
-            options['PLATFORM'] = board['name']
-            local("%s make clean" % build_options(options), capture=True)
-            output = local("%s make -j4" % build_options(options), capture=True)
-            if output.failed:
-                puts(output)
-                abort("Building %s for %s failed" % (build_name, board['name']))
+        for board_name, board_options in env.boards.iteritems():
+            env.board = board_name
+            build(capture=True, clean=True)
             local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-ct%s.%s"
                     % (board['name'], board['name'], board['extension'],
                         target_path, build_name, board['name'],
@@ -136,9 +136,58 @@ def compress_release(source, archive_path):
         local("zip -r %s %s" % (archive_path, os.path.basename(source)))
 
 @task
+def emulator():
+    env.mode = 'emulator'
+
+@task
+def translated_obd2():
+    env.mode = 'translated_obd2'
+
+@task
+def obd2():
+    env.mode = 'obd2'
+
+@task
 def test():
     with(lcd("src")):
         local("PLATFORM=TESTING make -j4 test")
+
+@task
+def chipkit():
+    env.board = 'chipkit'
+
+@task
+def reference():
+    env.board = 'reference'
+
+@task
+def c5():
+    env.board = 'c5'
+
+@task
+def build(capture=False, clean=False):
+    if env.board is None:
+        abort("You must specify the target board - your choices are %s" % env.boards.keys())
+    board_options = env.boards[env.board]
+
+    options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    if env.mode == 'emulator':
+        options['DEFAULT_EMULATED_DATA_STATUS'] = True
+        options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
+    elif env.mode == 'translated_obd2':
+        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+        options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+    elif env.mode == 'obd2':
+        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+
+    with lcd("%s/src" % env.root_dir):
+        options['PLATFORM'] = board_options['name']
+        if clean:
+            local("%s make clean" % build_options(options), capture=True)
+        output = local("%s make -j4" % build_options(options), capture=capture)
+        if output.failed:
+            puts(output)
+            abort(red("Building %s failed" % board_options['name']))
 
 @task
 def release():
@@ -160,18 +209,14 @@ def release():
 
         env.firmware_release = release_descriptor(".")
 
-        emulator_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-        emulator_options['DEFAULT_EMULATED_DATA_STATUS'] = True
-        emulator_options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
-        compile_firmware("emulator", emulator_options, env.temporary_path)
+        emulator()
+        compile_firmware("emulator", env.temporary_path)
 
-        obd2_options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-        obd2_options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
-        compile_firmware("obd2", obd2_options, env.temporary_path)
+        obd2()
+        compile_firmware("obd2", env.temporary_path)
 
-        translated_obd2_options = obd2_options
-        translated_obd2_options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
-        compile_firmware("translated_obd2", translated_obd2_options, env.temporary_path)
+        translated_obd2()
+        compile_firmware("translated_obd2", env.temporary_path)
 
         filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
         archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)

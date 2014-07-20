@@ -1,6 +1,6 @@
-=====================================
+============================
 Testing with Emulated Data
-=====================================
+============================
 
 At this point, we will assume you've :doc:`set up your development environment
 </getting-started/development-environment>` and continue on to test it.
@@ -11,13 +11,12 @@ any particular CAN signals or messages, but it allow you to send On-Board
 Diagnostic (OBD-II) requests and raw CAN messages for experimentation.
 
 Assuming you have a `reference VI from Ford <http://vi.openxcplatform.com>`_,
-move to the ``vi-firmware/src`` directory and compile for the ``FORDBOARD``
-platform:
+move to the ``vi-firmware`` directory and compile the emulator firmware using
+``Fabric`` for the reference VI:
 
 .. code-block:: sh
 
-    vi-firmware/ $ cd src
-    vi-firmware/src $ PLATFORM=FORDBOARD DEFAULT_EMULATED_DATA_STATUS=1 make -j4
+    vi-firmware/ $ fab reference emulator build
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.

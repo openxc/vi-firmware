@@ -96,12 +96,13 @@ do the compilation from within the VM.
 
 .. code-block:: sh
 
-   $ cd /vagrant/src
-   /vagrant/src/ $ make
+   $ cd /vagrant/
+   /vagrant/ $ fab reference build
 
-You can edit the source code from your native OS and re-run ``make`` from the
-Vagrant shell to compile. Run ``vagrant suspend`` to suspend the VM and
-``vagrant up`` again to restore it - it will be much faster after the first run.
+You can edit the source code from your native OS and re-run ``fab reference
+build`` from the Vagrant shell to compile (to compile for the reference VI, for
+example). Run ``vagrant suspend`` to suspend the VM and ``vagrant up`` again to
+restore it - it will be much faster after the first run.
 
 Native Development
 ==================

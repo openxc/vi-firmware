@@ -29,9 +29,7 @@ programming hardware. Compile the firmware to run under the bootloader:
 
 .. code-block:: sh
 
-   $ export PLATFORM=FORDBOARD
-   $ make clean
-   $ make -j4
+   $ fab reference build
 
 The compiled firmware will be located at
 ``build/lpc17xx/vi-firmware-lpc17xx.bin``. See `reference VI programming

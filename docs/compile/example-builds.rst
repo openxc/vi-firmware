@@ -4,7 +4,9 @@ Example Build Configurations
 
 There are many :doc:`makefile-opts`, so it may be difficult to tell which you
 need to configure to get a working build. This page collects a few examples of
-popular configurations.
+popular configurations, many of which have shortcuts that can be run with
+``fab`` at the command line, without remembering all of the configuration
+options.
 
 .. contents::
     :local:
@@ -13,8 +15,12 @@ popular configurations.
 Default Build
 =============
 
-By default, if you just run ``make`` with no environment variables set, the
-firmware is built with these options:
+You must always specify your target platform with the ``PLATFORM`` environment
+variable. For this example, we'll set ``PLATFORM=FORDBOARD``.
+
+By default, if you just run ``make`` with no other environment variables set,
+the firmware is built with these options. This is a good build to use if you
+want to send diagnostic requests through a VI:
 
 .. code-block:: sh
 
@@ -55,6 +61,30 @@ The Makefile will always print the configuration used so you can double check.
   configuration explicitly states they are writable (``DEFAULT_CAN_ACK_STATUS``
   is ``1``). This means that the VI may not work in a bench testing setup where
   nothing else on the bus is ACKing.
+
+.. NOTE::
+  There's a shortcut for this default build, using the Fabric tool and an
+  included script. This will build the default build for the reference VI
+  platform:
+
+  .. code-block:: sh
+
+      fab reference build
+
+  and for the CrossChasm C5:
+
+  .. code-block:: sh
+
+      fab c5 build
+
+  and finally, for the chipKIT Max32:
+
+  .. code-block:: sh
+
+      fab chipkit build
+
+  Get the idea? These shortcuts will make sure the flags are set to their
+  defaults, regardless of what you may have in your current shell environment.
 
 Automatic Recurring OBD-II Requests Build
 ==========================================
@@ -101,6 +131,16 @@ Notice we changed:
   we think the car is off. The combination of an engine and vehicle speed check
   should be compatible with hybrid vehicles.
 
+.. NOTE::
+  This build also has a shortcut using the Fabric script. Just add the keyword
+  ``translated_obd2`` before ``build`` in your call to ``fab`` at the command line.
+  For example, this compiles for the reference VI with the automatic recurring,
+  translated OBD2 requests:
+
+  .. code-block:: sh
+
+      fab reference translated_obd2 build
+
 Emulated Data Build
 ===================
 
@@ -146,3 +186,39 @@ There are 2 changes from the default build:
 * ``DEFAULT_POWER_MANAGEMENT`` is ``ALWAYS_ON``, so the VI will not go to sleep
   while plugged in. Make sure to clear this configuration option before making a
   build to run in a vehicle, or you could drain the battery!
+
+.. NOTE::
+  This build also has a shortcut using the Fabric script. Just add the keyword
+  ``emulator`` before ``build`` in your call to ``fab`` at the command line.
+  For example, this compiles for the reference VI with emulatded data:
+
+  .. code-block:: sh
+
+      fab reference emulator build
+
+Fabric Shortcuts
+================
+
+The repository includes a ``fabfile.py`` script, which works with the ``Fabric``
+commmand line utility to simplify some of these build configurations. The
+``fab`` commands are composable, following this simple formula:
+
+* Start your command with ``fab``
+* Specify the target platform with ``chipkit``, ``c5``, or ``reference``.
+* Optionally include ``emulator`` or ``translated_obd2`` to enable one of the
+  example builds described above.
+* End with ``build`` to start the compilation.
+
+For example, this builds the firmware for a chipKIT and includes emulated data:
+
+.. code-block:: sh
+
+  fab chipkit emulator build
+
+while this builds the default firmware, ready for OBD2 requests for the chipKIT:
+
+.. code-block:: sh
+
+  fab chipkit build
+
+The ``fab`` commands can be run from any folder in the vi-firmware repository.

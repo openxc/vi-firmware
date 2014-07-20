@@ -10,22 +10,15 @@ experimentation.
 
 Again, assuming you've :doc:`set up your development environment
 </getting-started/development-environment>` and you have a `reference VI from
-Ford <http://vi.openxcplatform.com>`_, move to the ``vi-firmware/src`` directory
-and compile for the ``FORDBOARD`` platform:
+Ford <http://vi.openxcplatform.com>`_, move to the ``vi-firmware`` directory
+and use ``Fabric`` to compile the default build for the reference VI:
 
 .. code-block:: sh
 
-    vi-firmware/ $ cd src
-    vi-firmware/src $ export PLATFORM=FORDBOARD
-    vi-firmware/src $ make clean
-    vi-firmware/src $ make -j4
+    vi-firmware $ fab reference build
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.
-
-Make sure you run ``make clean`` first whenever changing the environment
-variable flags (e.g. we omitted ``DEFAULT_EMULATED_DATA_STATUS`` this time, so
-the emulated data isn't generated).
 
 Just as with the emulated data build, there will be a lot more output when you
 run this but it should end with ``Compiled successfully...``. If you got an

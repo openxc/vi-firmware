@@ -123,7 +123,7 @@ def build_options(options):
 
 def compile_firmware(build_name, target_path):
     with lcd("src"):
-        for board_name, board_options in env.boards.iteritems():
+        for board_name, board in env.boards.iteritems():
             env.board = board_name
             build(capture=True, clean=True)
             local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-ct%s.%s"

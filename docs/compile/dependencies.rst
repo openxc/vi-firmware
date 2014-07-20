@@ -2,8 +2,17 @@
 Dependencies
 ============
 
-If the ``bootstrap.sh`` script didn't work, see below for more information on
-the dependencies.
+The easiest way to install these dependencies is to use the `script/bootstrap.sh
+<https://github.com/openxc/vi-firmware/blob/master/script/bootstrap.sh>`_ script
+in the ``vi-firmware`` repository. Run the script in Linux, 32-bit Cygwin in
+Windows or OS X and if there are no errors you should be ready to go:
+
+.. code-block:: sh
+
+  $ script/bootstrap.sh
+
+If there are errors, continue reading in this section to install whatever piece
+failed manually.
 
 To compile the VI firmware, you need:
 
@@ -22,18 +31,6 @@ NXP LPC1768/69), instead of MPIDE you will need:
 * :ref:`OpenOCD <openocddep>`
 * JTAG programmer compatible with ``openocd`` - we've tested the Olimex
   ARM-OCD-USB programmer.
-
-The easiest way to install these dependencies is to use the `script/bootstrap.sh
-<https://github.com/openxc/vi-firmware/blob/master/script/bootstrap.sh>`_ script
-in the ``vi-firmware`` repository. Run the script in Linux, 32-bit Cygwin in
-Windows or OS X and if there are no errors you should be ready to go:
-
-.. code-block:: sh
-
-  $ script/bootstrap.sh
-
-If there are errors, continue reading in this section to install whatever piece
-failed manually.
 
 .. _source:
 
@@ -151,9 +148,8 @@ Windows) from this `Launchpad site <https://launchpad.net/gcc-arm-embedded>`_.
 Arch Linux
 ~~~~~~~~~~
 
-In Arch Linux you can install the ``arm-none-eabi-gcc`` from the ``[community]``
-repository.
-
+In Arch Linux you can install ``arm-none-eabi-gcc``, ``arm-none-eabi-binutils``
+and ``arm-none-eabi-gdb`` from the ``[community]`` repository.
 
 .. _openocddep:
 

@@ -4,12 +4,12 @@ Compiling
 
 For a detailed walkthrough, see :doc:`/getting-started/getting-started`.
 
-The build process uses GNU Make and works with Linux (tested in Arch Linux and
-Ubuntu), OS X and Cygwin 32-bit in Windows. For documentation on how to build
-for each platform, see the :doc:`supported platform details
-</platforms/platforms>`.
+The VI firmware can be compiled natively in Linux and Mac OS X. In Windows, you
+can use the included virtual machine configuration (which uses
+[Vagrant](http://www.vagrantup.com/). Cygwin is unnoficially supported, and is
+no longer recommended.
 
-When compiling you need to specify which :doc:`VI platform
+When compiling you need to specify which :doc:`embedded VI platform
 </platforms/platforms>` you are compiling for with the ``PLATFORM`` flag. All
 other flags are optional.
 
@@ -20,3 +20,4 @@ other flags are optional.
     makefile-opts
     troubleshooting
     dependencies
+    native-development

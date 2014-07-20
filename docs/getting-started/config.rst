@@ -10,8 +10,7 @@ named ``signals.cpp``.
 In this example, we'll pick a simple use case and walk through how to
 configure and compile the firmware. You'll need to be comfortable
 getting around at the command line, but you don't need to know any C++.
-The VI firmware can be configured and built in Windows, Linux (Ubuntu
-and Arch are tested) or Mac OS X.
+The VI firmware can be developed in Windows, Linux or Mac OS X.
 
 Let's say we have a vehicle with a high speed CAN bus on the standard HS
 pins, connecting to the "CAN1" controller on our vehicle interface.

@@ -2,6 +2,10 @@
 
 ## v6.0.2-dev
 
+* Include a config for Vagrant to build a VI firmware development environment.
+* Deprecate support for compiling in Cygwin - now recommending Vagrant as it
+  will be much more manageable to support.
+
 ## v6.0.1
 
 * Fixed a regression in CAN AF configuration on PIC32 platforms

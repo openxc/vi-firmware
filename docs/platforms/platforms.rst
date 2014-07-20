@@ -1,9 +1,9 @@
-===================
-Supported Platforms
-===================
+============================
+Supported Embedded Platforms
+============================
 
-For information on how to add support for another platform, see the :doc:`board
-support </advanced/boardsupport>` section.
+For information on how to add support for another embedded system, see the
+:doc:`board support </advanced/boardsupport>` section.
 
 .. toctree::
     :maxdepth: 1

@@ -2,55 +2,41 @@
 Development Environment Setup
 =============================
 
-Before we can compile, we need to set up our development environment.
-Bear with it...there's a few steps but you only have to do it once!
+Before you can compile, you need to set up our development environment. You only
+need to do this once.
 
-When you see ``$`` it means this is a shell command - run the command
-after the ``$`` but don't include the ``$``. The example shell commands may
-also be prefixed with a folder name, if it needs to be run from a
-particular location, e.g. ``foo/ $ ls`` means to run ``ls`` from the ``foo``
-folder.
+When you see ``$`` it means this is a shell command - run the command after the
+``$`` but don't include the ``$``. The shell commands may also be prefixed with
+a folder name, meaning it needs to be run from a particular location, e.g.
+``foo/ $ ls`` means to run ``ls`` from the ``foo`` folder.
+
+.. _git:
+
+Install Git
+============
+
+You need to install Git to retrieve the source code repository for the
+``vi-firmware``.
 
 Windows
 ^^^^^^^
 
-If you already use Cygwin for development in Windows and are comfortable with
-its command line its quirks that pop up occasionally, the 32-bit version of
-Cygwin is a fully supported build environment for the VI firmware.
+Install `GitHub for Windows <https://windows.github.com/>`_, which includes a
+GUI for cloning Git repositories hosted at GitHub as well as a Bash terminal
+for using Git from the command line.
 
-If you do not use Cygwin for anything else, you might consider running an Ubuntu
-Linux virtual machine. Ubuntu is also a 100% supported build environment for the
-firmware, and it tends to be more straightforward and easy to set up. If
-debugging strange Cygwin errors isn't something you feel like doing, we strongly
-recommend the Linux virtual machine method.
+Mac OS X
+^^^^^^^^
 
-If you wish to use an Ubuntu Linux virtual machine, follow one of the many
-quickstart guides available online (a `good example
-<http://www.wikihow.com/Install-Ubuntu-on-VirtualBox>`_) to install VirtualBox,
-download an Ubuntu disc image, and install Ubuntu into a virtual machine. Once
-installed, jump down to the :ref:`Linux` section of this guide to wrap up.
-
-If you still wish to use Cygwin, download 32-bit version of `Cygwin
-<http://www.cygwin.com>`__ (even if you're on 64-bit Windows) and run the
-installer - during the installation process, select these packages:
-
-::
-
-    make, gcc-core, patchutils, git, unzip, python, check, curl, libsasl2, python-setuptools
-
-After it's installed, open a new Cygwin terminal and configure it to
-ignore Windows-style line endings in scripts by running this command:
-
-.. code-block:: sh
-
-   $ set -o igncr && export SHELLOPTS
-
-.. _linux:
+Install `GitHub for Mac <https://mac.github.com/>`_, which includes a
+GUI for cloning Git repositories hosted at GitHub and also installs the
+``git`` command line tools.
 
 Linux
 ^^^^^
 
-Install Git with your Linux distribution's package manager:
+If you're using Linux, you hopefully know what you're doing and can install
+Git for your distro of choice. A couple of examples:
 
 Ubuntu:
 
@@ -64,49 +50,61 @@ Arch Linux:
 
    $ [sudo] pacman -S git
 
-OS X
-^^^^
+Clone the vi-firmware Repository
+================================
 
-Open the Terminal app and install
-`Homebrew <http://mxcl.github.com/homebrew/>`_ by running this command:
+On Windows or Mac and you installed the GitHub app, open the `vi-firmware
+<https://github.com/openxc/vi-firmware>`_ repository in you browser and click
+the "Clone in Desktop" button.
 
-.. code-block:: sh
-
-   $ ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
-
-Once Homebrew is installed, use it to install Git:
-
-.. code-block:: sh
-
-   $ brew install git
-
-All Platforms
-^^^^^^^^^^^^^
-
-If we're on a network that requires an Internet proxy (e.g. at work on a
-corporate network) set these environment variables.
-
-.. code-block:: sh
-
-   $ export http_proxy=<your proxy>
-   $ export https_proxy=$http_proxy
-   $ export all_proxy=$http_proxy
-
-Clone the `vi-firmware <https://github.com/openxc/vi-firmware>`_ repository:
+If you are using ``git`` from the command line, clone it like so:
 
 .. code-block:: sh
 
    $ git clone https://github.com/openxc/vi-firmware
 
-Run the ``bootstrap.sh`` script:
+Install Vagrant (Recommended for All Platforms)
+===============================================
+
+On all platforms, we recommend using the included `Vagrant
+<http://www.vagrantup.com>`_ configuration to get compiling as quickly as
+possible. Vagrant is a tool that helps developers create and use identical
+development environments. We include a ``Vagrantfile`` in the repository that
+Vagrant uses to create a small Linux virtual machine with all of the vi-firmware
+dependencies installed. Once installed, you can open a shell in this VM just by
+running ``vagrant ssh``. The ``vi-firmware`` on the host OS (e.g. your Linux,
+Windows or OS X machine) is shared to the Vagrant VM at the path ``/vagrant``.
+You can use whatever text editor or IDE you prefer in your native OS, and simply
+do the compilation from within the VM.
+
+#. Install `VirtualBox <https://www.virtualbox.org/>`_.
+#. If using Windows, add the VirtualBox tools to your PATH:
+   ``PATH=%PATH%;c:\Program Files\Oracle\VirtualBox``. If you aren't sure how to
+   edit your ``PATH``, see `this guide for all versions of Windows
+   <https://www.java.com/en/download/help/path.xml>`_. Log out and back in for
+   the change to take effect.
+#. Install `Vagrant <http://docs.vagrantup.com/v2/installation/index.html>`_.
+#. Navigate to the ``vi-firmware`` repository in the GitHub app, click the gear
+   icon in the top right corner and select "Open in Git Shell".
+#. In the shell, run ``vagrant up`` to initialize the Vagrant VM - this may take
+   up to 10 minutes as it downloads and installs a number of dependencies in the
+   VM.
+#. If the initialization completes with no errors, run ``vagrant ssh`` to open a
+   shell in the VM.
+#. Your local copy of the ``vi-firmware`` repository is shared with the VM at
+   the path ``/vagrant``. Go into that directory and compile away:
 
 .. code-block:: sh
 
-   $ cd vi-firmware
-   vi-firmware/ $ script/bootstrap.sh
+   $ cd /vagrant/src
+   /vagrant/src/ $ make
 
-If there were no errors, we are ready to compile. If there are errors, try to
-follow the recommendations in the error messages. You may need to :doc:`manually
-install the dependencies </compile/dependencies>` if your environment is not in a
-predictable state. The ``bootstrap.sh`` script is tested in 32-bit Cygwin, OS X
-Mountain Lion and Mavericks, Ubuntu 13.04 and Arch Linux.
+You can edit the source code from your native OS and re-run ``make`` from the
+Vagrant shell to compile. Run ``vagrant suspend`` to suspend the VM and
+``vagrant up`` again to restore it - it will be much faster after the first run.
+
+## Native Development
+
+Don't want to use Vagrant? There are varying levels of support for compiling in
+your native OS - see the :doc:`native development environment docs
+</compile/native-development>`.

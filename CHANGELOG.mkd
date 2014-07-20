@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v6.0.3-dev
+
 ## v6.0.2
 
 * BREAKING CHANGE: The PLATFORM environment variable must now be explicitly set

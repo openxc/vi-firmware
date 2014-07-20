@@ -103,7 +103,8 @@ You can edit the source code from your native OS and re-run ``make`` from the
 Vagrant shell to compile. Run ``vagrant suspend`` to suspend the VM and
 ``vagrant up`` again to restore it - it will be much faster after the first run.
 
-## Native Development
+Native Development
+==================
 
 Don't want to use Vagrant? There are varying levels of support for compiling in
 your native OS - see the :doc:`native development environment docs

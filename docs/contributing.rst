@@ -20,8 +20,6 @@ Bug tracker
 If you have any suggestions, bug reports or annoyances please report them
 to our issue tracker at http://github.com/openxc/vi-firmware/issues/
 
-.. _`OpenXC Python library`: https://github.com/openxc/openxc-python
-
 Authors and Contributors
 ------------------------
 

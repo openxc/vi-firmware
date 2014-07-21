@@ -190,6 +190,11 @@ def build(capture=False, clean=False):
             abort(red("Building %s failed" % board_options['name']))
 
 @task
+def flash():
+    with lcd("%s/src" % env.root_dir):
+        local("PLATFORM=%s make flash" % env.boards[env.board]['name'])
+
+@task
 def release():
     with lcd(env.root_dir):
         signals_file = "src/signals.cpp"

@@ -58,7 +58,7 @@ void setup() {
     }
 }
 
-START_TEST (test_passthrough_handler)
+START_TEST (test_passthrough_decoder)
 {
     bool send = true;
     openxc_DynamicField decoded = noopDecoder(&getSignals()[0], getSignals(),
@@ -68,7 +68,7 @@ START_TEST (test_passthrough_handler)
 }
 END_TEST
 
-START_TEST (test_boolean_handler)
+START_TEST (test_boolean_decoder)
 {
     bool send = true;
     openxc_DynamicField decoded = booleanDecoder(&getSignals()[0], getSignals(), getSignalCount(),
@@ -86,7 +86,7 @@ START_TEST (test_boolean_handler)
 }
 END_TEST
 
-START_TEST (test_ignore_handler)
+START_TEST (test_ignore_decoder)
 {
     bool send = true;
     ignoreDecoder(&getSignals()[0], getSignals(), getSignalCount(),
@@ -95,7 +95,7 @@ START_TEST (test_ignore_handler)
 }
 END_TEST
 
-START_TEST (test_state_handler)
+START_TEST (test_state_decoder)
 {
     bool send = true;
     openxc_DynamicField decoded = stateDecoder(&getSignals()[1], getSignals(),
@@ -320,7 +320,7 @@ openxc_DynamicField floatDecoder(CanSignal* signal, CanSignal* signals, int sign
     return decodedValue;
 }
 
-START_TEST (test_default_handler)
+START_TEST (test_default_decoder)
 {
     can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
@@ -521,10 +521,10 @@ Suite* canreadSuite(void) {
     Suite* s = suite_create("canread");
     TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_passthrough_handler);
-    tcase_add_test(tc_core, test_boolean_handler);
-    tcase_add_test(tc_core, test_ignore_handler);
-    tcase_add_test(tc_core, test_state_handler);
+    tcase_add_test(tc_core, test_passthrough_decoder);
+    tcase_add_test(tc_core, test_boolean_decoder);
+    tcase_add_test(tc_core, test_ignore_decoder);
+    tcase_add_test(tc_core, test_state_decoder);
     suite_add_tcase(s, tc_core);
 
     TCase *tc_sending = tcase_create("sending");
@@ -549,7 +549,7 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_unlimited_frequency);
     tcase_add_test(tc_translate, test_always_send_first);
     tcase_add_test(tc_translate, test_preserve_last_value);
-    tcase_add_test(tc_translate, test_default_handler);
+    tcase_add_test(tc_translate, test_default_decoder);
     tcase_add_test(tc_translate, test_dont_send_same);
     tcase_add_test(tc_translate, test_translate_respects_send_value);
     tcase_add_test(tc_translate,

@@ -320,11 +320,23 @@ openxc_DynamicField floatDecoder(CanSignal* signal, CanSignal* signals, int sign
     return decodedValue;
 }
 
+START_TEST (test_translate_ignore_decoder_still_received)
+{
+    getSignals()[0].decoder = ignoreDecoder;
+    fail_if(getSignals()[0].received);
+    can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline);
+    fail_unless(queueEmpty());
+    fail_unless(getSignals()[0].received);
+}
+END_TEST
+
 START_TEST (test_default_decoder)
 {
     can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
+    fail_unless(getSignals()[0].received);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -340,6 +352,7 @@ START_TEST (test_translate_respects_send_value)
     can::read::translateSignal(&getSignals()[0], &TEST_MESSAGE, getSignals(),
             getSignalCount(), &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
+    fail_unless(getSignals()[0].received);
 }
 END_TEST
 
@@ -349,6 +362,7 @@ START_TEST (test_translate_float)
     can::read::translateSignal(&getSignals()[0],
             &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
+    fail_unless(getSignals()[0].received);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -500,8 +514,8 @@ START_TEST (test_dont_send_same)
 {
     getSignals()[2].sendSame = false;
     getSignals()[2].decoder = booleanDecoder;
-    can::read::translateSignal(&getSignals()[2],
-            &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+    can::read::translateSignal(&getSignals()[2], &TEST_MESSAGE, getSignals(),
+            getSignalCount(), &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -549,6 +563,7 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_unlimited_frequency);
     tcase_add_test(tc_translate, test_always_send_first);
     tcase_add_test(tc_translate, test_preserve_last_value);
+    tcase_add_test(tc_translate, test_translate_ignore_decoder_still_received);
     tcase_add_test(tc_translate, test_default_decoder);
     tcase_add_test(tc_translate, test_dont_send_same);
     tcase_add_test(tc_translate, test_translate_respects_send_value);

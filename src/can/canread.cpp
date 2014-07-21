@@ -210,6 +210,7 @@ void openxc::can::read::translateSignal(CanSignal* signal,
             openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
         }
     }
+    signal->received = true;
     signal->lastValue = value;
 }
 
@@ -217,10 +218,8 @@ bool openxc::can::read::shouldSend(CanSignal* signal, float value) {
     bool send = true;
     if(time::conditionalTick(&signal->frequencyClock) ||
             (value != signal->lastValue && signal->forceSendChanged)) {
-        if(send && (!signal->received || signal->sendSame ||
-                    value != signal->lastValue)) {
-            signal->received = true;
-        } else {
+        if(signal->received && !signal->sendSame
+                && value == signal->lastValue) {
             send = false;
         }
     } else {

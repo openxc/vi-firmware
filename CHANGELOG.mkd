@@ -2,6 +2,9 @@
 
 ## v6.0.3-dev
 
+* Fixed a regression with the ignoreDecoder, where signals were never marked as
+  'received' (#254).
+
 ## v6.0.2
 
 * BREAKING CHANGE: The PLATFORM environment variable must now be explicitly set

@@ -197,6 +197,10 @@ def flash():
 @task
 def release():
     with lcd(env.root_dir):
+        test()
+
+        # Make sure this happens after test(), so we move aside and test
+        # signals.cpp
         signals_file = "src/signals.cpp"
         moved_signals_file = "%s.bak" % signals_file
         if os.path.isfile("%s/%s" % (env.root_dir, signals_file)):
@@ -204,7 +208,6 @@ def release():
                     signals_file, moved_signals_file))
             local("mv %s %s" % (signals_file, moved_signals_file))
 
-        test()
         make_tag()
 
         prepare_temp_path()

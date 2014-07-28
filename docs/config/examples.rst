@@ -4,7 +4,7 @@ Read-only Configuration Examples
 
 If you haven't created a custom firmware for the OpenXC VI yet, we recommend the
 `getting started with custom data guide
-<http://openxc-vehicle-interface-firmware.readthedocs.org/en/latest/getting-started/getting-started.html>`_.
+<http://vi-firmware.openxcplatform.com/en/master/getting-started/getting-started.html>`_.
 
 For all examples, the ``name`` field for a message is optional but strongly
 encouraged to help keep track of the mapping between a message ID and something

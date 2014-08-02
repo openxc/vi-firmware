@@ -10,5 +10,5 @@ before_install:
     - script/bootstrap.sh
     - cd src
 after_success:
-    - make coverage
-    - coveralls-lcov src/build/tests/coverage.info
+    - PLATFORM=TESTING make coverage
+    - coveralls-lcov build/tests/coverage.info

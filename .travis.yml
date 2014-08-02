@@ -11,4 +11,4 @@ before_install:
     - cd src
 after_success:
     - PLATFORM=TESTING make coverage
-    - coveralls-lcov src/build/tests/coverage.info
+    - coveralls-lcov build/tests/coverage.info

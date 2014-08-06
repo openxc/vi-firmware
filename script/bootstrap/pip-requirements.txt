@@ -1,2 +1,3 @@
 -e git+https://github.com/openxc/openxc-python.git@next#egg=openxc
 Fabric==1.9.0
+prettyprint==0.1.5

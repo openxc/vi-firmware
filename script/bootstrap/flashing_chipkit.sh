@@ -42,6 +42,9 @@ if [ $OS == "cygwin" ] || [ $OS == "mac" ]; then
     _popd
 fi
 
+if ! command -v unzip >/dev/null 2>&1; then
+    _install "unzip"
+fi
 
 if [ -z "$MPIDE_DIR" ] || ! test -e $MPIDE_DIR || [ $OS == "cygwin" ]; then
 

@@ -4,7 +4,7 @@ source $BOOTSTRAP_DIR/common.sh
 
 echo "Installing dependencies for running test suite..."
 
-if [ -z $CI ] && ! command -v lcov >/dev/null 2>&1; then
+if ! command -v lcov >/dev/null 2>&1; then
     if [ $OS == "cygwin" ]; then
         echo "Missing lcov - Cygwin doesn't have a packaged version of lcov, and it's only required to calculate test suite coverage. We'll skip it."
     elif [ $OS == "mac" ]; then

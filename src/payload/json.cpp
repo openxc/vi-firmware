@@ -13,7 +13,7 @@ using openxc::util::log::debug;
 
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
-const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic";
+const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";

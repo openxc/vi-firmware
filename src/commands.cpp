@@ -91,6 +91,7 @@ static bool handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
     message.has_command_response = true;
     message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    message.command_response.has_message = false;
     message.command_response.has_status = true;
     message.command_response.status = status;
     pipeline::publish(&message, &getConfiguration()->pipeline);

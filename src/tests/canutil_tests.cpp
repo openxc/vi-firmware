@@ -5,7 +5,6 @@
 #include "can/canread.h"
 #include "can/canwrite.h"
 #include "config.h"
-#include "cJSON.h"
 
 namespace can = openxc::can;
 

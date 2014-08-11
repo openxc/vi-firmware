@@ -3,7 +3,6 @@
 #include "pipeline.h"
 #include "emqueue.h"
 #include "config.h"
-#include "cJSON.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;

@@ -1,7 +1,6 @@
 #include <check.h>
 #include <stdint.h>
 #include "util/log.h"
-#include <cJSON.h>
 #include <pb_decode.h>
 
 #include "signals.h"

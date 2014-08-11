@@ -66,14 +66,30 @@ void setup() {
             getCanBusCount(), NULL);
 }
 
-START_TEST (test_add_recurring_too_frequent)
+START_TEST (test_add_twice_diff_frequency_fails)
 {
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0], &request, 1));
+    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 2));
+}
+END_TEST
+
+START_TEST (test_add_twice_fails)
+{
+    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 1));
+    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 1));
+}
+END_TEST
+
+START_TEST (test_add_recurring_too_frequent)
+{
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0], &request, 10));
     ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 11));
+            &getCanBuses()[1], &request, 11));
 }
 END_TEST
 
@@ -598,6 +614,8 @@ START_TEST(test_command_single_response_default)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -627,6 +645,8 @@ START_TEST(test_command_multiple_responses_default_broadcast)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -656,6 +676,8 @@ START_TEST(test_command_multiple_responses)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -861,6 +883,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_add_request_with_name_and_decoder);
     tcase_add_test(tc_core, test_add_recurring);
     tcase_add_test(tc_core, test_add_recurring_too_frequent);
+    tcase_add_test(tc_core, test_add_twice_diff_frequency_fails);
+    tcase_add_test(tc_core, test_add_twice_fails);
     tcase_add_test(tc_core, test_padding_on_by_default);
     tcase_add_test(tc_core, test_padding_enabled);
     tcase_add_test(tc_core, test_padding_disabled);

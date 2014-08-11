@@ -6,7 +6,6 @@
 #include "can/canwrite.h"
 #include "pipeline.h"
 #include "config.h"
-#include "cJSON.h"
 
 namespace usb = openxc::interface::usb;
 namespace can = openxc::can;

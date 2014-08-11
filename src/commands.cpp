@@ -81,14 +81,30 @@ static bool handleDeviceIdCommmand() {
     return true;
 }
 
+static bool handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
+    bool status = diagnostics::handleDiagnosticCommand(
+            &getConfiguration()->diagnosticsManager, command);
+
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    message.command_response.has_status = true;
+    message.command_response.status = status;
+    pipeline::publish(&message, &getConfiguration()->pipeline);
+
+    return status;
+}
+
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
     if(message != NULL && message->has_control_command) {
         openxc_ControlCommand* command = &message->control_command;
         switch(command->type) {
         case openxc_ControlCommand_Type_DIAGNOSTIC:
-            status = diagnostics::handleDiagnosticCommand(
-                    &getConfiguration()->diagnosticsManager, command);
+            status = handleDiagnosticRequestCommand(command);
             break;
         case openxc_ControlCommand_Type_VERSION:
             status = handleVersionCommand();

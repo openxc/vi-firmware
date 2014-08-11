@@ -17,6 +17,7 @@ const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_reques
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
+const char openxc::payload::json::COMMAND_RESPONSE_STATUS_FIELD_NAME[] = "status";
 
 const char openxc::payload::json::BUS_FIELD_NAME[] = "bus";
 const char openxc::payload::json::ID_FIELD_NAME[] = "id";
@@ -92,6 +93,12 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         cJSON_AddStringToObject(root,
                 payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME,
                 message->command_response.message);
+    }
+
+    if(message->command_response.has_status) {
+        cJSON_AddBoolToObject(root,
+                payload::json::COMMAND_RESPONSE_STATUS_FIELD_NAME,
+                message->command_response.status);
     }
     return true;
 }

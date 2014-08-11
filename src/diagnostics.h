@@ -173,10 +173,8 @@ void reset(DiagnosticsManager* manager);
  * are added for all functional addresses (0x7e8 to 0x7f0).
  *
  * At most one recurring request can be active for the same arbitration ID, mode
- * and (if set) PID on the same bus at one time. If one already exists, you can
- * use updateRecurringRequest to change the other attributes of the request. If
- * you try and call addRecurringRequest with the same key, it will return an
- * error.
+ * and (if set) PID on the same bus at one time. If you try and call
+ * addRecurringRequest with the same key, it will return an error.
  *
  * Example:
  *
@@ -289,11 +287,6 @@ bool addRecurringRequest(DiagnosticsManager* manager, CanBus* bus,
  */
 bool addRequest(DiagnosticsManager* manager, CanBus* bus,
         DiagnosticRequest* request);
-
-bool updateRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* name,
-        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
-        const DiagnosticResponseCallback callback, float frequencyHz);
 
 /* Public: Cancel an existing recurring diagnostic request.
  *

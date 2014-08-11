@@ -95,7 +95,7 @@ void setup() {
     CONTROL_COMMAND.control_command.has_diagnostic_request = true;
     CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
     CONTROL_COMMAND.control_command.diagnostic_request.action =
-            openxc_DiagnosticRequest_Action_CREATE;
+            openxc_DiagnosticRequest_Action_ADD;
     CONTROL_COMMAND.control_command.diagnostic_request.has_bus = true;
     CONTROL_COMMAND.control_command.diagnostic_request.bus = 1;
     CONTROL_COMMAND.control_command.diagnostic_request.has_message_id = true;
@@ -116,7 +116,7 @@ void setup() {
 const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
 const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"transmission_gear_position\", \"value\": \"third\"}";
 const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"torque_at_transmission\", \"value\": 200}";
-const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
+const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
 
 START_TEST (test_raw_write_no_matching_bus)
 {
@@ -193,7 +193,7 @@ END_TEST
 
 START_TEST (test_named_diagnostic_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"name\": \"foobar\", \"bus\": 1, \"id\": 2, \"mode\": 1}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"name\": \"foobar\", \"bus\": 1, \"id\": 2, \"mode\": 1}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -207,7 +207,7 @@ END_TEST
 
 START_TEST (test_diagnostic_request_with_payload)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"0x1234\"}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"0x1234\"}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -249,7 +249,7 @@ END_TEST
 
 START_TEST (test_recognized_obd2_request_overridden)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder == openxc::diagnostics::passthroughDecoder);
@@ -258,7 +258,7 @@ END_TEST
 
 START_TEST (test_recognized_obd2_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -281,7 +281,7 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_mode)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"id\": 2}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -291,7 +291,7 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_arb_id)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 1, \"mode\": 1}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"mode\": 1}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -301,7 +301,7 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_bus)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"id\": 2, \"mode\": 1}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"id\": 2, \"mode\": 1}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -311,7 +311,7 @@ END_TEST
 
 START_TEST (test_diagnostic_request_invalid_bus)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"create\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);

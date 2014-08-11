@@ -489,45 +489,6 @@ static bool validateOptionalRequestAttributes(float frequencyHz) {
     return true;
 }
 
-bool openxc::diagnostics::updateRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* name,
-        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
-        const DiagnosticResponseCallback callback, float frequencyHz) {
-    if(!validateOptionalRequestAttributes(frequencyHz)) {
-        return false;
-    }
-
-    cleanupActiveRequests(manager, false);
-
-    bool updated = true;
-    ActiveDiagnosticRequest* entry = lookupRecurringRequest(manager, bus, request);
-    if(entry != NULL) {
-        updateDiagnosticRequestEntry(entry, manager, bus, request, name,
-                waitForMultipleResponses, decoder, callback, frequencyHz);
-
-        char request_string[128] = {0};
-        diagnostic_request_to_string(&entry->handle.request, request_string,
-                sizeof(request_string));
-
-        debug("Updated recurring diagnostic request (freq: %f) on bus %d: %s",
-                frequencyHz, bus->address, request_string);
-
-        // lookupRecurringRequest already popped it from the queue, so we re-add
-        // it
-        TAILQ_INSERT_HEAD(&manager->recurringRequests, entry, queueEntries);
-    } else {
-        debug("No matching recurring request found to update");
-        updated = false;
-    }
-
-    char request_string[128] = {0};
-    diagnostic_request_to_string(&entry->handle.request, request_string,
-            sizeof(request_string));
-    debug("Updated existing diagnostic request (freq: %f): %s", frequencyHz,
-            request_string);
-    return updated;
-}
-
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
@@ -635,7 +596,7 @@ static void handleAuthorizedCommand(DiagnosticsManager* manager,
     }
 
     if(commandRequest->action ==
-            openxc_DiagnosticRequest_Action_CREATE) {
+            openxc_DiagnosticRequest_Action_ADD) {
         if(commandRequest->has_frequency) {
             addRecurringRequest(manager, bus, &request,
                     commandRequest->has_name ?
@@ -653,17 +614,7 @@ static void handleAuthorizedCommand(DiagnosticsManager* manager,
                     NULL);
         }
     } else if(commandRequest->action ==
-            openxc_DiagnosticRequest_Action_UPDATE) {
-        updateRecurringRequest(manager, bus, &request,
-                commandRequest->has_name ?
-                        commandRequest->name : NULL,
-                multipleResponses,
-                decoder,
-                NULL,
-                commandRequest->has_frequency ?
-                        commandRequest->frequency : 0);
-    } else if(commandRequest->action ==
-            openxc_DiagnosticRequest_Action_DELETE) {
+            openxc_DiagnosticRequest_Action_CANCEL) {
         cancelRecurringRequest(manager, bus, &request);
     }
 }

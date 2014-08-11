@@ -166,6 +166,70 @@ START_TEST (test_simultaneous_recurring_nonrecurring)
 }
 END_TEST
 
+START_TEST (test_cancel_invalid)
+{
+    ck_assert(!diagnostics::cancelRecurringRequest(
+             &getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+             &request));
+}
+END_TEST
+
+START_TEST(test_unable_to_cancel_nonrecurring)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CANCEL;
+    ck_assert(!diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+}
+END_TEST
+
+START_TEST(test_cancel_recurring_from_command)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_frequency = true;
+    command.diagnostic_request.frequency = 2;
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CANCEL;
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    FAKE_TIME += 2000;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
 START_TEST (test_cancel_recurring)
 {
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
@@ -569,6 +633,100 @@ START_TEST(test_clear_to_send)
 }
 END_TEST
 
+START_TEST(test_command_single_response_recurring)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_frequency = true;
+    command.diagnostic_request.frequency = 2;
+
+
+    ck_assert(diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+
+    // Get around staggered start
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    FAKE_TIME += 2000;
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+
+    fail_if(canQueueEmpty(0));
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_if(outputQueueEmpty());
+    resetQueues();
+    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
+            &message, &getConfiguration()->pipeline);
+    fail_unless(outputQueueEmpty());
+}
+END_TEST
+
+START_TEST(test_command_missing_mode)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = true;
+    command.diagnostic_request.message_id = request.arbitration_id;
+    command.diagnostic_request.has_mode = false;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+
+    ck_assert(!diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+}
+END_TEST
+
+START_TEST(test_command_missing_id)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.diagnostic_request.has_bus = true;
+    command.diagnostic_request.bus = 1;
+    command.diagnostic_request.has_message_id = false;
+    command.diagnostic_request.has_mode = true;
+    command.diagnostic_request.mode = request.mode;
+    command.diagnostic_request.has_pid = true;
+    command.diagnostic_request.pid = request.pid;
+
+    ck_assert(!diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+}
+END_TEST
+
+START_TEST(test_command_missing_request)
+{
+    openxc_ControlCommand command = {0};
+    command.has_type = true;
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    command.has_diagnostic_request = false;
+
+    ck_assert(!diagnostics::handleDiagnosticCommand(
+             &getConfiguration()->diagnosticsManager, &command));
+}
+END_TEST
+
 START_TEST(test_command_single_response_default)
 {
     openxc_ControlCommand command = {0};
@@ -745,6 +903,19 @@ START_TEST(test_requests_on_multiple_buses)
 }
 END_TEST
 
+START_TEST(test_use_all_free_entries_for_recurring)
+{
+    for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
+        request.arbitration_id = 1 + i;
+        ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+                &getCanBuses()[0], &request, 1));
+    }
+    ++request.arbitration_id;
+    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 1));
+}
+END_TEST
+
 START_TEST(test_use_all_free_entries)
 {
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
@@ -797,6 +968,15 @@ START_TEST(test_can_filters)
 }
 END_TEST
 
+START_TEST(test_can_filters_broken_for_recurring)
+{
+    ACCEPTANCE_FILTER_STATUS = false;
+    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0], &request, 1));
+    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 0);
+}
+END_TEST
+
 START_TEST(test_can_filters_broken)
 {
     ACCEPTANCE_FILTER_STATUS = false;
@@ -824,6 +1004,9 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_padding_disabled);
     tcase_add_test(tc_core, test_simultaneous_recurring_nonrecurring);
     tcase_add_test(tc_core, test_cancel_recurring);
+    tcase_add_test(tc_core, test_cancel_recurring_from_command);
+    tcase_add_test(tc_core, test_cancel_invalid);
+    tcase_add_test(tc_core, test_unable_to_cancel_nonrecurring);
     tcase_add_test(tc_core, test_add_nonrecurring_doesnt_clobber_recurring);
     tcase_add_test(tc_core, test_receive_nonrecurring_twice);
     tcase_add_test(tc_core, test_nonrecurring_timeout);
@@ -840,13 +1023,19 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_passthrough_decoder);
     tcase_add_test(tc_core, test_requests_on_multiple_buses);
     tcase_add_test(tc_core, test_use_all_free_entries);
+    tcase_add_test(tc_core, test_use_all_free_entries_for_recurring);
     tcase_add_test(tc_core, test_broadcast_can_filters);
     tcase_add_test(tc_core, test_can_filters);
     tcase_add_test(tc_core, test_can_filters_broken);
+    tcase_add_test(tc_core, test_can_filters_broken_for_recurring);
 
     tcase_add_test(tc_core, test_command_multiple_responses);
     tcase_add_test(tc_core, test_command_multiple_responses_default_broadcast);
     tcase_add_test(tc_core, test_command_single_response_default);
+    tcase_add_test(tc_core, test_command_single_response_recurring);
+    tcase_add_test(tc_core, test_command_missing_mode);
+    tcase_add_test(tc_core, test_command_missing_id);
+    tcase_add_test(tc_core, test_command_missing_request);
 
     tcase_add_test(tc_core, test_request_callback);
 

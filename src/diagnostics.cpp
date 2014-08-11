@@ -557,7 +557,7 @@ bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
 /* Private: After checking for a proper CAN bus and the necessary write
  * permissions, process the requested command.
  */
-static void handleAuthorizedCommand(DiagnosticsManager* manager,
+static bool handleAuthorizedCommand(DiagnosticsManager* manager,
         CanBus* bus, openxc_DiagnosticRequest* commandRequest) {
     DiagnosticRequest request = {
         arbitration_id: commandRequest->message_id,
@@ -595,10 +595,11 @@ static void handleAuthorizedCommand(DiagnosticsManager* manager,
         multipleResponses = commandRequest->multiple_responses;
     }
 
+    bool status = true;
     if(commandRequest->action ==
             openxc_DiagnosticRequest_Action_ADD) {
         if(commandRequest->has_frequency) {
-            addRecurringRequest(manager, bus, &request,
+            status = addRecurringRequest(manager, bus, &request,
                     commandRequest->has_name ?
                             commandRequest->name : NULL,
                     multipleResponses,
@@ -606,7 +607,7 @@ static void handleAuthorizedCommand(DiagnosticsManager* manager,
                     NULL,
                     commandRequest->frequency);
         } else {
-            addRequest(manager, bus, &request,
+            status = addRequest(manager, bus, &request,
                     commandRequest->has_name ?
                             commandRequest->name : NULL,
                     multipleResponses,
@@ -615,8 +616,9 @@ static void handleAuthorizedCommand(DiagnosticsManager* manager,
         }
     } else if(commandRequest->action ==
             openxc_DiagnosticRequest_Action_CANCEL) {
-        cancelRecurringRequest(manager, bus, &request);
+        status = cancelRecurringRequest(manager, bus, &request);
     }
+    return status;
 }
 
 bool openxc::diagnostics::handleDiagnosticCommand(
@@ -639,14 +641,14 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                 debug("No active bus to send diagnostic request");
                 status = false;
             } else if(bus->rawWritable) {
-                handleAuthorizedCommand(manager, bus, commandRequest);
+                status = handleAuthorizedCommand(manager, bus, commandRequest);
             } else {
                 debug("Raw CAN writes not allowed for bus %d", bus->address);
                 status = false;
             }
 
         } else {
-            debug("Diagnostic requests need at least a bus, arb. ID and mode");
+            debug("Diagnostic requests need at least an arb. ID and mode");
             status = false;
         }
     } else {

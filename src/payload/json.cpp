@@ -188,15 +188,12 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     cJSON* action = cJSON_GetObjectItem(root, "action");
     if(action != NULL && action->type == cJSON_String) {
         command->diagnostic_request.has_action = true;
-        if(!strcmp(action->valuestring, "create")) {
+        if(!strcmp(action->valuestring, "add")) {
             command->diagnostic_request.action =
-                    openxc_DiagnosticRequest_Action_CREATE;
-        } else if(!strcmp(action->valuestring, "update")) {
+                    openxc_DiagnosticRequest_Action_ADD;
+        } else if(!strcmp(action->valuestring, "cancel")) {
             command->diagnostic_request.action =
-                    openxc_DiagnosticRequest_Action_UPDATE;
-        } else if(!strcmp(action->valuestring, "delete")) {
-            command->diagnostic_request.action =
-                    openxc_DiagnosticRequest_Action_DELETE;
+                    openxc_DiagnosticRequest_Action_CANCEL;
         } else {
             command->diagnostic_request.has_action = false;
         }

@@ -93,45 +93,6 @@ START_TEST (test_add_recurring_too_frequent)
 }
 END_TEST
 
-START_TEST (test_update_existing_recurring)
-{
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 10));
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    // get around the staggered start
-    FAKE_TIME += 2000;
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-
-    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-            &message, &getConfiguration()->pipeline);
-    fail_if(outputQueueEmpty());
-
-    // received one response to recurring request - now reset queues
-
-    resetQueues();
-
-    // change request to non-recurring, which should trigger it to be sent once,
-    // right now
-    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request));
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-
-    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-            &message, &getConfiguration()->pipeline);
-    fail_if(outputQueueEmpty());
-
-    resetQueues();
-
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_unless(canQueueEmpty(0));
-    diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, &getCanBuses()[0],
-            &message, &getConfiguration()->pipeline);
-    fail_unless(outputQueueEmpty());
-}
-END_TEST
-
 START_TEST (test_simultaneous_recurring_nonrecurring)
 {
     ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
@@ -615,7 +576,7 @@ START_TEST(test_command_single_response_default)
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
     command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -646,7 +607,7 @@ START_TEST(test_command_multiple_responses_default_broadcast)
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
     command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -677,7 +638,7 @@ START_TEST(test_command_multiple_responses)
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
     command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CREATE;
+    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -784,33 +745,6 @@ START_TEST(test_requests_on_multiple_buses)
 }
 END_TEST
 
-START_TEST(test_update_inflight)
-{
-    // Add and send one diag request, then before rx or timeout, update it.
-    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request));
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-
-    resetQueues();
-
-    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
-            &getCanBuses()[0], &request, 10));
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    FAKE_TIME += 100;
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-
-    resetQueues();
-    FAKE_TIME += 100;
-
-    // recur
-    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
-    fail_if(canQueueEmpty(0));
-}
-
-END_TEST
-
 START_TEST(test_use_all_free_entries)
 {
     for(int i = 0; i < MAX_SIMULTANEOUS_DIAG_REQUESTS; i++) {
@@ -888,7 +822,6 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_padding_on_by_default);
     tcase_add_test(tc_core, test_padding_enabled);
     tcase_add_test(tc_core, test_padding_disabled);
-    tcase_add_test(tc_core, test_update_existing_recurring);
     tcase_add_test(tc_core, test_simultaneous_recurring_nonrecurring);
     tcase_add_test(tc_core, test_cancel_recurring);
     tcase_add_test(tc_core, test_add_nonrecurring_doesnt_clobber_recurring);
@@ -906,7 +839,6 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_broadcast_accept_multiple_responses);
     tcase_add_test(tc_core, test_passthrough_decoder);
     tcase_add_test(tc_core, test_requests_on_multiple_buses);
-    tcase_add_test(tc_core, test_update_inflight);
     tcase_add_test(tc_core, test_use_all_free_entries);
     tcase_add_test(tc_core, test_broadcast_can_filters);
     tcase_add_test(tc_core, test_can_filters);

@@ -247,6 +247,16 @@ START_TEST (test_diagnostic_request_write_not_allowed)
 }
 END_TEST
 
+START_TEST (test_explicit_obd2_decoded_type)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"obd2\"}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
+    ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder ==
+            openxc::diagnostics::obd2::handleObd2Pid);
+}
+END_TEST
+
 START_TEST (test_recognized_obd2_request_overridden)
 {
     const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
@@ -692,6 +702,7 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_named_diagnostic_request);
     tcase_add_test(tc_complex_commands, test_recognized_obd2_request);
     tcase_add_test(tc_complex_commands, test_recognized_obd2_request_overridden);
+    tcase_add_test(tc_complex_commands, test_explicit_obd2_decoded_type);
     suite_add_tcase(s, tc_complex_commands);
 
     TCase *tc_control_commands = tcase_create("control_commands");

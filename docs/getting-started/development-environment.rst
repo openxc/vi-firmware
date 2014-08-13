@@ -78,9 +78,9 @@ You can use whatever text editor or IDE you prefer in your native OS, and simply
 do the compilation from within the VM.
 
 #. Install `VirtualBox <https://www.virtualbox.org/>`_.
-#. If using Windows, add the VirtualBox tools to your PATH:
-   ``PATH=%PATH%;c:\Program Files\Oracle\VirtualBox``. If you aren't sure how to
-   edit your ``PATH``, see `this guide for all versions of Windows
+#. If using Windows 7 (not required in Windows 8), add the VirtualBox tools to
+   your PATH: ``PATH=%PATH%;c:\Program Files\Oracle\VirtualBox``. If you aren't
+   sure how to edit your ``PATH``, see `this guide for all versions of Windows
    <https://www.java.com/en/download/help/path.xml>`_. Log out and back in for
    the change to take effect.
 #. Install `Vagrant <http://docs.vagrantup.com/v2/installation/index.html>`_.

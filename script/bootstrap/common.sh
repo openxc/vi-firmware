@@ -155,7 +155,7 @@ more information."
         echo "It looks like you're developing in Mac OS X. We recommend \
 using Vagrant to compile the VI firmware. OS X is unofficially supported by \
 the bootstrap scripts and you should be able to compile just fine, but you \
-can save yourself some trouble by using the pre-configure Vagrant \
+can save yourself some trouble by using the pre-configured Vagrant \
 environment. See the docs for more information."
         echo -n "Press Enter to continue anyway, or Control-C to cancel"
         read
@@ -167,7 +167,7 @@ environment. See the docs for more information."
 using Vagrant to compile the VI firmware. Ubuntu and Arch Linux are
 supported by the bootstrap scripts and you should be able to compile
 just fine, but you can save yourself some trouble by using the \
-pre-configure Vagrant environment. See the docs for more information."
+pre-configured Vagrant environment. See the docs for more information."
         echo -n "Press Enter to continue anyway, or Control-C to cancel"
         read
         echo "Continuing with bootstrap..."

@@ -68,6 +68,16 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     echo "Copying GCC binaries to local dependencies folder..."
     cp -R "$GCC_INNER_DIR"/* .
 
+    LIBLTO_SYMLINK="$GCC_INNER_DIR/lib/gcc/arm-none-eabi/4.8.3/liblto_plugin.so"
+    if ! test -e $LIBLTO_SYMLINK; then
+        # If running Vagrant in Windows, these dependency files are access via
+        # network share through Vagrant/Virtualbox, and symlinks are not
+        # supported. These files will be missing, so we have to copy where they
+        # are supposed to be symlinking to the properly named files.
+        cp "$LIBLTO_SYMLINK.0.0.0" $LIBLTO_SYMLINK
+        cp "$LIBLTO_SYMLINK.0.0.0" $LIBLTO_SYMLINK.0
+    fi
+
     _popd
     _popd
 

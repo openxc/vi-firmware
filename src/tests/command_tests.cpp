@@ -147,6 +147,26 @@ START_TEST (test_raw_write_missing_bus_no_buses)
 }
 END_TEST
 
+START_TEST (test_raw_write_without_0x_prefix)
+{
+    getCanBuses()[0].rawWritable = true;
+    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \"1234567812345678\"}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 42);
+    ck_assert_int_eq(message.data[0], 0x12);
+    ck_assert_int_eq(message.data[1], 0x34);
+    ck_assert_int_eq(message.data[2], 0x56);
+    ck_assert_int_eq(message.data[3], 0x78);
+    ck_assert_int_eq(message.data[4], 0x12);
+    ck_assert_int_eq(message.data[5], 0x34);
+    ck_assert_int_eq(message.data[6], 0x56);
+    ck_assert_int_eq(message.data[7], 0x78);
+}
+END_TEST
+
 START_TEST (test_raw_write)
 {
     getCanBuses()[0].rawWritable = true;
@@ -202,6 +222,27 @@ START_TEST (test_named_diagnostic_request)
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert_str_eq(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests
                 )->name, "foobar");
+}
+END_TEST
+
+START_TEST (test_diagnostic_request_with_payload_without_0x_prefix)
+{
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"1234\"}}";
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
+            &getCanBuses()[0]);
+    fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 2);
+    ck_assert_int_eq(message.data[0], 0x3);
+    ck_assert_int_eq(message.data[1], 0x01);
+    ck_assert_int_eq(message.data[2], 0x12);
+    ck_assert_int_eq(message.data[3], 0x34);
+    ck_assert_int_eq(message.data[4], 0x00);
+    ck_assert_int_eq(message.data[5], 0x00);
+    ck_assert_int_eq(message.data[6], 0x00);
+    ck_assert_int_eq(message.data[7], 0x00);
 }
 END_TEST
 
@@ -675,6 +716,7 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus);
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus_no_buses);
     tcase_add_test(tc_complex_commands, test_raw_write);
+    tcase_add_test(tc_complex_commands, test_raw_write_without_0x_prefix);
     tcase_add_test(tc_complex_commands, test_raw_write_less_than_full_message);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
@@ -694,6 +736,7 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_diagnostic_request);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload);
+    tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload_without_0x_prefix);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_request);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_invalid_bus);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_bus);

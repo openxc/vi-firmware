@@ -231,6 +231,7 @@ pre-configured Vagrant environment. See the docs for more information."
     if ! command -v python >/dev/null 2>&1; then
         echo "Installing Python..."
         _install "python"
+        _install "python-dev"
     fi
 
     if ! command -v pip >/dev/null 2>&1; then

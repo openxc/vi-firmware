@@ -9,7 +9,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/precise64"
 
   config.vm.provision "shell", privileged: false, keep_color: true do |s|
     # To avoid trying to create hardlinks in the /vagrant share, copy the

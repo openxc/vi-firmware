@@ -10,15 +10,23 @@ experimentation.
 
 Again, assuming you've :doc:`set up your development environment
 </getting-started/development-environment>` and you have a `reference VI from
-Ford <http://vi.openxcplatform.com>`_, move to the ``vi-firmware`` directory
-and use ``Fabric`` to compile the default build for the reference VI:
+Ford <http://vi.openxcplatform.com>`_, compile the default- the default build
+for the reference VI.
+
+If you are using Vagrant, ``cd`` into the ``/vagrant`` directory (which is
+actually a pointer to the ``vi-firmware`` directory on your host computer) and
+run ``fab reference build``:
 
 .. code-block:: sh
 
-    vi-firmware $ fab reference build
+    $ cd /vagrant
+    /vagrant $ fab reference build
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.
+
+If you are doing native development, it's the same process but ``cd`` into
+wherever you put the ``vi-firmware`` directory instead of ``/vagrant``.
 
 Just as with the emulated data build, there will be a lot more output when you
 run this but it should end with ``Compiled successfully...``. If you got an

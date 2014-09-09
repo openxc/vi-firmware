@@ -10,13 +10,14 @@ firmware with the default configuration. This build is not configured to read
 any particular CAN signals or messages, but it allow you to send On-Board
 Diagnostic (OBD-II) requests and raw CAN messages for experimentation.
 
-Assuming you have a `reference VI from Ford <http://vi.openxcplatform.com>`_,
-move to the ``vi-firmware`` directory and compile the emulator firmware using
-``Fabric`` for the reference VI:
+If you are using Vagrant, ``cd`` into the ``/vagrant`` directory (which is
+actually a pointer to the ``vi-firmware`` directory on your host computer) and
+run ``fab reference build``:
 
 .. code-block:: sh
 
-    vi-firmware/ $ fab reference emulator build
+    $ cd /vagrant
+    /vagrant $ fab reference emulator build
     Compiling for FORDBOARD...
     ...lots of output...
     Compiled successfully for FORDBOARD running under a bootloader.

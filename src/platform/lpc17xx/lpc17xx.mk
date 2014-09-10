@@ -27,8 +27,8 @@ SUPRESSED_ERRORS = -Wno-aggressive-loop-optimizations -Wno-char-subscripts \
 CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
 		   $(SUPRESSED_ERRORS) -Werror
-ONLY_C_FLAGS += -std=gnu99
-ONLY_CPP_FLAGS += -std=gnu++0x
+ONLY_C_FLAGS += $(CFLAGS_STD)
+ONLY_CPP_FLAGS += $(CXXFLAGS_STD)
 CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
 
 ifeq ($(PLATFORM), BLUEBOARD)

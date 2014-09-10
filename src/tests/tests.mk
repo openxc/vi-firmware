@@ -95,8 +95,9 @@ CC_SUPRESSED_ERRORS = $(C_SUPRESSED_ERRORS) -Wno-conversion-null
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
 unit_tests: CPP = $(TEST_CPP)
-unit_tests: C_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage $(C_SUPRESSED_ERRORS)
-unit_tests: CC_FLAGS =  $(C_FLAGS) $(CC_SUPRESSED_ERRORS)
+unit_tests: COMMON_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage
+unit_tests: C_FLAGS = $(COMMON_FLAGS) $(C_SUPRESSED_ERRORS) $(CFLAGS_STD)
+unit_tests: CC_FLAGS =  $(COMMON_FLAGS) $(CC_SUPRESSED_ERRORS) $(CXXFLAGS_STD)
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)

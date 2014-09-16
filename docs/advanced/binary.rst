@@ -30,7 +30,8 @@ stream.
 Compiling with Binary Output
 ============================
 
-To use the binary output format, compile with the ``BINARY_OUTPUT`` flag
+To use the binary output format, compile with the
+``DEFAULT_OUTPUT_FORMAT=PROTOBUF`` environment variable set
 (see :doc:`all compile-time flags </compile/makefile-opts>`).
 
 Motivation

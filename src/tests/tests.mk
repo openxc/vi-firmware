@@ -128,16 +128,29 @@ diagnostic_code_generation_test:
 	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/diagnostic.json > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
-COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)
-coverage:
-	@lcov --base-directory . --directory . --zerocounters -q
-	@make unit_tests
-	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
-	@lcov --remove $(COVERAGE_INFO_PATH) "$(LIBS_PATH)/*" -o $(COVERAGE_INFO_PATH)
-	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
-	@genhtml -o $(TEST_OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
-	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
-	@echo "$(GREEN)Coverage information generated in $(TEST_OBJDIR)/coverage/index.html.$(COLOR_RESET)"
+COVERAGE_INFO = $(OBJDIR)/$(COVERAGE_INFO_FILENAME)
+COVERAGE_REPORT_HTML = $(OBJDIR)/coverage/index.html
+COBERTURA_COVERAGE = $(OBJDIR)/coverage.xml
+DIFFCOVER_REPORT = $(OBJDIR)/diffcover.html
+
+$(COVERAGE_INFO): clean unit_tests
+	lcov --gcov-tool llvm-cov --base-directory . --directory . -c -o $@
+	lcov --remove $@ "*tests*" --remove $@ "/usr/*" -o $@
+
+$(COVERAGE_REPORT_HTML): $(COVERAGE_INFO)
+	genhtml -o $(OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<
+	@echo "$(GREEN)Coverage information generated in $@.$(COLOR_RESET)"
+	@xdg-open $@
+
+$(COBERTURA_COVERAGE): $(COVERAGE_INFO)
+	python ../script/lcov_cobertura.py $< --output $@
+
+$(DIFFCOVER_REPORT): $(COBERTURA_COVERAGE)
+	diff-cover $< --compare-branch=origin/next --html-report $@
+	@xdg-open $@
+
+coverage: $(COVERAGE_REPORT_HTML)
+diffcover: $(DIFFCOVER_REPORT)
 
 $(TEST_OBJDIR)/%.o: %.cpp .firmware_options
 	@mkdir -p $(dir $@)

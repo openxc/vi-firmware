@@ -293,8 +293,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         value = request->decoder(response, value);
     }
 
-    if(response->success && request->name != NULL &&
-            strnlen(request->name, sizeof(request->name)) > 0) {
+    if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
         publishNumericalMessage(request->name, value, pipeline);

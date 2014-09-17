@@ -80,7 +80,7 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
         {&CAN_MESSAGES[0][2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
             0.000000, {0}, true, false, NULL, 0, true},
         {&CAN_MESSAGES[0][3], "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
-            {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL, 4.0},
+            {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL, false, 4.0},
         {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000},
         {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
             false, false, NULL, 0, true},

@@ -27,8 +27,6 @@ using openxc::signals::getSignals;
 using openxc::signals::getCanBuses;
 using openxc::config::getConfiguration;
 
-const uint8_t TEST_DATA[8] = {0xEB};
-
 extern void initializeVehicleInterface();
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;

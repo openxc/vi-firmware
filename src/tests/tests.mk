@@ -63,24 +63,11 @@ test_short: unit_tests
 test: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
-ifeq ($(OSTYPE),Darwin)
-# TODO I figured out how to use clang with coverage, update to that
-# gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
-# explicitly use clang/clang++
-LLVM_BIN_FOLDER = $(DEPENDENCIES_FOLDER)/clang+llvm-3.2-x86_64-apple-darwin11/bin
-TEST_CXX = $(LLVM_BIN_FOLDER)/clang++
-TEST_CC = $(LLVM_BIN_FOLDER)/clang
-TEST_LD = $(TEST_CXX)
-else
-TEST_LD = g++
-TEST_CC = gcc
-TEST_CXX = g++
-endif
-
-# In Linux, expect BROWSER to name the preferred browser binary
-ifeq ($(OSTYPE),Darwin)
-BROWSER = open
-endif
+# clang provides many more nice warnings than GCC, so we use it on both Linux
+# and OS X
+TEST_LD = clang++
+TEST_CC = clang
+TEST_CXX = clang++
 
 # Guard against \r\n line endings only in Cygwin
 ifneq ($(OSTYPE),Darwin)
@@ -90,7 +77,7 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-CC_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
+CC_SUPRESSED_ERRORS = -Wno-write-strings -Wno-gnu-designator
 CXX_SUPRESSED_ERRORS = $(CC_SUPRESSED_ERRORS) -Wno-conversion-null
 
 unit_tests: LD = $(TEST_LD)

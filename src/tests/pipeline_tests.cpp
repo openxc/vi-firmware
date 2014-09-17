@@ -105,7 +105,6 @@ START_TEST (test_with_uart)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.uart->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
@@ -122,11 +121,9 @@ START_TEST (test_with_uart_and_network)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.uart->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.network->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.network->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }

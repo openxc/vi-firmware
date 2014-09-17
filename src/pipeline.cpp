@@ -114,24 +114,32 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     size_t length = payload::serialize(message, payload, sizeof(payload),
             config::getConfiguration()->payloadFormat);
     MessageClass messageClass;
+	bool matched = false;
     switch(message->type) {
         case openxc_VehicleMessage_Type_TRANSLATED:
             messageClass = MessageClass::TRANSLATED;
+			matched = true;
             break;
         case openxc_VehicleMessage_Type_RAW:
             messageClass = MessageClass::RAW;
+			matched = true;
             break;
         case openxc_VehicleMessage_Type_DIAGNOSTIC:
             messageClass = MessageClass::DIAGNOSTIC;
+			matched = true;
             break;
         case openxc_VehicleMessage_Type_COMMAND_RESPONSE:
             messageClass = MessageClass::COMMAND_RESPONSE;
+			matched = true;
             break;
-        default:
-            debug("Trying to serialize unrecognized type: %d", message->type);
-            break;
+		case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+			break;
     }
-    sendMessage(pipeline, payload, length, messageClass);
+	if(matched) {
+			sendMessage(pipeline, payload, length, messageClass);
+	} else {
+            debug("Trying to serialize unrecognized type: %d", message->type);
+	}
 }
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,

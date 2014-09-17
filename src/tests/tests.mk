@@ -64,16 +64,17 @@ test: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 ifeq ($(OSTYPE),Darwin)
+# TODO I figured out how to use clang with coverage, update to that
 # gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
 # explicitly use clang/clang++
 LLVM_BIN_FOLDER = $(DEPENDENCIES_FOLDER)/clang+llvm-3.2-x86_64-apple-darwin11/bin
-TEST_CPP = $(LLVM_BIN_FOLDER)/clang++
+TEST_CXX = $(LLVM_BIN_FOLDER)/clang++
 TEST_CC = $(LLVM_BIN_FOLDER)/clang
-TEST_LD = $(TEST_CPP)
+TEST_LD = $(TEST_CXX)
 else
 TEST_LD = g++
 TEST_CC = gcc
-TEST_CPP = g++
+TEST_CXX = g++
 endif
 
 # In Linux, expect BROWSER to name the preferred browser binary
@@ -89,15 +90,15 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-C_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
-CC_SUPRESSED_ERRORS = $(C_SUPRESSED_ERRORS) -Wno-conversion-null
+CC_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
+CXX_SUPRESSED_ERRORS = $(CC_SUPRESSED_ERRORS) -Wno-conversion-null
 
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
-unit_tests: CPP = $(TEST_CPP)
-unit_tests: COMMON_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage
-unit_tests: C_FLAGS = $(COMMON_FLAGS) $(C_SUPRESSED_ERRORS) $(CFLAGS_STD)
-unit_tests: CC_FLAGS =  $(COMMON_FLAGS) $(CC_SUPRESSED_ERRORS) $(CXXFLAGS_STD)
+unit_tests: CXX = $(TEST_CXX)
+unit_tests: CPPFLAGS = -I/usr/local -c -Wall -Werror -g -ggdb -coverage
+unit_tests: CFLAGS = $(CC_SUPRESSED_ERRORS) $(CFLAGS_STD)
+unit_tests: CXXFLAGS =  $(CXX_SUPRESSED_ERRORS) $(CXXFLAGS_STD)
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
@@ -153,12 +154,12 @@ coverage:
 
 $(TEST_OBJDIR)/%.o: %.cpp .firmware_options
 	@mkdir -p $(dir $@)
-	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CC_SYMBOLS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.o: %.c .firmware_options
 	@mkdir -p $(dir $@)
-	$(CC) $(C_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(CPPFLAGS) $(CC_SYMBOLS) $(CFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)
-	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)
+	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)

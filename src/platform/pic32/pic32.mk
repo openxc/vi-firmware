@@ -59,11 +59,11 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-EXTRA_BOTH_FLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
+CPPFLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
 				  -I $(LIBS_PATH)/nanopb
-CFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_C_FLAGS)
-CPPFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_CPP_FLAGS)
+CFLAGS += $(EXTRA_BOTH_FLAGS)
+CXXFLAGS += $(EXTRA_BOTH_FLAGS)
 
 # the PIC32 can't build with gnu99, so we have to leave it out
 CFLAGS_STD =

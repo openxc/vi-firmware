@@ -316,7 +316,7 @@ static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
         if(command->has_type && command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
             openxc_DiagnosticRequest* request = &command->diagnostic_request;
 
-            if(!request->has_action) {
+            if(!command->has_action) {
                 valid = false;
                 debug("Diagnostic request command missing action");
             }

@@ -117,7 +117,9 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 # TODO put this under a "gen" folder separate from objdir
-CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c $(LIBS_PATH)/nanopb/pb_decode.c
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
+						$(LIBS_PATH)/nanopb/pb_decode.c \
+						$(LIBS_PATH)/nanopb/pb_common.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
@@ -134,9 +136,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src
 
-# the PIC32 can't build with gnu99, so we have to leave it out
-ONLY_C_FLAGS =
-ONLY_CPP_FLAGS = -std=gnu++0x
+CFLAGS_STD = -std=gnu99
+CXXFLAGS_STD = -std=gnu++0x
 
 include tests/tests.mk
 
@@ -186,11 +187,11 @@ endef
 .firmware_options: force
 	@echo '$(SYMBOLS)' | cmp -s - $@ || echo '$(SYMBOLS)' > $@
 
-custom_all_prefix:
+display_options:
 	$(info Compiling with options:)
 	$(call show_options)
 
-custom_all: custom_all_prefix all
+custom_all: display_options all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
 	@if [[ "$(BOOTLOADER)" == "1" ]]; then \
 		echo -n " running under a bootloader"; \

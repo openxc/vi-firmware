@@ -180,8 +180,8 @@ START_TEST(test_unable_to_cancel_nonrecurring)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -193,7 +193,7 @@ START_TEST(test_unable_to_cancel_nonrecurring)
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CANCEL;
+    command.action = openxc_ControlCommand_Action_CANCEL;
     ck_assert(!diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
 }
@@ -205,8 +205,8 @@ START_TEST(test_cancel_recurring_from_command)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -220,7 +220,7 @@ START_TEST(test_cancel_recurring_from_command)
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_CANCEL;
+    command.action = openxc_ControlCommand_Action_CANCEL;
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
@@ -639,8 +639,8 @@ START_TEST(test_command_single_response_recurring)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -678,8 +678,8 @@ START_TEST(test_command_missing_mode)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -700,8 +700,8 @@ START_TEST(test_command_missing_id)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = false;
@@ -733,8 +733,8 @@ START_TEST(test_command_single_response_default)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -764,8 +764,8 @@ START_TEST(test_command_multiple_responses_default_broadcast)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;
@@ -795,8 +795,8 @@ START_TEST(test_command_multiple_responses)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
-    command.diagnostic_request.action = openxc_DiagnosticRequest_Action_ADD;
+    command.has_action = true;
+    command.action = openxc_ControlCommand_Action_ADD;
     command.diagnostic_request.has_bus = true;
     command.diagnostic_request.bus = 1;
     command.diagnostic_request.has_message_id = true;

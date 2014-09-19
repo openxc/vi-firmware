@@ -20,26 +20,27 @@ LINKER_SCRIPT = platform/lpc17xx/LPC17xx-baremetal.ld
 endif
 
 CC = $(GCC_BIN)arm-none-eabi-gcc
-CPP = $(GCC_BIN)arm-none-eabi-g++
-AS_FLAGS = -c -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
+CXX = $(GCC_BIN)arm-none-eabi-g++
+ASFLAGS = -c -mcpu=cortex-m3 -mthumb --defsym RAM_MODE=0
 SUPRESSED_ERRORS = -Wno-aggressive-loop-optimizations -Wno-char-subscripts \
 				   -Wno-unused-but-set-variable
-CC_FLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
+CPPFLAGS = -c -fno-common -fmessage-length=0 -Wall -fno-exceptions \
 		   -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections \
-		   $(SUPRESSED_ERRORS) -Werror
-ONLY_C_FLAGS += -std=gnu99
-ONLY_CPP_FLAGS += -std=gnu++0x
-CC_SYMBOLS += -DTOOLCHAIN_GCC_ARM -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9
+		   $(SUPRESSED_ERRORS) -Werror -DTOOLCHAIN_GCC_ARM \
+		   -DUSB_DEVICE_ONLY -D__LPC17XX__ -DBOARD=9 $(CC_SYMBOLS)
+CFLAGS += $(CFLAGS_STD)
+CXXFLAGS += $(CXXFLAGS_STD)
 
 ifeq ($(PLATFORM), BLUEBOARD)
-CC_SYMBOLS += -DBLUEBOARD
+CPPFLAGS += -DBLUEBOARD
 else
-CC_SYMBOLS += -DFORDBOARD
+CPPFLAGS += -DFORDBOARD
 endif
 
 AS = $(GCC_BIN)arm-none-eabi-as
 LD = $(GCC_BIN)arm-none-eabi-g++
-LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections,-Map=$(OBJDIR)/$(BASE_TARGET).map
+LDFLAGS = -mcpu=cortex-m3 -mthumb \
+		  -Wl,--gc-sections,-Map=$(OBJDIR)/$(BASE_TARGET).map -Llpc17xx
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
@@ -63,9 +64,9 @@ TARGET_BIN = $(OBJDIR)/$(TARGET).bin
 TARGET_ELF = $(OBJDIR)/$(TARGET).elf
 
 ifeq ($(DEBUG), 1)
-CC_FLAGS += -g -ggdb
+CPPFLAGS += -g -ggdb
 else
-CC_FLAGS += -Os -Wno-uninitialized
+CPPFLAGS += -Os -Wno-uninitialized
 endif
 
 BSP_EXISTS = $(shell test -e $(LIBS_PATH)/BSP/bsp.h; echo $$?)
@@ -85,7 +86,7 @@ endif
 
 all: $(TARGET_BIN)
 
-flash: all
+flash: custom_all
 	@echo "Flashing $(PLATFORM) via JTAG with OpenOCD..."
 	openocd -s $(OPENOCD_CONF_BASE) -c 'set FIRMWARE_PATH $(TARGET_BIN)' -f $(PLATFORM).cfg -f $(BASE_TARGET).cfg -f interface/$(JTAG_INTERFACE)-custom.cfg -f flash.cfg
 	@echo "$(GREEN)Flashed $(PLATFORM) successfully.$(COLOR_RESET)"
@@ -94,20 +95,20 @@ gdb: all
 	@openocd -f $(OPENOCD_CONF_BASE)/gdb.cfg
 
 .s.o:
-	$(AS) $(AS_FLAGS) -o $@ $<
+	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OBJECTS): .firmware_options
 
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TARGET_ELF): $(OBJECTS)
-	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) -Llpc17xx -o $@ $^ $(LD_SYS_LIBS)
+	$(LD) $(LDFLAGS) -T$(LINKER_SCRIPT) -o $@ $^ $(LD_SYS_LIBS)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(OBJCOPY) -O binary $< $@

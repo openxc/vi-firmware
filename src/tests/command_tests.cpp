@@ -93,9 +93,9 @@ void setup() {
     CONTROL_COMMAND.control_command.has_type = true;
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     CONTROL_COMMAND.control_command.has_diagnostic_request = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.action =
-            openxc_DiagnosticRequest_Action_ADD;
+    CONTROL_COMMAND.control_command.has_action = true;
+    CONTROL_COMMAND.control_command.action =
+            openxc_ControlCommand_Action_ADD;
     CONTROL_COMMAND.control_command.diagnostic_request.has_bus = true;
     CONTROL_COMMAND.control_command.diagnostic_request.bus = 1;
     CONTROL_COMMAND.control_command.diagnostic_request.has_message_id = true;
@@ -635,7 +635,7 @@ END_TEST
 
 START_TEST (test_validate_diagnostic_missing_action)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_action = false;
+    CONTROL_COMMAND.control_command.has_action = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST

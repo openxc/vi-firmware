@@ -86,7 +86,7 @@ endif
 
 all: $(TARGET_BIN)
 
-flash: all
+flash: custom_all
 	@echo "Flashing $(PLATFORM) via JTAG with OpenOCD..."
 	openocd -s $(OPENOCD_CONF_BASE) -c 'set FIRMWARE_PATH $(TARGET_BIN)' -f $(PLATFORM).cfg -f $(BASE_TARGET).cfg -f interface/$(JTAG_INTERFACE)-custom.cfg -f flash.cfg
 	@echo "$(GREEN)Flashed $(PLATFORM) successfully.$(COLOR_RESET)"

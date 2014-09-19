@@ -185,11 +185,11 @@ endef
 .firmware_options: force
 	@echo '$(SYMBOLS)' | cmp -s - $@ || echo '$(SYMBOLS)' > $@
 
-custom_all_prefix:
+display_options:
 	$(info Compiling with options:)
 	$(call show_options)
 
-custom_all: custom_all_prefix all
+custom_all: display_options all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
 	@if [[ "$(BOOTLOADER)" == "1" ]]; then \
 		echo -n " running under a bootloader"; \

@@ -13,6 +13,7 @@
 [submodule "src/libs/arduino.mk"]
 	path = src/libs/arduino.mk
 	url = https://github.com/peplin/Arduino-Makefile
+    ignore = untracked
 [submodule "src/libs/emqueue"]
 	path = src/libs/emqueue
 	url = https://github.com/openxc/emqueue
@@ -25,6 +26,7 @@
 [submodule "src/libs/openxc-message-format"]
 	path = src/libs/openxc-message-format
 	url = https://github.com/openxc/openxc-message-format
+    ignore = untracked
 [submodule "src/libs/bitfield-c"]
 	path = src/libs/bitfield-c
 	url = https://github.com/openxc/bitfield-c

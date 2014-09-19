@@ -557,7 +557,8 @@ bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
  * permissions, process the requested command.
  */
 static bool handleAuthorizedCommand(DiagnosticsManager* manager,
-        CanBus* bus, openxc_DiagnosticRequest* commandRequest) {
+        CanBus* bus, openxc_ControlCommand* command) {
+    openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
     DiagnosticRequest request = {
         arbitration_id: commandRequest->message_id,
         mode: uint8_t(commandRequest->mode),
@@ -595,8 +596,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
     }
 
     bool status = true;
-    if(commandRequest->action ==
-            openxc_DiagnosticRequest_Action_ADD) {
+    if(command->action == openxc_ControlCommand_Action_ADD) {
         if(commandRequest->has_frequency) {
             status = addRecurringRequest(manager, bus, &request,
                     commandRequest->has_name ?
@@ -613,8 +613,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                     decoder,
                     NULL);
         }
-    } else if(commandRequest->action ==
-            openxc_DiagnosticRequest_Action_CANCEL) {
+    } else if(command->action == openxc_ControlCommand_Action_CANCEL) {
         status = cancelRecurringRequest(manager, bus, &request);
     }
     return status;
@@ -640,7 +639,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                 debug("No active bus to send diagnostic request");
                 status = false;
             } else if(bus->rawWritable) {
-                status = handleAuthorizedCommand(manager, bus, commandRequest);
+                status = handleAuthorizedCommand(manager, bus, command);
             } else {
                 debug("Raw CAN writes not allowed for bus %d", bus->address);
                 status = false;

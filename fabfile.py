@@ -117,7 +117,21 @@ def build_option(key, value):
             value = "0"
     return "%s=%s" % (key, value)
 
-def build_options(options):
+def build_options():
+    if env.board is None:
+        abort("You must specify the target board - your choices are %s" % env.boards.keys())
+    board_options = env.boards[env.board]
+
+    options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    options['PLATFORM'] = board_options['name']
+    if env.mode == 'emulator':
+        options['DEFAULT_EMULATED_DATA_STATUS'] = True
+        options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
+    elif env.mode == 'translated_obd2':
+        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+        options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+    elif env.mode == 'obd2':
+        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
     return " ".join((build_option(key, value)
         for key, value in options.iteritems()))
 
@@ -165,26 +179,17 @@ def c5():
     env.board = 'c5'
 
 @task
-def build(capture=False, clean=False):
-    if env.board is None:
-        abort("You must specify the target board - your choices are %s" % env.boards.keys())
-    board_options = env.boards[env.board]
-
-    options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-    if env.mode == 'emulator':
-        options['DEFAULT_EMULATED_DATA_STATUS'] = True
-        options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
-    elif env.mode == 'translated_obd2':
-        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
-        options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
-    elif env.mode == 'obd2':
-        options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
-
+def clean():
     with lcd("%s/src" % env.root_dir):
-        options['PLATFORM'] = board_options['name']
+        local("%s make clean" % build_options(), capture=True)
+
+@task
+def build(capture=False, clean=False):
+    options = build_options()
+    with lcd("%s/src" % env.root_dir):
         if clean:
-            local("%s make clean" % build_options(options), capture=True)
-        output = local("%s make -j4" % build_options(options), capture=capture)
+            clean();
+        output = local("%s make -j4" % options, capture=capture)
         if output.failed:
             puts(output)
             abort(red("Building %s failed" % board_options['name']))
@@ -192,7 +197,7 @@ def build(capture=False, clean=False):
 @task
 def flash():
     with lcd("%s/src" % env.root_dir):
-        local("PLATFORM=%s make flash" % env.boards[env.board]['name'])
+        local("%s make flash" % build_options())
 
 @task
 def release():

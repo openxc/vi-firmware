@@ -136,9 +136,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src
 
-# the PIC32 can't build with gnu99, so we have to leave it out
-ONLY_C_FLAGS =
-ONLY_CPP_FLAGS = -std=gnu++0x
+CFLAGS_STD = -std=gnu99
+CXXFLAGS_STD = -std=gnu++0x
 
 include tests/tests.mk
 

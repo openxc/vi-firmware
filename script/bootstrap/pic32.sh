@@ -9,11 +9,11 @@ source $BOOTSTRAP_DIR/flashing_chipkit.sh
 ## chipKIT libraries for USB, CAN and Network
 
 CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"
-CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs.zip"
-CHIPKIT_ZIP_FILE="chipkit.zip"
+CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs-20130724a.zip"
+CHIPKIT_ZIP_FILE="chipkit-libraries-2013-07-24.zip"
 
 _pushd $DEPENDENCIES_FOLDER
-if ! test -e chipkit.zip
+if ! test -e $CHIPKIT_ZIP_FILE
 then
     echo
     if [ -z $CI ] && [ -z $VAGRANT ]; then
@@ -22,16 +22,14 @@ then
         read
     fi
     download $CHIPKIT_LIBRARY_DOWNLOAD_URL $CHIPKIT_ZIP_FILE
+    unzip $CHIPKIT_ZIP_FILE
 fi
 _popd
 
 _pushd src/libs
 for LIBRARY in chipKITUSBDevice chipKITCAN chipKITEthernet; do
-    if ! test -d $LIBRARY
-    then
-        echo "Installing chipKIT library $LIBRARY..."
-        unzip ../../dependencies/$CHIPKIT_ZIP_FILE "$LIBRARY/*"
-    fi
+    echo "Installing chipKIT library $LIBRARY..."
+    cp -R ../../dependencies/libraries/$LIBRARY .
 done
 _popd
 

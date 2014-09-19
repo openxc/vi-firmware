@@ -132,6 +132,7 @@ COVERAGE_INFO = $(OBJDIR)/$(COVERAGE_INFO_FILENAME)
 COVERAGE_REPORT_HTML = $(OBJDIR)/coverage/index.html
 COBERTURA_COVERAGE = $(OBJDIR)/coverage.xml
 DIFFCOVER_REPORT = $(OBJDIR)/diffcover.html
+MINIMUM_DIFFCOVER_PERCENTAGE = 80
 
 $(COVERAGE_INFO): clean unit_tests
 	lcov --gcov-tool llvm-cov --base-directory . --directory . -c -o $@
@@ -139,18 +140,20 @@ $(COVERAGE_INFO): clean unit_tests
 
 $(COVERAGE_REPORT_HTML): $(COVERAGE_INFO)
 	genhtml -o $(OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<
-	@echo "$(GREEN)Coverage information generated in $@.$(COLOR_RESET)"
-	@xdg-open $@
 
 $(COBERTURA_COVERAGE): $(COVERAGE_INFO)
 	python ../script/lcov_cobertura.py $< --output $@
 
 $(DIFFCOVER_REPORT): $(COBERTURA_COVERAGE)
-	diff-cover $< --compare-branch=origin/next --html-report $@
-	@xdg-open $@
+	diff-cover $< --compare-branch=origin/next --html-report $@ --fail-under=$(MINIMUM_DIFFCOVER_PERCENTAGE)
+
+diffcover_test: $(DIFFCOVER_REPORT)
 
 coverage: $(COVERAGE_REPORT_HTML)
+	@xdg-open $<
+
 diffcover: $(DIFFCOVER_REPORT)
+	@xdg-open $<
 
 $(TEST_OBJDIR)/%.o: %.cpp .firmware_options
 	@mkdir -p $(dir $@)

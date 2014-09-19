@@ -117,7 +117,9 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 # TODO put this under a "gen" folder separate from objdir
-CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c $(LIBS_PATH)/nanopb/pb_decode.c
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
+						$(LIBS_PATH)/nanopb/pb_decode.c \
+						$(LIBS_PATH)/nanopb/pb_common.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)

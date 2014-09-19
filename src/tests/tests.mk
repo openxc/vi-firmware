@@ -63,23 +63,11 @@ test_short: unit_tests
 test: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
-ifeq ($(OSTYPE),Darwin)
-# gcc/g++ are the LLVM versions in OS X, which don't have coverage. must
-# explicitly use clang/clang++
-LLVM_BIN_FOLDER = $(DEPENDENCIES_FOLDER)/clang+llvm-3.2-x86_64-apple-darwin11/bin
-TEST_CPP = $(LLVM_BIN_FOLDER)/clang++
-TEST_CC = $(LLVM_BIN_FOLDER)/clang
-TEST_LD = $(TEST_CPP)
-else
-TEST_LD = g++
-TEST_CC = gcc
-TEST_CPP = g++
-endif
-
-# In Linux, expect BROWSER to name the preferred browser binary
-ifeq ($(OSTYPE),Darwin)
-BROWSER = open
-endif
+# clang provides many more nice warnings than GCC, so we use it on both Linux
+# and OS X
+TEST_LD = clang++
+TEST_CC = clang
+TEST_CXX = clang++
 
 # Guard against \r\n line endings only in Cygwin
 ifneq ($(OSTYPE),Darwin)
@@ -89,14 +77,15 @@ ifneq ($(OSTYPE),Darwin)
 	endif
 endif
 
-C_SUPRESSED_ERRORS = -Wno-unused-but-set-variable  -Wno-write-strings
-CC_SUPRESSED_ERRORS = $(C_SUPRESSED_ERRORS) -Wno-conversion-null
+CC_SUPRESSED_ERRORS = -Wno-write-strings -Wno-gnu-designator
+CXX_SUPRESSED_ERRORS = $(CC_SUPRESSED_ERRORS) -Wno-conversion-null
 
 unit_tests: LD = $(TEST_LD)
 unit_tests: CC = $(TEST_CC)
-unit_tests: CPP = $(TEST_CPP)
-unit_tests: C_FLAGS = -I. -c -Wall -Werror -g -ggdb -coverage $(C_SUPRESSED_ERRORS)
-unit_tests: CC_FLAGS =  $(C_FLAGS) $(CC_SUPRESSED_ERRORS)
+unit_tests: CXX = $(TEST_CXX)
+unit_tests: CPPFLAGS = -I/usr/local -c -Wall -Werror -g -ggdb -coverage
+unit_tests: CFLAGS = $(CC_SUPRESSED_ERRORS) $(CFLAGS_STD)
+unit_tests: CXXFLAGS =  $(CXX_SUPRESSED_ERRORS) $(CXXFLAGS_STD)
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
 unit_tests: $(TESTS)
@@ -139,25 +128,38 @@ diagnostic_code_generation_test:
 	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/diagnostic.json > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
-COVERAGE_INFO_PATH = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)
-coverage:
-	@lcov --base-directory . --directory . --zerocounters -q
-	@make unit_tests
-	@lcov --base-directory . --directory . -c -o $(TEST_OBJDIR)/coverage.info
-	@lcov --remove $(COVERAGE_INFO_PATH) "$(LIBS_PATH)/*" -o $(COVERAGE_INFO_PATH)
-	@lcov --remove $(COVERAGE_INFO_PATH) "/usr/*" -o $(COVERAGE_INFO_PATH)
-	@genhtml -o $(TEST_OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $(COVERAGE_INFO_PATH)
-	@$(BROWSER) $(TEST_OBJDIR)/coverage/index.html
-	@echo "$(GREEN)Coverage information generated in $(TEST_OBJDIR)/coverage/index.html.$(COLOR_RESET)"
+COVERAGE_INFO = $(OBJDIR)/$(COVERAGE_INFO_FILENAME)
+COVERAGE_REPORT_HTML = $(OBJDIR)/coverage/index.html
+COBERTURA_COVERAGE = $(OBJDIR)/coverage.xml
+DIFFCOVER_REPORT = $(OBJDIR)/diffcover.html
+
+$(COVERAGE_INFO): clean unit_tests
+	lcov --gcov-tool llvm-cov --base-directory . --directory . -c -o $@
+	lcov --remove $@ "*tests*" --remove $@ "/usr/*" -o $@
+
+$(COVERAGE_REPORT_HTML): $(COVERAGE_INFO)
+	genhtml -o $(OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<
+	@echo "$(GREEN)Coverage information generated in $@.$(COLOR_RESET)"
+	@xdg-open $@
+
+$(COBERTURA_COVERAGE): $(COVERAGE_INFO)
+	python ../script/lcov_cobertura.py $< --output $@
+
+$(DIFFCOVER_REPORT): $(COBERTURA_COVERAGE)
+	diff-cover $< --compare-branch=origin/next --html-report $@
+	@xdg-open $@
+
+coverage: $(COVERAGE_REPORT_HTML)
+diffcover: $(DIFFCOVER_REPORT)
 
 $(TEST_OBJDIR)/%.o: %.cpp .firmware_options
 	@mkdir -p $(dir $@)
-	$(CPP) $(CC_FLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CC_SYMBOLS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.o: %.c .firmware_options
 	@mkdir -p $(dir $@)
-	$(CC) $(C_FLAGS) $(CC_SYMBOLS) $(ONLY_C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	$(CC) $(CPPFLAGS) $(CC_SYMBOLS) $(CFLAGS) $(INCLUDE_PATHS) -o $@ $<
 
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)
-	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(ONLY_CPP_FLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)
+	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)

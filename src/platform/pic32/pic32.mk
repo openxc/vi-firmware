@@ -59,14 +59,17 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-EXTRA_BOTH_FLAGS = -G0 -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
+CPPFLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
 				  -I $(LIBS_PATH)/nanopb
-EXTRA_CFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_C_FLAGS)
-EXTRA_CXXFLAGS += $(EXTRA_BOTH_FLAGS) $(ONLY_CPP_FLAGS)
+CFLAGS += $(EXTRA_BOTH_FLAGS)
+CXXFLAGS += $(EXTRA_BOTH_FLAGS)
 
-# bump the head up to 32K from the default
-EXTRA_LDFLAGS += -Wl,--defsym=_min_heap_size=32768
+# the PIC32 can't build with gnu99, so we have to leave it out
+CFLAGS_STD =
+
+# defsym is to bump the head up to 32K from the default
+LDFLAGS += -Os -mno-peripheral-libs -nostartfiles -wl,--gc-sections,--defsym=_min_heap_size=32768
 
 CHIPKIT_LIBRARY_AGREEMENT_URL = http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318
 

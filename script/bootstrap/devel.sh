@@ -19,26 +19,8 @@ if ! command -v lcov >/dev/null 2>&1; then
     fi
 fi
 
-if [ $OS == "mac" ]; then
-    _pushd $DEPENDENCIES_FOLDER
-    LLVM_BASENAME=clang+llvm-3.2-x86_64-apple-darwin11
-    LLVM_FILE=$LLVM_BASENAME.tar.gz
-    LLVM_URL=http://llvm.org/releases/3.2/$LLVM_FILE
-
-    if ! test -e $LLVM_FILE
-    then
-        echo "Downloading LLVM 3.2..."
-        download $LLVM_URL $LLVM_FILE
-    fi
-
-    if ! test -d $LLVM_BASENAME
-    then
-        echo "Installing LLVM 3.2 to local folder..."
-        tar -xzf $LLVM_FILE
-        echo "LLVM 3.2 installed"
-    fi
-
-    _popd
+if [ $OS == "linux" ]; then
+    _install "clang-3.5"
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then

@@ -1,8 +1,9 @@
 #include "util/statistics.h"
 
 #include <limits.h>
-#include <algorithm>
 #include <stddef.h>
+
+#include "config.h"
 
 void openxc::util::statistics::initialize(DeltaStatistic* stat) {
     stat->total = 0;
@@ -24,8 +25,8 @@ void openxc::util::statistics::update(Statistic* stat, int newValue) {
                 (1.0 - stat->alpha) * stat->movingAverage;
     }
 
-    stat->min = std::min(newValue, stat->min);
-    stat->max = std::max(newValue, stat->max);
+    stat->min = MIN(newValue, stat->min);
+    stat->max = MAX(newValue, stat->max);
 }
 
 void openxc::util::statistics::update(DeltaStatistic* stat, int newValue) {

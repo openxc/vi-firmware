@@ -234,13 +234,17 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
 
     // move CAN module to OPERATIONAL state (go on bus)
     CAN::OP_MODE mode;
-    if(writable) {
+    if(bus->loopback) {
+        debug("Initializing bus %d in loopback mode", bus->address);
+        mode = CAN::LOOPBACK;
+    } else if(writable) {
         debug("Initializing bus %d in writable mode", bus->address);
         mode = CAN::NORMAL_OPERATION;
     } else {
         debug("Initializing bus %d in listen only mode", bus->address);
         mode = CAN::LISTEN_ONLY;
     }
+
     switchControllerMode(bus, mode);
 
     // TODO an error if the address isn't valid

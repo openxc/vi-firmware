@@ -204,6 +204,13 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *
+ * There are three things that control the operating mode of the CAN controller:
+ *
+ *     - Should arbitrary CAN message writes be allowed? See rawWritable.
+ *     - Should translated, simple vehicle message writes be allowed? See the
+ *         'writable' field in signals defined for this bus.
+ *     - Should it be in loopback mode? See loopback.
+ *
  * speed - The bus speed in bits per second (e.g. 500000)
  * address - The address or ID of this node
  * maxMessageFrequency - the default maximum frequency for all CAN messages when
@@ -224,6 +231,8 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  *      dynamicMessages and freeMessageDefinitions list.
  * writeHandler - a function that actually writes out a CanMessage object to the
  *      CAN interface (implementation is platform specific);
+ * loopback - True if the controller should be configured in loopback mode, so
+ *         all sent messages are received immediately on that same controller.
  * lastMessageReceived - the time (in ms) when the last CAN message was
  *      received. If no message has been received, it should be 0.
  * messagesReceived - A count of the number of CAN messages received.
@@ -246,6 +255,7 @@ struct CanBus {
     CanMessageDefinitionList freeMessageDefinitions;
     CanMessageDefinitionListEntry definitionEntries[MAX_DYNAMIC_MESSAGE_COUNT];
     bool (*writeHandler)(const CanBus*, const CanMessage*);
+    bool loopback;
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;

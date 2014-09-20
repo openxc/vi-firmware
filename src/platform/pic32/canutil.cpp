@@ -120,8 +120,9 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             ++busFilterCount;
         }
 
-        if(busFilterCount == 0) {
-            debug("No filters configured, turning off acceptance filter");
+        if(busFilterCount == 0 || bus->bypassFilters) {
+            debug("No filters configured or manually set to bypass, "
+                    "turning off acceptance filter");
             resetAcceptanceFilterStatus(bus, false);
         } else {
             // Disable the remaining unused filters. When AF is "off" we are

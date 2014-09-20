@@ -212,6 +212,11 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  * rawWritable - True if this CAN bus connection should allow raw CAN messages
  *      writes. This is independent from the CanSignal 'writable' option, which
  *      can be set to still allow translated writes back to this bus.
+ * bypassFilters - a boolean to indicate if the CAN controller's
+ *      acceptance filter should be in bypass mode. Set to true to receive all
+ *      messages for this bus, regardless of what is defined in the
+ *      acceptanceFilters list. The AF will automatically be bypassed if there
+ *      are no acceptance filters configured.
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the
@@ -239,6 +244,7 @@ struct CanBus {
     short address;
     float maxMessageFrequency;
     bool rawWritable;
+    bool bypassFilters;
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];

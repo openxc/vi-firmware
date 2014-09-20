@@ -19,8 +19,15 @@ if ! command -v lcov >/dev/null 2>&1; then
     fi
 fi
 
-if [ $OS == "linux" ]; then
-    _install "clang-3.5"
+if ! command -v clang >/dev/null 2>&1; then
+    if [ $OS == "linux" ]; then
+        if [ $DISTRO == "arch" ]; then
+        else
+            _install "clang"
+        else
+            _install "clang-3.5"
+        fi
+    fi
 fi
 
 if [ $OS == "cygwin" ] && ! command -v ld >/dev/null 2>&1; then

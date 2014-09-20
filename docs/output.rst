@@ -187,22 +187,13 @@ are documented here.
 Control Transfers
 -----------------
 
-The VI accepts a few control transfer requests on the standard endpoint 0.
+Transfer request type: ``0x83``
 
-Version
-````````
+The VI accepts USB control requests on the standard endpoint 0 where the payload
+is a standard OpenXC message format command meessage (e.g. version, device ID,
+or diagnostic request, etc).
 
-Transfer request type: ``0x80``
+The responses are injected into the normal output data stream usig the same
+format as the :ref:`version query <version-query>`, :ref:`device ID query
+<device-id-query>`, etc.
 
-The host can retrieve the version of the VI using the ``0x80`` control request.
-The data returned is the same format as the :ref:`version query
-<version-query>`.
-
-Device ID
-`````````
-
-Transfer request type: ``0x82``
-
-The host can retrieve a unique device identifier for the VI (if one is
-available) using the ``0x82`` control request. The data returned is the same
-format as :ref:`device ID query <device-id-query>`.

@@ -56,6 +56,11 @@ static void clearAcceptanceFilterTable() {
     LPC_CANAF->ENDofTable = 0x00;
 }
 
+bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+    CAN_SetAFMode(LPC_CANAF, enabled ? CAN_Normal : CAN_AccBP);
+    return true;
+}
+
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     clearAcceptanceFilterTable();
 
@@ -82,14 +87,11 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
     if(filterCount == 0) {
         debug("No filters configured, turning off acceptance filter");
-        // On the LPC17xx, the AF mode is global - if it's off, it's off for
-        // both controllers. That's why this is outside the loop above, and
-        // we're counting *total* filters, not filters per bus.
-        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
-    } else {
-        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
     }
-
+    // On the LPC17xx, the AF mode is global - if it's off, it's off for
+    // both controllers. That's why this is outside the loop above, and
+    // we're counting *total* filters, not filters per bus.
+    resetAcceptanceFilterStatus(NULL, filterCount != 0);
     return result == CAN_OK;
 }
 

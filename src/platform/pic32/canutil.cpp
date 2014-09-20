@@ -43,7 +43,7 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
     return previousMode;
 }
 
-static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
     if(enabled) {
         debug("Enabling primary AF filter masks for bus %d", bus->address);
@@ -91,7 +91,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
             if(!afFilterStatusSet) {
                 // Must set the master AF filter status first and only once,
                 // because it wipes anything you've configured when you set it.
-                setAcceptanceFilterStatus(bus, true);
+                resetAcceptanceFilterStatus(bus, true);
                 afFilterStatusSet = true;
             }
 
@@ -122,7 +122,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
 
         if(busFilterCount == 0) {
             debug("No filters configured, turning off acceptance filter");
-            setAcceptanceFilterStatus(bus, false);
+            resetAcceptanceFilterStatus(bus, false);
         } else {
             // Disable the remaining unused filters. When AF is "off" we are
             // actually using filter 0, so we don't want to disable that.

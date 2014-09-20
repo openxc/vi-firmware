@@ -88,6 +88,7 @@ unit_tests: CFLAGS = $(CC_SUPRESSED_ERRORS) $(CFLAGS_STD)
 unit_tests: CXXFLAGS =  $(CXX_SUPRESSED_ERRORS) $(CXXFLAGS_STD)
 unit_tests: LDFLAGS = -lm -coverage
 unit_tests: LDLIBS = $(TEST_LIBS)
+unit_tests: INCLUDE_PATHS += -I./tests/platform/
 unit_tests: $(TESTS)
 	@set -o $(TEST_SET_OPTS) >/dev/null 2>&1
 	@export SHELLOPTS

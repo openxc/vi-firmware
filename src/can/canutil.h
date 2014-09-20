@@ -329,7 +329,7 @@ typedef struct {
     CommandHandler handler;
 } CanCommand;
 
-/* Public: Initialize the CAN controller.
+/* Private: Initialize the CAN controller.
  *
  * This function must be defined for each platform - it's hardware dependent.
  *
@@ -350,7 +350,7 @@ void initialize(CanBus* bus, bool writable, CanBus* buses, const int busCount);
  */
 void destroy(CanBus* bus);
 
-/* Public: De-initialize the CAN controller.
+/* Private: De-initialize the CAN controller.
  *
  * This function must be defined for each platform - it's hardware dependent.
  *
@@ -543,7 +543,7 @@ bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
 void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
         CanBus* buses, const int busCount);
 
-/* Public: Apply the CAN acceptance filter configuration from software (on the
+/* Private: Apply the CAN acceptance filter configuration from software (on the
  * CanBus struct) to the actual hardware CAN controllers.
  *
  * This function must be defined for each platform - it's hardware dependent.
@@ -566,6 +566,21 @@ void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
  * Returns true if the acceptance filters were all configured properly.
  */
 bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
+
+/* Private: Enable or disable the CAN AF, but when enabling, don't re-configure
+ * anything - let the caller handle that. It will be in a blank state after
+ * being enabled.
+ */
+bool resetAcceptanceFilterStatus(CanBus* bus, bool enabled);
+
+/* Public: Enable or disable the CAN acceptance filter. If enabled, it will use
+ * a dynamically generated list of message IDs based on the bus's message list
+ * and any registered diagnostic requests.
+ *
+ * This function must be defined for each platform - it's hardware dependent.
+ */
+bool setAcceptanceFilterStatus(CanBus* bus, bool enabled,
+        CanBus* buses, const uint busCount);
 
 /* Public: Check if any CAN signals are configured as writable.
  *

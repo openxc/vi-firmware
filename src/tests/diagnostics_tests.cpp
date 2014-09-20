@@ -4,6 +4,8 @@
 #include "config.h"
 #include "diagnostics.h"
 
+#include "canutil_spy.h"
+
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
 
@@ -16,7 +18,6 @@ using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 
 extern void initializeVehicleInterface();
-extern bool ACCEPTANCE_FILTER_STATUS;
 extern long FAKE_TIME;
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
@@ -55,7 +56,7 @@ static void resetQueues() {
 }
 
 void setup() {
-    ACCEPTANCE_FILTER_STATUS = true;
+    openxc::can::setAcceptanceFilterStatus(&getCanBuses()[0], true, getCanBuses(), getCanBusCount());
     getCanBuses()[0].rawWritable = true;
     request.pid = 2;
     request.arbitration_id = 0x7e0;
@@ -968,21 +969,23 @@ START_TEST(test_can_filters)
 }
 END_TEST
 
-START_TEST(test_can_filters_broken_for_recurring)
+START_TEST(test_can_filters_disabled_for_recurring)
 {
-    ACCEPTANCE_FILTER_STATUS = false;
-    ck_assert(!diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
+    // Should still add the filter to our list, so if the AF is enabled
+    // subsequently we have the right filter in place.
+    openxc::can::setAcceptanceFilterStatus(&getCanBuses()[0], false, getCanBuses(), getCanBusCount());
+    ck_assert(diagnostics::addRecurringRequest(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0], &request, 1));
-    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 0);
 }
 END_TEST
 
-START_TEST(test_can_filters_broken)
+START_TEST(test_can_filters_disabled)
 {
-    ACCEPTANCE_FILTER_STATUS = false;
-    ck_assert(!diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
+    // Should still add the filter to our list, so if the AF is enabled
+    // subsequently we have the right filter in place.
+    openxc::can::setAcceptanceFilterStatus(&getCanBuses()[0], false, getCanBuses(), getCanBusCount());
+    ck_assert(diagnostics::addRequest(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0], &request));
-    ck_assert_int_eq(countFilters(&getCanBuses()[0]), 0);
 }
 END_TEST
 
@@ -1026,8 +1029,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_use_all_free_entries_for_recurring);
     tcase_add_test(tc_core, test_broadcast_can_filters);
     tcase_add_test(tc_core, test_can_filters);
-    tcase_add_test(tc_core, test_can_filters_broken);
-    tcase_add_test(tc_core, test_can_filters_broken_for_recurring);
+    tcase_add_test(tc_core, test_can_filters_disabled);
+    tcase_add_test(tc_core, test_can_filters_disabled_for_recurring);
 
     tcase_add_test(tc_core, test_command_multiple_responses);
     tcase_add_test(tc_core, test_command_multiple_responses_default_broadcast);

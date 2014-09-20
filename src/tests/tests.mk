@@ -128,10 +128,10 @@ diagnostic_code_generation_test:
 	$(GENERATOR) -m $(EXAMPLE_CONFIG_DIR)/diagnostic.json > signals.cpp
 
 COVERAGE_INFO_FILENAME = coverage.info
-COVERAGE_INFO = $(OBJDIR)/$(COVERAGE_INFO_FILENAME)
-COVERAGE_REPORT_HTML = $(OBJDIR)/coverage/index.html
-COBERTURA_COVERAGE = $(OBJDIR)/coverage.xml
-DIFFCOVER_REPORT = $(OBJDIR)/diffcover.html
+COVERAGE_INFO = $(TEST_OBJDIR)/$(COVERAGE_INFO_FILENAME)
+COVERAGE_REPORT_HTML = $(TEST_OBJDIR)/coverage/index.html
+COBERTURA_COVERAGE = $(TEST_OBJDIR)/coverage.xml
+DIFFCOVER_REPORT = $(TEST_OBJDIR)/diffcover.html
 MINIMUM_DIFFCOVER_PERCENTAGE = 80
 
 $(COVERAGE_INFO): clean unit_tests
@@ -139,7 +139,7 @@ $(COVERAGE_INFO): clean unit_tests
 	lcov --remove $@ "*tests*" --remove $@ "/usr/*" -o $@
 
 $(COVERAGE_REPORT_HTML): $(COVERAGE_INFO)
-	genhtml -o $(OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<
+	genhtml -o $(TEST_OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<
 
 $(COBERTURA_COVERAGE): $(COVERAGE_INFO)
 	python ../script/lcov_cobertura.py $< --output $@

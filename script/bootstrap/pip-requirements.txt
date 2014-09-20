@@ -1,3 +1,2 @@
--e git+https://github.com/openxc/openxc-python.git@no-usb-control-reqs#egg=openxc
 Fabric==1.9.0
 prettyprint==0.1.5

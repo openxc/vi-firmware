@@ -35,8 +35,9 @@ using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getSignals;
+using openxc::signals::getMessages;
+using openxc::signals::getMessageCount;
 using openxc::signals::getSignalCount;
-using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::config::PowerManagement;
@@ -112,12 +113,17 @@ void initializeAllCan() {
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(pipeline, bus, &message);
-        bus->lastMessageReceived = time::systemTimeMs();
+        signals::decodeCanMessage(pipeline, bus, &message);
+        if(bus->passthroughCanMessages) {
+            openxc::can::read::passthroughMessage(bus, &message, getMessages(),
+                    getMessageCount(), pipeline);
+        }
 
+        bus->lastMessageReceived = time::systemTimeMs();
         ++bus->messagesReceived;
 
-        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, bus, &message, pipeline);
+        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager,
+                bus, &message, pipeline);
     }
 }
 

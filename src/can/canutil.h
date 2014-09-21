@@ -212,6 +212,9 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  * rawWritable - True if this CAN bus connection should allow raw CAN messages
  *      writes. This is independent from the CanSignal 'writable' option, which
  *      can be set to still allow translated writes back to this bus.
+ * passthroughCanMessages - True if low-level CAN messages should be send to the
+ *      output interface, not just signals as simple vehicle messages.
+ *
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the
@@ -239,6 +242,9 @@ struct CanBus {
     short address;
     float maxMessageFrequency;
     bool rawWritable;
+    bool passthroughCanMessages;
+
+    // Private
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];

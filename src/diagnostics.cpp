@@ -634,7 +634,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         getCanBusCount());
             } else if(getCanBusCount() > 0) {
                 bus = &getCanBuses()[0];
-                debug("No bus specified for diagnostic request missing bus, "
+                debug("No bus specified for diagnostic request, "
                         "using first active: %d", bus->address);
             }
 

@@ -160,7 +160,8 @@ void initializeVehicleInterface() {
     signals::initialize(&getConfiguration()->diagnosticsManager);
     getConfiguration()->runLevel = RunLevel::CAN_ONLY;
 
-    if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
+    if(getConfiguration()->powerManagement ==
+            PowerManagement::OBD2_IGNITION_CHECK) {
         getConfiguration()->desiredRunLevel = RunLevel::CAN_ONLY;
     } else {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
@@ -193,7 +194,8 @@ void firmwareLoop() {
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
         uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
-        network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+        network::read(&getConfiguration()->network,
+                commands::handleIncomingMessage);
     }
 
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -205,13 +207,14 @@ void firmwareLoop() {
         updateInterfaceLight();
     }
 
-    openxc::signals::loop();
+    signals::loop();
 
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
     if(getConfiguration()->emulatedData) {
-        openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
+        openxc::emulator::generateFakeMeasurements(
+                &getConfiguration()->pipeline);
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);

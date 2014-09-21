@@ -180,20 +180,20 @@ START_TEST(test_unable_to_cancel_nonrecurring)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
-    command.action = openxc_ControlCommand_Action_CANCEL;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_CANCEL;
     ck_assert(!diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
 }
@@ -205,22 +205,22 @@ START_TEST(test_cancel_recurring_from_command)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
-    command.diagnostic_request.has_frequency = true;
-    command.diagnostic_request.frequency = 2;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
+    command.diagnostic_request.request.has_frequency = true;
+    command.diagnostic_request.request.frequency = 2;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
-    command.action = openxc_ControlCommand_Action_CANCEL;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_CANCEL;
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
@@ -639,18 +639,18 @@ START_TEST(test_command_single_response_recurring)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
-    command.diagnostic_request.has_frequency = true;
-    command.diagnostic_request.frequency = 2;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
+    command.diagnostic_request.request.has_frequency = true;
+    command.diagnostic_request.request.frequency = 2;
 
 
     ck_assert(diagnostics::handleDiagnosticCommand(
@@ -678,16 +678,16 @@ START_TEST(test_command_missing_mode)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = false;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = false;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(!diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -700,15 +700,15 @@ START_TEST(test_command_missing_id)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = false;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = false;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(!diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -733,16 +733,16 @@ START_TEST(test_command_single_response_default)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -764,16 +764,16 @@ START_TEST(test_command_multiple_responses_default_broadcast)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = OBD2_FUNCTIONAL_BROADCAST_ID;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = OBD2_FUNCTIONAL_BROADCAST_ID;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -795,18 +795,18 @@ START_TEST(test_command_multiple_responses)
     command.has_type = true;
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     command.has_diagnostic_request = true;
-    command.has_action = true;
-    command.action = openxc_ControlCommand_Action_ADD;
-    command.diagnostic_request.has_bus = true;
-    command.diagnostic_request.bus = 1;
-    command.diagnostic_request.has_message_id = true;
-    command.diagnostic_request.message_id = request.arbitration_id;
-    command.diagnostic_request.has_mode = true;
-    command.diagnostic_request.mode = request.mode;
-    command.diagnostic_request.has_pid = true;
-    command.diagnostic_request.pid = request.pid;
-    command.diagnostic_request.has_multiple_responses = true;
-    command.diagnostic_request.multiple_responses = true;
+    command.diagnostic_request.has_action = true;
+    command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
+    command.diagnostic_request.request.has_bus = true;
+    command.diagnostic_request.request.bus = 1;
+    command.diagnostic_request.request.has_message_id = true;
+    command.diagnostic_request.request.message_id = request.arbitration_id;
+    command.diagnostic_request.request.has_mode = true;
+    command.diagnostic_request.request.mode = request.mode;
+    command.diagnostic_request.request.has_pid = true;
+    command.diagnostic_request.request.pid = request.pid;
+    command.diagnostic_request.request.has_multiple_responses = true;
+    command.diagnostic_request.request.multiple_responses = true;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));

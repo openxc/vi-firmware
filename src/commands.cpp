@@ -313,10 +313,13 @@ static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
     bool valid = true;
     if(message->has_control_command) {
         openxc_ControlCommand* command = &message->control_command;
-        if(command->has_type && command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
-            openxc_DiagnosticRequest* request = &command->diagnostic_request;
+        if(command->has_type &&
+                command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
+            openxc_DiagnosticControlCommand* diagControlCommand =
+                    &command->diagnostic_request;
+            openxc_DiagnosticRequest* request = &diagControlCommand->request;
 
-            if(!command->has_action) {
+            if(!diagControlCommand->has_action) {
                 valid = false;
                 debug("Diagnostic request command missing action");
             }

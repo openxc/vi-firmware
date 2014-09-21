@@ -93,24 +93,24 @@ void setup() {
     CONTROL_COMMAND.control_command.has_type = true;
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
     CONTROL_COMMAND.control_command.has_diagnostic_request = true;
-    CONTROL_COMMAND.control_command.has_action = true;
-    CONTROL_COMMAND.control_command.action =
-            openxc_ControlCommand_Action_ADD;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_bus = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.bus = 1;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_message_id = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.message_id = 2;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_mode = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.mode = 22;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_pid = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.pid = 23;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_payload = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.payload.bytes[0] = 0xff;
-    CONTROL_COMMAND.control_command.diagnostic_request.payload.size = 1;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.multiple_responses = false;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_frequency = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.frequency = 10;
+    CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.action =
+            openxc_DiagnosticControlCommand_Action_ADD;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.bus = 1;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.message_id = 2;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.mode = 22;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.pid = 23;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.payload.bytes[0] = 0xff;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.payload.size = 1;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.multiple_responses = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = true;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.frequency = 10;
 }
 
 const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
@@ -635,56 +635,56 @@ END_TEST
 
 START_TEST (test_validate_diagnostic_missing_action)
 {
-    CONTROL_COMMAND.control_command.has_action = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.has_action = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_mode)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_mode = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_bus)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_bus = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_id)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_message_id = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_pid)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_pid = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_payload)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_payload = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_multiple_responses)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_multiple_responses = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_frequency)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_frequency = false;
+    CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST

@@ -22,7 +22,6 @@ fi
 if ! command -v clang >/dev/null 2>&1; then
     if [ $OS == "linux" ]; then
         if [ $DISTRO == "arch" ]; then
-        else
             _install "clang"
         else
             _install "clang-3.5"

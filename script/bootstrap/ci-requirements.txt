@@ -1,0 +1,1 @@
+-e git+https://github.com/openxc/openxc-python.git@restore-af-control#egg=openxc

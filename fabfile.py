@@ -16,6 +16,9 @@ env.root_dir = os.path.abspath(os.path.dirname(__file__))
 
 env.mode = 'default'
 env.board = None
+env.debug = False
+env.transmitter = False
+env.bootloader = True
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
@@ -23,8 +26,8 @@ env.boards = {
 }
 
 DEFAULT_COMPILER_OPTIONS = {
-    'DEBUG': False,
-    'BOOTLOADER': True,
+    'DEBUG': env.debug,
+    'BOOTLOADER': env.bootloader,
     'TRANSMITTER': False,
     'DEFAULT_UART_LOGGING_STATUS': False,
     'DEFAULT_METRICS_STATUS': False,
@@ -123,6 +126,9 @@ def build_options():
     board_options = env.boards[env.board]
 
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+    options['DEBUG'] = env.debug
+    options['BOOTLOADER'] = env.bootloader
+    options['TRANSMITTER'] = env.transmitter
     options['PLATFORM'] = board_options['name']
     if env.mode == 'emulator':
         options['DEFAULT_EMULATED_DATA_STATUS'] = True
@@ -165,6 +171,18 @@ def obd2():
 def test():
     with(lcd("src")):
         local("PLATFORM=TESTING make -j4 test")
+
+@task
+def transmitter():
+    env.transmitter = True
+
+@task
+def debug():
+    env.debug = True
+
+@task
+def baremetal():
+    env.bootloader = False
 
 @task
 def chipkit():

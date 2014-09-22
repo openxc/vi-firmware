@@ -16,7 +16,6 @@ using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
-using openxc::commands::UsbControlCommand;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getSignals;
@@ -247,26 +246,6 @@ static bool handleTranslated(openxc_VehicleMessage* message) {
         }
     }
     return status;
-}
-
-bool openxc::commands::handleControlCommand(UsbControlCommand command, uint8_t payload[],
-        size_t payloadLength) {
-    bool recognized = true;
-    switch(command) {
-    case UsbControlCommand::VERSION:
-        handleVersionCommand();
-        break;
-    case UsbControlCommand::DEVICE_ID:
-        handleDeviceIdCommmand();
-        break;
-    case UsbControlCommand::COMPLEX_COMMAND:
-        handleIncomingMessage(payload, payloadLength);
-        break;
-    default:
-        recognized = false;
-        break;
-    }
-    return recognized;
 }
 
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {

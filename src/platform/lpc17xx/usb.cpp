@@ -66,9 +66,9 @@ void EVENT_USB_Device_ControlRequest() {
     QUEUE_TYPE(uint8_t) payloadQueue;
     QUEUE_INIT(uint8_t, &payloadQueue);
 
-    // Don't try and read payload of system-level control requests
+    // Only read payload of our app's control requests, not USB system's
     if((USB_ControlRequest.bmRequestType >> 7 == 0) &&
-            USB_ControlRequest.bRequest >= 0x80) {
+            USB_ControlRequest.bRequest == CONTROL_COMMAND_REQUEST_ID) {
         Endpoint_ClearSETUP();
 
         int bytesReceived = 0;
@@ -77,7 +77,7 @@ void EVENT_USB_Device_ControlRequest() {
             while(Endpoint_BytesInEndpoint()) {
                 uint8_t byte = Endpoint_Read_8();
                 if(!QUEUE_PUSH(uint8_t, &payloadQueue, byte)) {
-                    debug("Dropped control command write from host -- queue is full");
+                    debug("Dropped control request from host -- queue is full");
                     break;
                 }
                 ++bytesReceived;
@@ -94,9 +94,7 @@ void EVENT_USB_Device_ControlRequest() {
         QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
     }
 
-    commands::handleControlCommand(
-            commands::UsbControlCommand(USB_ControlRequest.bRequest),
-            snapshot, length);
+    commands::handleIncomingMessage(snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {

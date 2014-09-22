@@ -1,10 +1,11 @@
 #include <check.h>
 #include <stdint.h>
 #include "signals.h"
-#include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
 #include "config.h"
+
+#include "canutil_spy.h"
 
 namespace can = openxc::can;
 
@@ -13,6 +14,7 @@ using openxc::can::lookupSignalState;
 using openxc::can::lookupMessageDefinition;
 using openxc::can::registerMessageDefinition;
 using openxc::can::unregisterMessageDefinition;
+using openxc::can::setAcceptanceFilterStatus;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getCanBuses;
 using openxc::signals::getMessages;
@@ -205,6 +207,16 @@ START_TEST (test_unregister_predefined)
 }
 END_TEST
 
+START_TEST (test_set_acceptance_filter_status)
+{
+    ck_assert(setAcceptanceFilterStatus(&getCanBuses()[0], true, getCanBuses(), getCanBusCount()));
+    ck_assert(can::spy::getAcceptanceFilterStatus());
+
+    ck_assert(setAcceptanceFilterStatus(&getCanBuses()[0], false, getCanBuses(), getCanBusCount()));
+    ck_assert(!can::spy::getAcceptanceFilterStatus());
+}
+END_TEST
+
 Suite* canutilSuite(void) {
     Suite* s = suite_create("canutil");
     TCase *tc_core = tcase_create("core");
@@ -217,6 +229,7 @@ Suite* canutilSuite(void) {
     tcase_add_test(tc_core, test_lookup_signal_state_by_name);
     tcase_add_test(tc_core, test_lookup_signal_state_by_value);
     tcase_add_test(tc_core, test_lookup_command);
+    tcase_add_test(tc_core, test_set_acceptance_filter_status);
     suite_add_tcase(s, tc_core);
 
     TCase *tc_message_def = tcase_create("message_definitions");

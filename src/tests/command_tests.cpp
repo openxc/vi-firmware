@@ -15,9 +15,7 @@ using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getActiveMessageSet;
 using openxc::commands::handleIncomingMessage;
-using openxc::commands::handleControlCommand;
 using openxc::commands::validate;
-using openxc::commands::UsbControlCommand;
 using openxc::config::getConfiguration;
 using openxc::config::getFirmwareDescriptor;
 using openxc::signals::getCanBuses;
@@ -31,7 +29,8 @@ extern openxc_DynamicField LAST_COMMAND_EVENT;
 extern uint8_t LAST_CONTROL_COMMAND_PAYLOAD[];
 extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 
-QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[IN_ENDPOINT_INDEX].queue;
+QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
+        IN_ENDPOINT_INDEX].queue;
 
 openxc_VehicleMessage RAW_MESSAGE;
 openxc_VehicleMessage TRANSLATED_MESSAGE;
@@ -79,19 +78,22 @@ void setup() {
     TRANSLATED_MESSAGE.type = openxc_VehicleMessage_Type_TRANSLATED;
     TRANSLATED_MESSAGE.has_translated_message = true;
     TRANSLATED_MESSAGE.translated_message.has_type = true;
-    TRANSLATED_MESSAGE.translated_message.type = openxc_TranslatedMessage_Type_NUM;
+    TRANSLATED_MESSAGE.translated_message.type =
+            openxc_TranslatedMessage_Type_NUM;
     TRANSLATED_MESSAGE.translated_message.has_name = true;
     strcpy(TRANSLATED_MESSAGE.translated_message.name, "foo");
     TRANSLATED_MESSAGE.translated_message.has_value = true;
     TRANSLATED_MESSAGE.translated_message.value.has_type = true;
-    TRANSLATED_MESSAGE.translated_message.value.type = openxc_DynamicField_Type_NUM;
+    TRANSLATED_MESSAGE.translated_message.value.type =
+            openxc_DynamicField_Type_NUM;
     TRANSLATED_MESSAGE.translated_message.value.numeric_value = 42;
 
     CONTROL_COMMAND.has_type = true;
     CONTROL_COMMAND.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
     CONTROL_COMMAND.has_control_command = true;
     CONTROL_COMMAND.control_command.has_type = true;
-    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+    CONTROL_COMMAND.control_command.type =
+            openxc_ControlCommand_Type_DIAGNOSTIC;
     CONTROL_COMMAND.control_command.has_diagnostic_request = true;
     CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
     CONTROL_COMMAND.control_command.diagnostic_request.action =
@@ -114,9 +116,12 @@ void setup() {
 }
 
 const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
-const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"transmission_gear_position\", \"value\": \"third\"}";
-const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\": \"torque_at_transmission\", \"value\": 200}";
-const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
+const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": "
+        "\"transmission_gear_position\", \"value\": \"third\"}";
+const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\":"
+        "\"torque_at_transmission\", \"value\": 200}";
+const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"actio"
+    "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
 
 START_TEST (test_raw_write_no_matching_bus)
 {
@@ -150,7 +155,8 @@ END_TEST
 START_TEST (test_raw_write_without_0x_prefix)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \"1234567812345678\"}";
+    const char* request = "{\"bus\": 1, \"id\": 42, \"data\""
+            ": \"1234567812345678\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     fail_if(canQueueEmpty(0));
 
@@ -170,7 +176,8 @@ END_TEST
 START_TEST (test_raw_write)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234567812345678\"}";
+    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \""
+            "0x1234567812345678\"}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     fail_if(canQueueEmpty(0));
 
@@ -190,7 +197,8 @@ END_TEST
 START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST, strlen(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
+                strlen(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -213,21 +221,26 @@ END_TEST
 
 START_TEST (test_named_diagnostic_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"name\": \"foobar\", \"bus\": 1, \"id\": 2, \"mode\": 1}}";
+    const char* request = "{\"command\": \"diagnostic_request\","
+           " \"action\": \"add\", \"request\": {\"name\": \"foobar\", "
+           "\"bus\": 1, \"id\": 2, \"mode\": 1}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
 
-    ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
-    ck_assert_str_eq(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests
-                )->name, "foobar");
+    ck_assert(!LIST_EMPTY(&getConfiguration()
+            ->diagnosticsManager.nonrecurringRequests));
+    ck_assert_str_eq(LIST_FIRST(&getConfiguration()->diagnosticsManager
+            .nonrecurringRequests)->name, "foobar");
 }
 END_TEST
 
 START_TEST (test_diagnostic_request_with_payload_without_0x_prefix)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"1234\"}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": "
+            "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
+            "\"payload\": \"1234\"}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -248,7 +261,9 @@ END_TEST
 
 START_TEST (test_diagnostic_request_with_payload)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"payload\": \"0x1234\"}}";
+    const char* request = "{\"command\": \"diagnostic_request\", \"action\": "
+            "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
+            "\"payload\": \"0x1234\"}}";
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
@@ -471,21 +486,6 @@ START_TEST (test_unrecognized_message)
 }
 END_TEST
 
-START_TEST (test_device_id_message_in_stream)
-{
-    const char* request = "{\"command\": \"device_id\"}";
-    strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(outputQueueEmpty());
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
-    ck_assert(!outputQueueEmpty());
-
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
-    snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert(strstr((char*)snapshot, getConfiguration()->uart.deviceId) != NULL);
-}
-END_TEST
-
 START_TEST (test_version_message_in_stream)
 {
     const char* request = "{\"command\": \"version\"}";
@@ -510,17 +510,8 @@ START_TEST (test_version_message)
     char firmwareDescriptor[256] = {0};
     getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, firmwareDescriptor) != NULL);
-}
-END_TEST
-
-START_TEST (test_version_control_command)
-{
-    ck_assert(handleControlCommand(UsbControlCommand::VERSION, NULL, 0));
-    char firmwareDescriptor[256] = {0};
-    getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
-    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, firmwareDescriptor) != NULL);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
+                firmwareDescriptor) != NULL);
 }
 END_TEST
 
@@ -530,33 +521,27 @@ START_TEST (test_device_id_message)
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
     ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, getConfiguration()->uart.deviceId) != NULL);
+    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
+                getConfiguration()->uart.deviceId) != NULL);
 }
 END_TEST
 
-START_TEST (test_device_id_control_command)
+START_TEST (test_device_id_message_in_stream)
 {
+    const char* request = "{\"command\": \"device_id\"}";
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(handleControlCommand(UsbControlCommand::DEVICE_ID, NULL, 0));
-    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD, getConfiguration()->uart.deviceId) != NULL);
+    ck_assert(outputQueueEmpty());
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(!outputQueueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    ck_assert(strstr((char*)snapshot,
+                getConfiguration()->uart.deviceId) != NULL);
 }
 END_TEST
 
-START_TEST (test_complex_control_command)
-{
-    ck_assert(handleControlCommand(UsbControlCommand::COMPLEX_COMMAND,
-                (uint8_t*)WRITABLE_TRANSLATED_REQUEST,
-                strlen(WRITABLE_TRANSLATED_REQUEST)));
-    fail_if(canQueueEmpty(0));
-}
-END_TEST
-
-START_TEST (test_unrecognized_control_command)
-{
-    ck_assert(!handleControlCommand(UsbControlCommand(1), NULL, 0));
-}
-END_TEST
 
 START_TEST (test_validate_raw)
 {
@@ -758,31 +743,30 @@ Suite* suite(void) {
     // bit. It's low priority though, since the code is still all tested - the
     // test suite might just get a little smaller.
     tcase_add_test(tc_complex_commands, test_diagnostic_request);
-    tcase_add_test(tc_complex_commands, test_diagnostic_request_write_not_allowed);
+    tcase_add_test(tc_complex_commands,
+            test_diagnostic_request_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload);
-    tcase_add_test(tc_complex_commands, test_diagnostic_request_with_payload_without_0x_prefix);
-    tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_request);
+    tcase_add_test(tc_complex_commands,
+            test_diagnostic_request_with_payload_without_0x_prefix);
+    tcase_add_test(tc_complex_commands,
+            test_diagnostic_request_missing_request);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_invalid_bus);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_bus);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_arb_id);
     tcase_add_test(tc_complex_commands, test_diagnostic_request_missing_mode);
     tcase_add_test(tc_complex_commands, test_named_diagnostic_request);
     tcase_add_test(tc_complex_commands, test_recognized_obd2_request);
-    tcase_add_test(tc_complex_commands, test_recognized_obd2_request_overridden);
+    tcase_add_test(tc_complex_commands,
+            test_recognized_obd2_request_overridden);
     tcase_add_test(tc_complex_commands, test_explicit_obd2_decoded_type);
     suite_add_tcase(s, tc_complex_commands);
 
     TCase *tc_control_commands = tcase_create("control_commands");
     tcase_add_checked_fixture(tc_control_commands, setup, NULL);
     tcase_add_test(tc_control_commands, test_version_message);
-    tcase_add_test(tc_control_commands, test_version_control_command);
     tcase_add_test(tc_control_commands, test_version_message_in_stream);
     tcase_add_test(tc_control_commands, test_device_id_message);
-    tcase_add_test(tc_control_commands, test_device_id_control_command);
     tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
-    tcase_add_test(tc_control_commands, test_unrecognized_control_command);
-    tcase_add_test(tc_control_commands, test_complex_control_command);
-    tcase_add_test(tc_control_commands, test_passthrough_request_message);
     suite_add_tcase(s, tc_control_commands);
 
     TCase *tc_validation = tcase_create("validation");
@@ -805,7 +789,8 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_diagnostic_no_pid);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_payload);
     tcase_add_test(tc_validation, test_validate_diagnostic_no_frequency);
-    tcase_add_test(tc_validation, test_validate_diagnostic_no_multiple_responses);
+    tcase_add_test(tc_validation,
+            test_validate_diagnostic_no_multiple_responses);
     tcase_add_test(tc_validation, test_validate_version_command);
     tcase_add_test(tc_validation, test_validate_device_id_command);
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);

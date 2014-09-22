@@ -767,6 +767,7 @@ Suite* suite(void) {
     tcase_add_test(tc_control_commands, test_version_message_in_stream);
     tcase_add_test(tc_control_commands, test_device_id_message);
     tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
+    tcase_add_test(tc_control_commands, test_passthrough_request_message);
     suite_add_tcase(s, tc_control_commands);
 
     TCase *tc_validation = tcase_create("validation");

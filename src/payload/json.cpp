@@ -84,6 +84,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
+        typeString = payload::json::PASSTHROUGH_COMMAND_NAME;
     } else {
         return false;
     }

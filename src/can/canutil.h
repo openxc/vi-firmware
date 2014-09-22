@@ -214,12 +214,12 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  *      can be set to still allow translated writes back to this bus.
  * passthroughCanMessages - True if low-level CAN messages should be send to the
  *      output interface, not just signals as simple vehicle messages.
- *
  * bypassFilters - a boolean to indicate if the CAN controller's
  *      acceptance filter should be in bypass mode. Set to true to receive all
  *      messages for this bus, regardless of what is defined in the
  *      acceptanceFilters list. The AF will automatically be bypassed if there
  *      are no acceptance filters configured.
+ *
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the

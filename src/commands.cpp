@@ -95,6 +95,8 @@ static bool handlePassthroughModeCommand(openxc_ControlCommand* command) {
             }
 
             if(bus != NULL) {
+                debug("Set passthrough for bus %u to %s", bus->address,
+                        passthroughRequest->enabled ? "on" : "off");
                 bus->passthroughCanMessages = passthroughRequest->enabled;
                 status = true;
             }

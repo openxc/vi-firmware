@@ -40,8 +40,10 @@ static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
-    commands::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
-            INCOMING_EP0_DATA_SIZE);
+    if(INCOMING_EP0_DATA_SIZE > 0) {
+        commands::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
+                INCOMING_EP0_DATA_SIZE);
+    }
     memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
 }
 

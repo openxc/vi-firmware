@@ -92,9 +92,8 @@ void EVENT_USB_Device_ControlRequest() {
     uint8_t snapshot[length];
     if(length > 0) {
         QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
+        commands::handleIncomingMessage(snapshot, length);
     }
-
-    commands::handleIncomingMessage(snapshot, length);
 }
 
 void EVENT_USB_Device_ConfigurationChanged(void) {

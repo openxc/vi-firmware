@@ -91,7 +91,7 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
     // both controllers. That's why this is outside the loop above, and
     // we're counting *total* filters, not filters per bus. We also disable the
     // AF if any of the busses has bypassFilters == true.
-    bypassFilters |= filterCount;
+    bypassFilters |= filterCount == 0;
     if(bypassFilters) {
         debug("No filters configured or a bus in bypass, disabling AF");
     }

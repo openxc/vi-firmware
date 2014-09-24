@@ -40,7 +40,7 @@ static bool handleVersionCommand() {
     usb::sendControlMessage(&getConfiguration()->usb, (uint8_t*)descriptor,
             strlen(descriptor));
 
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -64,7 +64,7 @@ static bool handleDeviceIdCommmand() {
         usb::sendControlMessage(&getConfiguration()->usb,
                 (uint8_t*)uart->deviceId, strlen(uart->deviceId));
 
-        openxc_VehicleMessage message;
+        openxc_VehicleMessage message = {0};
         message.has_type = true;
         message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
         message.has_command_response = true;
@@ -105,7 +105,7 @@ static bool handlePassthroughModeCommand(openxc_ControlCommand* command) {
 
     // TODO could share code with other handlers to send simple success/fail
     // responses that don't require a payload
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -123,7 +123,7 @@ static bool handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
     bool status = diagnostics::handleDiagnosticCommand(
             &getConfiguration()->diagnosticsManager, command);
 
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;

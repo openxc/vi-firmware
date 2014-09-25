@@ -27,7 +27,6 @@ bool openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
     if(delimiter != NULL) {
         size_t messageLength = (size_t)(delimiter - (const char*)snapshot) + 1;
         if(messageLength > 0) {
-            debug("Length: %u", messageLength);
             uint8_t message[messageLength];
             memcpy(message, snapshot, messageLength);
             for(size_t i = 0; i < messageLength; i++) {

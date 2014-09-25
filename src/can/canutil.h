@@ -226,6 +226,8 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  *      messages for this bus, regardless of what is defined in the
  *      acceptanceFilters list. The AF will automatically be bypassed if there
  *      are no acceptance filters configured.
+ * loopback - True if the controller should be configured in loopback mode, so
+ *         all sent messages are received immediately on that same controller.
  *
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
@@ -239,8 +241,6 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  *      dynamicMessages and freeMessageDefinitions list.
  * writeHandler - a function that actually writes out a CanMessage object to the
  *      CAN interface (implementation is platform specific);
- * loopback - True if the controller should be configured in loopback mode, so
- *         all sent messages are received immediately on that same controller.
  * lastMessageReceived - the time (in ms) when the last CAN message was
  *      received. If no message has been received, it should be 0.
  * messagesReceived - A count of the number of CAN messages received.
@@ -258,6 +258,7 @@ struct CanBus {
     bool rawWritable;
     bool passthroughCanMessages;
     bool bypassFilters;
+    bool loopback;
 
     // Private
     AcceptanceFilterList acceptanceFilters;
@@ -267,7 +268,6 @@ struct CanBus {
     CanMessageDefinitionList freeMessageDefinitions;
     CanMessageDefinitionListEntry definitionEntries[MAX_DYNAMIC_MESSAGE_COUNT];
     bool (*writeHandler)(const CanBus*, const CanMessage*);
-    bool loopback;
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;

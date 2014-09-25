@@ -126,9 +126,6 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     if(bus->loopback) {
         debug("Initializing bus %d in loopback mode", bus->address);
         mode = CAN_SELFTEST_MODE;
-        // We might have to set this after every transmission when in loopback
-        // mode
-        LPC_CAN1->CMR |=(1<<4); // Self Reception Request
     } else if(writable) {
         debug("Initializing bus %d in writable mode", bus->address);
         mode = CAN_OPERATING_MODE;

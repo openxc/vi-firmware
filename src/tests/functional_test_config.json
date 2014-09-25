@@ -1,0 +1,42 @@
+{   "name": "functional_tests",
+    "buses": {
+        "unfiltered_bus": {
+            "controller": 1,
+            "speed": 500000,
+            "loopback": true,
+            "raw_writable": true,
+            "raw_can_mode": "unfiltered"
+        },
+        "filtered_bus": {
+            "controller": 2,
+            "speed": 125000,
+            "loopback": true,
+            "raw_writable": true,
+            "raw_can_mode": "filtered"
+        }
+    },
+    "messages": {
+        "0x42": {
+            "name": "message1",
+            "bus": "unfiltered_bus",
+            "signals": {
+                "signal1": {
+                    "generic_name": "signal1",
+                    "bit_position": 52,
+                    "bit_size": 12
+                }
+            }
+        },
+        "0x43": {
+            "name": "message2",
+            "bus": "filtered_bus",
+            "signals": {
+                "signal2": {
+                    "generic_name": "signal2",
+                    "bit_position": 0,
+                    "bit_size": 1
+                }
+            }
+        }
+    }
+}

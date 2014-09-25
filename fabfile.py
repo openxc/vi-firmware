@@ -173,6 +173,17 @@ def test():
         local("PLATFORM=TESTING make -j4 test")
 
 @task
+def functionaltest():
+    # Pre-requisites:
+    # * Reference VI attached via USB
+    # * JTAG programmed attached to VI and USB of the host computer
+    local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
+    local("fab baremetal reference debug flash")
+    import time
+    time.sleep(2)
+    local("nosetests -s script/functional_test.py")
+
+@task
 def transmitter():
     env.transmitter = True
 

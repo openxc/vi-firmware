@@ -28,7 +28,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``DEBUG``
   Set to ``1`` to compile with debugging symbols and to enable debug logging. By
   default the logging will be available via the logging USB endpoint - for UART
-  output, see the ``UART_LOGGING`` flag. This also implies
+  output, see the ``UART_LOGGING`` flag. This also forces
   ``DEFAULT_POWER_MANAGEMENT=ALWAYS_ON`` and ``DEFAULT_CAN_ACK_STATUS=1``.
 
   Values: ``0`` or ``1``
@@ -47,7 +47,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
   Default: ``1``
 
 ``TRANSMITTER``
-  Set this to ``1`` to imply
+  Set this to ``1`` to force
   ``DEFAULT_POWER_MANAGEMENT=ALWAYS_ON`` and ``DEFAULT_USB_PRODUCT_ID=0x2``.
   This is useful if you are using the VI as a transmitter in a local CAN bus for
   bench testing. You can address it separately from a receiving VI because of

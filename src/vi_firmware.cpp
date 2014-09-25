@@ -35,8 +35,9 @@ using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getSignals;
+using openxc::signals::getMessages;
+using openxc::signals::getMessageCount;
 using openxc::signals::getSignalCount;
-using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::config::PowerManagement;
@@ -112,12 +113,17 @@ void initializeAllCan() {
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(pipeline, bus, &message);
-        bus->lastMessageReceived = time::systemTimeMs();
+        signals::decodeCanMessage(pipeline, bus, &message);
+        if(bus->passthroughCanMessages) {
+            openxc::can::read::passthroughMessage(bus, &message, getMessages(),
+                    getMessageCount(), pipeline);
+        }
 
+        bus->lastMessageReceived = time::systemTimeMs();
         ++bus->messagesReceived;
 
-        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, bus, &message, pipeline);
+        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager,
+                bus, &message, pipeline);
     }
 }
 
@@ -154,7 +160,8 @@ void initializeVehicleInterface() {
     signals::initialize(&getConfiguration()->diagnosticsManager);
     getConfiguration()->runLevel = RunLevel::CAN_ONLY;
 
-    if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
+    if(getConfiguration()->powerManagement ==
+            PowerManagement::OBD2_IGNITION_CHECK) {
         getConfiguration()->desiredRunLevel = RunLevel::CAN_ONLY;
     } else {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
@@ -187,7 +194,8 @@ void firmwareLoop() {
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
         uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
-        network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+        network::read(&getConfiguration()->network,
+                commands::handleIncomingMessage);
     }
 
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -199,13 +207,14 @@ void firmwareLoop() {
         updateInterfaceLight();
     }
 
-    openxc::signals::loop();
+    signals::loop();
 
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
     if(getConfiguration()->emulatedData) {
-        openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
+        openxc::emulator::generateFakeMeasurements(
+                &getConfiguration()->pipeline);
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);

@@ -14,6 +14,7 @@ using openxc::util::log::debug;
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
+const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -83,6 +84,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
+        typeString = payload::json::PASSTHROUGH_COMMAND_NAME;
     } else {
         return false;
     }
@@ -187,6 +190,24 @@ static size_t dehexlify(const char source[], uint8_t* destination,
     return byteIndex;
 }
 
+static void deserializePassthrough(cJSON* root, openxc_ControlCommand* command) {
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_PASSTHROUGH;
+    command->has_passthrough_mode_request = true;
+
+    cJSON* element = cJSON_GetObjectItem(root, "bus");
+    if(element != NULL) {
+        command->passthrough_mode_request.has_bus = true;
+        command->passthrough_mode_request.bus = element->valueint;
+    }
+
+    element = cJSON_GetObjectItem(root, "enabled");
+    if(element != NULL) {
+        command->passthrough_mode_request.has_enabled = true;
+        command->passthrough_mode_request.enabled = bool(element->valueint);
+    }
+}
+
 static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     command->has_type = true;
     command->type = openxc_ControlCommand_Type_DIAGNOSTIC;
@@ -194,13 +215,15 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
     cJSON* action = cJSON_GetObjectItem(root, "action");
     if(action != NULL && action->type == cJSON_String) {
-        command->has_action = true;
+        command->diagnostic_request.has_action = true;
         if(!strcmp(action->valuestring, "add")) {
-            command->action = openxc_ControlCommand_Action_ADD;
+            command->diagnostic_request.action =
+                    openxc_DiagnosticControlCommand_Action_ADD;
         } else if(!strcmp(action->valuestring, "cancel")) {
-            command->action = openxc_ControlCommand_Action_CANCEL;
+            command->diagnostic_request.action =
+                    openxc_DiagnosticControlCommand_Action_CANCEL;
         } else {
-            command->has_action = false;
+            command->diagnostic_request.has_action = false;
         }
     }
 
@@ -208,72 +231,66 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     if(request != NULL) {
         cJSON* element = cJSON_GetObjectItem(request, "bus");
         if(element != NULL) {
-            command->diagnostic_request.has_bus = true;
-            command->diagnostic_request.bus = element->valueint;
+            command->diagnostic_request.request.has_bus = true;
+            command->diagnostic_request.request.bus = element->valueint;
         }
 
         element = cJSON_GetObjectItem(request, "mode");
         if(element != NULL) {
-            command->diagnostic_request.has_mode = true;
-            command->diagnostic_request.mode = element->valueint;
+            command->diagnostic_request.request.has_mode = true;
+            command->diagnostic_request.request.mode = element->valueint;
         }
 
         element = cJSON_GetObjectItem(request, "id");
         if(element != NULL) {
-            command->diagnostic_request.has_message_id = true;
-            command->diagnostic_request.message_id = element->valueint;
+            command->diagnostic_request.request.has_message_id = true;
+            command->diagnostic_request.request.message_id = element->valueint;
         }
 
         element = cJSON_GetObjectItem(request, "pid");
         if(element != NULL) {
-            command->diagnostic_request.has_pid = true;
-            command->diagnostic_request.pid = element->valueint;
+            command->diagnostic_request.request.has_pid = true;
+            command->diagnostic_request.request.pid = element->valueint;
         }
 
         element = cJSON_GetObjectItem(request, "payload");
         if(element != NULL) {
-            command->diagnostic_request.has_payload = true;
-            command->diagnostic_request.payload.size = dehexlify(
+            command->diagnostic_request.request.has_payload = true;
+            command->diagnostic_request.request.payload.size = dehexlify(
                     element->valuestring,
-                    command->diagnostic_request.payload.bytes,
+                    command->diagnostic_request.request.payload.bytes,
                     sizeof(((openxc_DiagnosticRequest*)0)->payload.bytes));
         }
 
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
-            command->diagnostic_request.has_multiple_responses = true;
-            command->diagnostic_request.multiple_responses = bool(element->valueint);
-        }
-
-        element = cJSON_GetObjectItem(request, "multiple_responses");
-        if(element != NULL) {
-            command->diagnostic_request.has_multiple_responses = true;
-            command->diagnostic_request.multiple_responses = bool(element->valueint);
+            command->diagnostic_request.request.has_multiple_responses = true;
+            command->diagnostic_request.request.multiple_responses = bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
-            command->diagnostic_request.has_frequency = true;
-            command->diagnostic_request.frequency = element->valuedouble;
+            command->diagnostic_request.request.has_frequency = true;
+            command->diagnostic_request.request.frequency = element->valuedouble;
         }
 
         element = cJSON_GetObjectItem(request, "decoded_type");
         if(element != NULL) {
             if(!strcmp(element->valuestring, "obd2")) {
-                command->diagnostic_request.has_decoded_type = true;
-                command->diagnostic_request.decoded_type =
+                command->diagnostic_request.request.has_decoded_type = true;
+                command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_OBD2;
             } else if(!strcmp(element->valuestring, "none")) {
-                command->diagnostic_request.has_decoded_type = true;
-                command->diagnostic_request.decoded_type =
+                command->diagnostic_request.request.has_decoded_type = true;
+                command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_NONE;
             }
         }
 
         element = cJSON_GetObjectItem(request, "name");
         if(element != NULL && element->type == cJSON_String) {
-            command->diagnostic_request.has_name = true;
-            strcpy(command->diagnostic_request.name, element->valuestring);
+            command->diagnostic_request.request.has_name = true;
+            strcpy(command->diagnostic_request.request.name, element->valuestring);
         }
     }
 }
@@ -409,6 +426,9 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
             deserializeDiagnostic(root, command);
+        } else if(!strncmp(commandNameObject->valuestring,
+                    PASSTHROUGH_COMMAND_NAME, strlen(PASSTHROUGH_COMMAND_NAME))) {
+            deserializePassthrough(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             message->has_control_command = false;

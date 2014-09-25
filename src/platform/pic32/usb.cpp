@@ -40,10 +40,10 @@ static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
-    commands::handleControlCommand(
-            commands::UsbControlCommand(SetupPkt.bRequest),
-            INCOMING_EP0_DATA_BUFFER,
-            INCOMING_EP0_DATA_SIZE);
+    if(INCOMING_EP0_DATA_SIZE > 0) {
+        commands::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
+                INCOMING_EP0_DATA_SIZE);
+    }
     memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
 }
 
@@ -73,14 +73,19 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     case EVENT_EP0_REQUEST:
     {
-        if((SetupPkt.bmRequestType >> 7 == 0) && SetupPkt.bRequest >= 0x80
-                && SetupPkt.wLength > 0) {
+        // Only handle control requests for our app, not from the USB system.
+        // We also are not handling zero length control requests to KISS - VI
+        // control commands may be send to the USB control endpoint, but it must
+        // be the same JSON format as if it was sent via the bulk transfer
+        // endpoint.
+        if((SetupPkt.bmRequestType >> 7 == 0) &&
+                SetupPkt.bRequest == CONTROL_COMMAND_REQUEST_ID &&
+                SetupPkt.wLength > 0) {
+            // Register callback for when all of the data from this incoming
+            // control request is received
             getConfiguration()->usb.device.EP0Receive(INCOMING_EP0_DATA_BUFFER,
                     MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
                         (void*)handleCompletedEP0OutTransfer);
-        } else {
-            commands::handleControlCommand(
-                    commands::UsbControlCommand(SetupPkt.bRequest), NULL, 0);
         }
 
         break;

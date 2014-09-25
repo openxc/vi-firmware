@@ -558,7 +558,9 @@ bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
  */
 static bool handleAuthorizedCommand(DiagnosticsManager* manager,
         CanBus* bus, openxc_ControlCommand* command) {
-    openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
+    openxc_DiagnosticControlCommand* diagControlCommand =
+            &command->diagnostic_request;
+    openxc_DiagnosticRequest* commandRequest = &diagControlCommand->request;
     DiagnosticRequest request = {
         arbitration_id: commandRequest->message_id,
         mode: uint8_t(commandRequest->mode),
@@ -596,7 +598,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
     }
 
     bool status = true;
-    if(command->action == openxc_ControlCommand_Action_ADD) {
+    if(diagControlCommand->action == openxc_DiagnosticControlCommand_Action_ADD) {
         if(commandRequest->has_frequency) {
             status = addRecurringRequest(manager, bus, &request,
                     commandRequest->has_name ?
@@ -613,7 +615,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                     decoder,
                     NULL);
         }
-    } else if(command->action == openxc_ControlCommand_Action_CANCEL) {
+    } else if(diagControlCommand->action == openxc_DiagnosticControlCommand_Action_CANCEL) {
         status = cancelRecurringRequest(manager, bus, &request);
     }
     return status;
@@ -623,7 +625,8 @@ bool openxc::diagnostics::handleDiagnosticCommand(
         DiagnosticsManager* manager, openxc_ControlCommand* command) {
     bool status = true;
     if(command->has_diagnostic_request) {
-        openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request;
+        openxc_DiagnosticRequest* commandRequest =
+                &command->diagnostic_request.request;
         if(commandRequest->has_message_id && commandRequest->has_mode) {
             CanBus* bus = NULL;
             if(commandRequest->has_bus) {
@@ -631,7 +634,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         getCanBusCount());
             } else if(getCanBusCount() > 0) {
                 bus = &getCanBuses()[0];
-                debug("No bus specified for diagnostic request missing bus, "
+                debug("No bus specified for diagnostic request, "
                         "using first active: %d", bus->address);
             }
 

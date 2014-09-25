@@ -37,14 +37,10 @@ openxc_DynamicField openxc::payload::wrapBoolean(bool value) {
 bool openxc::payload::deserialize(uint8_t payload[], size_t length,
         PayloadFormat format, openxc_VehicleMessage* message) {
     bool status = false;
-    if(format == PayloadFormat::JSON || format == PayloadFormat::PROTOBUF) {
-        // See https://github.com/openxc/vi-firmware/issues/223 - I think we are
-        // actually farther along towards that goal than I thought, but the
-        // issue is that the Android client sends a JSON command even if the VI
-        // is  outputting Protobuf, and the protobuf::deserialize crashes when
-        // it receives a non-protobuf payload
-        // (https://github.com/openxc/vi-firmware/issues/268)
+    if(format == PayloadFormat::JSON) {
         status = payload::json::deserialize(payload, length, message);
+    } else if(format == PayloadFormat::PROTOBUF) {
+        status = payload::protobuf::deserialize(payload, length, message);
     } else {
         debug("Invalid payload format: %d", format);
     }

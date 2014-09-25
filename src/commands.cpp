@@ -16,7 +16,6 @@ using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
-using openxc::commands::UsbControlCommand;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getSignals;
@@ -41,7 +40,7 @@ static bool handleVersionCommand() {
     usb::sendControlMessage(&getConfiguration()->usb, (uint8_t*)descriptor,
             strlen(descriptor));
 
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -65,7 +64,7 @@ static bool handleDeviceIdCommmand() {
         usb::sendControlMessage(&getConfiguration()->usb,
                 (uint8_t*)uart->deviceId, strlen(uart->deviceId));
 
-        openxc_VehicleMessage message;
+        openxc_VehicleMessage message = {0};
         message.has_type = true;
         message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
         message.has_command_response = true;
@@ -81,11 +80,50 @@ static bool handleDeviceIdCommmand() {
     return true;
 }
 
+static bool handlePassthroughModeCommand(openxc_ControlCommand* command) {
+    bool status = false;
+    if(command->has_passthrough_mode_request) {
+        openxc_PassthroughModeControlCommand* passthroughRequest =
+                &command->passthrough_mode_request;
+        if(passthroughRequest->has_bus && passthroughRequest->has_enabled) {
+            CanBus* bus = NULL;
+            if(passthroughRequest->has_bus) {
+                bus = lookupBus(passthroughRequest->bus, getCanBuses(),
+                        getCanBusCount());
+            } else {
+                debug("Passthrough mode request missing bus");
+            }
+
+            if(bus != NULL) {
+                debug("Set passthrough for bus %u to %s", bus->address,
+                        passthroughRequest->enabled ? "on" : "off");
+                bus->passthroughCanMessages = passthroughRequest->enabled;
+                status = true;
+            }
+        }
+    }
+
+    // TODO could share code with other handlers to send simple success/fail
+    // responses that don't require a payload
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = openxc_ControlCommand_Type_PASSTHROUGH;
+    message.command_response.has_message = false;
+    message.command_response.has_status = true;
+    message.command_response.status = status;
+    pipeline::publish(&message, &getConfiguration()->pipeline);
+
+    return status;
+}
+
 static bool handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
     bool status = diagnostics::handleDiagnosticCommand(
             &getConfiguration()->diagnosticsManager, command);
 
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -112,6 +150,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_DEVICE_ID:
             status = handleDeviceIdCommmand();
+            break;
+        case openxc_ControlCommand_Type_PASSTHROUGH:
+            status = handlePassthroughModeCommand(command);
             break;
         default:
             status = false;
@@ -209,30 +250,10 @@ static bool handleTranslated(openxc_VehicleMessage* message) {
     return status;
 }
 
-bool openxc::commands::handleControlCommand(UsbControlCommand command, uint8_t payload[],
-        size_t payloadLength) {
-    bool recognized = true;
-    switch(command) {
-    case UsbControlCommand::VERSION:
-        handleVersionCommand();
-        break;
-    case UsbControlCommand::DEVICE_ID:
-        handleDeviceIdCommmand();
-        break;
-    case UsbControlCommand::COMPLEX_COMMAND:
-        handleIncomingMessage(payload, payloadLength);
-        break;
-    default:
-        recognized = false;
-        break;
-    }
-    return recognized;
-}
-
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
     bool status = true;
-    if(payload::deserialize(payload, length,
+    if(length > 0 && payload::deserialize(payload, length,
                 getConfiguration()->payloadFormat, &message)) {
         if(validate(&message)) {
             switch(message.type) {
@@ -309,14 +330,32 @@ static bool validateTranslated(openxc_VehicleMessage* message) {
     return valid;
 }
 
+static bool validatePassthroughRequest(openxc_VehicleMessage* message) {
+    bool valid = false;
+    if(message->has_control_command) {
+        openxc_ControlCommand* command = &message->control_command;
+        if(command->has_passthrough_mode_request) {
+            openxc_PassthroughModeControlCommand* passthroughRequest =
+                    &command->passthrough_mode_request;
+            if(passthroughRequest->has_bus && passthroughRequest->has_enabled) {
+                valid = true;
+            }
+        }
+    }
+    return valid;
+}
+
 static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
     bool valid = true;
     if(message->has_control_command) {
         openxc_ControlCommand* command = &message->control_command;
-        if(command->has_type && command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
-            openxc_DiagnosticRequest* request = &command->diagnostic_request;
+        if(command->has_type &&
+                command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
+            openxc_DiagnosticControlCommand* diagControlCommand =
+                    &command->diagnostic_request;
+            openxc_DiagnosticRequest* request = &diagControlCommand->request;
 
-            if(!command->has_action) {
+            if(!diagControlCommand->has_action) {
                 valid = false;
                 debug("Diagnostic request command missing action");
             }
@@ -349,6 +388,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         switch(message->control_command.type) {
         case openxc_ControlCommand_Type_DIAGNOSTIC:
             valid = validateDiagnosticRequest(message);
+            break;
+        case openxc_ControlCommand_Type_PASSTHROUGH:
+            valid = validatePassthroughRequest(message);
             break;
         case openxc_ControlCommand_Type_VERSION:
         case openxc_ControlCommand_Type_DEVICE_ID:

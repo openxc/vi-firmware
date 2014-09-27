@@ -27,8 +27,8 @@ class ViFunctionalTests(unittest.TestCase):
     def setUpClass(cls):
         super(ViFunctionalTests, cls).setUpClass()
         global SOURCE
-        cls.source = SOURCE
-        cls.source.callback = cls.receive
+        cls.vi = SOURCE
+        cls.vi.callback = cls.receive
 
     def setUp(self):
         self.bus = 1
@@ -50,10 +50,10 @@ class ControlCommandTests(ViFunctionalTests):
 
     def test_version(self):
         # TODO it'd be nice to read this from src/version.c
-        eq_(self.source.version(), "6.0.4-dev (functional_tests)")
+        eq_(self.vi.version(), "6.0.4-dev (functional_tests)")
 
     def test_device_id(self):
-        device_id = self.source.device_id()
+        device_id = self.vi.device_id()
         eq_(len(device_id), 12)
 
 
@@ -66,23 +66,23 @@ class CanMessageTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_send_and_receive_can_message(self):
-        self.source.write(bus=self.bus, id=self.message_id, data=self.data)
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_nonmatching_can_message_received_on_unfiltered_bus(self):
         self.message_id += 1
-        self.source.write(bus=self.bus, id=self.message_id, data=self.data)
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_matching_can_message_received_on_filtered_bus(self):
         self.message_id = 0x43
         self.bus = 2
-        self.source.write(bus=self.bus, id=self.message_id, data=self.data)
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_nonmatching_can_message_not_received_on_filtered_bus(self):
         self.bus = 2
-        self.source.write(bus=self.bus, id=self.message_id, data=self.data)
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         try:
             message = self.can_message_queue.get(timeout=1)
         except Empty:
@@ -100,7 +100,7 @@ class SimpleVehicleMessageTests(ViFunctionalTests):
         self.expected_signal_value = 0xdac
 
     def test_receive_simple_vehicle_message_bus1(self):
-        self.source.write(bus=1, id=0x42, data=self.message1_data)
+        self.vi.write(bus=1, id=0x42, data=self.message1_data)
         message = self.simple_vehicle_message_queue.get(timeout=1)
         eq_(message['name'], "signal1")
         eq_(message['value'], self.expected_signal_value)
@@ -108,7 +108,7 @@ class SimpleVehicleMessageTests(ViFunctionalTests):
 
     def test_receive_simple_vehicle_message_bus2(self):
         message_data = "0x8000000000000000"
-        self.source.write(bus=2, id=0x43, data=message_data)
+        self.vi.write(bus=2, id=0x43, data=message_data)
         message = self.simple_vehicle_message_queue.get(timeout=1)
         eq_(message['name'], "signal2")
         eq_(message['value'], 1)

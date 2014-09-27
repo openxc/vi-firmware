@@ -96,6 +96,11 @@ class CanMessageTests(ViFunctionalTests):
             eq_(None, message)
             self.can_message_queue.task_done()
 
+    def test_send_and_receive_extend_can_frame(self):
+        self.message_id = 0x809
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        self._check_received_message(self.can_message_queue.get(timeout=1))
+
 class SimpleVehicleMessageTests(ViFunctionalTests):
 
     def setUp(self):

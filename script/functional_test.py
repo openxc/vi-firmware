@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import time
 import unittest
 from nose.tools import eq_, ok_
 import binascii
@@ -203,3 +204,34 @@ class DiagnosticRequestTests(ViFunctionalTests):
         ok_(response['success'])
         eq_(response_value * 3, response['value'])
         self.diagnostic_response_queue.task_done()
+
+    def test_create_recurring_request(self):
+        self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                frequency=10)
+        try:
+            for _ in range(5):
+                message = self.can_message_queue.get(timeout=1)
+                eq_(self.message_id, message['id'])
+                eq_(self.bus, message['bus'])
+                eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
+                        binascii.hexlify(self.payload)), message['data'])
+                self.can_message_queue.task_done()
+        finally:
+            self.vi.delete_diagnostic_request(self.message_id, self.mode,
+                    bus=self.bus, pid=self.pid)
+
+    def test_cancel_diagnostic_request(self):
+        self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                frequency=5)
+        time.sleep(1)
+        self.vi.delete_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid)
+        ViFunctionalTests.can_message_queue = Queue()
+        try:
+            self.can_message_queue.get(timeout=1)
+        except Empty:
+            pass
+        else:
+            ok_(False)

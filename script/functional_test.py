@@ -12,33 +12,38 @@ except ImportError:
 from openxc.tools.common import configure_logging
 from openxc.interface import UsbVehicleInterface
 
-class ControlCommandTests(unittest.TestCase):
+SOURCE = None
+
+def setUpModule():
+    configure_logging()
+
+    global SOURCE
+    SOURCE = UsbVehicleInterface(format="json")
+    SOURCE.start()
+
+class ViFunctionalTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(ControlCommandTests, cls).setUpClass()
-        configure_logging()
-
-        cls.source = UsbVehicleInterface(cls.receive, format="json")
-        cls.source.start()
+        super(ViFunctionalTests, cls).setUpClass()
+        global SOURCE
+        cls.source = SOURCE
+        cls.source.callback = cls.receive
 
     def setUp(self):
         self.bus = 1
         self.message_id = 0x42
         self.data = "0x1234"
-        ControlCommandTests.can_message_queue = Queue()
-
-    def _check_receive_message(self, message):
-        eq_(self.message_id, message['id'])
-        eq_(self.bus, message['bus'])
-        eq_(self.data, message['data'])
-        self.can_message_queue.task_done()
+        ViFunctionalTests.can_message_queue = Queue()
 
     @classmethod
     def receive(cls, message, **kwargs):
         if ('id' in message and 'bus' in message and 'data' in message and
                 getattr(cls, 'can_message_queue', None)):
             cls.can_message_queue.put(message)
+
+
+class ControlCommandTests(ViFunctionalTests):
 
     def test_version(self):
         # TODO it'd be nice to read this from src/version.c
@@ -47,6 +52,15 @@ class ControlCommandTests(unittest.TestCase):
     def test_device_id(self):
         device_id = self.source.device_id()
         eq_(len(device_id), 12)
+
+
+class CanMessageTests(ViFunctionalTests):
+
+    def _check_receive_message(self, message):
+        eq_(self.message_id, message['id'])
+        eq_(self.bus, message['bus'])
+        eq_(self.data, message['data'])
+        self.can_message_queue.task_done()
 
     def test_send_and_receive_can_message(self):
         self.source.write(bus=self.bus, id=self.message_id, data=self.data)

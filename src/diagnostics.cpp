@@ -223,10 +223,14 @@ static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
         time::tick(&request->frequencyClock);
         start_diagnostic_request(&manager->shims[bus->address - 1],
                 &request->handle);
-        request->timeoutClock = {0};
-        request->timeoutClock.frequency = 10;
-        time::tick(&request->timeoutClock);
-        request->inFlight = true;
+        if(request->handle.completed && !request->handle.success) {
+            debug("Fatal error sending diagnostic request");
+        } else {
+            request->timeoutClock = {0};
+            request->timeoutClock.frequency = 10;
+            time::tick(&request->timeoutClock);
+            request->inFlight = true;
+        }
     }
 }
 

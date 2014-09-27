@@ -10,7 +10,7 @@
 #include "usb_config.h"
 #include "util/bytebuffer.h"
 #include "usb_config.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512

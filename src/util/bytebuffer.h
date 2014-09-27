@@ -2,7 +2,7 @@
 #define _BUFFERS_H_
 
 #include "emqueue.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 QUEUE_DECLARE(uint8_t, 256)
 

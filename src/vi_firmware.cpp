@@ -15,7 +15,7 @@
 #include "obd2.h"
 #include "data_emulator.h"
 #include "config.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;

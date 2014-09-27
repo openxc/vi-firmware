@@ -6,7 +6,7 @@
 #include "usb_config.h"
 #include "config.h"
 #include "emqueue.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 #include "LPC17xx.h"
 #include "lpc17xx_pinsel.h"

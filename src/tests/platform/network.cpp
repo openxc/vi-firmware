@@ -1,5 +1,5 @@
 #include "interface/network.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 using openxc::util::bytebuffer::IncomingMessageCallback;
 

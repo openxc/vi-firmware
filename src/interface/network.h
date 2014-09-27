@@ -6,7 +6,7 @@
 #endif // __USE_NETWORK__
 
 #include "util/bytebuffer.h"
-#include "commands.h"
+#include "commands/commands.h"
 #include <stdlib.h>
 
 #define USE_DHCP

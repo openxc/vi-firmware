@@ -2,7 +2,7 @@
 #define _UARTUTIL_H_
 
 #include "util/bytebuffer.h"
-#include "commands.h"
+#include "commands/commands.h"
 #include <stdlib.h>
 
 #define MAX_DEVICE_ID_LENGTH 17

@@ -1,6 +1,6 @@
 #include "interface/usb.h"
 #include "util/log.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 using openxc::util::log::debug;
 

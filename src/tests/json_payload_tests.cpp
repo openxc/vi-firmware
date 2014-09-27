@@ -41,12 +41,49 @@ START_TEST (test_passthrough_request)
 }
 END_TEST
 
+START_TEST (test_af_bypass_response)
+{
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
+    message.command_response.has_status = true;
+    message.command_response.status = true;
+    uint8_t payload[256] = {0};
+    ck_assert(openxc::payload::json::serialize(&message,
+                payload, sizeof(payload)) > 0);
+}
+END_TEST
+
+START_TEST (test_af_bypass_request)
+{
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
+    message.has_control_command = true;
+    message.control_command.has_type = true;
+    message.control_command.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
+    message.control_command.has_acceptance_filter_bypass_command = true;
+    message.control_command.acceptance_filter_bypass_command.has_bus = true;
+    message.control_command.acceptance_filter_bypass_command.bus = 1;
+    message.control_command.acceptance_filter_bypass_command.has_bypass = true;
+    message.control_command.acceptance_filter_bypass_command.bypass = true;
+    uint8_t payload[256] = {0};
+    ck_assert(openxc::payload::json::serialize(&message,
+                payload, sizeof(payload)) > 0);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("json_payload");
     TCase *tc_json_payload = tcase_create("json_payload");
     tcase_add_checked_fixture(tc_json_payload, setup, NULL);
     tcase_add_test(tc_json_payload, test_passthrough_request);
     tcase_add_test(tc_json_payload, test_passthrough_response);
+    tcase_add_test(tc_json_payload, test_af_bypass_response);
+    tcase_add_test(tc_json_payload, test_af_bypass_request);
     suite_add_tcase(s, tc_json_payload);
 
     return s;

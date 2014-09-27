@@ -15,6 +15,7 @@ const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
+const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -86,6 +87,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
         typeString = payload::json::PASSTHROUGH_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS) {
+        typeString = payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME;
     } else {
         return false;
     }
@@ -205,6 +208,24 @@ static void deserializePassthrough(cJSON* root, openxc_ControlCommand* command) 
     if(element != NULL) {
         command->passthrough_mode_request.has_enabled = true;
         command->passthrough_mode_request.enabled = bool(element->valueint);
+    }
+}
+
+static void deserializeAfBypass(cJSON* root, openxc_ControlCommand* command) {
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
+    command->has_acceptance_filter_bypass_command = true;
+
+    cJSON* element = cJSON_GetObjectItem(root, "bus");
+    if(element != NULL) {
+        command->acceptance_filter_bypass_command.has_bus = true;
+        command->acceptance_filter_bypass_command.bus = element->valueint;
+    }
+
+    element = cJSON_GetObjectItem(root, "bypass");
+    if(element != NULL) {
+        command->acceptance_filter_bypass_command.has_bypass = true;
+        command->acceptance_filter_bypass_command.bypass = bool(element->valueint);
     }
 }
 
@@ -429,6 +450,10 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         } else if(!strncmp(commandNameObject->valuestring,
                     PASSTHROUGH_COMMAND_NAME, strlen(PASSTHROUGH_COMMAND_NAME))) {
             deserializePassthrough(root, command);
+        } else if(!strncmp(commandNameObject->valuestring,
+                    ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME,
+                    strlen(ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME))) {
+            deserializeAfBypass(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             message->has_control_command = false;

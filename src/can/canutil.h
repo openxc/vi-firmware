@@ -598,8 +598,6 @@ bool resetAcceptanceFilterStatus(CanBus* bus, bool enabled);
 /* Public: Enable or disable the CAN acceptance filter. If enabled, it will use
  * a dynamically generated list of message IDs based on the bus's message list
  * and any registered diagnostic requests.
- *
- * This function must be defined for each platform - it's hardware dependent.
  */
 bool setAcceptanceFilterStatus(CanBus* bus, bool enabled,
         CanBus* buses, const uint busCount);

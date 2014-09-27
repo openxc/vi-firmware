@@ -716,6 +716,30 @@ START_TEST (test_passthrough_request_message)
 }
 END_TEST
 
+START_TEST (test_validate_bypass_command)
+{
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
+    CONTROL_COMMAND.control_command.has_acceptance_filter_bypass_command = true;
+    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bus = true;
+    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.bus = 1;
+    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bypass = true;
+    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.bypass = true;
+    ck_assert(validate(&CONTROL_COMMAND));
+
+    CONTROL_COMMAND.control_command.has_type = false;
+    ck_assert(!validate(&CONTROL_COMMAND));
+}
+END_TEST
+
+START_TEST (test_bypass_command)
+{
+    const char* request = "{\"command\": \"af_bypass\", \"bus\": 1, \"bypass\": true}";
+    ck_assert(!getCanBuses()[0].bypassFilters);
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(getCanBuses()[0].bypassFilters);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("commands");
     TCase *tc_complex_commands = tcase_create("complex_commands");
@@ -768,6 +792,7 @@ Suite* suite(void) {
     tcase_add_test(tc_control_commands, test_device_id_message);
     tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
     tcase_add_test(tc_control_commands, test_passthrough_request_message);
+    tcase_add_test(tc_control_commands, test_bypass_command);
     suite_add_tcase(s, tc_control_commands);
 
     TCase *tc_validation = tcase_create("validation");
@@ -795,6 +820,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_version_command);
     tcase_add_test(tc_validation, test_validate_device_id_command);
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);
+    tcase_add_test(tc_validation, test_validate_bypass_command);
     suite_add_tcase(s, tc_validation);
 
     return s;

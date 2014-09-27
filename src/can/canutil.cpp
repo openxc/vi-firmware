@@ -442,7 +442,10 @@ void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
 
 bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled,
         CanBus* buses, const uint busCount) {
-    return resetAcceptanceFilterStatus(bus, enabled) &&
+    bus->bypassFilters = !enabled;
+    debug("CAN AF for bus %d is now %s", bus->address,
+            bus->bypassFilters ? "bypassed" : "enabled");
+    return resetAcceptanceFilterStatus(bus, !bus->bypassFilters) &&
             updateAcceptanceFilterTable(buses, busCount);
 }
 

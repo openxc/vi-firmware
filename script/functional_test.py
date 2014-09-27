@@ -75,17 +75,20 @@ class CanMessageTests(ViFunctionalTests):
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_nonmatching_can_message_received_on_unfiltered_bus(self):
+        self.vi.set_acceptance_filter_bypass(1, True)
         self.message_id += 1
         self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_matching_can_message_received_on_filtered_bus(self):
+        self.vi.set_acceptance_filter_bypass(2, False)
         self.message_id = 0x43
         self.bus = 2
         self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_nonmatching_can_message_not_received_on_filtered_bus(self):
+        self.vi.set_acceptance_filter_bypass(2, False)
         self.bus = 2
         self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         try:
@@ -240,3 +243,31 @@ class DiagnosticRequestTests(ViFunctionalTests):
             pass
         else:
             ok_(False)
+
+class CanAcceptanceFilterChangeTests(ViFunctionalTests):
+
+    def _check_received_message(self, message):
+        eq_(self.message_id, message['id'])
+        eq_(self.bus, message['bus'])
+        eq_(self.data, message['data'])
+        self.can_message_queue.task_done()
+
+    def test_message_not_received_after_filters_enabled(self):
+        self.vi.set_acceptance_filter_bypass(1, False)
+        # Should receive only 42
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        self._check_received_message(self.can_message_queue.get(timeout=1))
+
+        self.vi.write(bus=self.bus, id=self.message_id + 1, data=self.data)
+        try:
+            self.can_message_queue.get(timeout=1)
+        except Empty:
+            pass
+        else:
+            ok_(False)
+
+    def test_nonmatching_can_message_received_on_unfiltered_bus(self):
+        self.vi.set_acceptance_filter_bypass(1, True)
+        self.message_id += 1
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        self._check_received_message(self.can_message_queue.get(timeout=1))

@@ -11,6 +11,7 @@ extern const char VERSION_COMMAND_NAME[];
 extern const char DEVICE_ID_COMMAND_NAME[];
 extern const char DIAGNOSTIC_COMMAND_NAME[];
 extern const char PASSTHROUGH_COMMAND_NAME[];
+extern const char ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[];
 
 extern const char COMMAND_RESPONSE_FIELD_NAME[];
 extern const char COMMAND_RESPONSE_MESSAGE_FIELD_NAME[];

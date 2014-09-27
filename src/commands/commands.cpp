@@ -1,16 +1,9 @@
 #include "commands/commands.h"
 #include "config.h"
-#include "diagnostics.h"
-#include "interface/usb.h"
 #include "util/log.h"
 #include "config.h"
 #include "openxc.pb.h"
 #include "pb_decode.h"
-#include <payload/payload.h>
-#include "signals.h"
-#include <can/canutil.h>
-#include <bitfield/bitfield.h>
-#include <limits.h>
 
 #include "commands/passthrough_command.h"
 #include "commands/diagnostic_request_command.h"
@@ -18,27 +11,11 @@
 #include "commands/device_id_command.h"
 #include "commands/can_message_write_command.h"
 #include "commands/simple_write_command.h"
+#include "commands/af_bypass_command.h"
 
-using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
-using openxc::signals::getCanBuses;
-using openxc::signals::getCanBusCount;
-using openxc::signals::getSignals;
-using openxc::signals::getSignalCount;
-using openxc::signals::getCommands;
-using openxc::signals::getCommandCount;
-using openxc::can::lookupBus;
-using openxc::can::lookupSignal;
-
-namespace can = openxc::can;
-namespace payload = openxc::payload;
-namespace config = openxc::config;
-namespace diagnostics = openxc::diagnostics;
-namespace usb = openxc::interface::usb;
-namespace uart = openxc::interface::uart;
-namespace pipeline = openxc::pipeline;
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
@@ -57,6 +34,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_PASSTHROUGH:
             status = openxc::commands::handlePassthroughModeCommand(command);
             break;
+        case openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS:
+            status = openxc::commands::handleFilterBypassCommand(command);
+            break;
         default:
             status = false;
             break;
@@ -68,7 +48,7 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
 bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
     bool status = true;
-    if(length > 0 && payload::deserialize(payload, length,
+    if(length > 0 && openxc::payload::deserialize(payload, length,
                 getConfiguration()->payloadFormat, &message)) {
         if(validate(&message)) {
             switch(message.type) {
@@ -107,6 +87,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_PASSTHROUGH:
             valid = openxc::commands::validatePassthroughRequest(message);
+            break;
+        case openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS:
+            valid = openxc::commands::validateFilterBypassCommand(message);
             break;
         case openxc_ControlCommand_Type_VERSION:
         case openxc_ControlCommand_Type_DEVICE_ID:

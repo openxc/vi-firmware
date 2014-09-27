@@ -175,20 +175,21 @@ def test():
 
 @task
 def functionaltest(skip_flashing=False):
-    # Pre-requisites:
-    # * Reference VI attached via USB
-    # * JTAG programmed attached to VI and USB of the host computer
-    if skip_flashing is False or skip_flashing != 'True':
-        local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
+    with lcd("%s" % env.root_dir):
+        # Pre-requisites:
+        # * Reference VI attached via USB
+        # * JTAG programmed attached to VI and USB of the host computer
+        if skip_flashing is False or skip_flashing != 'True':
+            local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
 
-        baremetal()
-        reference()
-        debug(uart_logging=True)
-        flash()
+            baremetal()
+            reference()
+            debug(uart_logging=True)
+            flash()
 
-        import time
-        time.sleep(2)
-    local("nosetests -s script/functional_test.py")
+            import time
+            time.sleep(2)
+        local("nosetests -s script/functional_test.py")
 
 @task
 def transmitter():

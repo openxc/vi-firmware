@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import unittest
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 import binascii
 
 try:
@@ -37,6 +37,7 @@ class ViFunctionalTests(unittest.TestCase):
         self.data = "0x1234"
         ViFunctionalTests.can_message_queue = Queue()
         ViFunctionalTests.simple_vehicle_message_queue = Queue()
+        ViFunctionalTests.diagnostic_response_queue = Queue()
 
     @classmethod
     def receive(cls, message, **kwargs):
@@ -45,6 +46,8 @@ class ViFunctionalTests(unittest.TestCase):
             cls.can_message_queue.put(message)
         elif ('name' in message and 'value' in message):
             cls.simple_vehicle_message_queue.put(message)
+        elif ('id' in message and 'bus' in message and 'mode' in message):
+            cls.diagnostic_response_queue.put(message)
 
 
 class ControlCommandTests(ViFunctionalTests):
@@ -117,21 +120,70 @@ class SimpleVehicleMessageTests(ViFunctionalTests):
 
 class DiagnosticRequestTests(ViFunctionalTests):
 
+    def setUp(self):
+        super(DiagnosticRequestTests, self).setUp()
+        self.message_id = 0x121
+        self.mode = 3
+        self.bus = 1
+        self.pid = 1
+        self.payload = bytearray([0x12, 0x34])
+
     def test_diagnostic_request(self):
         """This test is done with bus 1, since that has the CAN AF off, so we
         can receive the sent message (via loopback) to validate it matches the
         request.
         """
-        message_id = 0x121
-        mode = 3
-        bus = 1
-        pid = 1
-        payload = bytearray([0x12, 0x34])
-        self.vi.create_diagnostic_request(message_id, mode, bus=1,
-                pid=pid, payload=payload)
+        self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload)
         message = self.can_message_queue.get(timeout=1)
-        eq_(message_id, message['id'])
-        eq_(bus, message['bus'])
-        eq_("0x04%02x%02x%s000000" % (mode, pid, binascii.hexlify(payload)),
-                message['data'])
+        eq_(self.message_id, message['id'])
+        eq_(self.bus, message['bus'])
+        eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
+                binascii.hexlify(self.payload)), message['data'])
+        self.can_message_queue.task_done()
+
+    def test_diagnostic_request_changes_acceptance_filters(self):
+        """This test is done with bus 2, since that has the CAN AF ON, so we
+        make sure the VI can change the AF to accept responses.
+
+        We use bus 2 since that should still have the AF on.
+        """
+        self.bus = 2
+        self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload)
+        # send the response, which should be accepted by the AF
+        response_id = self.message_id + 0x8
+        # we don't care about the payload at this point, just want to make sure
+        # we receive the raw CAN message
+        self.vi.write(bus=self.bus, id=response_id, data="0xabcd")
+        message = None
+        while message is None:
+            message = self.can_message_queue.get(timeout=1)
+            if message['id'] == self.message_id:
+                # skip the request
+                continue
+            elif message['id'] == response_id:
+                break
+        ok_(message is not None)
+        self.can_message_queue.task_done()
+
+    def test_receive_diagnostic_response(self):
+        self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
+                pid=self.pid, payload=self.payload)
+        message = self.can_message_queue.get(timeout=1)
+        ok_(message is not None)
+        eq_(self.message_id, message['id'])
+        self.can_message_queue.task_done()
+
+        response_id = self.message_id + 0x8
+        # we don't care about the payload at this point, just want to make sure
+        # we receive the raw CAN message
+        self.vi.write(bus=self.bus, id=response_id, data="0x03430142")
+        response = self.diagnostic_response_queue.get(timeout=1)
+        eq_(self.message_id, response['id'])
+        eq_(self.bus, response['bus'])
+        eq_(self.mode, response['mode'])
+        eq_(self.pid, response['pid'])
+        ok_(response['success'])
+        eq_("0x42", response['payload'])
         self.can_message_queue.task_done()

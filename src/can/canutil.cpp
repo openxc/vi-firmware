@@ -445,3 +445,17 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled,
     return resetAcceptanceFilterStatus(bus, enabled) &&
             updateAcceptanceFilterTable(buses, busCount);
 }
+
+bool openxc::can::shouldAcceptMessage(CanBus* bus, uint32_t messageId) {
+    bool acceptMessage = bus->bypassFilters;
+    if(!acceptMessage) {
+        AcceptanceFilterListEntry* entry;
+        LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
+            if(entry->filter == messageId) {
+                acceptMessage = true;
+                break;
+            }
+        }
+    }
+    return acceptMessage;
+}

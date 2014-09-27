@@ -4,10 +4,10 @@ import unittest
 from nose.tools import eq_
 
 try:
-    from Queue import Queue
+    from Queue import Queue, Empty
 except ImportError:
     # Python 3
-    from queue import Queue
+    from queue import Queue, Empty
 
 from openxc.tools.common import configure_logging
 from openxc.interface import UsbVehicleInterface
@@ -72,6 +72,10 @@ class ControlCommandTests(unittest.TestCase):
     def test_nonmatching_can_message_not_received_on_filtered_bus(self):
         self.bus = 2
         self.source.write(bus=self.bus, id=self.message_id, data=self.data)
-        message = self.can_message_queue.get(timeout=1)
-        eq_(None, message)
-        self.can_message_queue.task_done()
+        try:
+            message = self.can_message_queue.get(timeout=1)
+        except Empty:
+            pass
+        else:
+            eq_(None, message)
+            self.can_message_queue.task_done()

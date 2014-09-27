@@ -621,6 +621,19 @@ bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
  */
 void logBusStatistics(CanBus* buses, const int busCount);
 
+/* Public: Perform software CAN message filtering.
+ *
+ * This is used primarily for the LPC17xx which has a global CAN AF - when one
+ * bus has the AF off but we still want to filter on the other, we use this to
+ * do software filtering based on the registered CAN messages.
+ *
+ * bus - The bus the message was received on.
+ * messageId - the ID of the message.
+ *
+ * Returns true if the message should be accepted.
+ */
+bool shouldAcceptMessage(CanBus* bus, uint32_t messageId);
+
 } // can
 } // openxc
 

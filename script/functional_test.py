@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import unittest
 from nose.tools import eq_
+import binascii
 
 try:
     from Queue import Queue, Empty
@@ -113,3 +114,24 @@ class SimpleVehicleMessageTests(ViFunctionalTests):
         eq_(message['name'], "signal2")
         eq_(message['value'], 1)
         self.simple_vehicle_message_queue.task_done()
+
+class DiagnosticRequestTests(ViFunctionalTests):
+
+    def test_diagnostic_request(self):
+        """This test is done with bus 1, since that has the CAN AF off, so we
+        can receive the sent message (via loopback) to validate it matches the
+        request.
+        """
+        message_id = 0x121
+        mode = 3
+        bus = 1
+        pid = 1
+        payload = bytearray([0x12, 0x34])
+        self.vi.create_diagnostic_request(message_id, mode, bus=1,
+                pid=pid, payload=payload)
+        message = self.can_message_queue.get(timeout=1)
+        eq_(message_id, message['id'])
+        eq_(bus, message['bus'])
+        eq_("0x04%02x%02x%s000000" % (mode, pid, binascii.hexlify(payload)),
+                message['data'])
+        self.can_message_queue.task_done()

@@ -5,6 +5,7 @@ COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"
 GREEN="$${txtbld}$$(tput setaf 2)"
+YELLOW="$${txtbld}$$(tput setaf 3)"
 COLOR_RESET=$$(tput sgr0)
 endif
 

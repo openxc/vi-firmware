@@ -170,10 +170,6 @@ class DiagnosticRequestTests(ViFunctionalTests):
     def test_receive_diagnostic_response(self):
         self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
                 pid=self.pid, payload=self.payload)
-        message = self.can_message_queue.get(timeout=1)
-        ok_(message is not None)
-        eq_(self.message_id, message['id'])
-        self.can_message_queue.task_done()
 
         response_id = self.message_id + 0x8
         # we don't care about the payload at this point, just want to make sure
@@ -186,4 +182,24 @@ class DiagnosticRequestTests(ViFunctionalTests):
         eq_(self.pid, response['pid'])
         ok_(response['success'])
         eq_("0x42", response['payload'])
-        self.can_message_queue.task_done()
+        self.diagnostic_response_queue.task_done()
+
+
+    def test_receive_obd_formatted_diagnostic_response(self):
+        self.pid = 0xa
+        self.mode = 1
+        self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
+                pid=self.pid, payload=self.payload, decoded_type="obd2")
+        response_id = self.message_id + 0x8
+        response_value = 0x42
+        self.vi.write(bus=self.bus, id=response_id, data="0x034%01x%02x%02x" % (
+                self.mode, self.pid, response_value))
+
+        response = self.diagnostic_response_queue.get(timeout=1)
+        eq_(self.message_id, response['id'])
+        eq_(self.bus, response['bus'])
+        eq_(self.mode, response['mode'])
+        eq_(self.pid, response['pid'])
+        ok_(response['success'])
+        eq_(response_value * 3, response['value'])
+        self.diagnostic_response_queue.task_done()

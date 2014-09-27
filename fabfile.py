@@ -19,29 +19,11 @@ env.board = None
 env.debug = False
 env.transmitter = False
 env.bootloader = True
+env.uart_logging = False
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5", "extension": "hex"}
-}
-
-DEFAULT_COMPILER_OPTIONS = {
-    'DEBUG': env.debug,
-    'BOOTLOADER': env.bootloader,
-    'TRANSMITTER': False,
-    'DEFAULT_UART_LOGGING_STATUS': False,
-    'DEFAULT_METRICS_STATUS': False,
-    'DEFAULT_CAN_ACK_STATUS': False,
-    'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
-    'DEFAULT_ALLOW_RAW_WRITE_UART': False,
-    'DEFAULT_ALLOW_RAW_WRITE_USB': True,
-    'DEFAULT_OUTPUT_FORMAT': "JSON",
-    'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
-    'DEFAULT_POWER_MANAGEMENT': "SILENT_CAN",
-    'DEFAULT_USB_PRODUCT_ID': 0x1,
-    'DEFAULT_EMULATED_DATA_STATUS': False,
-    'DEFAULT_OBD2_BUS': 1,
-    'NETWORK': False,
 }
 
 def latest_git_tag():
@@ -125,6 +107,25 @@ def build_options():
         abort("You must specify the target board - your choices are %s" % env.boards.keys())
     board_options = env.boards[env.board]
 
+    DEFAULT_COMPILER_OPTIONS = {
+        'DEBUG': env.debug,
+        'BOOTLOADER': env.bootloader,
+        'TRANSMITTER': False,
+        'DEFAULT_UART_LOGGING_STATUS': env.uart_logging,
+        'DEFAULT_METRICS_STATUS': False,
+        'DEFAULT_CAN_ACK_STATUS': False,
+        'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
+        'DEFAULT_ALLOW_RAW_WRITE_UART': False,
+        'DEFAULT_ALLOW_RAW_WRITE_USB': True,
+        'DEFAULT_OUTPUT_FORMAT': "JSON",
+        'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
+        'DEFAULT_POWER_MANAGEMENT': "SILENT_CAN",
+        'DEFAULT_USB_PRODUCT_ID': 0x1,
+        'DEFAULT_EMULATED_DATA_STATUS': False,
+        'DEFAULT_OBD2_BUS': 1,
+        'NETWORK': False,
+    }
+
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
     options['DEBUG'] = env.debug
     options['BOOTLOADER'] = env.bootloader
@@ -178,7 +179,12 @@ def functionaltest():
     # * Reference VI attached via USB
     # * JTAG programmed attached to VI and USB of the host computer
     local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
-    local("fab baremetal reference debug flash")
+
+    baremetal()
+    reference()
+    debug(uart_logging=True)
+    flash()
+
     import time
     time.sleep(2)
     local("nosetests -s script/functional_test.py")
@@ -188,8 +194,10 @@ def transmitter():
     env.transmitter = True
 
 @task
-def debug():
+def debug(uart_logging=False):
     env.debug = True
+    # provided as a shell argument, so it may be a string 'True'
+    env.uart_logging = bool(uart_logging)
 
 @task
 def baremetal():

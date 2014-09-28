@@ -271,3 +271,16 @@ class CanAcceptanceFilterChangeTests(ViFunctionalTests):
         self.message_id += 1
         self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
+
+class MessageFormatTests(ViFunctionalTests):
+
+    def tearDown(self):
+        self.vi.set_payload_format("json")
+
+    def test_change_to_binary(self):
+        ok_(self.vi.set_payload_format("protobuf"))
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+
+    def test_change_to_json(self):
+        ok_(self.vi.set_payload_format("json"))
+        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)

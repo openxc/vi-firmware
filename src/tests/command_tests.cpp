@@ -20,6 +20,7 @@ using openxc::config::getConfiguration;
 using openxc::config::getFirmwareDescriptor;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
+using openxc::payload::PayloadFormat;
 
 extern void initializeVehicleInterface();
 
@@ -740,6 +741,29 @@ START_TEST (test_bypass_command)
 }
 END_TEST
 
+START_TEST (test_validate_payload_format_command)
+{
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
+    CONTROL_COMMAND.control_command.has_payload_format_command = true;
+    CONTROL_COMMAND.control_command.payload_format_command.has_format = true;
+    CONTROL_COMMAND.control_command.payload_format_command.format =
+            openxc_PayloadFormatCommand_PayloadFormat_JSON;
+    ck_assert(validate(&CONTROL_COMMAND));
+
+    CONTROL_COMMAND.control_command.has_type = false;
+    ck_assert(!validate(&CONTROL_COMMAND));
+}
+END_TEST
+
+START_TEST (test_payload_format_command)
+{
+    const char* request = "{\"command\": \"payload_format\", \"bus\": 1, \"format\": \"protobuf\"}";
+    ck_assert_int_eq(PayloadFormat::JSON, getConfiguration()->payloadFormat);
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert_int_eq(PayloadFormat::PROTOBUF, getConfiguration()->payloadFormat);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("commands");
     TCase *tc_complex_commands = tcase_create("complex_commands");
@@ -793,6 +817,7 @@ Suite* suite(void) {
     tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
     tcase_add_test(tc_control_commands, test_passthrough_request_message);
     tcase_add_test(tc_control_commands, test_bypass_command);
+    tcase_add_test(tc_control_commands, test_payload_format_command);
     suite_add_tcase(s, tc_control_commands);
 
     TCase *tc_validation = tcase_create("validation");
@@ -821,6 +846,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_device_id_command);
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);
     tcase_add_test(tc_validation, test_validate_bypass_command);
+    tcase_add_test(tc_validation, test_validate_payload_format_command);
     suite_add_tcase(s, tc_validation);
 
     return s;

@@ -16,6 +16,10 @@ const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
+const char openxc::payload::json::PAYLOAD_FORMAT_COMMAND_NAME[] = "payload_format";
+
+const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
+const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -89,6 +93,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::PASSTHROUGH_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS) {
         typeString = payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PAYLOAD_FORMAT) {
+        typeString = payload::json::PAYLOAD_FORMAT_COMMAND_NAME;
     } else {
         return false;
     }
@@ -211,6 +217,28 @@ static void deserializePassthrough(cJSON* root, openxc_ControlCommand* command) 
     }
 }
 
+static void deserializePayloadFormat(cJSON* root,
+        openxc_ControlCommand* command) {
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
+    command->has_payload_format_command = true;
+
+    cJSON* element = cJSON_GetObjectItem(root, "format");
+    if(element != NULL) {
+        if(!strcmp(element->valuestring,
+                    openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME)) {
+            command->payload_format_command.has_format = true;
+            command->payload_format_command.format =
+                    openxc_PayloadFormatCommand_PayloadFormat_JSON;
+        } else if(!strcmp(element->valuestring,
+                    openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME)) {
+            command->payload_format_command.has_format = true;
+            command->payload_format_command.format =
+                    openxc_PayloadFormatCommand_PayloadFormat_PROTOBUF;
+        }
+    }
+}
+
 static void deserializeAfBypass(cJSON* root, openxc_ControlCommand* command) {
     command->has_type = true;
     command->type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
@@ -225,7 +253,8 @@ static void deserializeAfBypass(cJSON* root, openxc_ControlCommand* command) {
     element = cJSON_GetObjectItem(root, "bypass");
     if(element != NULL) {
         command->acceptance_filter_bypass_command.has_bypass = true;
-        command->acceptance_filter_bypass_command.bypass = bool(element->valueint);
+        command->acceptance_filter_bypass_command.bypass =
+            bool(element->valueint);
     }
 }
 
@@ -286,13 +315,15 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
             command->diagnostic_request.request.has_multiple_responses = true;
-            command->diagnostic_request.request.multiple_responses = bool(element->valueint);
+            command->diagnostic_request.request.multiple_responses =
+                bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
             command->diagnostic_request.request.has_frequency = true;
-            command->diagnostic_request.request.frequency = element->valuedouble;
+            command->diagnostic_request.request.frequency =
+                element->valuedouble;
         }
 
         element = cJSON_GetObjectItem(request, "decoded_type");
@@ -311,12 +342,14 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "name");
         if(element != NULL && element->type == cJSON_String) {
             command->diagnostic_request.request.has_name = true;
-            strcpy(command->diagnostic_request.request.name, element->valuestring);
+            strcpy(command->diagnostic_request.request.name,
+                    element->valuestring);
         }
     }
 }
 
-static bool deserializeDynamicField(cJSON* element, openxc_DynamicField* field) {
+static bool deserializeDynamicField(cJSON* element,
+        openxc_DynamicField* field) {
     bool status = true;
     field->has_type = true;
     switch(element->type) {
@@ -454,6 +487,10 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                     ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME,
                     strlen(ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME))) {
             deserializeAfBypass(root, command);
+        } else if(!strncmp(commandNameObject->valuestring,
+                    PAYLOAD_FORMAT_COMMAND_NAME,
+                    strlen(PAYLOAD_FORMAT_COMMAND_NAME))) {
+            deserializePayloadFormat(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             message->has_control_command = false;

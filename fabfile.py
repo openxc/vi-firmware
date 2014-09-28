@@ -189,7 +189,7 @@ def functionaltest(skip_flashing=False):
 
             import time
             time.sleep(2)
-        local("nosetests -s script/functional_test.py")
+        local("nosetests -vs script/functional_test.py")
 
 @task
 def transmitter():

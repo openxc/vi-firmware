@@ -469,6 +469,7 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         // start of the message.
         char* jsonStart = strchr((char*)messageBuffer, '{');
         if(jsonStart == NULL) {
+            debug("%s", "No JSON object start found");
             return 0;
         }
 

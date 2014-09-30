@@ -269,7 +269,7 @@ class CanAcceptanceFilterChangeTests(ViFunctionalTests):
     def test_nonmatching_can_message_received_on_unfiltered_bus(self):
         self.vi.set_acceptance_filter_bypass(1, True)
         self.message_id += 1
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 
 class MessageFormatTests(ViFunctionalTests):
@@ -277,10 +277,18 @@ class MessageFormatTests(ViFunctionalTests):
     def tearDown(self):
         self.vi.set_payload_format("json")
 
+    def _check_received_message(self, message):
+        eq_(self.message_id, message['id'])
+        eq_(self.bus, message['bus'])
+        eq_(self.data, message['data'])
+        self.can_message_queue.task_done()
+
     def test_change_to_binary(self):
         ok_(self.vi.set_payload_format("protobuf"))
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
+        self._check_received_message(self.can_message_queue.get(timeout=1))
 
     def test_change_to_json(self):
         ok_(self.vi.set_payload_format("json"))
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
+        self._check_received_message(self.can_message_queue.get(timeout=1))

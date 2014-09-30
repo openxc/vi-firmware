@@ -458,6 +458,7 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
     cJSON *root = cJSON_Parse((char*)payload);
     if(root == NULL) {
+        debug("%s", "No JSON found in %u byte payload", length);
         return false;
     }
 

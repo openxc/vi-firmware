@@ -74,6 +74,9 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
             debug("Incoming message is complete but invalid");
         }
     } else {
+        debug("Unable to deserialize a message from the payload using format %s",
+             getConfiguration()->payloadFormat == PayloadFormat::JSON ?
+                 "JSON" : "Protobuf");
         status = false;
     }
     return status;

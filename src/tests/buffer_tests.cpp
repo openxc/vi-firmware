@@ -7,13 +7,13 @@ using openxc::util::bytebuffer::processQueue;
 
 QUEUE_TYPE(uint8_t) queue;
 bool called;
-bool callbackStatus;
+size_t callbackDataRead;
 int calledTimes;
 
 void setup() {
     QUEUE_INIT(uint8_t, &queue);
     called = false;
-    callbackStatus = false;
+    callbackDataRead = 0;
     calledTimes = 0;
 }
 
@@ -21,11 +21,11 @@ void teardown() {
 }
 
 uint8_t received_message[8];
-bool callback(uint8_t* message, size_t length) {
+size_t callback(uint8_t* message, size_t length) {
     called = true;
     calledTimes++;
     memcpy(received_message, message, length);
-    return callbackStatus;
+    return callbackDataRead;
 }
 
 START_TEST (test_empty_doesnt_call)
@@ -46,7 +46,7 @@ END_TEST
 
 START_TEST (test_parse_multiple)
 {
-    callbackStatus = true;
+    callbackDataRead = 2;
     QUEUE_PUSH(uint8_t, &queue, 128);
     QUEUE_PUSH(uint8_t, &queue, 0);
     QUEUE_PUSH(uint8_t, &queue, 64);
@@ -61,7 +61,7 @@ END_TEST
 
 START_TEST (test_data_sent_to_callback)
 {
-    callbackStatus = true;
+    callbackDataRead = 2;
     QUEUE_PUSH(uint8_t, &queue, 128);
     QUEUE_PUSH(uint8_t, &queue, 0);
     processQueue(&queue, callback);
@@ -72,7 +72,7 @@ END_TEST
 
 START_TEST (test_success_clears)
 {
-    callbackStatus = true;
+    callbackDataRead = 2;
     QUEUE_PUSH(uint8_t, &queue, 128);
     QUEUE_PUSH(uint8_t, &queue, 0);
     processQueue(&queue, callback);
@@ -83,7 +83,7 @@ END_TEST
 
 START_TEST (test_failure_clears_too)
 {
-    callbackStatus = false;
+    callbackDataRead = 2;
     QUEUE_PUSH(uint8_t, &queue, 128);
     QUEUE_PUSH(uint8_t, &queue, 0);
     processQueue(&queue, callback);
@@ -99,9 +99,8 @@ START_TEST (test_full_clears)
     }
     fail_unless(QUEUE_FULL(uint8_t, &queue));
 
-    callbackStatus = false;
+    callbackDataRead = 0;
     processQueue(&queue, callback);
-    fail_if(called);
     fail_unless(QUEUE_EMPTY(uint8_t, &queue));
 }
 END_TEST

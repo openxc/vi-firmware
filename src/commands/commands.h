@@ -31,9 +31,10 @@ namespace commands {
  * The complete definition for all of the command is in the OpenXC Message
  * Format (https://github.com/openxc/openxc-message-format).
  *
- * Returns true if the message was handled without error.
+ * Returns the number of bytes read from the payload for a complete message, if
+ * any was found.
  */
-bool handleIncomingMessage(uint8_t payload[], size_t payloadLength);
+size_t handleIncomingMessage(uint8_t payload[], size_t payloadLength);
 
 /* Public: Validate the data in an OpenXC message;
  *

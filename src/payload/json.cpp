@@ -1,5 +1,6 @@
 #include <payload/payload.h>
 #include <payload/json.h>
+#include "util/strutil.h"
 #include "config.h"
 #include <util/log.h>
 #include <cJSON.h>
@@ -454,65 +455,75 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
     }
 }
 
-bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
+size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
-    // There may be junk data at the start of the payload - seek ahead to the
-    // start of the message.
-    char* jsonStart = strchr((char*)payload, '{');
-    if(jsonStart == NULL) {
-        return false;
-    }
+    const char* delimiter = strnchr((const char*)payload, length - 1, '\0');
+    size_t messageLength = 0;
+    if(delimiter != NULL) {
+        messageLength = (size_t)(delimiter - (const char*)payload) + 1;
+        uint8_t messageBuffer[messageLength];
+        if(messageLength > 0) {
+            memcpy(messageBuffer, payload, messageLength);
+        }
+        // There may be junk data at the start of the payload - seek ahead to the
+        // start of the message.
+        char* jsonStart = strchr((char*)messageBuffer, '{');
+        if(jsonStart == NULL) {
+            return 0;
+        }
 
-    cJSON *root = cJSON_Parse(jsonStart);
-    if(root == NULL) {
-        debug("No JSON found in %u byte payload", length);
-        return false;
-    }
+        cJSON *root = cJSON_Parse(jsonStart);
+        if(root == NULL) {
+            debug("No JSON found in %u byte payload", length);
+            return 0;
+        }
 
-    message->has_type = true;
-    cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
-    if(commandNameObject != NULL) {
         message->has_type = true;
-        message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-        message->has_control_command = true;
-        openxc_ControlCommand* command = &message->control_command;
+        cJSON* commandNameObject = cJSON_GetObjectItem(root, "command");
+        if(commandNameObject != NULL) {
+            message->has_type = true;
+            message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
+            message->has_control_command = true;
+            openxc_ControlCommand* command = &message->control_command;
 
-        if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
-                    strlen(VERSION_COMMAND_NAME))) {
-            command->has_type = true;
-            command->type = openxc_ControlCommand_Type_VERSION;
-        } else if(!strncmp(commandNameObject->valuestring,
-                    DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
-            command->has_type = true;
-            command->type = openxc_ControlCommand_Type_DEVICE_ID;
-        } else if(!strncmp(commandNameObject->valuestring,
-                    DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
-            deserializeDiagnostic(root, command);
-        } else if(!strncmp(commandNameObject->valuestring,
-                    PASSTHROUGH_COMMAND_NAME, strlen(PASSTHROUGH_COMMAND_NAME))) {
-            deserializePassthrough(root, command);
-        } else if(!strncmp(commandNameObject->valuestring,
-                    ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME,
-                    strlen(ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME))) {
-            deserializeAfBypass(root, command);
-        } else if(!strncmp(commandNameObject->valuestring,
-                    PAYLOAD_FORMAT_COMMAND_NAME,
-                    strlen(PAYLOAD_FORMAT_COMMAND_NAME))) {
-            deserializePayloadFormat(root, command);
+            if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
+                        strlen(VERSION_COMMAND_NAME))) {
+                command->has_type = true;
+                command->type = openxc_ControlCommand_Type_VERSION;
+            } else if(!strncmp(commandNameObject->valuestring,
+                        DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
+                command->has_type = true;
+                command->type = openxc_ControlCommand_Type_DEVICE_ID;
+            } else if(!strncmp(commandNameObject->valuestring,
+                        DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
+                deserializeDiagnostic(root, command);
+            } else if(!strncmp(commandNameObject->valuestring,
+                        PASSTHROUGH_COMMAND_NAME, strlen(PASSTHROUGH_COMMAND_NAME))) {
+                deserializePassthrough(root, command);
+            } else if(!strncmp(commandNameObject->valuestring,
+                        ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME,
+                        strlen(ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME))) {
+                deserializeAfBypass(root, command);
+            } else if(!strncmp(commandNameObject->valuestring,
+                        PAYLOAD_FORMAT_COMMAND_NAME,
+                        strlen(PAYLOAD_FORMAT_COMMAND_NAME))) {
+                deserializePayloadFormat(root, command);
+            } else {
+                debug("Unrecognized command: %s", commandNameObject->valuestring);
+                message->has_control_command = false;
+            }
         } else {
-            debug("Unrecognized command: %s", commandNameObject->valuestring);
-            message->has_control_command = false;
+            cJSON* nameObject = cJSON_GetObjectItem(root, "name");
+            if(nameObject == NULL) {
+                deserializeRaw(root, message);
+            } else {
+                deserializeTranslated(root, message);
+            }
         }
-    } else {
-        cJSON* nameObject = cJSON_GetObjectItem(root, "name");
-        if(nameObject == NULL) {
-            deserializeRaw(root, message);
-        } else {
-            deserializeTranslated(root, message);
-        }
+        cJSON_Delete(root);
     }
-    cJSON_Delete(root);
-    return true;
+
+    return messageLength;
 }
 
 int openxc::payload::json::serialize(openxc_VehicleMessage* message,

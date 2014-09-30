@@ -5,15 +5,14 @@
 
 using openxc::util::log::debug;
 
-bool openxc::payload::protobuf::deserialize(uint8_t payload[], size_t length,
+size_t openxc::payload::protobuf::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
     pb_istream_t stream = pb_istream_from_buffer(payload, length);
-    bool status = pb_decode_delimited(&stream, openxc_VehicleMessage_fields,
-            message);
-    if(!status) {
+    if(!pb_decode_delimited(&stream, openxc_VehicleMessage_fields, message)) {
         debug("Protobuf decoding failed with %s", PB_GET_ERROR(&stream));
+        return 0;
     }
-    return status;
+    return length - stream.bytes_left;
 }
 
 int openxc::payload::protobuf::serialize(openxc_VehicleMessage* message,

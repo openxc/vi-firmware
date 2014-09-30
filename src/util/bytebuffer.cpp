@@ -22,24 +22,16 @@ bool openxc::util::bytebuffer::processQueue(QUEUE_TYPE(uint8_t)* queue,
         return false;
     }
 
-    const char* delimiter = strnchr((const char*)snapshot, length - 1, '\0');
-    bool foundMessage = false;
-    if(delimiter != NULL) {
-        size_t messageLength = (size_t)(delimiter - (const char*)snapshot) + 1;
-        if(messageLength > 0) {
-            uint8_t message[messageLength];
-            memcpy(message, snapshot, messageLength);
-            for(size_t i = 0; i < messageLength; i++) {
-                QUEUE_POP(uint8_t, queue);
-            }
-            callback(message, messageLength);
-            foundMessage = true;
-        }
-    } else if(QUEUE_FULL(uint8_t, queue)) {
+    size_t parsedLength = callback(snapshot, length);
+    for(size_t i = 0; i < parsedLength; i++) {
+        QUEUE_POP(uint8_t, queue);
+    }
+
+    if(QUEUE_FULL(uint8_t, queue)) {
         debug("Incoming write is too long - dumping queue");
         QUEUE_INIT(uint8_t, queue);
     }
-    return foundMessage;
+    return parsedLength > 0;
 }
 
 bool openxc::util::bytebuffer::messageFits(QUEUE_TYPE(uint8_t)* queue, uint8_t* message,

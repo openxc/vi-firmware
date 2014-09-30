@@ -116,19 +116,19 @@ void setup() {
     CONTROL_COMMAND.control_command.diagnostic_request.request.frequency = 10;
 }
 
-const char* RAW_REQUEST = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}";
-const char* WRITABLE_TRANSLATED_REQUEST = "{\"name\": "
-        "\"transmission_gear_position\", \"value\": \"third\"}";
-const char* NON_WRITABLE_TRANSLATED_REQUEST = "{\"name\":"
-        "\"torque_at_transmission\", \"value\": 200}";
-const char* DIAGNOSTIC_REQUEST = "{\"command\": \"diagnostic_request\", \"actio"
-    "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}";
+uint8_t RAW_REQUEST[] = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}\0";
+uint8_t WRITABLE_TRANSLATED_REQUEST[] = "{\"name\": "
+        "\"transmission_gear_position\", \"value\": \"third\"}\0";
+uint8_t NON_WRITABLE_TRANSLATED_REQUEST[] = "{\"name\":"
+        "\"torque_at_transmission\", \"value\": 200}\0";
+uint8_t DIAGNOSTIC_REQUEST[] = "{\"command\": \"diagnostic_request\", \"actio"
+    "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
 
 START_TEST (test_raw_write_no_matching_bus)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"bus\": 3, \"id\": 42, \"data\": \"0x1234\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"bus\": 3, \"id\": 42, \"data\": \"0x1234\"}\0";
+    ck_assert(handleIncomingMessage(request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
     fail_unless(canQueueEmpty(1));
 }
@@ -137,8 +137,8 @@ END_TEST
 START_TEST (test_raw_write_missing_bus)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"id\": 42, \"data\": \"0x1234\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"id\": 42, \"data\": \"0x1234\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -147,8 +147,8 @@ START_TEST (test_raw_write_missing_bus_no_buses)
 {
     getCanBuses()[0].rawWritable = true;
     getActiveMessageSet()->busCount = 0;
-    const char* request = "{\"id\": 42, \"data\": \"0x1234\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"id\": 42, \"data\": \"0x1234\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -156,9 +156,9 @@ END_TEST
 START_TEST (test_raw_write_without_0x_prefix)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"bus\": 1, \"id\": 42, \"data\""
-            ": \"1234567812345678\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"bus\": 1, \"id\": 42, \"data\""
+            ": \"1234567812345678\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -177,9 +177,9 @@ END_TEST
 START_TEST (test_raw_write)
 {
     getCanBuses()[0].rawWritable = true;
-    const char* request = "{\"bus\": 1, \"id\": 42, \"data\": \""
-            "0x1234567812345678\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"bus\": 1, \"id\": 42, \"data\": \""
+            "0x1234567812345678\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -199,7 +199,7 @@ START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
     ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
-                strlen(RAW_REQUEST)));
+                sizeof(RAW_REQUEST)));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -215,17 +215,17 @@ START_TEST (test_raw_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
     ck_assert(handleIncomingMessage((uint8_t*)RAW_REQUEST,
-                strlen(RAW_REQUEST)));
+                sizeof(RAW_REQUEST)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
 
 START_TEST (test_named_diagnostic_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\","
+    uint8_t request[] = "{\"command\": \"diagnostic_request\","
            " \"action\": \"add\", \"request\": {\"name\": \"foobar\", "
-           "\"bus\": 1, \"id\": 2, \"mode\": 1}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+           "\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -239,10 +239,10 @@ END_TEST
 
 START_TEST (test_diagnostic_request_with_payload_without_0x_prefix)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": "
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": "
             "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
-            "\"payload\": \"1234\"}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+            "\"payload\": \"1234\"}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -262,10 +262,10 @@ END_TEST
 
 START_TEST (test_diagnostic_request_with_payload)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": "
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": "
             "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
-            "\"payload\": \"0x1234\"}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+            "\"payload\": \"0x1234\"}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -285,8 +285,8 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -297,7 +297,7 @@ START_TEST (test_diagnostic_request_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
     ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
-                strlen(DIAGNOSTIC_REQUEST)));
+                sizeof(DIAGNOSTIC_REQUEST)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -306,8 +306,8 @@ END_TEST
 
 START_TEST (test_explicit_obd2_decoded_type)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"obd2\"}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"obd2\"}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder ==
             openxc::diagnostics::obd2::handleObd2Pid);
@@ -316,8 +316,8 @@ END_TEST
 
 START_TEST (test_recognized_obd2_request_overridden)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder == openxc::diagnostics::passthroughDecoder);
 }
@@ -325,8 +325,8 @@ END_TEST
 
 START_TEST (test_recognized_obd2_request)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
@@ -338,7 +338,7 @@ END_TEST
 START_TEST (test_diagnostic_request)
 {
     ck_assert(handleIncomingMessage((uint8_t*)DIAGNOSTIC_REQUEST,
-                strlen(DIAGNOSTIC_REQUEST)));
+                sizeof(DIAGNOSTIC_REQUEST)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -348,8 +348,8 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_mode)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -358,8 +358,8 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_arb_id)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"mode\": 1}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"mode\": 1}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -368,8 +368,8 @@ END_TEST
 
 START_TEST (test_diagnostic_request_missing_bus)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"id\": 2, \"mode\": 1}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"id\": 2, \"mode\": 1}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -378,8 +378,8 @@ END_TEST
 
 START_TEST (test_diagnostic_request_invalid_bus)
 {
-    const char* request = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -388,15 +388,15 @@ END_TEST
 
 START_TEST (test_non_complete_message)
 {
-    const char* request = "{\"name\": \"turn_signal_status\", ";
-    ck_assert(!handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"name\": \"turn_signal_status\", ";
+    ck_assert(!handleIncomingMessage((uint8_t*)request, sizeof(request)));
 }
 END_TEST
 
 START_TEST (test_custom_evented_command)
 {
-    const char* command = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}";
-    ck_assert(handleIncomingMessage((uint8_t*)command, strlen(command)));
+    uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)command, sizeof(command)));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
@@ -415,8 +415,8 @@ END_TEST
 
 START_TEST (test_custom_command)
 {
-    const char* command = "{\"name\": \"turn_signal_status\", \"value\": true}";
-    ck_assert(handleIncomingMessage((uint8_t*)command, strlen(command)));
+    uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)command, sizeof(command)));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
@@ -429,16 +429,16 @@ END_TEST
 
 START_TEST (test_translated_write_no_match)
 {
-    const char* request = "{\"name\": \"foobar\", \"value\": true}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"name\": \"foobar\", \"value\": true}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
 
 START_TEST (test_translated_write_missing_value)
 {
-    const char* request = "{\"name\": \"turn_signal_status\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"name\": \"turn_signal_status\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -446,7 +446,7 @@ END_TEST
 START_TEST (test_translated_write_allowed)
 {
     ck_assert(handleIncomingMessage((uint8_t*)WRITABLE_TRANSLATED_REQUEST,
-                strlen(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -454,7 +454,7 @@ END_TEST
 START_TEST (test_translated_write_not_allowed)
 {
     ck_assert(handleIncomingMessage((uint8_t*)NON_WRITABLE_TRANSLATED_REQUEST,
-                strlen(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -463,35 +463,35 @@ START_TEST (test_translated_write_allowed_by_signal_override)
 {
     getCanBuses()[0].rawWritable = false;
     ck_assert(handleIncomingMessage((uint8_t*)WRITABLE_TRANSLATED_REQUEST,
-                strlen(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST)));
     fail_if(canQueueEmpty(0));
     ck_assert(handleIncomingMessage((uint8_t*)NON_WRITABLE_TRANSLATED_REQUEST,
-                strlen(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
 
 START_TEST (test_unrecognized_command_name)
 {
-    const char* request = "{\"command\": \"foo\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"foo\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
 
 START_TEST (test_unrecognized_message)
 {
-    const char* request = "{\"foo\": 1, \"bar\": 42, \"data\": \"0x1234\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"foo\": 1, \"bar\": 42, \"data\": \"0x1234\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
 
 START_TEST (test_version_message_in_stream)
 {
-    const char* request = "{\"command\": \"version\"}";
+    uint8_t request[] = "{\"command\": \"version\"}\0";
     ck_assert(outputQueueEmpty());
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(!outputQueueEmpty());
 
     char firmwareDescriptor[256] = {0};
@@ -506,8 +506,8 @@ END_TEST
 
 START_TEST (test_version_message)
 {
-    const char* request = "{\"command\": \"version\"}";
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    uint8_t request[] = "{\"command\": \"version\"}\0";
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     char firmwareDescriptor[256] = {0};
     getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
@@ -518,9 +518,9 @@ END_TEST
 
 START_TEST (test_device_id_message)
 {
-    const char* request = "{\"command\": \"device_id\"}";
+    uint8_t request[] = "{\"command\": \"device_id\"}\0";
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
     ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
                 getConfiguration()->uart.deviceId) != NULL);
@@ -529,10 +529,10 @@ END_TEST
 
 START_TEST (test_device_id_message_in_stream)
 {
-    const char* request = "{\"command\": \"device_id\"}";
+    uint8_t request[] = "{\"command\": \"device_id\"}\0";
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
     ck_assert(outputQueueEmpty());
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(!outputQueueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -710,9 +710,9 @@ END_TEST
 
 START_TEST (test_passthrough_request_message)
 {
-    const char* request = "{\"command\": \"passthrough\", \"bus\": 1, \"enabled\": true}";
+    uint8_t request[] = "{\"command\": \"passthrough\", \"bus\": 1, \"enabled\": true}\0";
     ck_assert(!getCanBuses()[0].passthroughCanMessages);
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(getCanBuses()[0].passthroughCanMessages);
 }
 END_TEST
@@ -734,9 +734,9 @@ END_TEST
 
 START_TEST (test_bypass_command)
 {
-    const char* request = "{\"command\": \"af_bypass\", \"bus\": 1, \"bypass\": true}";
+    uint8_t request[] = "{\"command\": \"af_bypass\", \"bus\": 1, \"bypass\": true}\0";
     ck_assert(!getCanBuses()[0].bypassFilters);
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert(getCanBuses()[0].bypassFilters);
 }
 END_TEST
@@ -757,9 +757,9 @@ END_TEST
 
 START_TEST (test_payload_format_command)
 {
-    const char* request = "{\"command\": \"payload_format\", \"bus\": 1, \"format\": \"protobuf\"}";
+    uint8_t request[] = "{\"command\": \"payload_format\", \"bus\": 1, \"format\": \"protobuf\"}\0";
     ck_assert_int_eq(PayloadFormat::JSON, getConfiguration()->payloadFormat);
-    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(handleIncomingMessage((uint8_t*)request, sizeof(request)));
     ck_assert_int_eq(PayloadFormat::PROTOBUF, getConfiguration()->payloadFormat);
 }
 END_TEST

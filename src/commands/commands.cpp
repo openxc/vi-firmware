@@ -49,11 +49,11 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
     return status;
 }
 
-bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
+size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
     openxc_VehicleMessage message = {0};
-    bool status = true;
-    if(length > 0 && openxc::payload::deserialize(payload, length,
-                getConfiguration()->payloadFormat, &message)) {
+    size_t bytesRead = 0;
+    if(length > 0 && (bytesRead = openxc::payload::deserialize(payload, length,
+                getConfiguration()->payloadFormat, &message)) > 0) {
         if(validate(&message)) {
             switch(message.type) {
             case openxc_VehicleMessage_Type_RAW:
@@ -67,7 +67,6 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
                 break;
             default:
                 debug("Incoming message had unrecognized type: %d", message.type);
-                status = false;
                 break;
             }
         } else {
@@ -77,9 +76,8 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
         debug("Unable to deserialize a message from the payload using format %s",
              getConfiguration()->payloadFormat == PayloadFormat::JSON ?
                  "JSON" : "Protobuf");
-        status = false;
     }
-    return status;
+    return bytesRead;
 }
 
 static bool validateControlCommand(openxc_VehicleMessage* message) {

@@ -456,9 +456,16 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
 
 bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
-    cJSON *root = cJSON_Parse((char*)payload);
+    // There may be junk data at the start of the payload - seek ahead to the
+    // start of the message.
+    char* jsonStart = strchr((char*)payload, '{');
+    if(jsonStart == NULL) {
+        return false;
+    }
+
+    cJSON *root = cJSON_Parse(jsonStart);
     if(root == NULL) {
-        debug("%s", "No JSON found in %u byte payload", length);
+        debug("No JSON found in %u byte payload", length);
         return false;
     }
 

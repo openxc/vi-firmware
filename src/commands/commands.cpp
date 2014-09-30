@@ -13,6 +13,7 @@
 #include "commands/simple_write_command.h"
 #include "commands/af_bypass_command.h"
 #include "commands/payload_format_command.h"
+#include "commands/predefined_obd2_command.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -34,6 +35,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_PASSTHROUGH:
             status = openxc::commands::handlePassthroughModeCommand(command);
+            break;
+        case openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS:
+            status = openxc::commands::handlePredefinedObd2RequestsCommand(command);
             break;
         case openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS:
             status = openxc::commands::handleFilterBypassCommand(command);
@@ -92,6 +96,10 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_PASSTHROUGH:
             valid = openxc::commands::validatePassthroughRequest(message);
+            break;
+        case openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS:
+            debug("1");
+            valid = openxc::commands::validatePredefinedObd2RequestsCommand(message);
             break;
         case openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS:
             valid = openxc::commands::validateFilterBypassCommand(message);

@@ -18,6 +18,7 @@ const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_reques
 const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
 const char openxc::payload::json::PAYLOAD_FORMAT_COMMAND_NAME[] = "payload_format";
+const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "predefined_obd2";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -96,6 +97,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PAYLOAD_FORMAT) {
         typeString = payload::json::PAYLOAD_FORMAT_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS) {
+        typeString = payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME;
     } else {
         return false;
     }
@@ -237,6 +240,19 @@ static void deserializePayloadFormat(cJSON* root,
             command->payload_format_command.format =
                     openxc_PayloadFormatCommand_PayloadFormat_PROTOBUF;
         }
+    }
+}
+
+static void deserializePredefinedObd2RequestsCommand(cJSON* root,
+        openxc_ControlCommand* command) {
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
+    command->has_predefined_obd2_requests_command = true;
+
+    cJSON* element = cJSON_GetObjectItem(root, "enabled");
+    if(element != NULL) {
+        command->predefined_obd2_requests_command.has_enabled = true;
+        command->predefined_obd2_requests_command.enabled = bool(element->valueint);
     }
 }
 
@@ -501,6 +517,10 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
             } else if(!strncmp(commandNameObject->valuestring,
                         PASSTHROUGH_COMMAND_NAME, strlen(PASSTHROUGH_COMMAND_NAME))) {
                 deserializePassthrough(root, command);
+            } else if(!strncmp(commandNameObject->valuestring,
+                        PREDEFINED_OBD2_REQUESTS_COMMAND_NAME,
+                            strlen(PREDEFINED_OBD2_REQUESTS_COMMAND_NAME))) {
+                deserializePredefinedObd2RequestsCommand(root, command);
             } else if(!strncmp(commandNameObject->valuestring,
                         ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME,
                         strlen(ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME))) {

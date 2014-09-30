@@ -58,6 +58,7 @@ static void resetQueues() {
 void setup() {
     getConfiguration()->desiredRunLevel = openxc::config::RunLevel::ALL_IO;
     getConfiguration()->obd2BusAddress = 0;
+    getConfiguration()->payloadFormat = PayloadFormat::JSON;
     initializeVehicleInterface();
     getConfiguration()->usb.configured = true;
     fail_unless(canQueueEmpty(0));
@@ -764,6 +765,28 @@ START_TEST (test_payload_format_command)
 }
 END_TEST
 
+START_TEST (test_validate_predefined_obd2_command)
+{
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
+    CONTROL_COMMAND.control_command.has_predefined_obd2_requests_command = true;
+    CONTROL_COMMAND.control_command.predefined_obd2_requests_command.has_enabled = true;
+    CONTROL_COMMAND.control_command.predefined_obd2_requests_command.enabled = true;
+    ck_assert(validate(&CONTROL_COMMAND));
+
+    CONTROL_COMMAND.control_command.has_type = false;
+    ck_assert(!validate(&CONTROL_COMMAND));
+}
+END_TEST
+
+START_TEST (test_predefined_obd2_command)
+{
+    const char* request = "{\"command\": \"predefined_obd2\", \"enabled\": true}";
+    ck_assert(!getConfiguration()->recurringObd2Requests);
+    ck_assert(handleIncomingMessage((uint8_t*)request, strlen(request)));
+    ck_assert(getConfiguration()->recurringObd2Requests);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("commands");
     TCase *tc_complex_commands = tcase_create("complex_commands");
@@ -818,6 +841,7 @@ Suite* suite(void) {
     tcase_add_test(tc_control_commands, test_passthrough_request_message);
     tcase_add_test(tc_control_commands, test_bypass_command);
     tcase_add_test(tc_control_commands, test_payload_format_command);
+    tcase_add_test(tc_control_commands, test_predefined_obd2_command);
     suite_add_tcase(s, tc_control_commands);
 
     TCase *tc_validation = tcase_create("validation");
@@ -847,6 +871,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);
     tcase_add_test(tc_validation, test_validate_bypass_command);
     tcase_add_test(tc_validation, test_validate_payload_format_command);
+    tcase_add_test(tc_validation, test_validate_predefined_obd2_command);
     suite_add_tcase(s, tc_validation);
 
     return s;

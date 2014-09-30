@@ -292,3 +292,24 @@ class MessageFormatTests(ViFunctionalTests):
         ok_(self.vi.set_payload_format("json"))
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
         self._check_received_message(self.can_message_queue.get(timeout=1))
+
+class PredefinedObd2RequestsTests(ViFunctionalTests):
+
+    def tearDown(self):
+        self.vi.set_predefined_obd2_requests(False)
+
+    def test_enable_predefined_obd2_requests_sends_Messages(self):
+        # TODO this test isn't very reliable since the check request isn't set
+        # every time the status is changed - fix that
+        ok_(self.vi.set_predefined_obd2_requests(True))
+        message = self.can_message_queue.get(timeout=1)
+        eq_(0x7df, message['id'])
+        eq_(1, message['bus'])
+        eq_(u"0x02010d0000000000", message['data'])
+        self.can_message_queue.task_done()
+
+        # TODO test that proper PID requests are sent if we response to the
+        # query properly
+
+        # TODO test that proper simple vehicle messages are sent if we reply to
+        # the PID request

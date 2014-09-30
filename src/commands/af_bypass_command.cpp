@@ -59,7 +59,7 @@ bool openxc::commands::handleFilterBypassCommand(openxc_ControlCommand* command)
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
     message.command_response.has_type = true;
-    message.command_response.type = openxc_ControlCommand_Type_PASSTHROUGH;
+    message.command_response.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
     message.command_response.has_message = false;
     message.command_response.has_status = true;
     message.command_response.status = status;

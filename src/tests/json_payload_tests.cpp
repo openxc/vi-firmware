@@ -113,6 +113,39 @@ START_TEST (test_payload_format_request)
 }
 END_TEST
 
+START_TEST (test_predefined_obd2_requests_response)
+{
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
+    message.command_response.has_status = true;
+    message.command_response.status = true;
+    uint8_t payload[256] = {0};
+    ck_assert(openxc::payload::json::serialize(&message,
+                payload, sizeof(payload)) > 0);
+}
+END_TEST
+
+START_TEST (test_predefined_obd2_requests_request)
+{
+    openxc_VehicleMessage message;
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
+    message.has_control_command = true;
+    message.control_command.has_type = true;
+    message.control_command.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
+    message.control_command.has_predefined_obd2_requests_command = true;
+    message.control_command.predefined_obd2_requests_command.has_enabled = true;
+    message.control_command.predefined_obd2_requests_command.enabled = true;
+    uint8_t payload[256] = {0};
+    ck_assert(openxc::payload::json::serialize(&message,
+                payload, sizeof(payload)) > 0);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("json_payload");
     TCase *tc_json_payload = tcase_create("json_payload");
@@ -123,6 +156,8 @@ Suite* suite(void) {
     tcase_add_test(tc_json_payload, test_af_bypass_request);
     tcase_add_test(tc_json_payload, test_payload_format_response);
     tcase_add_test(tc_json_payload, test_payload_format_request);
+    tcase_add_test(tc_json_payload, test_predefined_obd2_requests_response);
+    tcase_add_test(tc_json_payload, test_predefined_obd2_requests_request);
     suite_add_tcase(s, tc_json_payload);
 
     return s;

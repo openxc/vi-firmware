@@ -181,10 +181,6 @@ def functionaltest(skip_flashing=False):
         # * JTAG programmed attached to VI and USB of the host computer
         if skip_flashing is False or skip_flashing != 'True':
             local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
-
-            baremetal()
-            reference()
-            debug(uart_logging=True)
             flash()
 
             import time

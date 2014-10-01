@@ -60,7 +60,8 @@ class ControlCommandTests(ViFunctionalTests):
     def test_device_id(self):
         device_id = self.vi.device_id()
         ok_(device_id is not None)
-        eq_(len(device_id), 12)
+        if device_id != "Unknown":
+            eq_(len(device_id), 12)
 
 
 class CanMessageTests(ViFunctionalTests):

@@ -141,10 +141,9 @@ class DiagnosticRequestTests(ViFunctionalTests):
         self.payload = bytearray([0x12, 0x34])
 
     def test_diagnostic_request(self):
-        """This test is done with bus 1, since that has the CAN AF off, so we
-        can receive the sent message (via loopback) to validate it matches the
-        request.
-        """
+        # This test is done with bus 1, since that has the CAN AF off, so we
+        # can receive the sent message (via loopback) to validate it matches the
+        # request.
         self.vi.create_diagnostic_request(self.message_id, self.mode,
                 bus=self.bus, pid=self.pid, payload=self.payload)
         message = self.can_message_queue.get(timeout=1)
@@ -155,11 +154,10 @@ class DiagnosticRequestTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_diagnostic_request_changes_acceptance_filters(self):
-        """This test is done with bus 2, since that has the CAN AF ON, so we
-        make sure the VI can change the AF to accept responses.
+        # This test is done with bus 2, since that has the CAN AF ON, so we
+        # make sure the VI can change the AF to accept responses.
+        # We use bus 2 since that should still have the AF on.
 
-        We use bus 2 since that should still have the AF on.
-        """
         self.bus = 2
         self.vi.create_diagnostic_request(self.message_id, self.mode,
                 bus=self.bus, pid=self.pid, payload=self.payload)

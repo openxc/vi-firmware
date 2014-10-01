@@ -73,6 +73,7 @@ class CanMessageTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_send_and_receive_can_message(self):
+        self.vi.set_acceptance_filter_bypass(1, False)
         self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
         self._check_received_message(self.can_message_queue.get(timeout=1))
 

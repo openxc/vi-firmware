@@ -83,8 +83,9 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
                 SetupPkt.wLength > 0) {
             // Register callback for when all of the data from this incoming
             // control request is received
+            INCOMING_EP0_DATA_SIZE = SetupPkt.wLength;
             getConfiguration()->usb.device.EP0Receive(INCOMING_EP0_DATA_BUFFER,
-                    MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
+                    MIN(INCOMING_EP0_DATA_SIZE, sizeof(INCOMING_EP0_DATA_BUFFER)),
                         (void*)handleCompletedEP0OutTransfer);
         }
 

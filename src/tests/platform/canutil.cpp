@@ -1,12 +1,13 @@
 #include "canutil_spy.h"
 
-static bool _acceptanceFilterStatus = true;
+static bool _acceptanceFiltersUpdated = false;
 
-bool openxc::can::spy::getAcceptanceFilterStatus() {
-    return _acceptanceFilterStatus;
+bool openxc::can::spy::acceptanceFiltersUpdated() {
+    return _acceptanceFiltersUpdated;
 }
 
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
+    _acceptanceFiltersUpdated = true;
     return true;
 }
 
@@ -18,6 +19,6 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
 }
 
 bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
-    _acceptanceFilterStatus = enabled;
+    _acceptanceFiltersUpdated = false;
     return true;
 }

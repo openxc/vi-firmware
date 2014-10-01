@@ -7,7 +7,7 @@ namespace openxc {
 namespace can {
 namespace spy {
 
-bool getAcceptanceFilterStatus();
+bool acceptanceFiltersUpdated();
 
 } // spy
 } // can

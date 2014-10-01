@@ -210,11 +210,11 @@ END_TEST
 START_TEST (test_set_acceptance_filter_status)
 {
     ck_assert(setAcceptanceFilterStatus(&getCanBuses()[0], true, getCanBuses(), getCanBusCount()));
-    ck_assert(can::spy::getAcceptanceFilterStatus());
+    ck_assert(can::spy::acceptanceFiltersUpdated());
     ck_assert(!getCanBuses()[0].bypassFilters);
 
     ck_assert(setAcceptanceFilterStatus(&getCanBuses()[0], false, getCanBuses(), getCanBusCount()));
-    ck_assert(!can::spy::getAcceptanceFilterStatus());
+    ck_assert(can::spy::acceptanceFiltersUpdated());
     ck_assert(getCanBuses()[0].bypassFilters);
 }
 END_TEST

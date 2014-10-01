@@ -445,8 +445,7 @@ bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled,
     bus->bypassFilters = !enabled;
     debug("CAN AF for bus %d is now %s", bus->address,
             bus->bypassFilters ? "bypassed" : "enabled");
-    return resetAcceptanceFilterStatus(bus, !bus->bypassFilters) &&
-            updateAcceptanceFilterTable(buses, busCount);
+    return updateAcceptanceFilterTable(buses, busCount);
 }
 
 bool openxc::can::shouldAcceptMessage(CanBus* bus, uint32_t messageId) {

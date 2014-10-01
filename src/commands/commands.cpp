@@ -98,7 +98,6 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             valid = openxc::commands::validatePassthroughRequest(message);
             break;
         case openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS:
-            debug("1");
             valid = openxc::commands::validatePredefinedObd2RequestsCommand(message);
             break;
         case openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS:

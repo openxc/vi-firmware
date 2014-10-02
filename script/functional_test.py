@@ -53,8 +53,20 @@ class ViFunctionalTests(unittest.TestCase):
             cls.diagnostic_response_queue.put(message)
 
 
-class ControlCommandTests(ViFunctionalTests):
+class ProtobufBaseTests(ViFunctionalTests):
+    @classmethod
+    def setUpClass(cls):
+        super(ProtobufBaseTests, cls).setUpClass()
+        cls.vi.set_payload_format("protobuf")
 
+class JsonBaseTests(ViFunctionalTests):
+    @classmethod
+    def setUpClass(cls):
+        super(JsonBaseTests, cls).setUpClass()
+        cls.vi.set_payload_format("json")
+
+
+class ControlCommandTests(object):
     def test_version(self):
         # TODO it'd be nice to read this from src/version.c
         eq_(self.vi.version(), "6.0.4-dev (functional_tests)")
@@ -65,8 +77,13 @@ class ControlCommandTests(ViFunctionalTests):
         if device_id != "Unknown":
             eq_(len(device_id), 12)
 
+class ControlCommandTestsJson(ProtobufBaseTests, ControlCommandTests):
+    pass
 
-class CanMessageTests(ViFunctionalTests):
+class ControlCommandTestsProtobuf(ProtobufBaseTests, ControlCommandTests):
+    pass
+
+class CanMessageTests(object):
 
     def _check_received_message(self, message):
         eq_(self.message_id, message['id'])
@@ -75,29 +92,29 @@ class CanMessageTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_send_and_receive_can_message(self):
-        self.vi.set_acceptance_filter_bypass(1, False)
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        ok_(self.vi.set_acceptance_filter_bypass(1, False))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
     def test_nonmatching_can_message_received_on_unfiltered_bus(self):
-        self.vi.set_acceptance_filter_bypass(1, True)
+        ok_(self.vi.set_acceptance_filter_bypass(1, True))
         self.message_id += 1
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
     def test_matching_can_message_received_on_filtered_bus(self):
-        self.vi.set_acceptance_filter_bypass(2, False)
+        ok_(self.vi.set_acceptance_filter_bypass(2, False))
         self.message_id = 0x43
         self.bus = 2
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
     def test_nonmatching_can_message_not_received_on_filtered_bus(self):
-        self.vi.set_acceptance_filter_bypass(2, False)
+        ok_(self.vi.set_acceptance_filter_bypass(2, False))
         self.bus = 2
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
         try:
-            message = self.can_message_queue.get(timeout=1)
+            message = self.can_message_queue.get(timeout=.5)
         except Empty:
             pass
         else:
@@ -106,36 +123,51 @@ class CanMessageTests(ViFunctionalTests):
 
     def test_send_and_receive_extended_can_frame(self):
         self.message_id = 0x809
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
-class SimpleVehicleMessageTests(ViFunctionalTests):
+class CanMessageTestsJson(JsonBaseTests, CanMessageTests):
+    pass
+
+class CanMessageTestsProtobuf(ProtobufBaseTests, CanMessageTests):
+    pass
+
+class SimpleVehicleMessageTests(object):
 
     def setUp(self):
-        super(SimpleVehicleMessageTests, self).setUp()
         self.message1_data = "0x0000000000000dac"
         self.data = "0x1234"
         self.expected_signal_value = 0xdac
 
     def test_receive_simple_vehicle_message_bus1(self):
-        self.vi.write(bus=1, id=0x42, data=self.message1_data)
-        message = self.simple_vehicle_message_queue.get(timeout=1)
+        ok_(self.vi.write(bus=1, id=0x42, data=self.message1_data))
+        message = self.simple_vehicle_message_queue.get(timeout=.5)
         eq_(message['name'], "signal1")
         eq_(message['value'], self.expected_signal_value)
         self.simple_vehicle_message_queue.task_done()
 
     def test_receive_simple_vehicle_message_bus2(self):
         message_data = "0x8000000000000000"
-        self.vi.write(bus=2, id=0x43, data=message_data)
-        message = self.simple_vehicle_message_queue.get(timeout=1)
+        ok_(self.vi.write(bus=2, id=0x43, data=message_data))
+        message = self.simple_vehicle_message_queue.get(timeout=.5)
         eq_(message['name'], "signal2")
         eq_(message['value'], 1)
         self.simple_vehicle_message_queue.task_done()
 
-class DiagnosticRequestTests(ViFunctionalTests):
+class SimpleVehicleMessageTestsJson(JsonBaseTests, SimpleVehicleMessageTests):
+    def setUp(self):
+        super(SimpleVehicleMessageTestsJson, self).setUp()
+        SimpleVehicleMessageTests.setUp(self)
+
+class SimpleVehicleMessageTestsProtobuf(ProtobufBaseTests,
+        SimpleVehicleMessageTests):
+    def setUp(self):
+        super(SimpleVehicleMessageTestsProtobuf, self).setUp()
+        SimpleVehicleMessageTests.setUp(self)
+
+class DiagnosticRequestTests(object):
 
     def setUp(self):
-        super(DiagnosticRequestTests, self).setUp()
         self.message_id = 0x121
         self.mode = 3
         self.bus = 1
@@ -146,9 +178,9 @@ class DiagnosticRequestTests(ViFunctionalTests):
         # This test is done with bus 1, since that has the CAN AF off, so we
         # can receive the sent message (via loopback) to validate it matches the
         # request.
-        self.vi.create_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid, payload=self.payload)
-        message = self.can_message_queue.get(timeout=1)
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload))
+        message = self.can_message_queue.get(timeout=.5)
         eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
         eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
@@ -161,16 +193,16 @@ class DiagnosticRequestTests(ViFunctionalTests):
         # We use bus 2 since that should still have the AF on.
 
         self.bus = 2
-        self.vi.create_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid, payload=self.payload)
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload))
         # send the response, which should be accepted by the AF
         response_id = self.message_id + 0x8
         # we don't care about the payload at this point, just want to make sure
         # we receive the raw CAN message
-        self.vi.write(bus=self.bus, id=response_id, data="0xabcd")
+        ok_(self.vi.write(bus=self.bus, id=response_id, data="0xabcd"))
         message = None
         while message is None:
-            message = self.can_message_queue.get(timeout=1)
+            message = self.can_message_queue.get(timeout=.5)
             if message['id'] == self.message_id:
                 # skip the request
                 continue
@@ -180,14 +212,14 @@ class DiagnosticRequestTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_receive_diagnostic_response(self):
-        self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
-                pid=self.pid, payload=self.payload)
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
+                pid=self.pid, payload=self.payload))
 
         response_id = self.message_id + 0x8
         # we don't care about the payload at this point, just want to make sure
         # we receive the raw CAN message
-        self.vi.write(bus=self.bus, id=response_id, data="0x03430142")
-        response = self.diagnostic_response_queue.get(timeout=1)
+        ok_(self.vi.write(bus=self.bus, id=response_id, data="0x03430142"))
+        response = self.diagnostic_response_queue.get(timeout=.5)
         eq_(self.message_id, response['id'])
         eq_(self.bus, response['bus'])
         eq_(self.mode, response['mode'])
@@ -200,14 +232,14 @@ class DiagnosticRequestTests(ViFunctionalTests):
     def test_receive_obd_formatted_diagnostic_response(self):
         self.pid = 0xa
         self.mode = 1
-        self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
-                pid=self.pid, payload=self.payload, decoded_type="obd2")
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
+                pid=self.pid, payload=self.payload, decoded_type="obd2"))
         response_id = self.message_id + 0x8
         response_value = 0x42
-        self.vi.write(bus=self.bus, id=response_id, data="0x034%01x%02x%02x" % (
-                self.mode, self.pid, response_value))
+        ok_(self.vi.write(bus=self.bus, id=response_id, data="0x034%01x%02x%02x" % (
+                self.mode, self.pid, response_value)))
 
-        response = self.diagnostic_response_queue.get(timeout=1)
+        response = self.diagnostic_response_queue.get(timeout=.5)
         eq_(self.message_id, response['id'])
         eq_(self.bus, response['bus'])
         eq_(self.mode, response['mode'])
@@ -217,37 +249,47 @@ class DiagnosticRequestTests(ViFunctionalTests):
         self.diagnostic_response_queue.task_done()
 
     def test_create_recurring_request(self):
-        self.vi.create_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid, payload=self.payload,
-                frequency=10)
         try:
+            ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
+                    bus=self.bus, pid=self.pid, payload=self.payload,
+                    frequency=10))
             for _ in range(5):
-                message = self.can_message_queue.get(timeout=1)
+                message = self.can_message_queue.get(timeout=.5)
                 eq_(self.message_id, message['id'])
                 eq_(self.bus, message['bus'])
                 eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
                         binascii.hexlify(self.payload)), message['data'])
                 self.can_message_queue.task_done()
         finally:
-            self.vi.delete_diagnostic_request(self.message_id, self.mode,
-                    bus=self.bus, pid=self.pid)
+            ok_(self.vi.delete_diagnostic_request(self.message_id, self.mode,
+                    bus=self.bus, pid=self.pid))
 
     def test_cancel_diagnostic_request(self):
-        self.vi.create_diagnostic_request(self.message_id, self.mode,
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
                 bus=self.bus, pid=self.pid, payload=self.payload,
-                frequency=5)
+                frequency=5))
         time.sleep(1)
-        self.vi.delete_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid)
+        ok_(self.vi.delete_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid))
         ViFunctionalTests.can_message_queue = Queue()
         try:
-            self.can_message_queue.get(timeout=1)
+            self.can_message_queue.get(timeout=.5)
         except Empty:
             pass
         else:
             ok_(False)
 
-class CanAcceptanceFilterChangeTests(ViFunctionalTests):
+class DiagnosticRequestTestsJson(JsonBaseTests, DiagnosticRequestTests):
+    def setUp(self):
+        super(DiagnosticRequestTestsJson, self).setUp()
+        DiagnosticRequestTests.setUp(self)
+
+class DiagnosticRequestTestsProtobuf(ProtobufBaseTests, DiagnosticRequestTests):
+    def setUp(self):
+        super(DiagnosticRequestTestsProtobuf, self).setUp()
+        DiagnosticRequestTests.setUp(self)
+
+class CanAcceptanceFilterChangeTests(object):
 
     def _check_received_message(self, message):
         eq_(self.message_id, message['id'])
@@ -256,29 +298,37 @@ class CanAcceptanceFilterChangeTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_message_not_received_after_filters_enabled(self):
-        self.vi.set_acceptance_filter_bypass(1, False)
+        ok_(self.vi.set_acceptance_filter_bypass(1, False))
         # Should receive only 42
-        self.vi.write(bus=self.bus, id=self.message_id, data=self.data)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
-        self.vi.write(bus=self.bus, id=self.message_id + 1, data=self.data)
+        ok_(self.vi.write(bus=self.bus, id=self.message_id + 1, data=self.data))
         try:
-            self.can_message_queue.get(timeout=1)
+            self.can_message_queue.get(timeout=.5)
         except Empty:
             pass
         else:
             ok_(False)
 
     def test_nonmatching_can_message_received_on_unfiltered_bus(self):
-        self.vi.set_acceptance_filter_bypass(1, True)
+        ok_(self.vi.set_acceptance_filter_bypass(1, True))
         self.message_id += 1
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
-class MessageFormatTests(ViFunctionalTests):
+class CanAcceptanceFilterChangeTestsJson(JsonBaseTests,
+        CanAcceptanceFilterChangeTests):
+    pass
+
+class CanAcceptanceFilterChangeTestsProtobuf(ProtobufBaseTests,
+        CanAcceptanceFilterChangeTests):
+    pass
+
+class PayloadFormatTests(ViFunctionalTests):
 
     def tearDown(self):
-        self.vi.set_payload_format("json")
+        ok_(self.vi.set_payload_format("json"))
 
     def _check_received_message(self, message):
         eq_(self.message_id, message['id'])
@@ -289,23 +339,23 @@ class MessageFormatTests(ViFunctionalTests):
     def test_change_to_binary(self):
         ok_(self.vi.set_payload_format("protobuf"))
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
     def test_change_to_json(self):
         ok_(self.vi.set_payload_format("json"))
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
-        self._check_received_message(self.can_message_queue.get(timeout=1))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
 
-class PredefinedObd2RequestsTests(ViFunctionalTests):
+class PredefinedObd2RequestsTests(object):
 
     def tearDown(self):
-        self.vi.set_predefined_obd2_requests(False)
+        ok_(self.vi.set_predefined_obd2_requests(False))
 
     def test_enable_predefined_obd2_requests_sends_Messages(self):
         # TODO this test isn't very reliable since the check request isn't set
         # every time the status is changed - fix that
         ok_(self.vi.set_predefined_obd2_requests(True))
-        message = self.can_message_queue.get(timeout=1)
+        message = self.can_message_queue.get(timeout=.5)
         eq_(0x7df, message['id'])
         eq_(1, message['bus'])
         eq_(u"0x02010d0000000000", message['data'])
@@ -316,3 +366,11 @@ class PredefinedObd2RequestsTests(ViFunctionalTests):
 
         # TODO test that proper simple vehicle messages are sent if we reply to
         # the PID request
+
+class PredefinedObd2RequestsTestsJson(JsonBaseTests,
+        PredefinedObd2RequestsTests):
+    pass
+
+class PredefinedObd2RequestsTestsProtobuf(ProtobufBaseTests,
+        PredefinedObd2RequestsTests):
+    pass

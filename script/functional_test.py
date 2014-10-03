@@ -347,31 +347,55 @@ class PayloadFormatTests(ViFunctionalTests):
         self._check_received_message(self.can_message_queue.get(timeout=.5))
 
 class PredefinedObd2RequestsTests(object):
-    def setUp(self):
-        ok_(self.vi.set_predefined_obd2_requests(False))
-
     def tearDown(self):
         ok_(self.vi.set_predefined_obd2_requests(False))
 
-    def test_enable_predefined_obd2_requests_sends_Messages(self):
+    def test_enable_predefined_obd2_requests_sends_messages(self):
         ok_(self.vi.set_predefined_obd2_requests(True))
-
-        message = self.can_message_queue.get(timeout=1)
+        message = self.can_message_queue.get(timeout=6)
         eq_(0x7df, message['id'])
         eq_(1, message['bus'])
         eq_(u"0x02010d0000000000", message['data'])
         self.can_message_queue.task_done()
 
-        # TODO test that proper PID requests are sent if we response to the
-        # query properly
+    def test_disable_predefined_obd2_requests_stops_messages(self):
+        ok_(self.vi.set_predefined_obd2_requests(True))
+        message = self.can_message_queue.get(timeout=6)
+        ok_(message is not None)
+        ok_(self.vi.set_predefined_obd2_requests(False))
+        try:
+            while self.can_message_queue.get(timeout=.5) is None:
+                continue
+        except Empty:
+            pass
 
+        message = None
+        try:
+            message = self.can_message_queue.get(timeout=6)
+        except Empty:
+            pass
+        eq_(None, message)
+
+    def test_pid_request_set_after_support_query(self):
+        # TODO test that proper PID requests are sent if we response to the
+        # query properly. It's tough because we have to response in 100ms from
+        # the request, which with the delays on USB is difficult.
+        pass
+
+    def test_simple_vehicle_message_response_for_pid(self):
         # TODO test that proper simple vehicle messages are sent if we reply to
-        # the PID request
+        # the PID request. difficult because of the reasons mentioned above.
+        pass
+
 
 class PredefinedObd2RequestsTestsJson(JsonBaseTests,
         PredefinedObd2RequestsTests):
-    pass
+    def tearDown(self):
+        super(PredefinedObd2RequestsTestsJson, self).tearDown()
+        PredefinedObd2RequestsTests.tearDown(self)
 
 class PredefinedObd2RequestsTestsProtobuf(ProtobufBaseTests,
         PredefinedObd2RequestsTests):
-    pass
+    def tearDown(self):
+        super(PredefinedObd2RequestsTestsProtobuf, self).tearDown()
+        PredefinedObd2RequestsTests.tearDown(self)

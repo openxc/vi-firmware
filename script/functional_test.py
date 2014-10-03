@@ -347,15 +347,16 @@ class PayloadFormatTests(ViFunctionalTests):
         self._check_received_message(self.can_message_queue.get(timeout=.5))
 
 class PredefinedObd2RequestsTests(object):
+    def setUp(self):
+        ok_(self.vi.set_predefined_obd2_requests(False))
 
     def tearDown(self):
         ok_(self.vi.set_predefined_obd2_requests(False))
 
     def test_enable_predefined_obd2_requests_sends_Messages(self):
-        # TODO this test isn't very reliable since the check request isn't set
-        # every time the status is changed - fix that
         ok_(self.vi.set_predefined_obd2_requests(True))
-        message = self.can_message_queue.get(timeout=.5)
+
+        message = self.can_message_queue.get(timeout=1)
         eq_(0x7df, message['id'])
         eq_(1, message['bus'])
         eq_(u"0x02010d0000000000", message['data'])

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import os
 import time
 import unittest
 from nose.tools import eq_, ok_
@@ -19,8 +20,13 @@ SOURCE = None
 def setUpModule():
     configure_logging()
 
+    # A bit of a hack to let us pass the product ID in at the command line, so
+    # we can have 2 devices attached for testing at a time so it's more
+    # automated. Set the VI_FUNC_TESTS_USB_PRODUCT_ID environment variable to a
+    # number you want to use for the product ID.
+    usb_product_id = os.getenv('VI_FUNC_TESTS_USB_PRODUCT_ID', None)
     global SOURCE
-    SOURCE = UsbVehicleInterface(format="json")
+    SOURCE = UsbVehicleInterface(format="json", product_id=usb_product_id)
     SOURCE.start()
 
 class ViFunctionalTests(unittest.TestCase):
@@ -360,7 +366,7 @@ class PredefinedObd2RequestsTests(object):
 
     def test_disable_predefined_obd2_requests_stops_messages(self):
         ok_(self.vi.set_predefined_obd2_requests(True))
-        message = self.can_message_queue.get(timeout=6)
+        message = self.can_message_queue.get(timeout=5)
         ok_(message is not None)
         ok_(self.vi.set_predefined_obd2_requests(False))
         try:

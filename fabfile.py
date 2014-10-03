@@ -20,6 +20,8 @@ env.debug = False
 env.transmitter = False
 env.bootloader = True
 env.uart_logging = False
+env.usb_product_id = 1
+env.power_management = "SILENT_CAN"
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
@@ -119,8 +121,8 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
         'DEFAULT_OUTPUT_FORMAT': "JSON",
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
-        'DEFAULT_POWER_MANAGEMENT': "SILENT_CAN",
-        'DEFAULT_USB_PRODUCT_ID': 0x1,
+        'DEFAULT_POWER_MANAGEMENT': env.power_management,
+        'DEFAULT_USB_PRODUCT_ID': env.usb_product_id,
         'DEFAULT_EMULATED_DATA_STATUS': False,
         'DEFAULT_OBD2_BUS': 1,
         'NETWORK': False,
@@ -185,7 +187,22 @@ def functionaltest(skip_flashing=False):
 
             import time
             time.sleep(2)
-        local("nosetests -vs script/functional_test.py")
+        local("VI_FUNC_TESTS_USB_PRODUCT_ID=%d " % env.usb_product_id +
+                "nosetests -vs script/functional_test.py")
+
+@task
+def autofunctest(skip_flashing=False):
+    # Must use debug so the VI doesn't turn off
+    env.power_management = "ALWAYS_ON"
+
+    env.usb_product_id = 1
+    baremetal()
+    reference()
+    functionaltest(skip_flashing=skip_flashing)
+
+    env.usb_product_id = 2
+    chipkit()
+    functionaltest(skip_flashing=skip_flashing)
 
 @task
 def transmitter():

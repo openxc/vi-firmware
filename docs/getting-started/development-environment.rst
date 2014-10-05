@@ -91,13 +91,13 @@ do the compilation from within the VM.
    VM.
 #. If the initialization completes with no errors, run ``vagrant ssh`` to open a
    shell in the VM.
-#. Your local copy of the ``vi-firmware`` repository is shared with the VM at
-   the path ``/vagrant``. Go into that directory and compile away:
+#. The ``vi-firmware`` directly is shared with the VM in the default home
+   directory. Move into that directory and compile away:
 
 .. code-block:: sh
 
-   $ cd /vagrant/
-   /vagrant/ $ fab reference build
+   $ cd vi-firmware
+   ~/vi-firmware $ fab reference build
 
 You can edit the source code from your native OS and re-run ``fab reference
 build`` from the Vagrant shell to compile (to compile for the reference VI, for

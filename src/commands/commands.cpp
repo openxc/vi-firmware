@@ -53,7 +53,8 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
     return status;
 }
 
-size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
+size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
+        openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     openxc_VehicleMessage message = {0};
     size_t bytesRead = 0;
     if(length > 0 && (bytesRead = openxc::payload::deserialize(payload, length,
@@ -61,7 +62,7 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length)
         if(validate(&message)) {
             switch(message.type) {
             case openxc_VehicleMessage_Type_RAW:
-                handleRaw(&message);
+                handleRaw(&message, sourceInterfaceDescriptor);
                 break;
             case openxc_VehicleMessage_Type_TRANSLATED:
                 handleTranslated(&message);

@@ -36,10 +36,20 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         initialized: false,
         runLevel: RunLevel::NOT_RUNNING,
         uart: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+            },
             baudRate: UART_BAUD_RATE
         },
-        network: {},
+        network: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_NETWORK
+            }
+        },
         usb: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_USB
+            },
             endpoints: {
                 {IN_ENDPOINT_NUMBER, DATA_ENDPOINT_SIZE,
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},

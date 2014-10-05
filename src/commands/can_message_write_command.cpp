@@ -2,7 +2,7 @@
 #include "commands/can_message_write_command.h"
 #include "config.h"
 #include "diagnostics.h"
-#include "interface/usb.h"
+#include "interface/interface.h"
 #include "util/log.h"
 #include "config.h"
 #include "openxc.pb.h"
@@ -13,28 +13,16 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
-using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
-using openxc::config::getConfiguration;
-using openxc::payload::PayloadFormat;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
-using openxc::signals::getSignals;
-using openxc::signals::getSignalCount;
-using openxc::signals::getCommands;
-using openxc::signals::getCommandCount;
 using openxc::can::lookupBus;
-using openxc::can::lookupSignal;
 
 namespace can = openxc::can;
-namespace payload = openxc::payload;
-namespace config = openxc::config;
-namespace diagnostics = openxc::diagnostics;
-namespace usb = openxc::interface::usb;
-namespace uart = openxc::interface::uart;
-namespace pipeline = openxc::pipeline;
+namespace interface = openxc::interface;
 
-bool openxc::commands::handleRaw(openxc_VehicleMessage* message) {
+bool openxc::commands::handleRaw(openxc_VehicleMessage* message,
+        openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     bool status = true;
     if(message->has_raw_message) {
         openxc_RawMessage* rawMessage = &message->raw_message;
@@ -46,7 +34,11 @@ bool openxc::commands::handleRaw(openxc_VehicleMessage* message) {
             debug("No bus specified for write, using the first active: %d", matchingBus->address);
         }
 
-        if(matchingBus == NULL) {
+        if(!sourceInterfaceDescriptor->allowRawWrites) {
+            debug("Direct CAN message writes not allowed from %s interface",
+                    interface::descriptorToString(sourceInterfaceDescriptor));
+            status = false;
+        } else if(matchingBus == NULL) {
             debug("No matching active bus for requested address: %d",
                     rawMessage->bus);
             status = false;

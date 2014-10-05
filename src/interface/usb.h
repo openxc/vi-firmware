@@ -1,12 +1,14 @@
-#ifndef _USBUTIL_H_
-#define _USBUTIL_H_
+#ifndef __INTERFACE_USB_H__
+#define __INTERFACE_USB_H__
+
+#include <string.h>
+#include <stdint.h>
 
 #ifdef __PIC32__
 #include "chipKITUSBDevice.h"
 #endif // __PIC32__
 
-#include <string.h>
-#include <stdint.h>
+#include "interface.h"
 #include "usb_config.h"
 #include "util/bytebuffer.h"
 #include "usb_config.h"
@@ -50,21 +52,20 @@ typedef struct {
 
 /* Public: a container for a VI USB device and associated metadata.
  *
+ * descriptor - A general descriptor for this interface.
  * endpoints - An array of addresses for the endpoints to use.
  * configured - A flag that indicates if the USB interface has been configured
  *      by a host. Once true, this will not be set to false until the board is
  *      reset.
- * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
- *      true, accept raw write requests from the USB interface.
  *
  * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
+    InterfaceDescriptor descriptor;
     // TODO what if we had two UsbEndpoint types, one for in and one for out?
     // how would we index into the array?
     UsbEndpoint endpoints[ENDPOINT_COUNT];
     bool configured;
-    bool allowRawWrites;
 #ifdef __PIC32__
     USBDevice device;
 #endif // __PIC32__
@@ -134,8 +135,10 @@ void deinitialize(UsbDevice*);
  */
 void deinitializeCommon(UsbDevice*);
 
+size_t handleIncomingMessage(uint8_t payload[], size_t length);
+
 } // namespace usb
 } // namespace interface
 } // namespace openxc
 
-#endif // _USBUTIL_H_
+#endif // __INTERFACE_USB_H__

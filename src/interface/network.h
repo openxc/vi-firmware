@@ -1,5 +1,7 @@
-#ifndef _NETWORKUTIL_H_
-#define _NETWORKUTIL_H_
+#ifndef __INTERFACE_NETWORK_H__
+#define __INTERFACE_NETWORK_H__
+
+#include <stdlib.h>
 
 #if defined(__PIC32__) && defined(__USE_NETWORK__)
 #include "chipKITEthernet.h"
@@ -7,7 +9,7 @@
 
 #include "util/bytebuffer.h"
 #include "commands/commands.h"
-#include <stdlib.h>
+#include "interface.h"
 
 #define USE_DHCP
 
@@ -18,12 +20,11 @@ namespace network {
 /* Public: A container for an network connection with queues for both input and
  * output.
  *
+ * descriptor - A general descriptor for this interface.
  * macAddress - MAC address for network device. DEFAULT_MAC_ADRESS will use the
  *      hardware-specified address.
  * ipAddress - static IP address for the network device. If USE_DHCP is defined,
  *      this is ignored.
- * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
- *      true, accept raw write requests from the network interface.
  *
  * sendQueue - A queue of bytes that need to be sent out over an IP network.
  * receiveQueue - A queue of bytes that have been received via an IP network but
@@ -32,9 +33,9 @@ namespace network {
  *      clients.
  */
 typedef struct {
+    InterfaceDescriptor descriptor;
     uint8_t ipAddress[4];
     uint8_t macAddress[6];
-    bool allowRawWrites;
 
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
@@ -62,8 +63,10 @@ void processSendQueue(NetworkDevice* device);
 void read(NetworkDevice* device,
         openxc::util::bytebuffer::IncomingMessageCallback callback);
 
+size_t handleIncomingMessage(uint8_t payload[], size_t length);
+
 } // namespace network
 } // namespace interface
 } // namespace openxc
 
-#endif
+#endif // __INTERFACE_NETWORK_H__

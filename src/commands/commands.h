@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "openxc.pb.h"
+#include "interface/interface.h"
 
 namespace openxc {
 namespace commands {
@@ -25,7 +27,8 @@ namespace commands {
  * Returns the number of bytes read from the payload for a complete message, if
  * any was found.
  */
-size_t handleIncomingMessage(uint8_t payload[], size_t payloadLength);
+size_t handleIncomingMessage(uint8_t payload[], size_t payloadLength,
+        openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor);
 
 /* Public: Validate the data in an OpenXC message;
  *

@@ -21,6 +21,8 @@ using openxc::config::getFirmwareDescriptor;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::payload::PayloadFormat;
+using openxc::interface::InterfaceDescriptor;
+using openxc::interface::InterfaceType;
 
 extern void initializeVehicleInterface();
 
@@ -36,6 +38,11 @@ QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
 openxc_VehicleMessage RAW_MESSAGE;
 openxc_VehicleMessage TRANSLATED_MESSAGE;
 openxc_VehicleMessage CONTROL_COMMAND;
+
+InterfaceDescriptor DESCRIPTOR = {
+    allowRawWrites: true,
+    type: InterfaceType::USB
+};
 
 bool outputQueueEmpty() {
     return QUEUE_EMPTY(uint8_t, OUTPUT_QUEUE);
@@ -129,7 +136,7 @@ START_TEST (test_raw_write_no_matching_bus)
 {
     getCanBuses()[0].rawWritable = true;
     uint8_t request[] = "{\"bus\": 3, \"id\": 42, \"data\": \"0x1234\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
     fail_unless(canQueueEmpty(1));
 }
@@ -139,7 +146,7 @@ START_TEST (test_raw_write_missing_bus)
 {
     getCanBuses()[0].rawWritable = true;
     uint8_t request[] = "{\"id\": 42, \"data\": \"0x1234\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -149,7 +156,7 @@ START_TEST (test_raw_write_missing_bus_no_buses)
     getCanBuses()[0].rawWritable = true;
     getActiveMessageSet()->busCount = 0;
     uint8_t request[] = "{\"id\": 42, \"data\": \"0x1234\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -159,7 +166,7 @@ START_TEST (test_raw_write_without_0x_prefix)
     getCanBuses()[0].rawWritable = true;
     uint8_t request[] = "{\"bus\": 1, \"id\": 42, \"data\""
             ": \"1234567812345678\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -180,7 +187,7 @@ START_TEST (test_raw_write)
     getCanBuses()[0].rawWritable = true;
     uint8_t request[] = "{\"bus\": 1, \"id\": 42, \"data\": \""
             "0x1234567812345678\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -199,8 +206,8 @@ END_TEST
 START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage(RAW_REQUEST,
-                sizeof(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+                &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
@@ -215,9 +222,74 @@ END_TEST
 START_TEST (test_raw_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
-    ck_assert(handleIncomingMessage(RAW_REQUEST,
-                sizeof(RAW_REQUEST)));
+    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+                &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_raw_write_not_allowed_from_source_interface)
+{
+    getCanBuses()[0].rawWritable = true;
+    DESCRIPTOR.allowRawWrites = false;
+    DESCRIPTOR.type = InterfaceType::UART;
+    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+                &DESCRIPTOR));
+    fail_unless(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_raw_write_not_allowed_from_usb)
+{
+    getCanBuses()[0].rawWritable = true;
+    getConfiguration()->usb.descriptor.allowRawWrites = false;
+    getConfiguration()->uart.descriptor.allowRawWrites = true;
+    getConfiguration()->network.descriptor.allowRawWrites = true;
+    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_unless(canQueueEmpty(0));
+
+    // Make sure we can still write on the other interfaces
+    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_raw_write_not_allowed_from_uart)
+{
+    getCanBuses()[0].rawWritable = true;
+    getConfiguration()->usb.descriptor.allowRawWrites = true;
+    getConfiguration()->uart.descriptor.allowRawWrites = false;
+    getConfiguration()->network.descriptor.allowRawWrites = true;
+    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_unless(canQueueEmpty(0));
+
+    // Make sure we can still write on the other interfaces
+    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_raw_write_not_allowed_from_network)
+{
+    getCanBuses()[0].rawWritable = true;
+    getConfiguration()->usb.descriptor.allowRawWrites = true;
+    getConfiguration()->uart.descriptor.allowRawWrites = true;
+    getConfiguration()->network.descriptor.allowRawWrites = false;
+    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_unless(canQueueEmpty(0));
+
+    // Make sure we can still write on the other interfaces
+    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
+    resetQueues();
+    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    fail_if(canQueueEmpty(0));
 }
 END_TEST
 
@@ -226,7 +298,7 @@ START_TEST (test_named_diagnostic_request)
     uint8_t request[] = "{\"command\": \"diagnostic_request\","
            " \"action\": \"add\", \"request\": {\"name\": \"foobar\", "
            "\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -243,7 +315,7 @@ START_TEST (test_diagnostic_request_with_payload_without_0x_prefix)
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": "
             "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
             "\"payload\": \"1234\"}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -266,7 +338,7 @@ START_TEST (test_diagnostic_request_with_payload)
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": "
             "\"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, "
             "\"payload\": \"0x1234\"}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -287,7 +359,7 @@ END_TEST
 START_TEST (test_diagnostic_request_missing_request)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -298,7 +370,7 @@ START_TEST (test_diagnostic_request_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
     ck_assert(handleIncomingMessage(DIAGNOSTIC_REQUEST,
-                sizeof(DIAGNOSTIC_REQUEST)));
+                sizeof(DIAGNOSTIC_REQUEST), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -308,7 +380,7 @@ END_TEST
 START_TEST (test_explicit_obd2_decoded_type)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"obd2\"}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder ==
             openxc::diagnostics::obd2::handleObd2Pid);
@@ -318,7 +390,7 @@ END_TEST
 START_TEST (test_recognized_obd2_request_overridden)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4, \"decoded_type\": \"none\"}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
     ck_assert(LIST_FIRST(&getConfiguration()->diagnosticsManager.nonrecurringRequests)->decoder == openxc::diagnostics::passthroughDecoder);
 }
@@ -327,7 +399,7 @@ END_TEST
 START_TEST (test_recognized_obd2_request)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1, \"pid\": 4}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     ck_assert(!LIST_EMPTY(&getConfiguration()->diagnosticsManager.nonrecurringRequests));
@@ -339,7 +411,7 @@ END_TEST
 START_TEST (test_diagnostic_request)
 {
     ck_assert(handleIncomingMessage(DIAGNOSTIC_REQUEST,
-                sizeof(DIAGNOSTIC_REQUEST)));
+                sizeof(DIAGNOSTIC_REQUEST), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -350,7 +422,7 @@ END_TEST
 START_TEST (test_diagnostic_request_missing_mode)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"id\": 2}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -360,7 +432,7 @@ END_TEST
 START_TEST (test_diagnostic_request_missing_arb_id)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 1, \"mode\": 1}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -370,7 +442,7 @@ END_TEST
 START_TEST (test_diagnostic_request_missing_bus)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"id\": 2, \"mode\": 1}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_if(canQueueEmpty(0));
@@ -380,7 +452,7 @@ END_TEST
 START_TEST (test_diagnostic_request_invalid_bus)
 {
     uint8_t request[] = "{\"command\": \"diagnostic_request\", \"action\": \"add\", \"request\": {\"bus\": 3, \"id\": 2, \"mode\": 1}}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager,
             &getCanBuses()[0]);
     fail_unless(canQueueEmpty(0));
@@ -390,14 +462,14 @@ END_TEST
 START_TEST (test_non_complete_message)
 {
     uint8_t request[] = "{\"name\": \"turn_signal_status\", ";
-    ck_assert(!handleIncomingMessage(request, sizeof(request)));
+    ck_assert(!handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
 }
 END_TEST
 
 START_TEST (test_custom_evented_command)
 {
     uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}\0";
-    ck_assert(handleIncomingMessage(command, sizeof(command)));
+    ck_assert(handleIncomingMessage(command, sizeof(command), &DESCRIPTOR));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
@@ -417,7 +489,7 @@ END_TEST
 START_TEST (test_custom_command)
 {
     uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true}\0";
-    ck_assert(handleIncomingMessage(command, sizeof(command)));
+    ck_assert(handleIncomingMessage(command, sizeof(command), &DESCRIPTOR));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
     ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
@@ -431,7 +503,7 @@ END_TEST
 START_TEST (test_translated_write_no_match)
 {
     uint8_t request[] = "{\"name\": \"foobar\", \"value\": true}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -439,7 +511,7 @@ END_TEST
 START_TEST (test_translated_write_missing_value)
 {
     uint8_t request[] = "{\"name\": \"turn_signal_status\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -447,7 +519,7 @@ END_TEST
 START_TEST (test_translated_write_allowed)
 {
     ck_assert(handleIncomingMessage(WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -455,7 +527,7 @@ END_TEST
 START_TEST (test_translated_write_not_allowed)
 {
     ck_assert(handleIncomingMessage(NON_WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -464,10 +536,10 @@ START_TEST (test_translated_write_allowed_by_signal_override)
 {
     getCanBuses()[0].rawWritable = false;
     ck_assert(handleIncomingMessage(WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
     ck_assert(handleIncomingMessage(NON_WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST)));
+                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -475,7 +547,7 @@ END_TEST
 START_TEST (test_unrecognized_command_name)
 {
     uint8_t request[] = "{\"command\": \"foo\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -483,7 +555,7 @@ END_TEST
 START_TEST (test_unrecognized_message)
 {
     uint8_t request[] = "{\"foo\": 1, \"bar\": 42, \"data\": \"0x1234\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
 END_TEST
@@ -492,7 +564,7 @@ START_TEST (test_version_message_in_stream)
 {
     uint8_t request[] = "{\"command\": \"version\"}\0";
     ck_assert(outputQueueEmpty());
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(!outputQueueEmpty());
 
     char firmwareDescriptor[256] = {0};
@@ -508,7 +580,7 @@ END_TEST
 START_TEST (test_version_message)
 {
     uint8_t request[] = "{\"command\": \"version\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     char firmwareDescriptor[256] = {0};
     getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
@@ -521,7 +593,7 @@ START_TEST (test_device_id_message)
 {
     uint8_t request[] = "{\"command\": \"device_id\"}\0";
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
     ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
                 getConfiguration()->uart.deviceId) != NULL);
@@ -533,7 +605,7 @@ START_TEST (test_device_id_message_in_stream)
     uint8_t request[] = "{\"command\": \"device_id\"}\0";
     strcpy(getConfiguration()->uart.deviceId, "mydevice");
     ck_assert(outputQueueEmpty());
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(!outputQueueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -713,7 +785,7 @@ START_TEST (test_passthrough_request_message)
 {
     uint8_t request[] = "{\"command\": \"passthrough\", \"bus\": 1, \"enabled\": true}\0";
     ck_assert(!getCanBuses()[0].passthroughCanMessages);
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(getCanBuses()[0].passthroughCanMessages);
 }
 END_TEST
@@ -737,7 +809,7 @@ START_TEST (test_bypass_command)
 {
     uint8_t request[] = "{\"command\": \"af_bypass\", \"bus\": 1, \"bypass\": true}\0";
     ck_assert(!getCanBuses()[0].bypassFilters);
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(getCanBuses()[0].bypassFilters);
 }
 END_TEST
@@ -760,7 +832,7 @@ START_TEST (test_payload_format_command)
 {
     uint8_t request[] = "{\"command\": \"payload_format\", \"bus\": 1, \"format\": \"protobuf\"}\0";
     ck_assert_int_eq(PayloadFormat::JSON, getConfiguration()->payloadFormat);
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert_int_eq(PayloadFormat::PROTOBUF, getConfiguration()->payloadFormat);
 }
 END_TEST
@@ -782,7 +854,7 @@ START_TEST (test_predefined_obd2_command)
 {
     uint8_t request[] = "{\"command\": \"predefined_obd2\", \"enabled\": true}\0";
     ck_assert(!getConfiguration()->recurringObd2Requests);
-    ck_assert(handleIncomingMessage(request, sizeof(request)));
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     ck_assert(getConfiguration()->recurringObd2Requests);
 }
 END_TEST
@@ -799,6 +871,10 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_without_0x_prefix);
     tcase_add_test(tc_complex_commands, test_raw_write_less_than_full_message);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
+    tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_source_interface);
+    tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_usb);
+    tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_uart);
+    tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_network);
     tcase_add_test(tc_complex_commands, test_translated_write_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);
     tcase_add_test(tc_complex_commands, test_translated_write_missing_value);

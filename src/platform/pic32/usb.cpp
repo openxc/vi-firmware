@@ -41,7 +41,7 @@ static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
     if(INCOMING_EP0_DATA_SIZE > 0) {
-        commands::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
+        openxc::interface::usb::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
                 INCOMING_EP0_DATA_SIZE);
     }
     memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);

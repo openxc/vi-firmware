@@ -192,10 +192,10 @@ void firmwareLoop() {
     diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager);
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
-        usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
-        uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
+        usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
+        uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
         network::read(&getConfiguration()->network,
-                commands::handleIncomingMessage);
+                network::handleIncomingMessage);
     }
 
     for(int i = 0; i < getCanBusCount(); i++) {

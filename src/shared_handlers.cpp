@@ -19,6 +19,7 @@ using openxc::can::read::publishVehicleMessage;
 using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::translateSignal;
 using openxc::can::read::parseSignalBitfield;
+using openxc::can::read::shouldSend;
 using openxc::can::lookupSignal;
 using openxc::pipeline::Pipeline;
 
@@ -42,7 +43,10 @@ openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(CanSignal* sign
     openxc_DynamicField ajarStatus = can::read::booleanDecoder(signal, signals,
             signalCount, pipeline, value, send);
     openxc_DynamicField doorIdValue = {0};
-    if(send) {
+    // Must manually check if the signal should send (e.g. based on send_same
+    // attribute of the signal) since this decoder handles sending the message
+    // itself instead of letting the caller do that.
+    if(send && shouldSend(signal, value)) {
         doorIdValue.has_type = true;
         doorIdValue.type = openxc_DynamicField_Type_STRING;
         doorIdValue.has_string_value = true;
@@ -71,7 +75,10 @@ openxc_DynamicField openxc::signals::handlers::tirePressureDecoder(
         Pipeline* pipeline, float value, bool* send) {
     openxc_DynamicField pressure = payload::wrapNumber(value);
     openxc_DynamicField tireIdValue = {0};
-    if(send) {
+    // Must manually check if the signal should send (e.g. based on send_same
+    // attribute of the signal) since this decoder handles sending the message
+    // itself instead of letting the caller do that.
+    if(send && shouldSend(signal, value)) {
         tireIdValue.has_type = true;
         tireIdValue.type = openxc_DynamicField_Type_STRING;
         tireIdValue.has_string_value = true;

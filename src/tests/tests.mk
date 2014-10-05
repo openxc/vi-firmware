@@ -138,7 +138,7 @@ MINIMUM_DIFFCOVER_PERCENTAGE = 80
 
 $(COVERAGE_INFO): clean unit_tests
 	lcov --gcov-tool llvm-cov --base-directory . --directory . -c -o $@
-	lcov --remove $@ "*tests*" --remove $@ "/usr/*" -o $@
+	lcov --remove $@ "*tests*" --remove $@ "*libs*" --remove $@ "/usr/*" -o $@
 
 $(COVERAGE_REPORT_HTML): $(COVERAGE_INFO)
 	genhtml -o $(TEST_OBJDIR)/coverage -t "vi-firmware test coverage" --num-spaces 4 $<

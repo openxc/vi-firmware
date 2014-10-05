@@ -1,11 +1,21 @@
 .. _bit-numbering:
 
-=============
-Bit Numbering
-=============
+============================
+Bit Numbering and Byte Order
+============================
 
-Because of different software tools and conventions in the industry, there are
-multiple ways to refer to bits within a CAN message. This doesn't change the
+When dealing with binary data like CAN messages, there are two important details
+- byte order and bit numbering.
+
+Byte order, or _`endianness <http://en.wikipedia.org/wiki/Endianness>`, determines
+the convention used to interpret a sequence of bytes as a number. Given 4 bytes
+of data, e.g. ``0x01 02 03 04``, the endianness determines which byte is the
+"zero-th" byte and which is the last. There are only two options: big endian
+(a.k.a. Motorola order) and little endian (Intel order). Big endian is most
+common in automotive networks.
+
+Bit numbering is an automotive specific term and must less standardized. The bit
+numbering can be what we will call normal or inverted. This doesn't change the
 actual data representation (like a different *byte* order would) but it changes
 how you refer to different bit positions for CAN signals.
 
@@ -18,9 +28,10 @@ a 64-bit CAN message is 0, and the numbering continuous left to right:
    Binary:      10000011              01000110
    Bit pos:   0 1 2 3 4 5 6 7   8 9 10 11 12 13 14 15 ...etc.
 
-The tool used at Ford to document CAN messages (Vector DBC files) uses an
-"inverted" numbering by default. In each byte of a CAN message, they start
-counting bits from the *rightmost bit*, e.g.:
+The most commonly used format in the industry, DBC files from Vector's software,
+use an inverted numbering by default when viewed in CANdb++, for example. In
+each byte of a CAN message, they start counting bits from the *rightmost bit*,
+e.g.:
 
 .. code-block:: none
 

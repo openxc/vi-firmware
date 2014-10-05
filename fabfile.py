@@ -176,7 +176,7 @@ def test():
         local("PLATFORM=TESTING make -j4 test")
 
 @task
-def functionaltest(skip_flashing=False):
+def functional_test(skip_flashing=False):
     with lcd("%s" % env.root_dir):
         # Pre-requisites:
         # * Reference VI attached via USB
@@ -191,18 +191,25 @@ def functionaltest(skip_flashing=False):
                 "nosetests -vs script/functional_test.py")
 
 @task
-def autofunctest(skip_flashing=False):
+def reference_functional_test(skip_flashing=False):
     # Must use debug so the VI doesn't turn off
     env.power_management = "ALWAYS_ON"
 
     env.usb_product_id = 1
     baremetal()
     reference()
-    functionaltest(skip_flashing=skip_flashing)
+    functional_test(skip_flashing=skip_flashing)
 
+@task
+def chipkit_functional_test(skip_flashing=False):
     env.usb_product_id = 2
     chipkit()
-    functionaltest(skip_flashing=skip_flashing)
+    functional_test(skip_flashing=skip_flashing)
+
+@task
+def auto_functional_test(skip_flashing=False):
+    reference_functional_test(skip_flashing)
+    chipkit_functional_test(skip_flashing)
 
 @task
 def transmitter():

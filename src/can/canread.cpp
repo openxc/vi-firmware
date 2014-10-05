@@ -206,9 +206,7 @@ void openxc::can::read::translateSignal(CanSignal* signal,
     openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
             value, signals, signalCount, &send);
     if(send && shouldSend(signal, value)) {
-        if(send) {
-            openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
-        }
+        openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
     signal->received = true;
     signal->lastValue = value;

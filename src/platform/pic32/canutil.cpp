@@ -56,17 +56,15 @@ bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     } else {
         debug("Disabling primary AF filter mask for bus %d to allow "
                 "all messages through", bus->address);
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
-            CAN::FILTER_MASK_IDE_TYPE);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0,
+                CAN::SID, CAN::FILTER_MASK_ANY_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::SID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
                 CAN::FILTER0, CAN::FILTER_MASK0, CAN::CHANNEL1);
 
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK1, 0, CAN::EID,
-            CAN::FILTER_MASK_IDE_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER1, 0, CAN::EID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
-                CAN::FILTER1, CAN::FILTER_MASK1, CAN::CHANNEL1);
+                CAN::FILTER1, CAN::FILTER_MASK0, CAN::CHANNEL1);
 
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0, true);
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER1, true);

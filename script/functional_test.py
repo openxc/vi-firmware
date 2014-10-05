@@ -132,6 +132,21 @@ class CanMessageTests(object):
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
         self._check_received_message(self.can_message_queue.get(timeout=.5))
 
+    def test_send_and_receive_extended_can_frame_after_toggling_af(self):
+        self.message_id = 0x809
+        ok_(self.vi.set_acceptance_filter_bypass(1, False))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        message = None
+        try:
+            message = self.can_message_queue.get(timeout=.5)
+        except Empty:
+            pass
+        ok_(message is None)
+
+        ok_(self.vi.set_acceptance_filter_bypass(1, True))
+        ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data))
+        self._check_received_message(self.can_message_queue.get(timeout=.5))
+
 class CanMessageTestsJson(JsonBaseTests, CanMessageTests):
     pass
 

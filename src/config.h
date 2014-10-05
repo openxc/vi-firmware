@@ -1,10 +1,6 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#include "can/canutil.h"
-#include "interface/uart.h"
-#include "interface/usb.h"
-#include "interface/network.h"
 #include "diagnostics.h"
 #include "pipeline.h"
 #include <payload/payload.h>

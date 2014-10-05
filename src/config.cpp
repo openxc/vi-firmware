@@ -9,7 +9,7 @@ namespace usb = openxc::interface::usb;
 
 namespace signals = openxc::signals;
 
-void initialize(openxc::config::Configuration* config) {
+static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,

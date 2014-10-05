@@ -1,8 +1,7 @@
 #include "bluetooth.h"
+
 #include "bluetooth_platforms.h"
-#include "interface/uart.h"
 #include "util/log.h"
-#include "interface/uart.h"
 #include "atcommander.h"
 #include "util/timer.h"
 #include "gpio.h"
@@ -27,15 +26,15 @@ using openxc::util::log::debug;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 
-void changeBaudRate(void* device, int baud) {
+static void changeBaudRate(void* device, int baud) {
     uart::changeBaudRate((UartDevice*)device, baud);
 }
 
-int readByte(void* device) {
+static int readByte(void* device) {
     return uart::readByte((UartDevice*)device);
 }
 
-void writeByte(void* device, uint8_t byte) {
+static void writeByte(void* device, uint8_t byte) {
     uart::writeByte((UartDevice*)device, byte);
 }
 
@@ -142,8 +141,8 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
 }
 
 // Only want to set the directly once because it flips the power on/off.
-void setIoDirection() {
 #ifdef BLUETOOTH_ENABLE_SUPPORT
+static void setIoDirection() {
     static bool directionSet = false;
     if(!directionSet) {
         // be aware that setting the direction here will default it to the off
@@ -152,10 +151,10 @@ void setIoDirection() {
                 GPIO_DIRECTION_OUTPUT);
         directionSet = true;
     }
-#endif
 }
+#endif
 
-void setStatus(bool enabled) {
+static void setStatus(bool enabled) {
 #ifdef BLUETOOTH_ENABLE_SUPPORT
     enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
     debug("Turning Bluetooth %s", enabled ? "on" : "off");

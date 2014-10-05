@@ -1,8 +1,8 @@
 #include "commands/commands.h"
+
 #include "config.h"
 #include "util/log.h"
 #include "config.h"
-#include "openxc.pb.h"
 #include "pb_decode.h"
 
 #include "commands/passthrough_command.h"

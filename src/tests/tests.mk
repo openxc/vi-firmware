@@ -168,3 +168,6 @@ $(TEST_OBJDIR)/%.o: %.c .firmware_options
 $(TEST_OBJDIR)/%.bin: $(TEST_OBJDIR)/%.o $(TEST_OBJS)
 	@mkdir -p $(dir $@)
 	$(LD) $(LDFLAGS) $(CC_SYMBOLS) $(CXXFLAGS) $(INCLUDE_PATHS) -o $@ $^ $(LDLIBS)
+
+cppclean:
+	cppclean $(INCLUDE_PATHS) --exclude libs --exclude tests .  | grep -v "declared but not defined" | grep -v static

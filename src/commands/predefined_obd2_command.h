@@ -1,7 +1,7 @@
 #ifndef __PREDEFINED_OBD2_COMMAND_H__
 #define __PREDEFINED_OBD2_COMMAND_H__
 
-#include "commands/commands.h"
+#include "openxc.pb.h"
 
 namespace openxc {
 namespace commands {

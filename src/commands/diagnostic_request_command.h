@@ -1,7 +1,7 @@
 #ifndef __DIAGNOSTIC_REQUEST_COMMAND_H__
 #define __DIAGNOSTIC_REQUEST_COMMAND_H__
 
-#include "commands/commands.h"
+#include "openxc.pb.h"
 
 namespace openxc {
 namespace commands {

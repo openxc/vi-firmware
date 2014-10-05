@@ -1,7 +1,7 @@
 #ifndef __CAN_MESSAGE_WRITE_COMMAND_H__
 #define __CAN_MESSAGE_WRITE_COMMAND_H__
 
-#include "commands/commands.h"
+#include "openxc.pb.h"
 #include "interface/interface.h"
 
 namespace openxc {

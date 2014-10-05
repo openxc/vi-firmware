@@ -1,7 +1,7 @@
 #ifndef __AF_BYPASS_COMMAND_H__
 #define __AF_BYPASS_COMMAND_H__
 
-#include "commands/commands.h"
+#include "openxc.pb.h"
 
 namespace openxc {
 namespace commands {

@@ -1,17 +1,16 @@
-#include "commands/commands.h"
+#include "version_command.h"
+
 #include "config.h"
 #include "diagnostics.h"
 #include "interface/usb.h"
 #include "util/log.h"
 #include "config.h"
-#include "openxc.pb.h"
 #include "pb_decode.h"
 #include <payload/payload.h>
 #include "signals.h"
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
 #include <limits.h>
-#include "commands/version_command.h"
 
 using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;

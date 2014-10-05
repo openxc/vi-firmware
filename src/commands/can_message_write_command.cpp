@@ -1,11 +1,9 @@
-#include "commands/commands.h"
 #include "commands/can_message_write_command.h"
+
 #include "config.h"
 #include "diagnostics.h"
-#include "interface/interface.h"
 #include "util/log.h"
 #include "config.h"
-#include "openxc.pb.h"
 #include "pb_decode.h"
 #include <payload/payload.h>
 #include "signals.h"

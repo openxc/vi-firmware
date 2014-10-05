@@ -1,4 +1,4 @@
-#include "interface/uart.h"
+#include "uart.h"
 
 #include <stddef.h>
 

@@ -1,12 +1,14 @@
-#include <payload/payload.h>
-#include <payload/json.h>
-#include "util/strutil.h"
-#include "config.h"
-#include <util/log.h>
+#include "payload.h"
+
 #include <cJSON.h>
 #include <stdlib.h>
 #include <sys/param.h>
 #include <stdio.h>
+
+#include "json.h"
+#include "util/strutil.h"
+#include "util/log.h"
+#include "config.h"
 
 namespace payload = openxc::payload;
 

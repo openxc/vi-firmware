@@ -1,8 +1,8 @@
 #include "payload_format_command.h"
+
 #include "config.h"
 #include "util/log.h"
 #include "config.h"
-#include "openxc.pb.h"
 #include "signals.h"
 #include <can/canutil.h>
 

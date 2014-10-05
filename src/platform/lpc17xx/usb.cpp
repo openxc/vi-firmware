@@ -1,5 +1,9 @@
 #include "interface/usb.h"
+
 #include <stdio.h>
+#include "LPC17xx.h"
+#include "lpc17xx_pinsel.h"
+
 #include "util/log.h"
 #include "util/bytebuffer.h"
 #include "gpio.h"
@@ -8,8 +12,6 @@
 #include "emqueue.h"
 #include "commands/commands.h"
 
-#include "LPC17xx.h"
-#include "lpc17xx_pinsel.h"
 
 extern "C" {
 #include "bsp.h"
@@ -141,7 +143,7 @@ static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
  *
  * Returns true if VBUS is high.
  */
-bool vbusDetected() {
+static bool vbusDetected() {
     return gpio::getValue(VBUS_PORT, VBUS_PIN) != GPIO_VALUE_LOW;
 }
 
@@ -153,7 +155,7 @@ bool vbusDetected() {
  *
  * Returns true of there is measurable activity on the D- USB line.
  */
-bool usbHostDetected(UsbDevice* usbDevice) {
+static bool usbHostDetected(UsbDevice* usbDevice) {
     static int debounce = 0;
     static float average = USB_HOST_DETECT_INACTIVE_VALUE / 2;
 
@@ -179,7 +181,7 @@ bool usbHostDetected(UsbDevice* usbDevice) {
 }
 
 /* Private: Configure I/O pins used to detect if USB is connected to a host. */
-void configureUsbDetection() {
+static void configureUsbDetection() {
     PINSEL_CFG_Type vbusPinConfig;
     vbusPinConfig.Funcnum = VBUS_FUNCNUM;
     vbusPinConfig.Portnum = VBUS_PORT;

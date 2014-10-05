@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/queue.h>
+
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "pipeline.h"
-#include "emqueue.h"
 #include "cJSON.h"
 #include "openxc.pb.h"
 

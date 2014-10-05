@@ -1,7 +1,5 @@
 #include "can/canutil.h"
 #include "can/canwrite.h"
-#include "util/timer.h"
-#include "util/statistics.h"
 #include "util/log.h"
 #include "config.h"
 
@@ -151,7 +149,7 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands,
  *
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
-CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
+static CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
         CanMessageFormat format,
         CanMessageDefinition* messages, int messageCount) {
     CanMessageDefinition* message = NULL;

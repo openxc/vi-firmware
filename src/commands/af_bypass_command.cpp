@@ -3,7 +3,6 @@
 #include "config.h"
 #include "util/log.h"
 #include "config.h"
-#include "openxc.pb.h"
 #include "signals.h"
 #include <can/canutil.h>
 

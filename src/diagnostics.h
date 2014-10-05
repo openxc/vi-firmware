@@ -2,14 +2,14 @@
 #define __DIAGNOSTICS_H__
 
 #include <sys/queue.h>
-#include "bsd_queue_patch.h"
 #include <stdint.h>
 #include <stdlib.h>
-#include "util/timer.h"
+
+#include "bsd_queue_patch.h"
 #include "pipeline.h"
-#include <can/canutil.h>
+#include "can/canutil.h"
 #include <uds/uds.h>
-#include <openxc.pb.h>
+#include "openxc.pb.h"
 
 /* Private: The maximum number of simultanous diagnostic requests. Increasing
  * this number will use more memory on the stack.

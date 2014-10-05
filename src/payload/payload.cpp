@@ -1,7 +1,7 @@
-#include <payload/payload.h>
-#include <payload/json.h>
-#include <payload/protobuf.h>
-#include <util/log.h>
+#include "payload.h"
+#include "payload/json.h"
+#include "payload/protobuf.h"
+#include "util/log.h"
 
 namespace payload = openxc::payload;
 

@@ -5,7 +5,6 @@
 
 #include "interface.h"
 #include "util/bytebuffer.h"
-#include "commands/commands.h"
 
 #define MAX_DEVICE_ID_LENGTH 17
 

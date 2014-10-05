@@ -172,6 +172,15 @@ def obd2():
 
 @task
 def test():
+    if current_branch() == "master":
+        openxc_python_is_version = None
+        with settings(warn_only=True):
+            openxc_python_is_version = local("grep '^openxc==' "
+                    "script/bootstrap/ci-requirements.txt", capture=True)
+        if not openxc_python_is_version:
+            abort(red("OpenXC Python library dependency must be "
+                "a released version in master branch"))
+
     with(lcd("src")):
         local("PLATFORM=TESTING make -j4 test")
 
@@ -257,6 +266,9 @@ def build(capture=False, clean=False):
 def flash():
     with lcd("%s/src" % env.root_dir):
         local("%s make flash" % build_options())
+
+def current_branch():
+    return local("git rev-parse --abbrev-ref HEAD", capture=True)
 
 @task
 def release():

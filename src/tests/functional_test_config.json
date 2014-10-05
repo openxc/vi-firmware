@@ -37,6 +37,18 @@
                     "bit_size": 1
                 }
             }
+        },
+        "0x49": {
+            "name": "decoder_test_message",
+            "bus": "unfiltered_bus",
+            "signals": {
+                "TirePressure": {
+                    "generic_name": "tire_pressure_front_left",
+                    "decoder": "tirePressureDecoder",
+                    "bit_position": 56,
+                    "bit_size": 8
+                }
+            }
         }
     }
 }

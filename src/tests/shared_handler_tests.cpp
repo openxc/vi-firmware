@@ -131,9 +131,12 @@ END_TEST
 START_TEST (test_tire_pressure_handler)
 {
     bool send = true;
-    tirePressureDecoder(&getSignals()[7], getSignals(), getSignalCount(),
-            &getConfiguration()->pipeline, 23.1, &send);
+    openxc_DynamicField decodedTireId = tirePressureDecoder(&getSignals()[7],
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline,
+            23.1, &send);
+    // This decoder handles sending its own messages
     fail_if(queueEmpty());
+    ck_assert_str_eq(decodedTireId.string_value, "front_left");
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -168,9 +171,12 @@ END_TEST
 START_TEST (test_door_handler)
 {
     bool send = true;
-    doorStatusDecoder(&getSignals()[2], getSignals(), getSignalCount(),
-            &getConfiguration()->pipeline, 1, &send);
+    openxc_DynamicField decodedDoorId = doorStatusDecoder(&getSignals()[2],
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline, 1,
+            &send);
+    // This decoder handles sending its own messages
     fail_if(queueEmpty());
+    ck_assert_str_eq(decodedDoorId.string_value, "driver");
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));

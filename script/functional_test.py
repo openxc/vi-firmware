@@ -405,3 +405,22 @@ class PredefinedObd2RequestsTestsProtobuf(ProtobufBaseTests,
     def tearDown(self):
         super(PredefinedObd2RequestsTestsProtobuf, self).tearDown()
         PredefinedObd2RequestsTests.tearDown(self)
+
+class SignalDecoderTests(object):
+    def test_decoder_publishes_its_own_message(self):
+        bus = 1
+        message_id = 0x49
+        data = "0x00000000000000ff"
+        ok_(self.vi.write(bus=bus, id=message_id, data=data))
+
+        message = self.simple_vehicle_message_queue.get(timeout=.5)
+        eq_(message['name'], "tire_pressure")
+        eq_(message['value'], "front_left")
+        eq_(message['event'], 0xff)
+        self.simple_vehicle_message_queue.task_done()
+
+class SignalDecoderTestsJson(JsonBaseTests, SignalDecoderTests):
+    pass
+
+class SignalDecoderTestsProtobuf(ProtobufBaseTests, SignalDecoderTests):
+    pass

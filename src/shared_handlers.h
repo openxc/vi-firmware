@@ -232,21 +232,36 @@ openxc_DynamicField handleExteriorLightSwitch(CanSignal* signal, CanSignal* sign
 void handleTurnSignalCommand(const char* name, openxc_DynamicField* value,
               openxc_DynamicField* event, CanSignal* signals, int signalCount);
 
-/** Handle a CAN message that contains the ajar status of all doors.
+/* Public: Decode a door status from a signal and send it out as an evented
+ * simple vehicle message, e.g. :
+ *
+ *      name: door_status
+ *      value: <the door>
+ *      event: bool
+ *
+ * This returns the door ID it found for the signal and marks the 'send' output
+ * parameter as false, indicating to the pipeline that this signal has already
+ * been handled.
  */
-void handleDoorStatusMessage(CanMessage* Message,
-        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
-
-void doorStatusDecoder(CanSignal* signal,
+openxc_DynamicField doorStatusDecoder(CanSignal* signal,
        CanSignal* signals, int signalCount,
        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
-void tirePressureDecoder(CanSignal* signal,
+/* Public: Decode a tire pressure from a signal and send it out as an evented
+ * simple vehicle message, e.g. :
+ *
+ *      name: tire_pressure
+ *      value: <the tire>
+ *      event: <the pressure, just the raw signal value with normal factor and
+     *      offset>
+ *
+ * This returns the tire it found for the signal and marks the 'send' output
+ * parameter as false, indicating to the pipeline that this signal has already
+ * been handled.
+ */
+openxc_DynamicField tirePressureDecoder(CanSignal* signal,
        CanSignal* signals, int signalCount,
        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
-
-void handleTirePressureMessage(CanMessage* message, CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline);
 
 } // namespace handlers
 } // namespace signals

@@ -3,8 +3,10 @@
 #include "signals.h"
 #include "config.h"
 #include "diagnostics.h"
+#include "platform/platform.h"
 
 #include "canutil_spy.h"
+#include "power_spy.h"
 
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
@@ -439,6 +441,15 @@ START_TEST (test_recurring_obd2_build)
     diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     // should have requested ignition status
     fail_if(canQueueEmpty(0));
+}
+END_TEST
+
+START_TEST (test_ignition_check_power_management_uses_watchdog)
+{
+    getConfiguration()->powerManagement = openxc::config::PowerManagement::OBD2_IGNITION_CHECK;
+    ck_assert_int_eq(0, openxc::power::spy::getWatchdogTime());
+    openxc::platform::suspend(&getConfiguration()->pipeline);
+    ck_assert_int_eq(15000000, openxc::power::spy::getWatchdogTime());
 }
 END_TEST
 
@@ -1043,6 +1054,8 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_request_callback);
 
     tcase_add_test(tc_core, test_recurring_obd2_build);
+
+    tcase_add_test(tc_core, test_ignition_check_power_management_uses_watchdog);
 
     suite_add_tcase(s, tc_core);
 

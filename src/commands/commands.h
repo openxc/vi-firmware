@@ -19,15 +19,6 @@ namespace commands {
  * configured payload format and perform the desired action, if recognized and
  * allowed.
  *
- * The currently suported commands are:
- *
- *   - Raw CAN message writes
- *   - Translated CAN signal writes
- *   - Control commands:
- *       - Diagnostic message requests
- *       - Firmware version query
- *       - VI device ID query
- *
  * The complete definition for all of the command is in the OpenXC Message
  * Format (https://github.com/openxc/openxc-message-format).
  *

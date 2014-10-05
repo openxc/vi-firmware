@@ -107,6 +107,27 @@ START_TEST (test_button_event_handler_bad_state)
 }
 END_TEST
 
+START_TEST (test_tire_pressure_as_decoder)
+{
+    bool send = true;
+    CanSignal* signal = &getSignals()[7];
+    signal->decoder = &tirePressureDecoder;
+    CanMessage message = {
+        id: signal->message->id,
+        format: CanMessageFormat::STANDARD,
+        data: {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+        length: 8
+    };
+    openxc::can::read::decodeSignal(signal, &message, getSignals(), getSignalCount(), &send);
+    fail_if(queueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "front_left") == NULL);
+}
+END_TEST
+
 START_TEST (test_tire_pressure_handler)
 {
     bool send = true;
@@ -187,6 +208,7 @@ Suite* handlerSuite(void) {
     TCase *tc_tire_pressure = tcase_create("tire_pressure");
     tcase_add_checked_fixture(tc_tire_pressure, setup, NULL);
     tcase_add_test(tc_tire_pressure, test_tire_pressure_handler);
+    tcase_add_test(tc_tire_pressure, test_tire_pressure_as_decoder);
     suite_add_tcase(s, tc_tire_pressure);
 
     return s;

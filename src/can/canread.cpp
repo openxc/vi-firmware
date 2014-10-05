@@ -233,7 +233,7 @@ openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
     SignalDecoder decoder = signal->decoder == NULL ?
             noopDecoder : signal->decoder;
     openxc_DynamicField decodedValue = decoder(signal, signals,
-            signalCount, NULL, value, send);
+            signalCount, &getConfiguration()->pipeline, value, send);
     return decodedValue;
 }
 

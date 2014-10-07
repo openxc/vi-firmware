@@ -44,8 +44,8 @@ bool openxc::commands::handleRaw(openxc_VehicleMessage* message,
             uint8_t size = rawMessage->data.size;
             CanMessageFormat format;
 
-            if(rawMessage->has_format) {
-                format = rawMessage->format ==
+            if(rawMessage->has_frame_format) {
+                format = rawMessage->frame_format ==
                         openxc_RawMessage_FrameFormat_STANDARD ?
                             CanMessageFormat::STANDARD :
                             CanMessageFormat::EXTENDED;
@@ -84,7 +84,9 @@ bool openxc::commands::validateRaw(openxc_VehicleMessage* message) {
             debug("Raw write request for 0x%02x missing data", raw->message_id);
         }
 
-        if(raw->has_format && raw->format == openxc_RawMessage_FrameFormat_STANDARD && raw->message_id > 0xff) {
+        if(raw->has_frame_format &&
+                raw->frame_format == openxc_RawMessage_FrameFormat_STANDARD &&
+                raw->message_id > 0xff) {
             valid = false;
             debug("ID in raw write request (0x%02x) is too large "
                     "for explicit standard frame format", raw->message_id);

@@ -648,16 +648,16 @@ END_TEST
 
 START_TEST (test_validate_raw_with_format)
 {
-    RAW_MESSAGE.raw_message.has_format = true;
-    RAW_MESSAGE.raw_message.format = openxc_RawMessage_FrameFormat_EXTENDED;
+    RAW_MESSAGE.raw_message.has_frame_format = true;
+    RAW_MESSAGE.raw_message.frame_format = openxc_RawMessage_FrameFormat_EXTENDED;
     ck_assert(validate(&RAW_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_with_format_incompatible_id)
 {
-    RAW_MESSAGE.raw_message.has_format = true;
-    RAW_MESSAGE.raw_message.format =
+    RAW_MESSAGE.raw_message.has_frame_format = true;
+    RAW_MESSAGE.raw_message.frame_format =
             openxc_RawMessage_FrameFormat_STANDARD;
     RAW_MESSAGE.raw_message.message_id = 0x8ff;
     ck_assert(!validate(&RAW_MESSAGE));

@@ -148,7 +148,7 @@ START_TEST (test_deserialize_can_message_write)
     openxc_VehicleMessage deserialized = {0};
     json::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    ck_assert(!deserialized.raw_message.has_format);
+    ck_assert(!deserialized.raw_message.has_frame_format);
 }
 END_TEST
 
@@ -158,9 +158,9 @@ START_TEST (test_deserialize_can_message_write_with_format)
     openxc_VehicleMessage deserialized = {0};
     json::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    ck_assert(deserialized.raw_message.has_format);
+    ck_assert(deserialized.raw_message.has_frame_format);
     ck_assert_int_eq(openxc_RawMessage_FrameFormat_STANDARD,
-            deserialized.raw_message.format);
+            deserialized.raw_message.frame_format);
 }
 END_TEST
 

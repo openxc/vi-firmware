@@ -144,9 +144,9 @@ static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddStringToObject(root, payload::json::DATA_FIELD_NAME,
             encodedData);
 
-    if(message->raw_message.has_format) {
+    if(message->raw_message.has_frame_format) {
         cJSON_AddStringToObject(root, payload::json::FRAME_FORMAT_FIELD_NAME,
-                message->raw_message.format == openxc_RawMessage_FrameFormat_STANDARD ?
+                message->raw_message.frame_format == openxc_RawMessage_FrameFormat_STANDARD ?
                     payload::json::FRAME_FORMAT_STANDARD_NAME :
                         payload::json::FRAME_FORMAT_EXTENDED_NAME);
     }
@@ -482,15 +482,15 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
 
         element = cJSON_GetObjectItem(root, payload::json::FRAME_FORMAT_FIELD_NAME);
         if(element != NULL) {
-            rawMessage->has_format = true;
+            rawMessage->has_frame_format = true;
             if(!strcmp(element->valuestring,
                         payload::json::FRAME_FORMAT_STANDARD_NAME)) {
-                rawMessage->format = openxc_RawMessage_FrameFormat_STANDARD;
+                rawMessage->frame_format = openxc_RawMessage_FrameFormat_STANDARD;
             } else if(!strcmp(element->valuestring,
                         payload::json::FRAME_FORMAT_EXTENDED_NAME)) {
-                rawMessage->format = openxc_RawMessage_FrameFormat_EXTENDED;
+                rawMessage->frame_format = openxc_RawMessage_FrameFormat_EXTENDED;
             } else {
-                rawMessage->has_format = false;
+                rawMessage->has_frame_format = false;
             }
         }
     } else {

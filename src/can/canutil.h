@@ -600,7 +600,7 @@ bool resetAcceptanceFilterStatus(CanBus* bus, bool enabled);
  * and any registered diagnostic requests.
  */
 bool setAcceptanceFilterStatus(CanBus* bus, bool enabled,
-        CanBus* buses, const uint busCount);
+        CanBus* buses, const uint8_t busCount);
 
 /* Public: Check if any CAN signals are configured as writable.
  *

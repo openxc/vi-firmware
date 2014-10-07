@@ -61,14 +61,9 @@ static void cancelRequest(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* entry) {
     LIST_INSERT_HEAD(&manager->freeRequestEntries, entry, listEntries);
     if(entry->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-        for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START;
-                filter < OBD2_FUNCTIONAL_RESPONSE_START +
-                    OBD2_FUNCTIONAL_RESPONSE_COUNT;
-                filter++) {
-            removeAcceptanceFilter(entry->bus, filter,
-                    CanMessageFormat::STANDARD, getCanBuses(),
-                    getCanBusCount());
-        }
+        // TODO only want to turn it back on if it was turned on specificall for
+        // this request
+        setAcceptanceFilterStatus(entry->bus, true, getCanBuses(), getCanBusCount());
     } else {
         removeAcceptanceFilter(entry->bus,
                 entry->arbitration_id +
@@ -401,14 +396,9 @@ static bool updateRequiredAcceptanceFilters(CanBus* bus,
         DiagnosticRequest* request) {
     bool filterStatus = true;
     if(request->arbitration_id == OBD2_FUNCTIONAL_BROADCAST_ID) {
-        for(uint32_t filter = OBD2_FUNCTIONAL_RESPONSE_START;
-                filter < OBD2_FUNCTIONAL_RESPONSE_START +
-                OBD2_FUNCTIONAL_RESPONSE_COUNT;
-                filter++) {
-            filterStatus = filterStatus && addAcceptanceFilter(bus, filter,
-                    CanMessageFormat::STANDARD, getCanBuses(),
-                    getCanBusCount());
-        }
+        // TODO need to mark if we were the ones that turned it off so we know
+        // if we can turn it back on...
+        setAcceptanceFilterStatus(entry->bus, false, getCanBuses(), getCanBusCount());
     } else {
         filterStatus = addAcceptanceFilter(bus,
                 request->arbitration_id +

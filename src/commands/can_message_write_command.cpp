@@ -42,9 +42,21 @@ bool openxc::commands::handleRaw(openxc_VehicleMessage* message,
             status = false;
         } else if(matchingBus->rawWritable) {
             uint8_t size = rawMessage->data.size;
+            CanMessageFormat format;
+
+            if(rawMessage->has_format) {
+                format = rawMessage->format ==
+                        openxc_RawMessage_FrameFormat_STANDARD ?
+                            CanMessageFormat::STANDARD :
+                            CanMessageFormat::EXTENDED;
+            } else {
+                format = rawMessage->message_id > 2047 ?
+                    CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD;
+            }
+
             CanMessage message = {
                 id: rawMessage->message_id,
-                format: rawMessage->message_id > 2047 ? CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD
+                format: format
             };
             memcpy(message.data, rawMessage->data.bytes, size);
             message.length = size;
@@ -70,6 +82,12 @@ bool openxc::commands::validateRaw(openxc_VehicleMessage* message) {
         if(!raw->has_data) {
             valid = false;
             debug("Raw write request for 0x%02x missing data", raw->message_id);
+        }
+
+        if(raw->has_format && raw->format == openxc_RawMessage_FrameFormat_STANDARD && raw->message_id > 0xff) {
+            valid = false;
+            debug("ID in raw write request (0x%02x) is too large "
+                    "for explicit standard frame format", raw->message_id);
         }
     } else {
         valid = false;

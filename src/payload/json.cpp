@@ -35,6 +35,10 @@ const char openxc::payload::json::DATA_FIELD_NAME[] = "data";
 const char openxc::payload::json::NAME_FIELD_NAME[] = "name";
 const char openxc::payload::json::VALUE_FIELD_NAME[] = "value";
 const char openxc::payload::json::EVENT_FIELD_NAME[] = "event";
+const char openxc::payload::json::FRAME_FORMAT_FIELD_NAME[] = "frame_format";
+
+const char openxc::payload::json::FRAME_FORMAT_STANDARD_NAME[] = "standard";
+const char openxc::payload::json::FRAME_FORMAT_EXTENDED_NAME[] = "extended";
 
 const char openxc::payload::json::DIAGNOSTIC_MODE_FIELD_NAME[] = "mode";
 const char openxc::payload::json::DIAGNOSTIC_PID_FIELD_NAME[] = "pid";
@@ -139,6 +143,13 @@ static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
     }
     cJSON_AddStringToObject(root, payload::json::DATA_FIELD_NAME,
             encodedData);
+
+    if(message->raw_message.has_format) {
+        cJSON_AddStringToObject(root, payload::json::FRAME_FORMAT_FIELD_NAME,
+                message->raw_message.format == openxc_RawMessage_FrameFormat_STANDARD ?
+                    payload::json::FRAME_FORMAT_STANDARD_NAME :
+                        payload::json::FRAME_FORMAT_EXTENDED_NAME);
+    }
     return true;
 }
 
@@ -467,6 +478,20 @@ static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
         if(element != NULL) {
             rawMessage->has_bus = true;
             rawMessage->bus = element->valueint;
+        }
+
+        element = cJSON_GetObjectItem(root, payload::json::FRAME_FORMAT_FIELD_NAME);
+        if(element != NULL) {
+            rawMessage->has_format = true;
+            if(!strcmp(element->valuestring,
+                        payload::json::FRAME_FORMAT_STANDARD_NAME)) {
+                rawMessage->format = openxc_RawMessage_FrameFormat_STANDARD;
+            } else if(!strcmp(element->valuestring,
+                        payload::json::FRAME_FORMAT_EXTENDED_NAME)) {
+                rawMessage->format = openxc_RawMessage_FrameFormat_EXTENDED;
+            } else {
+                rawMessage->has_format = false;
+            }
         }
     } else {
         message->has_raw_message = false;

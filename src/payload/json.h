@@ -28,6 +28,10 @@ extern const char DATA_FIELD_NAME[];
 extern const char NAME_FIELD_NAME[];
 extern const char VALUE_FIELD_NAME[];
 extern const char EVENT_FIELD_NAME[];
+extern const char FRAME_FORMAT_FIELD_NAME[];
+
+extern const char FRAME_FORMAT_STANDARD_NAME[];
+extern const char FRAME_FORMAT_EXTENDED_NAME[];
 
 extern const char DIAGNOSTIC_MODE_FIELD_NAME[];
 extern const char DIAGNOSTIC_PID_FIELD_NAME[];

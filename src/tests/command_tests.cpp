@@ -192,6 +192,29 @@ START_TEST (test_raw_write)
 
     CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
     ck_assert_int_eq(message.id, 42);
+    ck_assert_int_eq(message.format, CanMessageFormat::STANDARD);
+    ck_assert_int_eq(message.data[0], 0x12);
+    ck_assert_int_eq(message.data[1], 0x34);
+    ck_assert_int_eq(message.data[2], 0x56);
+    ck_assert_int_eq(message.data[3], 0x78);
+    ck_assert_int_eq(message.data[4], 0x12);
+    ck_assert_int_eq(message.data[5], 0x34);
+    ck_assert_int_eq(message.data[6], 0x56);
+    ck_assert_int_eq(message.data[7], 0x78);
+}
+END_TEST
+
+START_TEST (test_raw_write_with_explicit_format)
+{
+    getCanBuses()[0].rawWritable = true;
+    uint8_t request[] = "{\"bus\": 1, \"id\": 42, \"data\": \""
+            "0x1234567812345678\", \"frame_format\": \"extended\"}\0";
+    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
+    fail_if(canQueueEmpty(0));
+
+    CanMessage message = QUEUE_POP(CanMessage, &getCanBuses()[0].sendQueue);
+    ck_assert_int_eq(message.id, 42);
+    ck_assert_int_eq(message.format, CanMessageFormat::EXTENDED);
     ck_assert_int_eq(message.data[0], 0x12);
     ck_assert_int_eq(message.data[1], 0x34);
     ck_assert_int_eq(message.data[2], 0x56);
@@ -623,6 +646,24 @@ START_TEST (test_validate_raw)
 }
 END_TEST
 
+START_TEST (test_validate_raw_with_format)
+{
+    RAW_MESSAGE.raw_message.has_format = true;
+    RAW_MESSAGE.raw_message.format = openxc_RawMessage_FrameFormat_EXTENDED;
+    ck_assert(validate(&RAW_MESSAGE));
+}
+END_TEST
+
+START_TEST (test_validate_raw_with_format_incompatible_id)
+{
+    RAW_MESSAGE.raw_message.has_format = true;
+    RAW_MESSAGE.raw_message.format =
+            openxc_RawMessage_FrameFormat_STANDARD;
+    RAW_MESSAGE.raw_message.message_id = 0x8ff;
+    ck_assert(!validate(&RAW_MESSAGE));
+}
+END_TEST
+
 START_TEST (test_validate_raw_missing_bus)
 {
     RAW_MESSAGE.raw_message.has_bus = false;
@@ -868,6 +909,7 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus);
     tcase_add_test(tc_complex_commands, test_raw_write_missing_bus_no_buses);
     tcase_add_test(tc_complex_commands, test_raw_write);
+    tcase_add_test(tc_complex_commands, test_raw_write_with_explicit_format);
     tcase_add_test(tc_complex_commands, test_raw_write_without_0x_prefix);
     tcase_add_test(tc_complex_commands, test_raw_write_less_than_full_message);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed);
@@ -927,6 +969,8 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_raw_missing_bus);
     tcase_add_test(tc_validation, test_validate_raw_missing_id);
     tcase_add_test(tc_validation, test_validate_raw_missing_data);
+    tcase_add_test(tc_validation, test_validate_raw_with_format);
+    tcase_add_test(tc_validation, test_validate_raw_with_format_incompatible_id);
     tcase_add_test(tc_validation, test_validate_translated);
     tcase_add_test(tc_validation, test_validate_translated_bad_value);
     tcase_add_test(tc_validation, test_validate_translated_missing_name);

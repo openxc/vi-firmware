@@ -29,6 +29,7 @@ bool queueEmpty() {
 }
 
 void setup() {
+    getConfiguration()->pipeline.uart = NULL;
     openxc::config::getConfiguration()->messageSetIndex = 1;
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;

@@ -26,6 +26,9 @@ using openxc::signals::getMessages;
 using openxc::signals::getMessageCount;
 using openxc::config::getConfiguration;
 
+extern bool USB_PROCESSED;
+extern size_t SENT_BYTES;
+
 const CanMessage TEST_MESSAGE = {
     id: 0,
     format: STANDARD,
@@ -45,6 +48,8 @@ bool queueEmpty() {
 
 void setup() {
     FAKE_TIME = 1000;
+    USB_PROCESSED = false;
+    SENT_BYTES = 0;
     initializeVehicleInterface();
     getConfiguration()->payloadFormat = openxc::payload::PayloadFormat::JSON;
     usb::initialize(&getConfiguration()->usb);
@@ -355,6 +360,26 @@ START_TEST (test_translate_respects_send_value)
 }
 END_TEST
 
+START_TEST (test_translate_many_signals)
+{
+    getConfiguration()->pipeline.uart = NULL;
+    ck_assert_int_eq(0, SENT_BYTES);
+    for(int i = 7; i < 23; i++) {
+        can::read::translateSignal(&getSignals()[i],
+                &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
+        fail_unless(getSignals()[i].received);
+    }
+    fail_unless(USB_PROCESSED);
+    // 8 signals sent
+    fail_if(queueEmpty());
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    // 8 in the output queue
+    ck_assert_int_eq(8 * 29 + 2, SENT_BYTES);
+}
+END_TEST
+
 START_TEST (test_translate_float)
 {
     getSignals()[0].decoder = floatDecoder;
@@ -570,6 +595,8 @@ Suite* canreadSuite(void) {
             test_decoder_called_every_time_with_nonzero_frequency);
     tcase_add_test(tc_translate,
             test_decoder_called_every_time_with_unlimited_frequency);
+    tcase_add_test(tc_translate,
+            test_translate_many_signals);
     suite_add_tcase(s, tc_translate);
 
     return s;

@@ -51,7 +51,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
             echo -n "Press Enter when the GCC for ARM Embedded installer is finished"
             read
         else
-            cp -R /tmp/$GCC_INNER_DIR .
+            cp -LR /tmp/$GCC_INNER_DIR .
         fi
     fi
 

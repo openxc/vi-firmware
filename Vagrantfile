@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/precise64"
 
   config.vm.provision "shell", privileged: false, keep_color: true do |s|
-    s.inline = "ln -s /vagrant vi-firmware;"
+    s.inline = "ln -fs /vagrant vi-firmware;"
     s.inline += "VAGRANT=1 vi-firmware/script/bootstrap.sh"
   end
 end

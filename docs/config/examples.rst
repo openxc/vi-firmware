@@ -627,7 +627,8 @@ In our ``config.json``:
            }
        },
        "mappings": [
-            {"mapping": "hs.json", "bus": "hs",
+            {"mapping": "hs.json",
+               "bus": "hs",
                "database": "exported-hs.xml"}
        ]
    }

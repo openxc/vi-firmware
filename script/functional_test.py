@@ -157,7 +157,6 @@ class SimpleVehicleMessageTests(object):
 
     def setUp(self):
         self.message1_data = "0x0000000000000dac"
-        self.data = "0x1234"
         self.expected_signal_value = 0xdac
 
     def test_receive_simple_vehicle_message_bus1(self):
@@ -439,3 +438,28 @@ class SignalDecoderTestsJson(JsonBaseTests, SignalDecoderTests):
 
 class SignalDecoderTestsProtobuf(ProtobufBaseTests, SignalDecoderTests):
     pass
+
+
+class ManySignalsPerMessageTests(JsonBaseTests):
+    """See https://github.com/openxc/vi-firmware/issues/306
+    """
+
+    def setUp(self):
+        super(ManySignalsPerMessageTests, self).setUp()
+        self.vi.set_acceptance_filter_bypass(1, True)
+        self.message1_data = "0x3901A40351033204"
+        self.message2_data = "0xB3033403CA01E001"
+
+    def test_receive_all_16_signals(self):
+        ok_(self.vi.write(bus=1, id=0x663, data=self.message1_data))
+        ok_(self.vi.write(bus=1, id=0x664, data=self.message2_data))
+        keys = set()
+        while True:
+            try:
+                message = self.simple_vehicle_message_queue.get(timeout=.5)
+                keys.add(message['name'])
+                self.simple_vehicle_message_queue.task_done()
+            except Empty:
+                break
+        for i in range(1, 16):
+            ok_("signal%d" % i in keys, "Missing signal %d" % i)

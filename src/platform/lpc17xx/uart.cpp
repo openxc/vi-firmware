@@ -102,7 +102,13 @@ void handleTransmitInterrupt() {
 
     while(!QUEUE_EMPTY(uint8_t, &getConfiguration()->uart.sendQueue)) {
         uint8_t byte = QUEUE_PEEK(uint8_t, &getConfiguration()->uart.sendQueue);
-        if(UART_Send(UART1_DEVICE, &byte, 1, NONE_BLOCKING)) {
+        // We used to use non-blocking here, but then we got into a race
+        // condition - if the transmit interrupt occurred while adding more data
+        // to the queue, you could lose data. We should be able to switch back
+        // to non-blocking if we disabled interrupts while modifying the queue
+        // (good practice anyway) but for now switching this to block sends
+        // seems to work OK without any significant impacts.
+        if(UART_Send(UART1_DEVICE, &byte, 1, BLOCKING)) {
             QUEUE_POP(uint8_t, &getConfiguration()->uart.sendQueue);
         } else {
             break;

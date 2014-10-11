@@ -13,7 +13,7 @@ except ImportError:
     from queue import Queue, Empty
 
 from openxc.tools.common import configure_logging
-from openxc.interface import UsbVehicleInterface
+from openxc.interface import UsbVehicleInterface, BluetoothVehicleInterface
 
 SOURCE = None
 
@@ -25,8 +25,13 @@ def setUpModule():
     # automated. Set the VI_FUNC_TESTS_USB_PRODUCT_ID environment variable to a
     # number you want to use for the product ID.
     usb_product_id = os.getenv('VI_FUNC_TESTS_USB_PRODUCT_ID', None)
+    use_bluetooth = os.getenv('VI_FUNC_TESTS_USE_BLUETOOTH', False)
+
     global SOURCE
-    SOURCE = UsbVehicleInterface(format="json", product_id=usb_product_id)
+    if use_bluetooth is not False:
+        SOURCE = BluetoothVehicleInterface(format="json")
+    else:
+        SOURCE = UsbVehicleInterface(format="json", product_id=usb_product_id)
     SOURCE.start()
 
 class ViFunctionalTests(unittest.TestCase):

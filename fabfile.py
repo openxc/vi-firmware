@@ -185,7 +185,7 @@ def test():
         local("PLATFORM=TESTING make -j4 test")
 
 @task
-def functional_test(skip_flashing=False):
+def functional_test(skip_flashing=False, extra_env=""):
     with lcd("%s" % env.root_dir):
         # Pre-requisites:
         # * Reference VI attached via USB
@@ -197,7 +197,7 @@ def functional_test(skip_flashing=False):
             import time
             time.sleep(2)
         local("VI_FUNC_TESTS_USB_PRODUCT_ID=%d " % env.usb_product_id +
-                "nosetests -vs script/functional_test.py")
+                "%s nosetests -vs script/functional_test.py" % extra_env)
 
 @task
 def reference_functional_test(skip_flashing=False):
@@ -207,7 +207,10 @@ def reference_functional_test(skip_flashing=False):
     env.usb_product_id = 1
     baremetal()
     reference()
-    functional_test(skip_flashing=skip_flashing)
+    # functional_test(skip_flashing=skip_flashing)
+
+    functional_test(skip_flashing=skip_flashing,
+            extra_env="VI_FUNC_TESTS_USE_BLUETOOTH=1")
 
 @task
 def chipkit_functional_test(skip_flashing=False):

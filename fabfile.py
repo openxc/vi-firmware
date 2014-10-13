@@ -19,6 +19,7 @@ env.board = None
 env.debug = False
 env.transmitter = False
 env.bootloader = True
+env.allow_raw_uart_write = False
 env.uart_logging = False
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
@@ -117,7 +118,7 @@ def build_options():
         'DEFAULT_METRICS_STATUS': False,
         'DEFAULT_CAN_ACK_STATUS': False,
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
-        'DEFAULT_ALLOW_RAW_WRITE_UART': False,
+        'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
         'DEFAULT_OUTPUT_FORMAT': "JSON",
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
@@ -185,7 +186,10 @@ def test():
         local("PLATFORM=TESTING make -j4 test")
 
 @task
-def functional_test(skip_flashing=False, extra_env=""):
+def functional_test_flash(skip_flashing=False):
+    # For Bluetooth testing
+    env.allow_raw_uart_write = True
+    debug(uart_logging=True)
     with lcd("%s" % env.root_dir):
         # Pre-requisites:
         # * Reference VI attached via USB
@@ -196,15 +200,19 @@ def functional_test(skip_flashing=False, extra_env=""):
 
             import time
             time.sleep(2)
-        local("VI_FUNC_TESTS_USB_PRODUCT_ID=%d " % env.usb_product_id +
-                "%s nosetests -vs script/functional_test.py" % extra_env)
+
+@task
+def functional_test(skip_flashing=False, extra_env=""):
+    functional_test_flash(skip_flashing=skip_flashing)
+    local("VI_FUNC_TESTS_USB_PRODUCT_ID=%d " % env.usb_product_id +
+            "%s nosetests -vs script/functional_test.py" % extra_env)
 
 @task
 def reference_functional_test(skip_flashing=False):
     # Must use debug so the VI doesn't turn off
     env.power_management = "ALWAYS_ON"
-
     env.usb_product_id = 1
+
     baremetal()
     reference()
     # functional_test(skip_flashing=skip_flashing)

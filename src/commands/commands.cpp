@@ -57,30 +57,37 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     openxc_VehicleMessage message = {0};
     size_t bytesRead = 0;
-    if(length > 0 && (bytesRead = openxc::payload::deserialize(payload, length,
+    // Ignore anything less than 2 bytes, we know it's an incomplete payload -
+    // wait for more to come in before trying to parse it
+    if(length > 2) {
+        if((bytesRead = openxc::payload::deserialize(payload, length,
                 getConfiguration()->payloadFormat, &message)) > 0) {
-        if(validate(&message)) {
-            switch(message.type) {
-            case openxc_VehicleMessage_Type_RAW:
-                handleRaw(&message, sourceInterfaceDescriptor);
-                break;
-            case openxc_VehicleMessage_Type_TRANSLATED:
-                handleTranslated(&message);
-                break;
-            case openxc_VehicleMessage_Type_CONTROL_COMMAND:
-                handleComplexCommand(&message);
-                break;
-            default:
-                debug("Incoming message had unrecognized type: %d", message.type);
-                break;
+            if(validate(&message)) {
+                switch(message.type) {
+                case openxc_VehicleMessage_Type_RAW:
+                    handleRaw(&message, sourceInterfaceDescriptor);
+                    break;
+                case openxc_VehicleMessage_Type_TRANSLATED:
+                    handleTranslated(&message);
+                    break;
+                case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+                    handleComplexCommand(&message);
+                    break;
+                default:
+                    debug("Incoming message had unrecognized type: %d", message.type);
+                    break;
+                }
+            } else {
+                debug("Incoming message is complete but invalid");
             }
         } else {
-            debug("Incoming message is complete but invalid");
+            // This is very noisy when using UART as the packet tends to arrive
+            // in a couple or bursts and is passed to this function when
+            // incomplete.
+            // debug("Unable to deserialize a %s message from the payload",
+                 // getConfiguration()->payloadFormat == PayloadFormat::JSON ?
+                     // "JSON" : "Protobuf");
         }
-    } else {
-        debug("Unable to deserialize a message from the payload using format %s",
-             getConfiguration()->payloadFormat == PayloadFormat::JSON ?
-                 "JSON" : "Protobuf");
     }
     return bytesRead;
 }

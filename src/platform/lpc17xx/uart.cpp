@@ -158,11 +158,19 @@ void UART1_IRQHandler() {
 
 }
 
+static size_t lastProcessedQueueLength = 0;
+
 void openxc::interface::uart::read(UartDevice* device,
         openxc::util::bytebuffer::IncomingMessageCallback callback) {
     if(device != NULL) {
         if(!QUEUE_EMPTY(uint8_t, &device->receiveQueue)) {
-            processQueue(&device->receiveQueue, callback);
+            size_t queueLength = QUEUE_LENGTH(uint8_t, &device->receiveQueue);
+            // If we haven't receive any new data, don't bother trying to
+            // process the queue again.
+            if(queueLength > lastProcessedQueueLength) {
+                processQueue(&device->receiveQueue, callback);
+                lastProcessedQueueLength = queueLength;
+            }
             if(!QUEUE_FULL(uint8_t, &device->receiveQueue)) {
                 resumeReceive();
             }

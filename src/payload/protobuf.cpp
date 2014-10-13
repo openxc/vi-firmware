@@ -11,7 +11,12 @@ size_t openxc::payload::protobuf::deserialize(uint8_t payload[], size_t length,
     pb_istream_t stream = pb_istream_from_buffer(payload, length);
     if(!pb_decode_delimited(&stream, openxc_VehicleMessage_fields, message)) {
         debug("Protobuf decoding failed with %s", PB_GET_ERROR(&stream));
-        return 0;
+        if(!strcmp("invalid wire_type", PB_GET_ERROR(&stream))) {
+            // clear the buffer if we got this error, it's corrupted
+            return length;
+        } else {
+            return 0;
+        }
     }
     return length - stream.bytes_left;
 }

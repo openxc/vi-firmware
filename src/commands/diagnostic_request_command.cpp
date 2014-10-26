@@ -36,18 +36,7 @@ namespace pipeline = openxc::pipeline;
 bool openxc::commands::handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
     bool status = diagnostics::handleDiagnosticCommand(
             &getConfiguration()->diagnosticsManager, command);
-
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    message.has_command_response = true;
-    message.command_response.has_type = true;
-    message.command_response.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    message.command_response.has_message = false;
-    message.command_response.has_status = true;
-    message.command_response.status = status;
-    pipeline::publish(&message, &getConfiguration()->pipeline);
-
+    sendCommandResponse(openxc_ControlCommand_Type_DIAGNOSTIC, status);
     return status;
 }
 

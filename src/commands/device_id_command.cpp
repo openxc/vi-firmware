@@ -38,23 +38,13 @@ bool openxc::commands::handleDeviceIdCommmand() {
     // define where the device ID comes from.
     uart::UartDevice* uart = &getConfiguration()->uart;
     size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
+    bool status = false;
     if(deviceIdLength > 0) {
+        status = true;
         usb::sendControlMessage(&getConfiguration()->usb,
                 (uint8_t*)uart->deviceId, strlen(uart->deviceId));
-
-        openxc_VehicleMessage message = {0};
-        message.has_type = true;
-        message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-        message.has_command_response = true;
-        message.command_response.has_type = true;
-        message.command_response.type = openxc_ControlCommand_Type_DEVICE_ID;
-        message.command_response.has_message = true;
-        memset(message.command_response.message, 0,
-                sizeof(message.command_response.message));
-        strncpy(message.command_response.message, uart->deviceId,
-                deviceIdLength);
-        pipeline::publish(&message, &getConfiguration()->pipeline);
+        sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, status,
+                uart->deviceId, deviceIdLength);
     }
-    return true;
+    return status;
 }
-

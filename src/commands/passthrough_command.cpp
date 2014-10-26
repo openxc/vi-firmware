@@ -52,18 +52,6 @@ bool openxc::commands::handlePassthroughModeCommand(openxc_ControlCommand* comma
         }
     }
 
-    // TODO could share code with other handlers to send simple success/fail
-    // responses that don't require a payload
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    message.has_command_response = true;
-    message.command_response.has_type = true;
-    message.command_response.type = openxc_ControlCommand_Type_PASSTHROUGH;
-    message.command_response.has_message = false;
-    message.command_response.has_status = true;
-    message.command_response.status = status;
-    pipeline::publish(&message, &getConfiguration()->pipeline);
-
+    sendCommandResponse(openxc_ControlCommand_Type_PASSTHROUGH, status);
     return status;
 }

@@ -39,6 +39,20 @@ size_t handleIncomingMessage(uint8_t payload[], size_t payloadLength,
  */
 bool validate(openxc_VehicleMessage* message);
 
+/* Public: Send a command response ACK message with an optional message.
+ *
+ * commandType - the command to ACK.
+ * status - the status of the command, true if it was successful.
+ * responseMessage - a message to include in the ACK, or NULL.
+ * responseMessageLength - the length of the response message or 0.
+ */
+void sendCommandResponse(openxc_ControlCommand_Type commandType,
+        bool status, char* responseMessage, size_t responseMessageLength);
+
+/* Public: Send a command response ACK with no message.
+ */
+void sendCommandResponse(openxc_ControlCommand_Type commandType, bool status);
+
 } // namespace commands
 } // namespace openxc
 

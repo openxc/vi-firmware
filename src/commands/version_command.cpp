@@ -39,19 +39,8 @@ bool openxc::commands::handleVersionCommand() {
 
     usb::sendControlMessage(&getConfiguration()->usb, (uint8_t*)descriptor,
             strlen(descriptor));
-
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
-    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    message.has_command_response = true;
-    message.command_response.has_type = true;
-    message.command_response.type = openxc_ControlCommand_Type_VERSION;
-    message.command_response.has_message = true;
-    memset(message.command_response.message, 0,
-            sizeof(message.command_response.message));
-    strncpy(message.command_response.message, descriptor, sizeof(descriptor));
-    pipeline::publish(&message, &getConfiguration()->pipeline);
-
+    sendCommandResponse(openxc_ControlCommand_Type_VERSION, true,
+            descriptor, sizeof(descriptor));
     return true;
 }
 

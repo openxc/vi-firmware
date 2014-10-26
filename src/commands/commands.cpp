@@ -146,3 +146,28 @@ bool openxc::commands::validate(openxc_VehicleMessage* message) {
     }
     return valid;
 }
+
+void openxc::commands::sendCommandResponse(openxc_ControlCommand_Type commandType,
+        bool status, char* responseMessage, size_t responseMessageLength) {
+    openxc_VehicleMessage message = {0};
+    message.has_type = true;
+    message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
+    message.has_command_response = true;
+    message.command_response.has_type = true;
+    message.command_response.type = commandType;
+    message.command_response.has_message = false;
+    message.command_response.has_status = true;
+    message.command_response.status = status;
+    if(responseMessage != NULL && responseMessageLength > 0) {
+        message.command_response.has_message = true;
+        strncpy(message.command_response.message, responseMessage,
+                MIN(sizeof(message.command_response.message),
+                    responseMessageLength));
+    }
+    pipeline::publish(&message, &getConfiguration()->pipeline);
+}
+
+void openxc::commands::sendCommandResponse(openxc_ControlCommand_Type commandType,
+        bool status) {
+    sendCommandResponse(commandType, status, NULL, 0);
+}

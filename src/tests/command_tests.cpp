@@ -35,9 +35,9 @@ extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
         IN_ENDPOINT_INDEX].queue;
 
-openxc_VehicleMessage CAN_MESSAGE;
-openxc_VehicleMessage SIMPLE_MESSAGE;
-openxc_VehicleMessage CONTROL_COMMAND;
+openxc_VehicleMessage CAN_MESSAGE = {0};
+openxc_VehicleMessage SIMPLE_MESSAGE = {0};
+openxc_VehicleMessage CONTROL_COMMAND = {0};
 
 InterfaceDescriptor DESCRIPTOR = {
     allowRawWrites: true,

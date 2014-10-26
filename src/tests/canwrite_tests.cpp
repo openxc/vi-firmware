@@ -58,7 +58,7 @@ END_TEST
 
 START_TEST (test_encode_invalid_field)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = false;
 
     bool send = true;
@@ -158,7 +158,7 @@ END_TEST
 
 START_TEST (test_send_with_null_writer)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
     field.has_numeric_value = true;
@@ -174,7 +174,7 @@ END_TEST
 
 START_TEST (test_send_using_default)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
     field.has_numeric_value = true;
@@ -206,7 +206,7 @@ uint64_t customStateWriter(CanSignal* signal, openxc_DynamicField* value,
 
 START_TEST (test_send_with_custom_says_no_send)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_STRING;
     field.has_string_value = true;
@@ -221,7 +221,7 @@ END_TEST
 
 START_TEST (test_force_send)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_STRING;
     field.has_string_value = true;
@@ -242,7 +242,7 @@ END_TEST
 
 START_TEST (test_no_flush_handler)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
     field.has_numeric_value = true;
@@ -263,7 +263,7 @@ bool writeHandler(const CanBus* bus, const CanMessage* message) {
 
 START_TEST (test_failed_flush_handler)
 {
-    openxc_DynamicField field;
+    openxc_DynamicField field = {0};
     field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
     field.has_numeric_value = true;

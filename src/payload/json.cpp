@@ -125,28 +125,28 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
     return true;
 }
 
-static bool serializeRaw(openxc_VehicleMessage* message, cJSON* root) {
+static bool serializeCan(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
-            message->raw_message.bus);
+            message->can_message.bus);
     cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
-            message->raw_message.message_id);
+            message->can_message.message_id);
 
     char encodedData[67];
     const char* maxAddress = encodedData + sizeof(encodedData);
     char* encodedDataIndex = encodedData;
     encodedDataIndex += sprintf(encodedDataIndex, "0x");
-    for(uint8_t i = 0; i < message->raw_message.data.size &&
+    for(uint8_t i = 0; i < message->can_message.data.size &&
             encodedDataIndex < maxAddress; i++) {
         encodedDataIndex += snprintf(encodedDataIndex,
                 maxAddress - encodedDataIndex,
-                "%02x", message->raw_message.data.bytes[i]);
+                "%02x", message->can_message.data.bytes[i]);
     }
     cJSON_AddStringToObject(root, payload::json::DATA_FIELD_NAME,
             encodedData);
 
-    if(message->raw_message.has_frame_format) {
+    if(message->can_message.has_frame_format) {
         cJSON_AddStringToObject(root, payload::json::FRAME_FORMAT_FIELD_NAME,
-                message->raw_message.frame_format == openxc_RawMessage_FrameFormat_STANDARD ?
+                message->can_message.frame_format == openxc_CanMessage_FrameFormat_STANDARD ?
                     payload::json::FRAME_FORMAT_STANDARD_NAME :
                         payload::json::FRAME_FORMAT_EXTENDED_NAME);
     }
@@ -165,21 +165,21 @@ static cJSON* serializeDynamicField(openxc_DynamicField* field) {
     return value;
 }
 
-static bool serializeTranslated(openxc_VehicleMessage* message, cJSON* root) {
-    const char* name = message->translated_message.name;
+static bool serializeSimple(openxc_VehicleMessage* message, cJSON* root) {
+    const char* name = message->simple_message.name;
     cJSON_AddStringToObject(root, payload::json::NAME_FIELD_NAME, name);
 
     cJSON* value = NULL;
-    if(message->translated_message.has_value) {
-        value = serializeDynamicField(&message->translated_message.value);
+    if(message->simple_message.has_value) {
+        value = serializeDynamicField(&message->simple_message.value);
         if(value != NULL) {
             cJSON_AddItemToObject(root, payload::json::VALUE_FIELD_NAME, value);
         }
     }
 
     cJSON* event = NULL;
-    if(message->translated_message.has_event) {
-        event = serializeDynamicField(&message->translated_message.event);
+    if(message->simple_message.has_event) {
+        event = serializeDynamicField(&message->simple_message.event);
         if(event != NULL) {
             cJSON_AddItemToObject(root, payload::json::EVENT_FIELD_NAME, event);
         }
@@ -408,93 +408,74 @@ static bool deserializeDynamicField(cJSON* element,
     return status;
 }
 
-static void deserializeTranslated(cJSON* root, openxc_VehicleMessage* message) {
+static void deserializeSimple(cJSON* root, openxc_VehicleMessage* message) {
     message->has_type = true;
-    message->type = openxc_VehicleMessage_Type_TRANSLATED;
-    message->has_translated_message = true;
-    openxc_TranslatedMessage* translatedMessage = &message->translated_message;
+    message->type = openxc_VehicleMessage_Type_SIMPLE;
+    message->has_simple_message = true;
+    openxc_SimpleMessage* simpleMessage = &message->simple_message;
 
     cJSON* element = cJSON_GetObjectItem(root, "name");
     if(element != NULL && element->type == cJSON_String) {
-        translatedMessage->has_name = true;
-        strcpy(translatedMessage->name, element->valuestring);
+        simpleMessage->has_name = true;
+        strcpy(simpleMessage->name, element->valuestring);
     }
 
     element = cJSON_GetObjectItem(root, "value");
     if(element != NULL) {
-        if(deserializeDynamicField(element, &translatedMessage->value)) {
-            translatedMessage->has_value = true;
+        if(deserializeDynamicField(element, &simpleMessage->value)) {
+            simpleMessage->has_value = true;
         }
     }
 
     element = cJSON_GetObjectItem(root, "event");
     if(element != NULL) {
-        if(deserializeDynamicField(element, &translatedMessage->event)) {
-            translatedMessage->has_event = true;
-        }
-    }
-
-    translatedMessage->has_type = true;
-    if(translatedMessage->has_event) {
-        if(translatedMessage->event.has_string_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_STRING;
-        } else if(translatedMessage->event.has_numeric_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_NUM;
-        } else if(translatedMessage->event.has_boolean_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_EVENTED_BOOL;
-        }
-    } else {
-        if(translatedMessage->value.has_string_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_STRING;
-        } else if(translatedMessage->value.has_numeric_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_NUM;
-        } else if(translatedMessage->value.has_boolean_value) {
-            translatedMessage->type = openxc_TranslatedMessage_Type_BOOL;
+        if(deserializeDynamicField(element, &simpleMessage->event)) {
+            simpleMessage->has_event = true;
         }
     }
 }
 
-static void deserializeRaw(cJSON* root, openxc_VehicleMessage* message) {
+static void deserializeCan(cJSON* root, openxc_VehicleMessage* message) {
     message->has_type = true;
-    message->type = openxc_VehicleMessage_Type_RAW;
-    message->has_raw_message = true;
-    openxc_RawMessage* rawMessage = &message->raw_message;
+    message->type = openxc_VehicleMessage_Type_CAN;
+    message->has_can_message = true;
+    openxc_CanMessage* canMessage = &message->can_message;
 
     cJSON* element = cJSON_GetObjectItem(root, "id");
     if(element != NULL) {
-        rawMessage->has_message_id = true;
-        rawMessage->message_id = element->valueint;
+        canMessage->has_message_id = true;
+        canMessage->message_id = element->valueint;
 
         element = cJSON_GetObjectItem(root, "data");
         if(element != NULL) {
-            rawMessage->has_data = true;
-            rawMessage->data.size = dehexlify(
+            canMessage->has_data = true;
+            canMessage->data.size = dehexlify(
                     element->valuestring,
-                    rawMessage->data.bytes,
-                    sizeof(((openxc_RawMessage*)0)->data.bytes));
+                    canMessage->data.bytes,
+                    sizeof(((openxc_CanMessage*)0)->data.bytes));
         }
 
         element = cJSON_GetObjectItem(root, "bus");
         if(element != NULL) {
-            rawMessage->has_bus = true;
-            rawMessage->bus = element->valueint;
+            canMessage->has_bus = true;
+            canMessage->bus = element->valueint;
         }
 
         element = cJSON_GetObjectItem(root, payload::json::FRAME_FORMAT_FIELD_NAME);
         if(element != NULL) {
-            rawMessage->has_frame_format = true;
+            canMessage->has_frame_format = true;
             if(!strcmp(element->valuestring,
                         payload::json::FRAME_FORMAT_STANDARD_NAME)) {
-                rawMessage->frame_format = openxc_RawMessage_FrameFormat_STANDARD;
+                canMessage->frame_format = openxc_CanMessage_FrameFormat_STANDARD;
             } else if(!strcmp(element->valuestring,
                         payload::json::FRAME_FORMAT_EXTENDED_NAME)) {
-                rawMessage->frame_format = openxc_RawMessage_FrameFormat_EXTENDED;
+                canMessage->frame_format = openxc_CanMessage_FrameFormat_EXTENDED;
             } else {
-                rawMessage->has_frame_format = false;
+                canMessage->has_frame_format = false;
             }
         }
     } else {
-        message->has_raw_message = false;
+        message->has_can_message = false;
     }
 }
 
@@ -563,9 +544,9 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         } else {
             cJSON* nameObject = cJSON_GetObjectItem(root, "name");
             if(nameObject == NULL) {
-                deserializeRaw(root, message);
+                deserializeCan(root, message);
             } else {
-                deserializeTranslated(root, message);
+                deserializeSimple(root, message);
             }
         }
         cJSON_Delete(root);
@@ -580,10 +561,10 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-        if(message->type == openxc_VehicleMessage_Type_TRANSLATED) {
-            status = serializeTranslated(message, root);
-        } else if(message->type == openxc_VehicleMessage_Type_RAW) {
-            status = serializeRaw(message, root);
+        if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
+            status = serializeSimple(message, root);
+        } else if(message->type == openxc_VehicleMessage_Type_CAN) {
+            status = serializeCan(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
             status = serializeDiagnostic(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {

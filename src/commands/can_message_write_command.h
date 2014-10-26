@@ -7,10 +7,10 @@
 namespace openxc {
 namespace commands {
 
-bool handleRaw(openxc_VehicleMessage* message,
+bool handleCan(openxc_VehicleMessage* message,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor);
 
-bool validateRaw(openxc_VehicleMessage* message);
+bool validateCan(openxc_VehicleMessage* message);
 
 } // namespace commands
 } // namespace openxc

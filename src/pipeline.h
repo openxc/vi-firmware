@@ -15,8 +15,8 @@ namespace openxc {
 namespace pipeline {
 
 typedef enum {
-    TRANSLATED,
-    RAW,
+    SIMPLE,
+    CAN,
     DIAGNOSTIC,
     LOG,
     COMMAND_RESPONSE,

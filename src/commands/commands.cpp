@@ -64,11 +64,11 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
                 getConfiguration()->payloadFormat, &message)) > 0) {
             if(validate(&message)) {
                 switch(message.type) {
-                case openxc_VehicleMessage_Type_RAW:
-                    handleRaw(&message, sourceInterfaceDescriptor);
+                case openxc_VehicleMessage_Type_CAN:
+                    handleCan(&message, sourceInterfaceDescriptor);
                     break;
-                case openxc_VehicleMessage_Type_TRANSLATED:
-                    handleTranslated(&message);
+                case openxc_VehicleMessage_Type_SIMPLE:
+                    handleSimple(&message);
                     break;
                 case openxc_VehicleMessage_Type_CONTROL_COMMAND:
                     handleComplexCommand(&message);
@@ -130,11 +130,11 @@ bool openxc::commands::validate(openxc_VehicleMessage* message) {
     bool valid = false;
     if(message != NULL && message->has_type) {
         switch(message->type) {
-        case openxc_VehicleMessage_Type_RAW:
-            valid = validateRaw(message);
+        case openxc_VehicleMessage_Type_CAN:
+            valid = validateCan(message);
             break;
-        case openxc_VehicleMessage_Type_TRANSLATED:
-            valid = validateTranslated(message);
+        case openxc_VehicleMessage_Type_SIMPLE:
+            valid = validateSimple(message);
             break;
         case openxc_VehicleMessage_Type_CONTROL_COMMAND:
             valid = validateControlCommand(message);

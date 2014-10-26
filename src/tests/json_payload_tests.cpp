@@ -14,7 +14,7 @@ void setup() {
 
 START_TEST (test_passthrough_response)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -29,7 +29,7 @@ END_TEST
 
 START_TEST (test_passthrough_request)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
     message.has_control_command = true;
@@ -47,7 +47,7 @@ END_TEST
 
 START_TEST (test_af_bypass_response)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -62,7 +62,7 @@ END_TEST
 
 START_TEST (test_af_bypass_request)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
     message.has_control_command = true;
@@ -80,7 +80,7 @@ END_TEST
 
 START_TEST (test_payload_format_response)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -95,7 +95,7 @@ END_TEST
 
 START_TEST (test_payload_format_request)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
     message.has_control_command = true;
@@ -113,7 +113,7 @@ END_TEST
 
 START_TEST (test_predefined_obd2_requests_response)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -128,7 +128,7 @@ END_TEST
 
 START_TEST (test_predefined_obd2_requests_request)
 {
-    openxc_VehicleMessage message;
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
     message.has_control_command = true;
@@ -148,7 +148,7 @@ START_TEST (test_deserialize_can_message_write)
     openxc_VehicleMessage deserialized = {0};
     json::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    ck_assert(!deserialized.raw_message.has_frame_format);
+    ck_assert(!deserialized.can_message.has_frame_format);
 }
 END_TEST
 
@@ -158,9 +158,9 @@ START_TEST (test_deserialize_can_message_write_with_format)
     openxc_VehicleMessage deserialized = {0};
     json::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    ck_assert(deserialized.raw_message.has_frame_format);
-    ck_assert_int_eq(openxc_RawMessage_FrameFormat_STANDARD,
-            deserialized.raw_message.frame_format);
+    ck_assert(deserialized.can_message.has_frame_format);
+    ck_assert_int_eq(openxc_CanMessage_FrameFormat_STANDARD,
+            deserialized.can_message.frame_format);
 }
 END_TEST
 

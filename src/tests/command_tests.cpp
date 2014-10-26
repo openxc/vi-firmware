@@ -35,8 +35,8 @@ extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
         IN_ENDPOINT_INDEX].queue;
 
-openxc_VehicleMessage RAW_MESSAGE;
-openxc_VehicleMessage TRANSLATED_MESSAGE;
+openxc_VehicleMessage CAN_MESSAGE;
+openxc_VehicleMessage SIMPLE_MESSAGE;
 openxc_VehicleMessage CONTROL_COMMAND;
 
 InterfaceDescriptor DESCRIPTOR = {
@@ -73,29 +73,26 @@ void setup() {
     getCanBuses()[0].rawWritable = true;
     resetQueues();
 
-    RAW_MESSAGE.has_type = true;
-    RAW_MESSAGE.type = openxc_VehicleMessage_Type_RAW;
-    RAW_MESSAGE.has_raw_message = true;
-    RAW_MESSAGE.raw_message.has_message_id = true;
-    RAW_MESSAGE.raw_message.message_id = 1;
-    RAW_MESSAGE.raw_message.has_data = true;
-    RAW_MESSAGE.raw_message.data.bytes[0] = 0xff;
-    RAW_MESSAGE.raw_message.has_bus = true;
-    RAW_MESSAGE.raw_message.bus = 2;
+    CAN_MESSAGE.has_type = true;
+    CAN_MESSAGE.type = openxc_VehicleMessage_Type_CAN;
+    CAN_MESSAGE.has_can_message = true;
+    CAN_MESSAGE.can_message.has_message_id = true;
+    CAN_MESSAGE.can_message.message_id = 1;
+    CAN_MESSAGE.can_message.has_data = true;
+    CAN_MESSAGE.can_message.data.bytes[0] = 0xff;
+    CAN_MESSAGE.can_message.has_bus = true;
+    CAN_MESSAGE.can_message.bus = 2;
 
-    TRANSLATED_MESSAGE.has_type = true;
-    TRANSLATED_MESSAGE.type = openxc_VehicleMessage_Type_TRANSLATED;
-    TRANSLATED_MESSAGE.has_translated_message = true;
-    TRANSLATED_MESSAGE.translated_message.has_type = true;
-    TRANSLATED_MESSAGE.translated_message.type =
-            openxc_TranslatedMessage_Type_NUM;
-    TRANSLATED_MESSAGE.translated_message.has_name = true;
-    strcpy(TRANSLATED_MESSAGE.translated_message.name, "foo");
-    TRANSLATED_MESSAGE.translated_message.has_value = true;
-    TRANSLATED_MESSAGE.translated_message.value.has_type = true;
-    TRANSLATED_MESSAGE.translated_message.value.type =
+    SIMPLE_MESSAGE.has_type = true;
+    SIMPLE_MESSAGE.type = openxc_VehicleMessage_Type_SIMPLE;
+    SIMPLE_MESSAGE.has_simple_message = true;
+    SIMPLE_MESSAGE.simple_message.has_name = true;
+    strcpy(SIMPLE_MESSAGE.simple_message.name, "foo");
+    SIMPLE_MESSAGE.simple_message.has_value = true;
+    SIMPLE_MESSAGE.simple_message.value.has_type = true;
+    SIMPLE_MESSAGE.simple_message.value.type =
             openxc_DynamicField_Type_NUM;
-    TRANSLATED_MESSAGE.translated_message.value.numeric_value = 42;
+    SIMPLE_MESSAGE.simple_message.value.numeric_value = 42;
 
     CONTROL_COMMAND.has_type = true;
     CONTROL_COMMAND.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
@@ -124,10 +121,10 @@ void setup() {
     CONTROL_COMMAND.control_command.diagnostic_request.request.frequency = 10;
 }
 
-uint8_t RAW_REQUEST[] = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}\0";
-uint8_t WRITABLE_TRANSLATED_REQUEST[] = "{\"name\": "
+uint8_t CAN_REQUEST[] = "{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}\0";
+uint8_t WRITABLE_SIMPLE_REQUEST[] = "{\"name\": "
         "\"transmission_gear_position\", \"value\": \"third\"}\0";
-uint8_t NON_WRITABLE_TRANSLATED_REQUEST[] = "{\"name\":"
+uint8_t NON_WRITABLE_SIMPLE_REQUEST[] = "{\"name\":"
         "\"torque_at_transmission\", \"value\": 200}\0";
 uint8_t DIAGNOSTIC_REQUEST[] = "{\"command\": \"diagnostic_request\", \"actio"
     "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
@@ -229,7 +226,7 @@ END_TEST
 START_TEST (test_raw_write_less_than_full_message)
 {
     getCanBuses()[0].rawWritable = true;
-    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+    ck_assert(handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST),
                 &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 
@@ -245,7 +242,7 @@ END_TEST
 START_TEST (test_raw_write_not_allowed)
 {
     getCanBuses()[0].rawWritable = false;
-    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+    ck_assert(handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST),
                 &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
@@ -256,7 +253,7 @@ START_TEST (test_raw_write_not_allowed_from_source_interface)
     getCanBuses()[0].rawWritable = true;
     DESCRIPTOR.allowRawWrites = false;
     DESCRIPTOR.type = InterfaceType::UART;
-    ck_assert(handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST),
+    ck_assert(handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST),
                 &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
 }
@@ -268,14 +265,14 @@ START_TEST (test_raw_write_not_allowed_from_usb)
     getConfiguration()->usb.descriptor.allowRawWrites = false;
     getConfiguration()->uart.descriptor.allowRawWrites = true;
     getConfiguration()->network.descriptor.allowRawWrites = true;
-    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::usb::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_unless(canQueueEmpty(0));
 
     // Make sure we can still write on the other interfaces
-    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::uart::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
     resetQueues();
-    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::network::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -286,14 +283,14 @@ START_TEST (test_raw_write_not_allowed_from_uart)
     getConfiguration()->usb.descriptor.allowRawWrites = true;
     getConfiguration()->uart.descriptor.allowRawWrites = false;
     getConfiguration()->network.descriptor.allowRawWrites = true;
-    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::uart::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_unless(canQueueEmpty(0));
 
     // Make sure we can still write on the other interfaces
-    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::usb::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
     resetQueues();
-    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::network::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -304,14 +301,14 @@ START_TEST (test_raw_write_not_allowed_from_network)
     getConfiguration()->usb.descriptor.allowRawWrites = true;
     getConfiguration()->uart.descriptor.allowRawWrites = true;
     getConfiguration()->network.descriptor.allowRawWrites = false;
-    ck_assert(openxc::interface::network::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::network::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_unless(canQueueEmpty(0));
 
     // Make sure we can still write on the other interfaces
-    ck_assert(openxc::interface::usb::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::usb::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
     resetQueues();
-    ck_assert(openxc::interface::uart::handleIncomingMessage(RAW_REQUEST, sizeof(RAW_REQUEST)));
+    ck_assert(openxc::interface::uart::handleIncomingMessage(CAN_REQUEST, sizeof(CAN_REQUEST)));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -523,7 +520,7 @@ START_TEST (test_custom_command)
 }
 END_TEST
 
-START_TEST (test_translated_write_no_match)
+START_TEST (test_simple_write_no_match)
 {
     uint8_t request[] = "{\"name\": \"foobar\", \"value\": true}\0";
     ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
@@ -531,7 +528,7 @@ START_TEST (test_translated_write_no_match)
 }
 END_TEST
 
-START_TEST (test_translated_write_missing_value)
+START_TEST (test_simple_write_missing_value)
 {
     uint8_t request[] = "{\"name\": \"turn_signal_status\"}\0";
     ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
@@ -539,30 +536,30 @@ START_TEST (test_translated_write_missing_value)
 }
 END_TEST
 
-START_TEST (test_translated_write_allowed)
+START_TEST (test_simple_write_allowed)
 {
-    ck_assert(handleIncomingMessage(WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
+    ck_assert(handleIncomingMessage(WRITABLE_SIMPLE_REQUEST,
+                sizeof(WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
 
-START_TEST (test_translated_write_not_allowed)
+START_TEST (test_simple_write_not_allowed)
 {
-    ck_assert(handleIncomingMessage(NON_WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
+    ck_assert(handleIncomingMessage(NON_WRITABLE_SIMPLE_REQUEST,
+                sizeof(WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
 
-START_TEST (test_translated_write_allowed_by_signal_override)
+START_TEST (test_simple_write_allowed_by_signal_override)
 {
     getCanBuses()[0].rawWritable = false;
-    ck_assert(handleIncomingMessage(WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
+    ck_assert(handleIncomingMessage(WRITABLE_SIMPLE_REQUEST,
+                sizeof(WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
-    ck_assert(handleIncomingMessage(NON_WRITABLE_TRANSLATED_REQUEST,
-                sizeof(WRITABLE_TRANSLATED_REQUEST), &DESCRIPTOR));
+    ck_assert(handleIncomingMessage(NON_WRITABLE_SIMPLE_REQUEST,
+                sizeof(WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
     fail_if(canQueueEmpty(0));
 }
 END_TEST
@@ -642,88 +639,88 @@ END_TEST
 
 START_TEST (test_validate_raw)
 {
-    ck_assert(validate(&RAW_MESSAGE));
+    ck_assert(validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_with_format)
 {
-    RAW_MESSAGE.raw_message.has_frame_format = true;
-    RAW_MESSAGE.raw_message.frame_format = openxc_RawMessage_FrameFormat_EXTENDED;
-    ck_assert(validate(&RAW_MESSAGE));
+    CAN_MESSAGE.can_message.has_frame_format = true;
+    CAN_MESSAGE.can_message.frame_format = openxc_CanMessage_FrameFormat_EXTENDED;
+    ck_assert(validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_with_format_incompatible_id)
 {
-    RAW_MESSAGE.raw_message.has_frame_format = true;
-    RAW_MESSAGE.raw_message.frame_format =
-            openxc_RawMessage_FrameFormat_STANDARD;
-    RAW_MESSAGE.raw_message.message_id = 0x8ff;
-    ck_assert(!validate(&RAW_MESSAGE));
+    CAN_MESSAGE.can_message.has_frame_format = true;
+    CAN_MESSAGE.can_message.frame_format =
+            openxc_CanMessage_FrameFormat_STANDARD;
+    CAN_MESSAGE.can_message.message_id = 0x8ff;
+    ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_missing_bus)
 {
-    RAW_MESSAGE.raw_message.has_bus = false;
-    ck_assert(validate(&RAW_MESSAGE));
+    CAN_MESSAGE.can_message.has_bus = false;
+    ck_assert(validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_missing_type)
 {
-    RAW_MESSAGE.has_type = false;
-    ck_assert(!validate(&RAW_MESSAGE));
+    CAN_MESSAGE.has_type = false;
+    ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_missing_id)
 {
-    RAW_MESSAGE.raw_message.has_message_id = false;
-    ck_assert(!validate(&RAW_MESSAGE));
+    CAN_MESSAGE.can_message.has_message_id = false;
+    ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_missing_data)
 {
-    RAW_MESSAGE.raw_message.has_data = false;
-    ck_assert(!validate(&RAW_MESSAGE));
+    CAN_MESSAGE.can_message.has_data = false;
+    ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
-START_TEST (test_validate_translated)
+START_TEST (test_validate_simple)
 {
-    ck_assert(validate(&TRANSLATED_MESSAGE));
+    ck_assert(validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
-START_TEST (test_validate_translated_bad_value)
+START_TEST (test_validate_simple_bad_value)
 {
-    TRANSLATED_MESSAGE.translated_message.value.has_type = false;
-    ck_assert(!validate(&TRANSLATED_MESSAGE));
+    SIMPLE_MESSAGE.simple_message.value.has_type = false;
+    ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
-START_TEST (test_validate_translated_missing_name)
+START_TEST (test_validate_simple_missing_name)
 {
-    TRANSLATED_MESSAGE.translated_message.has_name = false;
-    ck_assert(!validate(&TRANSLATED_MESSAGE));
+    SIMPLE_MESSAGE.simple_message.has_name = false;
+    ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
-START_TEST (test_validate_translated_missing_value)
+START_TEST (test_validate_simple_missing_value)
 {
-    TRANSLATED_MESSAGE.translated_message.has_value = false;
-    ck_assert(!validate(&TRANSLATED_MESSAGE));
+    SIMPLE_MESSAGE.simple_message.has_value = false;
+    ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
-START_TEST (test_validate_translated_bad_event)
+START_TEST (test_validate_simple_bad_event)
 {
-    TRANSLATED_MESSAGE.translated_message.has_event = true;
-    TRANSLATED_MESSAGE.translated_message.event.has_type = false;
-    ck_assert(!validate(&TRANSLATED_MESSAGE));
+    SIMPLE_MESSAGE.simple_message.has_event = true;
+    SIMPLE_MESSAGE.simple_message.event.has_type = false;
+    ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
@@ -917,14 +914,14 @@ Suite* suite(void) {
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_usb);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_uart);
     tcase_add_test(tc_complex_commands, test_raw_write_not_allowed_from_network);
-    tcase_add_test(tc_complex_commands, test_translated_write_allowed);
-    tcase_add_test(tc_complex_commands, test_translated_write_not_allowed);
-    tcase_add_test(tc_complex_commands, test_translated_write_missing_value);
-    tcase_add_test(tc_complex_commands, test_translated_write_no_match);
+    tcase_add_test(tc_complex_commands, test_simple_write_allowed);
+    tcase_add_test(tc_complex_commands, test_simple_write_not_allowed);
+    tcase_add_test(tc_complex_commands, test_simple_write_missing_value);
+    tcase_add_test(tc_complex_commands, test_simple_write_no_match);
     tcase_add_test(tc_complex_commands, test_custom_command);
     tcase_add_test(tc_complex_commands, test_custom_evented_command);
     tcase_add_test(tc_complex_commands,
-            test_translated_write_allowed_by_signal_override);
+            test_simple_write_allowed_by_signal_override);
     tcase_add_test(tc_complex_commands, test_unrecognized_message);
     tcase_add_test(tc_complex_commands, test_unrecognized_command_name);
     // These tests are mixing up payload deserialization and request handling
@@ -971,11 +968,11 @@ Suite* suite(void) {
     tcase_add_test(tc_validation, test_validate_raw_missing_data);
     tcase_add_test(tc_validation, test_validate_raw_with_format);
     tcase_add_test(tc_validation, test_validate_raw_with_format_incompatible_id);
-    tcase_add_test(tc_validation, test_validate_translated);
-    tcase_add_test(tc_validation, test_validate_translated_bad_value);
-    tcase_add_test(tc_validation, test_validate_translated_missing_name);
-    tcase_add_test(tc_validation, test_validate_translated_missing_value);
-    tcase_add_test(tc_validation, test_validate_translated_bad_event);
+    tcase_add_test(tc_validation, test_validate_simple);
+    tcase_add_test(tc_validation, test_validate_simple_bad_value);
+    tcase_add_test(tc_validation, test_validate_simple_missing_name);
+    tcase_add_test(tc_validation, test_validate_simple_missing_value);
+    tcase_add_test(tc_validation, test_validate_simple_bad_event);
     tcase_add_test(tc_validation, test_validate_diagnostic);
     tcase_add_test(tc_validation, test_validate_diagnostic_missing_action);
     tcase_add_test(tc_validation, test_validate_diagnostic_missing_mode);

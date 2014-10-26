@@ -107,12 +107,12 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     MessageClass messageClass;
 	bool matched = false;
     switch(message->type) {
-        case openxc_VehicleMessage_Type_TRANSLATED:
-            messageClass = MessageClass::TRANSLATED;
+        case openxc_VehicleMessage_Type_SIMPLE:
+            messageClass = MessageClass::SIMPLE;
 			matched = true;
             break;
-        case openxc_VehicleMessage_Type_RAW:
-            messageClass = MessageClass::RAW;
+        case openxc_VehicleMessage_Type_CAN:
+            messageClass = MessageClass::CAN;
 			matched = true;
             break;
         case openxc_VehicleMessage_Type_DIAGNOSTIC:

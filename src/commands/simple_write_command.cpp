@@ -33,24 +33,24 @@ namespace usb = openxc::interface::usb;
 namespace uart = openxc::interface::uart;
 namespace pipeline = openxc::pipeline;
 
-bool openxc::commands::handleTranslated(openxc_VehicleMessage* message) {
+bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
     bool status = true;
-    if(message->has_translated_message) {
-        openxc_TranslatedMessage* translatedMessage =
-                &message->translated_message;
-        if(translatedMessage->has_name) {
-            CanSignal* signal = lookupSignal(translatedMessage->name,
+    if(message->has_simple_message) {
+        openxc_SimpleMessage* simpleMessage =
+                &message->simple_message;
+        if(simpleMessage->has_name) {
+            CanSignal* signal = lookupSignal(simpleMessage->name,
                     getSignals(), getSignalCount(), true);
             if(signal != NULL) {
-                if(!translatedMessage->has_value) {
-                    debug("Write request for %s missing value", translatedMessage->name);
+                if(!simpleMessage->has_value) {
+                    debug("Write request for %s missing value", simpleMessage->name);
                     status = false;
                 }
 
-                can::write::encodeAndSendSignal(signal, &translatedMessage->value, false);
+                can::write::encodeAndSendSignal(signal, &simpleMessage->value, false);
                 // TODO support writing evented signals
             } else {
-                CanCommand* command = lookupCommand(translatedMessage->name,
+                CanCommand* command = lookupCommand(simpleMessage->name,
                         getCommands(), getCommandCount());
                 if(command != NULL) {
                     // TODO this still isn't that flexible, can't accept
@@ -58,28 +58,14 @@ bool openxc::commands::handleTranslated(openxc_VehicleMessage* message) {
                     // this 'value' and 'event' business, where the eventeds all
                     // have string values
                     // TODO could simplify it by passing the entire
-                    // TranslatedMessage to the handler
-                    switch(translatedMessage->type) {
-                    case openxc_TranslatedMessage_Type_STRING:
-                    case openxc_TranslatedMessage_Type_NUM:
-                    case openxc_TranslatedMessage_Type_BOOL:
-                        command->handler(translatedMessage->name,
-                                &translatedMessage->value,
-                                NULL,
-                                getSignals(), getSignalCount());
-                        break;
-                    case openxc_TranslatedMessage_Type_EVENTED_STRING:
-                    case openxc_TranslatedMessage_Type_EVENTED_NUM:
-                    case openxc_TranslatedMessage_Type_EVENTED_BOOL:
-                        command->handler(translatedMessage->name,
-                                &translatedMessage->value,
-                                &translatedMessage->event,
-                                getSignals(), getSignalCount());
-                        break;
-                    }
+                    // SimpleMessage to the handler
+                    command->handler(simpleMessage->name,
+                            &simpleMessage->value,
+                            simpleMessage->has_event ? &simpleMessage->event : NULL,
+                            getSignals(), getSignalCount());
                 } else {
                     debug("Writing not allowed for signal \"%s\"",
-                            translatedMessage->name);
+                            simpleMessage->name);
                     status = false;
                 }
             }
@@ -88,27 +74,27 @@ bool openxc::commands::handleTranslated(openxc_VehicleMessage* message) {
     return status;
 }
 
-bool openxc::commands::validateTranslated(openxc_VehicleMessage* message) {
+bool openxc::commands::validateSimple(openxc_VehicleMessage* message) {
     bool valid = true;
-    if(message->has_type && message->type == openxc_VehicleMessage_Type_TRANSLATED &&
-            message->has_translated_message) {
-        openxc_TranslatedMessage* translated = &message->translated_message;
-        if(!translated->has_name) {
+    if(message->has_type && message->type == openxc_VehicleMessage_Type_SIMPLE &&
+            message->has_simple_message) {
+        openxc_SimpleMessage* simple = &message->simple_message;
+        if(!simple->has_name) {
             valid = false;
             debug("Write request is missing name");
         }
 
-        if(!translated->has_value) {
+        if(!simple->has_value) {
             valid = false;
-        } else if(!translated->value.has_type) {
+        } else if(!simple->value.has_type) {
             valid = false;
-            debug("Unsupported type in value field of %s", translated->name);
+            debug("Unsupported type in value field of %s", simple->name);
         }
 
-        if(translated->has_event) {
-            if(!translated->event.has_type) {
+        if(simple->has_event) {
+            if(!simple->event.has_type) {
                 valid = false;
-                debug("Unsupported type in event field of %s", translated->name);
+                debug("Unsupported type in event field of %s", simple->name);
             }
         }
 

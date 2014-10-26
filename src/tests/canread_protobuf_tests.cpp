@@ -76,10 +76,10 @@ START_TEST (test_passthrough_message)
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(
             &getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_RAW, decodedMessage.type);
-    ck_assert_int_eq(message.id, decodedMessage.raw_message.message_id);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_CAN, decodedMessage.type);
+    ck_assert_int_eq(message.id, decodedMessage.can_message.message_id);
     for(int i = 0; i < 8; i++) {
-        ck_assert_int_eq(message.data[i], decodedMessage.raw_message.data.bytes[i]);
+        ck_assert_int_eq(message.data[i], decodedMessage.can_message.data.bytes[i]);
     }
 }
 END_TEST
@@ -91,9 +91,9 @@ START_TEST (test_send_numeric_value)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42, decodedMessage.translated_message.value.numeric_value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.simple_message.name);
+    ck_assert_int_eq(42, decodedMessage.simple_message.value.numeric_value);
 }
 END_TEST
 
@@ -105,9 +105,9 @@ START_TEST (test_preserve_float_precision)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42.5, decodedMessage.translated_message.value.numeric_value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.simple_message.name);
+    ck_assert_int_eq(42.5, decodedMessage.simple_message.value.numeric_value);
 }
 END_TEST
 
@@ -118,9 +118,9 @@ START_TEST (test_send_boolean)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert(decodedMessage.translated_message.value.boolean_value == false);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.simple_message.name);
+    ck_assert(decodedMessage.simple_message.value.boolean_value == false);
 }
 END_TEST
 
@@ -131,9 +131,9 @@ START_TEST (test_send_string)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("test", decodedMessage.translated_message.name);
-    ck_assert_str_eq("string", decodedMessage.translated_message.value.string_value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("test", decodedMessage.simple_message.name);
+    ck_assert_str_eq("string", decodedMessage.simple_message.value.string_value);
 }
 END_TEST
 
@@ -143,9 +143,9 @@ START_TEST (test_translate_string)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("transmission_gear_position", decodedMessage.translated_message.name);
-    ck_assert_str_eq("foo", decodedMessage.translated_message.value.string_value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("transmission_gear_position", decodedMessage.simple_message.name);
+    ck_assert_str_eq("foo", decodedMessage.simple_message.value.string_value);
 }
 END_TEST
 
@@ -155,9 +155,9 @@ START_TEST (test_translate_bool)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("brake_pedal_status", decodedMessage.translated_message.name);
-    ck_assert(decodedMessage.translated_message.value.boolean_value == false);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("brake_pedal_status", decodedMessage.simple_message.name);
+    ck_assert(decodedMessage.simple_message.value.boolean_value == false);
 }
 END_TEST
 
@@ -167,9 +167,9 @@ START_TEST (test_translate_float)
     fail_if(queueEmpty());
 
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(&getConfiguration()->pipeline);
-    ck_assert_int_eq(openxc_VehicleMessage_Type_TRANSLATED, decodedMessage.type);
-    ck_assert_str_eq("torque_at_transmission", decodedMessage.translated_message.name);
-    ck_assert_int_eq(42, decodedMessage.translated_message.value.numeric_value);
+    ck_assert_int_eq(openxc_VehicleMessage_Type_SIMPLE, decodedMessage.type);
+    ck_assert_str_eq("torque_at_transmission", decodedMessage.simple_message.name);
+    ck_assert_int_eq(42, decodedMessage.simple_message.value.numeric_value);
 }
 END_TEST
 

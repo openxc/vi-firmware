@@ -6,9 +6,9 @@
 namespace openxc {
 namespace commands {
 
-bool handleTranslated(openxc_VehicleMessage* message);
+bool handleSimple(openxc_VehicleMessage* message);
 
-bool validateTranslated(openxc_VehicleMessage* message);
+bool validateSimple(openxc_VehicleMessage* message);
 
 } // namespace commands
 } // namespace openxc

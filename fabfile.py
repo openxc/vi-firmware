@@ -215,10 +215,11 @@ def reference_functional_test(skip_flashing=False):
 
     baremetal()
     reference()
-    # functional_test(skip_flashing=skip_flashing)
+    functional_test(skip_flashing=skip_flashing)
 
-    functional_test(skip_flashing=skip_flashing,
-            extra_env="VI_FUNC_TESTS_USE_BLUETOOTH=1")
+    # TODO integrate bluetooth testing once it's working reliably
+    # functional_test(skip_flashing=skip_flashing,
+            # extra_env="VI_FUNC_TESTS_USE_BLUETOOTH=1")
 
 @task
 def chipkit_functional_test(skip_flashing=False):

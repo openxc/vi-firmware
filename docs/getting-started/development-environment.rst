@@ -83,7 +83,7 @@ do the compilation from within the VM.
    sure how to edit your ``PATH``, see `this guide for all versions of Windows
    <https://www.java.com/en/download/help/path.xml>`_. Log out and back in for
    the change to take effect.
-#. Install `Vagrant <http://docs.vagrantup.com/v2/installation/index.html>`_.
+#. `Install Vagrant <http://docs.vagrantup.com/v2/installation/index.html>`_.
 #. Navigate to the ``vi-firmware`` repository in the GitHub app, click the gear
    icon in the top right corner and select "Open in Git Shell".
 #. In the shell, run ``vagrant up`` to initialize the Vagrant VM - this may take

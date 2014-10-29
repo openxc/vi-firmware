@@ -49,7 +49,7 @@ void passthroughMessage(CanBus* bus, CanMessage* message,
         CanMessageDefinition* messages, int messageCount,
         openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Publish a translated vehicle message to the pipeline with a value and
+/* Public: Publish a simple vehicle message to the pipeline with a value and
  * an optional event.
  *
  * If 'event' is NULL, the published message will not have an event field.
@@ -62,7 +62,7 @@ void passthroughMessage(CanBus* bus, CanMessage* message,
 void publishVehicleMessage(const char* name, openxc_DynamicField* value,
         openxc_DynamicField* event, openxc::pipeline::Pipeline* pipeline);
 
-/* Public: Publish a translated vehicle message to the pipeline with no event.
+/* Public: Publish a simple vehicle message to the pipeline with no event.
  *
  * This is a shortcut for publishVehicleMessage(const char*, openxc_DynamicField*,
  * openxc_DynamicField*, Pipeline) where the 'event' is presumed to be NULL.

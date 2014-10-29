@@ -133,11 +133,11 @@ is the most important thing.
 We set the ``force_send_changed`` field to false so the firmware will strictly
 enforce the max message frequency.
 
-Translated and Raw CAN Together
-================================
+Simple Messages and CAN Messages Together
+=========================================
 
 We want to read the same signal as in the :ref:`One Bus, One Numeric Signal
-<onebus-onesignal>` example, but we also want to receive all unfiltered raw CAN
+<onebus-onesignal>` example, but we also want to receive all unfiltered CAN
 messages simultaneously.
 
 .. code-block:: javascript
@@ -164,17 +164,18 @@ messages simultaneously.
    }
 
 We added set the ``raw_can_mode`` for the bus to ``unfiltered``, as in
-:ref:`unfiltered-raw`. No other changes are required - the raw and translated
-message co-exist peacefully. If we set ``raw_can_mode`` to ``filtered``, it
+:ref:`unfiltered-raw`. No other changes are required - the CAN and simple
+vehicle messages
+co-exist peacefully. If we set ``raw_can_mode`` to ``filtered``, it
 would only send the raw message for ``0x102``, where we're getting the numeric
 signal.
 
 With this configuration, the VI will publish a mixed stream of OpenXC messages,
-both the `raw CAN message format
-<https://github.com/openxc/openxc-message-format#raw-can-message-format>`_, and
-the `translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+both the `CAN message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#can-message>`_,
+and the `simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 

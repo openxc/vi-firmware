@@ -25,9 +25,9 @@ The only change from a typical configuration is the addition of the
 ``raw_can_mode`` attribute to the bus, set to ``unfiltered``. When using the raw
 CAN configuration, there's no need to configure any messages or signals.
 
-You may use both translated and raw output simultaneously - the 2 message types
-will be interleaved on the output interfaces, so you'll need to check for the
-right fields before reading the output.
+You may use both simple vehicle messages and CAN message output simultaneously -
+the 2 message types will be interleaved on the output interfaces, so you'll need
+to check for the right fields before reading the output.
 
 If you're only interested in a few CAN messages, you can send a filtered set of
 raw messages. Change the ``raw_can_mode`` to ``filtered`` and add the messages
@@ -120,4 +120,4 @@ those words make security engineers queasy), compile with the
 
 The raw CAN write support is intended soley for protoyping and advanced
 development work - for any sort of consumer-level app, it's much better to use
-writable translated messages.
+writable simple vehicle messages.

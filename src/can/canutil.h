@@ -315,9 +315,6 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
 
 /* Public: The type signature for a function to handle a custom OpenXC command.
  *
- * Commands use the "translated" message format, and have at least a name and
- * value.
- *
  * name - the name of the received command.
  * value - the value of the received command, in a DynamicField. The actual type
  *      may be a number, string or bool.

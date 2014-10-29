@@ -14,10 +14,10 @@ bus, so you are strongly encouraged to read, understand and try the
     :local:
     :depth: 1
 
-.. _translated-write:
+.. _simple-write:
 
-Translated Numeric Signal Write Request
-=======================================
+Named Numeric Signal Write Request
+==================================
 
 We want to send a single numeric value to the VI, and have it translated back
 into a CAN signal in a message on a high speed bus attached to controller 1. The
@@ -78,7 +78,7 @@ logs to make sure the write went through with this command:
 
     openxc-control write --name my_openxc_measurement --value 42 --log-mode stderr
 
-Translated Boolean Signal Write Request
+Named Boolean Signal Write Request
 =======================================
 
 We want to send a single boolean value to the VI, and have it translated back
@@ -131,7 +131,7 @@ that from a terminal with the command:
 
     openxc-control write --name my_boolean_request --value true
 
-Translated State-based Signal Write Request
+Named State-based Signal Write Request
 ===========================================
 
 We want to send a state as a string to the VI, and have it translated back into
@@ -197,10 +197,10 @@ terminal with the command:
 Becuase of the way string escaping works from the command prompt, you have to
 add escaped ``\"`` characters so the tool knows you want to send a string.
 
-Translated, Transformed Written Signal
+Named, Transformed Written Signal
 =======================================
 
-We want to write the same signal as :ref:`translated-write` but round any values
+We want to write the same signal as :ref:`simple-write` but round any values
 below 100 down to 0 before sending (similar to the read-only example
 :ref:`custom-transformed`).
 

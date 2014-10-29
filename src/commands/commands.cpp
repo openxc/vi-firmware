@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "util/log.h"
+#include "interface/interface.h"
 #include "config.h"
 #include "pb_decode.h"
 
@@ -18,6 +19,7 @@
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
+using openxc::interface::InterfaceType;
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
@@ -57,6 +59,14 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     openxc_VehicleMessage message = {0};
     size_t bytesRead = 0;
+
+    // TODO Not attempting to deserialize binary messages via UART,
+    // see https://github.com/openxc/vi-firmware/issues/313
+    if(sourceInterfaceDescriptor->type == InterfaceType::UART &&
+            getConfiguration()->payloadFormat == PayloadFormat::PROTOBUF) {
+        return 0;
+    }
+
     // Ignore anything less than 2 bytes, we know it's an incomplete payload -
     // wait for more to come in before trying to parse it
     if(length > 2) {

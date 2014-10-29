@@ -1,6 +1,52 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v6.0.4-dev
+## v7.0.0-dev
+
+* BREAKING: Update to latest OpenXC message format, including updated binary
+    spec.
+* BREAKING: Deprecate USB control commands for version and device ID - use
+    generic control command type instead, with the same payload format as if
+    sent via UART/BT.
+* BREAKING: Refactor tire and door handlers for use as signal decoders.
+* Feature: Support setting explicit CAN frame format when writing messages
+    (#230).
+* Feature: Support control command to enable/disable passthrough of CAN messages
+    on each CAN controller.
+* Feature: Support control command to dynamically change the status of the CAN
+    acceptance filter (#301).
+* Feature: Support control command to dynamically change the payload format
+    (#302). Note that binary commands sent to the VI are not yet supported,
+    there are still bugs.
+* Feature: Support new `action` field of diagnostic requests from OpenXC message
+    format.
+* Feature: Add a loopback property to CAN buses to support self-testing.
+* Improvement: Return a command response with a status for all diagnostic
+    request commands.
+* Improvement: Update required GNU for ARM version to -4_8-2014q2-20140609
+    (#261).
+* Improvement: Update required MPIDE version to 20140821 with associated updates
+    to Arduino-Makefile
+* Improvement: Update to latest version of chipKIT peripheral libraries.
+* Improvement: Update required nanopb version to v0.3.1 (#269).
+* Improvement: Compile test with LLVM's Clang, which provides much better
+    warnings. Fix a lot of minor but important things that it found.
+* Improvement: Use new self-receive capabilities in VI for a functional test
+    suite that runs on actual hardware. See `fab functionaltest`.
+* Fix: Don't let defined CAN messages interfere with normal operation when the
+    CAN AF is disabled (#260).
+* Fix: Pass a valid Pipeline object to signal handler (#263).
+* Fix: Fix double de-reference that caused the VI to crash when receiving
+    commands while using the binary payload format.
+* Fix: Match diagnostic request command name to the OpenXC message format.
+* Fix: Improve build process to make sure stray signals definitions are not
+    unintentionally included (#249).
+* Fix: Work around lack of symlinks in Windows when setting up development
+    environment (#259).
+* Fix: Calculate correct payload size when receiving data via USB endpoint 0 on
+    PIC32.
+* Fix: Respect configuration of raw write permissions for I/O interfaces (#274).
+* Fix: Use blocking UART writes on LPC17xx to work around a race condition
+    (#306)
 
 ## v6.0.3
 

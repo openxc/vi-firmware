@@ -164,6 +164,15 @@ START_TEST (test_deserialize_can_message_write_with_format)
 }
 END_TEST
 
+START_TEST (test_deserialize_message_after_junk)
+{
+    uint8_t rawRequest[] = "prime\0{\"bus\": 1, \"id\": 42, \"data\": \"0x1234\"}\0";
+    openxc_VehicleMessage deserialized = {0};
+    ck_assert_int_eq(6, json::deserialize(rawRequest, sizeof(rawRequest), &deserialized));
+    ck_assert(!validate(&deserialized));
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("json_payload");
     TCase *tc_json_payload = tcase_create("json_payload");
@@ -178,6 +187,7 @@ Suite* suite(void) {
     tcase_add_test(tc_json_payload, test_predefined_obd2_requests_request);
     tcase_add_test(tc_json_payload, test_deserialize_can_message_write);
     tcase_add_test(tc_json_payload, test_deserialize_can_message_write_with_format);
+    tcase_add_test(tc_json_payload, test_deserialize_message_after_junk);
     suite_add_tcase(s, tc_json_payload);
 
     return s;

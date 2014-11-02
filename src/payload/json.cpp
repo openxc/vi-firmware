@@ -494,12 +494,15 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         char* jsonStart = strchr((char*)messageBuffer, '{');
         if(jsonStart == NULL) {
             debug("%s", "No JSON object start found");
-            return 0;
+            // Return message length so this bogus front matter is erased
+            return messageLength;
         }
 
         cJSON *root = cJSON_Parse(jsonStart);
         if(root == NULL) {
             debug("No JSON found in %u byte payload", length);
+            // TODO should this return messageLength to eat up corrupt data, or
+            // does it need to be 0 so we preserve partial messages?
             return 0;
         }
 

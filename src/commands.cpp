@@ -8,6 +8,7 @@
 #include "pb_decode.h"
 #include <payload/payload.h>
 #include "signals.h"
+#include "telit_he910.h"
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
 #include <limits.h>
@@ -56,6 +57,17 @@ static bool handleVersionCommand() {
     return true;
 }
 
+static bool handleModemCommand(openxc_ControlCommand* command) {
+
+	openxc::telitHE910::ServerConnectSettings server;
+	server.host = command->modem.server.remote_address;
+	server.port = command->modem.server.remote_port;
+
+	debug("Handling modem command...");
+	return openxc::telitHE910::openSocket(1, server);
+
+}
+
 static bool handleDeviceIdCommmand() {
     // TODO move getDeviceId to openxc::platform, allow each platform to
     // define where the device ID comes from.
@@ -96,6 +108,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_DEVICE_ID:
             status = handleDeviceIdCommmand();
             break;
+		case openxc_ControlCommand_Type_MODEM:
+			status = handleModemCommand(command);
+			break;
         default:
             status = false;
             break;
@@ -237,6 +252,7 @@ bool openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length) {
             debug("Incoming message is complete but invalid");
         }
     } else {
+		debug("Incoming message deserialization failed");
         status = false;
     }
     return status;
@@ -318,6 +334,37 @@ static bool validateDiagnosticRequest(openxc_VehicleMessage* message) {
     return valid;
 }
 
+static bool validateModemCommand(openxc_VehicleMessage* message) {
+	bool valid = true;
+	if(message->has_control_command) {
+        openxc_ControlCommand* command = &message->control_command;
+        if(command->has_type && command->type == openxc_ControlCommand_Type_MODEM && 
+		command->has_modem && command->modem.has_server) {
+            openxc_Server* server = &command->modem.server;
+			
+			debug("Validating modem server setting...");
+
+            if(!server->has_remote_address) {
+                valid = false;
+                debug("Modem server setting missing remote address");
+            }
+
+            if(!server->has_remote_port) {
+                valid = false;
+                debug("Modem server setting missing remote port");
+            }
+			
+        } else {
+            valid = false;
+            debug("Modem server setting is of unexpected type");
+        }
+    } else {
+		debug("Modem server setting is not a control command");
+        valid = false;
+    }
+	return valid;
+}
+
 static bool validateControlCommand(openxc_VehicleMessage* message) {
     bool valid = message->has_type &&
             message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND &&
@@ -332,6 +379,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_DEVICE_ID:
             valid =  true;
             break;
+		case openxc_ControlCommand_Type_MODEM:
+			valid = validateModemCommand(message);
+			break;
         default:
             valid = false;
             break;

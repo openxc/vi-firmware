@@ -5,6 +5,7 @@
 #include "interface/uart.h"
 #include "interface/usb.h"
 #include "interface/network.h"
+#include "telit_he910.h"
 #include "diagnostics.h"
 #include "pipeline.h"
 #include <payload/payload.h>
@@ -113,11 +114,12 @@ typedef struct {
     openxc::interface::uart::UartDevice uart;
     openxc::interface::network::NetworkDevice network;
     openxc::interface::usb::UsbDevice usb;
+	openxc::telitHE910::TelitDevice telit;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;
 } Configuration;
 
-/* Public: Retreive a singleton instance of the Configuration struct.
+/* Public: Retrieve a singleton instance of the Configuration struct.
  */
 Configuration* getConfiguration();
 

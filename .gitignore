@@ -19,3 +19,4 @@ src/openxc
 examples/signals.cpp
 .vagrant/
 .firmware_options
+src/.svn

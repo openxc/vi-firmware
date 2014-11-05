@@ -98,7 +98,7 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -116,6 +116,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c $(LIBS_PATH)/nanopb/pb_decode.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
@@ -132,7 +133,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
 				-I$(LIBS_PATH)/bitfield-c/src \
 				-I$(LIBS_PATH)/isotp-c/src \
-				-I$(LIBS_PATH)/uds-c/src
+				-I$(LIBS_PATH)/uds-c/src \
+				-I$(LIBS_PATH)/http-parser
 
 # the PIC32 can't build with gnu99, so we have to leave it out
 ONLY_C_FLAGS =
@@ -145,6 +147,8 @@ include tests/tests.mk
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)
+include platform/pic32/pic32.mk
+else ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk

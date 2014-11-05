@@ -33,6 +33,12 @@
     #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
 
+#elif defined(CROSSCHASM_CELLULAR_C5)
+
+    #define UART_STATUS_PORT 0
+    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN_POLARITY 1    // high == connected
+	
 #elif defined(CHIPKIT)
 
     #define UART_STATUS_PORT 0
@@ -116,7 +122,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     initializeCommon(device);
     device->controller = &Serial;
     changeBaudRate(device, device->baudRate);
-    enableFlowControl(device);
+	enableFlowControl(device);
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             gpio::GPIO_DIRECTION_INPUT);

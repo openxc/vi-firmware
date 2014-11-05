@@ -6,8 +6,9 @@
 #include "util/bytebuffer.h"
 #include "config.h"
 #include "lights.h"
+#include "telit_he910_platforms.h"
 
-#define PIPELINE_ENDPOINT_COUNT 3
+#define PIPELINE_ENDPOINT_COUNT 4
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
 #define QUEUE_FLUSH_MAX_TRIES 5
 
@@ -28,13 +29,15 @@ using openxc::pipeline::MessageClass;
 typedef enum {
     USB = 0,
     UART = 1,
-    NETWORK = 2
+    NETWORK = 2,
+	TELIT = 3
 } EndpointType;
 
 const char messageTypeNames[][9] = {
     "USB",
     "UART",
     "Network",
+	"Telit",
 };
 
 unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
@@ -98,6 +101,18 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
     }
 }
 
+void sendToTelit(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass) {
+    if(openxc::telitHE910::connected(pipeline->telit) && messageClass != MessageClass::LOG) {
+        QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->telit->sendQueue;
+        conditionalFlush(pipeline, sendQueue, message, messageSize);
+        sendToEndpoint(TELIT, sendQueue, &pipeline->telit->receiveQueue, message,
+                messageSize);
+    }
+	
+	// removed UART logging from the telit
+}
+
 void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
     if(pipeline->network != NULL && messageClass != MessageClass::LOG) {
@@ -137,7 +152,11 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
         int messageSize, MessageClass messageClass) {
     sendToUsb(pipeline, message, messageSize, messageClass);
-    sendToUart(pipeline, message, messageSize, messageClass);
+	#ifdef TELIT_HE910_SUPPORT
+	sendToTelit(pipeline, message, messageSize, messageClass);
+	#else
+	sendToUart(pipeline, message, messageSize, messageClass);
+	#endif
     sendToNetwork(pipeline, message, messageSize, messageClass);
 }
 
@@ -145,10 +164,16 @@ void openxc::pipeline::process(Pipeline* pipeline) {
     // Must always process USB, because this function usually runs the MCU's USB
     // task that handles SETUP and enumeration.
     usb::processSendQueue(pipeline->usb);
-    if(uart::connected(pipeline->uart)) {
+	#ifdef TELIT_HE910_SUPPORT
+	if(telitHE910::connected(pipeline->telit))
+	{
+		telitHE910::processSendQueue(pipeline->telit);
+	}
+	#else
+	if(uart::connected(pipeline->uart)) {
         uart::processSendQueue(pipeline->uart);
     }
-
+	#endif
     if(pipeline->network != NULL) {
        network::processSendQueue(pipeline->network);
     }

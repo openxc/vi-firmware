@@ -14,6 +14,7 @@ using openxc::util::log::debug;
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
+const char openxc::payload::json::MODEM[] = "modem";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -178,6 +179,39 @@ static size_t dehexlify(const char source[], uint8_t* destination,
         destination[byteIndex++] = strtoul(bytestring, &end, 16);
     }
     return byteIndex;
+}
+
+static void deserializeModem(cJSON* root, openxc_ControlCommand* command) {
+	command->has_type = true;
+    command->type = openxc_ControlCommand_Type_MODEM;
+    command->has_modem = true;
+	command->modem.has_server = true;
+	
+	debug("Deserializing modem command...");
+
+    cJSON* settings = cJSON_GetObjectItem(root, "server");
+    if(settings != NULL) {
+		// handle server configuration command
+        cJSON* element = cJSON_GetObjectItem(settings, "remote_address");
+        if(element != NULL) {
+            // get the remote address
+			command->modem.server.has_remote_address = true;
+			strcpy(command->modem.server.remote_address, element->valuestring);
+        }
+		else {
+			command->modem.has_server = false;
+		}
+		
+		element = cJSON_GetObjectItem(settings, "remote_port");
+        if(element != NULL) {
+            // get the remote address
+			command->modem.server.remote_port = element->valueint;
+			command->modem.server.has_remote_port = true;
+        }
+		else {
+			command->modem.has_server = false;
+		}
+	}
 }
 
 static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
@@ -390,6 +424,9 @@ bool openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
             deserializeDiagnostic(root, command);
+		} else if(!strncmp(commandNameObject->valuestring,
+                    MODEM, strlen(MODEM))) {
+            deserializeModem(root, command);
         } else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
             message->has_control_command = false;

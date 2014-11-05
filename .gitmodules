@@ -24,7 +24,7 @@
 	url = https://code.google.com/p/nanopb/
 [submodule "src/libs/openxc-message-format"]
 	path = src/libs/openxc-message-format
-	url = https://github.com/openxc/openxc-message-format
+	url = https://github.com/mgiannikouris/openxc-message-format
 [submodule "src/libs/bitfield-c"]
 	path = src/libs/bitfield-c
 	url = https://github.com/openxc/bitfield-c

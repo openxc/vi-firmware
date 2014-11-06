@@ -12,7 +12,6 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
-using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;

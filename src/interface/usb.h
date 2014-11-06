@@ -112,18 +112,6 @@ void read(UsbDevice* device, UsbEndpoint* endpoint,
  */
 void processSendQueue(UsbDevice* device);
 
-/* Public: Send a USB control message on EP0 (the endponit used only for control
- * transfers).
- *
- * Returns true if a USB host is connected and we sent the transfer.
- *
- * device - The USB device to send the control transfer.
- * data - An array of up bytes up to the total size of the endpoint (64 bytes
- *      for USB 2.0)
- * length - The length of the data array.
- */
-bool sendControlMessage(UsbDevice* usbDevice, uint8_t* data, size_t length);
-
 /* Public: Disconnect from host and turn off the USB peripheral
  *           (minimal power draw).
  */

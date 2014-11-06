@@ -12,7 +12,6 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
-using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
@@ -41,8 +40,6 @@ bool openxc::commands::handleDeviceIdCommmand() {
     bool status = false;
     if(deviceIdLength > 0) {
         status = true;
-        usb::sendControlMessage(&getConfiguration()->usb,
-                (uint8_t*)uart->deviceId, strlen(uart->deviceId));
         sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, status,
                 uart->deviceId, deviceIdLength);
     }

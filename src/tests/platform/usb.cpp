@@ -41,10 +41,3 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         IncomingMessageCallback callback) { }
 
 void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) { }
-
-bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
-        uint8_t* data, size_t length) {
-    memcpy(LAST_CONTROL_COMMAND_PAYLOAD, data, length);
-    LAST_CONTROL_COMMAND_PAYLOAD_LENGTH = length;
-    return true;
-}

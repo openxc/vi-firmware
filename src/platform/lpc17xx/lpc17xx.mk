@@ -91,7 +91,7 @@ flash: custom_all
 	openocd -s $(OPENOCD_CONF_BASE) -c 'set FIRMWARE_PATH $(TARGET_BIN)' -f $(PLATFORM).cfg -f $(BASE_TARGET).cfg -f interface/$(JTAG_INTERFACE)-custom.cfg -f flash.cfg
 	@echo "$(GREEN)Flashed $(PLATFORM) successfully.$(COLOR_RESET)"
 
-gdb: all
+gdb:
 	@openocd -f $(OPENOCD_CONF_BASE)/gdb.cfg
 
 .s.o:

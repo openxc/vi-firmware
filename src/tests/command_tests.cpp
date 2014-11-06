@@ -29,8 +29,6 @@ extern void initializeVehicleInterface();
 extern char LAST_COMMAND_NAME[];
 extern openxc_DynamicField LAST_COMMAND_VALUE;
 extern openxc_DynamicField LAST_COMMAND_EVENT;
-extern uint8_t LAST_CONTROL_COMMAND_PAYLOAD[];
-extern size_t LAST_CONTROL_COMMAND_PAYLOAD_LENGTH;
 
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
         IN_ENDPOINT_INDEX].queue;
@@ -597,29 +595,6 @@ START_TEST (test_version_message_in_stream)
 }
 END_TEST
 
-START_TEST (test_version_message)
-{
-    uint8_t request[] = "{\"command\": \"version\"}\0";
-    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
-    char firmwareDescriptor[256] = {0};
-    getFirmwareDescriptor(firmwareDescriptor, sizeof(firmwareDescriptor));
-    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
-                firmwareDescriptor) != NULL);
-}
-END_TEST
-
-START_TEST (test_device_id_message)
-{
-    uint8_t request[] = "{\"command\": \"device_id\"}\0";
-    strcpy(getConfiguration()->uart.deviceId, "mydevice");
-    ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
-    ck_assert(LAST_CONTROL_COMMAND_PAYLOAD_LENGTH > 0);
-    ck_assert(strstr((char*)LAST_CONTROL_COMMAND_PAYLOAD,
-                getConfiguration()->uart.deviceId) != NULL);
-}
-END_TEST
-
 START_TEST (test_device_id_message_in_stream)
 {
     uint8_t request[] = "{\"command\": \"device_id\"}\0";
@@ -949,9 +924,7 @@ Suite* suite(void) {
 
     TCase *tc_control_commands = tcase_create("control_commands");
     tcase_add_checked_fixture(tc_control_commands, setup, NULL);
-    tcase_add_test(tc_control_commands, test_version_message);
     tcase_add_test(tc_control_commands, test_version_message_in_stream);
-    tcase_add_test(tc_control_commands, test_device_id_message);
     tcase_add_test(tc_control_commands, test_device_id_message_in_stream);
     tcase_add_test(tc_control_commands, test_passthrough_request_message);
     tcase_add_test(tc_control_commands, test_bypass_command);

@@ -197,26 +197,6 @@ static void configureUsbDetection() {
     PINSEL_ConfigPin(&hostDetectPinConfig);
 }
 
-bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
-        uint8_t* data, size_t length) {
-    if(!usbDevice->configured) {
-        return false;
-    }
-
-    uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
-
-    Endpoint_ClearSETUP();
-    Endpoint_Write_Control_Stream_LE(data, length);
-    // TODO I think it needs to be ClearIN since this is a device -> host
-    // request, but a simple switch breaks it
-    Endpoint_ClearOUT();
-
-    Endpoint_SelectEndpoint(previousEndpoint);
-    return true;
-}
-
-
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 

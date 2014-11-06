@@ -12,7 +12,6 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 
-using openxc::interface::usb::sendControlMessage;
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
@@ -36,9 +35,6 @@ namespace pipeline = openxc::pipeline;
 bool openxc::commands::handleVersionCommand() {
     char descriptor[128];
     config::getFirmwareDescriptor(descriptor, sizeof(descriptor));
-
-    usb::sendControlMessage(&getConfiguration()->usb, (uint8_t*)descriptor,
-            strlen(descriptor));
     sendCommandResponse(openxc_ControlCommand_Type_VERSION, true,
             descriptor, sizeof(descriptor));
     return true;

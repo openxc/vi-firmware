@@ -12,7 +12,7 @@
     "diagnostic_messages": [
         {
             "bus": "hs",
-            "message_id": 2015,
+            "id": 2015,
             "mode": 1,
             "pid": 12,
             "frequency": 1,
@@ -20,14 +20,14 @@
         },
         {
             "bus": "hs",
-            "message_id": 2016,
+            "id": 2016,
             "mode": 2,
             "pid": 12,
             "frequency": 1
         },
         {
             "bus": "hs",
-            "message_id": 2016,
+            "id": 2016,
             "mode": 22,
             "pid": 6,
             "frequency": 1,

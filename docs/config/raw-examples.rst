@@ -41,7 +41,7 @@ e.g. when using the JSON output format:
 
 .. code-block:: js
 
-  {"bus": 1, "message_id": 1234, "value": "0x12345678"}
+  {"bus": 1, "id": 1234, "value": "0x12345678"}
 
 .. _filtered-raw-can:
 
@@ -179,5 +179,5 @@ e.g. when using the JSON output format:
 
 .. code-block:: js
 
-   {"bus": 1, "message_id": 258, "value": "0x12345678"}
+   {"bus": 1, "id": 258, "value": "0x12345678"}
    {"name": "my_openxc_measurement", "value": 42}

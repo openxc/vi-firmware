@@ -55,12 +55,12 @@ class ViFunctionalTests(unittest.TestCase):
 
     @classmethod
     def receive(cls, message, **kwargs):
-        if ('message_id' in message and 'bus' in message and 'data' in message and
+        if ('id' in message and 'bus' in message and 'data' in message and
                 getattr(cls, 'can_message_queue', None)):
             cls.can_message_queue.put(message)
         elif ('name' in message and 'value' in message):
             cls.simple_vehicle_message_queue.put(message)
-        elif ('message_id' in message and 'bus' in message and 'mode' in message):
+        elif ('id' in message and 'bus' in message and 'mode' in message):
             cls.diagnostic_response_queue.put(message)
 
 
@@ -97,7 +97,7 @@ class ControlCommandTestsProtobuf(ProtobufBaseTests, ControlCommandTests):
 class CanMessageTests(object):
 
     def _check_received_message(self, message):
-        eq_(self.message_id, message['message_id'])
+        eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
         eq_(self.data, message['data'])
         self.can_message_queue.task_done()
@@ -206,7 +206,7 @@ class DiagnosticRequestTests(object):
         ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
                 bus=self.bus, pid=self.pid, payload=self.payload))
         message = self.can_message_queue.get(timeout=.5)
-        eq_(self.message_id, message['message_id'])
+        eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
         eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
                 binascii.hexlify(self.payload)), message['data'])
@@ -228,10 +228,10 @@ class DiagnosticRequestTests(object):
         message = None
         while message is None:
             message = self.can_message_queue.get(timeout=.5)
-            if message['message_id'] == self.message_id:
+            if message['id'] == self.message_id:
                 # skip the request
                 continue
-            elif message['message_id'] == response_id:
+            elif message['id'] == response_id:
                 break
         ok_(message is not None)
         self.can_message_queue.task_done()
@@ -245,7 +245,7 @@ class DiagnosticRequestTests(object):
         # we receive the raw CAN message
         ok_(self.vi.write(bus=self.bus, id=response_id, data="0x03430142"))
         response = self.diagnostic_response_queue.get(timeout=.5)
-        eq_(self.message_id, response['message_id'])
+        eq_(self.message_id, response['id'])
         eq_(self.bus, response['bus'])
         eq_(self.mode, response['mode'])
         eq_(self.pid, response['pid'])
@@ -265,7 +265,7 @@ class DiagnosticRequestTests(object):
                 self.mode, self.pid, response_value)))
 
         response = self.diagnostic_response_queue.get(timeout=.5)
-        eq_(self.message_id, response['message_id'])
+        eq_(self.message_id, response['id'])
         eq_(self.bus, response['bus'])
         eq_(self.mode, response['mode'])
         eq_(self.pid, response['pid'])
@@ -280,7 +280,7 @@ class DiagnosticRequestTests(object):
                     frequency=10))
             for _ in range(5):
                 message = self.can_message_queue.get(timeout=.5)
-                eq_(self.message_id, message['message_id'])
+                eq_(self.message_id, message['id'])
                 eq_(self.bus, message['bus'])
                 eq_("0x04%02x%02x%s000000" % (self.mode, self.pid,
                         binascii.hexlify(self.payload)), message['data'])
@@ -317,7 +317,7 @@ class DiagnosticRequestTestsProtobuf(ProtobufBaseTests, DiagnosticRequestTests):
 class CanAcceptanceFilterChangeTests(object):
 
     def _check_received_message(self, message):
-        eq_(self.message_id, message['message_id'])
+        eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
         eq_(self.data, message['data'])
         self.can_message_queue.task_done()
@@ -356,7 +356,7 @@ class PayloadFormatTests(ViFunctionalTests):
         ok_(self.vi.set_payload_format("json"))
 
     def _check_received_message(self, message):
-        eq_(self.message_id, message['message_id'])
+        eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
         eq_(self.data, message['data'])
         self.can_message_queue.task_done()
@@ -378,7 +378,7 @@ class PredefinedObd2RequestsTests(object):
     def test_enable_predefined_obd2_requests_sends_messages(self):
         ok_(self.vi.set_predefined_obd2_requests(True))
         message = self.can_message_queue.get(timeout=6)
-        eq_(0x7df, message['message_id'])
+        eq_(0x7df, message['id'])
         eq_(1, message['bus'])
         eq_(u"0x02010d0000000000", message['data'])
         self.can_message_queue.task_done()

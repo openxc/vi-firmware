@@ -40,7 +40,7 @@ using the JSON output format, sending this to the VI:
 
 .. code-block:: js
 
-  {"bus": 1, "id": 1234, "value": "0x12345678"}
+  {"bus": 1, "message_id": 1234, "value": "0x12345678"}
 
 would cause it to write a CAN message with the arbitration ID 1234 and the
 payload 0x12345678 to the bus attached to the first CAN controller.

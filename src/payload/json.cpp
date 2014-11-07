@@ -30,7 +30,7 @@ const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "messa
 const char openxc::payload::json::COMMAND_RESPONSE_STATUS_FIELD_NAME[] = "status";
 
 const char openxc::payload::json::BUS_FIELD_NAME[] = "bus";
-const char openxc::payload::json::ID_FIELD_NAME[] = "id";
+const char openxc::payload::json::ID_FIELD_NAME[] = "message_id";
 const char openxc::payload::json::DATA_FIELD_NAME[] = "data";
 const char openxc::payload::json::NAME_FIELD_NAME[] = "name";
 const char openxc::payload::json::VALUE_FIELD_NAME[] = "value";
@@ -321,7 +321,7 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
             command->diagnostic_request.request.mode = element->valueint;
         }
 
-        element = cJSON_GetObjectItem(request, "id");
+        element = cJSON_GetObjectItem(request, "message_id");
         if(element != NULL) {
             command->diagnostic_request.request.has_message_id = true;
             command->diagnostic_request.request.message_id = element->valueint;
@@ -441,7 +441,7 @@ static void deserializeCan(cJSON* root, openxc_VehicleMessage* message) {
     message->has_can_message = true;
     openxc_CanMessage* canMessage = &message->can_message;
 
-    cJSON* element = cJSON_GetObjectItem(root, "id");
+    cJSON* element = cJSON_GetObjectItem(root, "message_id");
     if(element != NULL) {
         canMessage->has_message_id = true;
         canMessage->message_id = element->valueint;

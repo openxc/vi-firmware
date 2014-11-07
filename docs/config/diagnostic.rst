@@ -35,7 +35,7 @@ full details of the response out as an OpenXC message.
        "diagnostic_messages": [
            {
                "bus": "hs",
-               "id": 2015,
+               "message_id": 2015,
                "mode": 34,
                "pid": 42,
                "frequency": 1
@@ -60,7 +60,7 @@ using the JSON output format:
 .. code-block:: javascript
 
     {"bus": 1,
-      "id": 2016,
+      "message_id": 2016,
       "mode": 34,
       "pid": 42,
       "success": true,
@@ -92,7 +92,7 @@ value.
        "diagnostic_messages": [
            {
                "bus": "hs",
-               "id": 2015,
+               "message_id": 2015,
                "mode": 1,
                "pid": 12,
                "frequency": 1,
@@ -115,7 +115,7 @@ using the JSON output format:
 .. code-block:: javascript
 
     {"bus": 1,
-      "id": 2016,
+      "message_id": 2016,
       "mode": 34,
       "pid": 42,
       "success": true,
@@ -145,7 +145,7 @@ message.
        "diagnostic_messages": [
            {
                "bus": "hs",
-               "id": 2015,
+               "message_id": 2015,
                "mode": 1,
                "pid": 12,
                "frequency": 1,

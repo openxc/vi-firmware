@@ -29,9 +29,9 @@ def setUpModule():
 
     global SOURCE
     if use_bluetooth is not False:
-        SOURCE = BluetoothVehicleInterface(format="json")
+        SOURCE = BluetoothVehicleInterface(payload_format="json")
     else:
-        SOURCE = UsbVehicleInterface(format="json", product_id=usb_product_id)
+        SOURCE = UsbVehicleInterface(payload_format="json", product_id=usb_product_id)
     SOURCE.start()
 
 class ViFunctionalTests(unittest.TestCase):

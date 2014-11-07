@@ -129,7 +129,7 @@ static bool serializeCan(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
             message->can_message.bus);
     cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
-            message->can_message.message_id);
+            message->can_message.id);
 
     char encodedData[67];
     const char* maxAddress = encodedData + sizeof(encodedData);
@@ -443,8 +443,8 @@ static void deserializeCan(cJSON* root, openxc_VehicleMessage* message) {
 
     cJSON* element = cJSON_GetObjectItem(root, "id");
     if(element != NULL) {
-        canMessage->has_message_id = true;
-        canMessage->message_id = element->valueint;
+        canMessage->has_id = true;
+        canMessage->id = element->valueint;
 
         element = cJSON_GetObjectItem(root, "data");
         if(element != NULL) {

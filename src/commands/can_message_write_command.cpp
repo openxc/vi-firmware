@@ -50,12 +50,12 @@ bool openxc::commands::handleCan(openxc_VehicleMessage* message,
                             CanMessageFormat::STANDARD :
                             CanMessageFormat::EXTENDED;
             } else {
-                format = canMessage->message_id > 2047 ?
+                format = canMessage->id > 2047 ?
                     CanMessageFormat::EXTENDED : CanMessageFormat::STANDARD;
             }
 
             CanMessage message = {
-                id: canMessage->message_id,
+                id: canMessage->id,
                 format: format
             };
             memcpy(message.data, canMessage->data.bytes, size);
@@ -74,22 +74,22 @@ bool openxc::commands::validateCan(openxc_VehicleMessage* message) {
     if(message->has_type && message->type == openxc_VehicleMessage_Type_CAN &&
             message->has_can_message) {
         openxc_CanMessage* canMessage = &message->can_message;
-        if(!canMessage->has_message_id) {
+        if(!canMessage->has_id) {
             valid = false;
             debug("Write request is malformed, missing id");
         }
 
         if(!canMessage->has_data) {
             valid = false;
-            debug("Raw write request for 0x%02x missing data", canMessage->message_id);
+            debug("Raw write request for 0x%02x missing data", canMessage->id);
         }
 
         if(canMessage->has_frame_format &&
                 canMessage->frame_format == openxc_CanMessage_FrameFormat_STANDARD &&
-                canMessage->message_id > 0xff) {
+                canMessage->id > 0xff) {
             valid = false;
             debug("ID in raw write request (0x%02x) is too large "
-                    "for explicit standard frame format", canMessage->message_id);
+                    "for explicit standard frame format", canMessage->id);
         }
     } else {
         valid = false;

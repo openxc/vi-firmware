@@ -74,8 +74,8 @@ void setup() {
     CAN_MESSAGE.has_type = true;
     CAN_MESSAGE.type = openxc_VehicleMessage_Type_CAN;
     CAN_MESSAGE.has_can_message = true;
-    CAN_MESSAGE.can_message.has_message_id = true;
-    CAN_MESSAGE.can_message.message_id = 1;
+    CAN_MESSAGE.can_message.has_id = true;
+    CAN_MESSAGE.can_message.id = 1;
     CAN_MESSAGE.can_message.has_data = true;
     CAN_MESSAGE.can_message.data.bytes[0] = 0xff;
     CAN_MESSAGE.can_message.has_bus = true;
@@ -631,7 +631,7 @@ START_TEST (test_validate_raw_with_format_incompatible_id)
     CAN_MESSAGE.can_message.has_frame_format = true;
     CAN_MESSAGE.can_message.frame_format =
             openxc_CanMessage_FrameFormat_STANDARD;
-    CAN_MESSAGE.can_message.message_id = 0x8ff;
+    CAN_MESSAGE.can_message.id = 0x8ff;
     ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
@@ -652,7 +652,7 @@ END_TEST
 
 START_TEST (test_validate_raw_missing_id)
 {
-    CAN_MESSAGE.can_message.has_message_id = false;
+    CAN_MESSAGE.can_message.has_id = false;
     ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST

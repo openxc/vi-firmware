@@ -77,7 +77,7 @@ START_TEST (test_passthrough_message)
     openxc_VehicleMessage decodedMessage = decodeProtobufMessage(
             &getConfiguration()->pipeline);
     ck_assert_int_eq(openxc_VehicleMessage_Type_CAN, decodedMessage.type);
-    ck_assert_int_eq(message.id, decodedMessage.can_message.message_id);
+    ck_assert_int_eq(message.id, decodedMessage.can_message.id);
     for(int i = 0; i < 8; i++) {
         ck_assert_int_eq(message.data[i], decodedMessage.can_message.data.bytes[i]);
     }

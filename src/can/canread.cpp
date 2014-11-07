@@ -141,8 +141,8 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
         vehicleMessage.type = openxc_VehicleMessage_Type_CAN;
         vehicleMessage.has_can_message = true;
         vehicleMessage.can_message = {0};
-        vehicleMessage.can_message.has_message_id = true;
-        vehicleMessage.can_message.message_id = message->id;
+        vehicleMessage.can_message.has_id = true;
+        vehicleMessage.can_message.id = message->id;
         vehicleMessage.can_message.has_bus = true;
         vehicleMessage.can_message.bus = bus->address;
         vehicleMessage.can_message.has_data = true;

@@ -80,7 +80,7 @@ class JsonBaseTests(ViFunctionalTests):
 class ControlCommandTests(object):
     def test_version(self):
         # TODO it'd be nice to read this from src/version.c
-        eq_(self.vi.version(), "6.0.4-dev (functional_tests)")
+        eq_(self.vi.version(), "7.0.0-dev (functional_tests)")
 
     def test_device_id(self):
         device_id = self.vi.device_id()

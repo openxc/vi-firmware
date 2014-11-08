@@ -69,12 +69,17 @@ class ProtobufBaseTests(ViFunctionalTests):
     def setUpClass(cls):
         super(ProtobufBaseTests, cls).setUpClass()
         cls.vi.set_payload_format("protobuf")
+        if not cls.vi.set_payload_format("protobuf"):
+            cls.vi.format = "json"
+            cls.vi.set_payload_format("protobuf")
 
 class JsonBaseTests(ViFunctionalTests):
     @classmethod
     def setUpClass(cls):
         super(JsonBaseTests, cls).setUpClass()
-        cls.vi.set_payload_format("json")
+        if not cls.vi.set_payload_format("json"):
+            cls.vi.format = "protobuf"
+            cls.vi.set_payload_format("json")
 
 
 class ControlCommandTests(object):

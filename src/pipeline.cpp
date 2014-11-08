@@ -127,9 +127,9 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
             break;
     }
     if(matched) {
-            sendMessage(pipeline, payload, length, messageClass);
+        sendMessage(pipeline, payload, length, messageClass);
     } else {
-            debug("Trying to serialize unrecognized type: %d", message->type);
+        debug("Trying to serialize unrecognized type: %d", message->type);
     }
 }
 

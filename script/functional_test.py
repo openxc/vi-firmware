@@ -462,7 +462,6 @@ class ManySignalsPerMessageTests(JsonBaseTests):
 
     def setUp(self):
         super(ManySignalsPerMessageTests, self).setUp()
-        self.vi.set_acceptance_filter_bypass(1, True)
         self.message1_data = "0x3901A40351033204"
         self.message2_data = "0xB3033403CA01E001"
 

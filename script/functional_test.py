@@ -52,6 +52,7 @@ class ViFunctionalTests(unittest.TestCase):
         ViFunctionalTests.diagnostic_response_queue = Queue()
         self.vi.set_acceptance_filter_bypass(1, True)
         self.vi.set_acceptance_filter_bypass(2, False)
+        ok_(self.vi.set_predefined_obd2_requests(False))
 
     @classmethod
     def receive(cls, message, **kwargs):

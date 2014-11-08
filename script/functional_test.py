@@ -93,7 +93,7 @@ class ControlCommandTests(object):
         if device_id != "Unknown":
             eq_(len(device_id), 12)
 
-class ControlCommandTestsJson(ProtobufBaseTests, ControlCommandTests):
+class ControlCommandTestsJson(JsonBaseTests, ControlCommandTests):
     pass
 
 class ControlCommandTestsProtobuf(ProtobufBaseTests, ControlCommandTests):

@@ -203,14 +203,14 @@ def functional_test_flash(skip_flashing=False):
 
 @task
 def functional_test(skip_flashing=False, extra_env=""):
+    # Must use debug so the VI doesn't turn off
+    env.power_management = "ALWAYS_ON"
     functional_test_flash(skip_flashing=skip_flashing)
     local("VI_FUNC_TESTS_USB_PRODUCT_ID=%d " % env.usb_product_id +
             "%s nosetests -vs script/functional_test.py" % extra_env)
 
 @task
 def reference_functional_test(skip_flashing=False):
-    # Must use debug so the VI doesn't turn off
-    env.power_management = "ALWAYS_ON"
     env.usb_product_id = 1
 
     baremetal()

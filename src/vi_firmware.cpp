@@ -44,6 +44,7 @@ using openxc::config::PowerManagement;
 using openxc::config::RunLevel;
 
 static bool BUS_WAS_ACTIVE;
+static bool SUSPENDED;
 
 /* Public: Update the color and status of a board's light that shows the output
  * interface status. This function is intended to be called each time through
@@ -78,13 +79,17 @@ void checkBusActivity() {
             // saying the engine RPM and vehicle speed are both 0, and we want
             // to go back to sleep. In SILENT_CAN power mode it defaults to
             // ALL_IO at initialization, so this is just a backup.
-            getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
+            // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         BUS_WAS_ACTIVE = true;
-    } else if(!busActive && (BUS_WAS_ACTIVE || time::uptimeMs() >
-            (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
+        SUSPENDED = false;
+    } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
+            (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
+            !SUSPENDED))) {
+        debug("CAN is quiet");
         lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on

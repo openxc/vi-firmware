@@ -26,6 +26,7 @@ using openxc::pipeline::Pipeline;
 using openxc::pipeline::MessageClass;
 using openxc::interface::InterfaceDescriptor;
 using openxc::interface::InterfaceType;
+using openxc::config::LoggingOutputInterface;
 
 unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
@@ -62,6 +63,12 @@ void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
         QUEUE_TYPE(uint8_t)* sendQueue;
         if(messageClass == MessageClass::LOG) {
             sendQueue = &pipeline->usb->endpoints[LOG_ENDPOINT_INDEX].queue;
+            if(config::getConfiguration()->loggingOutput !=
+                        LoggingOutputInterface::BOTH &&
+                    config::getConfiguration()->loggingOutput !=
+                        LoggingOutputInterface::USB) {
+                return;
+            }
         } else {
             sendQueue = &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue;
         }
@@ -80,12 +87,6 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
         conditionalFlush(pipeline, sendQueue, message, messageSize);
         sendToEndpoint(pipeline->uart->descriptor.type, sendQueue,
                 &pipeline->uart->receiveQueue, message, messageSize);
-    }
-
-    if(config::getConfiguration()->uartLogging &&
-            messageClass == MessageClass::LOG) {
-        openxc::util::log::debugUart((const char*)message);
-        openxc::util::log::debugUart("\r\n");
     }
 }
 
@@ -138,6 +139,13 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     sendToUsb(pipeline, message, messageSize, messageClass);
     sendToUart(pipeline, message, messageSize, messageClass);
     sendToNetwork(pipeline, message, messageSize, messageClass);
+
+    if((config::getConfiguration()->loggingOutput == LoggingOutputInterface::BOTH ||
+        config::getConfiguration()->loggingOutput == LoggingOutputInterface::UART)
+            && messageClass == MessageClass::LOG) {
+        openxc::util::log::debugUart((const char*)message);
+        openxc::util::log::debugUart("\r\n");
+    }
 }
 
 void openxc::pipeline::process(Pipeline* pipeline) {

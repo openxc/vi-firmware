@@ -20,7 +20,7 @@ env.debug = False
 env.transmitter = False
 env.bootloader = True
 env.allow_raw_uart_write = False
-env.uart_logging = False
+env.logging_output = "OFF"
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
 env.boards = {
@@ -114,7 +114,7 @@ def build_options():
         'DEBUG': env.debug,
         'BOOTLOADER': env.bootloader,
         'TRANSMITTER': False,
-        'DEFAULT_UART_LOGGING_STATUS': env.uart_logging,
+        'DEFAULT_LOGGING_OUTPUT': env.logging_output,
         'DEFAULT_METRICS_STATUS': False,
         'DEFAULT_CAN_ACK_STATUS': False,
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
@@ -189,7 +189,7 @@ def test():
 def functional_test_flash(skip_flashing=False):
     # For Bluetooth testing
     env.allow_raw_uart_write = True
-    debug(uart_logging=True)
+    debug(logging_output="BOTH")
     with lcd("%s" % env.root_dir):
         # Pre-requisites:
         # * Reference VI attached via USB
@@ -235,10 +235,9 @@ def transmitter():
     env.transmitter = True
 
 @task
-def debug(uart_logging=False):
+def debug(logging_output="USB"):
     env.debug = True
-    # provided as a shell argument, so it may be a string 'True'
-    env.uart_logging = bool(uart_logging)
+    env.logging_output = logging_output
 
 @task
 def baremetal():

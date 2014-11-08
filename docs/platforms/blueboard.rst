@@ -27,7 +27,7 @@ UART Debug Logging
 
 In most cases the logging provided via USB is sufficient, but if you are doing
 low-level development and need the simpler UART interface, you can enable it
-with the ``UART_LOGGING`` Makefile flag.
+with the ``DEFAULT_LOGGING_OUTPUT="UART"`` build option.
 
 On the Blueboard LPC1768H, logging will be on ``UART0`` at ``115200`` baud:
 

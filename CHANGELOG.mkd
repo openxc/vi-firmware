@@ -8,6 +8,8 @@
     generic control command type instead, with the same payload format as if
     sent via UART/BT.
 * BREAKING: Refactor tire and door handlers for use as signal decoders.
+* BREAKING: Changed `DEFAULT_UART_LOGGING_STATUS` build config to
+  `DEFAULT_LOGGING_OUTPUT` to be able to use UART, USB, or both for logging.
 * Feature: Support setting explicit CAN frame format when writing messages
     (#230).
 * Feature: Support control command to enable/disable passthrough of CAN messages

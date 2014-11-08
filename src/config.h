@@ -58,6 +58,15 @@ typedef enum {
     ALL_IO,
 } RunLevel;
 
+/* Public: Valid intefaces to use for debug logging.
+ */
+typedef enum {
+    OFF,
+    USB,
+    UART,
+    BOTH
+} LoggingOutputInterface;
+
 /* Public: A collection of global configuration parameters for the firmware.
  *
  * There should only be one copy of this struct in existence at runtime. You can
@@ -79,8 +88,7 @@ typedef enum {
  *      value..
  * emulatedData - If true, will generate fake vehicle data and include it in the
  *      published output.
- * uartLogging - If true, log messages will be published to a debug UART
- *      interface in addition to the normal USB logging endpoint.
+ * loggingOutput - Set the output interface used for debug logging.
  * calculateMetrics - If true, metrics on CAN bus and I/O activity will be
  *      calculated and logged. This has serious performance implications at the
  *      moment.
@@ -105,7 +113,7 @@ typedef struct {
     PowerManagement powerManagement;
     bool sendCanAcks;
     bool emulatedData;
-    bool uartLogging;
+    LoggingOutputInterface loggingOutput;
     bool calculateMetrics;
     RunLevel desiredRunLevel;
     bool initialized;

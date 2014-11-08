@@ -41,8 +41,8 @@ When compiled with ``DEBUG=1``, two things happen:
   directory.
 - Log messages will be output over a separate USB endpoint
   required) - see :doc:`/output` for details. You can optionally enable logging
-  via UART with the ``UART_LOGGING`` flag, but there may be a performance
-  hit - see the :doc:`/compile/makefile-opts`.
+  via UART with the ``DEFAULT_LOGGING_OUTPUT`` config option, but there may be a
+  performance hit - see the :doc:`/compile/makefile-opts`.
 
 To view the logs via USB, you can use the ``--log-mode`` flag with the Python
 CLI tools. See the ``--help`` text for any of those tools for more information.

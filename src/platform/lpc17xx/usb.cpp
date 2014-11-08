@@ -128,8 +128,8 @@ static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 
         if(byteCount > 0) {
             Endpoint_Write_Stream_LE(endpoint->sendBuffer, byteCount, NULL);
+            Endpoint_ClearIN();
         }
-        Endpoint_ClearIN();
     }
     Endpoint_SelectEndpoint(previousEndpoint);
 }

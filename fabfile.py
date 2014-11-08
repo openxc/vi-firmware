@@ -194,7 +194,7 @@ def functional_test_flash(skip_flashing=False):
         # Pre-requisites:
         # * Reference VI attached via USB
         # * JTAG programmed attached to VI and USB of the host computer
-        if skip_flashing is False or skip_flashing != 'True':
+        if skip_flashing not in (True, 'True', 'true'):
             local("openxc-generate-firmware-code -m src/tests/functional_test_config.json > src/signals.cpp")
             flash()
 
@@ -216,10 +216,8 @@ def reference_functional_test(skip_flashing=False):
     baremetal()
     reference()
     functional_test(skip_flashing=skip_flashing)
-
-    # TODO integrate bluetooth testing once it's working reliably
-    # functional_test(skip_flashing=skip_flashing,
-            # extra_env="VI_FUNC_TESTS_USE_BLUETOOTH=1")
+    functional_test(skip_flashing=True,
+            extra_env="VI_FUNC_TESTS_USE_BLUETOOTH=1")
 
 @task
 def chipkit_functional_test(skip_flashing=False):

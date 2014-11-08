@@ -34,6 +34,9 @@ def setUpModule():
         SOURCE = UsbVehicleInterface(payload_format="json", product_id=usb_product_id)
     SOURCE.start()
 
+def tearDownModule():
+    SOURCE.set_payload_format("json")
+
 class ViFunctionalTests(unittest.TestCase):
 
     @classmethod

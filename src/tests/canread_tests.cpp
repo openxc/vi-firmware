@@ -1,5 +1,6 @@
 #include <check.h>
 #include <stdint.h>
+#include <string>
 #include "signals.h"
 #include "can/canutil.h"
 #include "can/canread.h"
@@ -371,12 +372,10 @@ START_TEST (test_translate_many_signals)
     }
     fail_unless(USB_PROCESSED);
     // 8 signals sent
+    ck_assert_int_eq(10 * 29 + 2, SENT_BYTES);
+    // 6 in the output queue
     fail_if(queueEmpty());
-    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
-    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
-    snapshot[sizeof(snapshot) - 1] = NULL;
-    // 8 in the output queue
-    ck_assert_int_eq(8 * 29 + 2, SENT_BYTES);
+    ck_assert_int_eq(6 * 29, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
 }
 END_TEST
 

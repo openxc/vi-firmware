@@ -9,7 +9,7 @@
 
 #define PIPELINE_ENDPOINT_COUNT 3
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
-#define QUEUE_FLUSH_MAX_TRIES 5
+#define QUEUE_FLUSH_MAX_TRIES 100
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;

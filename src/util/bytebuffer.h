@@ -4,7 +4,9 @@
 #include "emqueue.h"
 #include "commands/commands.h"
 
-QUEUE_DECLARE(uint8_t, 256)
+#define MAX_BYTEBUFFER_SIZE 256
+
+QUEUE_DECLARE(uint8_t, MAX_BYTEBUFFER_SIZE)
 
 namespace openxc {
 namespace util {

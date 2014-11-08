@@ -55,6 +55,7 @@ class ViFunctionalTests(unittest.TestCase):
 
     @classmethod
     def receive(cls, message, **kwargs):
+        print(message)
         if ('id' in message and 'bus' in message and 'data' in message and
                 getattr(cls, 'can_message_queue', None)):
             cls.can_message_queue.put(message)
@@ -466,7 +467,7 @@ class ManySignalsPerMessageTests(JsonBaseTests):
         keys = set()
         while True:
             try:
-                message = self.simple_vehicle_message_queue.get(timeout=.5)
+                message = self.simple_vehicle_message_queue.get(timeout=2)
                 keys.add(message['name'])
                 self.simple_vehicle_message_queue.task_done()
             except Empty:

@@ -68,6 +68,9 @@ class ProtobufBaseTests(ViFunctionalTests):
     @classmethod
     def setUpClass(cls):
         super(ProtobufBaseTests, cls).setUpClass()
+        if isinstance(cls.vi, BluetoothVehicleInterface):
+            raise unittest.SkipTest("Protobuf commands are not "
+                "supported on the Bluetooth interface")
         cls.vi.set_payload_format("protobuf")
         if not cls.vi.set_payload_format("protobuf"):
             cls.vi.format = "json"
@@ -367,6 +370,9 @@ class PayloadFormatTests(ViFunctionalTests):
         self.can_message_queue.task_done()
 
     def test_change_to_binary(self):
+        if isinstance(self.vi, BluetoothVehicleInterface):
+            raise unittest.SkipTest("Protobuf commands are not "
+                "supported on the Bluetooth interface")
         ok_(self.vi.set_payload_format("protobuf"))
         ok_(self.vi.write(bus=self.bus, id=self.message_id, data=self.data) > 0)
         self._check_received_message(self.can_message_queue.get(timeout=.5))

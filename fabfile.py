@@ -20,6 +20,7 @@ env.debug = False
 env.transmitter = False
 env.bootloader = True
 env.allow_raw_uart_write = False
+env.payload_format = "JSON"
 env.logging_output = "OFF"
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
@@ -120,7 +121,7 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
-        'DEFAULT_OUTPUT_FORMAT': "JSON",
+        'DEFAULT_OUTPUT_FORMAT': env.payload_format,
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
         'DEFAULT_POWER_MANAGEMENT': env.power_management,
         'DEFAULT_USB_PRODUCT_ID': env.usb_product_id,
@@ -254,6 +255,14 @@ def reference():
 @task
 def c5():
     env.board = 'c5'
+
+@task
+def json():
+    env.payload_format = "JSON"
+
+@task
+def protobuf():
+    env.payload_format = "PROTOBUF"
 
 @task
 def clean():

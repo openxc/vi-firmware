@@ -36,6 +36,7 @@ typedef struct {
     InterfaceDescriptor descriptor;
     uint8_t ipAddress[4];
     uint8_t macAddress[6];
+    bool configured;
 
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
@@ -64,6 +65,12 @@ void read(NetworkDevice* device,
         openxc::util::bytebuffer::IncomingMessageCallback callback);
 
 size_t handleIncomingMessage(uint8_t payload[], size_t length);
+
+/* Public: Check the connection status of a network device.
+ *
+ * Returns true if a network client is connected.
+ */
+bool connected(NetworkDevice* device);
 
 } // namespace network
 } // namespace interface

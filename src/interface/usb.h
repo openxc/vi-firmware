@@ -123,6 +123,12 @@ void deinitializeCommon(UsbDevice*);
 
 size_t handleIncomingMessage(uint8_t payload[], size_t length);
 
+/* Public: Check the connection status of a USB device.
+ *
+ * Returns true if a USB host is connected.
+ */
+bool connected(UsbDevice* device);
+
 } // namespace usb
 } // namespace interface
 } // namespace openxc

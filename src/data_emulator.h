@@ -13,6 +13,8 @@ namespace emulator {
  */
 void generateFakeMeasurements(openxc::pipeline::Pipeline* pipeline);
 
+void restart();
+
 } // namespace emulator
 } // namespace openxc
 

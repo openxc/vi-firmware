@@ -23,6 +23,10 @@ typedef struct {
 
 const char* descriptorToString(InterfaceDescriptor* descriptor);
 
+/* Public: Return true if any of the output interfaces is connected.
+ */
+bool anyConnected();
+
 } // namespace interface
 } // namespace openxc
 

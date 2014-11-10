@@ -9,6 +9,7 @@
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
+namespace usb = openxc::interface::usb;
 
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -93,7 +94,7 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     }
 
     case EVENT_SUSPEND:
-        if(getConfiguration()->usb.configured) {
+        if(usb::connected(&getConfiguration()->usb)) {
             debug("USB no longer detected - marking unconfigured");
             getConfiguration()->usb.configured = false;
         }

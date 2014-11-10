@@ -218,8 +218,18 @@ void firmwareLoop() {
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
     if(getConfiguration()->emulatedData) {
-        openxc::emulator::generateFakeMeasurements(
-                &getConfiguration()->pipeline);
+        static bool connected = false;
+        if(!connected && openxc::interface::anyConnected()) {
+            connected = true;
+            openxc::emulator::restart();
+        } else if(connected && !openxc::interface::anyConnected()) {
+            connected = false;
+        }
+
+        if(connected) {
+            openxc::emulator::generateFakeMeasurements(
+                    &getConfiguration()->pipeline);
+        }
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);

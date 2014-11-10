@@ -33,6 +33,7 @@ extern "C" {
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
+namespace usb = openxc::interface::usb;
 
 using openxc::config::getConfiguration;
 using openxc::util::log::debug;
@@ -111,7 +112,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 
 /* Private: Flush any queued data out to the USB host. */
 static void flushQueueToHost(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
-    if(!usbDevice->configured || QUEUE_EMPTY(uint8_t, &endpoint->queue)) {
+    if(!usb::connected(usbDevice) || QUEUE_EMPTY(uint8_t, &endpoint->queue)) {
         return;
     }
 
@@ -167,7 +168,7 @@ static bool usbHostDetected(UsbDevice* usbDevice) {
     }
 
     bool hostDetected = true;
-    if(!usbDevice->configured && average < USB_HOST_DETECT_ACTIVE_VALUE) {
+    if(!usb::connected(usbDevice) && average < USB_HOST_DETECT_ACTIVE_VALUE) {
         EVENT_USB_Device_ConfigurationChanged();
     }
 
@@ -200,11 +201,11 @@ static void configureUsbDetection() {
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     USB_USBTask();
 
-    if(!usbDevice->configured) {
+    if(!usb::connected(usbDevice)) {
         usbHostDetected(usbDevice);
     }
 
-    if(usbDevice->configured) {
+    if(usb::connected(usbDevice)) {
         if((USB_DeviceState != DEVICE_STATE_Configured || !vbusDetected())
                 || !usbHostDetected(usbDevice)) {
             // On Windows the USB device will be configured when plugged in for

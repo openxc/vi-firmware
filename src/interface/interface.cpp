@@ -1,5 +1,10 @@
 #include "interface.h"
 
+#include "uart.h"
+#include "config.h"
+
+using openxc::config::getConfiguration;
+
 static const char interfaceNames[][5] = {
     "USB",
     "UART",
@@ -11,4 +16,10 @@ const char* openxc::interface::descriptorToString(InterfaceDescriptor* descripto
         return interfaceNames[descriptor->type];
     }
     return "Unknown";
+}
+
+bool openxc::interface::anyConnected() {
+    return openxc::interface::uart::connected(&getConfiguration()->uart) ||
+            openxc::interface::usb::connected(&getConfiguration()->usb) ||
+            openxc::interface::network::connected(&getConfiguration()->network);
 }

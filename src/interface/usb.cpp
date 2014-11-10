@@ -33,3 +33,7 @@ size_t openxc::interface::usb::handleIncomingMessage(uint8_t payload[], size_t l
     return commands::handleIncomingMessage(payload, length,
             &config::getConfiguration()->usb.descriptor);
 }
+
+bool openxc::interface::usb::connected(UsbDevice* device) {
+    return device != NULL && device->configured;
+}

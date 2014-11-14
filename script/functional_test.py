@@ -216,7 +216,8 @@ class DiagnosticRequestTests(object):
         # can receive the sent message (via loopback) to validate it matches the
         # request.
         ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid, payload=self.payload))
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                wait_for_ack=False))
         message = self.can_message_queue.get(timeout=.5)
         eq_(self.message_id, message['id'])
         eq_(self.bus, message['bus'])
@@ -230,8 +231,13 @@ class DiagnosticRequestTests(object):
         # We use bus 2 since that should still have the AF on.
 
         self.bus = 2
+        # Don't wait for the ACK because we only have 100ms to inject the CAN
+        # message response before the diagnostic request times out - this can be
+        # tough to meet when using BT. This is just an issue when testing since
+        # we are faking the CAN message responses.
         ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
-                bus=self.bus, pid=self.pid, payload=self.payload))
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                wait_for_ack=False))
         # send the response, which should be accepted by the AF
         response_id = self.message_id + 0x8
         # we don't care about the payload at this point, just want to make sure
@@ -249,8 +255,9 @@ class DiagnosticRequestTests(object):
         self.can_message_queue.task_done()
 
     def test_receive_diagnostic_response(self):
-        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
-                pid=self.pid, payload=self.payload))
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                wait_for_ack=False))
 
         response_id = self.message_id + 0x8
         # we don't care about the payload at this point, just want to make sure
@@ -269,8 +276,9 @@ class DiagnosticRequestTests(object):
     def test_receive_obd_formatted_diagnostic_response(self):
         self.pid = 0xa
         self.mode = 1
-        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode, bus=self.bus,
-                pid=self.pid, payload=self.payload, decoded_type="obd2"))
+        ok_(self.vi.create_diagnostic_request(self.message_id, self.mode,
+                bus=self.bus, pid=self.pid, payload=self.payload,
+                decoded_type="obd2", wait_for_ack=False))
         response_id = self.message_id + 0x8
         response_value = 0x42
         ok_(self.vi.write(bus=self.bus, id=response_id, data="0x034%01x%02x%02x" % (

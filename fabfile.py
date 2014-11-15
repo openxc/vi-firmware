@@ -270,10 +270,10 @@ def clean():
         local("%s make clean" % build_options(), capture=True)
 
 @task
-def build(capture=False, clean=False):
+def build(capture=False, do_clean=False):
     options = build_options()
     with lcd("%s/src" % env.root_dir):
-        if clean:
+        if do_clean:
             clean();
         output = local("%s make -j4" % options, capture=capture)
         if output.failed:

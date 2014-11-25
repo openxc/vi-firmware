@@ -5,10 +5,9 @@
 #include "util/timer.h"
 #include "gpio.h"
 #include "config.h"
-#include "commands.h"
 #include "can/canread.h"
 #include "WProgram.h"
-#include "util/http.h"
+#include "http.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -50,9 +49,9 @@ static char* pRx = recv_data;
 #warning "TelitDevice* can be removed with some refactoring"
 static TelitDevice* telitDevice;
 static bool connect = false;
-
-static char ICCID[32];
-static char IMEI[32];
+static const unsigned int sendBufferSize = 4096;
+static uint8_t sendBuffer[sendBufferSize];
+static uint8_t* pSendBuffer = sendBuffer;
 
 static TELIT_CONNECTION_STATE state = telit::POWER_OFF;
 
@@ -83,15 +82,19 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 	static unsigned int SIMstatus = 0;
 	static NetworkConnectionStatus connectStatus = UNKNOWN;
 	static bool GPSenabled = false;
+	static char ICCID[32];
+	static char IMEI[32];
 	
 	switch(state)
 	{
 		case POWER_OFF:
 		
+			device->descriptor.type = openxc::interface::InterfaceType::TELIT;
+		
 			setPowerState(false);
 			telitDevice = device;
 			state = POWER_ON_DELAY;
-		
+			
 			break;
 			
 		case POWER_ON_DELAY:
@@ -222,6 +225,7 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 						state = POWER_OFF;
 						break;
 					}
+					memcpy(device->deviceId, IMEI, strlen(IMEI) < MAX_DEVICE_ID_LENGTH ? strlen(IMEI) : MAX_DEVICE_ID_LENGTH);
 					
 					// get SIM number (ICCID)
 					if(getICCID(ICCID) == false)
@@ -230,6 +234,7 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 						state = POWER_OFF;
 						break;
 					}
+					memcpy(device->ICCID, ICCID, strlen(ICCID) < MAX_ICCID_LENGTH ? strlen(ICCID) : MAX_ICCID_LENGTH);
 					
 					// set mobile operator connect mode
 					if(setNetworkConnectionMode(device->config.networkOperatorSettings.operatorSelectMode, device->config.networkOperatorSettings.networkDescriptor) == false)
@@ -539,7 +544,7 @@ bool openxc::telitHE910::getDeviceIMEI(char* IMEI) {
 
 	bool rc = true;
 
-	if(sendCommand(telitDevice, "AT+CGSN\r\n", "\r\n\r\nOK\r\n", 1000) == false)
+	if(sendCommand(telitDevice, "AT+CGSN\r\n", "\r\n\r\nOK\r\n", 2000) == false)
 	{
 		rc = false;
 		goto fcn_exit;
@@ -1030,6 +1035,111 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
 
 }
 
+bool readSocketOne(unsigned int socketNumber, char* data, unsigned int* len) {
+
+	bool rc = true;
+	char command[32] = {};
+	char reply[32] = {};
+	char* pS = NULL;
+	unsigned int readCount = 0;
+	unsigned int i = 0;
+	unsigned int maxRead = 0;
+	int rx_byte = -1;
+	unsigned long timer = 0;
+	
+	// calculate max bytes to read
+	maxRead = (*len > 1) ? 1 : *len;
+	
+	// issue the socket read command
+	sprintf(command, "AT#SRECV=%u,%u\r\n", socketNumber, maxRead);
+	sprintf(reply, "#SRECV: %u,", socketNumber);
+	if(sendCommand(telitDevice, command, reply, 1000) == false)
+	{
+		rc = false;
+		goto fcn_exit;
+	}
+	
+	// start the receive timer
+	timer = uptimeMs() + 10000;
+	
+	// find the start of the reply
+	pS = recv_data;
+	if(pS = strstr(pS, reply), !pS)
+	{
+		rc = false;
+		goto fcn_exit;
+	}
+	pS += 10;
+	pRx = pS;
+	
+	// read to end of line
+	while(1)
+	{
+		if(rx_byte = uart::readByte(telitDevice->uart), rx_byte > -1)
+		{
+			*pRx++ = rx_byte;
+		}
+		if(strstr(pS, "\r\n"))
+		{
+			break;
+		}
+		if(uptimeMs() >= timer)
+		{
+			rc = false;
+			goto fcn_exit;
+		}
+	}	
+	// get the read count
+	readCount = atoi(pS);
+	pS = pRx;
+	
+	// read the socket data
+	i = 0;
+	while(1)
+	{
+		if(rx_byte = uart::readByte(telitDevice->uart), rx_byte > -1)
+		{
+			*pRx++ = rx_byte;
+			++i;
+		}
+		if(i == readCount)
+		{
+			break;
+		}
+		if(uptimeMs() >= timer)
+		{
+			rc = false;
+			goto fcn_exit;
+		}
+	}
+	// put the read data into caller
+	memcpy(data, pS, readCount);
+	*len = readCount;
+	pS = pRx;
+	
+	// finish with OK
+	while(1)
+	{
+		if(rx_byte = uart::readByte(telitDevice->uart), rx_byte > -1)
+		{
+			*pRx++ = rx_byte;
+		}
+		if(strstr(pS, "\r\n\r\nOK\r\n"))
+		{
+			break;
+		}
+		if(uptimeMs() >= timer)
+		{
+			rc = false;
+			goto fcn_exit;
+		}
+	}
+
+	fcn_exit:
+	return rc;
+
+}
+
 /*SEND/RECEIVE*/
 
 static bool sendCommand(TelitDevice* device, char* command, char* response, uint32_t timeoutMs) {
@@ -1383,39 +1493,345 @@ static bool parseGPSACP(const char* GPSACP) {
 	return rc;
 }
 
-/*SERVER API*/
-static bool serverPOSTdata(char* deviceId, char* host, char* data, unsigned int len) {
+// typedef for SERVER API return codes
+typedef enum {
+	None,
+	Working,
+	Success,
+	Failed
+} API_RETURN;
 
-	http::httpClient client;
-	char header[256];
+/*SERVER API*/
+
+#define GET_FIRMWARE_SOCKET		1
+#define POST_DATA_SOCKET		2
+
+static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigned int len) {
+
+	static API_RETURN ret = None;
+	static http::httpClient client;
+	static http::HTTP_STATUS stat;
+	static char header[256];
+	static unsigned int state = 0;
 	
-	// compose the header for POST /data
-	sprintf(header, "POST /%s/data HTTP/1.1\r\n"
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			ret = Working;
+			// compose the header for POST /data
+			sprintf(header, "POST /api/%s/data HTTP/1.1\r\n"
 					"Content-Length: %u\r\n"
 					"Content-Type: application/json\r\n"
 					"Host: %s\r\n"
 					"Connection: Keep-Alive\r\n\r\n", deviceId, len, host);
+			// configure the HTTP client
+			client = http::httpClient();
+			client.socketNumber = POST_DATA_SOCKET;
+			client.requestHeader = header;
+			client.requestBody = data;
+			client.requestBodySize = len;
+			client.cbGetRequestData = NULL;
+			client.cbPutResponseData = NULL;
+			client.sendSocketData = &openxc::telitHE910::writeSocket;
+			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
+			client.receiveSocketData = &openxc::telitHE910::readSocket;
+			state = 1;
+			break;
+			
+		case 1:
+			// run the HTTP client
+			switch(client.execute())
+			{
+				case http::HTTP_READY:
+				case http::HTTP_SENDING_REQUEST_HEADER:
+				case http::HTTP_SENDING_REQUEST_BODY:
+				case http::HTTP_RECEIVING_RESPONSE:
+					// nothing to do while client is in progress
+					break;
+				case http::HTTP_COMPLETE:
+					ret = Success;
+					state = 0;
+					break;
+				case http::HTTP_FAILED:
+					ret = Failed;
+					state = 0;
+					break;
+			}
+			break;
+	}
 	
-	// configure the HTTP client
-	client.requestHeader = header;
-	client.requestBody = data;
-	client.requestBodySize = len;
-	client.cbGetRequestData = NULL;
-	client.cbPutResponseData = NULL;
-	client.sendSocketData = &openxc::telitHE910::writeSocket;
-	client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-	client.receiveSocketData = &openxc::telitHE910::readSocket;
-	
-	// run the HTTP client
-	http::HTTP_STATUS stat = client.execute();
-	
-	#warning: "this can be removed after more testing"
-	debug("POST complete, return value: %u, response code: %u, header size: %u, body size: %u, received bytes: %u", stat, client.responseCode, client.responseHeaderSize, client.responseBodySize, client.bytesReceived);
-	
-	return (client.status == http::HTTP_COMPLETE && client.responseCode == 200);
+	return ret;
 
 }
- 
+
+static int cbHeaderComplete(http_parser* parser) {
+	if(parser->status_code == 200)
+		SoftReset();
+	else
+		return 1;
+}
+
+static int cbOnStatus(http_parser* parser, const char* at, size_t length) {
+	if(parser->status_code == 204)
+		return 1; // cause parser to exit immediately (we're throwing an error to force the client to abort)
+	else
+		return 0;
+}
+
+static API_RETURN serverGETfirmware(char* deviceId, char* host) {
+
+	static API_RETURN ret = None;
+	static http::httpClient client;
+	static http::HTTP_STATUS stat;
+	static char header[256];
+	static unsigned int state = 0;
+	
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			ret = Working;
+			// compose the header for GET /firmware
+			sprintf(header, "GET /api/%s/firmware HTTP/1.1\r\n"
+					"If-None-Match: \"%s\"\r\n"
+					"Content-Type: application/json\r\n"
+					"Host: %s\r\n"
+					"Connection: Keep-Alive\r\n\r\n", deviceId, getConfiguration()->flashHash, host);
+			// configure the HTTP client
+			client = http::httpClient();
+			client.socketNumber = GET_FIRMWARE_SOCKET;
+			client.requestHeader = header;
+			client.requestBody = NULL;
+			client.requestBodySize = 0;
+			client.cbGetRequestData = NULL;
+			client.parser_settings.on_headers_complete = &cbHeaderComplete;
+			client.parser_settings.on_status = &cbOnStatus;
+			client.cbPutResponseData = NULL;
+			client.sendSocketData = &openxc::telitHE910::writeSocket;
+			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
+			client.receiveSocketData = &readSocketOne;
+			state = 1;
+			break;
+			
+		case 1:
+			// run the HTTP client
+			switch(client.execute())
+			{
+				case http::HTTP_READY:
+				case http::HTTP_SENDING_REQUEST_HEADER:
+				case http::HTTP_SENDING_REQUEST_BODY:
+				case http::HTTP_RECEIVING_RESPONSE:
+					// nothing to do while client is in progress
+					break;
+				case http::HTTP_COMPLETE:
+					ret = Success;
+					state = 0;
+					break;
+				case http::HTTP_FAILED:
+					ret = Failed;
+					state = 0;
+					break;
+			}
+			break;
+	}
+	
+	return ret;
+
+}
+
+/*EXTERNAL TASK CALLS*/
+
+#define GET_FIRMWARE_INTERVAL	600000
+#define POST_DATA_MAX_INTERVAL	5000
+
+void openxc::telitHE910::firmwareCheck(TelitDevice* device) {
+	
+	static unsigned int state = 0;
+	static bool first = true;
+	static unsigned long timer = 0xFFFF;
+
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			// check interval if it's not our first time
+			if(!first)
+			{
+				// request upgrade on interval
+				if(uptimeMs() - timer > GET_FIRMWARE_INTERVAL)
+				{
+					timer = uptimeMs();
+					state = 1;
+				}
+			}
+			else
+			{
+				first = false;
+				timer = uptimeMs();
+				state = 1;
+			}
+			break;
+			
+		case 1:
+			if(!isSocketOpen(GET_FIRMWARE_SOCKET))
+			{
+				if(!openSocket(GET_FIRMWARE_SOCKET, device->config.serverConnectSettings))
+				{
+					state = 0;
+				}
+				else
+				{
+					state = 2;
+				}
+			}
+			else
+			{
+				state = 2;
+			}
+			break;
+			
+		case 2:
+			// call the GETfirmware API
+			switch(serverGETfirmware(device->deviceId, device->config.serverConnectSettings.host))
+			{
+				case None:
+				case Working:
+					// if we are working, do nothing
+					break;
+				default:
+				case Success:
+				case Failed:
+					// whether we succeeded or failed (or got lost), there's nothing we can do except go around again
+					// close the socket
+					// either we got a 200 OK, in which case we went for reset
+					// or we got a 204/error, in which case we have a dangling transaction
+					closeSocket(GET_FIRMWARE_SOCKET);
+					//timer = uptimeMs();
+					state = 0;
+					break;
+			}
+			break;
+	}
+
+	return;
+	
+}
+
+void openxc::telitHE910::flushDataBuffer(TelitDevice* device) {
+
+	static bool first = true;
+	static unsigned int state = 0;
+	static unsigned int lastFlushTime = 0;
+	static const unsigned int flushSize = 2048;
+	static char postBuffer[sendBufferSize + 64]; // extra space needed for root record
+	static unsigned int byteCount = 0;
+	unsigned int i = 0;
+	
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			// conditions to flush the outgoing data buffer
+				// a) buffer has reached the flush size
+				// b) buffer has not been flushed for the time period POST_DATA_MAX_INTERVAL (and there is something in there)
+				// c) minimum amount of time has passed since lastFlushTime (depends on socket status) - not yet implemented
+			if(!first)
+			{
+				if( (pSendBuffer - sendBuffer) >= flushSize || 
+					((uptimeMs() - lastFlushTime >= POST_DATA_MAX_INTERVAL) && (pSendBuffer != sendBuffer)) )
+				{
+					lastFlushTime = uptimeMs();
+					state = 1;
+				}
+			}
+			else
+			{
+				first = false;
+				lastFlushTime = uptimeMs();
+				state = 1;
+			}
+			break;
+			
+		case 1:
+			// ensure we have an open TCP/IP socket
+			if(!isSocketOpen(POST_DATA_SOCKET))
+			{
+				if(!openSocket(POST_DATA_SOCKET, device->config.serverConnectSettings))
+				{
+					state = 0;
+				}
+				else
+				{
+					state = 2;
+				}
+			}
+			else
+			{
+				state = 2;
+			}
+			break;
+			
+		case 2:
+			
+			// pre-populate the send buffer with root record
+			memcpy(postBuffer, "{\"records\":[", 12);
+			byteCount = 12;
+			
+			// get all bytes from the send buffer (so we have room to fill it again as we POST)
+			memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
+			byteCount += pSendBuffer - sendBuffer;
+			pSendBuffer = sendBuffer;
+			
+			// replace the nulls with commas to create a JSON array
+			for(i = 0; i < byteCount; ++i)
+			{
+				if(postBuffer[i] == '\0')
+					postBuffer[i] = ',';
+			}
+			
+			// back over the trailing comma
+			if(postBuffer[byteCount-1] == ',')
+				byteCount--;
+			
+			// end the array
+			postBuffer[byteCount++] = ']';
+			postBuffer[byteCount++] = '}';
+			
+			state = 3;
+			
+			break;
+			
+		case 3:
+		
+			// call the POSTdata API
+			switch(serverPOSTdata(device->deviceId, device->config.serverConnectSettings.host, postBuffer, byteCount))
+			{
+				case None:
+				case Working:
+					// if we are working, do nothing
+					break;
+				default:
+				case Success:
+					state = 0;
+					break;
+				case Failed:
+					//lastFlushTime = uptimeMs();
+					state = 0;
+					closeSocket(POST_DATA_SOCKET);
+					break;
+			}
+			break;
+	}
+	
+	return;
+
+}
+
 /*PIPELINE*/
 
 /*
@@ -1436,94 +1852,13 @@ void openxc::telitHE910::processSendQueue(TelitDevice* device) {
 	 // so as to minimize the overhead (both time and data) incurred by the HTTP transactions
 	// Thus the QUEUE is buffering data between successive iterations of firmwareLoop(), and 
 	// our "sendBuffer" will buffer up multiple QUEUEs before flushing on a time and/or data watermark.
-	
-	unsigned int byteCount = 0;
-	#warning "telit sendBuffer doesn't need so much extra room right now"
-	char sendBuffer[2*TELIT_MAX_MESSAGE_SIZE] = {};
-	static unsigned long timer = 0;
-	static bool socket_closed = false;
-	unsigned int i = 0;
 
-	// wait the minimum transmission interval before proceeding
-	if(socket_closed)
+	// pop bytes from the device send queue (stop short of sendBuffer overflow)
+	while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) && (pSendBuffer - sendBuffer) < sendBufferSize)
 	{
-		// don't open sockets too fast, modem no like
-		if(uptimeMs() - timer < 1000)
-		{
-			goto fcn_exit;
-		}
-	}
-	else
-	{
-		// go faster if the socket is still open
-		if(uptimeMs() - timer < 100)
-		{
-			goto fcn_exit;
-		}
-	}
-	
-	// make sure there is data to send
-	if(QUEUE_EMPTY(uint8_t, &device->sendQueue))
-	{
-		goto fcn_exit;
-	}
-	
-	// pre-populate the send buffer with root record
-	memcpy(sendBuffer, "{\"records\":[", 12);
-	byteCount += 12;
-
-	// pop bytes from the send queue
-	while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) && byteCount < TELIT_MAX_MESSAGE_SIZE)
-	{
-        sendBuffer[byteCount++] = QUEUE_POP(uint8_t, &device->sendQueue);
+        *pSendBuffer++ = QUEUE_POP(uint8_t, &device->sendQueue);
     }
-	
-	// replace the nulls with commas to create a JSON array
-	for(i = 0; i < byteCount; ++i)
-	{
-		if(sendBuffer[i] == '\0')
-			sendBuffer[i] = ',';
-	}
-	
-	// overwrite the trailing comma
-	if(sendBuffer[byteCount-1] == ',')
-		byteCount--;	
-	
-	// end the data (overwrite the trailing comma)
-	sendBuffer[byteCount++] = ']';
-	sendBuffer[byteCount++] = '}';
-	
-	// make sure device is in READY state
-	if(!connected(device))
-	{
-		goto fcn_exit;
-	}
-	
-	// ensure we have an open TCP/IP socket
-	if(!isSocketOpen(1))
-	{
-		if(!openSocket(1, device->config.serverConnectSettings))
-		{
-			goto fcn_exit;
-		}
-	}
-	
-	// upload to the HTTP POST /data endpoint
-	if(serverPOSTdata(IMEI, device->config.serverConnectSettings.host, sendBuffer, byteCount))
-	{
-		socket_closed = false;
-	}
-	else
-	{
-		// something bad happened, close the socket and get a fresh start
-		closeSocket(1);
-		socket_closed = true;
-	}
-	
-	// update transmission timer
-	timer = uptimeMs();
 
-	fcn_exit:
 	return;
 
 }

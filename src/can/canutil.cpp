@@ -1,7 +1,5 @@
 #include "can/canutil.h"
 #include "can/canwrite.h"
-#include "util/timer.h"
-#include "util/statistics.h"
 #include "util/log.h"
 #include "config.h"
 
@@ -15,7 +13,7 @@ namespace config = openxc::config;
 using openxc::util::log::debug;
 using openxc::util::statistics::DeltaStatistic;
 
-const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 5;
+const int openxc::can::CAN_ACTIVE_TIMEOUT_S = 30;
 
 void openxc::can::initializeCommon(CanBus* bus) {
     debug("Initializing CAN node %d...", bus->address);
@@ -151,7 +149,7 @@ CanCommand* openxc::can::lookupCommand(const char* name, CanCommand* commands,
  *
  * Returns a pointer to the CanMessage if found, otherwise NULL.
  */
-CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
+static CanMessageDefinition* lookupMessage(CanBus* bus, uint32_t id,
         CanMessageFormat format,
         CanMessageDefinition* messages, int messageCount) {
     CanMessageDefinition* message = NULL;
@@ -438,4 +436,26 @@ void openxc::can::removeAcceptanceFilter(CanBus* bus, uint32_t id,
             updateAcceptanceFilterTable(buses, busCount);
         }
     }
+}
+
+bool openxc::can::setAcceptanceFilterStatus(CanBus* bus, bool enabled,
+        CanBus* buses, const uint busCount) {
+    bus->bypassFilters = !enabled;
+    debug("CAN AF for bus %d is now %s", bus->address,
+            bus->bypassFilters ? "bypassed" : "enabled");
+    return updateAcceptanceFilterTable(buses, busCount);
+}
+
+bool openxc::can::shouldAcceptMessage(CanBus* bus, uint32_t messageId) {
+    bool acceptMessage = bus->bypassFilters;
+    if(!acceptMessage) {
+        AcceptanceFilterListEntry* entry;
+        LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
+            if(entry->filter == messageId) {
+                acceptMessage = true;
+                break;
+            }
+        }
+    }
+    return acceptMessage;
 }

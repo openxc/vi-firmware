@@ -99,6 +99,7 @@ static void checkSupportedPids(DiagnosticsManager* manager,
         return;
     }
 
+    debug("%s", "Querying for supported PIDs from vehicle");
     for(int i = 0; i < response->payload_length; i++) {
         for(int j = CHAR_BIT - 1; j >= 0; j--) {
             if(response->payload[i] >> j & 0x1) {

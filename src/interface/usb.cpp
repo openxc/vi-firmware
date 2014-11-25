@@ -1,6 +1,8 @@
 #include "interface/usb.h"
+
 #include "util/log.h"
-#include "commands.h"
+#include "commands/commands.h"
+#include "config.h"
 
 using openxc::util::log::debug;
 
@@ -10,7 +12,7 @@ void openxc::interface::usb::initializeCommon(UsbDevice* usbDevice) {
         QUEUE_INIT(uint8_t, &usbDevice->endpoints[i].queue);
     }
     usbDevice->configured = false;
-    usbDevice->allowRawWrites = DEFAULT_ALLOW_RAW_WRITE_USB;
+    usbDevice->descriptor.type = InterfaceType::USB;
 }
 
 void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {
@@ -25,4 +27,13 @@ void openxc::interface::usb::read(UsbDevice* device,
             read(device, endpoint, callback);
         }
     }
+}
+
+size_t openxc::interface::usb::handleIncomingMessage(uint8_t payload[], size_t length) {
+    return commands::handleIncomingMessage(payload, length,
+            &config::getConfiguration()->usb.descriptor);
+}
+
+bool openxc::interface::usb::connected(UsbDevice* device) {
+    return device != NULL && device->configured;
 }

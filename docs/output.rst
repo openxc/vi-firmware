@@ -11,44 +11,32 @@ Commands
 
 The firmware supports all commands defined in the OpenXC Message Format
 specification. Both UART and USB interfaces accept commands (serialized as JSON)
-sent in the normal data stream back to the VI. USB also supports these commands
-via USB control requests - see the USB section for the specifics.
+sent in the normal data stream back to the VI.
 
-The following is a summary of each command type - for the full specification,
-see the `OpenXC Message Format`_.
+The payload format of the commands is specified in the `OpenXC Message Format`_
+and will not be repeated here.
 
-Translated Writes
-------------------
+The tools from the `OpenXC Python library
+<http://python.openxcplatform.com/en/latest/>`_ can send all of these commands
+and are a good way to get started. Examples of the terminal commands to use are
+included here.
 
-Translated write commands require that the firmware is pre-configured to
-understand the named signal, and also allows it to be written.
+Simple Vehicle Message Writes
+-----------------------------
 
-.. code-block:: javascript
-
-    {"name": "seat_position", "value": 20}
-
-With the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
-terminal with the command:
+Simple vehicle message write commands require that the firmware is
+pre-configured to understand the named signal, and also allows it to be written.
 
 .. code-block:: sh
 
     openxc-control write --name seat_position --value 20
 
-RAW CAN Message Writes
+CAN Message Writes
 -------------------------
 
-The RAW CAN message write requires that the VI is configured to allow raw writes
+The CAN message write requires that the VI is configured to allow raw writes
 to the given CAN bus. If the ``bus`` attribute is omitted, it will write the
 message to the first CAN bus found that permits writes.
-
-.. code-block:: javascript
-
-    {"bus": 1, "id": 1234, "value": "0x12345678"}
-
-With the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
-terminal with the command:
 
 .. code-block:: sh
 
@@ -56,30 +44,13 @@ terminal with the command:
 
 .. _vehicle-diagnostic-requests:
 
-Vehicle Diagnostic Requests
----------------------------
+Diagnostic Requests
+---------------------
 
-Diagnostic requests can either be one-time or recurring (if the ``frequency``
-option is specified). The command requires that the VI is configured to allow
+The diagnostic request command requires that the VI is configured to allow
 raw writes to the given CAN bus (with the ``raw_writable`` flag in the config
 file). If the ``bus`` attribute is omitted, it will write the message to the
 first CAN bus found that permits writes.
-
-.. code-block:: javascript
-
-    { "command": "diagnostic_request",
-      "request": {
-          "bus": 1,
-          "id": 1234,
-          "mode": 1,
-          "pid": 5
-        }
-      }
-    }
-
-With the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_ you can send that from a
-terminal with the command:
 
 .. code-block:: sh
 
@@ -90,22 +61,6 @@ terminal with the command:
 Version Query
 -------------
 
-This asynchronous command will query for the version of firmware that the VI is
-running:
-
-.. code-block:: javascript
-
-    { "command": "version"}
-
-The response is injected into the normal output data stream:
-
-.. code-block:: javascript
-
-    { "command_response": "version", "message": "v6.0 (default)"}
-
-You can request the version with the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_:
-
 .. code-block:: sh
 
     openxc-control version
@@ -115,25 +70,30 @@ You can request the version with the tools from the `OpenXC Python library
 Device ID Query
 ----------------
 
-This asynchronous command will query for a unique device ID for the VI:
-
-.. code-block:: javascript
-
-    { "command": "device_id"}
-
-If no device ID is available, the response message will be "Unknown". The
-response is injected into the normal output data stream:
-
-.. code-block:: javascript
-
-    { "command_response": "device_id", "message": "0012345678"}
-
-You can request the device ID with the tools from the `OpenXC Python library
-<http://python.openxcplatform.com/en/latest/>`_:
-
 .. code-block:: sh
 
     openxc-control id
+
+Set CAN Message Passthrough Status
+----------------------------------
+
+.. code-block:: sh
+
+    openxc-control set --passthrough --bus 1
+
+Set CAN Acceptance Filter Bypass
+----------------------------------
+
+.. code-block:: sh
+
+    openxc-control set --af-bypass --bus 1
+
+Set Payload Format
+--------------------
+
+.. code-block:: sh
+
+    openxc-control set --new-payload-format protobuf
 
 UART (Serial, Bluetooth)
 ========================
@@ -187,22 +147,12 @@ are documented here.
 Control Transfers
 -----------------
 
-The VI accepts a few control transfer requests on the standard endpoint 0.
+Transfer request type: ``0x83``
 
-Version
-````````
+The VI accepts USB control requests on the standard endpoint 0 where the payload
+is a standard OpenXC message format command meessage (e.g. version, device ID,
+or diagnostic request, etc).
 
-Transfer request type: ``0x80``
-
-The host can retrieve the version of the VI using the ``0x80`` control request.
-The data returned is the same format as the :ref:`version query
-<version-query>`.
-
-Device ID
-`````````
-
-Transfer request type: ``0x82``
-
-The host can retrieve a unique device identifier for the VI (if one is
-available) using the ``0x82`` control request. The data returned is the same
-format as :ref:`device ID query <device-id-query>`.
+The responses are injected into the normal output data stream usig the same
+format as the :ref:`version query <version-query>`, :ref:`device ID query
+<device-id-query>`, etc.

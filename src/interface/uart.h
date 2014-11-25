@@ -1,9 +1,10 @@
-#ifndef _UARTUTIL_H_
-#define _UARTUTIL_H_
+#ifndef __INTERFACE_UART_H__
+#define __INTERFACE_UART_H__
 
-#include "util/bytebuffer.h"
-#include "commands.h"
 #include <stdlib.h>
+
+#include "interface.h"
+#include "util/bytebuffer.h"
 
 #define MAX_DEVICE_ID_LENGTH 17
 
@@ -17,9 +18,8 @@ extern const int BAUD_RATE;
 /* Public: A container for a UART connection with queues for both input and
  * output.
  *
+ * descriptor - A general descriptor for this interface.
  * baudRate - the desired baud rate for the interface.
- * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
- *      true, accept raw write requests from the USB interface.
  *
  * sendQueue - A queue of bytes that need to be sent out over UART.
  * receiveQueue - A queue of bytes that have been received via UART but not yet
@@ -29,8 +29,9 @@ extern const int BAUD_RATE;
  *      (e.g. the MAC of a Bluetooth module)
  */
 typedef struct {
+    InterfaceDescriptor descriptor;
     int baudRate;
-    bool allowRawWrites;
+
     // device to host
     QUEUE_TYPE(uint8_t) sendQueue;
     // host to device
@@ -89,8 +90,10 @@ void processSendQueue(UartDevice* device);
  */
 bool connected(UartDevice* device);
 
+size_t handleIncomingMessage(uint8_t payload[], size_t length);
+
 } // namespace uart
 } // namespace interface
 } // namespace openxc
 
-#endif // _UARTUTIL_H_
+#endif // __INTERFACE_UART_H__

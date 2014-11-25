@@ -17,5 +17,11 @@ bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* reques
     memcpy(message.dataA, request->data, 4);
     memcpy(message.dataB, &(request->data[4]), 4);
 
-    return CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
+    bool sent = CAN_SendMsg(CAN_CONTROLLER(bus), &message) == SUCCESS;
+    if(bus->loopback) {
+        // Must manually mark each transmitted message for self-reception if in
+        // loopback mode.
+        CAN_CONTROLLER(bus)->CMR |=(1<<4);
+    }
+    return sent;
 }

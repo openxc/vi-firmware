@@ -1,7 +1,7 @@
-#include <payload/payload.h>
-#include <payload/json.h>
-#include <payload/protobuf.h>
-#include <util/log.h>
+#include "payload.h"
+#include "payload/json.h"
+#include "payload/protobuf.h"
+#include "util/log.h"
 
 namespace payload = openxc::payload;
 
@@ -34,17 +34,17 @@ openxc_DynamicField openxc::payload::wrapBoolean(bool value) {
     return sabot;
 }
 
-bool openxc::payload::deserialize(uint8_t payload[], size_t length,
+size_t openxc::payload::deserialize(uint8_t payload[], size_t length,
         PayloadFormat format, openxc_VehicleMessage* message) {
-    bool status = false;
+    size_t bytesRead = 0;
     if(format == PayloadFormat::JSON) {
-        status = payload::json::deserialize(payload, length, message);
+        bytesRead = payload::json::deserialize(payload, length, message);
     } else if(format == PayloadFormat::PROTOBUF) {
-        status = payload::protobuf::deserialize(payload, length, message);
+        bytesRead = payload::protobuf::deserialize(payload, length, message);
     } else {
         debug("Invalid payload format: %d", format);
     }
-    return status;
+    return bytesRead;
 }
 
 int openxc::payload::serialize(openxc_VehicleMessage* message,

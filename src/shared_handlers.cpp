@@ -17,9 +17,9 @@ using openxc::util::log::debug;
 using openxc::can::read::stateDecoder;
 using openxc::can::read::publishVehicleMessage;
 using openxc::can::read::publishNumericalMessage;
-using openxc::can::read::decodeSignal;
 using openxc::can::read::translateSignal;
 using openxc::can::read::parseSignalBitfield;
+using openxc::can::read::shouldSend;
 using openxc::can::lookupSignal;
 using openxc::pipeline::Pipeline;
 
@@ -37,13 +37,16 @@ const char openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME[] =
 const float openxc::signals::handlers::PI = 3.14159265;
 #endif
 
-void openxc::signals::handlers::doorStatusDecoder(CanSignal* signal,
+openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(CanSignal* signal,
         CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    openxc_DynamicField ajarStatus = decodeSignal(signal, value, signals,
-            signalCount, send);
-    if(send) {
-        openxc_DynamicField doorIdValue = {0};
+    openxc_DynamicField ajarStatus = can::read::booleanDecoder(signal, signals,
+            signalCount, pipeline, value, send);
+    openxc_DynamicField doorIdValue = {0};
+    // Must manually check if the signal should send (e.g. based on send_same
+    // attribute of the signal) since this decoder handles sending the message
+    // itself instead of letting the caller do that.
+    if(send && shouldSend(signal, value)) {
         doorIdValue.has_type = true;
         doorIdValue.type = openxc_DynamicField_Type_STRING;
         doorIdValue.has_string_value = true;
@@ -58,42 +61,24 @@ void openxc::signals::handlers::doorStatusDecoder(CanSignal* signal,
         } else {
             strcpy(doorIdValue.string_value, signal->genericName);
         }
-        publishVehicleMessage(
-                openxc::signals::handlers::DOOR_STATUS_GENERIC_NAME,
-                &doorIdValue, &ajarStatus, pipeline);
+        publishVehicleMessage(DOOR_STATUS_GENERIC_NAME, &doorIdValue,
+                &ajarStatus, pipeline);
     }
 
     // Block the normal sending, we overrode it
     *send = false;
+    return doorIdValue;
 }
 
-void openxc::signals::handlers::handleDoorStatusMessage(CanMessage* message,
-        CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    // TODO make sure these signals are configured to use the doorStatusDecoder
-    // TODO this message handler isn't necessary just assign the decoder to each
-    // signal
-    translateSignal(lookupSignal("driver_door", signals, signalCount),
-            message, signals, signalCount, pipeline );
-    translateSignal(lookupSignal("passenger_door", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("rear_right_door", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("rear_left_door", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("hood", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("trunk", signals, signalCount),
-            message, signals, signalCount, pipeline);
-}
-
-void openxc::signals::handlers::tirePressureDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount,
+openxc_DynamicField openxc::signals::handlers::tirePressureDecoder(
+        CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    // TODO must make sure conversion factor is correct in the signal
-    openxc_DynamicField pressure = decodeSignal(signal, value, signals,
-            signalCount, send);
-    if(send) {
-        openxc_DynamicField tireIdValue = {0};
+    openxc_DynamicField pressure = payload::wrapNumber(value);
+    openxc_DynamicField tireIdValue = {0};
+    // Must manually check if the signal should send (e.g. based on send_same
+    // attribute of the signal) since this decoder handles sending the message
+    // itself instead of letting the caller do that.
+    if(send && shouldSend(signal, value)) {
         tireIdValue.has_type = true;
         tireIdValue.type = openxc_DynamicField_Type_STRING;
         tireIdValue.has_string_value = true;
@@ -109,24 +94,13 @@ void openxc::signals::handlers::tirePressureDecoder(CanSignal* signal,
             strcpy(tireIdValue.string_value, signal->genericName);
         }
 
-        publishVehicleMessage(openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME, &tireIdValue,
+        publishVehicleMessage(TIRE_PRESSURE_GENERIC_NAME, &tireIdValue,
                 &pressure, pipeline);
     }
 
     // Block the normal sending, we overrode it
     *send = false;
-}
-
-void openxc::signals::handlers::handleTirePressureMessage(CanMessage* message,
-        CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    translateSignal(lookupSignal("tire_pressure_front_left", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("tire_pressure_front_right", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("tire_pressure_rear_left", signals, signalCount),
-            message, signals, signalCount, pipeline);
-    translateSignal(lookupSignal("tire_pressure_rear_right", signals, signalCount),
-            message, signals, signalCount, pipeline);
+    return tireIdValue;
 }
 
 float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
@@ -293,7 +267,7 @@ openxc_DynamicField openxc::signals::handlers::handleMultisizeWheelRotationCount
     } else {
         rotationsSinceRestart += value - signal->lastValue;
     }
-    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals, 
+    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals,
             signalCount) + (2 * PI * tireRadius * rotationsSinceRestart));
 }
 

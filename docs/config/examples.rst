@@ -10,8 +10,8 @@ For all examples, the ``name`` field for a message is optional but strongly
 encouraged to help keep track of the mapping between a message ID and something
 human readable.
 
-When an example refers to "sending" a translated or raw message, it means
-sending to the app developer via one of the output interfaces (e.g. USB,
+When an example refers to "sending" a simple vehicle message or CAN message, it
+means sending to the app developer via one of the output interfaces (e.g. USB,
 Bluetooth) and not sending to the CAN bus. For examples of configuring writable
 messages and signals that *do* write back to the CAN bus, see the :doc:`write
 configuration examples <write-examples>`.
@@ -53,9 +53,9 @@ the name of the signal for OpenXC app developers to be
    }
 
 With this configuration, the VI will publish the received CAN signal using the
-`OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+`OpenXC simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 
@@ -136,9 +136,9 @@ the numeric value from the bus (a ``0`` or ``1``) into first-class boolean
 values (``true`` or ``false``).
 
 With this configuration, the VI will publish the received CAN signal using the
-`OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+`OpenXC simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 
@@ -193,9 +193,9 @@ automatically will set the ``decoder`` to the ``stateDecoder``, one of the
 :ref:`built-in signal decoder functions <signal-decoders>`.
 
 With this configuration, the VI will publish the received CAN signal using the
-`OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+`OpenXC simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 
@@ -295,20 +295,20 @@ We added the second bus to the ``buses`` field and assigned it to controller 2.
 We added the second message object and made sure to set its ``bus`` field to
 ``ms``.
 
-With this configuration, the VI will publish the received CAN signals using the
-`OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+With this configuration, the VI will publish the received CAN signal using the
+`OpenXC simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 
    {"name": "my_first_measurement", "value": 42}
    {"name": "my_second", "value": 942}
 
-.. _limited-translated:
+.. _limited-simple:
 
-Limited Translated Signal Rate
-==============================
+Limited Simple Vehicle Message Signal Rate
+===========================================
 
 We want to read the same signal as in the :ref:`One Bus, One Numeric Signal
 <onebus-onesignal>` example, but we want it to be sent at a maximum of 5Hz. We
@@ -341,12 +341,12 @@ which data is dropped in order to stay under the maximum.
 We set the ``max_frequency`` field of the signal to 5 (meaning 5Hz) - the
 firmware will automatically handle skipping messages to stay below this limit.
 
-.. _limited-translated-unchanged:
+.. _limited-simple-unchanged:
 
-Limited Translated Signal Rate if Unchanged
+Limited Simple Message Rate if Unchanged
 ===========================================
 
-We want the same signal from :ref:`limited-translated` at a limited rate, but we
+We want the same signal from :ref:`limited-simple` at a limited rate, but we
 don't want to lose any information - if the value of the signal changes, we want
 it to be sent regardless of the max frequency. Repeated, duplicate signal values
 are fairly common in vehicles, where a signal is sent at a steady frequency
@@ -386,7 +386,7 @@ lossless.
 Send Signal on Change Only
 ===========================
 
-We want to limit the rate of a signal as in :ref:`limited-translated-unchanged`,
+We want to limit the rate of a signal as in :ref:`limited-simple-unchanged`,
 but we want to be more strict - the signal should only be published if it
 actually changes.
 

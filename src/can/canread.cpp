@@ -59,62 +59,30 @@ openxc_DynamicField openxc::can::read::stateDecoder(CanSignal* signal,
     return decodedValue;
 }
 
-static void buildBaseTranslated(openxc_VehicleMessage* message,
+static void buildBaseSimpleVehicleMessage(openxc_VehicleMessage* message,
         const char* name) {
     message->has_type = true;
-    message->type = openxc_VehicleMessage_Type_TRANSLATED;
-    message->has_translated_message = true;
-    message->translated_message = {0};
-    message->translated_message.has_name = true;
-    strcpy(message->translated_message.name, name);
-    message->translated_message.has_type = true;
+    message->type = openxc_VehicleMessage_Type_SIMPLE;
+    message->has_simple_message = true;
+    message->simple_message = {0};
+    message->simple_message.has_name = true;
+    strcpy(message->simple_message.name, name);
 }
 
 void openxc::can::read::publishVehicleMessage(const char* name,
         openxc_DynamicField* value, openxc_DynamicField* event,
         openxc::pipeline::Pipeline* pipeline) {
     openxc_VehicleMessage message = {0};
-    buildBaseTranslated(&message, name);
-    if(event == NULL) {
-        switch(value->type) {
-            case openxc_DynamicField_Type_STRING:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_STRING;
-                break;
-            case openxc_DynamicField_Type_NUM:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_NUM;
-                break;
-            case openxc_DynamicField_Type_BOOL:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_BOOL;
-                break;
-        }
-    } else {
-        switch(event->type) {
-            case openxc_DynamicField_Type_STRING:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_EVENTED_STRING;
-                break;
-            case openxc_DynamicField_Type_NUM:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_EVENTED_NUM;
-                break;
-            case openxc_DynamicField_Type_BOOL:
-                message.translated_message.type =
-                        openxc_TranslatedMessage_Type_EVENTED_BOOL;
-                break;
-        }
-    }
+    buildBaseSimpleVehicleMessage(&message, name);
 
     if(value != NULL) {
-        message.translated_message.has_value = true;
-        message.translated_message.value = *value;
+        message.simple_message.has_value = true;
+        message.simple_message.value = *value;
     }
 
     if(event != NULL) {
-        message.translated_message.has_event = true;
-        message.translated_message.event = *event;
+        message.simple_message.has_event = true;
+        message.simple_message.event = *event;
     }
 
     pipeline::publish(&message, pipeline);
@@ -170,16 +138,16 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     if(send) {
         openxc_VehicleMessage vehicleMessage = {0};
         vehicleMessage.has_type = true;
-        vehicleMessage.type = openxc_VehicleMessage_Type_RAW;
-        vehicleMessage.has_raw_message = true;
-        vehicleMessage.raw_message = {0};
-        vehicleMessage.raw_message.has_message_id = true;
-        vehicleMessage.raw_message.message_id = message->id;
-        vehicleMessage.raw_message.has_bus = true;
-        vehicleMessage.raw_message.bus = bus->address;
-        vehicleMessage.raw_message.has_data = true;
-        vehicleMessage.raw_message.data.size = adjustedSize;
-        memcpy(vehicleMessage.raw_message.data.bytes, message->data,
+        vehicleMessage.type = openxc_VehicleMessage_Type_CAN;
+        vehicleMessage.has_can_message = true;
+        vehicleMessage.can_message = {0};
+        vehicleMessage.can_message.has_id = true;
+        vehicleMessage.can_message.id = message->id;
+        vehicleMessage.can_message.has_bus = true;
+        vehicleMessage.can_message.bus = bus->address;
+        vehicleMessage.can_message.has_data = true;
+        vehicleMessage.can_message.data.size = adjustedSize;
+        memcpy(vehicleMessage.can_message.data.bytes, message->data,
                 adjustedSize);
 
         pipeline::publish(&vehicleMessage, pipeline);
@@ -206,9 +174,7 @@ void openxc::can::read::translateSignal(CanSignal* signal,
     openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
             value, signals, signalCount, &send);
     if(send && shouldSend(signal, value)) {
-        if(send) {
-            openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
-        }
+        openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
     signal->received = true;
     signal->lastValue = value;
@@ -233,7 +199,7 @@ openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
     SignalDecoder decoder = signal->decoder == NULL ?
             noopDecoder : signal->decoder;
     openxc_DynamicField decodedValue = decoder(signal, signals,
-            signalCount, NULL, value, send);
+            signalCount, &getConfiguration()->pipeline, value, send);
     return decodedValue;
 }
 

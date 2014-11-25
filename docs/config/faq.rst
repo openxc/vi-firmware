@@ -13,6 +13,6 @@ While building custom firmware, if you find yourself thinking:
 - "I need to combine the value of multiple signals in a message to generate a
   value." Use a :ref:`message handler <custom-message-handler>`.
 - "I need to send less data." Control the :ref:`send frequency
-  <limited-translated>`.
+  <limited-simple>`.
 - "I don't want this signal to send unless it changes." Configure it to
   :ref:`send-on-change`.

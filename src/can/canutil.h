@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/queue.h>
+
 #include "util/timer.h"
 #include "util/statistics.h"
 #include "pipeline.h"
-#include "emqueue.h"
 #include "cJSON.h"
 #include "openxc.pb.h"
 
@@ -204,6 +204,13 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
 
 /* Public: A container for a CAN module paried with a certain bus.
  *
+ * There are three things that control the operating mode of the CAN controller:
+ *
+ *     - Should arbitrary CAN message writes be allowed? See rawWritable.
+ *     - Should translated, simple vehicle message writes be allowed? See the
+ *         'writable' field in signals defined for this bus.
+ *     - Should it be in loopback mode? See loopback.
+ *
  * speed - The bus speed in bits per second (e.g. 500000)
  * address - The address or ID of this node
  * maxMessageFrequency - the default maximum frequency for all CAN messages when
@@ -212,6 +219,16 @@ LIST_HEAD(CanMessageDefinitionList, CanMessageDefinitionListEntry);
  * rawWritable - True if this CAN bus connection should allow raw CAN messages
  *      writes. This is independent from the CanSignal 'writable' option, which
  *      can be set to still allow translated writes back to this bus.
+ * passthroughCanMessages - True if low-level CAN messages should be send to the
+ *      output interface, not just signals as simple vehicle messages.
+ * bypassFilters - a boolean to indicate if the CAN controller's
+ *      acceptance filter should be in bypass mode. Set to true to receive all
+ *      messages for this bus, regardless of what is defined in the
+ *      acceptanceFilters list. The AF will automatically be bypassed if there
+ *      are no acceptance filters configured.
+ * loopback - True if the controller should be configured in loopback mode, so
+ *         all sent messages are received immediately on that same controller.
+ *
  * acceptanceFilters - a list of active acceptance filters for this bus.
  * freeAcceptanceFilters - a list of available slots for acceptance filters.
  * acceptanceFilterEntries - static memory allocated for entires in the
@@ -239,6 +256,11 @@ struct CanBus {
     short address;
     float maxMessageFrequency;
     bool rawWritable;
+    bool passthroughCanMessages;
+    bool bypassFilters;
+    bool loopback;
+
+    // Private
     AcceptanceFilterList acceptanceFilters;
     AcceptanceFilterList freeAcceptanceFilters;
     AcceptanceFilterListEntry acceptanceFilterEntries[MAX_ACCEPTANCE_FILTERS];
@@ -293,9 +315,6 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
 
 /* Public: The type signature for a function to handle a custom OpenXC command.
  *
- * Commands use the "translated" message format, and have at least a name and
- * value.
- *
  * name - the name of the received command.
  * value - the value of the received command, in a DynamicField. The actual type
  *      may be a number, string or bool.
@@ -329,7 +348,7 @@ typedef struct {
     CommandHandler handler;
 } CanCommand;
 
-/* Public: Initialize the CAN controller.
+/* Private: Initialize the CAN controller.
  *
  * This function must be defined for each platform - it's hardware dependent.
  *
@@ -350,7 +369,7 @@ void initialize(CanBus* bus, bool writable, CanBus* buses, const int busCount);
  */
 void destroy(CanBus* bus);
 
-/* Public: De-initialize the CAN controller.
+/* Private: De-initialize the CAN controller.
  *
  * This function must be defined for each platform - it's hardware dependent.
  *
@@ -543,7 +562,7 @@ bool addAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
 void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
         CanBus* buses, const int busCount);
 
-/* Public: Apply the CAN acceptance filter configuration from software (on the
+/* Private: Apply the CAN acceptance filter configuration from software (on the
  * CanBus struct) to the actual hardware CAN controllers.
  *
  * This function must be defined for each platform - it's hardware dependent.
@@ -567,6 +586,19 @@ void removeAcceptanceFilter(CanBus* bus, uint32_t id, CanMessageFormat format,
  */
 bool updateAcceptanceFilterTable(CanBus* buses, const int busCount);
 
+/* Private: Enable or disable the CAN AF, but when enabling, don't re-configure
+ * anything - let the caller handle that. It will be in a blank state after
+ * being enabled.
+ */
+bool resetAcceptanceFilterStatus(CanBus* bus, bool enabled);
+
+/* Public: Enable or disable the CAN acceptance filter. If enabled, it will use
+ * a dynamically generated list of message IDs based on the bus's message list
+ * and any registered diagnostic requests.
+ */
+bool setAcceptanceFilterStatus(CanBus* bus, bool enabled,
+        CanBus* buses, const uint busCount);
+
 /* Public: Check if any CAN signals are configured as writable.
  *
  * bus - The bus to search for writable signal definitions.
@@ -583,6 +615,19 @@ bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
  * busCount - the length of the buses array.
  */
 void logBusStatistics(CanBus* buses, const int busCount);
+
+/* Public: Perform software CAN message filtering.
+ *
+ * This is used primarily for the LPC17xx which has a global CAN AF - when one
+ * bus has the AF off but we still want to filter on the other, we use this to
+ * do software filtering based on the registered CAN messages.
+ *
+ * bus - The bus the message was received on.
+ * messageId - the ID of the message.
+ *
+ * Returns true if the message should be accepted.
+ */
+bool shouldAcceptMessage(CanBus* bus, uint32_t messageId);
 
 } // can
 } // openxc

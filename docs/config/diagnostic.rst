@@ -130,8 +130,8 @@ Recurring Named Diagnostic PID Request
 
 Just like before, we want to request the OBD-II PID for engine RPM once per
 second, but this time we don't care about returning the full details in the
-response message. We just want a named message like the OpenXC "translated"
-message type.
+response message. We just want a named message like an OpenXC simple vehicle
+message.
 
 .. code-block:: javascript
 
@@ -157,9 +157,9 @@ message type.
 
 We simply added a ``name`` field to the diagnostic message configuration. This
 will change the output format to the
-`OpenXC single-valued, translated message format
-<https://github.com/openxc/openxc-message-format#single-valued>`_, e.g. when
-using the JSON output format:
+`OpenXC simple vehicle message format
+<https://github.com/openxc/openxc-message-format/blob/next/JSON.mkd#simple-vehicle-message>`_,
+e.g. when using the JSON output format:
 
 .. code-block:: js
 

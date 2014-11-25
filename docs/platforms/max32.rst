@@ -57,8 +57,8 @@ Debug Logging
 
 In most cases the logging provided via USB is sufficient, but if you are doing
 low-level development and need the simpler UART interface, you can enable it
-with the ``UART_LOGGING`` Makefile flag, but be aware that UART logging will
-dramatically decrease the performance of the VI.
+with the ``DEFAULT_LOGGING_OUTPUT="UART"`` build option, but be aware that UART
+logging will dramatically decrease the performance of the VI.
 
 On the chipKIT Max32, UART logging will be on UART2 (Pin 16 - Tx, Pin 17 - Rx)
 at 115200 baud.

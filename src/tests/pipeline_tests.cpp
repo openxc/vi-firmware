@@ -3,7 +3,6 @@
 #include "pipeline.h"
 #include "emqueue.h"
 #include "config.h"
-#include "cJSON.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -49,7 +48,7 @@ END_TEST
 START_TEST (test_only_usb)
 {
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -66,7 +65,7 @@ START_TEST (test_full_network)
     fail_unless(QUEUE_FULL(uint8_t, &getConfiguration()->pipeline.network->sendQueue));
 
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 }
 END_TEST
 
@@ -79,7 +78,7 @@ START_TEST (test_full_uart)
     fail_unless(QUEUE_FULL(uint8_t, &getConfiguration()->pipeline.uart->sendQueue));
 
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 }
 END_TEST
 
@@ -91,7 +90,7 @@ START_TEST (test_full_usb)
     fail_unless(QUEUE_FULL(uint8_t, OUTPUT_QUEUE));
 
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 }
 END_TEST
 
@@ -99,13 +98,12 @@ START_TEST (test_with_uart)
 {
     getConfiguration()->pipeline.uart = &getConfiguration()->uart;
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.uart->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }
@@ -116,17 +114,15 @@ START_TEST (test_with_uart_and_network)
     getConfiguration()->pipeline.uart = &getConfiguration()->uart;
     getConfiguration()->pipeline.network = &getConfiguration()->network;
     const char* message = "message";
-    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::TRANSLATED);
+    sendMessage(&getConfiguration()->pipeline, (uint8_t*)message, 8, MessageClass::SIMPLE);
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE)];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.uart->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.uart->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 
-    snapshot[QUEUE_LENGTH(uint8_t, &getConfiguration()->pipeline.network->sendQueue)];
     QUEUE_SNAPSHOT(uint8_t, &getConfiguration()->pipeline.network->sendQueue, snapshot, sizeof(snapshot));
     ck_assert_str_eq((char*)snapshot, "message");
 }

@@ -17,7 +17,7 @@
 #include "obd2.h"
 #include "data_emulator.h"
 #include "config.h"
-#include "commands.h"
+#include "commands/commands.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -38,14 +38,16 @@ using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::signals::getSignals;
+using openxc::signals::getMessages;
+using openxc::signals::getMessageCount;
 using openxc::signals::getSignalCount;
-using openxc::signals::decodeCanMessage;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::config::PowerManagement;
 using openxc::config::RunLevel;
 
 static bool BUS_WAS_ACTIVE;
+static bool SUSPENDED;
 
 /* Public: Update the color and status of a board's light that shows the output
  * interface status. This function is intended to be called each time through
@@ -87,13 +89,17 @@ void checkBusActivity() {
             // saying the engine RPM and vehicle speed are both 0, and we want
             // to go back to sleep. In SILENT_CAN power mode it defaults to
             // ALL_IO at initialization, so this is just a backup.
-            getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
+            // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
         BUS_WAS_ACTIVE = true;
-    } else if(!busActive && (BUS_WAS_ACTIVE || time::uptimeMs() >
-            (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000)) {
+        SUSPENDED = false;
+    } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
+            (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
+            !SUSPENDED))) {
+        debug("CAN is quiet");
         lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
@@ -122,12 +128,17 @@ void initializeAllCan() {
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        decodeCanMessage(pipeline, bus, &message);
-        bus->lastMessageReceived = time::systemTimeMs();
+        signals::decodeCanMessage(pipeline, bus, &message);
+        if(bus->passthroughCanMessages) {
+            openxc::can::read::passthroughMessage(bus, &message, getMessages(),
+                    getMessageCount(), pipeline);
+        }
 
+        bus->lastMessageReceived = time::systemTimeMs();
         ++bus->messagesReceived;
 
-        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager, bus, &message, pipeline);
+        diagnostics::receiveCanMessage(&getConfiguration()->diagnosticsManager,
+                bus, &message, pipeline);
     }
 }
 
@@ -164,12 +175,14 @@ void initializeVehicleInterface() {
     signals::initialize(&getConfiguration()->diagnosticsManager);
     getConfiguration()->runLevel = RunLevel::CAN_ONLY;
 
-    if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
+    if(getConfiguration()->powerManagement ==
+            PowerManagement::OBD2_IGNITION_CHECK) {
         getConfiguration()->desiredRunLevel = RunLevel::CAN_ONLY;
     } else {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         initializeIO();
     }
+	
 }
 
 void firmwareLoop() {
@@ -200,18 +213,21 @@ void firmwareLoop() {
 		{
 			telit::getGPSLocation();
 		}
+		telit::firmwareCheck(&getConfiguration()->telit);
+		telit::flushDataBuffer(&getConfiguration()->telit);
 	}
 	#endif
 
     diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager);
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
-        usb::read(&getConfiguration()->usb, commands::handleIncomingMessage);
-        #ifdef TELIT_HE910_SUPPORT
+        usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
+		#ifdef TELIT_HE910_SUPPORT
 		#else
-		uart::read(&getConfiguration()->uart, commands::handleIncomingMessage);
+        uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
 		#endif
-        network::read(&getConfiguration()->network, commands::handleIncomingMessage);
+        network::read(&getConfiguration()->network,
+                network::handleIncomingMessage);
     }
 
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -223,13 +239,24 @@ void firmwareLoop() {
         updateInterfaceLight();
     }
 
-    openxc::signals::loop();
+    signals::loop();
 
     can::logBusStatistics(getCanBuses(), getCanBusCount());
     openxc::pipeline::logStatistics(&getConfiguration()->pipeline);
 
     if(getConfiguration()->emulatedData) {
-        openxc::emulator::generateFakeMeasurements(&getConfiguration()->pipeline);
+        static bool connected = false;
+        if(!connected && openxc::interface::anyConnected()) {
+            connected = true;
+            openxc::emulator::restart();
+        } else if(connected && !openxc::interface::anyConnected()) {
+            connected = false;
+        }
+
+        if(connected) {
+            openxc::emulator::generateFakeMeasurements(
+                    &getConfiguration()->pipeline);
+        }
     }
 
     openxc::pipeline::process(&getConfiguration()->pipeline);

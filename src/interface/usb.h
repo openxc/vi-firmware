@@ -1,16 +1,16 @@
-#ifndef _USBUTIL_H_
-#define _USBUTIL_H_
+#ifndef __INTERFACE_USB_H__
+#define __INTERFACE_USB_H__
+
+#include <string.h>
+#include <stdint.h>
 
 #ifdef __PIC32__
 #include "chipKITUSBDevice.h"
 #endif // __PIC32__
 
-#include <string.h>
-#include <stdint.h>
+#include "interface.h"
 #include "usb_config.h"
 #include "util/bytebuffer.h"
-#include "usb_config.h"
-#include "commands.h"
 
 #define USB_BUFFER_SIZE 64
 #define USB_SEND_BUFFER_SIZE 512
@@ -50,21 +50,20 @@ typedef struct {
 
 /* Public: a container for a VI USB device and associated metadata.
  *
+ * descriptor - A general descriptor for this interface.
  * endpoints - An array of addresses for the endpoints to use.
  * configured - A flag that indicates if the USB interface has been configured
  *      by a host. Once true, this will not be set to false until the board is
  *      reset.
- * allowRawWrites - if raw CAN messages writes are enabled for a bus and this is
- *      true, accept raw write requests from the USB interface.
  *
  * device - The UsbDevice attached to the host - only used on PIC32.
  */
 typedef struct {
+    InterfaceDescriptor descriptor;
     // TODO what if we had two UsbEndpoint types, one for in and one for out?
     // how would we index into the array?
     UsbEndpoint endpoints[ENDPOINT_COUNT];
     bool configured;
-    bool allowRawWrites;
 #ifdef __PIC32__
     USBDevice device;
 #endif // __PIC32__
@@ -113,18 +112,6 @@ void read(UsbDevice* device, UsbEndpoint* endpoint,
  */
 void processSendQueue(UsbDevice* device);
 
-/* Public: Send a USB control message on EP0 (the endponit used only for control
- * transfers).
- *
- * Returns true if a USB host is connected and we sent the transfer.
- *
- * device - The USB device to send the control transfer.
- * data - An array of up bytes up to the total size of the endpoint (64 bytes
- *      for USB 2.0)
- * length - The length of the data array.
- */
-bool sendControlMessage(UsbDevice* usbDevice, uint8_t* data, size_t length);
-
 /* Public: Disconnect from host and turn off the USB peripheral
  *           (minimal power draw).
  */
@@ -134,8 +121,16 @@ void deinitialize(UsbDevice*);
  */
 void deinitializeCommon(UsbDevice*);
 
+size_t handleIncomingMessage(uint8_t payload[], size_t length);
+
+/* Public: Check the connection status of a USB device.
+ *
+ * Returns true if a USB host is connected.
+ */
+bool connected(UsbDevice* device);
+
 } // namespace usb
 } // namespace interface
 } // namespace openxc
 
-#endif // _USBUTIL_H_
+#endif // __INTERFACE_USB_H__

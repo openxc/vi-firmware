@@ -41,8 +41,8 @@ When compiled with ``DEBUG=1``, two things happen:
   directory.
 - Log messages will be output over a separate USB endpoint
   required) - see :doc:`/output` for details. You can optionally enable logging
-  via UART with the ``UART_LOGGING`` flag, but there may be a performance
-  hit - see the :doc:`/compile/makefile-opts`.
+  via UART with the ``DEFAULT_LOGGING_OUTPUT`` config option, but there may be a
+  performance hit - see the :doc:`/compile/makefile-opts`.
 
 To view the logs via USB, you can use the ``--log-mode`` flag with the Python
 CLI tools. See the ``--help`` text for any of those tools for more information.
@@ -69,3 +69,38 @@ Running the Suite
 .. code-block:: sh
 
     vi-firmware/src $ make clean && make test
+
+Functional Test Suite
+=====================
+
+For a complete functional test of the firmware code on the support hardware
+platforms, the repository includes an automated script to program a VI and run a
+self-test. The VIs are configured to self-receive every CAN message they send,
+allowing the complete firmware stack to be tested without any physical CAN
+configuration. The test script is written in Python and uses the OpenXC Python
+library send commands to the VI, read responses and receive the test vehicle
+data.
+
+The functional test suite is currently supported on the:
+
+* Ford Reference VI
+* chipKIT VI
+
+Running the Suite
+-----------------
+
+MAke sure you have the following connected to your development machine:
+
+* Reference VI via USB
+* USB JTAG programming connected to the refernece VI
+* chipKIT micro-USB (for OpenXC interface)
+* chipKIT mini-USB (for programming)
+
+Then run the automated functional test suite:
+
+.. code-block:: sh
+
+    vi-firmware/ $ fab auto_functional_test
+
+which will program each of the VIs and run the tests on them independently. The
+process takes a couple of minutes.

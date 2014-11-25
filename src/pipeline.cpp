@@ -10,7 +10,7 @@
 
 #define PIPELINE_ENDPOINT_COUNT 4
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
-#define QUEUE_FLUSH_MAX_TRIES 5
+#define QUEUE_FLUSH_MAX_TRIES 100
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
@@ -25,20 +25,9 @@ using openxc::util::statistics::DeltaStatistic;
 using openxc::util::log::debug;
 using openxc::pipeline::Pipeline;
 using openxc::pipeline::MessageClass;
-
-typedef enum {
-    USB = 0,
-    UART = 1,
-    NETWORK = 2,
-	TELIT = 3
-} EndpointType;
-
-const char messageTypeNames[][9] = {
-    "USB",
-    "UART",
-    "Network",
-	"Telit",
-};
+using openxc::interface::InterfaceDescriptor;
+using openxc::interface::InterfaceType;
+using openxc::config::LoggingOutputInterface;
 
 unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
@@ -55,8 +44,9 @@ void conditionalFlush(Pipeline* pipeline,
     }
 }
 
-void sendToEndpoint(EndpointType endpointType, QUEUE_TYPE(uint8_t)* sendQueue,
-        QUEUE_TYPE(uint8_t)* receiveQueue, uint8_t* message, int messageSize) {
+void sendToEndpoint(openxc::interface::InterfaceType endpointType,
+        QUEUE_TYPE(uint8_t)* sendQueue, QUEUE_TYPE(uint8_t)* receiveQueue,
+        uint8_t* message, int messageSize) {
     if(!conditionalEnqueue(sendQueue, message, messageSize)) {
         ++droppedMessages[endpointType];
     } else {
@@ -74,12 +64,18 @@ void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
         QUEUE_TYPE(uint8_t)* sendQueue;
         if(messageClass == MessageClass::LOG) {
             sendQueue = &pipeline->usb->endpoints[LOG_ENDPOINT_INDEX].queue;
+            if(config::getConfiguration()->loggingOutput !=
+                        LoggingOutputInterface::BOTH &&
+                    config::getConfiguration()->loggingOutput !=
+                        LoggingOutputInterface::USB) {
+                return;
+            }
         } else {
             sendQueue = &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue;
         }
 
         conditionalFlush(pipeline, sendQueue, message, messageSize);
-        sendToEndpoint(USB, sendQueue,
+        sendToEndpoint(pipeline->usb->descriptor.type, sendQueue,
                 &pipeline->usb->endpoints[OUT_ENDPOINT_INDEX].queue,
                 message, messageSize);
     }
@@ -90,14 +86,8 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
     if(uart::connected(pipeline->uart) && messageClass != MessageClass::LOG) {
         QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->uart->sendQueue;
         conditionalFlush(pipeline, sendQueue, message, messageSize);
-        sendToEndpoint(UART, sendQueue, &pipeline->uart->receiveQueue, message,
-                messageSize);
-    }
-
-    if(config::getConfiguration()->uartLogging &&
-            messageClass == MessageClass::LOG) {
-        openxc::util::log::debugUart((const char*)message);
-        openxc::util::log::debugUart("\r\n");
+        sendToEndpoint(pipeline->uart->descriptor.type, sendQueue,
+                &pipeline->uart->receiveQueue, message, messageSize);
     }
 }
 
@@ -106,7 +96,7 @@ void sendToTelit(Pipeline* pipeline, uint8_t* message, int messageSize,
     if(openxc::telitHE910::connected(pipeline->telit) && messageClass != MessageClass::LOG) {
         QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->telit->sendQueue;
         conditionalFlush(pipeline, sendQueue, message, messageSize);
-        sendToEndpoint(TELIT, sendQueue, &pipeline->telit->receiveQueue, message,
+        sendToEndpoint(pipeline->telit->descriptor.type, sendQueue, &pipeline->telit->receiveQueue, message,
                 messageSize);
     }
 	
@@ -118,8 +108,8 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
     if(pipeline->network != NULL && messageClass != MessageClass::LOG) {
         QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->network->sendQueue;
         conditionalFlush(pipeline, sendQueue, message, messageSize);
-        sendToEndpoint(NETWORK, sendQueue, &pipeline->network->receiveQueue,
-                message, messageSize);
+        sendToEndpoint(pipeline->network->descriptor.type, sendQueue,
+                &pipeline->network->receiveQueue, message, messageSize);
     }
 }
 
@@ -129,24 +119,32 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     size_t length = payload::serialize(message, payload, sizeof(payload),
             config::getConfiguration()->payloadFormat);
     MessageClass messageClass;
+    bool matched = false;
     switch(message->type) {
-        case openxc_VehicleMessage_Type_TRANSLATED:
-            messageClass = MessageClass::TRANSLATED;
+        case openxc_VehicleMessage_Type_SIMPLE:
+            messageClass = MessageClass::SIMPLE;
+            matched = true;
             break;
-        case openxc_VehicleMessage_Type_RAW:
-            messageClass = MessageClass::RAW;
+        case openxc_VehicleMessage_Type_CAN:
+            messageClass = MessageClass::CAN;
+            matched = true;
             break;
         case openxc_VehicleMessage_Type_DIAGNOSTIC:
             messageClass = MessageClass::DIAGNOSTIC;
+            matched = true;
             break;
         case openxc_VehicleMessage_Type_COMMAND_RESPONSE:
             messageClass = MessageClass::COMMAND_RESPONSE;
+            matched = true;
             break;
-        default:
-            debug("Trying to serialize unrecognized type: %d", message->type);
+        case openxc_VehicleMessage_Type_CONTROL_COMMAND:
             break;
     }
-    sendMessage(pipeline, payload, length, messageClass);
+    if(matched) {
+        sendMessage(pipeline, payload, length, messageClass);
+    } else {
+        debug("Trying to serialize unrecognized type: %d", message->type);
+    }
 }
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
@@ -158,6 +156,13 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 	sendToUart(pipeline, message, messageSize, messageClass);
 	#endif
     sendToNetwork(pipeline, message, messageSize, messageClass);
+
+    if((config::getConfiguration()->loggingOutput == LoggingOutputInterface::BOTH ||
+        config::getConfiguration()->loggingOutput == LoggingOutputInterface::UART)
+            && messageClass == MessageClass::LOG) {
+        openxc::util::log::debugUart((const char*)message);
+        openxc::util::log::debugUart("\r\n");
+    }
 }
 
 void openxc::pipeline::process(Pipeline* pipeline) {
@@ -207,7 +212,6 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
     if(time::systemTimeMs() - lastTimeLogged >
             PIPELINE_STATS_LOG_FREQUENCY_S * 1000) {
         for(int i = 0; i < PIPELINE_ENDPOINT_COUNT; i++) {
-            const char* interfaceName = messageTypeNames[i];
             statistics::update(&sentMessageStats[i], sentMessages[i]);
             statistics::update(&droppedMessageStats[i], droppedMessages[i]);
             statistics::update(&totalMessageStats[i],
@@ -219,20 +223,22 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             statistics::update(&receiveQueueStats[i], receiveQueueLength[i]);
 
             if(totalMessageStats[i].total > 0) {
+                InterfaceDescriptor descriptor;
+                descriptor.type = (InterfaceType) i;
                 debug("%s avg queue fill percents, Rx: %f, Tx: %f",
-                            interfaceName,
+                        descriptorToString(&descriptor),
                         statistics::exponentialMovingAverage(&receiveQueueStats[i])
                             / QUEUE_MAX_LENGTH(uint8_t) * 100,
                         statistics::exponentialMovingAverage(&sendQueueStats[i])
                             / QUEUE_MAX_LENGTH(uint8_t) * 100);
                 debug("%s msgs sent: %d, dropped: %d (avg %f percent)",
-                        interfaceName,
+                        descriptorToString(&descriptor),
                         sentMessageStats[i].total,
                         droppedMessageStats[i].total,
                         statistics::exponentialMovingAverage(&droppedMessageStats[i]) /
                             statistics::exponentialMovingAverage(&totalMessageStats[i]) * 100);
                 debug("%s avg throughput: %fKB / s, %d msgs / s",
-                        interfaceName,
+                        descriptorToString(&descriptor),
                         statistics::exponentialMovingAverage(&dataSentStats[i])
                             / 1024.0 / PIPELINE_STATS_LOG_FREQUENCY_S,
                         (int)(statistics::exponentialMovingAverage(&sentMessageStats[i])

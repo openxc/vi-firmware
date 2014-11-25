@@ -9,6 +9,7 @@
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
+namespace usb = openxc::interface::usb;
 
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -40,10 +41,10 @@ static void armForRead(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
-    commands::handleControlCommand(
-            commands::UsbControlCommand(SetupPkt.bRequest),
-            INCOMING_EP0_DATA_BUFFER,
-            INCOMING_EP0_DATA_SIZE);
+    if(INCOMING_EP0_DATA_SIZE > 0) {
+        openxc::interface::usb::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
+                INCOMING_EP0_DATA_SIZE);
+    }
     memset(INCOMING_EP0_DATA_BUFFER, sizeof(INCOMING_EP0_DATA_BUFFER), 0);
 }
 
@@ -73,21 +74,27 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 
     case EVENT_EP0_REQUEST:
     {
-        if((SetupPkt.bmRequestType >> 7 == 0) && SetupPkt.bRequest >= 0x80
-                && SetupPkt.wLength > 0) {
+        // Only handle control requests for our app, not from the USB system.
+        // We also are not handling zero length control requests to KISS - VI
+        // control commands may be send to the USB control endpoint, but it must
+        // be the same JSON format as if it was sent via the bulk transfer
+        // endpoint.
+        if((SetupPkt.bmRequestType >> 7 == 0) &&
+                SetupPkt.bRequest == CONTROL_COMMAND_REQUEST_ID &&
+                SetupPkt.wLength > 0) {
+            // Register callback for when all of the data from this incoming
+            // control request is received
+            INCOMING_EP0_DATA_SIZE = SetupPkt.wLength;
             getConfiguration()->usb.device.EP0Receive(INCOMING_EP0_DATA_BUFFER,
-                    MIN(SetupPkt.wLength, sizeof(INCOMING_EP0_DATA_BUFFER)),
+                    MIN(INCOMING_EP0_DATA_SIZE, sizeof(INCOMING_EP0_DATA_BUFFER)),
                         (void*)handleCompletedEP0OutTransfer);
-        } else {
-            commands::handleControlCommand(
-                    commands::UsbControlCommand(SetupPkt.bRequest), NULL, 0);
         }
 
         break;
     }
 
     case EVENT_SUSPEND:
-        if(getConfiguration()->usb.configured) {
+        if(usb::connected(&getConfiguration()->usb)) {
             debug("USB no longer detected - marking unconfigured");
             getConfiguration()->usb.configured = false;
         }
@@ -97,15 +104,6 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
         break;
     }
     return true;
-}
-
-bool openxc::interface::usb::sendControlMessage(UsbDevice* usbDevice,
-        uint8_t* data, size_t length) {
-    if(usbDevice->configured) {
-        usbDevice->device.EP0SendRAMPtr(data, length, USB_EP0_INCLUDE_ZERO);
-        return true;
-    }
-    return false;
 }
 
 bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {

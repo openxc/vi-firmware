@@ -1,0 +1,1 @@
+copy "C:\Users\Michael\Documents\Project Files\OpenXCUpgrade\vi-firmware\src\build\CROSSCHASM_CELLULAR_C5\vi-firmware-CROSSCHASM_CELLULAR_C5.hex" "C:\FlashOpenXC"

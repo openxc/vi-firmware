@@ -4,23 +4,26 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 6.0.4-dev
+:Version: 7.0.0
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
 :Keywords: vehicle, openxc, embedded
 
---
-
 .. image:: https://travis-ci.org/openxc/vi-firmware.svg?branch=master
     :target: https://travis-ci.org/openxc/vi-firmware
 
-.. image:: https://coveralls.io/repos/openxc/vi-firmware/badge.png?branch=master :target: https://coveralls.io/r/openxc/vi-firmware?branch=master
+.. image:: https://coveralls.io/repos/openxc/vi-firmware/badge.png?branch=master
+    :target: https://coveralls.io/r/openxc/vi-firmware?branch=master
 
-The OpenXC vehicle interface (VI) firmware runs on an Arduino-compatible
-microcontroller connected to one or more CAN buses. It receives either all CAN
-messages or a filtered subset, performs any unit conversion or factoring
-required and outputs a generic version to a USB interface.
+.. image:: https://readthedocs.org/projects/openxc-vehicle-interface-firmware/badge
+    :target: http://vi-firmware.openxcplatform.com
+    :alt: Documentation Status
+
+The OpenXC vehicle interface (VI) firmware runs on an microcontroller connected
+to one or more CAN buses. It receives either all CAN messages or a filtered
+subset, performs any unit conversion or factoring required and outputs a generic
+version to a USB interface.
 
 For more documentation, see the `vehicle interface`_ section on the `OpenXC
 website`_ or the `vehicle interface documentation`_.

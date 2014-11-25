@@ -56,13 +56,20 @@ static void clearAcceptanceFilterTable() {
     LPC_CANAF->ENDofTable = 0x00;
 }
 
+bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+    CAN_SetAFMode(LPC_CANAF, enabled ? CAN_Normal : CAN_AccBP);
+    return true;
+}
+
 bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount) {
     clearAcceptanceFilterTable();
 
     uint16_t filterCount = 0;
     CAN_ERROR result = CAN_OK;
+    bool bypassFilters = false;
     for(int i = 0; i < busCount; i++) {
         CanBus* bus = &buses[i];
+        bypassFilters |= bus->bypassFilters;
         AcceptanceFilterListEntry* entry;
         LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
             if(filterCount >= MAX_ACCEPTANCE_FILTERS) {
@@ -80,16 +87,15 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         }
     }
 
-    if(filterCount == 0) {
-        debug("No filters configured, turning off acceptance filter");
-        // On the LPC17xx, the AF mode is global - if it's off, it's off for
-        // both controllers. That's why this is outside the loop above, and
-        // we're counting *total* filters, not filters per bus.
-        CAN_SetAFMode(LPC_CANAF, CAN_AccBP);
-    } else {
-        CAN_SetAFMode(LPC_CANAF, CAN_Normal);
+    // On the LPC17xx, the AF mode is global - if it's off, it's off for
+    // both controllers. That's why this is outside the loop above, and
+    // we're counting *total* filters, not filters per bus. We also disable the
+    // AF if any of the busses has bypassFilters == true.
+    bypassFilters |= filterCount == 0;
+    if(bypassFilters) {
+        debug("No filters configured or a bus in bypass, disabling AF");
     }
-
+    resetAcceptanceFilterStatus(NULL, !bypassFilters);
     return result == CAN_OK;
 }
 
@@ -109,14 +115,18 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     static bool CAN_CONTROLLER_INITIALIZED = false;
     if(!CAN_CONTROLLER_INITIALIZED) {
         for(int i = 0; i < getCanBusCount(); i++) {
-            debug("Initializing bus %d at %d baud", bus->address, getCanBuses()[i].speed);
+            debug("Initializing bus %d at %d baud", getCanBuses()[i].address,
+                    getCanBuses()[i].speed);
             CAN_Init(CAN_CONTROLLER((&getCanBuses()[i])), getCanBuses()[i].speed);
         }
         CAN_CONTROLLER_INITIALIZED = true;
     }
 
     CAN_MODE_Type mode = CAN_LISTENONLY_MODE;
-    if(writable) {
+    if(bus->loopback) {
+        debug("Initializing bus %d in loopback mode", bus->address);
+        mode = CAN_SELFTEST_MODE;
+    } else if(writable) {
         debug("Initializing bus %d in writable mode", bus->address);
         mode = CAN_OPERATING_MODE;
     } else {

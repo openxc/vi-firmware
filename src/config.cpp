@@ -1,5 +1,6 @@
 #include "config.h"
 #include "signals.h"
+#include "md5.h"
 
 using openxc::pipeline::Pipeline;
 using openxc::interface::uart::UartDevice;
@@ -10,7 +11,9 @@ namespace telit = openxc::telitHE910;
 
 namespace signals = openxc::signals;
 
-void initialize(openxc::config::Configuration* config) {
+static void getFlashHash(openxc::config::Configuration* config);
+
+static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,
@@ -19,6 +22,8 @@ void initialize(openxc::config::Configuration* config) {
         &config->network,
 #endif // __USE_NETWORK__
     };
+	// run flashHash
+	getFlashHash(config);
 	config->telit.uart = &config->uart;
     config->initialized = true;
 }
@@ -26,23 +31,33 @@ void initialize(openxc::config::Configuration* config) {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "6.0.4-dev",
+        version: "7.0.0.7208",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,
         powerManagement: PowerManagement::DEFAULT_POWER_MANAGEMENT,
         sendCanAcks: DEFAULT_CAN_ACK_STATUS,
         emulatedData: DEFAULT_EMULATED_DATA_STATUS,
-        uartLogging: DEFAULT_UART_LOGGING_STATUS,
+        loggingOutput: DEFAULT_LOGGING_OUTPUT,
         calculateMetrics: DEFAULT_METRICS_STATUS,
         desiredRunLevel: RunLevel::CAN_ONLY,
         initialized: false,
         runLevel: RunLevel::NOT_RUNNING,
         uart: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+            },
             baudRate: UART_BAUD_RATE
         },
-        network: {},
+        network: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_NETWORK
+            }
+        },
         usb: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_USB
+            },
             endpoints: {
                 {IN_ENDPOINT_NUMBER, DATA_ENDPOINT_SIZE,
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
@@ -53,6 +68,9 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
             }
         },
 		telit: {
+			descriptor: {
+				allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+			},
 			config: {
 				globalPositioningSettings: {
 					gpsEnable: true, 
@@ -87,7 +105,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 					txFlushTimer: 50
 				},
 				serverConnectSettings: {
-					host: "openxcdemo.azurewebsites.net",
+					host: "openxcserverdemo.azurewebsites.net",
 					port: 80
 				}
 			}
@@ -107,3 +125,18 @@ void openxc::config::getFirmwareDescriptor(char* buffer, size_t length) {
             signals::getActiveMessageSet() != NULL ?
                 signals::getActiveMessageSet()->name : "default");
 }
+
+static void getFlashHash(openxc::config::Configuration* config) {
+	MD5_CTX md5Context;
+	unsigned char result[16];
+	MD5_Init(&md5Context);
+	MD5_Update(&md5Context, (const void*)0x9D001000, (unsigned long)0x2FC);
+	MD5_Update(&md5Context, (const void*)0x9D001348, (unsigned long)0x7DCB8);
+	MD5_Final(result, &md5Context);
+	sprintf(config->flashHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+	result[0], result[1], result[2], result[3],
+	result[4], result[5], result[6], result[7],
+	result[8], result[9], result[10], result[11],
+	result[12], result[13], result[14], result[15]);
+}
+

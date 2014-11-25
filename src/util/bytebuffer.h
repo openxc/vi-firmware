@@ -2,9 +2,9 @@
 #define _BUFFERS_H_
 
 #include "emqueue.h"
-#include "commands.h"
+#include "commands/commands.h"
 
-QUEUE_DECLARE(uint8_t, 256)
+QUEUE_DECLARE(uint8_t, 320)
 
 namespace openxc {
 namespace util {
@@ -12,12 +12,14 @@ namespace bytebuffer {
 
 /* Public: The type signature for a callback to receive new command data.
  *
- * buffer - The received command buffer.
- * length - The length of the buffer
+ * buffer - The received command buffer. It may contain an incomplete command, a
+ *      complete command, or more. Parse only one.
+ * length - The total length of the buffer.
  *
- * The callback should return true if there were no errors.
+ * The callback should return the number of bytes read from the buffer for a
+ * message, if any was found.
  */
-typedef bool (*IncomingMessageCallback)(uint8_t* buffer, size_t length);
+typedef size_t (*IncomingMessageCallback)(uint8_t* buffer, size_t length);
 
 /* Public: Search for a complete message in the queue, remove it and pass it to
  * the callback. If no message is found, reset the queue back to empty if it's

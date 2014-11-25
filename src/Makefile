@@ -5,6 +5,7 @@ COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"
 GREEN="$${txtbld}$$(tput setaf 2)"
+YELLOW="$${txtbld}$$(tput setaf 3)"
 COLOR_RESET=$$(tput sgr0)
 endif
 
@@ -29,22 +30,6 @@ OBJDIR = $(OBJDIR_ROOT)
 # 0 or 1
 BOOTLOADER ?= 1
 
-# 0 or 1
-DEBUG ?= 0
-ifeq ($(DEBUG), 1)
-	SYMBOLS += __DEBUG__
-	DEFAULT_POWER_MANAGEMENT ?= ALWAYS_ON
-	DEFAULT_CAN_ACK_STATUS ?= 1
-else
-	SYMBOLS += NDEBUG
-endif
-
-TRANSMITTER ?= 0
-ifeq ($(TRANSMITTER), 1)
-	DEFAULT_POWER_MANAGEMENT ?= ALWAYS_ON
-	DEFAULT_USB_PRODUCT_ID ?= 0x2
-endif
-
 DEFAULT_ALLOW_RAW_WRITE_USB ?= 1
 SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_USB=$(DEFAULT_ALLOW_RAW_WRITE_USB)
 
@@ -57,8 +42,8 @@ SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_NETWORK=$(DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 DEFAULT_METRICS_STATUS ?= 0
 SYMBOLS += DEFAULT_METRICS_STATUS=$(DEFAULT_METRICS_STATUS)
 
-DEFAULT_UART_LOGGING_STATUS ?= 0
-SYMBOLS += DEFAULT_UART_LOGGING_STATUS=$(DEFAULT_UART_LOGGING_STATUS)
+DEFAULT_LOGGING_OUTPUT ?= "BOTH"
+SYMBOLS += DEFAULT_LOGGING_OUTPUT=$(DEFAULT_LOGGING_OUTPUT)
 
 DEFAULT_OBD2_BUS ?= 1
 SYMBOLS += DEFAULT_OBD2_BUS=$(DEFAULT_OBD2_BUS)
@@ -89,6 +74,25 @@ SYMBOLS += DEFAULT_CAN_ACK_STATUS=$(DEFAULT_CAN_ACK_STATUS)
 # SYMBOLS += __USE_NETWORK__
 # endif
 
+# The DEBUG and TRANSMITTER flags override the CAN_ACK_STATUS and
+# POWER_MANAGEMENT flags, so these two must come last.
+
+# 0 or 1
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	SYMBOLS += __DEBUG__
+	DEFAULT_POWER_MANAGEMENT = ALWAYS_ON
+	DEFAULT_CAN_ACK_STATUS = 1
+else
+	SYMBOLS += NDEBUG
+endif
+
+TRANSMITTER ?= 0
+ifeq ($(TRANSMITTER), 1)
+	DEFAULT_POWER_MANAGEMENT = ALWAYS_ON
+	DEFAULT_USB_PRODUCT_ID = 0x2
+endif
+
 SYMBOLS += PB_FIELD_16BIT
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
@@ -108,6 +112,7 @@ CROSSPLATFORM_C_SRCS = $(wildcard *.c)
 CROSSPLATFORM_C_SRCS += $(wildcard can/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard interface/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard platform/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard commands/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard util/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard payload/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
@@ -118,12 +123,15 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 # TODO put this under a "gen" folder separate from objdir
-CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c $(LIBS_PATH)/nanopb/pb_decode.c
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
+						$(LIBS_PATH)/nanopb/pb_decode.c \
+						$(LIBS_PATH)/nanopb/pb_common.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard interface/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard platform/*.cpp)
+CROSSPLATFORM_CPP_SRCS += $(wildcard commands/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard util/*.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard payload/*.cpp)
 
@@ -136,9 +144,8 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/uds-c/src \
 				-I$(LIBS_PATH)/http-parser
 
-# the PIC32 can't build with gnu99, so we have to leave it out
-ONLY_C_FLAGS =
-ONLY_CPP_FLAGS = -std=gnu++0x
+CFLAGS_STD = -std=gnu99
+CXXFLAGS_STD = -std=gnu++0x
 
 include tests/tests.mk
 
@@ -149,6 +156,12 @@ include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
+# force a modified set of linkers for cellular c5
+# this is necessary to support OTA upgrades
+# we only want to change the FLASH erase rules for the bootloader
+# all other settings remain the same, and chipKIT-application-COMMON.ld is still used
+override LINKER_SCRIPTS  += -T platform/pic32/chipKIT-application-32MX795F512_c5cell.ld
+override LINKER_SCRIPTS  += -T $(ARDUINO_CORE_PATH)/chipKIT-application-COMMON.ld
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
@@ -172,7 +185,7 @@ define show_options
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_NETWORK)
-	$(call show_vi_config_variable,DEFAULT_UART_LOGGING_STATUS)
+	$(call show_vi_config_variable,DEFAULT_LOGGING_OUTPUT)
 	$(call show_vi_config_variable,DEFAULT_OUTPUT_FORMAT)
 	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)
 	$(call show_vi_config_variable,DEFAULT_POWER_MANAGEMENT)
@@ -190,11 +203,11 @@ endef
 .firmware_options: force
 	@echo '$(SYMBOLS)' | cmp -s - $@ || echo '$(SYMBOLS)' > $@
 
-custom_all_prefix:
+display_options:
 	$(info Compiling with options:)
 	$(call show_options)
 
-custom_all: custom_all_prefix all
+custom_all: display_options all
 	@echo -n "$(GREEN)Compiled successfully for $(PLATFORM)"
 	@if [[ "$(BOOTLOADER)" == "1" ]]; then \
 		echo -n " running under a bootloader"; \

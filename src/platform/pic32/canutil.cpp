@@ -47,8 +47,10 @@ static CAN::OP_MODE switchControllerMode(CanBus* bus, CAN::OP_MODE mode) {
     return previousMode;
 }
 
-static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
+bool openxc::can::resetAcceptanceFilterStatus(CanBus* bus, bool enabled) {
     CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
+    debug("Resetting AF filter on bus %d - will wipe all "
+            "previous configuration", bus->address);
     if(enabled) {
         debug("Enabling primary AF filter masks for bus %d", bus->address);
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0xFFF,
@@ -56,18 +58,17 @@ static bool setAcceptanceFilterStatus(CanBus* bus, bool enabled) {
         CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK1, 0x1FFFFFFF,
                 CAN::EID, CAN::FILTER_MASK_IDE_TYPE);
     } else {
-        debug("Disabling primary AF filter mask to allow all messages through");
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0, CAN::SID,
-            CAN::FILTER_MASK_IDE_TYPE);
+        debug("Disabling primary AF filter mask for bus %d to allow "
+                "all messages through", bus->address);
+        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK0, 0,
+                CAN::SID, CAN::FILTER_MASK_ANY_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER0, 0, CAN::SID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
                 CAN::FILTER0, CAN::FILTER_MASK0, CAN::CHANNEL1);
 
-        CAN_CONTROLLER(bus)->configureFilterMask(CAN::FILTER_MASK1, 0, CAN::EID,
-            CAN::FILTER_MASK_IDE_TYPE);
         CAN_CONTROLLER(bus)->configureFilter(CAN::FILTER1, 0, CAN::EID);
         CAN_CONTROLLER(bus)->linkFilterToChannel(
-                CAN::FILTER1, CAN::FILTER_MASK1, CAN::CHANNEL1);
+                CAN::FILTER1, CAN::FILTER_MASK0, CAN::CHANNEL1);
 
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER0, true);
         CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER1, true);
@@ -85,49 +86,47 @@ bool openxc::can::updateAcceptanceFilterTable(CanBus* buses, const int busCount)
         uint16_t busFilterCount = 0;
         CAN::OP_MODE previousMode = switchControllerMode(bus, CAN::CONFIGURATION);
 
-        bool afFilterStatusSet = false;
-        AcceptanceFilterListEntry* entry;
-        LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
-            if(busFilterCount >= MAX_ACCEPTANCE_FILTERS) {
-                break;
-            }
-
-            if(!afFilterStatusSet) {
-                // Must set the master AF filter status first and only once,
-                // because it wipes anything you've configured when you set it.
-                setAcceptanceFilterStatus(bus, true);
-                afFilterStatusSet = true;
-            }
-
-            // Must disable before changing or else the filters do not work!
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), false);
-            if(entry->format == CanMessageFormat::STANDARD) {
-                // Standard format message IDs match filter mask 0
-                debug("Added acceptance filter for STD 0x%x on bus %d to AF",
-                        entry->filter, bus->address);
-                CAN_CONTROLLER(bus)->configureFilter(
-                        CAN::FILTER(totalFilterCount), entry->filter, CAN::SID);
-                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
-                        CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
-            } else {
-                // Extended format message IDs match filter mask 1
-                debug("Added acceptance filter for EXT 0x%x on bus %d to AF",
-                        entry->filter, bus->address);
-                CAN_CONTROLLER(bus)->configureFilter(
-                        CAN::FILTER(totalFilterCount), entry->filter, CAN::EID);
-                CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
-                        CAN::FILTER_MASK1, CAN::CHANNEL(CAN_RX_CHANNEL));
-            }
-            CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), true);
-
-            ++totalFilterCount;
-            ++busFilterCount;
-        }
-
-        if(busFilterCount == 0) {
-            debug("No filters configured, turning off acceptance filter");
-            setAcceptanceFilterStatus(bus, false);
+        if(LIST_EMPTY(&bus->acceptanceFilters) || bus->bypassFilters) {
+            debug("Bus %d has no filters configured or manually set to bypass, "
+                    "turning off acceptance filter", bus->address);
+            resetAcceptanceFilterStatus(bus, false);
         } else {
+            // Must set the controller's AF filter status first and only once,
+            // before configuring, because it wipes anything you've configured
+            // when you set it.
+            resetAcceptanceFilterStatus(bus, true);
+
+            AcceptanceFilterListEntry* entry;
+            LIST_FOREACH(entry, &bus->acceptanceFilters, entries) {
+                if(busFilterCount >= MAX_ACCEPTANCE_FILTERS) {
+                    break;
+                }
+
+                // Must disable before changing or else the filters do not work!
+                CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), false);
+                if(entry->format == CanMessageFormat::STANDARD) {
+                    // Standard format message IDs match filter mask 0
+                    debug("Added acceptance filter for STD 0x%x on bus %d to AF",
+                            entry->filter, bus->address);
+                    CAN_CONTROLLER(bus)->configureFilter(
+                            CAN::FILTER(totalFilterCount), entry->filter, CAN::SID);
+                    CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
+                            CAN::FILTER_MASK0, CAN::CHANNEL(CAN_RX_CHANNEL));
+                } else {
+                    // Extended format message IDs match filter mask 1
+                    debug("Added acceptance filter for EXT 0x%x on bus %d to AF",
+                            entry->filter, bus->address);
+                    CAN_CONTROLLER(bus)->configureFilter(
+                            CAN::FILTER(totalFilterCount), entry->filter, CAN::EID);
+                    CAN_CONTROLLER(bus)->linkFilterToChannel(CAN::FILTER(totalFilterCount),
+                            CAN::FILTER_MASK1, CAN::CHANNEL(CAN_RX_CHANNEL));
+                }
+                CAN_CONTROLLER(bus)->enableFilter(CAN::FILTER(totalFilterCount), true);
+
+                ++totalFilterCount;
+                ++busFilterCount;
+            }
+
             // Disable the remaining unused filters. When AF is "off" we are
             // actually using filter 0, so we don't want to disable that.
             for(int disabledFilters = busFilterCount;
@@ -238,13 +237,17 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
 
     // move CAN module to OPERATIONAL state (go on bus)
     CAN::OP_MODE mode;
-    if(writable) {
+    if(bus->loopback) {
+        debug("Initializing bus %d in loopback mode", bus->address);
+        mode = CAN::LOOPBACK;
+    } else if(writable) {
         debug("Initializing bus %d in writable mode", bus->address);
         mode = CAN::NORMAL_OPERATION;
     } else {
         debug("Initializing bus %d in listen only mode", bus->address);
         mode = CAN::LISTEN_ONLY;
     }
+
     switchControllerMode(bus, mode);
 
     // TODO an error if the address isn't valid

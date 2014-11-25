@@ -2,6 +2,10 @@
 #define _TELIT_HE910_H_
 
 #include "interface/uart.h"
+#include "interface/interface.h"
+
+#define MAX_DEVICE_ID_LENGTH 	17
+#define MAX_ICCID_LENGTH 		32
 
 namespace openxc {
 namespace telitHE910 {
@@ -101,10 +105,13 @@ typedef enum {
 } GPSFixType;
 
 typedef struct {
+	openxc::interface::InterfaceDescriptor descriptor;
 	ModemConfigurationDescriptor config;
 	openxc::interface::uart::UartDevice* uart;
 	QUEUE_TYPE(uint8_t) sendQueue;
 	QUEUE_TYPE(uint8_t) receiveQueue;
+	char deviceId[MAX_DEVICE_ID_LENGTH];
+	char ICCID[MAX_ICCID_LENGTH];
 } TelitDevice;
 
 typedef enum {
@@ -291,6 +298,9 @@ void processSendQueue(TelitDevice* device);
  
 /*Public: Returns network connection status of the modem (i.e. is the modem in a state where it can process pipeline data).*/
 bool connected(TelitDevice* device);
+ 
+void flushDataBuffer(TelitDevice* device);
+void firmwareCheck(TelitDevice* device);
  
 } // namespace telitHE910
 } // namespace openxc

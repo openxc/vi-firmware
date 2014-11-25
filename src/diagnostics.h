@@ -2,14 +2,14 @@
 #define __DIAGNOSTICS_H__
 
 #include <sys/queue.h>
-#include "bsd_queue_patch.h"
 #include <stdint.h>
 #include <stdlib.h>
-#include "util/timer.h"
+
+#include "bsd_queue_patch.h"
 #include "pipeline.h"
-#include <can/canutil.h>
+#include "can/canutil.h"
 #include <uds/uds.h>
-#include <openxc.pb.h>
+#include "openxc.pb.h"
 
 /* Private: The maximum number of simultanous diagnostic requests. Increasing
  * this number will use more memory on the stack.
@@ -173,9 +173,8 @@ void reset(DiagnosticsManager* manager);
  * are added for all functional addresses (0x7e8 to 0x7f0).
  *
  * At most one recurring request can be active for the same arbitration ID, mode
- * and (if set) PID on the same bus at one time. If one already exists, its
- * frequency (and other parmaeters) will be updated with new values provided and
- * a new entry will not be created.
+ * and (if set) PID on the same bus at one time. If you try and call
+ * addRecurringRequest with the same key, it will return an error.
  *
  * Example:
  *

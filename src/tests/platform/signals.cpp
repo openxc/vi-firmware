@@ -40,13 +40,15 @@ CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
     },
 };
 
-const int MAX_MESSAGE_COUNT = 4;
+const int MAX_MESSAGE_COUNT = 6;
 CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
     { // message set: passthrough
         {&CAN_BUSES[0][0], 0},
         {&CAN_BUSES[0][0], 1, CanMessageFormat::STANDARD, {10}},
         {&CAN_BUSES[0][0], 2, CanMessageFormat::STANDARD, {1}, true},
-        {&CAN_BUSES[0][0], 3}
+        {&CAN_BUSES[0][0], 3},
+        {&CAN_BUSES[0][0], 4},
+        {&CAN_BUSES[0][0], 5}
     },
     { // message set: shared_handler_tests
         {&CAN_BUSES[1][0], 0},
@@ -56,7 +58,7 @@ CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
     },
 };
 
-const int MAX_SIGNAL_COUNT = 13;
+const int MAX_SIGNAL_COUNT = 29;
 const CanSignalState SIGNAL_STATES[][2][6] = {
     { // message set: passthrough
         { {1, "reverse"}, {2, "third"}, {3, "sixth"}, {4, "seventh"},
@@ -80,12 +82,47 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
         {&CAN_MESSAGES[0][2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
             0.000000, {0}, true, false, NULL, 0, true},
         {&CAN_MESSAGES[0][3], "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
-            {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL, 4.0},
+            {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL, false, 4.0},
         {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000},
         {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
             false, false, NULL, 0, true},
         {&CAN_MESSAGES[0][0], "torque_at_transmission", 2, 6, 1001.0, -30000.000000,
             -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
+
+        // The messages for test_translate_many_signals, with 8 signals per
+        // message to replicate a bug reported in the discussion group
+        {&CAN_MESSAGES[0][4], "signal1", 0, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal2", 1, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal3", 2, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal4", 3, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal5", 4, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal6", 5, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal7", 6, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][4], "signal8", 7, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signal9", 0, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa10", 1, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa11", 2, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa12", 3, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa13", 4, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa14", 5, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa15", 6, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][5], "signa16", 7, 1, 1.000000, 0.000000, 0.000000,
+            0.000000, {0}, true, false, NULL, 0, true}
     },
     { // message set: shared_handler_tests
         {&CAN_MESSAGES[1][0], "button_type", 8, 8, 1.000000, 0.000000, 0.000000,

@@ -29,6 +29,7 @@ bool queueEmpty() {
 }
 
 void setup() {
+    getConfiguration()->pipeline.uart = NULL;
     openxc::config::getConfiguration()->messageSetIndex = 1;
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
@@ -107,12 +108,36 @@ START_TEST (test_button_event_handler_bad_state)
 }
 END_TEST
 
+START_TEST (test_tire_pressure_as_decoder)
+{
+    bool send = true;
+    CanSignal* signal = &getSignals()[7];
+    signal->decoder = &tirePressureDecoder;
+    CanMessage message = {
+        id: signal->message->id,
+        format: CanMessageFormat::STANDARD,
+        data: {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+        length: 8
+    };
+    openxc::can::read::decodeSignal(signal, &message, getSignals(), getSignalCount(), &send);
+    fail_if(queueEmpty());
+
+    uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
+    QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
+    snapshot[sizeof(snapshot) - 1] = NULL;
+    fail_if(strstr((char*)snapshot, "front_left") == NULL);
+}
+END_TEST
+
 START_TEST (test_tire_pressure_handler)
 {
     bool send = true;
-    tirePressureDecoder(&getSignals()[7], getSignals(), getSignalCount(),
-            &getConfiguration()->pipeline, 23.1, &send);
+    openxc_DynamicField decodedTireId = tirePressureDecoder(&getSignals()[7],
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline,
+            23.1, &send);
+    // This decoder handles sending its own messages
     fail_if(queueEmpty());
+    ck_assert_str_eq(decodedTireId.string_value, "front_left");
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -147,9 +172,12 @@ END_TEST
 START_TEST (test_door_handler)
 {
     bool send = true;
-    doorStatusDecoder(&getSignals()[2], getSignals(), getSignalCount(),
-            &getConfiguration()->pipeline, 1, &send);
+    openxc_DynamicField decodedDoorId = doorStatusDecoder(&getSignals()[2],
+            getSignals(), getSignalCount(), &getConfiguration()->pipeline, 1,
+            &send);
+    // This decoder handles sending its own messages
     fail_if(queueEmpty());
+    ck_assert_str_eq(decodedDoorId.string_value, "driver");
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
@@ -187,6 +215,7 @@ Suite* handlerSuite(void) {
     TCase *tc_tire_pressure = tcase_create("tire_pressure");
     tcase_add_checked_fixture(tc_tire_pressure, setup, NULL);
     tcase_add_test(tc_tire_pressure, test_tire_pressure_handler);
+    tcase_add_test(tc_tire_pressure, test_tire_pressure_as_decoder);
     suite_add_tcase(s, tc_tire_pressure);
 
     return s;

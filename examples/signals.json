@@ -57,7 +57,7 @@
                         "FOURTH": [4],
                         "REVERSE": [5],
                         "NEUTRAL": [6]}
-                    },
+                },
                 "StrAnglErr": {
                     "decoder": "ignoreDecoder",
                     "generic_name": "steering_wheel_angle_error",
@@ -66,6 +66,36 @@
                 }
             },
             "handlers": ["handleSteeringWheelMessage"]
+        },
+        "0x256": {
+            "name": "DoorMessage",
+            "bus": "hs",
+            "signals": {
+                "Driver": {
+                    "generic_name": "driver_door",
+                    "bit_position": 52,
+                    "bit_size": 12,
+                    "decoder": "doorStatusDecoder"
+                },
+                "Passenger": {
+                    "generic_name": "passenger_door",
+                    "bit_position": 52,
+                    "bit_size": 12,
+                    "decoder": "doorStatusDecoder"
+                },
+                "RearLeft": {
+                    "generic_name": "rear_left_door",
+                    "bit_position": 12,
+                    "bit_size": 8,
+                    "decoder": "doorStatusDecoder"
+                },
+                "RearRight": {
+                    "generic_name": "rear_right_door",
+                    "bit_position": 41,
+                    "bit_size": 3,
+                    "decoder": "doorStatusDecoder"
+                }
+            }
         },
         "0x49": {
             "name": "BrkSt",
@@ -77,6 +107,12 @@
                     "decoder": "booleanDecoder",
                     "bit_position": 0,
                     "bit_size": 1
+                },
+                "TirePressure": {
+                    "generic_name": "tire_pressure_front_left",
+                    "decoder": "tirePressureDecoder",
+                    "bit_position": 3,
+                    "bit_size": 5
                 }
             }
         },

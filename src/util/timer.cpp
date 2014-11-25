@@ -16,7 +16,7 @@ unsigned long openxc::util::time::uptimeMs() {
 
 /* Private: Return the period in ms given the frequency in hertz.
  */
-float frequencyToPeriod(float frequency) {
+static float frequencyToPeriod(float frequency) {
     return 1 / frequency * MS_PER_SECOND;
 }
 

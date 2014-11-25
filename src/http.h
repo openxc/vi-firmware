@@ -14,7 +14,6 @@ typedef enum {
 	HTTP_READY,
 	HTTP_SENDING_REQUEST_HEADER,
 	HTTP_SENDING_REQUEST_BODY,
-	HTTP_WAITING_RESPONSE,
 	HTTP_RECEIVING_RESPONSE,
 	HTTP_COMPLETE,
 	HTTP_FAILED,
@@ -26,7 +25,8 @@ class httpClient {
 	
 		// buffer size
 		static const unsigned int bufferSize = HTTP_BUFFERSIZE;
-
+	
+	public:
 		// http parser
 		http_parser_settings parser_settings;	// settings for parsing http data
 		http_parser parser;						// parser for http data
@@ -34,9 +34,8 @@ class httpClient {
 		// do nothing (default) callback
 		static void cbDefault(char*, unsigned int){}
  
-	public:
- 
 		// transaction details
+		unsigned int socketNumber;
 		HTTP_STATUS status;					// status of the http client state machine
 		unsigned int startTime;				// start time of this transaction (used to time out a hanging transaction)
 		unsigned int bytesSent;				// total bytes sent in this transaction
@@ -62,6 +61,7 @@ class httpClient {
 		bool (*receiveSocketData)(unsigned int, char*, unsigned int*);		// callback to receive data from server
 		void (*cbGetRequestData)(char*, unsigned int);
 		void (*cbPutResponseData)(char*, unsigned int);						// callback to handle server response data
+		void (*cbHeaderComplete)();
 		
 		// constructor
 		httpClient();

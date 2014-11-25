@@ -8,7 +8,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
 
     echo "Installing GCC for ARM Embedded..."
 
-    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_8-2014q1-20140314"
+    GCC_ARM_BASENAME="gcc-arm-none-eabi-4_8-2014q2-20140609"
     if [ $OS == "linux" ]; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-linux.tar.bz2"
     elif [ $OS == "mac" ]; then
@@ -17,7 +17,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         GCC_ARM_FILE="$GCC_ARM_BASENAME-win32.exe"
     fi
 
-    GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update/+download/$GCC_ARM_FILE"
+    GCC_ARM_URL="https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q2-update/+download/$GCC_ARM_FILE"
     GCC_ARM_DIR="gcc-arm-embedded"
 
     _pushd $DEPENDENCIES_FOLDER
@@ -34,13 +34,13 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
         PROGRAM_FILES_BASE="/cygdrive/c/"
         PROGRAM_FILES="Program Files"
         PROGRAM_FILES_64="Program Files (x86)"
-        TRAILING_DIRNAME="GNU Tools ARM Embedded/4.8 2014q1/"
+        TRAILING_DIRNAME="GNU Tools ARM Embedded/4.8 2014q2/"
         GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES_64/$TRAILING_DIRNAME"
         if ! test -d "$GCC_INNER_DIR"; then
             GCC_INNER_DIR="$PROGRAM_FILES_BASE/$PROGRAM_FILES/$TRAILING_DIRNAME"
         fi
     else
-        GCC_INNER_DIR="gcc-arm-none-eabi-4_8-2014q1"
+        GCC_INNER_DIR="gcc-arm-none-eabi-4_8-2014q2"
         INSTALL_COMMAND="tar -xjf ../$GCC_ARM_FILE -C /tmp"
     fi
 
@@ -51,7 +51,7 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
             echo -n "Press Enter when the GCC for ARM Embedded installer is finished"
             read
         else
-            cp -R /tmp/$GCC_INNER_DIR .
+            cp -LR /tmp/$GCC_INNER_DIR .
         fi
     fi
 
@@ -70,6 +70,16 @@ if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
     # network share through Vagrant/Virtualbox, and symlinks are not
     # supported. We use the -L flag to dereference links while copying.
     cp -LR "$GCC_INNER_DIR"/* .
+
+    LIBLTO_SYMLINK="$GCC_INNER_DIR/lib/gcc/arm-none-eabi/4.8.4/liblto_plugin.so"
+    if ! test -e $LIBLTO_SYMLINK; then
+        # If running Vagrant in Windows, these dependency files are access via
+        # network share through Vagrant/Virtualbox, and symlinks are not
+        # supported. These files will be missing, so we have to copy where they
+        # are supposed to be symlinking to the properly named files.
+        cp "$LIBLTO_SYMLINK.0.0.0" $LIBLTO_SYMLINK
+        cp "$LIBLTO_SYMLINK.0.0.0" $LIBLTO_SYMLINK.0
+    fi
 
     _popd
     _popd

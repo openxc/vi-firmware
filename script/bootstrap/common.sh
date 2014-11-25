@@ -194,7 +194,6 @@ pre-configured Vagrant environment. See the docs for more information."
 
     if [ $DISTRO == "Ubuntu" ] && [ $ARCH == "x86_64" ]; then
         _install "libc6-i386"
-        _install "lib32gcc1"
     fi
 
     if ! command -v g++ >/dev/null 2>&1; then
@@ -258,7 +257,10 @@ pre-configured Vagrant environment. See the docs for more information."
     fi
 
     $PIP_SUDO_CMD pip install --upgrade setuptools
-    $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/pip-requirements.txt
+    $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/ci-requirements.txt
+    if [ -z $CI ]; then
+        $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/pip-requirements.txt
+    fi
 
     COMMON_SOURCED=1
 fi

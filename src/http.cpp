@@ -1,4 +1,4 @@
-#include "util/http.h"
+#include "http.h"
 #include "util/log.h"
 #include "util/timer.h"
 #include "telit_he910.h"
@@ -101,6 +101,7 @@ static int http_parser_cb_on_message_complete(http_parser* parser) {
 // class constructor
 httpClient::httpClient() {
 
+	socketNumber = 1;
 	status = HTTP_READY;
 	bytesSent = 0;
 	bytesReceived = 0;
@@ -131,9 +132,6 @@ httpClient::httpClient() {
 }
 
 HTTP_STATUS httpClient::execute() {
-  
-	while(1)
-	{
  
 	switch(status)
 	{
@@ -157,7 +155,7 @@ HTTP_STATUS httpClient::execute() {
 		case HTTP_SENDING_REQUEST_HEADER:
 		
 			byteCount = requestHeaderSize - bytesSent;
-			if(sendSocketData(1, requestHeader, &byteCount))
+			if(sendSocketData(socketNumber, requestHeader, &byteCount))
 			{
 				requestHeader += byteCount;
 				bytesSent += byteCount;
@@ -177,18 +175,18 @@ HTTP_STATUS httpClient::execute() {
 		
 			if(!requestBody)
 			{
-				status = HTTP_WAITING_RESPONSE;
+				status = HTTP_RECEIVING_RESPONSE;
 			}
 			else
 			{
 				byteCount = requestBodySize - (bytesSent - requestHeaderSize);
-				if(sendSocketData(1, requestBody, &byteCount))
+				if(sendSocketData(socketNumber, requestBody, &byteCount))
 				{
 					requestBody += byteCount;
 					bytesSent += byteCount;
 					if(bytesSent - requestHeaderSize >= requestBodySize)
 					{
-						status = HTTP_WAITING_RESPONSE;
+						status = HTTP_RECEIVING_RESPONSE;
 					}
 				}
 				else
@@ -199,25 +197,12 @@ HTTP_STATUS httpClient::execute() {
 			
 			break;
 			
-		case HTTP_WAITING_RESPONSE:
-		
-			if(isReceiveDataAvailable(1))
-			{
-				status = HTTP_RECEIVING_RESPONSE;
-			}
-			else
-			{
-				delayMs(HTTP_CHECK_RESPONSE_DELAY);
-			}
-		
-			break;
-			
 		case HTTP_RECEIVING_RESPONSE:
 		
-			if(isReceiveDataAvailable(1))
+			if(isReceiveDataAvailable(socketNumber))
 			{
 				byteCount = bufferSize;
-				if(receiveSocketData(1, responseData, &byteCount))
+				if(receiveSocketData(socketNumber, responseData, &byteCount))
 				{
 					bytesReceived += byteCount;
 					parser.data = responseData;
@@ -230,6 +215,7 @@ HTTP_STATUS httpClient::execute() {
 					{
 						status = HTTP_COMPLETE;
 					}
+					startTime = uptimeMs();
 				}
 			}
 			else
@@ -252,8 +238,6 @@ HTTP_STATUS httpClient::execute() {
 	if(uptimeMs() - startTime > HTTP_TIMEOUT_PERIOD)
 	{
 		status = HTTP_FAILED;
-	}
-	
 	}
 	
 	fcn_exit:

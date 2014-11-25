@@ -34,7 +34,7 @@ want to send diagnostic requests through a VI:
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
     -      0         = DEFAULT_ALLOW_RAW_WRITE_NETWORK
-    -      0         = DEFAULT_UART_LOGGING_STATUS
+    -      USB       = DEFAULT_LOGGING_OUTPUT
     -      JSON      = DEFAULT_OUTPUT_FORMAT
     -      0         = DEFAULT_EMULATED_DATA_STATUS
     -      SILENT_CAN= DEFAULT_POWER_MANAGEMENT
@@ -109,7 +109,7 @@ options:
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
     -      0         = DEFAULT_ALLOW_RAW_WRITE_NETWORK
-    -      0         = DEFAULT_UART_LOGGING_STATUS
+    -      USB       = DEFAULT_LOGGING_OUTPUT
     -      JSON      = DEFAULT_OUTPUT_FORMAT
     -      0         = DEFAULT_EMULATED_DATA_STATUS
     -      OBD2_IGNIT= DEFAULT_POWER_MANAGEMENT
@@ -170,7 +170,7 @@ The config a VI to emulate a vehicle:
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
     -      0         = DEFAULT_ALLOW_RAW_WRITE_NETWORK
-    -      0         = DEFAULT_UART_LOGGING_STATUS
+    -      USB       = DEFAULT_LOGGING_OUTPUT
     -      JSON      = DEFAULT_OUTPUT_FORMAT
     -      0         = DEFAULT_EMULATED_DATA_STATUS
     -      OBD2_IGNIT= DEFAULT_POWER_MANAGEMENT

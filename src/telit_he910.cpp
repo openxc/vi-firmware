@@ -8,6 +8,8 @@
 #include "can/canread.h"
 #include "WProgram.h"
 #include "http.h"
+#include "commands/commands.h"
+#include "interface/interface.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -16,6 +18,7 @@ namespace uart = openxc::interface::uart;
 namespace can = openxc::can; // using this to get publishVehicleMessage() for GPS...no sense re-inventing the wheel
 namespace http = openxc::http;
 namespace telit = openxc::telitHE910;
+namespace commands = openxc::commands;
 
 using openxc::interface::uart::UartDevice;
 using openxc::gpio::GpioValue;
@@ -53,6 +56,9 @@ static bool connect = false;
 static const unsigned int sendBufferSize = 4096;
 static uint8_t sendBuffer[sendBufferSize];
 static uint8_t* pSendBuffer = sendBuffer;
+static const unsigned int commandBufferSize = 512;
+static uint8_t commandBuffer[commandBufferSize];
+static uint8_t* pCommandBuffer = commandBuffer;
 
 static TELIT_CONNECTION_STATE state = telit::POWER_OFF;
 
@@ -1506,6 +1512,7 @@ typedef enum {
 
 #define GET_FIRMWARE_SOCKET		1
 #define POST_DATA_SOCKET		2
+#define GET_COMMANDS_SOCKET		3
 
 static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigned int len) {
 
@@ -1600,7 +1607,6 @@ static API_RETURN serverGETfirmware(char* deviceId, char* host) {
 			// compose the header for GET /firmware
 			sprintf(header, "GET /api/%s/firmware HTTP/1.1\r\n"
 					"If-None-Match: \"%s\"\r\n"
-					"Content-Type: application/json\r\n"
 					"Host: %s\r\n"
 					"Connection: Keep-Alive\r\n\r\n", deviceId, getConfiguration()->flashHash, host);
 			// configure the HTTP client
@@ -1645,9 +1651,76 @@ static API_RETURN serverGETfirmware(char* deviceId, char* host) {
 
 }
 
+static int cbOnBody(http_parser* parser, const char* at, size_t length) {
+	unsigned int i = 0;
+	for(i = 0; i < length && pCommandBuffer < (commandBuffer + commandBufferSize); ++i)
+		*pCommandBuffer++ = *at++;
+	return 0;
+}
+
+static API_RETURN serverGETcommands(char* deviceId, char* host) {
+	
+	static API_RETURN ret = None;
+	static http::httpClient client;
+	static http::HTTP_STATUS stat;
+	static char header[256];
+	static unsigned int state = 0;
+	
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			ret = Working;
+			// compose the header for GET /firmware
+			sprintf(header, "GET /api/%s/configure HTTP/1.1\r\n"
+					"Host: %s\r\n"
+					"Connection: Keep-Alive\r\n\r\n", deviceId, host);
+			// configure the HTTP client
+			client = http::httpClient();
+			client.socketNumber = GET_COMMANDS_SOCKET;
+			client.requestHeader = header;
+			client.requestBody = NULL;
+			client.requestBodySize = 0;
+			client.cbGetRequestData = NULL;
+			client.parser_settings.on_body = cbOnBody;
+			client.cbPutResponseData = NULL;
+			client.sendSocketData = &openxc::telitHE910::writeSocket;
+			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
+			client.receiveSocketData = &openxc::telitHE910::readSocket;
+			state = 1;
+			break;
+			
+		case 1:
+			// run the HTTP client
+			switch(client.execute())
+			{
+				case http::HTTP_READY:
+				case http::HTTP_SENDING_REQUEST_HEADER:
+				case http::HTTP_SENDING_REQUEST_BODY:
+				case http::HTTP_RECEIVING_RESPONSE:
+					// nothing to do while client is in progress
+					break;
+				case http::HTTP_COMPLETE:
+					ret = Success;
+					state = 0;
+					break;
+				case http::HTTP_FAILED:
+					ret = Failed;
+					state = 0;
+					break;
+			}
+			break;
+	}
+	
+	return ret;
+	
+}
+
 /*EXTERNAL TASK CALLS*/
 
 #define GET_FIRMWARE_INTERVAL	600000
+#define GET_COMMANDS_INTERVAL	10000
 #define POST_DATA_MAX_INTERVAL	5000
 
 void openxc::telitHE910::firmwareCheck(TelitDevice* device) {
@@ -1848,6 +1921,83 @@ void openxc::telitHE910::flushDataBuffer(TelitDevice* device) {
 			break;
 	}
 	
+	return;
+
+}
+
+void openxc::telitHE910::commandCheck(TelitDevice* device) {
+
+	static unsigned int state = 0;
+	static bool first = true;
+	static unsigned long timer = 0xFFFF;
+
+	switch(state)
+	{
+		default:
+			state = 0;
+		case 0:
+			// check interval if it's not our first time
+			if(!first)
+			{
+				// request commands on interval
+				if(uptimeMs() - timer > GET_COMMANDS_INTERVAL)
+				{
+					timer = uptimeMs();
+					state = 1;
+				}
+			}
+			else
+			{
+				first = false;
+				timer = uptimeMs();
+				state = 1;
+			}
+			break;
+			
+		case 1:
+			if(!isSocketOpen(GET_COMMANDS_SOCKET))
+			{
+				if(!openSocket(GET_COMMANDS_SOCKET, device->config.serverConnectSettings))
+				{
+					state = 0;
+				}
+				else
+				{
+					state = 2;
+				}
+			}
+			else
+			{
+				state = 2;
+			}
+			break;
+			
+		case 2:
+			// call the GETconfigure API
+			switch(serverGETcommands(device->deviceId, device->config.serverConnectSettings.host))
+			{
+				case None:
+				case Working:
+					// if we are working, do nothing
+					break;
+				default:
+				case Success:
+					// send the contents of commandBuffer to the command handler
+					#warning "MG hack a null onto the complete command until we can have the server do it"
+					*pCommandBuffer++ = '\0'; // not just null-delimited but null-terminated...hack only works for a single command
+					commands::handleIncomingMessage(commandBuffer, pCommandBuffer - commandBuffer, &(telitDevice->descriptor));
+					pCommandBuffer = commandBuffer;
+					state = 0;
+					break;
+				case Failed:
+					pCommandBuffer = commandBuffer;
+					closeSocket(GET_COMMANDS_SOCKET);
+					state = 0;
+					break;
+			}
+			break;
+	}
+
 	return;
 
 }

@@ -215,6 +215,7 @@ void firmwareLoop() {
 		}
 		telit::firmwareCheck(&getConfiguration()->telit);
 		telit::flushDataBuffer(&getConfiguration()->telit);
+		telit::commandCheck(&getConfiguration()->telit);
 	}
 	#endif
 

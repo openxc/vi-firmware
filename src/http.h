@@ -15,6 +15,7 @@ typedef enum {
 	HTTP_SENDING_REQUEST_HEADER,
 	HTTP_SENDING_REQUEST_BODY,
 	HTTP_RECEIVING_RESPONSE,
+	HTTP_WAIT,
 	HTTP_COMPLETE,
 	HTTP_FAILED,
 } HTTP_STATUS;
@@ -25,6 +26,8 @@ class httpClient {
 	
 		// buffer size
 		static const unsigned int bufferSize = HTTP_BUFFERSIZE;
+		// generic timer
+		unsigned int timer;
 	
 	public:
 		// http parser

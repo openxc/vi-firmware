@@ -69,11 +69,11 @@ typedef struct {
 } NetworkOperatorSettings;
 
 typedef struct {
-	char* APN;
+	char APN[64];
 } NetworkDataSettings;
 
 typedef struct {
-	char* host;
+	char host[128];
 	unsigned int port;
 } ServerConnectSettings;
 
@@ -301,6 +301,7 @@ bool connected(TelitDevice* device);
  
 void flushDataBuffer(TelitDevice* device);
 void firmwareCheck(TelitDevice* device);
+void commandCheck(TelitDevice* device);
  
 } // namespace telitHE910
 } // namespace openxc

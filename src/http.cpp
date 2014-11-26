@@ -101,6 +101,8 @@ static int http_parser_cb_on_message_complete(http_parser* parser) {
 // class constructor
 httpClient::httpClient() {
 
+	timer = 0;
+
 	socketNumber = 1;
 	status = HTTP_READY;
 	bytesSent = 0;
@@ -199,6 +201,8 @@ HTTP_STATUS httpClient::execute() {
 			
 		case HTTP_RECEIVING_RESPONSE:
 		
+			timer = uptimeMs();
+		
 			if(isReceiveDataAvailable(socketNumber))
 			{
 				byteCount = bufferSize;
@@ -220,9 +224,14 @@ HTTP_STATUS httpClient::execute() {
 			}
 			else
 			{
-				delayMs(HTTP_CHECK_RESPONSE_DELAY);
+				status = HTTP_WAIT;
 			}
 			
+			break;
+			
+		case HTTP_WAIT:
+			if(uptimeMs() - timer > HTTP_CHECK_RESPONSE_DELAY)
+				status = HTTP_RECEIVING_RESPONSE;
 			break;
 			
 		case HTTP_COMPLETE:

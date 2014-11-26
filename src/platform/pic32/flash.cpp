@@ -39,6 +39,7 @@
 /* ------------------------------------------------------------ */
 
 #include <p32xxxx.h>
+#include <plib.h>
 #include <stdint.h>
 #include <sys/kmem.h>
 #include "flash.h"
@@ -185,7 +186,8 @@ uint32_t __attribute__((nomips16)) _doNvmOp(uint32_t nvmop)
 	// M00TODO: When DMA operations are supported in the core, need
 	// to add code here to suspend DMA during the NVM operation.
 
-	intSt = disableInterrupts();
+	//intSt = disableInterrupts();
+	intSt = INTDisableInterrupts();
 
 	/* Store the operation code into the NVMCON register.
 	*/
@@ -219,7 +221,8 @@ uint32_t __attribute__((nomips16)) _doNvmOp(uint32_t nvmop)
 
 	//M00TODO: Resume a suspended DMA operation
 
-	restoreInterrupts(intSt);
+	//restoreInterrupts(intSt);
+	INTRestoreInterrupts(intSt);
 
 	/* Return the success state of the operation.
 	*/

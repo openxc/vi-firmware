@@ -28,6 +28,7 @@ using openxc::util::log::debug;
 using openxc::util::time::uptimeMs;
 using openxc::config::getConfiguration;
 using openxc::telitHE910::TELIT_CONNECTION_STATE;
+using openxc::payload::PayloadFormat;
 
 /*PRIVATE MACROS*/
 
@@ -1465,14 +1466,14 @@ static bool parseGPSACP(const char* GPSACP) {
 	// 'gps_speed'
 	if(validString[7] && gpsConfig->gpsEnableSignal_gps_speed)
 	{
-		field_value_numerical = atof(&splitString[7][0]) * 100;	// there is a bug in the telit firmware that reports speed/100...
+		field_value_numerical = atof(&splitString[7][0]);//* 100;	// there is a bug in the telit firmware that reports speed/100...
 		publishGPSSignal("gps_speed", field_value_numerical, pipeline);
 	}
 	
 	// 'gps_speed_knots'
 	if(validString[8] && gpsConfig->gpsEnableSignal_gps_speed_knots)
 	{
-		field_value_numerical = atof(&splitString[8][0]) * 100;	// there is a bug in the telit firmware that reports speed/100...
+		field_value_numerical = atof(&splitString[8][0]);//* 100;	// there is a bug in the telit firmware that reports speed/100...
 		publishGPSSignal("gps_speed_knots", field_value_numerical, pipeline);
 	}
 	
@@ -1513,6 +1514,8 @@ static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigne
 	static http::HTTP_STATUS stat;
 	static char header[256];
 	static unsigned int state = 0;
+	static const char* ctJSON = "application/json";
+	static const char* ctPROTOBUF = "application/x-protobuf";
 	
 	switch(state)
 	{
@@ -1523,9 +1526,9 @@ static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigne
 			// compose the header for POST /data
 			sprintf(header, "POST /api/%s/data HTTP/1.1\r\n"
 					"Content-Length: %u\r\n"
-					"Content-Type: application/json\r\n"
+					"Content-Type: %s\r\n"
 					"Host: %s\r\n"
-					"Connection: Keep-Alive\r\n\r\n", deviceId, len, host);
+					"Connection: Keep-Alive\r\n\r\n", deviceId, len, getConfiguration()->payloadFormat == PayloadFormat::PROTOBUF ? ctPROTOBUF : ctJSON, host);
 			// configure the HTTP client
 			client = http::httpClient();
 			client.socketNumber = POST_DATA_SOCKET;
@@ -1778,29 +1781,46 @@ void openxc::telitHE910::flushDataBuffer(TelitDevice* device) {
 			
 		case 2:
 			
-			// pre-populate the send buffer with root record
-			memcpy(postBuffer, "{\"records\":[", 12);
-			byteCount = 12;
-			
-			// get all bytes from the send buffer (so we have room to fill it again as we POST)
-			memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
-			byteCount += pSendBuffer - sendBuffer;
-			pSendBuffer = sendBuffer;
-			
-			// replace the nulls with commas to create a JSON array
-			for(i = 0; i < byteCount; ++i)
+			switch(getConfiguration()->payloadFormat)
 			{
-				if(postBuffer[i] == '\0')
-					postBuffer[i] = ',';
+				case PayloadFormat::JSON:
+				
+					// pre-populate the send buffer with root record
+					memcpy(postBuffer, "{\"records\":[", 12);
+					byteCount = 12;
+					
+					// get all bytes from the send buffer (so we have room to fill it again as we POST)
+					memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
+					byteCount += pSendBuffer - sendBuffer;
+					pSendBuffer = sendBuffer;
+					
+					// replace the nulls with commas to create a JSON array
+					for(i = 0; i < byteCount; ++i)
+					{
+						if(postBuffer[i] == '\0')
+							postBuffer[i] = ',';
+					}
+					
+					// back over the trailing comma
+					if(postBuffer[byteCount-1] == ',')
+						byteCount--;
+					
+					// end the array
+					postBuffer[byteCount++] = ']';
+					postBuffer[byteCount++] = '}';
+				
+					break;
+					
+				case PayloadFormat::PROTOBUF:
+				
+					// get all bytes from the send buffer (so we have room to fill it again as we POST)
+					byteCount = 0;
+					memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
+					byteCount += pSendBuffer - sendBuffer;
+					pSendBuffer = sendBuffer;
+				
+					break;
 			}
-			
-			// back over the trailing comma
-			if(postBuffer[byteCount-1] == ',')
-				byteCount--;
-			
-			// end the array
-			postBuffer[byteCount++] = ']';
-			postBuffer[byteCount++] = '}';
 			
 			state = 3;
 			

@@ -79,7 +79,6 @@ TELIT_CONNECTION_STATE openxc::telitHE910::getDeviceState() {
 
 TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device) {
 
-	//static TELIT_CONNECTION_STATE state = POWER_OFF;
 	static unsigned int subState = 0;
 	static unsigned int timer = 0;
 	static NetworkDescriptor current_network = {};

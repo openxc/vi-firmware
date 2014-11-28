@@ -10,6 +10,7 @@
 #include "lights.h"
 #include "power.h"
 #include "bluetooth.h"
+#include "bluetooth_platforms.h"
 #include "telit_he910.h"
 #include "telit_he910_platforms.h"
 #include "platform/platform.h"

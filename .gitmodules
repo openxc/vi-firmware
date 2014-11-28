@@ -23,10 +23,6 @@
 [submodule "src/libs/nanopb"]
 	path = src/libs/nanopb
 	url = https://code.google.com/p/nanopb/
-[submodule "src/libs/openxc-message-format"]
-	path = src/libs/openxc-message-format
-	url = https://github.com/openxc/openxc-message-format
-    ignore = untracked
 [submodule "src/libs/bitfield-c"]
 	path = src/libs/bitfield-c
 	url = https://github.com/openxc/bitfield-c

@@ -26,6 +26,10 @@
 #include "atcommander.h"
 #include "WProgram.h"
 #include "gpio.h"
+#include "util/timer.h"
+
+#warning "mikeG add some plib"
+//#include <plib.h>
 
 #if defined(CROSSCHASM_C5)
 
@@ -56,6 +60,7 @@ namespace gpio = openxc::gpio;
 
 using openxc::util::log::debug;
 using openxc::util::bytebuffer::processQueue;
+using openxc::util::time::uptimeMs;
 
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern HardwareSerial Serial;
@@ -89,6 +94,8 @@ void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
             baud) - 1);
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
             (1 << _UARTMODE_BRGH);
+			#warning "MG UEN"
+	U1MODEbits.UEN = 2;
 }
 
 /* Private: Manually enable RTS/CTS hardware flow control using the UART2
@@ -147,16 +154,21 @@ void openxc::interface::uart::processSendQueue(UartDevice* device) {
 }
 
 bool openxc::interface::uart::connected(UartDevice* device) {
+	
+	static unsigned int timer;
+	bool status = false;
+	static bool last_status = false;
+
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require
     // everyone *not* using UART to add an external pull-down resistor. When the
     // analog input is pulled down to GND, UART will be enabled.
-    return device != NULL && analogRead(UART_STATUS_PIN) < 100;
+	
+    status = device != NULL && analogRead(UART_STATUS_PIN) < 100;
 
 #else
 
-    bool status = false;
     gpio::GpioValue value = gpio::getValue(UART_STATUS_PORT, UART_STATUS_PIN);
     switch(value) {
         case gpio::GPIO_VALUE_HIGH:
@@ -169,7 +181,32 @@ bool openxc::interface::uart::connected(UartDevice* device) {
             status = false;
             break;
     }
-    return status;
 
 #endif
+
+	// on apple devices, it takes some time for flow control to propagate to the device
+	// during that time, if we transmit, we crash the connection
+	// simple solution: rising delay for device connected status
+	if(last_status == false && status == true)
+	{
+		timer = uptimeMs();
+	}
+	else if(last_status == true && status == true)
+	{
+		if(uptimeMs() - timer > 500)
+		{
+			last_status = status;
+			return true;
+		}
+		else
+		{
+			last_status = status;
+			return false;
+		}
+	}
+	
+	last_status = status;
+	
+	return status;
+
 }

@@ -19,6 +19,7 @@
 #include "data_emulator.h"
 #include "config.h"
 #include "commands/commands.h"
+#include "platform/pic32/nvm.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -34,6 +35,7 @@ namespace bluetooth = openxc::bluetooth;
 namespace commands = openxc::commands;
 namespace config = openxc::config;
 namespace telit = openxc::telitHE910;
+namespace nvm = openxc::nvm;
 
 using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
@@ -156,6 +158,7 @@ void initializeIO() {
 }
 
 void initializeVehicleInterface() {
+	nvm::initialize();
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();

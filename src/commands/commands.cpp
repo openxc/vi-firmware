@@ -15,6 +15,7 @@
 #include "commands/af_bypass_command.h"
 #include "commands/payload_format_command.h"
 #include "commands/predefined_obd2_command.h"
+#include "commands/modem_config_command.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -47,6 +48,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_PAYLOAD_FORMAT:
             status = openxc::commands::handlePayloadFormatCommand(command);
             break;
+		case openxc_ControlCommand_Type_MODEM_CONFIGURATION:
+			status = openxc::commands::handleModemConfigurationCommand(command);
+			break;
         default:
             status = false;
             break;
@@ -128,6 +132,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_DEVICE_ID:
             valid =  true;
             break;
+		case openxc_ControlCommand_Type_MODEM_CONFIGURATION:
+			valid = openxc::commands::validateModemConfigurationCommand(message);
+			break;
         default:
             valid = false;
             break;

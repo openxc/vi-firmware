@@ -208,26 +208,23 @@ void firmwareLoop() {
         receiveCan(&getConfiguration()->pipeline, bus);
         diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
     }
-	
-	#ifdef TELIT_HE910_SUPPORT
-	telit::connectionManager(&getConfiguration()->telit);
-	if(telit::connected(&getConfiguration()->telit))
-	{
-		if(getConfiguration()->telit.config.globalPositioningSettings.gpsEnable)
-		{
-			telit::getGPSLocation();
-		}
-		telit::firmwareCheck(&getConfiguration()->telit);
-		telit::flushDataBuffer(&getConfiguration()->telit);
-		telit::commandCheck(&getConfiguration()->telit);
-	}
-	#endif
 
     diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager);
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
 		#ifdef TELIT_HE910_SUPPORT
+		telit::connectionManager(&getConfiguration()->telit);
+		if(telit::connected(&getConfiguration()->telit))
+		{
+			if(getConfiguration()->telit.config.globalPositioningSettings.gpsEnable)
+			{
+				telit::getGPSLocation();
+			}
+			telit::firmwareCheck(&getConfiguration()->telit);
+			telit::flushDataBuffer(&getConfiguration()->telit);
+			telit::commandCheck(&getConfiguration()->telit);
+		}
 		#else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
 		#endif

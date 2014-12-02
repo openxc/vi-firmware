@@ -28,6 +28,7 @@ using openxc::pipeline::MessageClass;
 using openxc::interface::InterfaceDescriptor;
 using openxc::interface::InterfaceType;
 using openxc::config::LoggingOutputInterface;
+using openxc::util::time::uptimeMs;
 
 unsigned int droppedMessages[PIPELINE_ENDPOINT_COUNT];
 unsigned int sentMessages[PIPELINE_ENDPOINT_COUNT];
@@ -116,6 +117,10 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
 void openxc::pipeline::publish(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
+	#ifdef TELIT_HE910_SUPPORT
+	message->uptime = uptimeMs();
+	message->has_uptime = true;
+	#endif
     size_t length = payload::serialize(message, payload, sizeof(payload),
             config::getConfiguration()->payloadFormat);
     MessageClass messageClass;

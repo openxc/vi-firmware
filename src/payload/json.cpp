@@ -596,6 +596,8 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
+		if(message->has_uptime)
+			cJSON_AddNumberToObject(root, "uptime", message->uptime);
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
             status = serializeSimple(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_CAN) {

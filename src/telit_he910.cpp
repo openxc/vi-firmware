@@ -6,7 +6,6 @@
 #include "gpio.h"
 #include "config.h"
 #include "can/canread.h"
-#include "WProgram.h"
 #include "http.h"
 #include "commands/commands.h"
 #include "interface/interface.h"
@@ -67,10 +66,10 @@ static TELIT_CONNECTION_STATE state = telit::POWER_OFF;
 static bool autobaud(openxc::telitHE910::TelitDevice* device);
 static void telit_setIoDirection(void);
 static void setPowerState(bool enable);
-static bool sendCommand(TelitDevice* device, char* command, char* response, uint32_t timeoutMs);
+static bool sendCommand(TelitDevice* device, const char* command, const char* response, uint32_t timeoutMs);
 static void sendData(TelitDevice* device, char* data, unsigned int len);
 static void clearRxBuffer(void);
-static bool getResponse(char* startToken, char* stopToken, char* response, unsigned int maxLen);
+static bool getResponse(const char* startToken, const char* stopToken, char* response, unsigned int maxLen);
 static bool parseGPSACP(const char* GPSACP);
 
 TELIT_CONNECTION_STATE openxc::telitHE910::getDeviceState() {
@@ -87,7 +86,6 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 	// device stats
 	static unsigned int SIMstatus = 0;
 	static NetworkConnectionStatus connectStatus = UNKNOWN;
-	static bool GPSenabled = false;
 	static char ICCID[32];
 	static char IMEI[32];
 	
@@ -445,7 +443,6 @@ static bool autobaud(openxc::telitHE910::TelitDevice* device) {
 		}
 	}
 	
-	fcn_exit:
 	return rc;
 
 }
@@ -754,7 +751,6 @@ bool openxc::telitHE910::closePDPContext() {
 bool openxc::telitHE910::getPDPContext(bool* connected) {
 
 	bool rc = true;
-	char command[16] = {};
 	char temp[32] = {};
 	
 	if(sendCommand(telitDevice, "AT#SGACT?\r\n", "\r\n\r\nOK\r\n", 1000) == false)
@@ -1148,7 +1144,7 @@ bool readSocketOne(unsigned int socketNumber, char* data, unsigned int* len) {
 
 /*SEND/RECEIVE*/
 
-static bool sendCommand(TelitDevice* device, char* command, char* response, uint32_t timeoutMs) {
+static bool sendCommand(TelitDevice* device, const char* command, const char* response, uint32_t timeoutMs) {
 
 	bool rc = false;
 	
@@ -1204,7 +1200,7 @@ static void clearRxBuffer() {
 
 }
 
-static bool getResponse(char* startToken, char* stopToken, char* response, unsigned int maxLen) {
+static bool getResponse(const char* startToken, const char* stopToken, char* response, unsigned int maxLen) {
 	
 	bool rc = true;
 	
@@ -1982,8 +1978,6 @@ void openxc::telitHE910::commandCheck(TelitDevice* device) {
 				default:
 				case Success:
 					// send the contents of commandBuffer to the command handler
-					#warning "MG hack a null onto the complete command until we can have the server do it"
-					*pCommandBuffer++ = '\0'; // not just null-delimited but null-terminated...hack only works for a single command
 					commands::handleIncomingMessage(commandBuffer, pCommandBuffer - commandBuffer, &(telitDevice->descriptor));
 					pCommandBuffer = commandBuffer;
 					state = 0;

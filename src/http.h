@@ -2,7 +2,6 @@
 #define _HTTP_H_
 
 #include "libs/http-parser/http_parser.h"
-#include "WProgram.h"
 #include <stdio.h>
 
 #define HTTP_BUFFERSIZE		1024

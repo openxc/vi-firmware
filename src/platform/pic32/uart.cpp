@@ -193,7 +193,7 @@ bool openxc::interface::uart::connected(UartDevice* device) {
 	}
 	else if(last_status == true && status == true)
 	{
-		if(uptimeMs() - timer > 500)
+		if(uptimeMs() - timer > 2500)
 		{
 			last_status = status;
 			return true;

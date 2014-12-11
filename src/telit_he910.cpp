@@ -67,6 +67,7 @@ static bool autobaud(openxc::telitHE910::TelitDevice* device);
 static void telit_setIoDirection(void);
 static void setPowerState(bool enable);
 static bool sendCommand(TelitDevice* device, const char* command, const char* response, uint32_t timeoutMs);
+static bool sendCommand(TelitDevice* device, const char* command, const char* response, const char* error, uint32_t timeoutMs);
 static void sendData(TelitDevice* device, char* data, unsigned int len);
 static void clearRxBuffer(void);
 static bool getResponse(const char* startToken, const char* stopToken, char* response, unsigned int maxLen);
@@ -80,8 +81,10 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 
 	static unsigned int subState = 0;
 	static unsigned int timer = 0;
+	static unsigned int timeout = 0;
 	static NetworkDescriptor current_network = {};
 	static bool pdp_connected = false;
+	static uint8_t pdp_counter = 0;
 
 	// device stats
 	static unsigned int SIMstatus = 0;
@@ -277,6 +280,13 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 			switch(subState)
 			{
 				case 0:
+			
+					timeout = uptimeMs() + 300000;
+					subState = 1;
+			
+					break;
+			
+				case 1:
 					
 					if(getNetworkConnectionStatus(&connectStatus))
 					{
@@ -292,16 +302,23 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 						else
 						{
 							timer = uptimeMs() + 500;
-							subState = 1;
+							subState = 2;
 						}
 					}
 					
 					break;
 					
-				case 1:
+				case 2:
 				
-					if(uptimeMs() > timer)
+					if(uptimeMs() > timeout)
+					{
 						subState = 0;
+						state = POWER_OFF;
+					}
+					else if(uptimeMs() > timer)
+					{
+						subState = 1;
+					}
 				
 					break;
 			}
@@ -353,11 +370,21 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 			// activate data session
 			if(openPDPContext())
 			{
+				pdp_counter = 0;
 				state = READY;
 			}
 			else
-			{
-				state = CLOSE_PDP;
+			{	
+				if(pdp_counter < 3)
+				{
+					pdp_counter++;
+					state = CLOSE_PDP;
+				}
+				else
+				{
+					pdp_counter = 0;
+					state = POWER_OFF;
+				}
 			}
 		
 			break;
@@ -722,7 +749,7 @@ bool openxc::telitHE910::openPDPContext() {
 
 	bool rc = true;
 	
-	if(sendCommand(telitDevice, "AT#SGACT=1,1\r\n", "\r\n\r\nOK\r\n", 30000) == false)
+	if(sendCommand(telitDevice, "AT#SGACT=1,1\r\n", "\r\n\r\nOK\r\n", "ERROR", 30000) == false)
 	{
 		rc = false;
 		goto fcn_exit;
@@ -776,7 +803,7 @@ bool openxc::telitHE910::openSocket(unsigned int socketNumber, ServerConnectSett
 	char command[128] = {};
 
 	sprintf(command,"AT#SD=%u,0,%u,\"%s\",255,1,1\r\n", socketNumber, serverSettings.port, serverSettings.host);
-	if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 15000) == false)
+	if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", "ERROR", 15000) == false)
 	{
 		rc = false;
 		goto fcn_exit;
@@ -808,7 +835,7 @@ bool openxc::telitHE910::closeSocket(unsigned int socketNumber) {
 	char command[16] = {};
 
 	sprintf(command,"AT#SH=%u\r\n", socketNumber);
-	if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 5000) == false)
+	if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", "ERROR", 5000) == false)
 	{
 		rc = false;
 		goto fcn_exit;
@@ -1187,6 +1214,55 @@ static bool sendCommand(TelitDevice* device, const char* command, const char* re
 
 }
 
+static bool sendCommand(TelitDevice* device, const char* command, const char* response, const char* error, uint32_t timeoutMs) {
+
+	bool rc = false;
+	
+	unsigned int tx_cnt = 0;
+	unsigned int tx_size = 0;
+	
+	int rx_byte = 0;
+	
+	unsigned long timer = 0;
+	
+	// clear the receive buffer
+	clearRxBuffer();
+	
+	// send the command
+	tx_size = strlen(command);
+	for(tx_cnt = 0; tx_cnt < tx_size; ++tx_cnt)
+	{
+		uart::writeByte(device->uart, command[tx_cnt]);
+	}
+	
+	// start the receive timer
+	timer = uptimeMs();
+	
+	// receive the response
+	while(uptimeMs() - timer < timeoutMs)
+	{
+		if(rx_byte = uart::readByte(device->uart), rx_byte > -1)
+		{
+			*pRx++ = rx_byte;
+		}
+		if(strstr(recv_data, response))
+		{
+			rc = true;
+			break;
+		}
+		else if(strstr(recv_data, error))
+		{
+			rc = false;
+			break;
+		}
+	}
+	
+	fcn_exit:
+	return rc;
+
+}
+
+
 static void clearRxBuffer() {
 
 	// purge the HardwareSerial buffer
@@ -1513,7 +1589,6 @@ static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigne
 
 	static API_RETURN ret = None;
 	static http::httpClient client;
-	static http::HTTP_STATUS stat;
 	static char header[256];
 	static unsigned int state = 0;
 	static const char* ctJSON = "application/json";
@@ -1589,7 +1664,6 @@ static API_RETURN serverGETfirmware(char* deviceId, char* host) {
 
 	static API_RETURN ret = None;
 	static http::httpClient client;
-	static http::HTTP_STATUS stat;
 	static char header[256];
 	static unsigned int state = 0;
 	
@@ -1657,7 +1731,6 @@ static API_RETURN serverGETcommands(char* deviceId, char* host) {
 	
 	static API_RETURN ret = None;
 	static http::httpClient client;
-	static http::HTTP_STATUS stat;
 	static char header[256];
 	static unsigned int state = 0;
 	

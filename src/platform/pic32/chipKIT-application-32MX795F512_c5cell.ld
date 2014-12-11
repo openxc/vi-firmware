@@ -118,7 +118,7 @@ _imageExecutionJumpToFirstInFlash   = 0x02000000 ;  /* the bootloader will jump 
  *      As of today, after reset, the first program in flash will always be jumped to.
  *
  *************************************************************************/
- _IMAGE_TYPE            = _imageMPIDE | _imageFullFlashEraseLess4KEEProm | _imageExecutionJumpAddress;
+ _IMAGE_TYPE            = _imageMPIDE | _imageFullFlashErase | _imageExecutionJumpAddress;
  _IMAGE_FLASH_SIZE      = LENGTH(exception_mem) + LENGTH(kseg0_program_mem);
  _JUMP_ADDR             = _RESET_ADDR;
 

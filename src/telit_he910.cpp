@@ -35,7 +35,8 @@ using openxc::payload::PayloadFormat;
 /*PRIVATE MACROS*/
 
 #define TELIT_MAX_MESSAGE_SIZE		512
-#define NETWORK_CONNECT_TIMEOUT		120000
+#define NETWORK_CONNECT_TIMEOUT		150000
+#define PDP_MAX_ATTEMPTS			3
 
 /*PRIVATE VARIABLES*/
 
@@ -281,7 +282,7 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 			{
 				case 0:
 			
-					timeout = uptimeMs() + 300000;
+					timeout = uptimeMs() + NETWORK_CONNECT_TIMEOUT;
 					subState = 1;
 			
 					break;
@@ -375,7 +376,7 @@ TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device
 			}
 			else
 			{	
-				if(pdp_counter < 3)
+				if(pdp_counter < PDP_MAX_ATTEMPTS)
 				{
 					pdp_counter++;
 					state = CLOSE_PDP;

@@ -31,7 +31,7 @@ static void initialize(openxc::config::Configuration* config) {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.0.0.7300",
+        version: "7.0.0.7325",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,
@@ -101,7 +101,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 				socketConnectSettings: {
 					packetSize: 0,
 					idleTimeout: 0,
-					connectTimeout: 600,
+					connectTimeout: 150,
 					txFlushTimer: 50
 				},
 				serverConnectSettings: {

@@ -158,7 +158,9 @@ void initializeIO() {
 }
 
 void initializeVehicleInterface() {
+	#ifdef TELIT_HE910_SUPPORT
 	nvm::initialize();
+	#endif
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();
@@ -194,7 +196,6 @@ void firmwareLoop() {
             getConfiguration()->desiredRunLevel == RunLevel::ALL_IO) {
         initializeIO();
     }
-
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
         // no USB or Bluetooth, the loop will stall here. Deep down in

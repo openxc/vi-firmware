@@ -2,6 +2,7 @@
 #include "config.h"
 #include "util/log.h"
 #include "../platform/pic32/nvm.h"
+#include "telit_he910_platforms.h"
 
 namespace nvm = openxc::nvm;
 
@@ -20,6 +21,7 @@ bool openxc::commands::validateModemConfigurationCommand(openxc_VehicleMessage* 
 }
 
 bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* command) {
+	#ifdef TELIT_HE910_SUPPORT
     bool status = false;
     if(command->has_modem_configuration_command) {
         openxc_ModemConfigurationCommand* modemConfigurationCommand =
@@ -53,4 +55,10 @@ bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* co
     sendCommandResponse(openxc_ControlCommand_Type_MODEM_CONFIGURATION, status);
 
     return status;
+	
+	#else 
+	
+	return false;
+	
+	#endif
 }

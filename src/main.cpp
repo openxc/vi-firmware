@@ -2,7 +2,6 @@ extern void initializeVehicleInterface();
 extern void firmwareLoop();
 
 int main(void) {
-
     initializeVehicleInterface();
     for (;;) {
         firmwareLoop();
@@ -10,4 +9,3 @@ int main(void) {
 
     return 0;
 }
-

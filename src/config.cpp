@@ -31,7 +31,7 @@ static void initialize(openxc::config::Configuration* config) {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.0.0.7325",
+        version: "7.0.0.7421",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,
@@ -96,7 +96,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 					}
 				},
 				networkDataSettings: {
-					APN: "apn"
+					"apn"
 				},
 				socketConnectSettings: {
 					packetSize: 0,
@@ -105,7 +105,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 					txFlushTimer: 50
 				},
 				serverConnectSettings: {
-					host: "openxcserverdemo.azurewebsites.net",
+					"openxcserverdemo.azurewebsites.net",
 					port: 80
 				}
 			}

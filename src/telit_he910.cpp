@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef TELIT_HE910_SUPPORT
+
 namespace gpio = openxc::gpio;
 namespace uart = openxc::interface::uart;
 namespace can = openxc::can; // using this to get publishVehicleMessage() for GPS...no sense re-inventing the wheel
@@ -50,7 +52,6 @@ static const char* gps_fix_enum[openxc::telitHE910::FIX_MAX_ENUM] = {"NO_FIX_0",
 
 static char recv_data[1024];	// common buffer for receiving data from the modem
 static char* pRx = recv_data;
-#warning "TelitDevice* can be removed with some refactoring"
 static TelitDevice* telitDevice;
 static bool connect = false;
 static const unsigned int sendBufferSize = 4096;
@@ -1210,7 +1211,6 @@ static bool sendCommand(TelitDevice* device, const char* command, const char* re
 		}
 	}
 	
-	fcn_exit:
 	return rc;
 
 }
@@ -1258,7 +1258,6 @@ static bool sendCommand(TelitDevice* device, const char* command, const char* re
 		}
 	}
 	
-	fcn_exit:
 	return rc;
 
 }
@@ -1321,8 +1320,8 @@ static void sendData(TelitDevice* device, char* data, unsigned int len) {
 /*MODEM POWER MANAGEMENT*/
 
 // Only want to set the directly once because it flips the power on/off.
-static void telit_setIoDirection() {
 #ifdef TELIT_HE910_ENABLE_SUPPORT
+static void telit_setIoDirection() {
     static bool directionSet = false;
     if(!directionSet) {
         // be aware that setting the direction here will default it to the off
@@ -1331,8 +1330,8 @@ static void telit_setIoDirection() {
                 GPIO_DIRECTION_OUTPUT);
         directionSet = true;
     }
-#endif
 }
+#endif
 
 static void setPowerState(bool enabled) {
 
@@ -1718,7 +1717,7 @@ static API_RETURN serverGETfirmware(char* deviceId, char* host) {
 	}
 	
 	return ret;
-
+	
 }
 
 static int cbOnBody(http_parser* parser, const char* at, size_t length) {
@@ -2099,3 +2098,5 @@ void openxc::telitHE910::processSendQueue(TelitDevice* device) {
 	return;
 
 }
+
+#endif

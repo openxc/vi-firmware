@@ -2,6 +2,7 @@ language: c
 compiler:
   - clang
 cache:
+  apt: true
   directories:
   - dependencies
 script: PLATFORM=TESTING make test_long

@@ -1,6 +1,9 @@
 language: c
 compiler:
   - clang
+cache:
+  directories:
+  - dependencies
 script: PLATFORM=TESTING make test_long
 install:
    - gem install coveralls-lcov

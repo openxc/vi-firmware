@@ -9,4 +9,4 @@ Advanced Firmware Features
     lowlevel
     binary
     benchtesting
-    boardsupport
+    devguide

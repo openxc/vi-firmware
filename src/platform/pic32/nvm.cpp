@@ -1,7 +1,10 @@
 #include "nvm.h"
-#include "flash.h"
 #include "config.h"
 #include "telit_he910.h"
+extern "C"
+{
+#include "flash.h"
+}
 
 using openxc::config::getConfiguration;
 using openxc::telitHE910::ModemConfigurationDescriptor;

@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v7.0.1-dev
+
 ## v7.0.0
 
 * BREAKING: Update to latest OpenXC message format, including updated binary

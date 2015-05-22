@@ -17,21 +17,21 @@ static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,
-		&config->telit,
+        &config->telit,
 #ifdef __USE_NETWORK__
         &config->network,
 #endif // __USE_NETWORK__
     };
-	// run flashHash
-	getFlashHash(config);
-	config->telit.uart = &config->uart;
+    // run flashHash
+    getFlashHash(config);
+    config->telit.uart = &config->uart;
     config->initialized = true;
 }
 
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.0.1-c5-dev",
+        version: "7.0.2-dev",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,
@@ -67,49 +67,49 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
-		telit: {
-			descriptor: {
-				allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
-			},
-			config: {
-				globalPositioningSettings: {
-					gpsEnable: true, 
-					gpsInterval: 5000, 
-					gpsEnableSignal_gps_time: false, 
-					gpsEnableSignal_gps_latitude: true, 
-					gpsEnableSignal_gps_longitude: true, 
-					gpsEnableSignal_gps_hdop: false, 
-					gpsEnableSignal_gps_altitude: true, 
-					gpsEnableSignal_gps_fix: true, 
-					gpsEnableSignal_gps_course: false, 
-					gpsEnableSignal_gps_speed: true, 
-					gpsEnableSignal_gps_speed_knots: false, 
-					gpsEnableSignal_gps_date: false, 
-					gpsEnableSignal_gps_nsat: false
-				},
-				networkOperatorSettings: {
-					allowDataRoaming: true,
-					operatorSelectMode: telit::AUTOMATIC,
-					networkDescriptor: {
-						PLMN: 0,
-						networkType: telit::UTRAN
-					}
-				},
-				networkDataSettings: {
-					"apn"
-				},
-				socketConnectSettings: {
-					packetSize: 0,
-					idleTimeout: 0,
-					connectTimeout: 150,
-					txFlushTimer: 50
-				},
-				serverConnectSettings: {
-					"openxcserverdemo.azurewebsites.net",
-					port: 80
-				}
-			}
-		},
+        telit: {
+            descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+            },
+            config: {
+                globalPositioningSettings: {
+                    gpsEnable: true, 
+                    gpsInterval: 5000, 
+                    gpsEnableSignal_gps_time: false, 
+                    gpsEnableSignal_gps_latitude: true, 
+                    gpsEnableSignal_gps_longitude: true, 
+                    gpsEnableSignal_gps_hdop: false, 
+                    gpsEnableSignal_gps_altitude: true, 
+                    gpsEnableSignal_gps_fix: true, 
+                    gpsEnableSignal_gps_course: false, 
+                    gpsEnableSignal_gps_speed: true, 
+                    gpsEnableSignal_gps_speed_knots: false, 
+                    gpsEnableSignal_gps_date: false, 
+                    gpsEnableSignal_gps_nsat: false
+                },
+                networkOperatorSettings: {
+                    allowDataRoaming: true,
+                    operatorSelectMode: telit::AUTOMATIC,
+                    networkDescriptor: {
+                        PLMN: 0,
+                        networkType: telit::UTRAN
+                    }
+                },
+                networkDataSettings: {
+                    "apn"
+                },
+                socketConnectSettings: {
+                    packetSize: 0,
+                    idleTimeout: 0,
+                    connectTimeout: 150,
+                    txFlushTimer: 50
+                },
+                serverConnectSettings: {
+                    "openxcserverdemo.azurewebsites.net",
+                    port: 80
+                }
+            }
+        },
         diagnosticsManager: {},
         pipeline: {},
     };
@@ -127,16 +127,16 @@ void openxc::config::getFirmwareDescriptor(char* buffer, size_t length) {
 }
 
 static void getFlashHash(openxc::config::Configuration* config) {
-	MD5_CTX md5Context;
-	unsigned char result[16];
-	MD5_Init(&md5Context);
-	MD5_Update(&md5Context, (const void*)0x9D001000, (unsigned long)0x2FC);
-	MD5_Update(&md5Context, (const void*)0x9D001348, (unsigned long)0x7DCB8);
-	MD5_Final(result, &md5Context);
-	sprintf(config->flashHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
-	result[0], result[1], result[2], result[3],
-	result[4], result[5], result[6], result[7],
-	result[8], result[9], result[10], result[11],
-	result[12], result[13], result[14], result[15]);
+    MD5_CTX md5Context;
+    unsigned char result[16];
+    MD5_Init(&md5Context);
+    MD5_Update(&md5Context, (const void*)0x9D001000, (unsigned long)0x2FC);
+    MD5_Update(&md5Context, (const void*)0x9D001348, (unsigned long)0x7DCB8);
+    MD5_Final(result, &md5Context);
+    sprintf(config->flashHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+    result[0], result[1], result[2], result[3],
+    result[4], result[5], result[6], result[7],
+    result[8], result[9], result[10], result[11],
+    result[12], result[13], result[14], result[15]);
 }
 

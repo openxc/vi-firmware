@@ -9,7 +9,7 @@ static const char interfaceNames[][5] = {
     "USB",
     "UART",
     "NET",
-	"TELT",
+    "TELT",
 };
 
 const char* openxc::interface::descriptorToString(InterfaceDescriptor* descriptor) {

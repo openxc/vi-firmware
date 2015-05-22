@@ -4,127 +4,127 @@
 #include "interface/uart.h"
 #include "interface/interface.h"
 
-#define MAX_DEVICE_ID_LENGTH 	17
-#define MAX_ICCID_LENGTH 		32
+#define MAX_DEVICE_ID_LENGTH    17
+#define MAX_ICCID_LENGTH        32
 
 namespace openxc {
 namespace telitHE910 {
 
 typedef enum {
-	GSM = 0,
-	UTRAN = 2,
+    GSM = 0,
+    UTRAN = 2,
 } NetworkType;
 
 typedef enum {
-	AUTOMATIC = 0,
-	MANUAL = 1,
-	DEREGISTER = 2,
-	SET_ONLY = 3,
-	MANUAL_AUTOMATIC = 4,
+    AUTOMATIC = 0,
+    MANUAL = 1,
+    DEREGISTER = 2,
+    SET_ONLY = 3,
+    MANUAL_AUTOMATIC = 4,
 } OperatorSelectMode;
 
 typedef enum {
-	NOT_REGISTERED_NOT_SEARCHING = 0,
-	REGISTERED_HOME = 1,
-	NOT_REGISTRED_SEARCHING = 2,
-	REGISTRATION_DENIED = 3,
-	UNKNOWN = 4,
-	REGISTERED_ROAMING = 5
+    NOT_REGISTERED_NOT_SEARCHING = 0,
+    REGISTERED_HOME = 1,
+    NOT_REGISTRED_SEARCHING = 2,
+    REGISTRATION_DENIED = 3,
+    UNKNOWN = 4,
+    REGISTERED_ROAMING = 5
 } NetworkConnectionStatus;
 
 typedef enum {
-	SOCKET_CLOSED = 0,
-	SOCKET_OPEN = 1,
-	SOCKET_SUSPENDED = 2,
-	SOCKET_SUSPENDED_DATA_PENDING = 3,
-	SOCKET_LISTENING = 4,
-	SOCKET_INCOMING = 5
+    SOCKET_CLOSED = 0,
+    SOCKET_OPEN = 1,
+    SOCKET_SUSPENDED = 2,
+    SOCKET_SUSPENDED_DATA_PENDING = 3,
+    SOCKET_LISTENING = 4,
+    SOCKET_INCOMING = 5
 } SocketStatus;
 
 typedef struct {
-	unsigned int PLMN;
-	NetworkType networkType;
+    unsigned int PLMN;
+    NetworkType networkType;
 } NetworkDescriptor;
 
 typedef struct {
-	bool gpsEnable;
-	unsigned int gpsInterval;
-	bool gpsEnableSignal_gps_time;
-	bool gpsEnableSignal_gps_latitude;
-	bool gpsEnableSignal_gps_longitude;
-	bool gpsEnableSignal_gps_hdop;
-	bool gpsEnableSignal_gps_altitude;
-	bool gpsEnableSignal_gps_fix;
-	bool gpsEnableSignal_gps_course;
-	bool gpsEnableSignal_gps_speed;
-	bool gpsEnableSignal_gps_speed_knots;
-	bool gpsEnableSignal_gps_date;
-	bool gpsEnableSignal_gps_nsat;
+    bool gpsEnable;
+    unsigned int gpsInterval;
+    bool gpsEnableSignal_gps_time;
+    bool gpsEnableSignal_gps_latitude;
+    bool gpsEnableSignal_gps_longitude;
+    bool gpsEnableSignal_gps_hdop;
+    bool gpsEnableSignal_gps_altitude;
+    bool gpsEnableSignal_gps_fix;
+    bool gpsEnableSignal_gps_course;
+    bool gpsEnableSignal_gps_speed;
+    bool gpsEnableSignal_gps_speed_knots;
+    bool gpsEnableSignal_gps_date;
+    bool gpsEnableSignal_gps_nsat;
 } GlobalPositioningSettings;
 
 typedef struct {
-	bool allowDataRoaming;
-	OperatorSelectMode operatorSelectMode;
-	NetworkDescriptor networkDescriptor;
+    bool allowDataRoaming;
+    OperatorSelectMode operatorSelectMode;
+    NetworkDescriptor networkDescriptor;
 } NetworkOperatorSettings;
 
 typedef struct {
-	char APN[64];
+    char APN[64];
 } NetworkDataSettings;
 
 typedef struct {
-	char host[128];
-	unsigned int port;
+    char host[128];
+    unsigned int port;
 } ServerConnectSettings;
 
 typedef struct {
-	unsigned int packetSize;
-	unsigned int idleTimeout;
-	unsigned int connectTimeout;
-	unsigned int txFlushTimer;
+    unsigned int packetSize;
+    unsigned int idleTimeout;
+    unsigned int connectTimeout;
+    unsigned int txFlushTimer;
 } SocketConnectSettings;
 
 typedef struct {
-	GlobalPositioningSettings globalPositioningSettings;
-	NetworkOperatorSettings networkOperatorSettings;
-	NetworkDataSettings networkDataSettings;
-	SocketConnectSettings socketConnectSettings;
-	ServerConnectSettings serverConnectSettings;
+    GlobalPositioningSettings globalPositioningSettings;
+    NetworkOperatorSettings networkOperatorSettings;
+    NetworkDataSettings networkDataSettings;
+    SocketConnectSettings socketConnectSettings;
+    ServerConnectSettings serverConnectSettings;
 } ModemConfigurationDescriptor;
 
 typedef struct {
-	unsigned int connectedPLMN;
+    unsigned int connectedPLMN;
 } ModemConnectionInfo;
 
 typedef enum {
-	INVALID0 = 0,
-	INVALID1 = 1,
-	FIX_2D = 2,
-	FIX_3D = 3,
-	FIX_MAX_ENUM
+    INVALID0 = 0,
+    INVALID1 = 1,
+    FIX_2D = 2,
+    FIX_3D = 3,
+    FIX_MAX_ENUM
 } GPSFixType;
 
 typedef struct {
-	openxc::interface::InterfaceDescriptor descriptor;
-	ModemConfigurationDescriptor config;
-	openxc::interface::uart::UartDevice* uart;
-	QUEUE_TYPE(uint8_t) sendQueue;
-	QUEUE_TYPE(uint8_t) receiveQueue;
-	char deviceId[MAX_DEVICE_ID_LENGTH];
-	char ICCID[MAX_ICCID_LENGTH];
+    openxc::interface::InterfaceDescriptor descriptor;
+    ModemConfigurationDescriptor config;
+    openxc::interface::uart::UartDevice* uart;
+    QUEUE_TYPE(uint8_t) sendQueue;
+    QUEUE_TYPE(uint8_t) receiveQueue;
+    char deviceId[MAX_DEVICE_ID_LENGTH];
+    char ICCID[MAX_ICCID_LENGTH];
 } TelitDevice;
 
 typedef enum {
-	POWER_OFF,
-	POWER_ON_DELAY,
-	POWER_ON,
-	POWER_UP_DELAY,
-	INITIALIZE,
-	WAIT_FOR_NETWORK,
-	CLOSE_PDP,
-	OPEN_PDP_DELAY,
-	OPEN_PDP,
-	READY
+    POWER_OFF,
+    POWER_ON_DELAY,
+    POWER_ON,
+    POWER_UP_DELAY,
+    INITIALIZE,
+    WAIT_FOR_NETWORK,
+    CLOSE_PDP,
+    OPEN_PDP_DELAY,
+    OPEN_PDP,
+    READY
 } TELIT_CONNECTION_STATE;
 
 /*

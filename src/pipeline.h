@@ -39,7 +39,7 @@ typedef enum {
 typedef struct {
     UsbDevice* usb;
     UartDevice* uart;
-	TelitDevice* telit;
+    TelitDevice* telit;
     NetworkDevice* network;
 } Pipeline;
 

@@ -107,8 +107,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
     } else if(message->command_response.type == openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS) {
         typeString = payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
-		typeString = payload::json::MODEM_CONFIGURATION_COMMAND_NAME;
-	} else {
+        typeString = payload::json::MODEM_CONFIGURATION_COMMAND_NAME;
+    } else {
         return false;
     }
 
@@ -483,27 +483,27 @@ static void deserializeCan(cJSON* root, openxc_VehicleMessage* message) {
 }
 
 static void deserializeModemConfiguration(cJSON* root, openxc_ControlCommand* command) {
-	// set up the struct for a modem configuration message
-	command->has_type = true;
-	command->type = openxc_ControlCommand_Type_MODEM_CONFIGURATION;
-	command->has_modem_configuration_command = true;
-	openxc_ModemConfigurationCommand* modemConfigurationCommand = &command->modem_configuration_command;
-	
-	// parse server command
-	cJSON* server = cJSON_GetObjectItem(root, "server");
-	if(server != NULL) {
-		modemConfigurationCommand->has_serverConnectSettings = true;
-		cJSON* host = cJSON_GetObjectItem(server, "host");
-		if(host != NULL) {
-			modemConfigurationCommand->serverConnectSettings.has_host = true;
-			strcpy(modemConfigurationCommand->serverConnectSettings.host, host->valuestring);
-		}
-		cJSON* port = cJSON_GetObjectItem(server, "port");
-		if(port != NULL) {
-			modemConfigurationCommand->serverConnectSettings.has_port = true;
-			modemConfigurationCommand->serverConnectSettings.port = port->valueint;
-		}
-	}
+    // set up the struct for a modem configuration message
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_MODEM_CONFIGURATION;
+    command->has_modem_configuration_command = true;
+    openxc_ModemConfigurationCommand* modemConfigurationCommand = &command->modem_configuration_command;
+    
+    // parse server command
+    cJSON* server = cJSON_GetObjectItem(root, "server");
+    if(server != NULL) {
+        modemConfigurationCommand->has_serverConnectSettings = true;
+        cJSON* host = cJSON_GetObjectItem(server, "host");
+        if(host != NULL) {
+            modemConfigurationCommand->serverConnectSettings.has_host = true;
+            strcpy(modemConfigurationCommand->serverConnectSettings.host, host->valuestring);
+        }
+        cJSON* port = cJSON_GetObjectItem(server, "port");
+        if(port != NULL) {
+            modemConfigurationCommand->serverConnectSettings.has_port = true;
+            modemConfigurationCommand->serverConnectSettings.port = port->valueint;
+        }
+    }
 }
 
 size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
@@ -568,11 +568,11 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         strlen(PAYLOAD_FORMAT_COMMAND_NAME))) {
                 deserializePayloadFormat(root, command);
             } 
-			else if(!strncmp(commandNameObject->valuestring,
+            else if(!strncmp(commandNameObject->valuestring,
                         MODEM_CONFIGURATION_COMMAND_NAME,
                         strlen(MODEM_CONFIGURATION_COMMAND_NAME))) {
-				deserializeModemConfiguration(root, command);
-			}else {
+                deserializeModemConfiguration(root, command);
+            }else {
                 debug("Unrecognized command: %s", commandNameObject->valuestring);
                 message->has_control_command = false;
             }
@@ -596,8 +596,9 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-		if(message->has_uptime)
-			cJSON_AddNumberToObject(root, "uptime", message->uptime);
+        if(message->has_uptime) {
+            cJSON_AddNumberToObject(root, "uptime", message->uptime);
+        }
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
             status = serializeSimple(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_CAN) {

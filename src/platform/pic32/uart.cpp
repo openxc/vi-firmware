@@ -42,7 +42,7 @@
     #define UART_STATUS_PORT 0
     #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
-	
+    
 #elif defined(CHIPKIT)
 
     #define UART_STATUS_PORT 0
@@ -94,8 +94,8 @@ void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
             baud) - 1);
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
             (1 << _UARTMODE_BRGH);
-			#warning "MG UEN"
-	U1MODEbits.UEN = 2;
+            #warning "MG UEN"
+    U1MODEbits.UEN = 2;
 }
 
 /* Private: Manually enable RTS/CTS hardware flow control using the UART2
@@ -129,7 +129,7 @@ void openxc::interface::uart::initialize(UartDevice* device) {
     initializeCommon(device);
     device->controller = &Serial;
     changeBaudRate(device, device->baudRate);
-	enableFlowControl(device);
+    enableFlowControl(device);
 
     gpio::setDirection(UART_STATUS_PORT, UART_STATUS_PIN,
             gpio::GPIO_DIRECTION_INPUT);
@@ -154,17 +154,17 @@ void openxc::interface::uart::processSendQueue(UartDevice* device) {
 }
 
 bool openxc::interface::uart::connected(UartDevice* device) {
-	
-	static unsigned int timer;
-	bool status = false;
-	static bool last_status = false;
+    
+    static unsigned int timer;
+    bool status = false;
+    static bool last_status = false;
 
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require
     // everyone *not* using UART to add an external pull-down resistor. When the
     // analog input is pulled down to GND, UART will be enabled.
-	
+    
     status = device != NULL && analogRead(UART_STATUS_PIN) < 100;
 
 #else
@@ -184,29 +184,24 @@ bool openxc::interface::uart::connected(UartDevice* device) {
 
 #endif
 
-	// on apple devices, it takes some time for flow control to propagate to the device
-	// during that time, if we transmit, we crash the connection
-	// simple solution: rising delay for device connected status
-	if(last_status == false && status == true)
-	{
-		timer = uptimeMs();
-	}
-	else if(last_status == true && status == true)
-	{
-		if(uptimeMs() - timer > 2500)
-		{
-			last_status = status;
-			return true;
-		}
-		else
-		{
-			last_status = status;
-			return false;
-		}
-	}
-	
-	last_status = status;
-	
-	return status;
+    // on apple devices, it takes some time for flow control to propagate to the device
+    // during that time, if we transmit, we crash the connection
+    // simple solution: rising delay for device connected status
+    if(last_status == false && status == true) {
+        timer = uptimeMs();
+    }
+    else if(last_status == true && status == true) {
+        if(uptimeMs() - timer > 2500) {
+            last_status = status;
+            return true;
+        } else {
+            last_status = status;
+            return false;
+        }
+    }
+    
+    last_status = status;
+    
+    return status;
 
 }

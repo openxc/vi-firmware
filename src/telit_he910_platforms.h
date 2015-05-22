@@ -6,7 +6,7 @@
 
 #elif defined(CROSSCHASM_CELLULAR_C5)
 
-	#define TELIT_HE910_SUPPORT
+    #define TELIT_HE910_SUPPORT
 
     #define TELIT_HE910_ENABLE_SUPPORT
 

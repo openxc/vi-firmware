@@ -57,15 +57,15 @@ static bool SUSPENDED;
  * the main program loop.
  */
 void updateInterfaceLight() {
-	#ifdef TELIT_HE910_SUPPORT
-	if(telit::connected(&getConfiguration()->telit)) {
+    #ifdef TELIT_HE910_SUPPORT
+    if(telit::connected(&getConfiguration()->telit)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-	}
-	#else
+    }
+    #else
     if(uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-	}	
-	#endif
+    }    
+    #endif
     else if(getConfiguration()->usb.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
@@ -149,18 +149,18 @@ void initializeIO() {
     debug("Moving to ALL I/O runlevel");
     usb::initialize(&getConfiguration()->usb);
     uart::initialize(&getConfiguration()->uart);
-	#ifdef BLUETOOTH_SUPPORT
+    #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
-	#endif
+    #endif
 
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
 }
 
 void initializeVehicleInterface() {
-	#ifdef TELIT_HE910_SUPPORT
-	nvm::initialize();
-	#endif
+    #ifdef TELIT_HE910_SUPPORT
+    nvm::initialize();
+    #endif
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();
@@ -188,7 +188,7 @@ void initializeVehicleInterface() {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         initializeIO();
     }
-	
+    
 }
 
 void firmwareLoop() {
@@ -214,21 +214,19 @@ void firmwareLoop() {
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
-		#ifdef TELIT_HE910_SUPPORT
-		telit::connectionManager(&getConfiguration()->telit);
-		if(telit::connected(&getConfiguration()->telit))
-		{
-			if(getConfiguration()->telit.config.globalPositioningSettings.gpsEnable)
-			{
-				telit::getGPSLocation();
-			}
-			telit::firmwareCheck(&getConfiguration()->telit);
-			telit::flushDataBuffer(&getConfiguration()->telit);
-			telit::commandCheck(&getConfiguration()->telit);
-		}
-		#else
+        #ifdef TELIT_HE910_SUPPORT
+        telit::connectionManager(&getConfiguration()->telit);
+        if(telit::connected(&getConfiguration()->telit)) {
+            if(getConfiguration()->telit.config.globalPositioningSettings.gpsEnable) {
+                telit::getGPSLocation();
+            }
+            telit::firmwareCheck(&getConfiguration()->telit);
+            telit::flushDataBuffer(&getConfiguration()->telit);
+            telit::commandCheck(&getConfiguration()->telit);
+        }
+        #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
-		#endif
+        #endif
         network::read(&getConfiguration()->network,
                 network::handleIncomingMessage);
     }

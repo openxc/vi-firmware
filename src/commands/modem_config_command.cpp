@@ -21,44 +21,44 @@ bool openxc::commands::validateModemConfigurationCommand(openxc_VehicleMessage* 
 }
 
 bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* command) {
-	#ifdef TELIT_HE910_SUPPORT
+    #ifdef TELIT_HE910_SUPPORT
     bool status = false;
     if(command->has_modem_configuration_command) {
         openxc_ModemConfigurationCommand* modemConfigurationCommand =
-                &command->modem_configuration_command;
+          &command->modem_configuration_command;
         // extract configs for each has_<sub-messages>
-		if(modemConfigurationCommand->has_serverConnectSettings) {
-			openxc_ServerConnectSettings* serverConnectSettings = 
-				&modemConfigurationCommand->serverConnectSettings;
-			if(serverConnectSettings->has_host) {
-				strcpy(getConfiguration()->telit.config.serverConnectSettings.host, 
-					serverConnectSettings->host);
-				status = true;
-				debug("Set server address to %s", 
-					getConfiguration()->telit.config.serverConnectSettings.host);
-				status = true;
-			}	
-			if(serverConnectSettings->has_port) {
-				getConfiguration()->telit.config.serverConnectSettings.port = 
-					serverConnectSettings->port;
-				debug("Set server port to %u", 
-					getConfiguration()->telit.config.serverConnectSettings.port);
-			}
-		}
-	}
-	
-	if(status) {
-		// save new settings to NVM
-		nvm::store();
-	}
+        if(modemConfigurationCommand->has_serverConnectSettings) {
+            openxc_ServerConnectSettings* serverConnectSettings = 
+              &modemConfigurationCommand->serverConnectSettings;
+            if(serverConnectSettings->has_host) {
+                strcpy(getConfiguration()->telit.config.serverConnectSettings.host, 
+                  serverConnectSettings->host);
+                status = true;
+                debug("Set server address to %s", 
+                  getConfiguration()->telit.config.serverConnectSettings.host);
+                status = true;
+            }
+            if(serverConnectSettings->has_port) {
+                getConfiguration()->telit.config.serverConnectSettings.port = 
+                  serverConnectSettings->port;
+                debug("Set server port to %u", 
+                  getConfiguration()->telit.config.serverConnectSettings.port);
+            }
+        }
+    }
+
+    if(status) {
+        // save new settings to NVM
+        nvm::store();
+    }
 
     sendCommandResponse(openxc_ControlCommand_Type_MODEM_CONFIGURATION, status);
 
     return status;
-	
-	#else 
-	
-	return false;
-	
-	#endif
+
+    #else 
+
+    return false;
+
+    #endif
 }

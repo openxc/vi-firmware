@@ -28,7 +28,7 @@ env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5", "extension": "hex"},
-	"cellc5": {"name": "CROSSCHASM_CELLULAR_C5", "extension": "hex"}
+    "cellc5": {"name": "CROSSCHASM_CELLULAR_C5", "extension": "hex"}
 }
 
 def latest_git_tag():
@@ -256,7 +256,7 @@ def reference():
 @task
 def c5():
     env.board = 'c5'
-	
+
 @task
 def cellc5():
     env.board = 'cellc5'

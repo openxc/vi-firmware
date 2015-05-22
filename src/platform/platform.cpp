@@ -36,9 +36,9 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);
     bluetooth::deinitialize();
-	#ifdef TELIT_HE910_SUPPORT
-	telit::deinitialize();
-	#endif
+    #ifdef TELIT_HE910_SUPPORT
+    telit::deinitialize();
+    #endif
 
     if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
         debug("Enabling watchdog timer to poll for ignition status via OBD-II");

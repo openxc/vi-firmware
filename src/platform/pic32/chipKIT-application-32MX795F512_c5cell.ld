@@ -48,8 +48,8 @@ MEMORY
 /*************************************************************************
  * Memory Address Equates
  *************************************************************************/
-_ebase_address  	    = ORIGIN(exception_mem);
-_IMAGE_PTR_TABLE       	= _ebase_address + 0x0F8;
+_ebase_address          = ORIGIN(exception_mem);
+_IMAGE_PTR_TABLE        = _ebase_address + 0x0F8;
 _IMAGE_HEADER_ADDR      = _ebase_address + 0x0FC;
 _GEN_EXCPT_ADDR         = _ebase_address + 0x180;
 _RESET_ADDR             = ORIGIN(kseg0_program_mem);

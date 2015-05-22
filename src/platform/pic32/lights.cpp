@@ -10,7 +10,7 @@
     #define USER_LED_B_SUPPORT
     #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
     #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
-	
+
 #elif defined(CROSSCHASM_CELLULAR_C5)
 
     #define USER_LED_A_SUPPORT

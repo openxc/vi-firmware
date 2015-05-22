@@ -21,10 +21,10 @@ The following five options govern how the modem finds and connects to mobile net
     * SET_ONLY: Only useful for custom code implementations. Forces the modem to ignore the specified "PLMN" and "networkType", and to only interpret the format specifier for the network name (which is fixed in this firmware).
 
     * MANUAL_AUTOMATIC: Modem follows the MANUAL connection strategy. If a suitable network cannot be found, modem falls back to the "AUTOMATIC" connection strategy.
-	  
-  * networkOperatorSettings.networkDescriptor.PLMN
+ 
+ * networkOperatorSettings.networkDescriptor.PLMN
     
-	* a 5-6 digit number that combines the "mobile country code" (MCC) and "mobile network code" (MNC) to uniquely identify a particular mobile network. Using the PLMN avoids any issues with variations in network text names. For example, 302220 is the PLMN for TELUS. A list of PLMNs is easily found online, e.g. "http://en.wikipedia.org/wiki/Mobile_country_code".
+    * a 5-6 digit number that combines the "mobile country code" (MCC) and "mobile network code" (MNC) to uniquely identify a particular mobile network. Using the PLMN avoids any issues with variations in network text names. For example, 302220 is the PLMN for TELUS. A list of PLMNs is easily found online, e.g. "http://en.wikipedia.org/wiki/Mobile_country_code".
 	
   * networkOperatorSettings.networkDescriptor.networkType
   
@@ -75,15 +75,15 @@ More advanced settings that control the specific behaviour of the TCP/IP sockets
   * socketConnectSettings.packetSize
   
     * the TCP/IP packet size. Set to 0 for default (300 bytes).
-	
+
   * socketConnectSettings.idleTimeout
   
     * the number of seconds that the modem will tolerate an idle socket before closing it. An idle socket is a socket without any data exchange. Set to 0 for no timeout, and the modem will keep an idle socket open indefinitely. Note that the server on the other end can still close the socket due to it's own idle timeout (or other) criteria.
-	
+
   * socketConnectSettings.connectTimeout
   
     * the duration of time that the modem will attempt to open a socket before timing out. The duration is specified in "hundreds of milliseconds", so a value of 600 would be 60000 milliseconds, or 60 seconds. A longer timeout period allow the modem a higher chance of gaining access to the server in a single connect request, at the expense of hanging the command interface for the duration of the timer (other parallel operations cannot be performed). Shortening the timer will increase the odds of a failed connection attempt, but the command interface will become more responsive.
-	
+
   * socketConnectSettings.txFlushTimer
   
     * the duration of time that the modem will hold a partial TCP/IP packet before flushing it to the TCP/IP socket. Specified in "hundreds of milliseconds".

@@ -1,14 +1,6 @@
 language: c
 sudo: false
-addons:
-  apt:
-    packages:
-      - libc6:i386
-      - libgd2-xpm
-      - ia32-libs
-      - ia32-libs-multiarch
 cache:
-  apt: true
   directories:
   - dependencies
 compiler:

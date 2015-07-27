@@ -1,6 +1,14 @@
 language: c
 sudo: false
+addons:
+  apt:
+    packages:
+      - curl
+      - check
+      - libc6:i386
+      - python-dev
 cache:
+  apt: true
   directories:
   - dependencies
 compiler:

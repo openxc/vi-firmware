@@ -1,14 +1,25 @@
 language: c
 compiler:
-  - clang
+- clang
 script: PLATFORM=TESTING make test_long
 install:
-   - gem install coveralls-lcov
+- gem install coveralls-lcov
 before_install:
-    - sudo apt-get update -qq
-    - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs ia32-libs-multiarch; fi
-    - script/bootstrap.sh
-    - cd src
+- sudo apt-get update -qq
+- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs
+  ia32-libs-multiarch; fi
+- script/bootstrap.sh
+- cd src
 after_success:
-    - PLATFORM=TESTING make coverage
-    - coveralls-lcov build/tests/coverage.info
+- PLATFORM=TESTING make coverage
+- coveralls-lcov build/tests/coverage.info
+deploy:
+  provider: releases
+  api_key:
+    secure: TCphaPVnxGDBe3RHhHH0iMIjIAyZojZ5gvE5Szg5TDCwu8y2HvGkUJ3WOr8H2HzQ9pHAriYyZ0/RZj0udYHJKfH8H20ApGm0QOYlPD/c8IhHFFOkoGKkT64wRTaCwx83+sbSDlTlKdB56J6mZEauysY7e/CXJenoTBNHedmsqVo=
+  before_deploy: "fab build_release"
+  skip_cleanup: true
+  file_glob: true
+  file: release/openxc-vi-firmware-*.zip
+  on:
+    repo: openxc/vi-firmware

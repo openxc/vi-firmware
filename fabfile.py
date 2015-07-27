@@ -178,7 +178,7 @@ def test():
         openxc_python_is_version = None
         with settings(warn_only=True):
             openxc_python_is_version = local("grep '^openxc==' "
-                    "script/bootstrap/ci-requirements.txt", capture=True)
+                    "script/bootstrap/pip-requirements.txt", capture=True)
         if not openxc_python_is_version:
             abort(red("OpenXC Python library dependency must be "
                 "a released version in master branch"))
@@ -285,14 +285,19 @@ def flash():
     with lcd("%s/src" % env.root_dir):
         local("%s make flash" % build_options())
 
+
 def current_branch():
     return local("git rev-parse --abbrev-ref HEAD", capture=True)
 
+
 @task
 def release():
-    with lcd(env.root_dir):
-        test()
+    make_tag()
 
+
+@task
+def build_release():
+    with lcd(env.root_dir):
         # Make sure this happens after test(), so we move aside and test
         # signals.cpp
         signals_file = "src/signals.cpp"
@@ -301,8 +306,6 @@ def release():
             print("Moved %s out of the way to %s, will not be in released builds" % (
                     signals_file, moved_signals_file))
             local("mv %s %s" % (signals_file, moved_signals_file))
-
-        make_tag()
 
         prepare_temp_path()
         prepare_releases_path()

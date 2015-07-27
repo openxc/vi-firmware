@@ -1,12 +1,22 @@
 language: c
+sudo: false
+addons:
+  apt:
+    packages:
+      - libc6:i386
+      - libgd2-xpm
+      - ia32-libs
+      - ia32-libs-multiarch
+cache:
+  apt: true
+  directories:
+  - dependencies
 compiler:
   - clang
 script: PLATFORM=TESTING make test_long
 install:
    - gem install coveralls-lcov
 before_install:
-    - sudo apt-get update -qq
-    - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs ia32-libs-multiarch; fi
     - script/bootstrap.sh
     - cd src
 after_success:

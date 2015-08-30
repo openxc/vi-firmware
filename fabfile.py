@@ -289,9 +289,10 @@ def current_branch():
     return local("git rev-parse --abbrev-ref HEAD", capture=True)
 
 @task
-def release():
+def release(skip_tests=False):
     with lcd(env.root_dir):
-        test()
+        if not skip_tests:
+            test()
 
         # Make sure this happens after test(), so we move aside and test
         # signals.cpp

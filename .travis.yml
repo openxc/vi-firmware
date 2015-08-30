@@ -13,11 +13,11 @@ before_install:
 after_success:
 - PLATFORM=TESTING make coverage
 - coveralls-lcov build/tests/coverage.info
+before_deploy: echo "n" | fab release:skip_tests=True
 deploy:
   provider: releases
   api_key:
     secure: NOSHkTeRCfYcfW6ft8/5xOsEmn0DFrfvJL0UFsDQ9f0dBPoXPMJpgbXr+0i4wbMvwIgAKmJ2SfgvIBcm8IWXhLSMsZiaaTvrbomNgqI8ZIghBdSe6GARaiF/9V/A5l/8zCVMs65Kpo1BssC0BiESpIgoOR/aeF5J6TmCIbUe03k=
-  before_deploy: echo "n" | fab release:skip_tests=True
   skip_cleanup: true
   file_glob: true
   file: "./release/openxc-vi-firmware-v*.*.*.zip"

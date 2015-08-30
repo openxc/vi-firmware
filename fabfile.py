@@ -150,7 +150,7 @@ def compile_firmware(build_name, target_path):
     with lcd("src"):
         for board_name, board in env.boards.iteritems():
             env.board = board_name
-            build(capture=True, clean=True)
+            build(capture=True, do_clean=True)
             local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-ct%s.%s"
                     % (board['name'], board['name'], board['extension'],
                         target_path, build_name, board['name'],

@@ -1,6 +1,9 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v7.0.1-dev
+## v7.0.1
+
+* Fix: Delay at startup to allow timers to stabilize, to avoid shutting down too
+    soon when using OBD2_IGNITION_CHECK power mode with DEBUG=0;
 
 ## v7.0.0
 

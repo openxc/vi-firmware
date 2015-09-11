@@ -6,7 +6,6 @@
 #include "gpio.h"
 #include "config.h"
 #include "can/canread.h"
-#include "http.h"
 #include "commands/commands.h"
 #include "interface/interface.h"
 #include <string.h>
@@ -75,363 +74,75 @@ static void clearRxBuffer(void);
 static bool getResponse(const char* startToken, const char* stopToken, char* response, unsigned int maxLen);
 static bool parseGPSACP(const char* GPSACP);
 
+namespace openxc {
+namespace telitHE910 {
+
+static TELIT_CONNECTION_STATE DSM_Power_Off(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Power_On_Delay(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Power_On(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Power_Up_Delay(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Initialize(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Wait_For_Network(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Close_PDP(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Open_PDP_Delay(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Open_PDP(TelitDevice* device);
+static TELIT_CONNECTION_STATE DSM_Ready(TelitDevice* device);
+
+}
+}
+
+/*DEVICE STATE MACHINE*/
+
 TELIT_CONNECTION_STATE openxc::telitHE910::getDeviceState() {
 	return state;
 }
 
 TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device) {
-
-	static unsigned int subState = 0;
-	static unsigned int timer = 0;
-	static unsigned int timeout = 0;
-	static NetworkDescriptor current_network = {};
-	static bool pdp_connected = false;
-	static uint8_t pdp_counter = 0;
-
-	// device stats
-	static unsigned int SIMstatus = 0;
-	static NetworkConnectionStatus connectStatus = UNKNOWN;
-	static char ICCID[32];
-	static char IMEI[32];
 	
 	switch(state)
 	{
 		case POWER_OFF:
-		
-			device->descriptor.type = openxc::interface::InterfaceType::TELIT;
-		
-			setPowerState(false);
-			telitDevice = device;
-			state = POWER_ON_DELAY;
-			
+			state = DSM_Power_Off(device);
 			break;
 			
 		case POWER_ON_DELAY:
-		
-			switch(subState)
-			{
-				case 0:
-				
-					timer = uptimeMs() + 1000;
-					subState = 1;
-					
-					break;
-					
-				case 1:
-				
-					if(uptimeMs() > timer)
-					{
-						state = POWER_ON;
-						subState = 0;
-					}
-					
-					break;
-			}
-		
+			state = DSM_Power_On_Delay(device);
 			break;
 			
 		case POWER_ON:
-		
-			setPowerState(true);
-			state = POWER_UP_DELAY;
-		
+			state = DSM_Power_On(device);
 			break;
 			
 		case POWER_UP_DELAY:
-		
-			switch(subState)
-			{
-				case 0:
-				
-					timer = uptimeMs() + 8500;
-					subState = 1;
-					
-					break;
-					
-				case 1:
-				
-					if(uptimeMs() > timer)
-					{
-						state = INITIALIZE;
-						subState = 0;
-					}
-					
-					break;
-			}
-		
+			state = DSM_Power_Up_Delay(device);
 			break;
 			
 		case INITIALIZE:
-		
-			switch(subState)
-			{
-				case 0:
-				
-					// figure out the baud rate
-					if(autobaud(device))
-					{
-						timer = uptimeMs() + 1000;
-						subState = 1;
-					}
-					else
-					{
-						debug("Failed to set the baud rate for Telit HE910...is the device connected to 12V power?");
-						state = POWER_OFF;
-						break;
-					}
-				
-					break;
-					
-				case 1:
-				
-					if(uptimeMs() > timer)
-					{
-						subState = 2;
-					}
-				
-					break;
-					
-				case 2:
-					
-					// save settings
-					if(saveSettings() == false)
-					{
-						debug("Failed to save modem settings, continuing with device initialization.");
-					}
-					
-					// check SIM status
-					if(getSIMStatus(&SIMstatus) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					
-					// start the GPS chip
-					if(device->config.globalPositioningSettings.gpsEnable)
-					{
-						if(setGPSPowerState(true) == false)
-						{
-							subState = 0;
-							state = POWER_OFF;
-							break;
-						}
-					}
-					
-					// make sure SIM is installed, else exit
-					if(SIMstatus != 1)
-					{
-						debug("SIM not detected, aborting device initialization.");
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					
-					// get device identifier (IMEI)
-					if(getDeviceIMEI(IMEI) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					memcpy(device->deviceId, IMEI, strlen(IMEI) < MAX_DEVICE_ID_LENGTH ? strlen(IMEI) : MAX_DEVICE_ID_LENGTH);
-					
-					// get SIM number (ICCID)
-					if(getICCID(ICCID) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					memcpy(device->ICCID, ICCID, strlen(ICCID) < MAX_ICCID_LENGTH ? strlen(ICCID) : MAX_ICCID_LENGTH);
-					
-					// set mobile operator connect mode
-					if(setNetworkConnectionMode(device->config.networkOperatorSettings.operatorSelectMode, device->config.networkOperatorSettings.networkDescriptor) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					
-					// configure data session
-					if(configurePDPContext(device->config.networkDataSettings) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					
-					// configure a single TCP/IP socket
-					if(configureSocket(1, device->config.socketConnectSettings) == false)
-					{
-						subState = 0;
-						state = POWER_OFF;
-						break;
-					}
-					
-					subState = 0;
-					state = WAIT_FOR_NETWORK;
-					
-					break;
-			}
-		
+			state = DSM_Initialize(device);
 			break;
 			
 		case WAIT_FOR_NETWORK:
-		
-			switch(subState)
-			{
-				case 0:
-			
-					timeout = uptimeMs() + NETWORK_CONNECT_TIMEOUT;
-					subState = 1;
-			
-					break;
-			
-				case 1:
-					
-					if(getNetworkConnectionStatus(&connectStatus))
-					{
-						if(connectStatus == REGISTERED_HOME || (device->config.networkOperatorSettings.allowDataRoaming && connectStatus == REGISTERED_ROAMING))
-						{
-							if(getCurrentNetwork(&current_network))
-							{
-								debug("Telit connected to PLMN %u, access type %u", current_network.PLMN, current_network.networkType);
-							}
-							subState = 0;
-							state = CLOSE_PDP;
-						}
-						else
-						{
-							timer = uptimeMs() + 500;
-							subState = 2;
-						}
-					}
-					
-					break;
-					
-				case 2:
-				
-					if(uptimeMs() > timeout)
-					{
-						subState = 0;
-						state = POWER_OFF;
-					}
-					else if(uptimeMs() > timer)
-					{
-						subState = 1;
-					}
-				
-					break;
-			}
-		
+			state = DSM_Wait_For_Network(device);
 			break;
 			
 		case CLOSE_PDP:
-		
-			// deactivate data session (just in case the network thinks we still have an active PDP context)
-			if(closePDPContext())
-			{
-				subState = 0;
-				state = OPEN_PDP_DELAY;
-			}
-			else
-			{	
-				subState = 0;
-				state = POWER_OFF;
-			}
-
+			state = DSM_Close_PDP(device);
 			break;
 			
 		case OPEN_PDP_DELAY:
-		
-			switch(subState)
-			{
-				case 0:
-				
-					timer = uptimeMs() + 1000;
-					subState = 1;
-					
-					break;
-					
-				case 1:
-
-					if(uptimeMs() > timer)
-					{
-						state = OPEN_PDP;
-						subState = 0;
-					}
-					
-					break;
-			}
-			
+			state = DSM_Open_PDP_Delay(device);
 			break;
 			
 		case OPEN_PDP:
-		
-			// activate data session
-			if(openPDPContext())
-			{
-				pdp_counter = 0;
-				state = READY;
-			}
-			else
-			{	
-				if(pdp_counter < PDP_MAX_ATTEMPTS)
-				{
-					pdp_counter++;
-					state = CLOSE_PDP;
-				}
-				else
-				{
-					pdp_counter = 0;
-					state = POWER_OFF;
-				}
-			}
-		
+			state = DSM_Open_PDP(device);
 			break;
 			
 		case READY:
-		
-			switch(subState)
-			{
-				case 0:
-				
-					if(getNetworkConnectionStatus(&connectStatus), (connectStatus != REGISTERED_HOME && connectStatus != REGISTERED_ROAMING))
-					{
-						debug("Modem has lost network connection");
-						connect = false;
-						state = WAIT_FOR_NETWORK;
-					}
-					else if(getPDPContext(&pdp_connected), !pdp_connected)
-					{
-						debug("Modem has lost data session");
-						connect = false;
-						state = CLOSE_PDP;
-					}
-					else
-					{
-						connect = true;
-						timer = uptimeMs() + 1000;
-						subState = 1;
-					}
-				
-					break;
-					
-				case 1:
-				
-					if(uptimeMs() > timer)
-						subState = 0;
-				
-					break;
-			}
-		
+			state = DSM_Ready(device);
 			break;
 			
 		default:
-		
 			state = POWER_OFF;
-		
 			break;
 	}
 	
@@ -444,9 +155,7 @@ void openxc::telitHE910::deinitialize() {
 }
 
 bool openxc::telitHE910::connected(TelitDevice* device) {
-
 	return connect;
-
 }
 
 static bool autobaud(openxc::telitHE910::TelitDevice* device) {
@@ -474,6 +183,401 @@ static bool autobaud(openxc::telitHE910::TelitDevice* device) {
 	
 	return rc;
 
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Off(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = POWER_OFF;
+
+	device->descriptor.type = openxc::interface::InterfaceType::TELIT;
+		
+	setPowerState(false);
+	telitDevice = device;
+	state = POWER_ON_DELAY;
+	
+	return l_state;
+
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_On_Delay(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = POWER_ON_DELAY;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+	
+	switch(sub_state)
+	{
+		case 0:
+		
+			timer = uptimeMs() + 1000;
+			sub_state = 1;
+			
+			break;
+			
+		case 1:
+		
+			if(uptimeMs() > timer)
+			{
+				l_state = POWER_ON;
+				sub_state = 0;
+			}
+			
+			break;
+	}
+	
+	return l_state;
+
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_On(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = POWER_ON;
+	
+	setPowerState(true);
+	l_state = POWER_UP_DELAY;
+	
+	return l_state;
+
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Up_Delay(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = POWER_UP_DELAY;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+
+	switch(sub_state)
+	{
+		case 0:
+		
+			timer = uptimeMs() + 8500;
+			sub_state = 1;
+			
+			break;
+			
+		case 1:
+		
+			if(uptimeMs() > timer)
+			{
+				l_state = INITIALIZE;
+				sub_state = 0;
+			}
+			
+			break;
+	}
+	
+	return l_state;
+
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Initialize(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = INITIALIZE;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+	static unsigned int SIMstatus = 0;
+	static char ICCID[32];
+	static char IMEI[32];
+	
+	switch(sub_state)
+	{
+		case 0:
+		
+			// figure out the baud rate
+			if(autobaud(device))
+			{
+				timer = uptimeMs() + 1000;
+				sub_state = 1;
+			}
+			else
+			{
+				debug("Failed to set the baud rate for Telit HE910...is the device connected to 12V power?");
+				l_state = POWER_OFF;
+				break;
+			}
+		
+			break;
+			
+		case 1:
+		
+			if(uptimeMs() > timer)
+			{
+				sub_state = 2;
+			}
+		
+			break;
+			
+		case 2:
+			
+			// save settings
+			if(saveSettings() == false)
+			{
+				debug("Failed to save modem settings, continuing with device initialization.");
+			}
+			
+			// check SIM status
+			if(getSIMStatus(&SIMstatus) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			
+			// start the GPS chip
+			if(device->config.globalPositioningSettings.gpsEnable)
+			{
+				if(setGPSPowerState(true) == false)
+				{
+					sub_state = 0;
+					l_state = POWER_OFF;
+					break;
+				}
+			}
+			
+			// make sure SIM is installed, else exit
+			if(SIMstatus != 1)
+			{
+				debug("SIM not detected, aborting device initialization.");
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			
+			// get device identifier (IMEI)
+			if(getDeviceIMEI(IMEI) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			memcpy(device->deviceId, IMEI, strlen(IMEI) < MAX_DEVICE_ID_LENGTH ? strlen(IMEI) : MAX_DEVICE_ID_LENGTH);
+			
+			// get SIM number (ICCID)
+			if(getICCID(ICCID) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			memcpy(device->ICCID, ICCID, strlen(ICCID) < MAX_ICCID_LENGTH ? strlen(ICCID) : MAX_ICCID_LENGTH);
+			
+			// set mobile operator connect mode
+			if(setNetworkConnectionMode(device->config.networkOperatorSettings.operatorSelectMode, device->config.networkOperatorSettings.networkDescriptor) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			
+			// configure data session
+			if(configurePDPContext(device->config.networkDataSettings) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			
+			// configure a single TCP/IP socket
+			if(configureSocket(1, device->config.socketConnectSettings) == false)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+				break;
+			}
+			
+			sub_state = 0;
+			l_state = WAIT_FOR_NETWORK;
+			
+			break;
+	}
+	
+	return l_state;
+
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Wait_For_Network(TelitDevice* device) {
+	
+	TELIT_CONNECTION_STATE l_state = WAIT_FOR_NETWORK;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+	static unsigned int timeout = 0;
+	static NetworkDescriptor current_network = {};
+	static NetworkConnectionStatus connectStatus = UNKNOWN;
+	
+	switch(sub_state)
+	{
+		case 0:
+	
+			timeout = uptimeMs() + NETWORK_CONNECT_TIMEOUT;
+			sub_state = 1;
+	
+			break;
+	
+		case 1:
+			
+			if(getNetworkConnectionStatus(&connectStatus))
+			{
+				if(connectStatus == REGISTERED_HOME || (device->config.networkOperatorSettings.allowDataRoaming && connectStatus == REGISTERED_ROAMING))
+				{
+					if(getCurrentNetwork(&current_network))
+					{
+						debug("Telit connected to PLMN %u, access type %u", current_network.PLMN, current_network.networkType);
+					}
+					sub_state = 0;
+					l_state = CLOSE_PDP;
+				}
+				else
+				{
+					timer = uptimeMs() + 500;
+					sub_state = 2;
+				}
+			}
+			
+			break;
+			
+		case 2:
+		
+			if(uptimeMs() > timeout)
+			{
+				sub_state = 0;
+				l_state = POWER_OFF;
+			}
+			else if(uptimeMs() > timer)
+			{
+				sub_state = 1;
+			}
+		
+			break;
+	}
+	
+	return l_state;
+	
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Close_PDP(TelitDevice* device) {
+	
+	TELIT_CONNECTION_STATE l_state = CLOSE_PDP;
+	static unsigned int sub_state = 0;
+	
+	// deactivate data session (just in case the network thinks we still have an active PDP context)
+	if(closePDPContext())
+	{
+		sub_state = 0;
+		l_state = OPEN_PDP_DELAY;
+	}
+	else
+	{	
+		sub_state = 0;
+		l_state = POWER_OFF;
+	}
+	
+	return l_state;
+	
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP_Delay(TelitDevice* device) {
+	
+	TELIT_CONNECTION_STATE l_state = OPEN_PDP_DELAY;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+	
+	switch(sub_state)
+	{
+		case 0:
+		
+			timer = uptimeMs() + 1000;
+			sub_state = 1;
+			
+			break;
+			
+		case 1:
+
+			if(uptimeMs() > timer)
+			{
+				l_state = OPEN_PDP;
+				sub_state = 0;
+			}
+			
+			break;
+	}
+	
+	return l_state;
+	
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP(TelitDevice* device) {
+	
+	TELIT_CONNECTION_STATE l_state = OPEN_PDP;
+	static unsigned int sub_state = 0;
+	static uint8_t pdp_counter = 0;
+	
+	// activate data session
+	if(openPDPContext())
+	{
+		pdp_counter = 0;
+		l_state = READY;
+	}
+	else
+	{	
+		if(pdp_counter < PDP_MAX_ATTEMPTS)
+		{
+			pdp_counter++;
+			l_state = CLOSE_PDP;
+		}
+		else
+		{
+			pdp_counter = 0;
+			l_state = POWER_OFF;
+		}
+	}
+	
+	return l_state;
+	
+}
+
+static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Ready(TelitDevice* device) {
+
+	TELIT_CONNECTION_STATE l_state = READY;
+	static unsigned int sub_state = 0;
+	static unsigned int timer = 0;
+	bool pdp_connected = false;
+	NetworkConnectionStatus connectStatus = UNKNOWN;
+
+	switch(sub_state)
+	{
+		case 0:
+		
+			if(getNetworkConnectionStatus(&connectStatus), (connectStatus != REGISTERED_HOME && connectStatus != REGISTERED_ROAMING))
+			{
+				debug("Modem has lost network connection");
+				connect = false;
+				l_state = WAIT_FOR_NETWORK;
+			}
+			else if(getPDPContext(&pdp_connected), !pdp_connected)
+			{
+				debug("Modem has lost data session");
+				connect = false;
+				l_state = CLOSE_PDP;
+			}
+			else
+			{
+				connect = true;
+				timer = uptimeMs() + 1000;
+				sub_state = 1;
+			}
+		
+			break;
+			
+		case 1:
+		
+			if(uptimeMs() > timer)
+				sub_state = 0;
+		
+			break;
+	}
+	
+	return l_state;
+	
 }
 
 /*MODEM AT COMMANDS*/
@@ -1262,7 +1366,6 @@ static bool sendCommand(TelitDevice* device, const char* command, const char* re
 
 }
 
-
 static void clearRxBuffer() {
 
 	// purge the HardwareSerial buffer
@@ -1569,503 +1672,6 @@ static bool parseGPSACP(const char* GPSACP) {
 	
 	fcn_exit:
 	return rc;
-}
-
-// typedef for SERVER API return codes
-typedef enum {
-	None,
-	Working,
-	Success,
-	Failed
-} API_RETURN;
-
-/*SERVER API*/
-
-#define GET_FIRMWARE_SOCKET		1
-#define POST_DATA_SOCKET		2
-#define GET_COMMANDS_SOCKET		3
-
-static API_RETURN serverPOSTdata(char* deviceId, char* host, char* data, unsigned int len) {
-
-	static API_RETURN ret = None;
-	static http::httpClient client;
-	static char header[256];
-	static unsigned int state = 0;
-	static const char* ctJSON = "application/json";
-	static const char* ctPROTOBUF = "application/x-protobuf";
-	
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			ret = Working;
-			// compose the header for POST /data
-			sprintf(header, "POST /api/%s/data HTTP/1.1\r\n"
-					"Content-Length: %u\r\n"
-					"Content-Type: %s\r\n"
-					"Host: %s\r\n"
-					"Connection: Keep-Alive\r\n\r\n", deviceId, len, getConfiguration()->payloadFormat == PayloadFormat::PROTOBUF ? ctPROTOBUF : ctJSON, host);
-			// configure the HTTP client
-			client = http::httpClient();
-			client.socketNumber = POST_DATA_SOCKET;
-			client.requestHeader = header;
-			client.requestBody = data;
-			client.requestBodySize = len;
-			client.cbGetRequestData = NULL;
-			client.cbPutResponseData = NULL;
-			client.sendSocketData = &openxc::telitHE910::writeSocket;
-			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-			client.receiveSocketData = &openxc::telitHE910::readSocket;
-			state = 1;
-			break;
-			
-		case 1:
-			// run the HTTP client
-			switch(client.execute())
-			{
-				case http::HTTP_READY:
-				case http::HTTP_SENDING_REQUEST_HEADER:
-				case http::HTTP_SENDING_REQUEST_BODY:
-				case http::HTTP_RECEIVING_RESPONSE:
-					// nothing to do while client is in progress
-					break;
-				case http::HTTP_COMPLETE:
-					ret = Success;
-					state = 0;
-					break;
-				case http::HTTP_FAILED:
-					ret = Failed;
-					state = 0;
-					break;
-			}
-			break;
-	}
-	
-	return ret;
-
-}
-
-static int cbHeaderComplete(http_parser* parser) {
-	if(parser->status_code == 200)
-		SoftReset();
-	else
-		return 1;
-}
-
-static int cbOnStatus(http_parser* parser, const char* at, size_t length) {
-	if(parser->status_code == 204)
-		return 1; // cause parser to exit immediately (we're throwing an error to force the client to abort)
-	else
-		return 0;
-}
-
-static API_RETURN serverGETfirmware(char* deviceId, char* host) {
-
-	static API_RETURN ret = None;
-	static http::httpClient client;
-	static char header[256];
-	static unsigned int state = 0;
-	
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			ret = Working;
-			// compose the header for GET /firmware
-			sprintf(header, "GET /api/%s/firmware HTTP/1.1\r\n"
-					"If-None-Match: \"%s\"\r\n"
-					"Host: %s\r\n"
-					"Connection: Keep-Alive\r\n\r\n", deviceId, getConfiguration()->flashHash, host);
-			// configure the HTTP client
-			client = http::httpClient();
-			client.socketNumber = GET_FIRMWARE_SOCKET;
-			client.requestHeader = header;
-			client.requestBody = NULL;
-			client.requestBodySize = 0;
-			client.cbGetRequestData = NULL;
-			client.parser_settings.on_headers_complete = &cbHeaderComplete;
-			client.parser_settings.on_status = &cbOnStatus;
-			client.cbPutResponseData = NULL;
-			client.sendSocketData = &openxc::telitHE910::writeSocket;
-			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-			client.receiveSocketData = &readSocketOne;
-			state = 1;
-			break;
-			
-		case 1:
-			// run the HTTP client
-			switch(client.execute())
-			{
-				case http::HTTP_READY:
-				case http::HTTP_SENDING_REQUEST_HEADER:
-				case http::HTTP_SENDING_REQUEST_BODY:
-				case http::HTTP_RECEIVING_RESPONSE:
-					// nothing to do while client is in progress
-					break;
-				case http::HTTP_COMPLETE:
-					ret = Success;
-					state = 0;
-					break;
-				case http::HTTP_FAILED:
-					ret = Failed;
-					state = 0;
-					break;
-			}
-			break;
-	}
-	
-	return ret;
-	
-}
-
-static int cbOnBody(http_parser* parser, const char* at, size_t length) {
-	unsigned int i = 0;
-	for(i = 0; i < length && pCommandBuffer < (commandBuffer + commandBufferSize); ++i)
-		*pCommandBuffer++ = *at++;
-	return 0;
-}
-
-static API_RETURN serverGETcommands(char* deviceId, char* host) {
-	
-	static API_RETURN ret = None;
-	static http::httpClient client;
-	static char header[256];
-	static unsigned int state = 0;
-	
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			ret = Working;
-			// compose the header for GET /firmware
-			sprintf(header, "GET /api/%s/configure HTTP/1.1\r\n"
-					"Host: %s\r\n"
-					"Connection: Keep-Alive\r\n\r\n", deviceId, host);
-			// configure the HTTP client
-			client = http::httpClient();
-			client.socketNumber = GET_COMMANDS_SOCKET;
-			client.requestHeader = header;
-			client.requestBody = NULL;
-			client.requestBodySize = 0;
-			client.cbGetRequestData = NULL;
-			client.parser_settings.on_body = cbOnBody;
-			client.cbPutResponseData = NULL;
-			client.sendSocketData = &openxc::telitHE910::writeSocket;
-			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-			client.receiveSocketData = &openxc::telitHE910::readSocket;
-			state = 1;
-			break;
-			
-		case 1:
-			// run the HTTP client
-			switch(client.execute())
-			{
-				case http::HTTP_READY:
-				case http::HTTP_SENDING_REQUEST_HEADER:
-				case http::HTTP_SENDING_REQUEST_BODY:
-				case http::HTTP_RECEIVING_RESPONSE:
-					// nothing to do while client is in progress
-					break;
-				case http::HTTP_COMPLETE:
-					ret = Success;
-					state = 0;
-					break;
-				case http::HTTP_FAILED:
-					ret = Failed;
-					state = 0;
-					break;
-			}
-			break;
-	}
-	
-	return ret;
-	
-}
-
-/*EXTERNAL TASK CALLS*/
-
-#define GET_FIRMWARE_INTERVAL	600000
-#define GET_COMMANDS_INTERVAL	10000
-#define POST_DATA_MAX_INTERVAL	5000
-
-void openxc::telitHE910::firmwareCheck(TelitDevice* device) {
-	
-	static unsigned int state = 0;
-	static bool first = true;
-	static unsigned long timer = 0xFFFF;
-
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			// check interval if it's not our first time
-			if(!first)
-			{
-				// request upgrade on interval
-				if(uptimeMs() - timer > GET_FIRMWARE_INTERVAL)
-				{
-					timer = uptimeMs();
-					state = 1;
-				}
-			}
-			else
-			{
-				first = false;
-				timer = uptimeMs();
-				state = 1;
-			}
-			break;
-			
-		case 1:
-			if(!isSocketOpen(GET_FIRMWARE_SOCKET))
-			{
-				if(!openSocket(GET_FIRMWARE_SOCKET, device->config.serverConnectSettings))
-				{
-					state = 0;
-				}
-				else
-				{
-					state = 2;
-				}
-			}
-			else
-			{
-				state = 2;
-			}
-			break;
-			
-		case 2:
-			// call the GETfirmware API
-			switch(serverGETfirmware(device->deviceId, device->config.serverConnectSettings.host))
-			{
-				case None:
-				case Working:
-					// if we are working, do nothing
-					break;
-				default:
-				case Success:
-				case Failed:
-					// whether we succeeded or failed (or got lost), there's nothing we can do except go around again
-					// close the socket
-					// either we got a 200 OK, in which case we went for reset
-					// or we got a 204/error, in which case we have a dangling transaction
-					closeSocket(GET_FIRMWARE_SOCKET);
-					//timer = uptimeMs();
-					state = 0;
-					break;
-			}
-			break;
-	}
-
-	return;
-	
-}
-
-void openxc::telitHE910::flushDataBuffer(TelitDevice* device) {
-
-	static bool first = true;
-	static unsigned int state = 0;
-	static unsigned int lastFlushTime = 0;
-	static const unsigned int flushSize = 2048;
-	static char postBuffer[sendBufferSize + 64]; // extra space needed for root record
-	static unsigned int byteCount = 0;
-	unsigned int i = 0;
-	
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			// conditions to flush the outgoing data buffer
-				// a) buffer has reached the flush size
-				// b) buffer has not been flushed for the time period POST_DATA_MAX_INTERVAL (and there is something in there)
-				// c) minimum amount of time has passed since lastFlushTime (depends on socket status) - not yet implemented
-			if(!first)
-			{
-				if( (pSendBuffer - sendBuffer) >= flushSize || 
-					((uptimeMs() - lastFlushTime >= POST_DATA_MAX_INTERVAL) && (pSendBuffer != sendBuffer)) )
-				{
-					lastFlushTime = uptimeMs();
-					state = 1;
-				}
-			}
-			else
-			{
-				first = false;
-				lastFlushTime = uptimeMs();
-				state = 1;
-			}
-			break;
-			
-		case 1:
-			// ensure we have an open TCP/IP socket
-			if(!isSocketOpen(POST_DATA_SOCKET))
-			{
-				if(!openSocket(POST_DATA_SOCKET, device->config.serverConnectSettings))
-				{
-					state = 0;
-				}
-				else
-				{
-					state = 2;
-				}
-			}
-			else
-			{
-				state = 2;
-			}
-			break;
-			
-		case 2:
-			
-			switch(getConfiguration()->payloadFormat)
-			{
-				case PayloadFormat::JSON:
-				
-					// pre-populate the send buffer with root record
-					memcpy(postBuffer, "{\"records\":[", 12);
-					byteCount = 12;
-					
-					// get all bytes from the send buffer (so we have room to fill it again as we POST)
-					memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
-					byteCount += pSendBuffer - sendBuffer;
-					pSendBuffer = sendBuffer;
-					
-					// replace the nulls with commas to create a JSON array
-					for(i = 0; i < byteCount; ++i)
-					{
-						if(postBuffer[i] == '\0')
-							postBuffer[i] = ',';
-					}
-					
-					// back over the trailing comma
-					if(postBuffer[byteCount-1] == ',')
-						byteCount--;
-					
-					// end the array
-					postBuffer[byteCount++] = ']';
-					postBuffer[byteCount++] = '}';
-				
-					break;
-					
-				case PayloadFormat::PROTOBUF:
-				
-					// get all bytes from the send buffer (so we have room to fill it again as we POST)
-					byteCount = 0;
-					memcpy(postBuffer+byteCount, sendBuffer, pSendBuffer - sendBuffer);
-					byteCount += pSendBuffer - sendBuffer;
-					pSendBuffer = sendBuffer;
-				
-					break;
-			}
-			
-			state = 3;
-			
-			break;
-			
-		case 3:
-		
-			// call the POSTdata API
-			switch(serverPOSTdata(device->deviceId, device->config.serverConnectSettings.host, postBuffer, byteCount))
-			{
-				case None:
-				case Working:
-					// if we are working, do nothing
-					break;
-				default:
-				case Success:
-					state = 0;
-					break;
-				case Failed:
-					//lastFlushTime = uptimeMs();
-					state = 0;
-					closeSocket(POST_DATA_SOCKET);
-					break;
-			}
-			break;
-	}
-	
-	return;
-
-}
-
-void openxc::telitHE910::commandCheck(TelitDevice* device) {
-
-	static unsigned int state = 0;
-	static bool first = true;
-	static unsigned long timer = 0xFFFF;
-
-	switch(state)
-	{
-		default:
-			state = 0;
-		case 0:
-			// check interval if it's not our first time
-			if(!first)
-			{
-				// request commands on interval
-				if(uptimeMs() - timer > GET_COMMANDS_INTERVAL)
-				{
-					timer = uptimeMs();
-					state = 1;
-				}
-			}
-			else
-			{
-				first = false;
-				timer = uptimeMs();
-				state = 1;
-			}
-			break;
-			
-		case 1:
-			if(!isSocketOpen(GET_COMMANDS_SOCKET))
-			{
-				if(!openSocket(GET_COMMANDS_SOCKET, device->config.serverConnectSettings))
-				{
-					state = 0;
-				}
-				else
-				{
-					state = 2;
-				}
-			}
-			else
-			{
-				state = 2;
-			}
-			break;
-			
-		case 2:
-			// call the GETconfigure API
-			switch(serverGETcommands(device->deviceId, device->config.serverConnectSettings.host))
-			{
-				case None:
-				case Working:
-					// if we are working, do nothing
-					break;
-				default:
-				case Success:
-					// send the contents of commandBuffer to the command handler
-					commands::handleIncomingMessage(commandBuffer, pCommandBuffer - commandBuffer, &(telitDevice->descriptor));
-					pCommandBuffer = commandBuffer;
-					state = 0;
-					break;
-				case Failed:
-					pCommandBuffer = commandBuffer;
-					closeSocket(GET_COMMANDS_SOCKET);
-					state = 0;
-					break;
-			}
-			break;
-	}
-
-	return;
-
 }
 
 /*PIPELINE*/

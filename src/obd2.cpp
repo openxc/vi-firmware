@@ -21,7 +21,7 @@ using openxc::config::RunLevel;
 static bool ENGINE_STARTED = false;
 static bool VEHICLE_IN_MOTION = false;
 
-static openxc::util::time::FrequencyClock IGNITION_STATUS_TIMER = {0.5};
+static openxc::util::time::FrequencyClock IGNITION_STATUS_TIMER = {0.5, 0, NULL};
 
 /* Private: A representation of an OBD-II PID.
  *
@@ -134,14 +134,16 @@ void openxc::diagnostics::obd2::initialize(DiagnosticsManager* manager) {
 // seconds to start this process over again.
 void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
     static bool pidSupportQueried = false;
-    static bool sentFinalIgnitionCheck = false;
+    const int MAX_IGNITION_CHECK_COUNT = 3;
+    static int ignitionCheckCount = 0;
 
     if(!manager->initialized || manager->obd2Bus == NULL) {
         return;
     }
 
     if(time::elapsed(&IGNITION_STATUS_TIMER, false)) {
-        if(sentFinalIgnitionCheck && getConfiguration()->powerManagement ==
+        if(ignitionCheckCount >= MAX_IGNITION_CHECK_COUNT &&
+                getConfiguration()->powerManagement ==
                         PowerManagement::OBD2_IGNITION_CHECK) {
             debug("Ceasing diagnostic requests as ignition went off");
             diagnostics::reset(manager);
@@ -149,23 +151,21 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
             // active we want to keep querying for igntion. If we de-init
             // diagnosicts here we risk getting stuck awake, but not querying
             // for any diagnostics messages.
-            sentFinalIgnitionCheck = false;
-            pidSupportQueried = false;
             IGNITION_STATUS_TIMER.frequency = .1;
-            time::tick(&IGNITION_STATUS_TIMER);
+            ignitionCheckCount = 0;
+            pidSupportQueried = false;
         } else {
             // We haven't received an ignition in 5 seconds. Either the user didn't
             // have either OBD-II request configured as a recurring request (which
             // is fine) or they did, but the car stopped responding. Kick off
             // another request to see which is true. It will take 5+5 seconds after
             // ignition off to decide we should cancel all outstanding requests.
-            IGNITION_STATUS_TIMER.frequency = .2;
             requestIgnitionStatus(manager);
-            sentFinalIgnitionCheck = true;
+            ++ignitionCheckCount;
         }
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
         IGNITION_STATUS_TIMER.frequency = .5;
-        sentFinalIgnitionCheck = false;
+        ignitionCheckCount = 0;
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {
             debug("Ignition is on - querying for supported OBD-II PIDs");

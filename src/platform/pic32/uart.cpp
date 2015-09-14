@@ -28,9 +28,6 @@
 #include "gpio.h"
 #include "util/timer.h"
 
-#warning "mikeG add some plib"
-//#include <plib.h>
-
 #if defined(CROSSCHASM_C5)
 
     #define UART_STATUS_PORT 0
@@ -94,7 +91,6 @@ void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) {
             baud) - 1);
     ((p32_uart*)_UART1_BASE_ADDRESS)->uxMode.reg = (1 << _UARTMODE_ON) |
             (1 << _UARTMODE_BRGH);
-            #warning "MG UEN"
     U1MODEbits.UEN = 2;
 }
 

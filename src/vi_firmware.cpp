@@ -188,7 +188,10 @@ void initializeVehicleInterface() {
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         initializeIO();
     }
-    
+
+    // If we don't delay a little bit, time::elapsed seems to return true no
+    // matter what for DEBUG=0 builds.
+    time::delayMs(500);
 }
 
 void firmwareLoop() {

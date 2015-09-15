@@ -228,7 +228,7 @@ relevant copyrights in the software, without fee, provided that it is used in
 conjunction with NXP Semiconductors microcontrollers.  This copyright,
 permission, and disclaimer notice must appear in all copies of this code.
 
-'http-parser <https://github.com/joyent/http-parser>'_
+`http-parser <https://github.com/joyent/http-parser>`_
 
 http_parser.c is based on src/http/ngx_http_parse.c from NGINX copyright
 Igor Sysoev.
@@ -254,7 +254,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE. 
 
-'md5 <http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5>'_
+`md5 <http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5>`_
 
 This software was written by Alexander Peslyak in 2001.  No copyright is
 claimed, and the software is hereby placed in the public domain.

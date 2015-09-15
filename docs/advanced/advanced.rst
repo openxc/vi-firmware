@@ -10,3 +10,4 @@ Advanced Firmware Features
     binary
     benchtesting
     devguide
+    cellular_c5_config

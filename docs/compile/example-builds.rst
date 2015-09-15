@@ -204,7 +204,7 @@ commmand line utility to simplify some of these build configurations. The
 ``fab`` commands are composable, following this simple formula:
 
 * Start your command with ``fab``
-* Specify the target platform with ``chipkit``, ``c5``, or ``reference``.
+* Specify the target platform with ``chipkit``, ``c5``, ``cellc5``, or ``reference``.
 * Optionally include ``emulator`` or ``translated_obd2`` to enable one of the
   example builds described above.
 * End with ``build`` to start the compilation.

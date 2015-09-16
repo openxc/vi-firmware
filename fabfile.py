@@ -315,6 +315,8 @@ def release(skip_tests=False):
 
         env.firmware_release = release_descriptor(".")
 
+        compile_firmware("default", env.temporary_path)
+
         emulator()
         compile_firmware("emulator", env.temporary_path)
 

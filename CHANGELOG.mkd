@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v7.0.2-dev
+
 ## v7.0.1
 
 * Fix: Delay at startup to allow timers to stabilize, to avoid shutting down too

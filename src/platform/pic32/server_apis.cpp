@@ -1,18 +1,27 @@
-#include "server_apis.h"
 #include "telit_he910.h"
+#include "server_apis.h"
 #include "http.h"
+#include "config.h"
+#include "payload/payload.h"
+#include "power.h"
 
-/*SOCKET ASSIGNMENTS*/
+/*PRIVATE VARIABLES*/
 
-#define GET_FIRMWARE_SOCKET		1
-#define POST_DATA_SOCKET		2
-#define GET_COMMANDS_SOCKET		3
+static const unsigned int commandBufferSize = 512;
+static uint8_t commandBuffer[commandBufferSize];
+static uint8_t* pCommandBuffer = commandBuffer;
 
 /*PRIVATE FUNCTION DECLARATIONS*/
 
 static int cbOnBody(http_parser* parser, const char* at, size_t length);
 static int cbOnStatus(http_parser* parser, const char* at, size_t length);
 static int cbHeaderComplete(http_parser* parser);
+
+using openxc::server_api::API_RETURN;
+using openxc::config::getConfiguration;
+using openxc::payload::PayloadFormat;
+using openxc::telitHE910::readSocketOne;
+using openxc::power::enableWatchdogTimer;
 
 /*API CALLS (PUBLIC)*/
 
@@ -59,6 +68,7 @@ API_RETURN openxc::server_api::serverPOSTdata(char* deviceId, char* host, char* 
 				case http::HTTP_SENDING_REQUEST_HEADER:
 				case http::HTTP_SENDING_REQUEST_BODY:
 				case http::HTTP_RECEIVING_RESPONSE:
+				case http::HTTP_WAIT:
 					// nothing to do while client is in progress
 					break;
 				case http::HTTP_COMPLETE:
@@ -107,7 +117,7 @@ API_RETURN openxc::server_api::serverGETfirmware(char* deviceId, char* host) {
 			client.cbPutResponseData = NULL;
 			client.sendSocketData = &openxc::telitHE910::writeSocket;
 			client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-			client.receiveSocketData = &readSocketOne;
+			client.receiveSocketData = &openxc::telitHE910::readSocketOne;
 			state = 1;
 			break;
 			
@@ -119,6 +129,7 @@ API_RETURN openxc::server_api::serverGETfirmware(char* deviceId, char* host) {
 				case http::HTTP_SENDING_REQUEST_HEADER:
 				case http::HTTP_SENDING_REQUEST_BODY:
 				case http::HTTP_RECEIVING_RESPONSE:
+				case http::HTTP_WAIT:
 					// nothing to do while client is in progress
 					break;
 				case http::HTTP_COMPLETE:
@@ -137,7 +148,7 @@ API_RETURN openxc::server_api::serverGETfirmware(char* deviceId, char* host) {
 	
 }
 
-API_RETURN openxc::server_api::serverGETcommands(char* deviceId, char* host) {
+API_RETURN openxc::server_api::serverGETcommands(char* deviceId, char* host, uint8_t** result, unsigned int* len) {
 	
 	static API_RETURN ret = None;
 	static http::httpClient client;
@@ -177,6 +188,7 @@ API_RETURN openxc::server_api::serverGETcommands(char* deviceId, char* host) {
 				case http::HTTP_SENDING_REQUEST_HEADER:
 				case http::HTTP_SENDING_REQUEST_BODY:
 				case http::HTTP_RECEIVING_RESPONSE:
+				case http::HTTP_WAIT:
 					// nothing to do while client is in progress
 					break;
 				case http::HTTP_COMPLETE:
@@ -191,8 +203,18 @@ API_RETURN openxc::server_api::serverGETcommands(char* deviceId, char* host) {
 			break;
 	}
 	
+	*result = commandBuffer;
+	*len = bytesCommandBuffer();
 	return ret;
 	
+}
+
+void openxc::server_api::resetCommandBuffer(void) {
+	pCommandBuffer = commandBuffer;
+}
+
+unsigned int openxc::server_api::bytesCommandBuffer(void) {
+	return int(pCommandBuffer - commandBuffer);
 }
 
 /*HTTP CALLBACKS (PRIVATE)*/
@@ -215,7 +237,12 @@ static int cbOnStatus(http_parser* parser, const char* at, size_t length) {
 
 static int cbHeaderComplete(http_parser* parser) {
 	if(parser->status_code == 200)
-		SoftReset();
+	{
+		enableWatchdogTimer(0);
+	}
 	else
+	{
 		return 1;
+	}
+	return 0;
 }

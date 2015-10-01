@@ -2,7 +2,7 @@
 #include "config.h"
 #include "util/log.h"
 #include "../platform/pic32/nvm.h"
-#include "telit_he910_platforms.h"
+#include "platform/pic32/telit_he910_platforms.h"
 
 namespace nvm = openxc::nvm;
 
@@ -31,18 +31,18 @@ bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* co
             openxc_ServerConnectSettings* serverConnectSettings = 
               &modemConfigurationCommand->serverConnectSettings;
             if(serverConnectSettings->has_host) {
-                strcpy(getConfiguration()->telit.config.serverConnectSettings.host, 
+                strcpy(getConfiguration()->telit->config.serverConnectSettings.host, 
                   serverConnectSettings->host);
                 status = true;
                 debug("Set server address to %s", 
-                  getConfiguration()->telit.config.serverConnectSettings.host);
+                  getConfiguration()->telit->config.serverConnectSettings.host);
                 status = true;
             }
             if(serverConnectSettings->has_port) {
-                getConfiguration()->telit.config.serverConnectSettings.port = 
+                getConfiguration()->telit->config.serverConnectSettings.port = 
                   serverConnectSettings->port;
                 debug("Set server port to %u", 
-                  getConfiguration()->telit.config.serverConnectSettings.port);
+                  getConfiguration()->telit->config.serverConnectSettings.port);
             }
         }
     }

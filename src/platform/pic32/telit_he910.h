@@ -127,6 +127,8 @@ typedef enum {
     READY
 } TELIT_CONNECTION_STATE;
 
+#define SEND_BUFFER_SIZE 4096
+
 /*
  * INITIALIZATION FUNCTIONS
  *
@@ -271,6 +273,14 @@ bool writeSocket(unsigned int socketNumber, char* data, unsigned int *len);
  */
 bool readSocket(unsigned int socketNumber, char* data, unsigned int* len);
 
+/*Public: Reads a single byte from the specified TCP/IP socket number.
+ * 
+ * socketNumber: the TCP/IP socket to read from
+ * data: pointer to a char array to store read data
+ * len: pointer to maximum number of bytes to copy to 'data', replaced with actual bytes read on return (max 1)
+ */
+bool readSocketOne(unsigned int socketNumber, char* data, unsigned int* len);
+
 /*
  * GPS FUNCTIONS
  * 
@@ -298,6 +308,18 @@ void processSendQueue(TelitDevice* device);
  
 /*Public: Returns network connection status of the modem (i.e. is the modem in a state where it can process pipeline data).*/
 bool connected(TelitDevice* device);
+
+/*Public: Returns number of bytes allocated for the device data send buffer.*/
+unsigned int sizeSendBuffer(TelitDevice* device);
+
+/*Public: Resets the tracking pointer for the device data send buffer, which resets buffer to empty state.*/
+void resetSendBuffer(TelitDevice* device);
+
+/*Public: Returns number of bytes stored in the device data send buffer.*/
+unsigned int bytesSendBuffer(TelitDevice* device);
+
+/*Public: Copies all bytes from the device data send buffer to the destination pointer, within the limits of the specified length.*/
+unsigned int readAllSendBuffer(TelitDevice* device, char* destination, unsigned int read_len);
  
 void flushDataBuffer(TelitDevice* device);
 void firmwareCheck(TelitDevice* device);

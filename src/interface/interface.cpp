@@ -13,7 +13,7 @@ static const char interfaceNames[][5] = {
 };
 
 const char* openxc::interface::descriptorToString(InterfaceDescriptor* descriptor) {
-    if(descriptor->type < sizeof(interfaceNames) / sizeof(interfaceNames[0])) {
+    if((int)descriptor->type < sizeof(interfaceNames) / sizeof(interfaceNames[0])) {
         return interfaceNames[descriptor->type];
     }
     return "Unknown";

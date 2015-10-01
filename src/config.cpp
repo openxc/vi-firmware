@@ -11,22 +11,79 @@ namespace telit = openxc::telitHE910;
 
 namespace signals = openxc::signals;
 
+#ifdef TELIT_HE910_SUPPORT
 static void getFlashHash(openxc::config::Configuration* config);
+#endif
 
 static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,
-        &config->telit,
+#ifdef TELIT_HE910_SUPPORT
+        config->telit,
+#endif
 #ifdef __USE_NETWORK__
         &config->network,
 #endif // __USE_NETWORK__
     };
+	#ifdef TELIT_HE910_SUPPORT
     // run flashHash
     getFlashHash(config);
-    config->telit.uart = &config->uart;
+	#endif
+	#ifdef TELIT_HE910_SUPPORT
+    config->telit->uart = &config->uart;
+	#endif
     config->initialized = true;
 }
+
+// if we're going to conditionally compile our "Device" config structs, we
+ // will need to declare them here (conditionally) and assign the pointers
+ // on the config init call (conditionally)
+#ifdef TELIT_HE910_SUPPORT
+openxc::telitHE910::TelitDevice telitDevice = {
+	descriptor: {
+		allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+	},
+	config: {
+		globalPositioningSettings: {
+			gpsEnable: true, 
+			gpsInterval: 5000, 
+			gpsEnableSignal_gps_time: false, 
+			gpsEnableSignal_gps_latitude: true, 
+			gpsEnableSignal_gps_longitude: true, 
+			gpsEnableSignal_gps_hdop: false, 
+			gpsEnableSignal_gps_altitude: true, 
+			gpsEnableSignal_gps_fix: true, 
+			gpsEnableSignal_gps_course: false, 
+			gpsEnableSignal_gps_speed: true, 
+			gpsEnableSignal_gps_speed_knots: false, 
+			gpsEnableSignal_gps_date: false, 
+			gpsEnableSignal_gps_nsat: false
+		},
+		networkOperatorSettings: {
+			allowDataRoaming: true,
+			operatorSelectMode: telit::AUTOMATIC,
+			networkDescriptor: {
+				PLMN: 0,
+				networkType: telit::UTRAN
+			}
+		},
+		networkDataSettings: {
+			"apn"
+		},
+		socketConnectSettings: {
+			packetSize: 0,
+			idleTimeout: 0,
+			connectTimeout: 150,
+			txFlushTimer: 50
+		},
+		serverConnectSettings: {
+			"openxcserverdemo.azurewebsites.net",
+			port: 80
+		}
+	}
+};
+#endif
 
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
@@ -67,49 +124,11 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
-        telit: {
-            descriptor: {
-                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
-            },
-            config: {
-                globalPositioningSettings: {
-                    gpsEnable: true, 
-                    gpsInterval: 5000, 
-                    gpsEnableSignal_gps_time: false, 
-                    gpsEnableSignal_gps_latitude: true, 
-                    gpsEnableSignal_gps_longitude: true, 
-                    gpsEnableSignal_gps_hdop: false, 
-                    gpsEnableSignal_gps_altitude: true, 
-                    gpsEnableSignal_gps_fix: true, 
-                    gpsEnableSignal_gps_course: false, 
-                    gpsEnableSignal_gps_speed: true, 
-                    gpsEnableSignal_gps_speed_knots: false, 
-                    gpsEnableSignal_gps_date: false, 
-                    gpsEnableSignal_gps_nsat: false
-                },
-                networkOperatorSettings: {
-                    allowDataRoaming: true,
-                    operatorSelectMode: telit::AUTOMATIC,
-                    networkDescriptor: {
-                        PLMN: 0,
-                        networkType: telit::UTRAN
-                    }
-                },
-                networkDataSettings: {
-                    "apn"
-                },
-                socketConnectSettings: {
-                    packetSize: 0,
-                    idleTimeout: 0,
-                    connectTimeout: 150,
-                    txFlushTimer: 50
-                },
-                serverConnectSettings: {
-                    "openxcserverdemo.azurewebsites.net",
-                    port: 80
-                }
-            }
-        },
+		#ifdef TELIT_HE910_SUPPORT
+        telit: &telitDevice,
+		#else
+		telit: NULL,
+		#endif
         diagnosticsManager: {},
         pipeline: {},
     };
@@ -126,6 +145,7 @@ void openxc::config::getFirmwareDescriptor(char* buffer, size_t length) {
                 signals::getActiveMessageSet()->name : "default");
 }
 
+#ifdef TELIT_HE910_SUPPORT
 static void getFlashHash(openxc::config::Configuration* config) {
     MD5_CTX md5Context;
     unsigned char result[16];
@@ -139,4 +159,5 @@ static void getFlashHash(openxc::config::Configuration* config) {
     result[8], result[9], result[10], result[11],
     result[12], result[13], result[14], result[15]);
 }
+#endif
 

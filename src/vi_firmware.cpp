@@ -11,8 +11,9 @@
 #include "power.h"
 #include "bluetooth.h"
 #include "bluetooth_platforms.h"
-#include "telit_he910.h"
-#include "telit_he910_platforms.h"
+#include "platform/pic32/telit_he910.h"
+#include "platform/pic32/telit_he910_platforms.h"
+#include "platform/pic32/server_task.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
 #include "obd2.h"
@@ -35,6 +36,7 @@ namespace bluetooth = openxc::bluetooth;
 namespace commands = openxc::commands;
 namespace config = openxc::config;
 namespace telit = openxc::telitHE910;
+namespace server_task = openxc::server_task;
 namespace nvm = openxc::nvm;
 
 using openxc::util::log::debug;
@@ -58,7 +60,7 @@ static bool SUSPENDED;
  */
 void updateInterfaceLight() {
     #ifdef TELIT_HE910_SUPPORT
-    if(telit::connected(&getConfiguration()->telit)) {
+    if(telit::connected(getConfiguration()->telit)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     }
     #else
@@ -218,14 +220,14 @@ void firmwareLoop() {
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
         #ifdef TELIT_HE910_SUPPORT
-        telit::connectionManager(&getConfiguration()->telit);
-        if(telit::connected(&getConfiguration()->telit)) {
-            if(getConfiguration()->telit.config.globalPositioningSettings.gpsEnable) {
+        telit::connectionManager(getConfiguration()->telit);
+        if(telit::connected(getConfiguration()->telit)) {
+            if(getConfiguration()->telit->config.globalPositioningSettings.gpsEnable) {
                 telit::getGPSLocation();
             }
-            telit::firmwareCheck(&getConfiguration()->telit);
-            telit::flushDataBuffer(&getConfiguration()->telit);
-            telit::commandCheck(&getConfiguration()->telit);
+            server_task::firmwareCheck(getConfiguration()->telit);
+            server_task::flushDataBuffer(getConfiguration()->telit);
+            server_task::commandCheck(getConfiguration()->telit);
         }
         #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);

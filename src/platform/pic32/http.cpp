@@ -1,7 +1,7 @@
 #include "http.h"
 #include "util/log.h"
 #include "util/timer.h"
-#include "telit_he910.h"
+#include "platform/pic32/telit_he910.h"
 #include <stdio.h>
 
 namespace http = openxc::http;

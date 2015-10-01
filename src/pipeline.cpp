@@ -6,7 +6,6 @@
 #include "util/bytebuffer.h"
 #include "config.h"
 #include "lights.h"
-#include "telit_he910_platforms.h"
 
 #define PIPELINE_ENDPOINT_COUNT 4
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
@@ -92,6 +91,7 @@ void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
     }
 }
 
+#ifdef TELIT_HE910_SUPPORT
 void sendToTelit(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
     if(openxc::telitHE910::connected(pipeline->telit) && messageClass != MessageClass::LOG) {
@@ -102,6 +102,7 @@ void sendToTelit(Pipeline* pipeline, uint8_t* message, int messageSize,
     }
     // removed UART logging from the telit
 }
+#endif
 
 void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {

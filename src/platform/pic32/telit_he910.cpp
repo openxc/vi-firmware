@@ -1,6 +1,7 @@
 #include "telit_he910.h"
 #include "telit_he910_platforms.h"
 #include "interface/uart.h"
+#include "WProgram.h"
 #include "util/log.h"
 #include "util/timer.h"
 #include "gpio.h"
@@ -8,10 +9,9 @@
 #include "can/canread.h"
 #include "commands/commands.h"
 #include "interface/interface.h"
+#include "http.h"
 #include <string.h>
 #include <stdio.h>
-
-#ifdef TELIT_HE910_SUPPORT
 
 namespace gpio = openxc::gpio;
 namespace uart = openxc::interface::uart;
@@ -53,12 +53,8 @@ static char recv_data[1024];    // common buffer for receiving data from the mod
 static char* pRx = recv_data;
 static TelitDevice* telitDevice;
 static bool connect = false;
-static const unsigned int sendBufferSize = 4096;
-static uint8_t sendBuffer[sendBufferSize];
+static uint8_t sendBuffer[SEND_BUFFER_SIZE];
 static uint8_t* pSendBuffer = sendBuffer;
-static const unsigned int commandBufferSize = 512;
-static uint8_t commandBuffer[commandBufferSize];
-static uint8_t* pCommandBuffer = commandBuffer;
 
 static TELIT_CONNECTION_STATE state = telit::POWER_OFF;
 
@@ -508,7 +504,6 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP_Delay(TelitDevice
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP(TelitDevice* device) {
 	
 	TELIT_CONNECTION_STATE l_state = OPEN_PDP;
-	static unsigned int sub_state = 0;
 	static uint8_t pdp_counter = 0;
 	
 	// activate data session
@@ -1110,7 +1105,7 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
 
 }
 
-bool readSocketOne(unsigned int socketNumber, char* data, unsigned int* len) {
+bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, unsigned int* len) {
 
     bool rc = true;
     char command[32] = {};
@@ -1429,7 +1424,7 @@ bool openxc::telitHE910::getGPSLocation() {
     // now we have the GPS string in 'temp', send to parser to publish signals
     rc = parseGPSACP(temp);
     
-    next_update = uptimeMs() + getConfiguration()->telit.config.globalPositioningSettings.gpsInterval;
+    next_update = uptimeMs() + getConfiguration()->telit->config.globalPositioningSettings.gpsInterval;
     
     fcn_exit:
     return rc;
@@ -1457,7 +1452,7 @@ static bool parseGPSACP(const char* GPSACP) {
     openxc::telitHE910::GlobalPositioningSettings* gpsConfig;
     
     pipeline = &getConfiguration()->pipeline;
-    gpsConfig = &getConfiguration()->telit.config.globalPositioningSettings;
+    gpsConfig = &getConfiguration()->telit->config.globalPositioningSettings;
     
     char splitString[11][16] = {};
     bool validString[11] = {};
@@ -1592,7 +1587,7 @@ void openxc::telitHE910::processSendQueue(TelitDevice* device) {
     // our "sendBuffer" will buffer up multiple QUEUEs before flushing on a time and/or data watermark.
 
     // pop bytes from the device send queue (stop short of sendBuffer overflow)
-    while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) && (pSendBuffer - sendBuffer) < sendBufferSize) {
+    while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) && (pSendBuffer - sendBuffer) < SEND_BUFFER_SIZE) {
         *pSendBuffer++ = QUEUE_POP(uint8_t, &device->sendQueue);
     }
 
@@ -1600,4 +1595,43 @@ void openxc::telitHE910::processSendQueue(TelitDevice* device) {
 
 }
 
-#endif
+/*
+ * Public:
+ *
+ * Returns number of bytes allocated for the device data send buffer.
+ */
+unsigned int openxc::telitHE910::sizeSendBuffer(TelitDevice* device) {
+	return SEND_BUFFER_SIZE;
+ }
+ 
+
+/*
+ * Public:
+ *
+ * Resets the tracking pointer for the device data send buffer, which resets buffer to empty state.
+ */
+void openxc::telitHE910::resetSendBuffer(TelitDevice* device) {
+	pSendBuffer = sendBuffer;
+ }
+ 
+/*
+ * Public:
+ *
+ * Returns number of bytes stored in the device data send buffer.
+ */
+unsigned int openxc::telitHE910::bytesSendBuffer(TelitDevice* device) {
+	return int(pSendBuffer - sendBuffer);
+ }
+ 
+/*
+ * Public:
+ *
+ * Copies all bytes from the device data send buffer to the destination pointer, within the limits of the specified length.
+ */
+unsigned int openxc::telitHE910::readAllSendBuffer(TelitDevice* device, char* destination, unsigned int read_len) {
+	unsigned int write_len;
+	unsigned int size_buf = bytesSendBuffer(device);
+	write_len = (read_len < size_buf) ? read_len : size_buf;
+	memcpy(destination, sendBuffer, write_len);
+	return write_len;
+ }

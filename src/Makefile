@@ -121,7 +121,6 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
 						$(LIBS_PATH)/nanopb/pb_decode.c \
@@ -142,7 +141,6 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/bitfield-c/src \
 				-I$(LIBS_PATH)/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src \
-				-I$(LIBS_PATH)/http-parser
 
 CFLAGS_STD = -std=gnu99
 CXXFLAGS_STD = -std=gnu++0x

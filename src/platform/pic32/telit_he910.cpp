@@ -189,7 +189,7 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Off(TelitDevice* dev
 		
 	setPowerState(false);
 	telitDevice = device;
-	state = POWER_ON_DELAY;
+	l_state = POWER_ON_DELAY;
 	
 	return l_state;
 

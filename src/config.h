@@ -121,11 +121,13 @@ typedef struct {
     openxc::interface::uart::UartDevice uart;
     openxc::interface::network::NetworkDevice network;
     openxc::interface::usb::UsbDevice usb;
+    openxc::telitHE910::TelitDevice *telit;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;
+    char flashHash[36];
 } Configuration;
 
-/* Public: Retreive a singleton instance of the Configuration struct.
+/* Public: Retrieve a singleton instance of the Configuration struct.
  */
 Configuration* getConfiguration();
 

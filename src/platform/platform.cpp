@@ -3,6 +3,8 @@
 #include "power.h"
 #include "lights.h"
 #include "bluetooth.h"
+#include "platform/pic32/telit_he910.h"
+#include "platform/pic32/telit_he910_platforms.h"
 #include "signals.h"
 #include "config.h"
 #include "util/timer.h"
@@ -13,6 +15,7 @@
 
 namespace usb = openxc::interface::usb;
 namespace time = openxc::util::time;
+namespace telit = openxc::telitHE910;
 
 using openxc::pipeline::Pipeline;
 using openxc::util::log::debug;
@@ -33,6 +36,9 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);
     bluetooth::deinitialize();
+    #ifdef TELIT_HE910_SUPPORT
+    telit::deinitialize();
+    #endif
 
     if(getConfiguration()->powerManagement == PowerManagement::OBD2_IGNITION_CHECK) {
         debug("Enabling watchdog timer to poll for ignition status via OBD-II");

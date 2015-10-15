@@ -39,6 +39,7 @@ extern const char DIAGNOSTIC_SUCCESS_FIELD_NAME[];
 extern const char DIAGNOSTIC_NRC_FIELD_NAME[];
 extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
 extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
+extern const char MODEM_CONFIGURATION_COMMAND_NAME[];
 
 /* Public: Deserialize an OpenXC message from a payload containing JSON.
  *

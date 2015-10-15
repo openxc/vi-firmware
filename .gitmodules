@@ -36,3 +36,6 @@
 [submodule "src/libs/uds-c"]
 	path = src/libs/uds-c
 	url = https://github.com/openxc/uds-c
+[submodule "src/libs/http-parser"]
+	path = src/libs/http-parser
+	url = https://github.com/joyent/http-parser/

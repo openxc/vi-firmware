@@ -20,7 +20,8 @@
     #define BLUETOOTH_ENABLE_PIN_POLARITY 1
     #define BLUETOOTH_ENABLE_PORT 0
     #define BLUETOOTH_ENABLE_PIN 32 // PORTE BIT5 (RE5)
-
+	
+#elif defined(CROSSCHASM_CELLULAR_C5)
 
 #elif defined(CHIPKIT)
 

@@ -10,12 +10,17 @@
 #include "lights.h"
 #include "power.h"
 #include "bluetooth.h"
+#include "bluetooth_platforms.h"
+#include "platform/pic32/telit_he910.h"
+#include "platform/pic32/telit_he910_platforms.h"
+#include "platform/pic32/server_task.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
 #include "obd2.h"
 #include "data_emulator.h"
 #include "config.h"
 #include "commands/commands.h"
+#include "platform/pic32/nvm.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -30,6 +35,9 @@ namespace power = openxc::power;
 namespace bluetooth = openxc::bluetooth;
 namespace commands = openxc::commands;
 namespace config = openxc::config;
+namespace telit = openxc::telitHE910;
+namespace server_task = openxc::server_task;
+namespace nvm = openxc::nvm;
 
 using openxc::util::log::debug;
 using openxc::signals::getCanBuses;
@@ -51,9 +59,16 @@ static bool SUSPENDED;
  * the main program loop.
  */
 void updateInterfaceLight() {
+    #ifdef TELIT_HE910_SUPPORT
+    if(telit::connected(getConfiguration()->telit)) {
+        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
+    }
+    #else
     if(uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-    } else if(getConfiguration()->usb.configured) {
+    }    
+    #endif
+    else if(getConfiguration()->usb.configured) {
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
         lights::disable(lights::LIGHT_B);
@@ -136,27 +151,30 @@ void initializeIO() {
     debug("Moving to ALL I/O runlevel");
     usb::initialize(&getConfiguration()->usb);
     uart::initialize(&getConfiguration()->uart);
-
+    #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
+    #endif
 
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
 }
 
 void initializeVehicleInterface() {
+    #ifdef TELIT_HE910_SUPPORT
+    nvm::initialize();
+    #endif
     platform::initialize();
     openxc::util::log::initialize();
     time::initialize();
     power::initialize();
     lights::initialize();
-    bluetooth::initialize(&getConfiguration()->uart);
 
     srand(time::systemTimeMs());
     initializeAllCan();
 
     char descriptor[128];
     config::getFirmwareDescriptor(descriptor, sizeof(descriptor));
-    debug("Performing minimal initalization for %s", descriptor);
+    debug("Performing minimal initialization for %s", descriptor);
     BUS_WAS_ACTIVE = false;
 
     diagnostics::initialize(&getConfiguration()->diagnosticsManager,
@@ -183,7 +201,6 @@ void firmwareLoop() {
             getConfiguration()->desiredRunLevel == RunLevel::ALL_IO) {
         initializeIO();
     }
-
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
         // no USB or Bluetooth, the loop will stall here. Deep down in
@@ -202,7 +219,19 @@ void firmwareLoop() {
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
+        #ifdef TELIT_HE910_SUPPORT
+        telit::connectionManager(getConfiguration()->telit);
+        if(telit::connected(getConfiguration()->telit)) {
+            if(getConfiguration()->telit->config.globalPositioningSettings.gpsEnable) {
+                telit::getGPSLocation();
+            }
+            server_task::firmwareCheck(getConfiguration()->telit);
+            server_task::flushDataBuffer(getConfiguration()->telit);
+            server_task::commandCheck(getConfiguration()->telit);
+        }
+        #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
+        #endif
         network::read(&getConfiguration()->network,
                 network::handleIncomingMessage);
     }

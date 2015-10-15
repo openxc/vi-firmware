@@ -102,7 +102,7 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -140,7 +140,7 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
 				-I$(LIBS_PATH)/bitfield-c/src \
 				-I$(LIBS_PATH)/isotp-c/src \
-				-I$(LIBS_PATH)/uds-c/src
+				-I$(LIBS_PATH)/uds-c/src \
 
 CFLAGS_STD = -std=gnu99
 CXXFLAGS_STD = -std=gnu++0x
@@ -152,6 +152,14 @@ include tests/tests.mk
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), CROSSCHASM_C5)
+include platform/pic32/pic32.mk
+else ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
+# force a modified set of linkers for cellular c5
+# this is necessary to support OTA upgrades
+# we only want to change the FLASH erase rules for the bootloader
+# all other settings remain the same, and chipKIT-application-COMMON.ld is still used
+override LINKER_SCRIPTS  += -T platform/pic32/chipKIT-application-32MX795F512_c5cell.ld
+override LINKER_SCRIPTS  += -T $(ARDUINO_CORE_PATH)/chipKIT-application-COMMON.ld
 include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk

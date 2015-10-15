@@ -227,3 +227,57 @@ documentation is hereby granted, under NXP Semiconductors' and its licensor's
 relevant copyrights in the software, without fee, provided that it is used in
 conjunction with NXP Semiconductors microcontrollers.  This copyright,
 permission, and disclaimer notice must appear in all copies of this code.
+
+`http-parser <https://github.com/joyent/http-parser>`_
+
+http_parser.c is based on src/http/ngx_http_parse.c from NGINX copyright
+Igor Sysoev.
+
+Additional changes are licensed under the same terms as NGINX and
+copyright Joyent, Inc. and other Node contributors. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE. 
+
+`md5 <http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5>`_
+
+This software was written by Alexander Peslyak in 2001.  No copyright is
+claimed, and the software is hereby placed in the public domain.
+In case this attempt to disclaim copyright and place the software in the
+public domain is deemed null and void, then the software is
+Copyright (c) 2001 Alexander Peslyak and it is hereby released to the
+general public under the following terms:
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted.
+
+There's ABSOLUTELY NO WARRANTY, express or implied.
+
+(This is a heavily cut-down "BSD license".)
+
+This differs from Colin Plumb's older public domain implementation in that
+no exactly 32-bit integer data type is required (any 32-bit or wider
+unsigned integer data type will do), there's no compile-time endianness
+configuration, and the function prototypes match OpenSSL's.  No code from
+Colin Plumb's implementation has been reused; this comment merely compares
+the properties of the two independent implementations.
+
+The primary goals of this implementation are portability and ease of use.
+It is meant to be fast, but not as fast as possible.  Some known
+optimizations are not included to reduce source code size and avoid
+compile-time configuration.

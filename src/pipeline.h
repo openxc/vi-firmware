@@ -4,10 +4,13 @@
 #include "interface/usb.h"
 #include "interface/uart.h"
 #include "interface/network.h"
+#include "platform/pic32/telit_he910.h"
+#include "platform/pic32/telit_he910_platforms.h"
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
+using openxc::telitHE910::TelitDevice;
 
 #define MAX_OUTGOING_PAYLOAD_SIZE 256
 
@@ -37,6 +40,7 @@ typedef enum {
 typedef struct {
     UsbDevice* usb;
     UartDevice* uart;
+    TelitDevice* telit;
     NetworkDevice* network;
 } Pipeline;
 

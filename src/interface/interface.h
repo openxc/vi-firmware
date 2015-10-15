@@ -7,7 +7,8 @@ namespace interface {
 typedef enum {
     USB = 0,
     UART = 1,
-    NETWORK = 2
+    NETWORK = 2,
+    TELIT = 3
 } InterfaceType;
 
 /* Public:

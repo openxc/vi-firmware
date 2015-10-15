@@ -11,6 +11,16 @@
     #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
     #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
 
+#elif defined(CROSSCHASM_CELLULAR_C5)
+
+    #define USER_LED_A_SUPPORT
+    #define USER_LED_A_POLARITY 0 // turn on LED = drive pin low
+    #define USER_LED_A_PIN 3 // PORTD BIT0 (RD0) = GREEN
+
+    #define USER_LED_B_SUPPORT
+    #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
+    #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
+
 #elif defined(CHIPKIT)
 
     #define USER_LED_A_SUPPORT

@@ -5,6 +5,7 @@
 #include "bluetooth.h"
 #include "platform/pic32/telit_he910.h"
 #include "platform/pic32/telit_he910_platforms.h"
+#include "platform/pic32/ST_BLE_platforms.h"
 #include "signals.h"
 #include "config.h"
 #include "util/timer.h"
@@ -14,6 +15,7 @@
 #define OBD2_IGNITION_CHECK_WATCHDOG_TIMEOUT_MICROSECONDS 15000000
 
 namespace usb = openxc::interface::usb;
+namespace ble = openxc::interface::ble;
 namespace time = openxc::util::time;
 namespace telit = openxc::telitHE910;
 
@@ -36,6 +38,9 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);
     bluetooth::deinitialize();
+	#ifdef BLE_SUPPORT
+	ble::deinitialize(pipeline->ble);
+	#endif
     #ifdef TELIT_HE910_SUPPORT
     telit::deinitialize();
     #endif

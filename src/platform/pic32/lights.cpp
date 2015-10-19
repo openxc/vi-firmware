@@ -21,6 +21,24 @@
     #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
     #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
 
+#elif defined(CROSSCHASM_BTLE_C5)
+
+// GREEN- RB15 - 69 TOP
+// BLUE - RB12 - 67 CENTRE
+// RED -  RB13 - 66 BOTTOM
+
+	#define USER_LED_A_SUPPORT
+    #define USER_LED_A_POLARITY 0
+    #define USER_LED_A_PIN 66 	//RED
+
+    #define USER_LED_B_SUPPORT
+    #define USER_LED_B_POLARITY 0 
+    #define USER_LED_B_PIN 67 //BLUE
+	
+	#define USER_LED_C_SUPPORT //shared with bootloader
+    #define USER_LED_C_POLARITY 0
+    #define USER_LED_C_PIN 69  //GREEN
+	
 #elif defined(CHIPKIT)
 
     #define USER_LED_A_SUPPORT
@@ -47,6 +65,37 @@ void enablePin(openxc::lights::RGB color, int pin, int polarity) {
 }
 
 void openxc::lights::enable(Light light, RGB color) {
+	
+#ifdef CROSSCHASM_BTLE_C5
+
+	if(color.r == 255 && color.g == 0 && color.b == 0){
+		gpio::setValue(0, USER_LED_A_PIN, GPIO_VALUE_LOW);
+	}
+	else if(color.r == 0 && color.g == 0 && color.b == 255){
+		gpio::setValue(0, USER_LED_B_PIN, GPIO_VALUE_LOW);
+	}
+	else if(color.r == 0 && color.g == 255 && color.b == 0){
+		gpio::setValue(0, USER_LED_C_PIN, GPIO_VALUE_LOW);
+	}
+	else
+	{
+		switch(light)
+		{
+			case LIGHT_A:
+				gpio::setValue(0, USER_LED_A_PIN, GPIO_VALUE_HIGH);
+			break;
+			
+			case LIGHT_B:
+				gpio::setValue(0, USER_LED_B_PIN, GPIO_VALUE_HIGH);
+			break;
+			
+			case LIGHT_C:
+				gpio::setValue(0, USER_LED_C_PIN, GPIO_VALUE_HIGH);
+			break;
+		}
+	}
+	
+#else		
     switch(light) {
 #if defined(USER_LED_A_SUPPORT)
         case LIGHT_A:
@@ -62,6 +111,7 @@ void openxc::lights::enable(Light light, RGB color) {
         default:
             break;
     }
+#endif
 }
 
 void openxc::lights::initialize() {
@@ -73,4 +123,14 @@ void openxc::lights::initialize() {
     #if defined(USER_LED_B_SUPPORT)
     gpio::setDirection(0, USER_LED_B_PIN, GPIO_DIRECTION_OUTPUT);
     #endif
+	
+	#if defined(USER_LED_C_SUPPORT)
+	gpio::setDirection(0, USER_LED_C_PIN, GPIO_DIRECTION_OUTPUT);
+    #endif
+
+#ifdef CROSSCHASM_BTLE_C5
+	gpio::setValue(0, USER_LED_A_PIN, GPIO_VALUE_HIGH);
+	gpio::setValue(0, USER_LED_B_PIN, GPIO_VALUE_HIGH);
+	gpio::setValue(0, USER_LED_C_PIN, GPIO_VALUE_HIGH);
+#endif	
 }

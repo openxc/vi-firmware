@@ -1,3 +1,5 @@
+#ifdef CROSSCHASM_BTLE_C5
+
 #include "interface/ble.h"
 #include "config.h"
 #include "ST_BLE_platforms.h"
@@ -41,7 +43,7 @@ using openxc::interface::ble::BleStatus;
 using openxc::interface::ble::BleError;
 
 
-#ifdef BLE_SUPPORT
+
 
 #define OPTIMIZE_NOTIFICATION
 

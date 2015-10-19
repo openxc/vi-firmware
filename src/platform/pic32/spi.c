@@ -4,7 +4,7 @@
 #include <plib.h>
 
 bool SPI_Open(uint8_t channel/*expose spi options as needed*/) {
-    #warning "ONLY USE SPI IN 8 BIT MODE!!!!!!"
+
 
     if(!VerifyValidSpiChannel(channel)){
         return false;
@@ -28,7 +28,7 @@ bool SPI_Open(uint8_t channel/*expose spi options as needed*/) {
     // BR = Fpb/fpbDiv;
     // BR = Fpb/(2*(SPIBRG+1))
     //uint32_t fpbDiv = 40; //2Mhz
-	  uint32_t fpbDiv = 10; //2Mhz
+	  uint32_t fpbDiv = 10; //8Mhz
 	  
     SpiChnOpen(channel, config, fpbDiv);
 
@@ -60,7 +60,7 @@ uint8_t SPI_SendByte(uint8_t channel, uint8_t byte) {
 	while(!SPI2STATbits.SPIRBF);		
     // block until complete
     //while(!SpiChnDataRdy(channel));
-#warning "AT 8Mhz this call is faster than it takes to check,therefore skipping check"    
+
     // read dummy
     //return SpiChnGetC(channel);
 	return SPI2BUF;
@@ -76,7 +76,7 @@ uint8_t SPI_ReceiveByte(uint8_t channel) {
     //SpiChnPutC(channel, 0xFF);
 	SPI2BUF = 0xFF;
 	while(!SPI2STATbits.SPIRBF);	
-#warning "AT 8Mhz this call is faster than it takes to check,therefore skipping check"
+
     // wait for data
     //while(!SpiChnDataRdy(channel));
 
@@ -103,39 +103,40 @@ bool VerifyValidSpiChannel(uint8_t channel){
 
 void SPI_CS_Enable(uint8_t channel){
  
-    //if( channel == 2){
+    if( channel == 2){
         CS_SPICHANNEL2_ENABLE();
 		CS_SPICHANNEL2_ENABLE();
 		CS_SPICHANNEL2_ENABLE();
 		CS_SPICHANNEL2_ENABLE();
-    //}
+    }
 }
 
 void SPI_CS_Disable(uint8_t channel){
-   // if( channel == 2){
-        CS_SPICHANNEL2_DISABLE();
-		 CS_SPICHANNEL2_DISABLE();
-		  CS_SPICHANNEL2_DISABLE();
-		   CS_SPICHANNEL2_DISABLE();
+    if( channel == 2){
+		CS_SPICHANNEL2_DISABLE();
+		CS_SPICHANNEL2_DISABLE();
+		CS_SPICHANNEL2_DISABLE();
+		CS_SPICHANNEL2_DISABLE();
 		   
-   // }
+    }
 }
 
 void SPI_CS_SetHigh(uint8_t channel){
-   // if( channel == 2){
-        CS_SPICHANNEL2_ON();
-		 CS_SPICHANNEL2_ON();
-		  CS_SPICHANNEL2_ON();
-		   CS_SPICHANNEL2_ON();
-		    CS_SPICHANNEL2_ON();
+    if( channel == 2){
+		CS_SPICHANNEL2_ON();
+		CS_SPICHANNEL2_ON();
+		CS_SPICHANNEL2_ON();
+		CS_SPICHANNEL2_ON();
+		CS_SPICHANNEL2_ON();
 			
-   // }
+    }
 }
 
 void SPI_CS_SetLow(uint8_t channel){
-    CS_SPICHANNEL2_OFF();
-	 CS_SPICHANNEL2_OFF();
-	  CS_SPICHANNEL2_OFF(); 
-	   CS_SPICHANNEL2_OFF(); 
-	   
+	if( channel == 2){
+		CS_SPICHANNEL2_OFF();
+		CS_SPICHANNEL2_OFF();
+		CS_SPICHANNEL2_OFF(); 
+		CS_SPICHANNEL2_OFF(); 
+	}
 }

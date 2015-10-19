@@ -1,3 +1,5 @@
+
+#ifdef CROSSCHASM_BTLE_C5
 #include <stdint.h>
 #include <stdbool.h>
 #include "hal_types.h"
@@ -1176,3 +1178,4 @@ int hci_le_test_end(uint16_t *num_pkts)
   
   return 0;
 }
+#endif

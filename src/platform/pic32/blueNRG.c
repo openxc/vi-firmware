@@ -1,5 +1,6 @@
 
 /* Includes ------------------------------------------------------------------*/
+#ifdef CROSSCHASM_BTLE_C5
 #include <stdint.h>
 #include <stdbool.h>
 #include <plib.h>
@@ -254,10 +255,10 @@ void BlueNRG_Hal_Write_Serial(const void* data1, const void* data2, uint16_t n_b
       if(n_bytes2==0)
         break;
     }
-#warning "Hal_Write_Serial fails are not reported"
-    if(millis() > tm)//
+
+    if(millis() > tm)
 	{
-      break;//Todo handle this
+      break; //timeout on data handled by higher level application
     }
   }
 }
@@ -290,3 +291,4 @@ void BlueNRG_PowerOff(void)
 	
 	BlueNRG_DelayMS(5);
 }
+#endif

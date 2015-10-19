@@ -110,6 +110,15 @@ LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
 endif
+ifeq ($(PLATFORM), CROSSCHASM_BTLE_C5)
+CPPFLAGS += -I$(LIBS_PATH)/STBTLE/stlib \
+			-Iplatform/pic32 \
+			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
+			-Iinterface -DBLUENRG_MS
+
+CFLAGS   += -I$(LIBS_PATH)/STBTLE/stlib -Iplatform/pic32 -DBLUENRG_MS
+LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/stlib/*.c)
+endif
 ifeq ($(PLATFORM), CROSSCHASM_C5)
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)

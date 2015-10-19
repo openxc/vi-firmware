@@ -11,6 +11,7 @@
 #include "power.h"
 #include "bluetooth.h"
 #include "bluetooth_platforms.h"
+#include "platform/pic32/ST_BLE_platforms.h"
 #include "platform/pic32/telit_he910.h"
 #include "platform/pic32/telit_he910_platforms.h"
 #include "platform/pic32/server_task.h"
@@ -24,6 +25,7 @@
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
+namespace ble = openxc::interface::ble;
 namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
 namespace can = openxc::can;
@@ -63,16 +65,23 @@ void updateInterfaceLight() {
     if(telit::connected(getConfiguration()->telit)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     }
+	#elif defined BLE_SUPPORT
+	if(getConfiguration()->usb.configured || ble::connected(&getConfiguration()->ble)) { //if either of the interface are connected
+        lights::enable(lights::LIGHT_C, lights::COLORS.green);
+    } else {
+       lights::disable(lights::LIGHT_C);
+    } 
     #else
     if(uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-    }    
-    #endif
-    else if(getConfiguration()->usb.configured) {
+	}
+    else if(getConfiguration()->usb.configured){ //if either of the interface are connected
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
-        lights::disable(lights::LIGHT_B);
-    }
+       lights::disable(lights::LIGHT_B);
+    } 	
+    #endif
+
 }
 
 /* Public: Update the color and status of a board's light that shows the status
@@ -97,13 +106,20 @@ void checkBusActivity() {
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
         lights::enable(lights::LIGHT_A, lights::COLORS.blue);
+#ifdef CROSSCHASM_BTLE_C5
+		lights::disable(lights::LIGHT_A);//disable red led
+#endif		
         BUS_WAS_ACTIVE = true;
         SUSPENDED = false;
     } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
             !SUSPENDED))) {
         debug("CAN is quiet");
-        lights::enable(lights::LIGHT_A, lights::COLORS.red);
+#ifdef CROSSCHASM_BTLE_C5
+		lights::disable(lights::LIGHT_B); //disable blue led
+#endif		
+		lights::enable(lights::LIGHT_A, lights::COLORS.red);
+		
         SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
@@ -151,6 +167,9 @@ void initializeIO() {
     debug("Moving to ALL I/O runlevel");
     usb::initialize(&getConfiguration()->usb);
     uart::initialize(&getConfiguration()->uart);
+	#ifdef BLE_SUPPORT
+	ble::initialize(&getConfiguration()->ble);
+	#endif
     #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
     #endif
@@ -229,6 +248,8 @@ void firmwareLoop() {
             server_task::flushDataBuffer(getConfiguration()->telit);
             server_task::commandCheck(getConfiguration()->telit);
         }
+		#elif defined BLE_SUPPORT
+		ble::read(&getConfiguration()->ble); 
         #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
         #endif

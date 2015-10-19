@@ -62,6 +62,49 @@ using openxc::util::time::uptimeMs;
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern HardwareSerial Serial;
 
+
+#ifdef CROSSCHASM_BTLE_C5
+void openxc::interface::uart::read(UartDevice* device,openxc::util::bytebuffer::IncomingMessageCallback callback)
+{
+			
+}
+
+void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) 
+{
+	
+}
+
+void enableFlowControl(openxc::interface::uart::UartDevice* device)
+{
+	
+}
+
+void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte)
+{
+	
+}
+
+int openxc::interface::uart::readByte(UartDevice* device)
+{
+	return 0;
+}
+
+void openxc::interface::uart::initialize(UartDevice* device) 
+{
+	debug("UART Interface is not present on this device");
+}
+
+void openxc::interface::uart::processSendQueue(UartDevice* device) 
+{
+
+}
+
+bool openxc::interface::uart::connected(UartDevice* device)
+{
+	return false;
+}
+	
+#else
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
 void openxc::interface::uart::read(UartDevice* device,
@@ -201,3 +244,4 @@ bool openxc::interface::uart::connected(UartDevice* device) {
     return status;
 
 }
+#endif

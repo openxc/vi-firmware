@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#ifdef CROSSCHASM_BTLE_C5
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -40,6 +42,8 @@ uint8_t BlueNRG_SPI_Read_All(uint8_t *buffer, uint16_t buff_size);
 void BlueNRG_RST(void);
 
 void BlueNRG_PowerOff(void);
+
+#endif
 
 #ifdef __cplusplus
 }

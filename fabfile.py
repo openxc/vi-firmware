@@ -28,7 +28,8 @@ env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5", "extension": "hex"},
-    "cellc5": {"name": "CROSSCHASM_CELLULAR_C5", "extension": "hex"}
+    "cellc5": {"name": "CROSSCHASM_CELLULAR_C5", "extension": "hex"},
+	"btlec5": {"name": "CROSSCHASM_BTLE_C5", "extension": "hex"}
 }
 
 def latest_git_tag():
@@ -122,6 +123,7 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
+		'DEFAULT_ALLOW_RAW_WRITE_USB': False,
         'DEFAULT_OUTPUT_FORMAT': env.payload_format,
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
         'DEFAULT_POWER_MANAGEMENT': env.power_management,
@@ -261,6 +263,10 @@ def c5():
 def cellc5():
     env.board = 'cellc5'
 
+@task
+def btlec5():
+    env.board = 'btlec5'
+	
 @task
 def json():
     env.payload_format = "JSON"

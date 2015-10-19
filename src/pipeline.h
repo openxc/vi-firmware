@@ -4,12 +4,15 @@
 #include "interface/usb.h"
 #include "interface/uart.h"
 #include "interface/network.h"
+#include "interface/ble.h"
+#include "platform/pic32/ST_BLE_platforms.h"
 #include "platform/pic32/telit_he910.h"
 #include "platform/pic32/telit_he910_platforms.h"
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
 using openxc::interface::network::NetworkDevice;
+using openxc::interface::ble::BleDevice;
 using openxc::telitHE910::TelitDevice;
 
 #define MAX_OUTGOING_PAYLOAD_SIZE 256
@@ -40,6 +43,9 @@ typedef enum {
 typedef struct {
     UsbDevice* usb;
     UartDevice* uart;
+#ifdef BLE_SUPPORT
+	BleDevice*   ble;
+#endif
     TelitDevice* telit;
     NetworkDevice* network;
 } Pipeline;

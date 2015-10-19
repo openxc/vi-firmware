@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 
+#ifdef CROSSCHASM_BTLE_C5
 
 #include <hal_types.h>
 #include <link_layer.h>
@@ -227,6 +228,8 @@ void HCI_Register_Event_Callback(void(*cbf)(void *pckt));
 
 extern tListNode hciReadPktPool;
 extern tListNode hciReadPktRxQueue;
+
+#endif
 
 #ifdef __cplusplus
 }

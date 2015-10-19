@@ -7,8 +7,9 @@ using openxc::interface::uart::UartDevice;
 using openxc::payload::PayloadFormat;
 
 namespace usb = openxc::interface::usb;
-namespace telit = openxc::telitHE910;
+namespace ble = openxc::interface::ble;
 
+namespace telit = openxc::telitHE910;
 namespace signals = openxc::signals;
 
 #ifdef TELIT_HE910_SUPPORT
@@ -19,6 +20,9 @@ static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,
+#ifdef BLE_SUPPORT
+		&config->ble,
+#endif
 #ifdef TELIT_HE910_SUPPORT
         config->telit,
 #endif
@@ -85,6 +89,8 @@ openxc::telitHE910::TelitDevice telitDevice = {
 };
 #endif
 
+
+
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
@@ -124,11 +130,26 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
+		ble: {
+			descriptor: {
+                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
+            },
+			blesettings: {
+				"OpenXC_C5_BTLE",
+				adv_min_ms: 100,
+				adv_max_ms: 100,
+				slave_min_ms : 8, //range 0x0006 to 0x0C80
+				slave_max_ms : 16,
+			},	
+			
+		},
 		#ifdef TELIT_HE910_SUPPORT
         telit: &telitDevice,
 		#else
 		telit: NULL,
 		#endif
+
+		
         diagnosticsManager: {},
         pipeline: {},
     };

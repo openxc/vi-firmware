@@ -39,6 +39,9 @@ SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_UART=$(DEFAULT_ALLOW_RAW_WRITE_UART)
 DEFAULT_ALLOW_RAW_WRITE_NETWORK ?= 0
 SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_NETWORK=$(DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 
+DEFAULT_ALLOW_RAW_WRITE_BLE ?= 0
+SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_BLE=$(DEFAULT_ALLOW_RAW_WRITE_BLE)
+
 DEFAULT_METRICS_STATUS ?= 0
 SYMBOLS += DEFAULT_METRICS_STATUS=$(DEFAULT_METRICS_STATUS)
 
@@ -102,7 +105,7 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5 CROSSCHASM_BTLE_C5
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -161,6 +164,8 @@ else ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
 override LINKER_SCRIPTS  += -T platform/pic32/chipKIT-application-32MX795F512_c5cell.ld
 override LINKER_SCRIPTS  += -T $(ARDUINO_CORE_PATH)/chipKIT-application-COMMON.ld
 include platform/pic32/pic32.mk
+else ifeq ($(PLATFORM), CROSSCHASM_BTLE_C5)
+include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
 else ifeq ($(PLATFORM), BLUEBOARD)
@@ -183,6 +188,7 @@ define show_options
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_NETWORK)
+	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_BLE)
 	$(call show_vi_config_variable,DEFAULT_LOGGING_OUTPUT)
 	$(call show_vi_config_variable,DEFAULT_OUTPUT_FORMAT)
 	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)

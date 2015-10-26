@@ -276,7 +276,7 @@ def protobuf():
     env.payload_format = "PROTOBUF"
 
 @task
-def protobuf():
+def messagepack():
     env.payload_format = "MESSAGEPACK"
 	
 @task

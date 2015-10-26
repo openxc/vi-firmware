@@ -276,6 +276,10 @@ def protobuf():
     env.payload_format = "PROTOBUF"
 
 @task
+def protobuf():
+    env.payload_format = "MESSAGEPACK"
+	
+@task
 def clean():
     with lcd("%s/src" % env.root_dir):
         local("%s make clean" % build_options(), capture=True)

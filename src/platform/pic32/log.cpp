@@ -6,9 +6,17 @@
 extern HardwareSerial Serial2;
 
 void openxc::util::log::initialize() {
-    Serial2.begin(115200);
+#if defined(CROSSCHASM_BTLE_C5)
+		Serial.begin(115200);
+#else 
+		Serial2.begin(115200);
+#endif
 }
 
 void openxc::util::log::debugUart(const char* message) {
-    Serial2.print(message);
+#if defined(CROSSCHASM_BTLE_C5)
+		Serial.print(message);
+#else 
+		Serial2.print(message);
+#endif
 }

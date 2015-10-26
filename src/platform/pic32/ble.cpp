@@ -45,7 +45,7 @@ using openxc::interface::ble::BleError;
 
 
 
-#define OPTIMIZE_NOTIFICATION
+#define OPTIMIZE_NOTIFICATION 			1
 
 /* Private MACROS*/
 //Hardware related delays
@@ -67,7 +67,7 @@ using openxc::interface::ble::BleError;
 #define BLE_MAX_DEV_NAME_LEN         	13          //Maximum length of characters permitted for BLE name adversiment
 
 
-#define MAX_BLE_NOTIFY_RETRIES			5
+#define MAX_BLE_NOTIFY_RETRIES			100
 
 //UUID Generator MACROS
 #define COPY_UUID_128(uuid_struct, uuid_15, uuid_14, uuid_13, uuid_12, uuid_11, uuid_10, uuid_9, uuid_8, uuid_7, uuid_6, uuid_5, uuid_4, uuid_3, uuid_2, uuid_1, uuid_0) \
@@ -83,7 +83,7 @@ do {\
 #define COPY_APP_COM_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x52,0x62, 0x11,0xe5, 0x88,0x5d, 0xfe,0xff,0x81,0x9c,0xdc,0xe2)
 #define COPY_APP_RSP_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x52,0x62, 0x11,0xe5, 0x88,0x5d, 0xfe,0xff,0x81,0x9c,0xdc,0xe3)
 
-
+extern void Test_Deserial(void);
 
 static const uint8_t device_gap_name[]  = "CrossChasm";
 static const uint8_t bdaddr[] = {0xff, 0x00, 0x00, 0xE1, 0x80, 0x03};  //Bluetooth MAC address
@@ -135,6 +135,15 @@ uint32_t l2captimer=0;
 uint32_t notification_fail_retries =0;	
 
 
+static void flush_ble_buffers(void) //flushing out old unsent data sitting in memory
+{
+	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble.sendQueue)==false)
+	{
+		QUEUE_POP(uint8_t, &getConfiguration()->ble.sendQueue);
+	}
+	RingBuffer_Clear(&notify_buffer_ring);
+}
+
 
 static void app_notification_enable(bool state){
 
@@ -154,7 +163,8 @@ static void app_disconnected(void)
 {
 	debug("BLE App Disconnected");
 	getConfiguration()->ble.status = BleStatus::RADIO_ON_NOT_ADVERTISING;
-	send_l2cap_request = false;	
+	send_l2cap_request = false;
+	flush_ble_buffers();
 }
 
 static void app_connected(void)
@@ -208,7 +218,14 @@ fail: //failed to install service
 
 tBleStatus GATT_App_Notify(uint8_t* rsp, uint32_t rsplen)
 {  
-	return aci_gatt_update_char_value(vtServHandle, appRSPCharHandle, 0, rsplen, rsp);
+/*
+	debug("Notify Len %d",rsplen);
+	
+	for(int i=0 ; i< rsplen ; i++){
+		debug("%d",rsp[i]);
+	}
+*/	
+	return aci_gatt_update_char_value(vtServHandle, appRSPCharHandle, 0, rsplen, rsp);	
 }
 
 
@@ -674,7 +691,6 @@ bool openxc::interface::ble::connected(BleDevice* device)
 void openxc::interface::ble::processSendQueue(BleDevice* device) 
 {	
 	static uint8_t ndata[21];
-	uint8_t timer;
 	char d;uint8_t ret;
 	uint32_t sz;
 	
@@ -685,6 +701,7 @@ void openxc::interface::ble::processSendQueue(BleDevice* device)
 		{
 			d = QUEUE_POP(uint8_t,&device->sendQueue);
 			RingBuffer_Write(&notify_buffer_ring, &d, 1);
+			
 		}
 		
 		sz = RingBuffer_UsedSpace(&notify_buffer_ring);
@@ -694,33 +711,37 @@ void openxc::interface::ble::processSendQueue(BleDevice* device)
 			if(sz > 20)
 			{
 				sz = 20;
-#if defined OPTIMIZE_NOTIFICATION			
+		
 				small_packet_notify_present = false;
-#endif
+
 			}
 			else
 			{
-#if defined OPTIMIZE_NOTIFICATION
+
 				if(small_packet_notify_present == false)
 				{
 					small_packet_notify_time_ms = uptimeMs();
 					small_packet_notify_present = true;
+					return;
 				}
 				else{
 					if( uptimeMs() > small_packet_notify_time_ms + SMALL_NOTIFY_PACKET_TIMEOUT)
 					{
-						;
+						small_packet_notify_time_ms = uptimeMs();
+						small_packet_notify_present = false;
 					}
 					else
 					{
 						return;
 					}
 				}
-#endif
+
 			}
+			
 			RingBuffer_Peek(&notify_buffer_ring,(char*) ndata, sz);
 			
 			//Avoiding retries to allow more bandwidth to foreground application
+			
 			ret = GATT_App_Notify((uint8_t*)ndata, sz);
 			
 			if( ret != BLE_STATUS_SUCCESS)
@@ -734,7 +755,7 @@ void openxc::interface::ble::processSendQueue(BleDevice* device)
 						ST_BLE_Failed_CB(BleError::SET_CONNECTABLE_FAILED);
 					}	
 				}
-				else if(notification_fail_retries > 100)
+				else if(notification_fail_retries > MAX_BLE_NOTIFY_RETRIES)
 				{
 					debug("Notification failed code %d",ret);
 					notification_fail_retries = 0;

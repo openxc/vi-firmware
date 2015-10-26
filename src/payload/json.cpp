@@ -25,6 +25,7 @@ const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_co
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
+const char openxc::payload::json::PAYLOAD_FORMAT_MESSAGEPACK_NAME[] = "messagepack";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";

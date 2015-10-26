@@ -1,11 +1,11 @@
-#ifndef __JSON_H__
-#define __JSON_H__
+#ifndef __MESSAGEPACK_H__
+#define __MESSAGEPACK_H__
 
 #include "openxc.pb.h"
 
 namespace openxc {
 namespace payload {
-namespace json {
+namespace messagepack {
 
 extern const char VERSION_COMMAND_NAME[];
 extern const char DEVICE_ID_COMMAND_NAME[];
@@ -42,18 +42,18 @@ extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
 extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
 extern const char MODEM_CONFIGURATION_COMMAND_NAME[];
 
-/* Public: Deserialize an OpenXC message from a payload containing JSON.
+/* Public: Deserialize an OpenXC message from a payload containing MessagePack.
  *
  * payload - The bytestream payload to parse a message from.
  * length -  The length of the payload.
  * message - An output parameter, the object to store the deserialized message.
  *
- * Returns the number of bytes parsed as JSON object from the payload, if any
+ * Returns the number of bytes parsed as MessagePack object from the payload, if any
  * was found.
  */
 size_t deserialize(uint8_t payload[], size_t length, openxc_VehicleMessage* message);
 
-/* Public: Serialize an OpenXC message as JSON and store in the payload.
+/* Public: Serialize an OpenXC message as MessagePack and store in the payload.
  *
  * message - The message to serialize.
  * payload - The buffer to store the payload - must be allocated by the caller.
@@ -64,8 +64,8 @@ size_t deserialize(uint8_t payload[], size_t length, openxc_VehicleMessage* mess
  */
 int serialize(openxc_VehicleMessage* message, uint8_t payload[], size_t length);
 
-} // namespace json
+} // namespace messagepack
 } // namespace payload
 } // namespace openxc
 
-#endif // __JSON_H__
+#endif // __MESSAGEPACK_H__

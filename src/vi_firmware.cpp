@@ -166,7 +166,11 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 void initializeIO() {
     debug("Moving to ALL I/O runlevel");
     usb::initialize(&getConfiguration()->usb);
+	
+	#ifndef CROSSCHASM_BTLE_C5
     uart::initialize(&getConfiguration()->uart);
+	#endif
+	
 	#ifdef BLE_SUPPORT
 	ble::initialize(&getConfiguration()->ble);
 	#endif

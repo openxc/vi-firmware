@@ -60,7 +60,9 @@ const char openxc::payload::messagepack::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative
 const char openxc::payload::messagepack::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
 const char openxc::payload::messagepack::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
 
-enum msgpack_var_type{TYPE_STRING,TYPE_NUMBER,TYPE_TRUE,TYPE_FALSE,TYPE_BINARY};
+enum msgpack_var_type{TYPE_STRING,TYPE_NUMBER,TYPE_TRUE,TYPE_FALSE,TYPE_BINARY,TYPE_MAP};
+
+
 
 typedef struct sMsgPackNode{
 	char * string; //points to string header and not the string inorder to derive string 
@@ -70,17 +72,22 @@ typedef struct sMsgPackNode{
 	char *valuestring;
 	uint8_t *bin;
 	uint8_t binsz;
-	sMsgPackNode *next;
+	sMsgPackNode *next,*child;
 }sMsgPackNode; 
+
+typedef struct{
+	uint8_t MsgPackMapPairCount;
+}meta;
 
 typedef struct{
 	uint8_t * end;
 	uint8_t * start;
 	uint8_t * rp;
 	uint8_t * wp;
+	meta 	mobj;
 }sFile;	
 
-uint8_t MsgPackMapPairCount = 0;
+sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len);
 
 static size_t msgPackWriteBuffer(cmp_ctx_t *ctx, const void *data, size_t count) {
 	
@@ -108,57 +115,69 @@ static bool msgPackReadBuffer(cmp_ctx_t *ctx, void *data, size_t count) {
 }
 
 static void msgPackInitBuffer(sFile* smsgpackb, uint8_t* buf, uint8_t len){
-	
+
 	smsgpackb->end   = buf + len;
 	smsgpackb->start = buf;
 	smsgpackb->rp    = buf;
 	smsgpackb->wp    = buf;
 	
 }
-
+ 
 static void msgPackAddObjectString(cmp_ctx_t *ctx, const char* fname ,const char* obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_str(ctx, (const char *)obj, strlen(obj));
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObjectDouble(cmp_ctx_t *ctx, const char* fname ,double obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_double(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObject8bNumeric(cmp_ctx_t *ctx, const char* fname ,uint8_t obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_u8(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObject16bNumeric(cmp_ctx_t *ctx, const char* fname ,uint16_t obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_u16(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObject32bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32_t obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_u32(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
-
 static void msgPackAddObjectFloat(cmp_ctx_t *ctx, const char* fname ,float obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_float(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObjectBoolean(cmp_ctx_t *ctx, const char* fname ,bool obj){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_bool(ctx, obj);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObjectBinary(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj, uint8_t len){
+	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_bin_marker(ctx, len);
     cmp_write_bin(ctx,(const void *)obj, len);
-	MsgPackMapPairCount++;
+	s->mobj.MsgPackMapPairCount++;
 }
-
+static void msgPackAddObjectMap(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj,uint8_t len){
+	sFile *s = (sFile *)ctx->buf;
+	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
+	msgPackWriteBuffer(ctx, obj, len); 
+	s->mobj.MsgPackMapPairCount++;
+}
 
 	
 
@@ -177,19 +196,19 @@ static void msgPackAddDynamicField(cmp_ctx_t *ctx, openxc_DynamicField* field) {
 static void serializeSimple(openxc_VehicleMessage* message,  cmp_ctx_t *ctx) {
 		
 	const char* name = message->simple_message.name;	
-	
+	sFile *s = (sFile *)ctx->buf;
 	msgPackAddObjectString(ctx, payload::messagepack::NAME_FIELD_NAME, name);
 
     if(message->simple_message.has_value) {
 		cmp_write_str(ctx, payload::messagepack::VALUE_FIELD_NAME, strlen(payload::messagepack::VALUE_FIELD_NAME));
         msgPackAddDynamicField(ctx, &message->simple_message.value);
-		MsgPackMapPairCount++;
+		s->mobj.MsgPackMapPairCount++;
     }
 	
     if(message->simple_message.has_event) {
 		cmp_write_str(ctx, payload::messagepack::EVENT_FIELD_NAME, strlen(payload::messagepack::EVENT_FIELD_NAME));		
         msgPackAddDynamicField(ctx, &message->simple_message.event);
-		MsgPackMapPairCount++;
+		s->mobj.MsgPackMapPairCount++;
     }
 }
 
@@ -299,17 +318,24 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 
 	cmp_ctx_t cmp;
 	
+	memset((void*)&smsgpackb,0,sizeof(smsgpackb));
 	
-	msgPackInitBuffer(&smsgpackb, &MessagePackBuffer[1], MESSAGE_PACK_SERIAL_BUF_SZ-1);
+	msgPackInitBuffer(&smsgpackb, MessagePackBuffer, MESSAGE_PACK_SERIAL_BUF_SZ);
 	
 	cmp_init(&cmp,(void*)&smsgpackb, msgPackReadBuffer, msgPackWriteBuffer);
 	
-	MsgPackMapPairCount = 0;
-	//"{\"command\": \"payload_format\", \"bus\": 1, \"format\": \"protobuf\"}\0";
-	//msgPackAddObjectString(&cmp, "command", "payload_format");
-	//msgPackAddObject8bNumeric(&cmp, "bus", 1);
-	//msgPackAddObjectString(&cmp, "format", "json");
+	cmp_write_map(&cmp,3);
 	
+//	"{\"command\": \"diagnostic_request\", \"actio"
+//    "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
+	//msgPackAddObjectString(&cmp, "command", "diagnostic_request");
+	//msgPackAddObjectString(&cmp, "action", "add");
+	//cmp_write_str(&cmp, "request", 7);
+	//cmp_write_map(&cmp,3);
+	//msgPackAddObject8bNumeric(&cmp, "bus",  1);
+	//msgPackAddObject8bNumeric(&cmp, "id",   2);
+	//msgPackAddObject8bNumeric(&cmp, "mode", 1);
+	//smsgpackb.mobj.MsgPackMapPairCount -=3;
 	//goto x;
 	
 	if(message->has_uptime) {
@@ -328,22 +354,29 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	} else {
 		debug("Unrecognized message type -- not sending");
 	}
-	x:
+	
 	if(cmp.error > 0){
 		debug("%s\n\n", cmp_strerror(&cmp));
 		return 0;
 	}
-	if(MsgPackMapPairCount > MESSAGE_PACK_FIXMAP_SIZE)
+	if( smsgpackb.mobj.MsgPackMapPairCount > MESSAGE_PACK_FIXMAP_SIZE)
 	{
-		debug("Unhandled, excedded fix map limit %d",MsgPackMapPairCount);
+		debug("Unhandled, excedded fix map limit %d",smsgpackb.mobj.MsgPackMapPairCount);
 		return 0;
 	}
 	
-	MessagePackBuffer[0] = MESSAGE_PACK_FIXMAP_MARKER | MsgPackMapPairCount; //todo create a function to add this more gracefully
+	smsgpackb.start[0] = MESSAGE_PACK_FIXMAP_MARKER | smsgpackb.mobj.MsgPackMapPairCount; //todo create a function to add this more gracefully
 	
+	x:
 	finalLength = smsgpackb.wp - smsgpackb.start + 1;
 	
     memcpy(payload, MessagePackBuffer, finalLength);
+	
+	//debug ("parsing %d bytes",finalLength);
+	//openxc_VehicleMessage m;
+	//int l = openxc::payload::messagepack::deserialize(payload,finalLength,&m);
+	//debug ("deserialized %d bytes",l);
+	//while(1);
 /*
 	for(int i = 0;i < finalLength; i ++)
 	{
@@ -360,6 +393,8 @@ sMsgPackNode * msgPackSeekNode(sMsgPackNode* root,const char * name ){
 	sMsgPackNode * node = root;
 	while(node){
 		if(strcmp(node->string, name) == 0){
+			if(node->child)return node->child;
+			
 			return node;
 		}
 		node = node->next;
@@ -379,6 +414,7 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 	enum msgpack_var_type type;
 	double vd=0.0;
 	int    vi=0;
+	sMsgPackNode* ch;
 	
 	str_size = 32;
 	
@@ -388,9 +424,6 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 	
     if (cmp_read_object(ctx, &obj) == true) { //read value
         switch (obj.type) {
-            case CMP_TYPE_FIXMAP:
-            case CMP_TYPE_MAP16:
-            case CMP_TYPE_MAP32:
 			case CMP_TYPE_FIXARRAY:
             case CMP_TYPE_ARRAY16:
             case CMP_TYPE_ARRAY32:
@@ -412,6 +445,17 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 			{
 				debug("Unhandled object %d",obj.type);
                 return NULL;
+			}
+			case CMP_TYPE_FIXMAP:
+            case CMP_TYPE_MAP16:
+            case CMP_TYPE_MAP32:
+			{
+				sFile * s = (sFile *)ctx->buf;
+				uint32_t plen = s->end-s->rp + 1;
+				ch = msgPackParse(s->rp-1,&plen);
+				if(ch == NULL)return NULL;
+				s->rp += plen;
+				type = msgpack_var_type::TYPE_MAP;
 			}
             break;
 			case CMP_TYPE_BIN8:
@@ -520,6 +564,9 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 		memcpy(node->valuestring,vstr,str_size);
 		node->valuestring[str_size] = '\0';
 	}
+	if(type == msgpack_var_type::TYPE_MAP){
+		node->child = ch;
+	}
 	node->valueint = vi;
 	node->valuedouble = vd;
 	node->next = NULL;
@@ -532,12 +579,17 @@ void msgPackListNodes(sMsgPackNode* root)
 	debug("list:");
 	while(n)
 	{
+		if(n->child){
+			debug("child:");
+			msgPackListNodes(n->child);
+		}
+			
 		debug("%s",n->string);
 		n = n->next;
 	}
 }
 
-void MsgPackDelete(sMsgPackNode* root)
+void MsgPackDelete(sMsgPackNode* root)//rentrant
 {
 	sMsgPackNode *pv, *rp;
 	
@@ -547,17 +599,27 @@ void MsgPackDelete(sMsgPackNode* root)
 		while(pv->next){
 				rp = pv;
 				pv = pv->next;
-				
+				if(pv->child){
+					MsgPackDelete(pv->child);
+					pv->child = NULL;
+					goto x;
+				}
 		}
+		//debug("deleting:%s",pv->string);
 		free(pv->string);
 		if(pv->type == msgpack_var_type::TYPE_STRING){
 			free(pv->valuestring);
 		
 		}
+		if(pv->child){
+			MsgPackDelete(pv->child);
+		}
 		free(pv);
 		rp->next = NULL;
+x:
 		rp = root;
 	}
+	//debug("deleting:%s",root->string);
 	free(root->string);
 	if(root->type == msgpack_var_type::TYPE_STRING){
 		free(root->valuestring);
@@ -565,7 +627,7 @@ void MsgPackDelete(sMsgPackNode* root)
 	free(root);
 }
 
-sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){
+sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
 	
 	sMsgPackNode *node = NULL;
 	sMsgPackNode *root = NULL;
@@ -603,7 +665,6 @@ sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){
 		node = node->next;
 		map_len--;
 	}
-	msgPackListNodes(root);
 	*len = (uint32_t)(smsgpackb.rp-smsgpackb.start)+1; //update bytes read from buffer
 	return root;
 }
@@ -651,9 +712,7 @@ static void deserializePayloadFormat(sMsgPackNode* root,
         } else if(!strcmp(element->valuestring,
                     openxc::payload::messagepack::PAYLOAD_FORMAT_MESSAGEPACK_NAME)) {
             command->payload_format_command.has_format = false;
-			debug("Unimplemented");
-            //command->payload_format_command.format =
-                    //openxc_PayloadFormatCommand_PayloadFormat_MESSAGEPACK;//to be added to command format
+            command->payload_format_command.format = openxc_PayloadFormatCommand_PayloadFormat_MESSAGEPACK;
         }
     }
 }
@@ -924,6 +983,7 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 			root = msgPackParse(&payload[i],&len);
 			if( root != NULL)//we found a message
 			{
+				msgPackListNodes(root);
 				Messagelen = i + len; //message len to discard on success
 				break;
 			}

@@ -21,7 +21,9 @@
 #define MESSAGE_PACK_FIXMAP_MARKER   0x80
 #define MESSAGE_PACK_MAX_STRLEN      0x1F
 
-
+#define MAX_STRLEN 25
+#define MAX_BINLEN 25
+	
 namespace payload = openxc::payload;
 using openxc::util::log::debug;
 
@@ -62,7 +64,7 @@ const char openxc::payload::messagepack::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value"
 
 enum msgpack_var_type{TYPE_STRING,TYPE_NUMBER,TYPE_TRUE,TYPE_FALSE,TYPE_BINARY,TYPE_MAP};
 
-
+int32_t dynamic_allocation_bytes = 0;
 
 typedef struct sMsgPackNode{
 	char * string; //points to string header and not the string inorder to derive string 
@@ -116,7 +118,7 @@ static bool msgPackReadBuffer(cmp_ctx_t *ctx, void *data, size_t count) {
 
 static void msgPackInitBuffer(sFile* smsgpackb, uint8_t* buf, uint8_t len){
 
-	smsgpackb->end   = buf + len;
+	smsgpackb->end   = buf + len - 1;
 	smsgpackb->start = buf;
 	smsgpackb->rp    = buf;
 	smsgpackb->wp    = buf;
@@ -337,17 +339,18 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	//msgPackAddObject8bNumeric(&cmp, "bus", 1);
 	//msgPackAddObjectBoolean(&cmp, "enabled", 1);
 	//goto x;
-	
-	//msgPackAddObjectString(&cmp, "command", "diagnostic_request");
-	//msgPackAddObjectString(&cmp, "action", "add");
-	//cmp_write_str(&cmp, "request", 7);
-	//cmp_write_map(&cmp,3);
-	//msgPackAddObject8bNumeric(&cmp, "bus",  1);
-	//msgPackAddObject8bNumeric(&cmp, "id",   2);
-	//msgPackAddObject8bNumeric(&cmp, "mode", 1);
-	//smsgpackb.mobj.MsgPackMapPairCount -=3;
-	//goto x;
-	
+	/*
+	cmp_write_map(&cmp,3);
+	msgPackAddObjectString(&cmp, "command", "diagnostic_request");
+	msgPackAddObjectString(&cmp, "action", "add");
+	cmp_write_str(&cmp, "request", 7);
+	cmp_write_map(&cmp,3);
+	msgPackAddObject8bNumeric(&cmp, "bus",  1);
+	msgPackAddObject8bNumeric(&cmp, "id",   2);
+	msgPackAddObject8bNumeric(&cmp, "mode", 1);
+	smsgpackb.mobj.MsgPackMapPairCount -=3;
+	goto x;
+	*/
 	if(message->has_uptime) {
 		
 		msgPackAddObject32bNumeric(&cmp, "uptime", message->uptime);
@@ -355,16 +358,12 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	}
 	if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
 		serializeSimple(message, &cmp);
-		debug("Serialize simple response");
 	} else if(message->type == openxc_VehicleMessage_Type_CAN) {
 		serializeCan(message, &cmp);
-		debug("Serialize can response");
 	} else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
 		serializeDiagnostic(message, &cmp);
-		debug("Serialize diagnostic response");
 	} else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
 		serializeCommandResponse(message, &cmp);
-		debug("Serialize command response");
 	} else {
 		debug("Unrecognized message type -- not sending");
 	}
@@ -413,15 +412,16 @@ sMsgPackNode * msgPackSeekNode(sMsgPackNode* root,const char * name ){
 		}
 		node = node->next;
 	}
-	debug("Missing %s",name);
+	//debug("Missing %s",name);
 	return node;
 }
 
 sMsgPackNode* getnode(cmp_ctx_t * ctx){
+
 	
-	char vstr[33];
-	char nstr[33];
-	char binarr[33];
+	char vstr[MAX_STRLEN+1];
+	char nstr[MAX_STRLEN+1];
+	char binarr[MAX_BINLEN+1];
 	uint32_t str_size;
 	char binsz = 0;
 	cmp_object_t obj;
@@ -430,9 +430,10 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 	int    vi=0;
 	sMsgPackNode* ch;
 	
-	str_size = 32;
+	str_size = MAX_STRLEN;
 	
 	if (!cmp_read_str(ctx, nstr, &str_size)){
+		//debug("Node incomplete %s",cmp_strerror(ctx));
         return NULL;
 	}
 	
@@ -465,10 +466,15 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
             case CMP_TYPE_MAP32:
 			{
 				sFile * s = (sFile *)ctx->buf;
-				uint32_t plen = s->end-s->rp + 1;
-				ch = msgPackParse(s->rp-1,&plen);
-				if(ch == NULL)return NULL;
-				s->rp += plen;
+				s->rp--;
+				uint32_t plen = (s->end - s->rp) + 1;
+				ch = msgPackParse(s->rp,&plen);
+				if(ch == NULL){
+					//debug("Child incomplete %s",cmp_strerror(ctx));
+					return NULL;
+				}
+					
+				s->rp += plen + 1;
 				type = msgpack_var_type::TYPE_MAP;
 			}
             break;
@@ -476,7 +482,7 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
             case CMP_TYPE_BIN16:
             case CMP_TYPE_BIN32:
 			{
-				if(obj.as.bin_size > 32)
+				if(obj.as.bin_size > MAX_BINLEN)
 					return NULL;
 				
 				if (!msgPackReadBuffer(ctx, binarr, obj.as.bin_size))
@@ -489,7 +495,7 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
             case CMP_TYPE_STR16:
             case CMP_TYPE_STR32:
 			{
-				if(obj.as.str_size > 32)
+				if(obj.as.str_size > MAX_STRLEN)
 					return NULL;
 			
                 if (!msgPackReadBuffer(ctx, vstr, obj.as.str_size))
@@ -545,11 +551,11 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
         }
     } else
 	{
-		debug("Node incomplete %d",ctx->error );
+		//debug("Node incomplete %s",cmp_strerror(ctx));
 		return NULL;
 	}
 	sMsgPackNode* node = (sMsgPackNode*)malloc(sizeof(sMsgPackNode));
-	
+	dynamic_allocation_bytes += sizeof(sMsgPackNode);
 	if(node == NULL){
 		debug("Unable to create node in memory");
 		return NULL;
@@ -557,12 +563,14 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 	
 	str_size = strlen(nstr);
 	node->string = (char*)malloc(str_size + 1);
+	dynamic_allocation_bytes += str_size + 1;
 	memcpy(node->string,nstr,str_size);	//copy null terminator as well
 	node->string[str_size] = '\0';	
 	node->type = type;
 	
 	if(node->type == msgpack_var_type::TYPE_BINARY){
 		node->bin = (uint8_t *)malloc(binsz);
+		dynamic_allocation_bytes += binsz;
 		if(node->bin ==NULL){
 			debug("Unable to allocate mem bin");
 		}
@@ -572,12 +580,14 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 	if(node->type == msgpack_var_type::TYPE_STRING){
 		str_size = strlen(vstr);
 		node->valuestring = (char *)malloc(str_size+1);
+		dynamic_allocation_bytes += str_size + 1;
 		if(node->valuestring == NULL){
 			debug("Unable to allocate mem str");
 		}
 		memcpy(node->valuestring,vstr,str_size);
 		node->valuestring[str_size] = '\0';
 	}
+	node->child = NULL;
 	if(type == msgpack_var_type::TYPE_MAP){
 		node->child = ch;
 	}
@@ -620,25 +630,32 @@ void MsgPackDelete(sMsgPackNode* root)//rentrant
 				}
 		}
 		//debug("deleting:%s",pv->string);
+		dynamic_allocation_bytes -= (strlen(pv->string) + 1);
 		free(pv->string);
-		if(pv->type == msgpack_var_type::TYPE_STRING){
-			free(pv->valuestring);
 		
+		if(pv->type == msgpack_var_type::TYPE_STRING){
+			dynamic_allocation_bytes -= (strlen(pv->valuestring) + 1);
+			free(pv->valuestring);
+			
 		}
 		if(pv->child){
 			MsgPackDelete(pv->child);
 		}
 		free(pv);
+		dynamic_allocation_bytes -= sizeof(sMsgPackNode);
 		rp->next = NULL;
 x:
 		rp = root;
 	}
 	//debug("deleting:%s",root->string);
+	dynamic_allocation_bytes -= (strlen(root->string) + 1);
 	free(root->string);
 	if(root->type == msgpack_var_type::TYPE_STRING){
+		dynamic_allocation_bytes -= (strlen(root->valuestring) + 1);
 		free(root->valuestring);
 	}
 	free(root);
+	dynamic_allocation_bytes -= sizeof(sMsgPackNode);
 }
 
 sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
@@ -654,17 +671,23 @@ sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
 		return NULL;
 	}
 	
-	uint8_t map_len = buf[0] - 0x80;
+	uint32_t map_len;
 
-	msgPackInitBuffer(&smsgpackb, &buf[1], *len-1);
+	msgPackInitBuffer(&smsgpackb, buf, *len);
 	
 	cmp_init(&cmp,(void*)&smsgpackb, msgPackReadBuffer, msgPackWriteBuffer);
+	
+	
+	if(cmp_read_map(&cmp, &map_len) == false)
+	{
+		return NULL;
+	}
 	
 	root = getnode(&cmp); //get node creates a node on the heap using malloc
 	
 	if( root == NULL)
 	{
-		debug("Node missing");
+		//debug("Root Node missing");
 		return NULL;
 	}
 	node = root;
@@ -674,12 +697,14 @@ sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
 		node->next = getnode(&cmp);
 		
 		if(node->next == NULL){
-			return NULL;			//insufficient data to form all nodes
+			//debug("Message pack contains partial information");
+			MsgPackDelete(root);
+			return NULL;			
 		}		
 		node = node->next;
 		map_len--;
 	}
-	*len = (uint32_t)(smsgpackb.rp-smsgpackb.start)+1; //update bytes read from buffer
+	*len = (uint32_t)(smsgpackb.rp - smsgpackb.start); //update bytes read from buffer
 	return root;
 }
 
@@ -997,16 +1022,19 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 			root = msgPackParse(&payload[i],&len);
 			if( root != NULL)//we found a message
 			{
-				msgPackListNodes(root);
-				Messagelen = i + len; //message len to discard on success
+				//debug("Message Pack Data Complete %d bytes", len);
+				//msgPackListNodes(root);
+				Messagelen = i + len; //message len to discard on success, discarding previous data
 				break;
 			}
 		}
 		i++;
 	}
 	if(root == NULL)
+	{
+		//debug("MessagePackMemUsed:%d bytes", dynamic_allocation_bytes);
 		return 0;
-	
+	}
 	sMsgPackNode* commandNameObject = msgPackSeekNode(root, "command");
 
 	if(commandNameObject != NULL) {
@@ -1024,7 +1052,6 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 					DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
 			command->has_type = true;
 			command->type = openxc_ControlCommand_Type_DEVICE_ID;
-			debug("deserialized device id command");
 		} else if(!strncmp(commandNameObject->valuestring,
 					DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
 			deserializeDiagnostic(root, command);
@@ -1060,8 +1087,10 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 			deserializeSimple(root, message);
         }
 	}
+	
 	MsgPackDelete(root);
 	debug("Parsed: %d bytes", Messagelen);
+	//debug("MessagePackMemUsed:%d bytes", dynamic_allocation_bytes);	
 	return Messagelen;		
 }
 		

@@ -632,7 +632,7 @@ void openxc::interface::ble::read(BleDevice* device) {
 	err = HCI_Process();
 	
 	//send_l2cap_request = false;
-	if(send_l2cap_request == true &&  uptimeMs() > l2captimer+500){
+	if(send_l2cap_request == true &&  uptimeMs() > l2captimer+1000){
         
 		l2captimer = uptimeMs(); 
 		//debug("Updating L2CAP connection parameters");

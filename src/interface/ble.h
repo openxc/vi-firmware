@@ -26,6 +26,7 @@ typedef struct {
 	uint16_t adv_max_ms;
 	uint16_t slave_min_ms; 
 	uint16_t slave_max_ms;
+	uint8_t  bdaddr[6];
 }BleSettings;
 
 typedef enum {

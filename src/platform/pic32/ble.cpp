@@ -86,7 +86,7 @@ do {\
 extern void Test_Deserial(void);
 
 static const uint8_t device_gap_name[]  = "CrossChasm";
-static const uint8_t bdaddr[] = {0xff, 0x00, 0x00, 0xE1, 0x80, 0x03};  //Bluetooth MAC address
+
  /*
    const uint8_t manuf_data[] = {26, AD_TYPE_MANUFACTURER_SPECIFIC_DATA, 
       0xF0, 0x00, //Company identifier code (Default is 0x0030 - STMicroelectronics: To be customized for specific identifier)
@@ -522,7 +522,7 @@ bool openxc::interface::ble::initialize(BleDevice* device)
 
 	//Write BLE MAC address and set it as public
 	ret = aci_hal_write_config_data(CONFIG_DATA_PUBADDR_OFFSET, CONFIG_DATA_PUBADDR_LEN,
-									bdaddr);
+									device->blesettings.bdaddr);
 
 	if(ret != BLE_STATUS_SUCCESS)
 	{

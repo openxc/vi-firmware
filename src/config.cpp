@@ -140,6 +140,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 				adv_max_ms: 100,
 				slave_min_ms : 8, //range 0x0006 to 0x0C80
 				slave_max_ms : 16,
+				bdaddr: {0xff, 0x00, 0x00, 0xE1, 0x80, 0x03}, //this could be kept as a constant
 			},	
 			
 		},

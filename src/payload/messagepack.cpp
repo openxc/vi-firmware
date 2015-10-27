@@ -324,10 +324,20 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	
 	cmp_init(&cmp,(void*)&smsgpackb, msgPackReadBuffer, msgPackWriteBuffer);
 	
-	cmp_write_map(&cmp,3);
+	cmp_write_map(&cmp,2);
 	
-//	"{\"command\": \"diagnostic_request\", \"actio"
-//    "n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
+	//"{\"command\": \"diagnostic_request\", \"actio"
+    //"n\": \"add\", \"request\": {\"bus\": 1, \"id\": 2, \"mode\": 1}}\0";
+	
+	//"{\"command\": \"version\"}\0";
+	
+	//msgPackAddObjectString(&cmp, "command", "device_id");
+	//cmp_write_map(&cmp,3);
+	//msgPackAddObjectString(&cmp, "command", "passthrough");
+	//msgPackAddObject8bNumeric(&cmp, "bus", 1);
+	//msgPackAddObjectBoolean(&cmp, "enabled", 1);
+	//goto x;
+	
 	//msgPackAddObjectString(&cmp, "command", "diagnostic_request");
 	//msgPackAddObjectString(&cmp, "action", "add");
 	//cmp_write_str(&cmp, "request", 7);
@@ -345,12 +355,16 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	}
 	if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
 		serializeSimple(message, &cmp);
+		debug("Serialize simple response");
 	} else if(message->type == openxc_VehicleMessage_Type_CAN) {
 		serializeCan(message, &cmp);
+		debug("Serialize can response");
 	} else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
 		serializeDiagnostic(message, &cmp);
+		debug("Serialize diagnostic response");
 	} else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
 		serializeCommandResponse(message, &cmp);
+		debug("Serialize command response");
 	} else {
 		debug("Unrecognized message type -- not sending");
 	}
@@ -1010,6 +1024,7 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 					DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
 			command->has_type = true;
 			command->type = openxc_ControlCommand_Type_DEVICE_ID;
+			debug("deserialized device id command");
 		} else if(!strncmp(commandNameObject->valuestring,
 					DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
 			deserializeDiagnostic(root, command);
@@ -1046,7 +1061,7 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
         }
 	}
 	MsgPackDelete(root);
-	
+	debug("Parsed: %d bytes", Messagelen);
 	return Messagelen;		
 }
 		

@@ -1,5 +1,4 @@
 #include "commands/device_id_command.h"
-
 #include "config.h"
 #include "diagnostics.h"
 #include "interface/usb.h"
@@ -11,6 +10,7 @@
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
 #include <limits.h>
+#include "interface/ble.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -29,14 +29,30 @@ namespace payload = openxc::payload;
 namespace config = openxc::config;
 namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
+namespace ble = openxc::interface::ble;
 namespace uart = openxc::interface::uart;
 namespace pipeline = openxc::pipeline;
 
 bool openxc::commands::handleDeviceIdCommmand() {
     // TODO move getDeviceId to openxc::platform, allow each platform to
     // define where the device ID comes from.
-    uart::UartDevice* uart = &getConfiguration()->uart;
-    size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
+    
+#ifdef CROSSCHASM_BTLE_C5
+	//return the mac address of the device
+	char ids[32];
+	ble::BleDevice* ble = &getConfiguration()->ble;
+	
+	sprintf(ids,"%02X:%02X:%02X:%02X:%02X:%02X", 
+		ble->blesettings.bdaddr[0],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[2], 
+		ble->blesettings.bdaddr[3],ble->blesettings.bdaddr[4],ble->blesettings.bdaddr[5]
+	);
+	sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, true,
+                (char *)ids, strlen(ids));
+	return true;
+	
+#else
+	uart::UartDevice* uart = &getConfiguration()->uart;
+	size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
     bool status = false;
     if(deviceIdLength > 0) {
         status = true;
@@ -44,4 +60,5 @@ bool openxc::commands::handleDeviceIdCommmand() {
                 uart->deviceId, deviceIdLength);
     }
     return status;
+#endif
 }

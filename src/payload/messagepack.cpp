@@ -97,7 +97,7 @@ static size_t msgPackWriteBuffer(cmp_ctx_t *ctx, const void *data, size_t count)
 	
 	if(ctx->error > 0)return 0;
 	
-	if((smsgb->wp + count) > smsgb->end){
+	if(smsgb->wp + count > (smsgb->end+1)){
 		return 0;
 	}
 	memcpy(smsgb->wp, data, count);
@@ -107,7 +107,7 @@ static size_t msgPackWriteBuffer(cmp_ctx_t *ctx, const void *data, size_t count)
 
 static bool msgPackReadBuffer(cmp_ctx_t *ctx, void *data, size_t count) {
 	sFile * smsgb = (sFile *)ctx->buf;
-	if((smsgb->rp + count) > smsgb->end){
+	if(smsgb->rp + count > (smsgb->end+1)){
 		return 0;
 	}
 	memcpy((void*)data, (const void*)smsgb->rp, count);
@@ -170,8 +170,8 @@ static void msgPackAddObjectBoolean(cmp_ctx_t *ctx, const char* fname ,bool obj)
 static void msgPackAddObjectBinary(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj, uint8_t len){
 	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
-	cmp_write_bin_marker(ctx, len);
-    cmp_write_bin(ctx,(const void *)obj, len);
+	//cmp_write_bin_marker(ctx, len);
+    cmp_write_bin(ctx,(const void *)obj, len); //writes marker as well
 	s->mobj.MsgPackMapPairCount++;
 }
 static void msgPackAddObjectMap(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj,uint8_t len){
@@ -380,8 +380,8 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	
 	smsgpackb.start[0] = MESSAGE_PACK_FIXMAP_MARKER | smsgpackb.mobj.MsgPackMapPairCount; //todo create a function to add this more gracefully
 	
-	x:
-	finalLength = smsgpackb.wp - smsgpackb.start + 1;
+
+	finalLength = smsgpackb.wp - smsgpackb.start;
 	
     memcpy(payload, MessagePackBuffer, finalLength);
 	
@@ -460,6 +460,7 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 			{
 				debug("Unhandled object %d",obj.type);
                 return NULL;
+				break;
 			}
 			case CMP_TYPE_FIXMAP:
             case CMP_TYPE_MAP16:
@@ -476,20 +477,28 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 					
 				s->rp += plen + 1;
 				type = msgpack_var_type::TYPE_MAP;
+				 break;
 			}
-            break;
 			case CMP_TYPE_BIN8:
             case CMP_TYPE_BIN16:
             case CMP_TYPE_BIN32:
 			{
+				sFile * s = (sFile *)ctx->buf;
 				if(obj.as.bin_size > MAX_BINLEN)
+				{
+					debug("Payload exceeded limit %d bytes",obj.as.bin_size);
 					return NULL;
-				
+				}
 				if (!msgPackReadBuffer(ctx, binarr, obj.as.bin_size))
+				{
+					//debug("Data missing total %d %d %d //%dbytes",obj.as.bin_size,s->rp-s->start,s->end-s->rp,s->end-s->start);
                     return NULL;
+				}
 				binsz = obj.as.bin_size;
 				type = msgpack_var_type::TYPE_BINARY;
+				break;
 			}
+			
             case CMP_TYPE_FIXSTR:
             case CMP_TYPE_STR8:
             case CMP_TYPE_STR16:
@@ -503,50 +512,59 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 				
 				vstr[obj.as.str_size] = 0;
 				type = msgpack_var_type::TYPE_STRING;
+				break;
 			}	
-                break;
+                
             case CMP_TYPE_BOOLEAN:
 			{
                 if (obj.as.boolean)
                     type = msgpack_var_type::TYPE_TRUE;
                 else
                     type = msgpack_var_type::TYPE_FALSE;
-                break;
+                
+				break;
 			}
             case CMP_TYPE_FLOAT:
 			{
 				type = msgpack_var_type::TYPE_NUMBER;
 				vd = obj.as.flt;
+				break;
 			}
-                break;
+              
             case CMP_TYPE_DOUBLE:
 			{
 				type = msgpack_var_type::TYPE_NUMBER;
-				vd = obj.as.dbl;                
+				vd = obj.as.dbl;
+				break;                
 			}
-                break;
+                
             case CMP_TYPE_UINT16:
 			{
 				type = msgpack_var_type::TYPE_NUMBER;
                 vi = obj.as.u16;
+				break;
 			}
-                break;
+                
             case CMP_TYPE_UINT32:
 			{
 				type = msgpack_var_type::TYPE_NUMBER;
                 vi = obj.as.u32;
+				break;
 			}
-                break;
+                
 			case CMP_TYPE_POSITIVE_FIXNUM:
             case CMP_TYPE_UINT8:
 			{
 				type = msgpack_var_type::TYPE_NUMBER;
 				vi = obj.as.u8;
+				break;
 			}
-            break;
+            
             default:
+			{
                 debug("Unrecognized object type %u\n", obj.type);
-            break;
+				break;
+			}
 		
         }
     } else
@@ -576,6 +594,7 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
 		}
 		memcpy(node->bin,binarr,binsz);
 		node->binsz = binsz;
+		//debug("allocated node");
 	}
 	if(node->type == msgpack_var_type::TYPE_STRING){
 		str_size = strlen(vstr);
@@ -638,6 +657,10 @@ void MsgPackDelete(sMsgPackNode* root)//rentrant
 			free(pv->valuestring);
 			
 		}
+		if(pv->type == msgpack_var_type::TYPE_BINARY){
+			dynamic_allocation_bytes -= (pv->binsz);
+			free(pv->bin);
+		}
 		if(pv->child){
 			MsgPackDelete(pv->child);
 		}
@@ -653,6 +676,10 @@ x:
 	if(root->type == msgpack_var_type::TYPE_STRING){
 		dynamic_allocation_bytes -= (strlen(root->valuestring) + 1);
 		free(root->valuestring);
+	}
+	if(pv->type == msgpack_var_type::TYPE_BINARY){
+		dynamic_allocation_bytes -= (root->binsz);
+		free(root->bin);
 	}
 	free(root);
 	dynamic_allocation_bytes -= sizeof(sMsgPackNode);
@@ -683,6 +710,7 @@ sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
 		return NULL;
 	}
 	
+	//debug("Maplen %d", map_len);
 	root = getnode(&cmp); //get node creates a node on the heap using malloc
 	
 	if( root == NULL)
@@ -875,7 +903,7 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
         if(element != NULL && element->type == msgpack_var_type::TYPE_STRING) {
             command->diagnostic_request.request.has_name = true;
             strcpy(command->diagnostic_request.request.name,
-                    element->valuestring);
+                    element->valuestring);	
         }
     }
 }
@@ -947,7 +975,6 @@ static void deserializeCan(sMsgPackNode* root, openxc_VehicleMessage* message) {
     if(element != NULL) {
         canMessage->has_id = true;
         canMessage->id = element->valueint;
-
         element = msgPackSeekNode(root, "data");
         if(element != NULL) { 
 			if(element->type == msgpack_var_type::TYPE_BINARY){
@@ -1013,7 +1040,7 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 	uint32_t Messagelen=0;
 	uint32_t i = 0;
 	sMsgPackNode *root;
-	
+	//debug("Deserialize %d bytes",length);
 	root = NULL;
 	//find the start of message by searching for FIXMAPMARKER
 	while(i < length){
@@ -1089,7 +1116,8 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 	}
 	
 	MsgPackDelete(root);
-	debug("Parsed: %d bytes", Messagelen);
+	Messagelen = MIN(Messagelen,length);
+	//debug("Parsed: %d bytes", Messagelen);
 	//debug("MessagePackMemUsed:%d bytes", dynamic_allocation_bytes);	
 	return Messagelen;		
 }

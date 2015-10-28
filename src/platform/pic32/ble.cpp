@@ -137,11 +137,18 @@ uint32_t notification_fail_retries =0;
 
 static void flush_ble_buffers(void) //flushing out old unsent data sitting in memory
 {
+	debug("Flushing ble buffers");
 	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble.sendQueue)==false)
 	{
 		QUEUE_POP(uint8_t, &getConfiguration()->ble.sendQueue);
 	}
 	RingBuffer_Clear(&notify_buffer_ring);
+	
+	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble.receiveQueue)==false)
+	{
+		QUEUE_POP(uint8_t, &getConfiguration()->ble.receiveQueue);
+	}
+	
 }
 
 
@@ -251,7 +258,7 @@ void HCI_Event_CB(void *pckt)
 	hci_uart_pckt *hci_pckt = (hci_uart_pckt*)pckt;
 	hci_event_pckt *event_pckt = (hci_event_pckt*)hci_pckt->data;
 	
-	debug("HCI Event Callback Type %d", hci_pckt->type);
+	//debug("HCI Event Callback Type %d", hci_pckt->type);
 	
 	if(hci_pckt->type != HCI_EVENT_PKT)
 	{
@@ -259,7 +266,7 @@ void HCI_Event_CB(void *pckt)
 		return;
 	}
 	
-	debug("Event %d", event_pckt->evt);
+	//debug("Event %d", event_pckt->evt);
 	
 	
     switch(event_pckt->evt){          //HCI event
@@ -283,11 +290,11 @@ void HCI_Event_CB(void *pckt)
 		case EVT_LE_META_EVENT:
 		{
 		  evt_le_meta_event *evt = (evt_le_meta_event *)event_pckt->data;
-		  debug("Meta event se: %d", evt->subevent);
+		  //debug("Meta event se: %d", evt->subevent);
 		  
 		  switch(evt->subevent){
 			  
-			debug("LE META SUB EVENT %d",evt->subevent);
+			//debug("LE META SUB EVENT %d",evt->subevent);
 			
 			case EVT_LE_CONN_COMPLETE:
 			{
@@ -307,7 +314,7 @@ void HCI_Event_CB(void *pckt)
 			}
 			break;
 			case EVT_LE_CONN_UPDATE_COMPLETE:
-				debug("Connection Updated");
+				//debug("Connection Updated");
 			break;
 			
 		  }
@@ -334,7 +341,7 @@ void HCI_Event_CB(void *pckt)
 					
 					if( evt->attr_handle == appComCharHandle + 1) //we recieved some data in consequence of write to this characteristic
 					{	
-						debug("Command %d bytes :",evt->data_length);
+						//debug("Command %d bytes :",evt->data_length);
 						
 						for(int i = 0; i < evt->data_length ; i++) { //todo better way to point to device
 						
@@ -376,7 +383,7 @@ void HCI_Event_CB(void *pckt)
 				case EVT_BLUE_L2CAP_CONN_UPD_RESP:
 				{
 						evt_l2cap_conn_upd_resp *resp = (evt_l2cap_conn_upd_resp*)blue_evt->data;
-						debug("L2CAP Updated Response:%d",resp->result);
+						//debug("L2CAP Updated Response:%d",resp->result);
 						send_l2cap_request = false;
 				}
 				break;

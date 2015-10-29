@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 7.0.2-dev
+:Version: 7.1.0
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -47,9 +47,13 @@ Releasing
 - Update ``script/bootstrap/ci-requirements.txt`` to use released version at PyPI
   (i.e. the requirement should be ``openxc==<latestversion>``)
 
+- Make sure you release the openxc-message-format library first if there are any updates
+
+- Update the src/libs/openxc-message-format with ``git submodule update --remote``
+
 - Bump the version using `semantic versioning`_ in
   - ``CHANGELOG.mkd``
-  - ``README.mkd``
+  - ``README.rst``
   - ``src/config.cpp``
   - ``docs/index.rst``
   - ``docs/conf.py``

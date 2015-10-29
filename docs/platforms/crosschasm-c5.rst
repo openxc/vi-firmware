@@ -1,12 +1,24 @@
-CrossChasm C5 Interface
-=======================
+CrossChasm C5 Interfaces
+========================
+This page describes the CrossChasm C5 family of OBD interfaces, which includes 
+the Bluetooth and Cellular devices. Most things are common
+between the different devices and are described on this page. For options specific
+to the Cellular device, see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
-firmware. To build for the C5, compile with the flag ``PLATFORM=CROSSCHASM_C5``.
+firmware. To build for one of the C5s, compile with one of the flags: 
+``PLATFORM=CROSSCHASM_C5`` or ``PLATFORM=CROSSCHASM_CELLULAR_C5``.
 
-CrossChasm has made the C5 `available for purchase
-<http://crosschasm.com/SolutionCenter/OpenXC.aspx>`_ from their website, and it
-comes pre-loaded with the correct bootloader, so you don't need any additional
+.. note::
+
+   The old ``CROSSCHASM_C5`` Platform has been renamed to ``CROSSCHASM_C5_BT`` and 
+   the fabric shortcut ``c5`` has been updated to ``c5bt``. Both old variables are 
+   aliased to the new BT forms.
+
+CrossChasm has further information on the C5 `available here
+<http://www.crosschasm.com/technology/openxc-hardware/>`_. The devices
+will soon be available on the `OpenXC Shop <http://shop.openxcplatform.com/>`_
+and come pre-loaded with the correct bootloader, so you don't need any additional
 hardware to load the OpenXC firmware.
 
 The C5 connects to the `CAN1 bus pins
@@ -20,9 +32,7 @@ Assuming your C5 has the :ref:`bootloader <bootloader>` already flashed, once
 you have the USB cable attached to your computer and to the C5, follow the same
 steps to upload as for the :doc:`chipKIT Max32 <max32>`.
 
-The C5 units offered directly from the `CrossChasm website
-<http://crosschasm.com/SolutionCenter/OpenXC.aspx>`_ are pre-programmed with the
-bootloader.
+The OpenXC C5 units are pre-programmed with the bootloader.
 
 .. _bootloader:
 
@@ -41,14 +51,13 @@ In Linux and OS X it will show up as something like `/dev/ACM0`, and you can tre
 just as if it were a serial device.
 
 In Windows, you will need to install the `stk500v2.inf
-<https://raw.github.com/openxc/PIC32-avrdude-bootloader/master/Stk500v2.inf>`
+<https://raw.github.com/openxc/PIC32-avrdude-bootloader/master/Stk500v2.inf>`_
 driver before the CDC/ACM modem will show up - download that file, right click
 and choose Install. The C5 should now show up as a COM port for for 5 seconds on
 bootup.
 
-The C5 units offered directly from the `CrossChasm website
-<http://crosschasm.com/SolutionCenter/OpenXC.aspx>`_ are pre-programmed with the
-bootloader.
+
+The OpenXC C5 units are pre-programmed with the bootloader.
 
 If you need to reflash the bootloader yourself, a ready-to-go .hex file is
 available in the `GitHub repository
@@ -61,7 +70,8 @@ Compiling
 ---------
 
 The instructions for compiling from source are identical to the :doc:`chipKIT
-Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5`` instead of ``CHIPKIT``.
+Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
+instead of ``CHIPKIT``.
 
 If you will not be using the avrdude bootloader and will be flashing directly
 via ICSP, make sure to also compile with ``BOOTLOADER=0`` to enable the program
@@ -103,3 +113,5 @@ LED Lights
 The C5 has 2 user controllable LEDs. When CAN activity is detected, the green
 LED will be enabled. When USB or Bluetooth is connected, the blue LED will be
 enabled.
+
+

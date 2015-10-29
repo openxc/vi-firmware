@@ -18,7 +18,7 @@ show_vi_config_info = $(info - $(call space_pad_to,$(2),4) $(1))
 
 # Call with the name of the variable, a prefix tag if desired (like [AUTODETECTED]),
 # and an explanation if desired (like (found in $$PATH)
-show_vi_config_variable = $(call show_vi_config_info,$(call space_pad_to,$($(1)),10)= $(1) $(3),$(2))
+show_vi_config_variable = $(call show_vi_config_info,$(call space_pad_to,$($(1)),20)= $(1) $(3),$(2))
 
 show_separator = $(info -------------------------)
 
@@ -102,7 +102,12 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR
+
+#for backwards compatibility
+ifeq ($(PLATFORM), CROSSCHASM_C5)
+PLATFORM = CROSSCHASM_C5_BT
+endif
 
 OBJDIR = build/$(PLATFORM)
 LIBS_PATH = libs
@@ -151,10 +156,10 @@ include tests/tests.mk
 # used in the included Makefiles
 ifeq ($(PLATFORM), CHIPKIT)
 include platform/pic32/pic32.mk
-else ifeq ($(PLATFORM), CROSSCHASM_C5)
+else ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 include platform/pic32/pic32.mk
-else ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
-# force a modified set of linkers for cellular c5
+else ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
+# force a modified set of linkers for c5 cellular
 # this is necessary to support OTA upgrades
 # we only want to change the FLASH erase rules for the bootloader
 # all other settings remain the same, and chipKIT-application-COMMON.ld is still used

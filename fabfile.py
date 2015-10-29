@@ -27,8 +27,9 @@ env.power_management = "SILENT_CAN"
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
-    "c5": {"name": "CROSSCHASM_C5", "extension": "hex"},
-    "cellc5": {"name": "CROSSCHASM_CELLULAR_C5", "extension": "hex"}
+    "c5": {"name": "CROSSCHASM_C5_BT", "extension": "hex"}, #for backwards compatibility
+    "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
+    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"}
 }
 
 def latest_git_tag():
@@ -253,13 +254,18 @@ def chipkit():
 def reference():
     env.board = 'reference'
 
+#for backwards compatibility
 @task
 def c5():
-    env.board = 'c5'
+    env.board = 'c5bt'
 
 @task
-def cellc5():
-    env.board = 'cellc5'
+def c5bt():
+    env.board = 'c5bt'
+
+@task
+def c5cell():
+    env.board = 'c5cell'
 
 @task
 def json():

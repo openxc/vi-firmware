@@ -8,7 +8,7 @@
     #define BLUETOOTH_ENABLE_PORT 0
     #define BLUETOOTH_ENABLE_PIN 17
 
-#elif defined(CROSSCHASM_C5)
+#elif defined(CROSSCHASM_C5_BT)
 
     #define BLUETOOTH_SUPPORT
 
@@ -21,7 +21,7 @@
     #define BLUETOOTH_ENABLE_PORT 0
     #define BLUETOOTH_ENABLE_PIN 32 // PORTE BIT5 (RE5)
 	
-#elif defined(CROSSCHASM_CELLULAR_C5)
+#elif defined(CROSSCHASM_C5_CELLULAR)
 
 #elif defined(CHIPKIT)
 

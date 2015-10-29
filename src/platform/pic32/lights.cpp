@@ -1,7 +1,7 @@
 #include "lights.h"
 #include "gpio.h"
 
-#if defined(CROSSCHASM_C5)
+#if defined(CROSSCHASM_C5_BT)
 
     #define USER_LED_A_SUPPORT
     #define USER_LED_A_POLARITY 0 // turn on LED = drive pin low
@@ -11,7 +11,7 @@
     #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
     #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
 
-#elif defined(CROSSCHASM_CELLULAR_C5)
+#elif defined(CROSSCHASM_C5_CELLULAR)
 
     #define USER_LED_A_SUPPORT
     #define USER_LED_A_POLARITY 0 // turn on LED = drive pin low

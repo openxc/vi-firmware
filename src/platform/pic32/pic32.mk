@@ -104,13 +104,13 @@ ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
-ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
+ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
 endif
-ifeq ($(PLATFORM), CROSSCHASM_C5)
+ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)

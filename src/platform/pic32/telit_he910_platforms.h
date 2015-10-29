@@ -1,10 +1,10 @@
 #if defined(FORDBOARD)
 
-#elif defined(CROSSCHASM_C5)
+#elif defined(CROSSCHASM_C5_BT)
 
 #elif defined(CHIPKIT)
 
-#elif defined(CROSSCHASM_CELLULAR_C5)
+#elif defined(CROSSCHASM_C5_CELLULAR)
 
     #define TELIT_HE910_SUPPORT
 

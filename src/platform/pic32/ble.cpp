@@ -511,6 +511,14 @@ bool openxc::interface::ble::initialize(BleDevice* device)
 	BlueNRG_PowerOff();
 	
 	HCI_Init(); //initialize list structures for messaging
+	
+	TRISBCLR = (1 << 4);
+
+	LATBCLR  = (1 << 4); //Disable optional GPS
+	
+	TRISBCLR = (1 << 9);
+
+	LATBCLR  = (1 << 9); 
 	 
 	BlueNRG_SpiInit(); // initialize SPI and interrupt for notifications
 

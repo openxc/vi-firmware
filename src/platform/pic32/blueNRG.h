@@ -19,6 +19,8 @@ extern "C" {
 #define SPBTLE_RST_ENABLE()          LATECLR  = (1 << 3)
 #define SPBTLE_RST_DISABLE()         LATESET  = (1 << 3)
 
+
+
 extern uint8_t stickyfisr;
 
 void BlueNRG_Hal_Write_Serial(const void* data1, const void* data2, uint16_t n_bytes1, uint16_t n_bytes2);

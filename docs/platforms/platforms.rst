@@ -12,3 +12,4 @@ For information on how to add support for another embedded system, see the
     blueboard
     max32
     crosschasm-c5
+	crosschasm-btle-c5

@@ -67,9 +67,9 @@ void updateInterfaceLight() {
     }
 	#elif defined BLE_SUPPORT
 	if(getConfiguration()->usb.configured || ble::connected(&getConfiguration()->ble)) { //if either of the interface are connected
-        lights::enable(lights::LIGHT_C, lights::COLORS.green);
+        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     } else {
-       lights::disable(lights::LIGHT_C);
+       lights::disable(lights::LIGHT_B);
     } 
     #else
     if(uart::connected(&getConfiguration()->uart)) {
@@ -105,9 +105,11 @@ void checkBusActivity() {
             // ALL_IO at initialization, so this is just a backup.
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
-        lights::enable(lights::LIGHT_A, lights::COLORS.blue);
 #ifdef CROSSCHASM_BTLE_C5
-		lights::disable(lights::LIGHT_A);//disable red led
+		lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
+		lights::disable(lights::LIGHT_A);
+#else
+		lights::enable(lights::LIGHT_A, lights::COLORS.blue);
 #endif		
         BUS_WAS_ACTIVE = true;
         SUSPENDED = false;
@@ -116,7 +118,7 @@ void checkBusActivity() {
             !SUSPENDED))) {
         debug("CAN is quiet");
 #ifdef CROSSCHASM_BTLE_C5
-		lights::disable(lights::LIGHT_B); //disable blue led
+		lights::disable(lights::LIGHT_C); //disable green led
 #endif		
 		lights::enable(lights::LIGHT_A, lights::COLORS.red);
 		

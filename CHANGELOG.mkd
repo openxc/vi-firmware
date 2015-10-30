@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v7.1.1-dev
+
 ## v7.1.0
 
 * Feature: Add support for new CrossChasm C5 Cellular platform.

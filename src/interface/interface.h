@@ -1,6 +1,6 @@
 #ifndef __INTERFACE_H__
 #define __INTERFACE_H__
-
+#include "platform/pic32/fs_platforms.h"
 namespace openxc {
 namespace interface {
 
@@ -9,7 +9,10 @@ typedef enum {
     UART = 1,
     NETWORK = 2,
     TELIT = 3,
-	BLE = 4
+	BLE = 4,
+#ifdef FS_SUPPORT
+	FS = 5,
+#endif	
 } InterfaceType;
 
 /* Public:

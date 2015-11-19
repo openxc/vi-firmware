@@ -12,6 +12,7 @@
 #include "bluetooth.h"
 #include "bluetooth_platforms.h"
 #include "platform/pic32/ST_BLE_platforms.h"
+#include "platform/pic32/fs_platforms.h"
 #include "platform/pic32/telit_he910.h"
 #include "platform/pic32/telit_he910_platforms.h"
 #include "platform/pic32/server_task.h"
@@ -26,6 +27,11 @@
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace ble = openxc::interface::ble;
+
+#ifdef FS_SUPPORT
+namespace fs = openxc::interface::fs;
+#endif
+
 namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
 namespace can = openxc::can;
@@ -166,11 +172,17 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 }
 
 void initializeIO() {
+	
     debug("Moving to ALL I/O runlevel");
+	
+#ifdef CROSSCHASM_C5	
+	fs::initialize(&getConfiguration()->fs);
+#endif	
+
     usb::initialize(&getConfiguration()->usb);
 	
 	#ifndef CROSSCHASM_BTLE_C5
-    uart::initialize(&getConfiguration()->uart);
+    uart::initialize(&getConfiguration()->uart); // todo uncomment this and remove debug messages from uart
 	#endif
 	
 	#ifdef BLE_SUPPORT
@@ -291,6 +303,6 @@ void firmwareLoop() {
                     &getConfiguration()->pipeline);
         }
     }
-
+	
     openxc::pipeline::process(&getConfiguration()->pipeline);
 }

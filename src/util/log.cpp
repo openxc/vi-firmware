@@ -17,6 +17,7 @@ using openxc::pipeline::MessageClass;
 using openxc::config::getConfiguration;
 
 void openxc::util::log::debug(const char* format, ...) {
+
 #ifdef __DEBUG__
     va_list args;
     va_start(args, format);

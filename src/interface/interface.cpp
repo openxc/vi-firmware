@@ -13,6 +13,9 @@ static const char interfaceNames[][5] = {
 #ifdef BLE_SUPPORT
 	"BLE",
 #endif
+#ifdef FS_SUPPORT
+	"FS",
+#endif
 };
 
 const char* openxc::interface::descriptorToString(InterfaceDescriptor* descriptor) {

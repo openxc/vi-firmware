@@ -122,6 +122,9 @@ typedef struct {
     openxc::interface::network::NetworkDevice network;
     openxc::interface::usb::UsbDevice usb;
 	openxc::interface::ble::BleDevice ble;
+#ifdef FS_SUPPORT
+	openxc::interface::fs ::FsDevice  fs;
+#endif
     openxc::telitHE910::TelitDevice *telit;
     openxc::diagnostics::DiagnosticsManager diagnosticsManager;
     openxc::pipeline::Pipeline pipeline;

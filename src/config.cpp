@@ -23,6 +23,9 @@ static void initialize(openxc::config::Configuration* config) {
 #ifdef BLE_SUPPORT
 		&config->ble,
 #endif
+#ifdef FS_SUPPORT
+		&config->fs,
+#endif
 #ifdef TELIT_HE910_SUPPORT
         config->telit,
 #endif
@@ -144,6 +147,11 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 			},	
 			
 		},
+		#ifdef FS_SUPPORT
+		fs : {
+			
+		},
+		#endif
 		#ifdef TELIT_HE910_SUPPORT
         telit: &telitDevice,
 		#else

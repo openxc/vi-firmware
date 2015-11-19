@@ -5,9 +5,16 @@
 #include "interface/uart.h"
 #include "interface/network.h"
 #include "interface/ble.h"
+#include "interface/fs.h"
 #include "platform/pic32/ST_BLE_platforms.h"
+#include "platform/pic32/fs_platforms.h"
 #include "platform/pic32/telit_he910.h"
 #include "platform/pic32/telit_he910_platforms.h"
+
+#ifdef FS_SUPPORT
+#include "interface/fs.h"
+using openxc::interface::fs::FsDevice;
+#endif
 
 using openxc::interface::uart::UartDevice;
 using openxc::interface::usb::UsbDevice;
@@ -45,6 +52,9 @@ typedef struct {
     UartDevice* uart;
 #ifdef BLE_SUPPORT
 	BleDevice*   ble;
+#endif
+#ifdef FS_SUPPORT
+	FsDevice*   fs;
 #endif
     TelitDevice* telit;
     NetworkDevice* network;

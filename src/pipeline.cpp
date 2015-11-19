@@ -14,7 +14,9 @@
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
 namespace ble =  openxc::interface::ble;
-
+#ifdef FS_SUPPORT
+namespace fs   =  openxc::interface::fs;
+#endif
 
 namespace network = openxc::interface::network;
 namespace time = openxc::util::time;
@@ -176,8 +178,14 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 	#elif defined BLE_SUPPORT
 	sendToBle(pipeline, message, messageSize, messageClass);
     #else
+	#ifndef CROSSCHASM_C5 //UART port does not exist as a interface on these devices
     sendToUart(pipeline, message, messageSize, messageClass);
+	#endif
     #endif
+	#ifdef FS_SUPPORT
+	if(messageClass != MessageClass::LOG)
+		fs::write(pipeline->fs,message,messageSize);
+	#endif
 	
     sendToNetwork(pipeline, message, messageSize, messageClass);
 

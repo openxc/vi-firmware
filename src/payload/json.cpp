@@ -22,6 +22,7 @@ const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_
 const char openxc::payload::json::PAYLOAD_FORMAT_COMMAND_NAME[] = "payload_format";
 const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "predefined_obd2";
 const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
+const char openxc::payload::json::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -109,6 +110,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
         typeString = payload::json::MODEM_CONFIGURATION_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
+        typeString = payload::json::RTC_CONFIGURATION_COMMAND_NAME;
     } else {
         return false;
     }
@@ -507,6 +510,20 @@ static void deserializeModemConfiguration(cJSON* root, openxc_ControlCommand* co
     }
 }
 
+static void deserializeRTCConfiguration(cJSON* root, openxc_ControlCommand* command) {
+
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_RTC_CONFIGURATION;
+    command->has_rtc_configuration_command = true;
+    openxc_RTCConfigurationCommand* rtcConfigurationCommand = &command->rtc_configuration_command;
+    
+    cJSON* time = cJSON_GetObjectItem(root, "time");
+    if(time != NULL) {
+        rtcConfigurationCommand->has_unix_time = true;
+        rtcConfigurationCommand->unix_time = time->valueint;
+    }
+}
+
 size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
     const char* delimiter = strnchr((const char*)payload, length - 1, '\0');
@@ -573,7 +590,13 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         MODEM_CONFIGURATION_COMMAND_NAME,
                         strlen(MODEM_CONFIGURATION_COMMAND_NAME))) {
                 deserializeModemConfiguration(root, command);
-            }else {
+            }
+			else if(!strncmp(commandNameObject->valuestring,
+                        RTC_CONFIGURATION_COMMAND_NAME,
+                        strlen(RTC_CONFIGURATION_COMMAND_NAME))) {
+                deserializeRTCConfiguration(root, command);
+            }
+			else {
                 debug("Unrecognized command: %s", commandNameObject->valuestring);
                 message->has_control_command = false;
             }

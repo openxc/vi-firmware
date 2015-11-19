@@ -130,10 +130,16 @@ void checkBusActivity() {
 		
         SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
+#ifdef FS_SUPPORT
+		if(fs::getmode() !=  FS_STATE::USB_CONNECTED){
+#endif		
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
             platform::suspend(&getConfiguration()->pipeline);
         }
+#ifdef FS_SUPPORT
+		}
+#endif
     }
 }
 

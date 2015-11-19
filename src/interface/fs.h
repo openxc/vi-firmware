@@ -29,6 +29,8 @@ typedef struct {
 
 void setmode(FS_STATE mode);
 
+bool setRTC(uint32_t *unixtime);
+
 FS_STATE getmode(void);
 
 /* Public: Perform platform-agnostic Network initialization.

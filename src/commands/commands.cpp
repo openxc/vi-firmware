@@ -51,6 +51,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_MODEM_CONFIGURATION:
             status = openxc::commands::handleModemConfigurationCommand(command);
             break;
+		case openxc_ControlCommand_Type_RTC_CONFIGURATION:
+            status = openxc::commands::handleModemConfigurationCommand(command);
+        break;
         default:
             status = false;
             break;

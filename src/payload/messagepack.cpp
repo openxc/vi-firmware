@@ -35,6 +35,7 @@ const char openxc::payload::messagepack::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[]
 const char openxc::payload::messagepack::PAYLOAD_FORMAT_COMMAND_NAME[] = "payload_format";
 const char openxc::payload::messagepack::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "predefined_obd2";
 const char openxc::payload::messagepack::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
+const char openxc::payload::messagepack::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
 
 const char openxc::payload::messagepack::PAYLOAD_FORMAT_MESSAGEPACK_NAME[] = "messagepack";
 const char openxc::payload::messagepack::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -286,6 +287,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message, cmp_ctx_t *
         typeString = payload::messagepack::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
         typeString = payload::messagepack::MODEM_CONFIGURATION_COMMAND_NAME;
+	} else if(message->command_response.type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
+        typeString = payload::messagepack::RTC_CONFIGURATION_COMMAND_NAME;
     } else {
         return false;
     }
@@ -1032,6 +1035,26 @@ static void deserializeModemConfiguration(sMsgPackNode* root, openxc_ControlComm
         }
     }
 }
+
+static void deserializeRTCConfiguration(sMsgPackNode* root, openxc_ControlCommand* command) {
+
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_RTC_CONFIGURATION;
+    command->has_rtc_configuration_command = true;
+    openxc_RTCConfigurationCommand* rtcConfigurationCommand = &command->rtc_configuration_command;
+    
+    sMsgPackNode* time = msgPackSeekNode(root, "time");
+	
+    if(time != NULL) {
+        rtcConfigurationCommand->has_unix_time = true;
+		rtcConfigurationCommand->unix_time = time->valueint;
+
+    }
+}
+
+
+
+
 //Entire data is chunked into a single packet by higher level protocol
 //unable to decode partial messages at this moment correctly
 size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t length,
@@ -1102,7 +1125,13 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 					MODEM_CONFIGURATION_COMMAND_NAME,
 					strlen(MODEM_CONFIGURATION_COMMAND_NAME))) {
 			deserializeModemConfiguration(root, command);
-		}else {
+		}
+		else if(!strncmp(commandNameObject->valuestring,
+					RTC_CONFIGURATION_COMMAND_NAME,
+					strlen(RTC_CONFIGURATION_COMMAND_NAME))) {
+			deserializeModemConfiguration(root, command);
+		}
+		else {
 			debug("Unrecognized command: %s", commandNameObject->valuestring);
 			message->has_control_command = false;
 		}	

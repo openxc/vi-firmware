@@ -92,6 +92,15 @@ bool openxc::interface::fs::connected(FsDevice* device){
 	}
 }
 
+bool openxc::interface::fs::setRTC(uint32_t *unixtime){
+	debug("Set RTC Time %d", *unixtime);
+		
+	RTCC_STATUS status  = RTCCSetTimeDateUnix(*unixtime);
+
+	return (status == RTCC_STATUS::RTCC_NO_ERROR)? true: false;
+}
+
+
 bool openxc::interface::fs::initialize(FsDevice* device){
 	
 

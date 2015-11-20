@@ -104,8 +104,6 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 
 #define USBGEN_EP_NUM            1
 	
-	
-#define USB_USE_MSD	
 
 #ifdef FS_SUPPORT
 	#define USB_USE_MSD	

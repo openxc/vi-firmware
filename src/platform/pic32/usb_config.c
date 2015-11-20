@@ -1,6 +1,9 @@
 #include "usb_config.h"
 #include "USB/usb.h"
+
+#ifdef FS_SUPPORT
 #include "USB/usb_function_msd.h"
+#endif
 
 ROM USB_DEVICE_DESCRIPTOR device_dsc_gen=
 {
@@ -64,7 +67,8 @@ ROM BYTE configDescriptor_gen[]={
     DATA_ENDPOINT_SIZE,0x00,
     1,                         // Interval, unused by bulk endpoint
 };
-	
+
+#ifdef FS_SUPPORT	
 ROM USB_DEVICE_DESCRIPTOR device_dsc_msd=
 {
     0x12,    // Size of this descriptor in bytes
@@ -116,7 +120,7 @@ ROM BYTE configDescriptor_msd[]={
     MSD_OUT_EP_SIZE,0x00,
     0x01
 };
-
+#endif
 //Language code string descriptor
 ROM struct{BYTE bLength;BYTE bDscType;WORD string[1];}sd000={
 sizeof(sd000),USB_DESCRIPTOR_STRING,{0x0409}};
@@ -132,7 +136,7 @@ sizeof(sd002),USB_DESCRIPTOR_STRING,
 {'O','p','e','n','X','C',' ','V','e','h','i','c','l','e',' ',
     'I','n','t','e','r','f','a','c','e'}};
 
-
+#ifdef FS_SUPPORT
 //Language code(s) supported string descriptor
 ROM struct{BYTE bLength;BYTE bDscType;WORD string[1];}sd003={
     sizeof(sd003),
@@ -151,7 +155,7 @@ ROM struct{BYTE bLength;BYTE bDscType;WORD string[28];}sd005={
 sizeof(sd005),USB_DESCRIPTOR_STRING,
 {'M','i','c','r','o','c','h','i','p',' ','M','a','s','s',' ','S','t','o','r','a','g','e',' ','D','r','i','v','e'
 }};
-
+#endif
 //Serial number string descriptor.  Note: This should be unique for each unit 
 //built on the assembly line.  Plugging in two units simultaneously with the 
 //same serial number into a single machine can cause problems.  Additionally, not 
@@ -178,6 +182,7 @@ void SelectUsbConf(BYTE no){
 			USB_SD_Ptr[1] = (BYTE*)&sd001;
 			USB_SD_Ptr[2] = (BYTE*)&sd002;
 		break;
+#ifdef FS_SUPPORT		
 		case 1:
 			device_dsc_user = 	&device_dsc_msd;
 			
@@ -188,5 +193,7 @@ void SelectUsbConf(BYTE no){
 			USB_SD_Ptr[2] = (BYTE*)&sd005;
 			USB_SD_Ptr[3] = (BYTE*)&sd006;
 		break;
+#endif			
 	}
+
 }

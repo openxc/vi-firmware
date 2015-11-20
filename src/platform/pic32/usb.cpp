@@ -4,8 +4,8 @@
 #include "power.h"
 #include "config.h"
 #include "gpio.h"
-#include "app_device_msd.h"
-#include "USB/usb_function_msd.h"
+#include "usb_config.h"
+
 #define USB_HANDLE_MAX_WAIT_COUNT 1000
 #include "fs_platforms.h"
 
@@ -24,9 +24,12 @@ using openxc::config::getConfiguration;
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
-
-	
+#ifdef FS_SUPPORT
+#include "USB/usb_function_msd.h"
+#include "app_device_msd.h"
 namespace fs = openxc::interface::fs;
+#endif	
+
 
 
 /* Private: Arm the given endpoint for a read from the device to host.
@@ -184,10 +187,12 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
 	
-	SelectUsbConf(0);
+	
 #ifdef FS_SUPPORT	
 	if(fs::getmode() == FS_STATE::USB_CONNECTED){
 		SelectUsbConf(1);
+	}else{
+		SelectUsbConf(0);
 	}
 #endif	
     usb::initializeCommon(usbDevice);

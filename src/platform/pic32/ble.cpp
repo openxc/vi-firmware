@@ -79,7 +79,7 @@ do {\
 }while(0)
 
 
-#define COPY_VT_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x42,0x3d, 0x4b,0xdb, 0xba,0x05, 0xc9,0x27,0x6d,0x84,0x53,0xe1)
+#define COPY_VT_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x42,0x3d, 0x4b,0xdb, 0xba,0x05, 0xc9,0x27,0x6d,0x84,0x53,0xe1) 
 #define COPY_APP_COM_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x52,0x62, 0x11,0xe5, 0x88,0x5d, 0xfe,0xff,0x81,0x9c,0xdc,0xe2)
 #define COPY_APP_RSP_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x68,0x00,0xd3,0x8b, 0x52,0x62, 0x11,0xe5, 0x88,0x5d, 0xfe,0xff,0x81,0x9c,0xdc,0xe3)
 
@@ -429,29 +429,33 @@ static tBleStatus ST_BLE_Disconnect(BleDevice* device)
 static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
 {  
    tBleStatus ret;
-   unsigned char adv_name[17]; 
+   unsigned char adv[20]; 
+   uint8_t uuid[16];
+  // const uint8_t manuf_data[] = {5, AD_TYPE_MANUFACTURER_SPECIFIC_DATA, 
+  //    0xAB, 0xE1, 0xE2, 0xE3     //Todo Manufacturer related data we can pass firmware revision //etc      
+  // };
+    COPY_VT_SERVICE_UUID(uuid);
+	adv[0] = 0x11;
+	adv[1] = 0x06;
+	memcpy(&adv[2],uuid,16);
 	
-   adv_name[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
+   /* disable scan response */
+   //hci_le_set_scan_resp_data(0,NULL);
+   hci_le_set_scan_resp_data(18,(const uint8_t*)adv);
+
+   adv[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
    ret = strlen(device->blesettings.advname);
    
    if(ret > 15)
    {
 	   ret = 15;
    }
-   memcpy(&adv_name[1],device->blesettings.advname,ret);
-   adv_name[ret+1] = 0;
-   
-   
-   const uint8_t manuf_data[] = {5, AD_TYPE_MANUFACTURER_SPECIFIC_DATA, 
-      0xAB, 0xE1, 0xE2, 0xE3     //Todo Manufacturer related data we can pass firmware revision etc      
-   };
-   
-  /* disable scan response */
-  hci_le_set_scan_resp_data(0,NULL);
+   memcpy(&adv[1],device->blesettings.advname,ret);
+   adv[ret+1] = 0;
 
   /* put device in connectable mode */
   ret = aci_gap_set_discoverable(ADV_IND, (device->blesettings.adv_min_ms*1000)/625, (device->blesettings.adv_max_ms*1000)/625, PUBLIC_ADDR, NO_WHITE_LIST_USE,
-                                 ret + 1 ,(const char*) adv_name , 0, NULL, 0, 0); //using default slave con parameters
+                                 ret + 1 ,(const char*) adv , 0, NULL, 0, 0); //using default slave con parameters
   
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -468,13 +472,13 @@ static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
       return ret; //Critical BLE stack failure
   }
   //*Update custom manufacturing data to be broadcast*/
-  ret = aci_gap_update_adv_data(6, manuf_data);  
+  //ret = aci_gap_update_adv_data(6, manuf_data);  
   
-  if (ret != BLE_STATUS_SUCCESS)
-  {
-	  debug("Gap Update of Manufacturing Data Failed");
-      return ret;// Critical BLE stack failure
-  }
+  //if (ret != BLE_STATUS_SUCCESS)
+  //{
+  //  debug("Gap Update of Manufacturing Data Failed");
+  //    return ret;// Critical BLE stack failure
+  //}
   
   debug("Gap set in connectable mode success");
   

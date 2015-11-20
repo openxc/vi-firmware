@@ -25,39 +25,45 @@ namespace lights = openxc::lights;
 static FS_STATE fs_mode = FS_STATE::NONE_CONNECTED;
 
 extern "C" {
-	#include "fsman.h"
-	#ifdef RTCC_SUPPORT
+	
+#include "fsman.h"
+#ifdef RTCC_SUPPORT
 	#include "rtcc.h"
-	#endif
-	extern uint16_t adc_get_pval(void);
-	
-	void __debug(const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
+#ifdef DEBUG
+	#undef RTCC_SUPPORT
+#endif
+#endif
 
-		char buffer[128];
-		vsnprintf(buffer, 128, format, args);
-	
-		debug(buffer);
-		va_end(args);
+extern uint16_t adc_get_pval(void);
+
+void __debug(const char* format, ...){
+	va_list args;
+	va_start(args, format);
+
+	char buffer[128];
+	vsnprintf(buffer, 128, format, args);
+
+	debug(buffer);
+	va_end(args);
+}
+void _GetTimestamp (struct tm * t){
+#ifndef RTCC_SUPPORT
+	return;
+#endif	
+	RTCC_STATUS r = RTCCGetTimeDateDecimal(t);
+	if(r != RTCC_NO_ERROR){
+		//todo add a psuedo time here??
 	}
-	
-	
-	void _GetTimestamp (struct tm * t)
-	{
-		RTCC_STATUS r = RTCCGetTimeDateDecimal(t);
-		if(r != RTCC_NO_ERROR)
-		{
-			
-			//todo add a psuedo time here??
-		}
-	}
+}
 
 }
 
 void Init_RTC(void)
 {
+#ifndef RTCC_SUPPORT
+	debug("Skipping RTC Init");
+	return;
+#endif	
 	struct tm TimeDate; 
 	
 	RTCC_STATUS r = I2C_Initialize();
@@ -65,10 +71,10 @@ void Init_RTC(void)
 	if(r != RTCC_NO_ERROR)
 	{
 		debug("RTC_INIT FAILED %d",r);
-		while(1);
 	}
 }
 
+	
 FS_STATE GetDevicePowerState(void)
 {
 	if(adc_get_pval() < 160){
@@ -94,7 +100,9 @@ bool openxc::interface::fs::connected(FsDevice* device){
 
 bool openxc::interface::fs::setRTC(uint32_t *unixtime){
 	debug("Set RTC Time %d", *unixtime);
-		
+#ifndef RTCC_SUPPORT
+	return false;
+#endif		
 	RTCC_STATUS status  = RTCCSetTimeDateUnix(*unixtime);
 
 	return (status == RTCC_STATUS::RTCC_NO_ERROR)? true: false;
@@ -109,7 +117,7 @@ bool openxc::interface::fs::initialize(FsDevice* device){
 	device->configured = false;
 	
 	fs_mode = GetDevicePowerState();
-
+	
 	//Initialize RTCC module for filetimestamping
 	Init_RTC();
 	
@@ -163,7 +171,7 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 	if(device->configured == false ||
 			getmode() == FS_STATE::VI_CONNECTED){
 				
-		debug("SD Card Uninitialized");
+		debug("USB Mode SD Card Uninitialized");
 		return;
 	}
 	

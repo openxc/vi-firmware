@@ -183,8 +183,9 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 	#endif
     #endif
 	#ifdef FS_SUPPORT
-	if(messageClass != MessageClass::LOG)
+	if(messageClass != MessageClass::LOG && messageClass != COMMAND_RESPONSE){
 		fs::write(pipeline->fs,message,messageSize);
+	}
 	#endif
 	
     sendToNetwork(pipeline, message, messageSize, messageClass);

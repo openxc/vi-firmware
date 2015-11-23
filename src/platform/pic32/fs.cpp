@@ -1,5 +1,4 @@
 #ifdef CROSSCHASM_C5 //to be tested on other platforms
-
 #include "interface/fs.h"
 #include "config.h"
 #include <stdio.h>
@@ -14,76 +13,52 @@
 #include "fsman.h"
 #include <stdarg.h>
 #include "lights.h"
+#include "fsman.h"
 
+#ifdef RTCC_SUPPORT
+	#include "rtcc.h"
+#endif
 
 static uint32_t file_elapsed_timer=0;
 static uint32_t file_flush_timer=0;
  
 using openxc::util::log::debug;
 namespace lights = openxc::lights;
+namespace uart = openxc::interface::uart;
+
+using openxc::config::getConfiguration;
 
 static FS_STATE fs_mode = FS_STATE::NONE_CONNECTED;
 
+
 extern "C" {
 	
-#include "fsman.h"
-#ifdef RTCC_SUPPORT
-	#include "rtcc.h"
-#ifdef DEBUG
-	#undef RTCC_SUPPORT
-#endif
-#endif
-
 extern uint16_t adc_get_pval(void);
 
-void __debug(const char* format, ...){
-	va_list args;
-	va_start(args, format);
+	void __debug(const char* format, ...){
+		va_list args;
+		va_start(args, format);
 
-	char buffer[128];
-	vsnprintf(buffer, 128, format, args);
+		char buffer[128];
+		vsnprintf(buffer, 128, format, args);
 
-	debug(buffer);
-	va_end(args);
-}
-void _GetTimestamp (struct tm * t){
-#ifndef RTCC_SUPPORT
-	return;
-#endif	
-	RTCC_STATUS r = RTCCGetTimeDateDecimal(t);
-	if(r != RTCC_NO_ERROR){
-		//todo add a psuedo time here??
+		debug(buffer);
+		va_end(args);
 	}
-}
 
 }
 
-void Init_RTC(void)
-{
-#ifndef RTCC_SUPPORT
-	debug("Skipping RTC Init");
-	return;
-#endif	
-	struct tm TimeDate; 
-	
-	RTCC_STATUS r = I2C_Initialize();
-	
-	if(r != RTCC_NO_ERROR)
-	{
-		debug("RTC_INIT FAILED %d",r);
-	}
-}
 
+FS_STATE GetDevicePowerState(void){
 	
-FS_STATE GetDevicePowerState(void)
-{
 	if(adc_get_pval() < 160){
-		__debug("Device USB powered");
+		debug("Device USB powered");
 		return FS_STATE::USB_CONNECTED;
 	}
-	__debug("Device battery powered");
+	debug("Device battery powered");
 	return FS_STATE::VI_CONNECTED;
 }
+
 FS_STATE openxc::interface::fs::getmode(void){
 	return fs_mode;
 }
@@ -94,15 +69,13 @@ bool openxc::interface::fs::connected(FsDevice* device){
 		return false;
 	}
 	else{
-		return device->configured; //remove all SD logging features
+		return device->configured; 
 	}
 }
 
 bool openxc::interface::fs::setRTC(uint32_t *unixtime){
 	debug("Set RTC Time %d", *unixtime);
-#ifndef RTCC_SUPPORT
-	return false;
-#endif		
+
 	RTCC_STATUS status  = RTCCSetTimeDateUnix(*unixtime);
 
 	return (status == RTCC_STATUS::RTCC_NO_ERROR)? true: false;
@@ -111,15 +84,11 @@ bool openxc::interface::fs::setRTC(uint32_t *unixtime){
 
 bool openxc::interface::fs::initialize(FsDevice* device){
 	
-
 	uint8_t err;
 
 	device->configured = false;
 	
 	fs_mode = GetDevicePowerState();
-	
-	//Initialize RTCC module for filetimestamping
-	Init_RTC();
 	
 	if(fsmanInit(&err)){
 		debug("SD Card Initialized");
@@ -136,6 +105,7 @@ bool openxc::interface::fs::initialize(FsDevice* device){
 	device->configured = true;
 	initializeCommon(device);
 	return device->configured;
+	
 }
 
 
@@ -154,6 +124,7 @@ void openxc::interface::fs::manager(FsDevice* device){ //session manager for FS
 		if(fsmanSessionIsActive()){
 			//flush session based on timeout of data to write entries to the FAT
 			if(secs_elapsed > file_flush_timer + FILE_FLUSH_DATA_TIMEOUT_SEC){
+				uart::writeString(&getConfiguration()->uart,(uint8_t*)"Flushing data");
 				if(!fsmanSessionFlush(&ret)){
 					debug("Unable to flush session");
 				}
@@ -168,14 +139,10 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 	uint8_t ret;
 	uint32_t secs_elapsed;
 	
-	if(device->configured == false ||
-			getmode() == FS_STATE::VI_CONNECTED){
-				
+	if(device->configured == false){
 		debug("USB Mode SD Card Uninitialized");
 		return;
 	}
-	
-	
 	if(!fsmanSessionIsActive()){
 		debug("Starting Session");
 		if(!fsmanSessionStart(&ret)){

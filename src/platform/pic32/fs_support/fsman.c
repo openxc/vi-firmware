@@ -1,13 +1,18 @@
-	#include <stdint.h>
-	#include <stdbool.h>
-	#include <plib.h>
-	#include "WProgram.h"
-	
-	#include "fileio.h"
-	#include "sd_spi.h"
-	#include "fsman.h"
-	#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <plib.h>
+#include "WProgram.h"
 
+#include "fileio.h"
+#include "sd_spi.h"
+#include "fsman.h"
+#include <time.h>
+
+#ifdef RTCC_SUPPORT
+	#include "rtcc.h"
+#endif
 #ifndef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
@@ -68,6 +73,32 @@ const char *error_code_str []=
     "FILEIO_ERROR_NO_LONG_FILE_NAME",             // Long file name was not found
     "FILEIO_ERROR_EOF",                            // End of file reached
 };
+
+void _GetTimestamp (struct tm * t){
+	
+	RTCC_STATUS r = RTCCGetTimeDateDecimal(t);
+	if(r != RTCC_NO_ERROR){
+		;
+	}
+}
+uint32_t _GetEpochTime(void){
+
+	return ((uint32_t)RTCCGetTimeDateUnix());
+
+}
+
+void Init_RTC(void)
+{
+
+	RTCC_STATUS r = I2C_Initialize();
+	
+	if(r != RTCC_NO_ERROR)
+	{
+		__debug("RTC_INIT FAILED %d",r);
+	}
+}
+
+	
 // The sdCardMediaParameters structure defines user-implemented functions needed by the SD-SPI fileio driver.
 // The driver will call these when necessary.  For the SD-SPI driver, the user must provide
 // parameters/functions to define which SPI module to use, Set/Clear the chip select pin,
@@ -111,7 +142,11 @@ void GetTimestamp (FILEIO_TIMESTAMP * timeStamp)
 	
 	d->bitfield.day   = ts.tm_mday;
 	d->bitfield.month = ts.tm_mon;
-	d->bitfield.year  = ts.tm_year;
+	
+	if(ts.tm_year > 1980)
+		d->bitfield.year  = ts.tm_year-1980;
+	else
+		d->bitfield.year  = 0;
 	
 	t->bitfield.secondsDiv2 = ts.tm_sec/2;
 	t->bitfield.minutes		= ts.tm_min;
@@ -152,12 +187,15 @@ void fsmanInitHardwareSD(void)
 
 uint8_t fsmanInit(uint8_t * result_code){
 	
-
+	uint8_t file_name[25];
+	
 	fsmanInitHardwareSD();
+
+	//Initialize RTCC module for filetimestamping
+	Init_RTC();
 
 	memset(&file,0, sizeof(FILEIO_OBJECT));
 	 
-
     if (!FILEIO_Initialize()){
 		
         *result_code = FILEIO_ERROR_INIT_ERROR;//from FILEIO_ERROR_TYPE
@@ -165,14 +203,33 @@ uint8_t fsmanInit(uint8_t * result_code){
     }
     // Register the GetTimestamp function as the timestamp source for the library.
     FILEIO_RegisterTimestampGet	(GetTimestamp);
-	
+	__debug("FILE Media Detect");
 	if (FILEIO_MediaDetect(&gSdDrive, &sdCardMediaParameters) != TRUE){
 		*result_code = FILEIO_ERROR_INIT_ERROR;//from FILEIO_ERROR_TYPE
         return 0; 
     }
+	__debug("Mount SD Card");
+	if(fsmanMountSD(result_code) == FALSE){
+		
+		__debug("Mount Fail");
+		return 0;
+	}
+	//Create a VI_LOG directory if there isnt already one
 	
-	
-	return fsmanMountSD(result_code);
+	if(FILEIO_DirectoryChange ("VI_LOG") != FILEIO_RESULT_SUCCESS){
+		__debug("VI_LOG Directory was not found, creating it");	
+		if(FILEIO_DirectoryMake ("VI_LOG") != FILEIO_RESULT_SUCCESS){
+			__debug("Unable to create a VI_LOG directory");
+			return 0;
+		}
+		else{
+			if(FILEIO_DirectoryChange ("VI_LOG") != FILEIO_RESULT_SUCCESS){
+				__debug("VI_LOG Directory was created but not found");
+				return 0;
+			}
+		}
+	}
+	return 1;
 }
 
 uint8_t fsmanUnmountSD(uint8_t * result_code)
@@ -202,28 +259,26 @@ uint8_t fsmanSessionIsActive(void){
 
 uint8_t fsmanSessionStart(uint8_t * result_code){
 	//open file here
-	
 	char file_name[25];
-	struct tm ts;
+	uint32_t tm_code;
 	
-	_GetTimestamp(&ts);
+	tm_code = _GetEpochTime();
 	
-	sprintf(file_name,"%2d_%2d_%2d_%2d_%2d_%2d.TXT", 
-							ts.tm_mday,ts.tm_mon,ts.tm_year,
-							ts.tm_hour, ts.tm_min,ts.tm_sec);//todo make file write properties in config
+	sprintf(file_name,"%X.TXT", tm_code);
 							
 	__debug("Creating %s",file_name);
 	
 	if (*result_code = FILEIO_Open (&file, file_name, FILEIO_OPEN_WRITE | FILEIO_OPEN_CREATE), 
 			*result_code != FILEIO_RESULT_FAILURE){
 		//perhaps do some memory clean ups here
-		fsbufptr= 0;
+		fsbufptr = 0;
 		return TRUE;
        
     }
 	return FALSE;
 	
 }
+
 uint32_t fsmanSessionCacheBytesWaiting(void){
 	return fsbufptr;
 }

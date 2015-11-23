@@ -1,4 +1,5 @@
 #ifndef __FSMAN_H
+#define __FSMAN_H
 
 #ifdef	__cplusplus
 extern "C" {
@@ -33,6 +34,7 @@ uint8_t fsmanSessionStart(uint8_t * result_code);
 uint8_t fsmanSessionEnd(uint8_t * result_code);
 uint32_t fsmanSessionCacheBytesWaiting(void);
 void fsmanInitHardwareSD(void);
+
 #ifdef	__cplusplus
 }
 #endif

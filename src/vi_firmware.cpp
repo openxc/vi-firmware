@@ -188,7 +188,7 @@ void initializeIO() {
     usb::initialize(&getConfiguration()->usb);
 	
 	#ifndef CROSSCHASM_BTLE_C5
-    uart::initialize(&getConfiguration()->uart); // todo uncomment this and remove debug messages from uart
+    uart::initialize(&getConfiguration()->uart); 
 	#endif
 	
 	#ifdef BLE_SUPPORT
@@ -197,9 +197,9 @@ void initializeIO() {
     #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
     #endif
-
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
+	
 }
 
 void initializeVehicleInterface() {

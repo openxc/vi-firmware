@@ -2,7 +2,7 @@
 #include "config.h"
 #include "util/log.h"
 #include "interface/fs.h"
-#include "platform/pic32/fs_platforms.h"
+#include "fs_platforms.h"
 
 namespace fs = openxc::interface::fs;
 

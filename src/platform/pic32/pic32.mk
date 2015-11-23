@@ -105,11 +105,37 @@ LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
 ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
+
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
+
+ifeq ($(MSD_ENABLE), 1)
+
+CPPFLAGS += -Iplatform/pic32/fs_support \
+			-D__PIC32MX__ \
+			-D__PIC32MX \
+			-D__XC32__ \
+			-Iplatform/pic32
+
+LOCAL_C_SRCS +=	$(LIBS_PATH)/fileio/src/fileio.c
+LOCAL_C_SRCS +=	$(LIBS_PATH)/fileio/drivers/sd_spi/sd_spi.c
+LOCAL_C_SRCS += $(wildcard platform/pic32/fs_support/*.c)
+LOCAL_C_SRCS += $(LIBS_PATH)/MSD/usb_function_msd.c
+
+INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
+INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
+INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
+INCLUDE_PATHS += -I$(LIBS_PATH)/fileio 
+INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
+INCLUDE_PATHS += -Iplatform/pic32/fs_support
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
 endif
+
+endif
+
+
 ifeq ($(PLATFORM), CROSSCHASM_BTLE_C5)
 CPPFLAGS += -I$(LIBS_PATH)/STBTLE/stlib \
 			-Iplatform/pic32 \

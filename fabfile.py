@@ -24,6 +24,8 @@ env.payload_format = "JSON"
 env.logging_output = "OFF"
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
+env.msd_enable = False
+
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
@@ -115,6 +117,8 @@ def build_options():
 
     DEFAULT_COMPILER_OPTIONS = {
         'DEBUG': env.debug,
+		'MSD_ENABLE' : 0,
+		'DEFAULT_FILE_GENERATE_SECS' : 180,
         'BOOTLOADER': env.bootloader,
         'TRANSMITTER': False,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
@@ -134,7 +138,12 @@ def build_options():
     }
 
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
+	
     options['DEBUG'] = env.debug
+	
+	options['MSD_ENABLE'] = env.debug
+	options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
+	
     options['BOOTLOADER'] = env.bootloader
     options['TRANSMITTER'] = env.transmitter
     options['PLATFORM'] = board_options['name']

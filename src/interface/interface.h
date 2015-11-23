@@ -1,6 +1,6 @@
 #ifndef __INTERFACE_H__
 #define __INTERFACE_H__
-#include "platform/pic32/fs_platforms.h"
+#include "fs_platforms.h"
 namespace openxc {
 namespace interface {
 

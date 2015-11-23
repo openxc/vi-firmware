@@ -49,7 +49,9 @@ void USER_SdSpiConfigurePins_2 (void)
 {
    LATGSET  = (1 << 9); //disable SD 
    TRISGCLR = (1 << 9); //Set SD CS as output
-   //Hardware CD and WP absent
+#ifdef CROSSCHASM_CELLULAR_C5   
+   TRISBSET = (1 << 5);
+#endif
 }
 
 inline void USER_SdSpiSetCs_2(uint8_t a)
@@ -63,6 +65,10 @@ inline void USER_SdSpiSetCs_2(uint8_t a)
 
 inline bool USER_SdSpiGetCd_2(void)
 {
+#ifdef CROSSCHASM_CELLULAR_C5
+	return(PORTBbits.RB5);
+#endif	
+
    return true;
 }
 

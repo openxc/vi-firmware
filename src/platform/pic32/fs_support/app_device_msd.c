@@ -19,7 +19,7 @@
  IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
  CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
  *******************************************************************/
-
+#include "fs_platforms.h"
 #include "system.h"
 #include "system_config.h"
 #include "USB/usb.h"
@@ -28,6 +28,8 @@
 #include "fileio.h"
 #include "sd_spi.h"
 
+
+#ifdef FS_SUPPORT
 /** VARIABLES ******************************************************/
 // The sdCardMediaParameters structure defines user-implemented functions needed by the SD-SPI fileio driver.
 // The driver will call these when necessary.  For the SD-SPI driver, the user must provide
@@ -283,3 +285,4 @@ bool USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t 
     return true;
 }
 
+#endif

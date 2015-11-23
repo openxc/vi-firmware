@@ -1,4 +1,11 @@
-#ifdef CROSSCHASM_C5 //to be tested on other platforms
+#include "fs_platforms.h"
+
+#ifdef FS_SUPPORT
+
+#ifdef RTCC_SUPPORT
+	#include "rtcc.h"
+#endif
+
 #include "interface/fs.h"
 #include "config.h"
 #include <stdio.h>
@@ -14,10 +21,6 @@
 #include <stdarg.h>
 #include "lights.h"
 #include "fsman.h"
-
-#ifdef RTCC_SUPPORT
-	#include "rtcc.h"
-#endif
 
 static uint32_t file_elapsed_timer=0;
 static uint32_t file_flush_timer=0;
@@ -124,7 +127,6 @@ void openxc::interface::fs::manager(FsDevice* device){ //session manager for FS
 		if(fsmanSessionIsActive()){
 			//flush session based on timeout of data to write entries to the FAT
 			if(secs_elapsed > file_flush_timer + FILE_FLUSH_DATA_TIMEOUT_SEC){
-				uart::writeString(&getConfiguration()->uart,(uint8_t*)"Flushing data");
 				if(!fsmanSessionFlush(&ret)){
 					debug("Unable to flush session");
 				}

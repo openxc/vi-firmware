@@ -1,6 +1,25 @@
 #if defined(CROSSCHASM_C5)
 	
-	#define FS_SUPPORT
-	#define RTCC_SUPPORT
+	#if defined __MSD_ENABLE__
+	
+		#ifndef DEFAULT_FILE_GENERATE_SECS
+			#define DEFAULT_FILE_GENERATE_SECS 180
+			#warning "DEFAULT_FILE_GENERATE_SECS=180 applied"
+		#endif
+		
+		#if DEFAULT_FILE_GENERATE_SECS < 15
+			#undef DEFAULT_FILE_GENERATE_SECS
+			#define DEFAULT_FILE_GENERATE_SECS 180
+			#warning "DEFAULT_FILE_GENERATE_SECS=180 applied"
+		#endif
+	
+		#define FS_SUPPORT
+		#define RTCC_SUPPORT
+		
+		#define FILE_WRITE_RATE_SEC 	DEFAULT_FILE_GENERATE_SECS
+		
+		#define FILE_FLUSH_DATA_TIMEOUT_SEC 15
+
+	#endif
 	
 #endif

@@ -181,7 +181,7 @@ void initializeIO() {
 	
     debug("Moving to ALL I/O runlevel");
 	
-#ifdef CROSSCHASM_C5	
+#ifdef FS_SUPPORT	
 	fs::initialize(&getConfiguration()->fs);
 #endif	
 

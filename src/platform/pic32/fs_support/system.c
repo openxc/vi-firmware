@@ -63,14 +63,10 @@ inline void USER_SdSpiSetCs_2(uint8_t a)
 
 inline bool USER_SdSpiGetCd_2(void)
 {
-#warning "CD unimplemented in hardware"
-	__debug("Unimplemented");
    return true;
 }
 
 inline bool USER_SdSpiGetWp_2(void)
 {
-	//__debug("Unimplemented");
-#warning "WP is unimplemented in hardware"
    return false;
 }

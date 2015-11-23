@@ -4,9 +4,8 @@
 #include <stdlib.h>
 #include "interface/interface.h"
 #include "util/bytebuffer.h" //to do remove this and add custom type to have 512 size
+#include "fs_platforms.h"
 
-#define FILE_WRITE_RATE_SEC 	60 // create a file every ten seconds, todo if pipeline is empty file isnt created on SD card
-#define FILE_FLUSH_DATA_TIMEOUT_SEC 15
 
 
 typedef enum { //todo should we add this in a new fs.h in platform folder?

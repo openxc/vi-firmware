@@ -121,32 +121,42 @@ LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/stlib/*.c)
 LOCAL_C_SRCS += $(platform/pic32/stlib/*.c)
 endif
 
+
+
 ifeq ($(PLATFORM), CROSSCHASM_C5)
+
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
-			-Iplatform/pic32 \
-			-Iplatform/pic32/fs_support \
+			-Iplatform/pic32 
+			
+			
+			
+			
+ifeq ($(MSD_ENABLE), 1)
+
+CPPFLAGS += -Iplatform/pic32/fs_support \
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ 
-			
 
-LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
-LOCAL_C_SRCS +=	$(wildcard $(LIBS_PATH)/http-parser/http_parser.c) 
+
 LOCAL_C_SRCS +=	$(LIBS_PATH)/fileio/src/fileio.c
 LOCAL_C_SRCS +=	$(LIBS_PATH)/fileio/drivers/sd_spi/sd_spi.c
 LOCAL_C_SRCS += $(wildcard platform/pic32/fs_support/*.c)
 LOCAL_C_SRCS += $(LIBS_PATH)/MSD/usb_function_msd.c
 
-INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser 
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio 
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
-INCLUDE_PATHS += -Iplatform/pic32
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
-
 CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
+endif
+
+LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
+LOCAL_C_SRCS +=	$(wildcard $(LIBS_PATH)/http-parser/http_parser.c) 
+INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser 
+INCLUDE_PATHS += -Iplatform/pic32
 
 endif
 

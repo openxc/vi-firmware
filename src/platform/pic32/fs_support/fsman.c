@@ -1,9 +1,12 @@
+#include "fs_platforms.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <plib.h>
 #include "WProgram.h"
+
+#ifdef FS_SUPPORT
 
 #include "fileio.h"
 #include "sd_spi.h"
@@ -365,7 +368,7 @@ uint8_t fsmanSessionEnd(uint8_t * result_code){
 	return TRUE;
 }
 
-
+#endif
 
 
 

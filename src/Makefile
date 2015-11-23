@@ -90,6 +90,18 @@ else
 	SYMBOLS += NDEBUG
 endif
 
+#0 or 1
+MSD_ENABLE ?= 0
+ifeq ($(MSD_ENABLE), 1)
+	SYMBOLS += __MSD_ENABLE__
+endif
+
+#15-secs to 86400-secs upper limits will automatically be truncated
+DEFAULT_FILE_GENERATE_SECS ?= 180
+SYMBOLS += DEFAULT_FILE_GENERATE_SECS=$(DEFAULT_FILE_GENERATE_SECS)
+#endif
+
+
 TRANSMITTER ?= 0
 ifeq ($(TRANSMITTER), 1)
 	DEFAULT_POWER_MANAGEMENT = ALWAYS_ON
@@ -186,6 +198,8 @@ define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
 	$(call show_vi_config_variable,DEBUG)
+	$(call show_vi_config_variable,MSD_ENABLE)
+	$(call show_vi_config_variable,DEFAULT_FILE_GENERATE_SECS)
 	$(call show_vi_config_variable,DEFAULT_METRICS_STATUS)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)

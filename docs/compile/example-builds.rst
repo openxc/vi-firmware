@@ -30,6 +30,8 @@ want to send diagnostic requests through a VI:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -61,7 +63,11 @@ The Makefile will always print the configuration used so you can double check.
   configuration explicitly states they are writable (``DEFAULT_CAN_ACK_STATUS``
   is ``1``). This means that the VI may not work in a bench testing setup where
   nothing else on the bus is ACKing.
-
+* :ref:`Mass storage device <msd-storage>` (``MSD_ENABLE`` is ``0``) is disabled 
+  by default and is available on certain C5 devices which have a provision to connect 
+  a SD card. The time intervals at which the data is logged is 
+  (``DEFAULT_FILE_GENERATE_SECS``is ``180``) set to 180 seconds by default.
+  
 .. NOTE::
   There's a shortcut for this default build, using the Fabric tool and an
   included script. This will build the default build for the reference VI
@@ -105,6 +111,8 @@ options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS	
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -166,6 +174,8 @@ The config a VI to emulate a vehicle:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART

@@ -1,5 +1,5 @@
-C5 Cellular
-===========
+CrossChasm C5 Cellular
+======================
 
 The C5 Cellular device requires an OBD-II to DB9 Serial cable (which is included) in the
 shipment. This requires the device to be attached elsewhere in the vehicle since it does
@@ -21,4 +21,4 @@ https://github.com/openxc/openxc-azure-webserver
 Configuration Options
 ---------------------
 
-/advanced/c5_cell_config.html
+:doc:`C5 Cellular Configuration Options </advanced/c5_cell_config>`

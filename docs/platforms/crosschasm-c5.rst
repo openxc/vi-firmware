@@ -1,13 +1,13 @@
 CrossChasm C5 Interfaces
 ========================
 This page describes the CrossChasm C5 family of OBD interfaces, which includes 
-the Bluetooth and Cellular devices. Most things are common
-between the different devices and are described on this page. For options specific
-to the Cellular device, see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
+the Classic Bluetooth, Bluetooth Low Energy and Cellular devices. Most things are common
+between the different devices and are described on this page.For options specific to the
+Cellular device,see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
 firmware. To build for one of the C5s, compile with one of the flags: 
-``PLATFORM=CROSSCHASM_C5`` or ``PLATFORM=CROSSCHASM_CELLULAR_C5``.
+``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BTLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR``.
 
 .. note::
 
@@ -70,7 +70,7 @@ Compiling
 ---------
 
 The instructions for compiling from source are identical to the :doc:`chipKIT
-Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
+Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BTLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
 instead of ``CHIPKIT``.
 
 If you will not be using the avrdude bootloader and will be flashing directly
@@ -89,13 +89,12 @@ On the C5, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
 receiving device before data will be sent.
 
-TODO add pinout of expansion header, probably a picture
-
 UART data is sent only if pin 0.58 (or PORTB BIT 4, RB4) is pulled high (to
-5vv). If you are using a Bluetooth module like the `BlueSMiRF
+5v). If you are using a Bluetooth module like the `BlueSMiRF
 <https://www.sparkfun.com/products/10269>`_ from SparkFun, you need to hard-wire
 5v into this pin to actually enabling UART. To disable UART, pull this pin low
 or leave it floating.
+
 
 Debug Logging
 -------------
@@ -106,6 +105,11 @@ with the ``DEFAULT_LOGGING_OUTPUT="UART"`` build option.
 
 On the C5, logging is on UART3A at 115200 baud (if the firmware was compiled
 with ``DEBUG=1``).
+
+.. note::
+
+   If ``MSD_ENABLE=1`` debug logging is not available as these pins are shared with 
+   the RTC for time stamping.
 
 LED Lights
 -----------

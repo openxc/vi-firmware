@@ -21,8 +21,8 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``PLATFORM``
   Select the target :doc:`microcontroller platform </platforms/platforms>`.
 
-  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_BT, CROSSCHASM_C5_BTLE,`` 
-          ``CROSSCHASM_C5_CELLULAR, BLUEBOARD``
+  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_BT, CROSSCHASM_C5_BTLE,``
+           ``CROSSCHASM_C5_CELLULAR, BLUEBOARD``
 
 
   Default: ``CHIPKIT``
@@ -40,7 +40,26 @@ These options are passed as shell environment variables to the Makefile, e.g.
   Values: ``0`` or ``1``
 
   Default: ``0``
+  
+``MSD_ENABLE``
+  Set to ``1`` to enable logging to SD card and mass storage device(MSD) over USB. In this mode
+  the device will startup as :ref:`MSD<msd-storage>` only when powered up directly 
+  from a USB port. In other cases when the device is connected to a vehicle the firmware 
+  will perform logging operations on the SD card.
+  
+  Values: ``0`` or ``1``
 
+  Default: ``0``
+
+``DEFAULT_FILE_GENERATE_SECS``
+  Enabled only when ``MSD_ENABLE=1`` sets the time interval for generating files on the SD card.
+  All files are generated within the VI_LOG folder on the FAT file system. Read the :doc:`mass storage
+  document</advanced/msd>` for more details.
+  
+  Values: ``15`` to ``86400``
+
+  Default: ``180``
+  
 ``BOOTLOADER``
   By default, the firmware is built to run on a microcontroller with a
   bootloader (if one is available for the selected platform), allowing you to
@@ -127,7 +146,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
   By default, the output format is ``JSON``. Set this to ``PROTOBUF`` to use a
   binary output format, described more in :doc:`/advanced/binary`.
 
-  Values: ``JSON``, ``PROTOBUF``
+  Values: ``JSON``, ``PROTOBUF``, ``MESSAGEPACK``
 
   Default: ``JSON``
 

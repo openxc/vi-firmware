@@ -1,6 +1,13 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v7.0.2-dev
+## v7.1.0
+
+* Feature: Add support for new CrossChasm C5 Cellular platform.
+    Includes new http-parser submodule.
+    Requires new v0.5+ of openxc-message-format
+* BREAKING: Update platform variable names from CROSSCHASM_C5 to
+    CROSSCHASM_C5_BT or CROSSCHASM_C5_CELLULAR (fab c5bt or c5cell)
+* Improvement: Improved automatic release process.
 
 ## v7.0.1
 

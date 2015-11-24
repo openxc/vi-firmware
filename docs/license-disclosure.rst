@@ -1,6 +1,6 @@
-==============================
-Open Source License Disclosure
-==============================
+==================
+License Disclosure
+==================
 
 The OpenXC vehicle interface firmware is an open source project, and in turn
 depends on a few other open source projects. If you are building from source, or

@@ -1,7 +1,7 @@
-Configuration options specific to the CELLULAR_C5
--------------------------------------------------
+C5 CELLULAR Config
+------------------
 
-When building for the cellular C5, there are some modem-specific build
+When building for the C5 Cellular, there are some modem-specific build
 options that you can choose. These options are set directly in the
 firmware, in the configuration struct from config.cpp. Some common
 scenarios are described here.
@@ -76,7 +76,7 @@ compile the firmware for use with a particular SIM.
 Setting up GPS signals:
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The GPS receiver in the cellular C5 publishes a GPS message that
+The GPS receiver in the C5 Cellular publishes a GPS message that
 contains a variety of signals. You can select which signals in this
 message will be published through the VI, and how often. Note that all
 of the selected GPS signals share a single publish interval.

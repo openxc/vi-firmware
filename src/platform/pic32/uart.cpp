@@ -28,13 +28,13 @@
 #include "gpio.h"
 #include "util/timer.h"
 
-#if defined(CROSSCHASM_C5)
+#if defined(CROSSCHASM_C5_BT)
 
     #define UART_STATUS_PORT 0
     #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
 
-#elif defined(CROSSCHASM_CELLULAR_C5)
+#elif defined(CROSSCHASM_C5_CELLULAR)
 
     #define UART_STATUS_PORT 0
     #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)

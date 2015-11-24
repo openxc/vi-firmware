@@ -21,10 +21,15 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``PLATFORM``
   Select the target :doc:`microcontroller platform </platforms/platforms>`.
 
-  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_, CROSSCHASM_C5 CROSSCHASM_CELLULAR_C5, BLUEBOARD,``
-            
+  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_BT, CROSSCHASM_C5_BTLE,`` 
+          ``CROSSCHASM_C5_CELLULAR, BLUEBOARD``
+
 
   Default: ``CHIPKIT``
+
+.. note::
+   
+   The old Platform variable ``CROSSCHASM_C5`` has been renamed to ``CROSSCHASM_C5_BT``
 
 ``DEBUG``
   Set to ``1`` to compile with debugging symbols and to enable debug logging. By

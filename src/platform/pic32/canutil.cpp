@@ -4,11 +4,11 @@
 #include "util/log.h"
 #include "gpio.h"
 
-#if defined(CROSSCHASM_C5)
+#if defined(CROSSCHASM_C5_CT)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
     #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)
-#elif defined(CROSSCHASM_CELLULAR_C5)
+#elif defined(CROSSCHASM_C5_CELLULAR)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
     #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)

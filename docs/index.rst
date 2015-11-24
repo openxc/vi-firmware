@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /_static/logo.png
 
-:Version: 7.0.2-dev
+:Version: 7.1.0
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -45,6 +45,7 @@ version to a USB, Bluetooth or network interface.
 
     testing
     contributing
+    license-disclosure
 
 License
 -------

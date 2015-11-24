@@ -104,7 +104,8 @@ ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
-ifeq ($(PLATFORM), CROSSCHASM_CELLULAR_C5)
+
+ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
 
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
@@ -132,11 +133,9 @@ INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
 CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
 endif
-
 endif
 
-
-ifeq ($(PLATFORM), CROSSCHASM_BTLE_C5)
+ifeq ($(PLATFORM), CROSSCHASM_C5_BTLE)
 CPPFLAGS += -I$(LIBS_PATH)/STBTLE/stlib \
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
@@ -147,15 +146,10 @@ LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/stlib/*.c)
 LOCAL_C_SRCS += $(platform/pic32/stlib/*.c)
 endif
 
-
-
-ifeq ($(PLATFORM), CROSSCHASM_C5)
+ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
 			-Iplatform/pic32 
-			
-			
-			
 			
 ifeq ($(MSD_ENABLE), 1)
 
@@ -178,12 +172,6 @@ INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
 CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
 endif
-
-LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
-LOCAL_C_SRCS +=	$(wildcard $(LIBS_PATH)/http-parser/http_parser.c) 
-INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser 
-INCLUDE_PATHS += -Iplatform/pic32
-
 endif
 
 

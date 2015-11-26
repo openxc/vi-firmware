@@ -21,6 +21,9 @@
 #include <stdarg.h>
 #include "lights.h"
 #include "fsman.h"
+#include "rtcc.h"
+#include "commands/commands.h"
+#include "commands/sd_mount_status_command.h"
 
 static uint32_t file_elapsed_timer=0;
 static uint32_t file_flush_timer=0;
@@ -33,6 +36,7 @@ using openxc::config::getConfiguration;
 
 static FS_STATE fs_mode = FS_STATE::NONE_CONNECTED;
 
+static bool sd_mount_status = false;
 
 extern "C" {
 	
@@ -85,6 +89,16 @@ bool openxc::interface::fs::setRTC(uint32_t *unixtime){
 }
 
 
+bool openxc::interface::fs::getSDStatus(void){
+	
+	if(getmode() == FS_STATE::VI_CONNECTED){
+		return sd_mount_status;
+	}
+	return false;	
+	
+}
+
+
 bool openxc::interface::fs::initialize(FsDevice* device){
 	
 	uint8_t err;
@@ -93,7 +107,11 @@ bool openxc::interface::fs::initialize(FsDevice* device){
 	
 	fs_mode = GetDevicePowerState();
 	
-	if(fsmanInit(&err)){
+	sd_mount_status = fsmanInit(&err);
+	
+	openxc::commands::handleSDMountStatusCommand(); //publish msd status information to pipleline
+	
+	if(sd_mount_status){
 		debug("SD Card Initialized");
 	}
 	else{
@@ -101,6 +119,8 @@ bool openxc::interface::fs::initialize(FsDevice* device){
 		debug(fsmanGetErrStr(err));
 		return false;
 	}
+	
+	
 	if(getmode() == FS_STATE::USB_CONNECTED){
 		return true;
 	}

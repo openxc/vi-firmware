@@ -23,6 +23,7 @@ const char openxc::payload::json::PAYLOAD_FORMAT_COMMAND_NAME[] = "payload_forma
 const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "predefined_obd2";
 const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
 const char openxc::payload::json::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
+const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_status";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -112,6 +113,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::MODEM_CONFIGURATION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
         typeString = payload::json::RTC_CONFIGURATION_COMMAND_NAME;
+	} else if(message->command_response.type == openxc_ControlCommand_Type_SD_MOUNT_STATUS) {
+		typeString = payload::json::SD_MOUNT_STATUS_COMMAND_NAME;
     } else {
         return false;
     }
@@ -596,6 +599,12 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         RTC_CONFIGURATION_COMMAND_NAME,
                         strlen(RTC_CONFIGURATION_COMMAND_NAME))) {
                 deserializeRTCConfiguration(root, command);
+            }
+			else if(!strncmp(commandNameObject->valuestring,
+                        SD_MOUNT_STATUS_COMMAND_NAME,
+                        strlen(SD_MOUNT_STATUS_COMMAND_NAME))) {
+				command->has_type = true;
+                command->type = openxc_ControlCommand_Type_SD_MOUNT_STATUS;
             }
 			else {
                 debug("Unrecognized command: %s", commandNameObject->valuestring);

@@ -53,8 +53,25 @@ Example JSON command
 SD card status message
 ------------------------------
 It may happen that the SD card which connected has become full or is unformatted. In such a scenario
-a message is sent to the user over the USB, Bluetooth and Cellular. Based on this the user can perform
-a format by connecting the device over USB or insert a new empty card.
+a message is sent to the user over the USB, Bluetooth and Cellular. User may also send a command to 
+check the status synchronously. Based on this the user can perform a format by connecting the device
+ over USB or insert a new empty card.
+
+Example JSON command
+
+{"command":"sd_mount_status"}
+
+Response 1(SD card correctly mounted)
+
+{"command_response":"sd_mount_status","status":true}
+
+Response 2(SD card mounting failed)
+
+{"command_response":"sd_mount_status","status":false}
+
+.. NOTE::
+  ``SD_MOUNT_STATUS`` command is not available when device is connected as a mass storage device.
+  Issuing a command in this mode returns a ``false`` status
 
 UART Debug Support
 -------------------

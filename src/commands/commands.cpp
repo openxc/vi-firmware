@@ -17,6 +17,8 @@
 #include "commands/predefined_obd2_command.h"
 #include "commands/modem_config_command.h"
 #include "commands/rtc_config_command.h"
+#include "commands/sd_mount_status_command.h"
+
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -55,6 +57,8 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
 		case openxc_ControlCommand_Type_RTC_CONFIGURATION:
             status = openxc::commands::handleRTCConfigurationCommand(command);
         break;
+		case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
+			status =  openxc::commands::handleSDMountStatusCommand();
         default:
             status = false;
             break;
@@ -134,6 +138,7 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_VERSION:
         case openxc_ControlCommand_Type_DEVICE_ID:
+		case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
             valid =  true;
             break;
         case openxc_ControlCommand_Type_MODEM_CONFIGURATION:

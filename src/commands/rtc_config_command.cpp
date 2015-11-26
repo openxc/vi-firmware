@@ -38,5 +38,6 @@ bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* comm
 	status = false;
     #endif
 	sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
+	
     return status;
 }

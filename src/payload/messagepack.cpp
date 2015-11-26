@@ -62,6 +62,8 @@ const char openxc::payload::messagepack::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "succ
 const char openxc::payload::messagepack::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
 const char openxc::payload::messagepack::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
 const char openxc::payload::messagepack::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
+const char openxc::payload::messagepack::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_status";
+
 
 enum msgpack_var_type{TYPE_STRING,TYPE_NUMBER,TYPE_TRUE,TYPE_FALSE,TYPE_BINARY,TYPE_MAP};
 
@@ -289,6 +291,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message, cmp_ctx_t *
         typeString = payload::messagepack::MODEM_CONFIGURATION_COMMAND_NAME;
 	} else if(message->command_response.type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
         typeString = payload::messagepack::RTC_CONFIGURATION_COMMAND_NAME;
+	} else if(message->command_response.type == openxc_ControlCommand_Type_SD_MOUNT_STATUS) {
+        typeString = payload::messagepack::SD_MOUNT_STATUS_COMMAND_NAME;
     } else {
         return false;
     }
@@ -1129,7 +1133,14 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 		else if(!strncmp(commandNameObject->valuestring,
 					RTC_CONFIGURATION_COMMAND_NAME,
 					strlen(RTC_CONFIGURATION_COMMAND_NAME))) {
-			deserializeModemConfiguration(root, command);
+			deserializeRTCConfiguration(root, command);
+		}
+		else if(!strncmp(commandNameObject->valuestring,
+					SD_MOUNT_STATUS_COMMAND_NAME,
+					strlen(SD_MOUNT_STATUS_COMMAND_NAME))) {
+						
+				command->has_type = true;
+				command->type = openxc_ControlCommand_Type_SD_MOUNT_STATUS;
 		}
 		else {
 			debug("Unrecognized command: %s", commandNameObject->valuestring);

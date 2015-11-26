@@ -1,6 +1,10 @@
 #ifndef _RTCC_DOT_H_
 #define _RTCC_DOT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <time.h>
 #include "GenericTypeDefs.h"
 #include "rtc_platform.h"
@@ -149,5 +153,9 @@ RTCC_STATUS RTCCSetCrystalState(bool crystal_state);
 time_t ConvertRealTimeToUnixTime(struct tm *RealTime);
 struct tm * ConvertUnixTimeToRealTime(time_t * UnixTime);
 time_t RTCCGetTimeDateUnix(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

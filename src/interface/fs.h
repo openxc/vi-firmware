@@ -48,6 +48,7 @@ bool initialize(FsDevice* device);
  */
 void write(FsDevice* device, uint8_t *data, uint32_t len);
  
+bool getSDStatus(void); 
 
 void manager(FsDevice* device);
 

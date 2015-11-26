@@ -43,6 +43,8 @@ extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
 
 extern const char MODEM_CONFIGURATION_COMMAND_NAME[];
 extern const char RTC_CONFIGURATION_COMMAND_NAME[];
+extern const char SD_MOUNT_STATUS_COMMAND_NAME[];
+
 /* Public: Deserialize an OpenXC message from a payload containing JSON.
  *
  * payload - The bytestream payload to parse a message from.

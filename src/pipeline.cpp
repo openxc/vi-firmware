@@ -178,7 +178,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 	#elif defined BLE_SUPPORT
 	sendToBle(pipeline, message, messageSize, messageClass);
     #else
-	#ifndef CROSSCHASM_C5 //UART port does not exist as a interface on these devices
+	#ifndef FS_SUPPORT //UART shared with RTC, disable
     sendToUart(pipeline, message, messageSize, messageClass);
 	#endif
     #endif

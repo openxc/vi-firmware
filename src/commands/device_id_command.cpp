@@ -37,7 +37,7 @@ bool openxc::commands::handleDeviceIdCommmand() {
     // TODO move getDeviceId to openxc::platform, allow each platform to
     // define where the device ID comes from.
     
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE //deserialize mac address to do read from device flash
 	//return the mac address of the device
 	char ids[32];
 	ble::BleDevice* ble = &getConfiguration()->ble;

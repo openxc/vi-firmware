@@ -49,7 +49,7 @@ void USER_SdSpiConfigurePins_2 (void)
 {
    LATGSET  = (1 << 9); //disable SD 
    TRISGCLR = (1 << 9); //Set SD CS as output
-#ifdef CROSSCHASM_CELLULAR_C5   
+#ifdef CROSSCHASM_C5_CELLULAR   
    TRISBSET = (1 << 5);
 #endif
 }
@@ -65,7 +65,7 @@ inline void USER_SdSpiSetCs_2(uint8_t a)
 
 inline bool USER_SdSpiGetCd_2(void)
 {
-#ifdef CROSSCHASM_CELLULAR_C5
+#ifdef CROSSCHASM_C5_CELLULAR
 	return(PORTBbits.RB5);
 #endif	
 

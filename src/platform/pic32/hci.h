@@ -22,14 +22,14 @@ extern "C" {
 #endif
 
 
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 
 #include <hal_types.h>
 #include <link_layer.h>
 #include <list.h>
 
 
-#define HCI_READ_PACKET_SIZE				        71 //128
+#define HCI_READ_PACKET_SIZE				        128
 
 #define DEFAULT_TIMEOUT 1000						//1  second 
 

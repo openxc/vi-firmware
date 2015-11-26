@@ -47,7 +47,7 @@ A new rtc configuration command is added to the _` OpenXC message format <https:
 
 Example JSON command
 
-{"command":"rtc_configuration", "value":"5654C8A6"}
+{"command":"rtc_configuration", "unix_time":"1448551563"}
 
 
 SD card status message

@@ -16,6 +16,7 @@
 #include "commands/payload_format_command.h"
 #include "commands/predefined_obd2_command.h"
 #include "commands/modem_config_command.h"
+#include "commands/rtc_config_command.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -52,7 +53,7 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             status = openxc::commands::handleModemConfigurationCommand(command);
             break;
 		case openxc_ControlCommand_Type_RTC_CONFIGURATION:
-            status = openxc::commands::handleModemConfigurationCommand(command);
+            status = openxc::commands::handleRTCConfigurationCommand(command);
         break;
         default:
             status = false;
@@ -138,6 +139,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_MODEM_CONFIGURATION:
             valid = openxc::commands::validateModemConfigurationCommand(message);
             break;
+		case openxc_ControlCommand_Type_RTC_CONFIGURATION:
+            valid = openxc::commands::validateRTCConfigurationCommand(message);
+            break;	
         default:
             valid = false;
             break;

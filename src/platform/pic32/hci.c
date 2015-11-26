@@ -1,5 +1,5 @@
 
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 #include <stdint.h>
 #include <stdbool.h>
 #include "hal_types.h"
@@ -139,7 +139,7 @@ int HCI_Process(void)
 	}
 	if(ISRDevice_busy == TRUE)
 	{
-		ISRDevice_busy =FALSE;
+		ISRDevice_busy = FALSE;
 		return -2;
 	}
 	return 1;

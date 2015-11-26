@@ -144,6 +144,8 @@ CPPFLAGS += -I$(LIBS_PATH)/STBTLE/stlib \
 CFLAGS   += -I$(LIBS_PATH)/STBTLE/stlib -Iplatform/pic32 -DBLUENRG_MS
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/stlib/*.c)
 LOCAL_C_SRCS += $(platform/pic32/stlib/*.c)
+INCLUDE_PATHS += -Iplatform/pic32
+
 endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BT)

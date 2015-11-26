@@ -111,7 +111,7 @@ void checkBusActivity() {
             // ALL_IO at initialization, so this is just a backup.
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 		lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
 		lights::disable(lights::LIGHT_A);
 #else
@@ -123,7 +123,7 @@ void checkBusActivity() {
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
             !SUSPENDED))) {
         debug("CAN is quiet");
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 		lights::disable(lights::LIGHT_C); //disable green led
 #endif		
 		lights::enable(lights::LIGHT_A, lights::COLORS.red);
@@ -187,7 +187,7 @@ void initializeIO() {
 
     usb::initialize(&getConfiguration()->usb);
 	
-	#ifndef CROSSCHASM_BTLE_C5
+	#ifndef CROSSCHASM_C5_BTLE
     uart::initialize(&getConfiguration()->uart); 
 	#endif
 	

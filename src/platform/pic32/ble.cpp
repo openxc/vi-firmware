@@ -1,4 +1,4 @@
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 
 #include "interface/ble.h"
 #include "config.h"
@@ -429,20 +429,22 @@ static tBleStatus ST_BLE_Disconnect(BleDevice* device)
 static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
 {  
    tBleStatus ret;
+
    unsigned char adv[20]; 
    uint8_t uuid[16];
-  // const uint8_t manuf_data[] = {5, AD_TYPE_MANUFACTURER_SPECIFIC_DATA, 
-  //    0xAB, 0xE1, 0xE2, 0xE3     //Todo Manufacturer related data we can pass firmware revision //etc      
-  // };
+   
     COPY_VT_SERVICE_UUID(uuid);
 	adv[0] = 0x11;
 	adv[1] = 0x06;
 	memcpy(&adv[2],uuid,16);
 	
    /* disable scan response */
-   //hci_le_set_scan_resp_data(0,NULL);
-   hci_le_set_scan_resp_data(18,(const uint8_t*)adv);
-
+   ret = hci_le_set_scan_resp_data(18,(const uint8_t*)adv);
+   if(ret != BLE_STATUS_SUCCESS)
+   {
+	   return ret;//failed
+   }
+  
    adv[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
    ret = strlen(device->blesettings.advname);
    
@@ -453,7 +455,6 @@ static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
    memcpy(&adv[1],device->blesettings.advname,ret);
    adv[ret+1] = 0;
 
-  /* put device in connectable mode */
   ret = aci_gap_set_discoverable(ADV_IND, (device->blesettings.adv_min_ms*1000)/625, (device->blesettings.adv_max_ms*1000)/625, PUBLIC_ADDR, NO_WHITE_LIST_USE,
                                  ret + 1 ,(const char*) adv , 0, NULL, 0, 0); //using default slave con parameters
   
@@ -471,15 +472,7 @@ static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
 	  debug("Gap Delete of Power Level Broadcast Failed");
       return ret; //Critical BLE stack failure
   }
-  //*Update custom manufacturing data to be broadcast*/
-  //ret = aci_gap_update_adv_data(6, manuf_data);  
-  
-  //if (ret != BLE_STATUS_SUCCESS)
-  //{
-  //  debug("Gap Update of Manufacturing Data Failed");
-  //    return ret;// Critical BLE stack failure
-  //}
-  
+ 
   debug("Gap set in connectable mode success");
   
   return BLE_STATUS_SUCCESS;
@@ -534,9 +527,9 @@ bool openxc::interface::ble::initialize(BleDevice* device)
 	
 	debug("BLE radio is powered up"); 
 	
-	timer = uptimeMs() + 1000;
+	//timer = uptimeMs() + 100;
 	
-	while(uptimeMs() < timer);
+	//while(uptimeMs() < timer);
 	
 
 	//Write BLE MAC address and set it as public
@@ -638,7 +631,7 @@ void openxc::interface::ble::deinitialize(BleDevice* device)
 
 void openxc::interface::ble::read(BleDevice* device) {
 	
-	uint16_t err;
+	int16_t err;
 	uint8_t ret;
 	
 	
@@ -649,9 +642,9 @@ void openxc::interface::ble::read(BleDevice* device) {
 			debug("Init Failed");
 	}
 	err = HCI_Process();
-	
+
 	//send_l2cap_request = false;
-	if(send_l2cap_request == true &&  uptimeMs() > l2captimer+1000){
+	if(send_l2cap_request == true &&  uptimeMs() > l2captimer + 1000){
         
 		l2captimer = uptimeMs(); 
 		//debug("Updating L2CAP connection parameters");
@@ -669,11 +662,13 @@ void openxc::interface::ble::read(BleDevice* device) {
 		
 		return;
     }
-	  
+	
+    err = HCI_Process();
+	 
 	if( err < 0) 
 	{
-		ST_BLE_Failed_CB(BleError::ISR_SPI_READ_TIMEDOUT);
-		debug("ISR Timed-out");
+		//ST_BLE_Failed_CB(BleError::ISR_SPI_READ_TIMEDOUT);
+		//debug("ISR Timed-out");
 	}
 	
 #ifdef BLE_NO_ACT_TIMEOUT_ENABLE
@@ -767,7 +762,7 @@ void openxc::interface::ble::processSendQueue(BleDevice* device)
 			{
 				if(ret == BLE_STATUS_TIMEOUT)
 				{
-					debug("Notification Timed Out");
+					debug("Notification Timed Out %d",ret);
 					app_disconnected();
 					if(ST_BLE_Set_Connectable(&getConfiguration()->ble) != BLE_STATUS_SUCCESS)
 					{

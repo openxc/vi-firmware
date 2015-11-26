@@ -63,7 +63,7 @@ extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern HardwareSerial Serial;
 
 
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
 void openxc::interface::uart::read(UartDevice* device,openxc::util::bytebuffer::IncomingMessageCallback callback)
 {
 			

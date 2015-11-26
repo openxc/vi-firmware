@@ -1,4 +1,4 @@
-#if defined(CROSSCHASM_C5) || defined(CROSSCHASM_CELLULAR_C5)
+#if defined(CROSSCHASM_C5_BT) || defined(CROSSCHASM_C5_CELLULAR)
 	
 	#if defined __MSD_ENABLE__
 	

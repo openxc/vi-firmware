@@ -517,8 +517,9 @@ static void deserializeRTCConfiguration(cJSON* root, openxc_ControlCommand* comm
     command->has_rtc_configuration_command = true;
     openxc_RTCConfigurationCommand* rtcConfigurationCommand = &command->rtc_configuration_command;
     
-    cJSON* time = cJSON_GetObjectItem(root, "time");
+    cJSON* time = cJSON_GetObjectItem(root, "unix_time");
     if(time != NULL) {
+		
         rtcConfigurationCommand->has_unix_time = true;
         rtcConfigurationCommand->unix_time = time->valueint;
     }

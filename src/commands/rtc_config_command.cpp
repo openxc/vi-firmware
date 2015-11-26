@@ -18,8 +18,10 @@ bool openxc::commands::validateRTCConfigurationCommand(openxc_VehicleMessage* me
 }
 
 bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* command) {
+	
+	bool status = false;
+	
     #ifdef FS_SUPPORT
-    bool status = false;
     if(command->has_rtc_configuration_command) {
         openxc_RTCConfigurationCommand* rtcConfigurationCommand =
           &command->rtc_configuration_command;
@@ -32,14 +34,9 @@ bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* comm
 				
 		}
     }
-
-    sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
-
-    return status;
-
     #else 
-
-    return false;
-
+	status = false;
     #endif
+	sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
+    return status;
 }

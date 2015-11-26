@@ -1,6 +1,7 @@
 
 /* Includes ------------------------------------------------------------------*/
-#ifdef CROSSCHASM_BTLE_C5
+#ifdef CROSSCHASM_C5_BTLE
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <plib.h>

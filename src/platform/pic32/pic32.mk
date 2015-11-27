@@ -118,6 +118,7 @@ CPPFLAGS += -Iplatform/pic32/fs_support \
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ \
+			-D__XC32__ \
 			-Iplatform/pic32
 
 LOCAL_C_SRCS +=	$(LIBS_PATH)/fileio/src/fileio.c
@@ -131,7 +132,7 @@ INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio 
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
-CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__
 endif
 endif
 
@@ -172,7 +173,7 @@ INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/inc
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio 
 INCLUDE_PATHS += -I$(LIBS_PATH)/fileio/drivers/sd_spi
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
-CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__
 endif
 endif
 

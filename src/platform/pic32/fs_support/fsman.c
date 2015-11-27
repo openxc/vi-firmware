@@ -133,6 +133,10 @@ const FILEIO_DRIVE_CONFIG gSdDrive =
     (FILEIO_DRIVER_SectorRead)FILEIO_SD_SectorRead,                         // Function to read a sector from the media.
     (FILEIO_DRIVER_SectorWrite)FILEIO_SD_SectorWrite,                       // Function to write a sector to the media.
     (FILEIO_DRIVER_WriteProtectStateGet)FILEIO_SD_WriteProtectStateGet,     // Function to determine if the media is write-protected.
+	
+	
+	
+	
 };
 
 void GetTimestamp (FILEIO_TIMESTAMP * timeStamp)
@@ -187,6 +191,17 @@ void fsmanInitHardwareSD(void)
 }
 
 
+uint8_t fsmanFormat(void){
+	/*
+	__debug("Formatting Drive");
+	uint8_t res = FILEIO_Format (&gSdDrive, &sdCardMediaParameters, FILEIO_FORMAT_ERASE, 12345, "OPENXC");
+	__debug("Formatting Complete");
+	
+	if(res == FILEIO_RESULT_SUCCESS)
+		return 1;
+	*/
+	return 0;
+}
 
 uint8_t fsmanInit(uint8_t * result_code){
 	
@@ -211,6 +226,8 @@ uint8_t fsmanInit(uint8_t * result_code){
 		*result_code = FILEIO_ERROR_INIT_ERROR;//from FILEIO_ERROR_TYPE
         return 0; 
     }
+	return 1;
+	
 	__debug("Mount SD Card");
 	if(fsmanMountSD(result_code) == FALSE){
 		

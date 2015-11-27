@@ -24,6 +24,7 @@ const char* fsmanGetErrStr(uint8_t code);
 
 uint8_t fsmanMountSD     (uint8_t * result_code);
 uint8_t fsmanInit        (uint8_t * result_code);
+uint8_t fsmanFormat		 (void);
 uint8_t fsmanUnmountSD   (uint8_t * result_code);
 uint8_t fsmanDeInit      (uint8_t * result_code);
 uint8_t fsmanSessionWrite(uint8_t * result_code, uint8_t* data, uint32_t len);

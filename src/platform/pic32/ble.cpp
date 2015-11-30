@@ -455,7 +455,7 @@ static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
    memcpy(&adv[1],device->blesettings.advname,ret);
    adv[ret+1] = 0;
 
-  ret = aci_gap_set_discoverable(ADV_IND, (device->blesettings.adv_min_ms*1000)/625, (device->blesettings.adv_max_ms*1000)/625, PUBLIC_ADDR, NO_WHITE_LIST_USE,
+  ret = aci_gap_set_discoverable(ADV_IND, (device->blesettings.adv_min_ms*1000)/625, (device->blesettings.adv_max_ms*1000)/625, STATIC_RANDOM_ADDR, NO_WHITE_LIST_USE,
                                  ret + 1 ,(const char*) adv , 0, NULL, 0, 0); //using default slave con parameters
   
   if (ret != BLE_STATUS_SUCCESS)
@@ -486,12 +486,32 @@ extern "C" {
 	}
 }
 
+uint8_t ST_BLE_Get_Version(uint8_t *hwVersion, uint16_t *fwVersion)
+{
+  uint8_t status;
+  uint8_t hci_version, lmp_pal_version;
+  uint16_t hci_revision, manufacturer_name, lmp_pal_subversion;
 
+  status = hci_le_read_local_version(&hci_version, &hci_revision, &lmp_pal_version, 
+				     &manufacturer_name, &lmp_pal_subversion);
+
+  if (status == BLE_STATUS_SUCCESS) {
+    *hwVersion = hci_revision >> 8;
+    *fwVersion = (hci_revision & 0xFF) << 8;              // Major Version Number
+    *fwVersion |= ((lmp_pal_subversion >> 4) & 0xF) << 4; // Minor Version Number
+    *fwVersion |= lmp_pal_subversion & 0xF;               // Patch Version Number
+  }
+
+  return status;
+}
  
 bool openxc::interface::ble::initialize(BleDevice* device)
 {
 	uint8_t ret;
 	uint32_t timer;
+	uint8_t macadd[10];
+	uint8_t hwVersion; 
+	uint16_t fwVersion;
 	
 	RingBuffer_Initialize(&notify_buffer_ring,(char*)notify_buffer, NOTIFY_BUFFER_SZ);
 	
@@ -531,19 +551,28 @@ bool openxc::interface::ble::initialize(BleDevice* device)
 	
 	//while(uptimeMs() < timer);
 	
-
 	//Write BLE MAC address and set it as public
-	ret = aci_hal_write_config_data(CONFIG_DATA_PUBADDR_OFFSET, CONFIG_DATA_PUBADDR_LEN,
-									device->blesettings.bdaddr);
+	//ret = aci_hal_write_config_data(CONFIG_DATA_PUBADDR_OFFSET, CONFIG_DATA_PUBADDR_LEN,
+	//								device->blesettings.bdaddr);
 
-	if(ret != BLE_STATUS_SUCCESS)
-	{
-		 debug("BLE MAC address configuration failed code: %d", ret);
-		 goto error; //TBD add more meaning full error codes
-	}
+	
+	//if(ret != BLE_STATUS_SUCCESS)
+	//{
+	//	 debug("BLE MAC address configuration failed code: %d", ret);
+	//	 goto error; //TBD add more meaning full error codes
+	//}
+	
 	//Initialize GATT server, note that it is important to do so before initializing gap
+	
+	if(ret = ST_BLE_Get_Version(&hwVersion,&fwVersion), ret == BLE_STATUS_SUCCESS){
+		debug("Rev Hw:%x Fw%x",hwVersion,fwVersion);
+		
+	}else{
+		debug("Firmware revision read failed");
+	}
+	
 	ret = aci_gatt_init();    
-
+	
 	if(ret != BLE_STATUS_SUCCESS)
 	{
 		 debug("BLE Gatt Init Failed");
@@ -557,6 +586,15 @@ bool openxc::interface::ble::initialize(BleDevice* device)
 		 debug("BLE GAP init Failed");
 		 goto error;
 	}
+	
+	if(ret = hci_read_bd_addr(device->blesettings.bdaddr), ret != BLE_STATUS_SUCCESS){
+		debug("Ble mac add read failed");
+	}
+	
+	debug("Mac address %x:%x:%x:%x:%x:%x", device->blesettings.bdaddr[0], device->blesettings.bdaddr[1], device->blesettings.bdaddr[2],
+					device->blesettings.bdaddr[3], device->blesettings.bdaddr[4], device->blesettings.bdaddr[5]);
+	
+
 	//Initialize device name charactertistic
 	ret = aci_gatt_update_char_value(service_handle, dev_name_char_handle, 0, strlen((const char*)device_gap_name), (uint8_t *)device_gap_name);  
 

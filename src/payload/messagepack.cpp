@@ -158,12 +158,14 @@ static void msgPackAddObject32bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32
 	cmp_write_u32(ctx, obj);
 	s->mobj.MsgPackMapPairCount++;
 }
+/*
 static void msgPackAddObjectFloat(cmp_ctx_t *ctx, const char* fname ,float obj){
 	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	cmp_write_float(ctx, obj);
 	s->mobj.MsgPackMapPairCount++;
 }
+*/
 static void msgPackAddObjectBoolean(cmp_ctx_t *ctx, const char* fname ,bool obj){
 	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
@@ -177,13 +179,14 @@ static void msgPackAddObjectBinary(cmp_ctx_t *ctx, const char* fname ,uint8_t* o
     cmp_write_bin(ctx,(const void *)obj, len); //writes marker as well
 	s->mobj.MsgPackMapPairCount++;
 }
+/*
 static void msgPackAddObjectMap(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj,uint8_t len){
 	sFile *s = (sFile *)ctx->buf;
 	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
 	msgPackWriteBuffer(ctx, obj, len); 
 	s->mobj.MsgPackMapPairCount++;
 }
-
+*/
 	
 
 static void msgPackAddDynamicField(cmp_ctx_t *ctx, openxc_DynamicField* field) {
@@ -490,7 +493,6 @@ sMsgPackNode* getnode(cmp_ctx_t * ctx){
             case CMP_TYPE_BIN16:
             case CMP_TYPE_BIN32:
 			{
-				sFile * s = (sFile *)ctx->buf;
 				if(obj.as.bin_size > MAX_BINLEN)
 				{
 					debug("Payload exceeded limit %d bytes",obj.as.bin_size);

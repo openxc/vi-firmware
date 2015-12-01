@@ -10,9 +10,7 @@ typedef enum {
     NETWORK = 2,
     TELIT = 3,
 	BLE = 4,
-#ifdef FS_SUPPORT
 	FS = 5,
-#endif	
 } InterfaceType;
 
 /* Public:

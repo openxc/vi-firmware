@@ -138,15 +138,15 @@ uint32_t notification_fail_retries =0;
 static void flush_ble_buffers(void) //flushing out old unsent data sitting in memory
 {
 	debug("Flushing ble buffers");
-	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble.sendQueue)==false)
+	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble->sendQueue)==false)
 	{
-		QUEUE_POP(uint8_t, &getConfiguration()->ble.sendQueue);
+		QUEUE_POP(uint8_t, &getConfiguration()->ble->sendQueue);
 	}
 	RingBuffer_Clear(&notify_buffer_ring);
 	
-	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble.receiveQueue)==false)
+	while(QUEUE_EMPTY(uint8_t, &getConfiguration()->ble->receiveQueue)==false)
 	{
-		QUEUE_POP(uint8_t, &getConfiguration()->ble.receiveQueue);
+		QUEUE_POP(uint8_t, &getConfiguration()->ble->receiveQueue);
 	}
 	
 }
@@ -157,26 +157,26 @@ static void app_notification_enable(bool state){
 	if(state)
 	{
 		debug("BLE Notification Enabled");
-		getConfiguration()->ble.status = BleStatus::NOTIFICATION_ENABLED;
+		getConfiguration()->ble->status = BleStatus::NOTIFICATION_ENABLED;
 	}
 	else
 	{
 		debug("BLE Notification Disabled");
-		getConfiguration()->ble.status = BleStatus::CONNECTED;
+		getConfiguration()->ble->status = BleStatus::CONNECTED;
 	}
 }
 
 static void app_disconnected(void)
 {
 	debug("BLE App Disconnected");
-	getConfiguration()->ble.status = BleStatus::RADIO_ON_NOT_ADVERTISING;
+	getConfiguration()->ble->status = BleStatus::RADIO_ON_NOT_ADVERTISING;
 	send_l2cap_request = false;
 	flush_ble_buffers();
 }
 
 static void app_connected(void)
 {
-	if(getConfiguration()->ble.status  == BleStatus::CONNECTED)
+	if(getConfiguration()->ble->status  == BleStatus::CONNECTED)
 	{
 		debug("Multiple Devices Connected, Dropping Connection");
 		ST_BLE_Failed_CB(BleError::MULTIPLE_DEVICES_CONNECTED);
@@ -184,7 +184,7 @@ static void app_connected(void)
 	else
 	{
 		debug("BLE App connected");
-		getConfiguration()->ble.status = BleStatus::CONNECTED;
+		getConfiguration()->ble->status = BleStatus::CONNECTED;
 		send_l2cap_request = true;
 		l2captimer = uptimeMs();
 		l2cap_request_attempts = 0;		
@@ -239,7 +239,7 @@ tBleStatus GATT_App_Notify(uint8_t* rsp, uint32_t rsplen)
 static void ST_BLE_Failed_CB(uint8_t reason)
 {
 	debug("BLE Failed Reason:%d", reason);
-	getConfiguration()->ble.configured = false;
+	getConfiguration()->ble->configured = false;
 	//device response failed try to reset and reconfigure device
 }
 
@@ -280,7 +280,7 @@ void HCI_Event_CB(void *pckt)
 								
 		   app_disconnected();
 		   
-		   if(ST_BLE_Set_Connectable(&getConfiguration()->ble) != BLE_STATUS_SUCCESS)
+		   if(ST_BLE_Set_Connectable(getConfiguration()->ble) != BLE_STATUS_SUCCESS)
 		   {
 			  ST_BLE_Failed_CB(BleError::SET_CONNECTABLE_FAILED); //default disconnect behavior
 		   }		   
@@ -345,14 +345,14 @@ void HCI_Event_CB(void *pckt)
 						
 						for(int i = 0; i < evt->data_length ; i++) { //todo better way to point to device
 						
-							if(QUEUE_FULL(uint8_t,(QUEUE_TYPE(uint8_t)*)&getConfiguration()->ble.receiveQueue))
+							if(QUEUE_FULL(uint8_t,(QUEUE_TYPE(uint8_t)*)&getConfiguration()->ble->receiveQueue))
 							{
 								debug("Command Queue Busy");
 								break;
 							}
-							QUEUE_PUSH(uint8_t,(QUEUE_TYPE(uint8_t)*)&getConfiguration()->ble.receiveQueue, (uint8_t) evt->att_data[i]);
+							QUEUE_PUSH(uint8_t,(QUEUE_TYPE(uint8_t)*)&getConfiguration()->ble->receiveQueue, (uint8_t) evt->att_data[i]);
 						}
-						processQueue((QUEUE_TYPE(uint8_t)*) &getConfiguration()->ble.receiveQueue, openxc::interface::ble::handleIncomingMessage);//processQueue will dump queue automatically if full	
+						processQueue((QUEUE_TYPE(uint8_t)*) &getConfiguration()->ble->receiveQueue, openxc::interface::ble::handleIncomingMessage);//processQueue will dump queue automatically if full	
 					}
 					else if(evt->attr_handle == appRSPCharHandle + 2)  //Notifications were enabled or disabled
 					{
@@ -802,7 +802,7 @@ void openxc::interface::ble::processSendQueue(BleDevice* device)
 				{
 					debug("Notification Timed Out %d",ret);
 					app_disconnected();
-					if(ST_BLE_Set_Connectable(&getConfiguration()->ble) != BLE_STATUS_SUCCESS)
+					if(ST_BLE_Set_Connectable(getConfiguration()->ble) != BLE_STATUS_SUCCESS)
 					{
 						ST_BLE_Failed_CB(BleError::SET_CONNECTABLE_FAILED);
 					}	

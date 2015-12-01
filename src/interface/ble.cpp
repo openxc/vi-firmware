@@ -22,7 +22,7 @@ void openxc::interface::ble::deinitializeCommon(BleDevice* device) {
 
 size_t	openxc::interface::ble::handleIncomingMessage(uint8_t payload[], size_t length) { //to go in root folder maybe
     return openxc::commands::handleIncomingMessage(payload, length,
-            &config::getConfiguration()->ble.descriptor); 
+            &config::getConfiguration()->ble->descriptor); 
 			
 	
 }

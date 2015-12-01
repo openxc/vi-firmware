@@ -27,10 +27,7 @@
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
 namespace ble = openxc::interface::ble;
-
-#ifdef FS_SUPPORT
 namespace fs = openxc::interface::fs;
-#endif
 
 namespace usb = openxc::interface::usb;
 namespace lights = openxc::lights;
@@ -72,7 +69,7 @@ void updateInterfaceLight() {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     }
 	#elif defined BLE_SUPPORT
-	if(getConfiguration()->usb.configured || ble::connected(&getConfiguration()->ble)) { //if either of the interface are connected
+	if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble)) { //if either of the interface are connected
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     } else {
        lights::disable(lights::LIGHT_B);
@@ -180,11 +177,9 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 void initializeIO() {
 	
     debug("Moving to ALL I/O runlevel");
-	
 #ifdef FS_SUPPORT	
-	fs::initialize(&getConfiguration()->fs);
+	fs::initialize(getConfiguration()->fs);
 #endif	
-
     usb::initialize(&getConfiguration()->usb);
 	
 	#ifndef CROSSCHASM_C5_BTLE
@@ -192,7 +187,7 @@ void initializeIO() {
 	#endif
 	
 	#ifdef BLE_SUPPORT
-	ble::initialize(&getConfiguration()->ble);
+	ble::initialize(getConfiguration()->ble);
 	#endif
     #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
@@ -273,7 +268,7 @@ void firmwareLoop() {
             server_task::commandCheck(getConfiguration()->telit);
         }
 		#elif defined BLE_SUPPORT
-		ble::read(&getConfiguration()->ble); 
+		ble::read(getConfiguration()->ble); 
         #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
         #endif

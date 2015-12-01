@@ -40,7 +40,7 @@ bool openxc::commands::handleDeviceIdCommmand() {
 #ifdef CROSSCHASM_C5_BTLE //deserialize mac address to do read from device flash
 	//return the mac address of the device
 	char ids[32];
-	ble::BleDevice* ble = &getConfiguration()->ble;
+	ble::BleDevice* ble = getConfiguration()->ble;
 	
 	sprintf(ids,"%02X:%02X:%02X:%02X:%02X:%02X", 
 		ble->blesettings.bdaddr[0],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[2], 

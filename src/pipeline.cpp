@@ -14,10 +14,7 @@
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
 namespace ble =  openxc::interface::ble;
-#ifdef FS_SUPPORT
 namespace fs   =  openxc::interface::fs;
-#endif
-
 namespace network = openxc::interface::network;
 namespace time = openxc::util::time;
 namespace statistics = openxc::util::statistics;

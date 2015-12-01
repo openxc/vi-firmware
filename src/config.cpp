@@ -8,7 +8,7 @@ using openxc::payload::PayloadFormat;
 
 namespace usb = openxc::interface::usb;
 namespace ble = openxc::interface::ble;
-
+namespace fs =  openxc::interface::fs;
 namespace telit = openxc::telitHE910;
 namespace signals = openxc::signals;
 
@@ -21,10 +21,10 @@ static void initialize(openxc::config::Configuration* config) {
         &config->usb,
         &config->uart,
 #ifdef BLE_SUPPORT
-		&config->ble,
+		config->ble,
 #endif
 #ifdef FS_SUPPORT
-		&config->fs,
+		config->fs,
 #endif
 #ifdef TELIT_HE910_SUPPORT
         config->telit,
@@ -42,6 +42,27 @@ static void initialize(openxc::config::Configuration* config) {
 	#endif
     config->initialized = true;
 }
+
+#ifdef FS_SUPPORT
+fs::FsDevice fsDevice;
+#endif
+
+
+#ifdef BLE_SUPPORT
+ble::BleDevice bleDevice = {
+
+	descriptor: {
+		allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
+	},
+	blesettings: {
+		"OpenXC_C5_BTLE",
+		adv_min_ms: 100,
+		adv_max_ms: 100,
+		slave_min_ms : 8, //range 0x0006 to 0x0C80
+		slave_max_ms : 16,
+	}
+};		
+#endif
 
 // if we're going to conditionally compile our "Device" config structs, we
  // will need to declare them here (conditionally) and assign the pointers
@@ -133,25 +154,18 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
-		ble: {
-			descriptor: {
-                allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
-            },
-			blesettings: {
-				"OpenXC_C5_BTLE",
-				adv_min_ms: 100,
-				adv_max_ms: 100,
-				slave_min_ms : 8, //range 0x0006 to 0x0C80
-				slave_max_ms : 16,
-				bdaddr: {0xff, 0x00, 0x00, 0xE1, 0x80, 0x03}, //this could be kept as a constant
-			},	
-			
-		},
+		#ifdef BLE_SUPPORT
+		ble: &bleDevice,
+		#else
+		ble: NULL,	
+		#endif	
+		
 		#ifdef FS_SUPPORT
-		fs : {
-			
-		},
+		fs : &fsDevice,
+		#else
+		fs: NULL,
 		#endif
+		
 		#ifdef TELIT_HE910_SUPPORT
         telit: &telitDevice,
 		#else

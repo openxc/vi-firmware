@@ -43,3 +43,6 @@
 [submodule "src/libs/cmp"]
 	path = src/libs/cmp
 	url = https://github.com/camgunz/cmp
+[submodule "src/libs/STBTLE"]
+	path = src/libs/STBTLE
+	url = https://github.com/dsouzahansenfrancis/STBTLE

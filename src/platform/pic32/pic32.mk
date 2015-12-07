@@ -158,6 +158,7 @@ CPPFLAGS += -Iplatform/pic32/fs_support \
 			-D__PIC32MX \
 			-D__XC32__ \
 			-D__C32__
+			
 LOCAL_C_SRCS += $(wildcard platform/pic32/fs_support/*.c)
 LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MSD_Device_Driver/usb_function_msd.c
 LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/FSIO.c
@@ -167,7 +168,7 @@ LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/SD-SPI.c
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
 INCLUDE_PATHS += -I$(LIBS_PATH)/MLA/Include
 
-CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include
 endif
 endif
 

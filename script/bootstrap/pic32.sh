@@ -60,10 +60,9 @@ if ! test -e $MLA_FOLDER_OUTPUT
 then
 echo "Installing MLA MSD"
 mkdir $MLA_FOLDER_OUTPUT
-mkdir $MLA_FOLDER_OUTPUT/MDD_File_System
-cp -R '../../dependencies/MLA/Microchip/USB/MSD Device Driver/' ./MLA/MSD_Device_Driver
-cp -R '../../dependencies/MLA/Microchip/MDD File System/' ./MLA/MDD_File_System
-cp -R '../../dependencies/MLA/Microchip/Include/' ./MLA/Include
+cp -R '../../dependencies/MLA/Microchip/USB/MSD Device Driver/'. ./MLA/MSD_Device_Driver
+cp -R '../../dependencies/MLA/Microchip/MDD File System/'. ./MLA/MDD_File_System
+cp -R '../../dependencies/MLA/Microchip/Include/'. ./MLA/Include
 fi
 
 _popd
@@ -94,13 +93,19 @@ _popd
 _popd
 set -e
 
-echo "Patching FSIO.C file to add flushing operation"
+echo "Patching FSIO.c to add flushing operation"
 set +e
 _pushd src/libs/MLA/MDD_File_System
-patch -p1 -sNi ../../../../script/FSIO-flush.patch > /dev/null
-patch -p1 -sNi ../../../../script/SD-SPI-platform.patch > /dev/null
+patch FSIO.c < ../../../../script/FSIO-flush.patch
 _popd
 set -e
+echo "Patching SD-SPI.c file SOFT-DETECT error"
+set +e
+_pushd src/libs/MLA/MDD_File_System
+patch SD-SPI.c < ../../../../script/SD-SPI-platform.patch
+_popd
+set -e
+
 
 
 ## Python pyserial module for the reset script in Arduino-Makefile

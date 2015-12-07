@@ -57,6 +57,7 @@ for LIBRARY in chipKITUSBDevice chipKITCAN chipKITEthernet; do
 done
 
 if ! test -e $MLA_FOLDER_OUTPUT
+then
 echo "Installing MLA MSD"
 mkdir $MLA_FOLDER_OUTPUT
 mkdir $MLA_FOLDER_OUTPUT/MDD_File_System

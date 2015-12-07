@@ -145,6 +145,7 @@ void openxc::interface::fs::manager(FsDevice* device){ //session manager for FS
 			return;
 		
 		if(fsmanSessionIsActive()){
+		
 			//flush session based on timeout of data to write entries to the FAT
 			if(secs_elapsed > file_flush_timer + FILE_FLUSH_DATA_TIMEOUT_SEC){
 				if(!fsmanSessionFlush(&ret)){
@@ -160,7 +161,7 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 {
 	uint8_t ret;
 	uint32_t secs_elapsed;
-	
+
 	if(device->configured == false){
 		debug("USB Mode SD Card Uninitialized");
 		return;
@@ -172,8 +173,9 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 		}
 	}
 	secs_elapsed = millis()/1000;
-	debug("SE:%d",secs_elapsed);
+
 	if(secs_elapsed > file_elapsed_timer + FILE_WRITE_RATE_SEC){
+		debug("SE:%d",secs_elapsed);
 		file_elapsed_timer = secs_elapsed;
 		if(!fsmanSessionReset(&ret)){
 			debug("Unable to reset session");

@@ -19,29 +19,19 @@
  IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
  CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
  *******************************************************************/
+ 
 #include "fs_platforms.h"
-#include "system.h"
-#include "system_config.h"
 #include "USB/usb.h"
-
 #include "USB/usb_function_msd.h"
-#include "fileio.h"
-#include "sd_spi.h"
+#include "MDD File System/SD-SPI.h"
+#include "MDD File System/FSIO.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include "usersd.h"
+
 
 
 #ifdef FS_SUPPORT
-/** VARIABLES ******************************************************/
-// The sdCardMediaParameters structure defines user-implemented functions needed by the SD-SPI fileio driver.
-// The driver will call these when necessary.  For the SD-SPI driver, the user must provide
-// parameters/functions to define which SPI module to use, Set/Clear the chip select pin,
-// get the status of the card detect and write protect pins, and configure the CS, CD, and WP
-// pins as inputs/outputs (as appropriate).
-// For this demo, these functions are implemented in system.c, since the functionality will change
-// depending on which demo board/microcontroller you're using.
-// This structure must be maintained as long as the user wishes to access the specified drive.
-extern FILEIO_SD_DRIVE_CONFIG sdCardMediaParameters;
-
-
 //The LUN variable definition is critical to the MSD function driver.  This
 //  array is a structure of function pointers that are the functions that
 //  will take care of each of the physical media.  For each additional LUN
@@ -51,44 +41,18 @@ extern FILEIO_SD_DRIVE_CONFIG sdCardMediaParameters;
 //  "MediaInitialize", the read capacity function is named "ReadCapacity",
 //  etc.
 
-void * MSD_SPI_MediaInitialize(void){
-	return ((void *)FILEIO_SD_MediaInitialize (&sdCardMediaParameters));
-}
-uint32_t MSD_SPI_CapacityRead(void){
-	return((uint32_t)FILEIO_SD_CapacityRead(&sdCardMediaParameters));
-}
-uint16_t MSD_SPI_SectorSizeRead(void){
-	return FILEIO_SD_SectorSizeRead(&sdCardMediaParameters);
-}
-bool MSD_SPI_MediaDetect(void){
-	return (FILEIO_SD_MediaDetect(&sdCardMediaParameters));
-}
-
-bool MSD_SPI_SectorRead(uint32_t sectorAddress, uint8_t* buffer){
-	return  FILEIO_SD_SectorRead(&sdCardMediaParameters,sectorAddress,buffer);
-}
-
-bool MSD_SPI_WriteProtectStateGet(void){
-	return FILEIO_SD_WriteProtectStateGet(&sdCardMediaParameters);
-}
-
-uint8_t MSD_SPI_SectorWrite(uint32_t sectorAddress, uint8_t* buffer, uint8_t allowWriteToZero){
-	 return FILEIO_SD_SectorWrite(&sdCardMediaParameters, sectorAddress, buffer, (bool)allowWriteToZero);
-}
-
 LUN_FUNCTIONS LUN[MAX_LUN + 1] =
 {
     {
-        &MSD_SPI_MediaInitialize,
-        &MSD_SPI_CapacityRead,
-        &MSD_SPI_SectorSizeRead,
-        &MSD_SPI_MediaDetect,
-        &MSD_SPI_SectorRead,
-        &MSD_SPI_WriteProtectStateGet,
-        &MSD_SPI_SectorWrite,
+        &MDD_SDSPI_MediaInitialize,    
+        &MDD_SDSPI_ReadCapacity,       
+        &MDD_SDSPI_ReadSectorSize,     
+        &User_MDD_SDSPI_MediaDetect,        
+        &MDD_SDSPI_SectorRead,         
+        &User_MDD_SDSPI_WriteProtectState,  
+        &MDD_SDSPI_SectorWrite    
     }
 };
-
 
 /* Standard Response to INQUIRY command stored in ROM 	*/
 const InquiryResponse inq_resp = {
@@ -177,7 +141,7 @@ void MSDActivity(void){
 	 * issue a remote wakeup.  In either case, we shouldn't process any
 	 * keyboard commands since we aren't currently communicating to the host
 	 * thus just continue back to the start of the while loop. */
-	if( USBIsDeviceSuspended() == true )
+	if( USBIsDeviceSuspended() == 1 )
 	{
 		return;
 	}
@@ -206,7 +170,7 @@ void MSDActivity(void){
  *
  * Note:            None
  *******************************************************************/
-bool USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t size)
+BOOL USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t size)
 {
 	
     switch((int)event)
@@ -282,7 +246,7 @@ bool USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t 
         default:
             break;
     }
-    return true;
+    return 1;
 }
 
 #endif

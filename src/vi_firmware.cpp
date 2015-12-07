@@ -304,6 +304,8 @@ void firmwareLoop() {
                     &getConfiguration()->pipeline);
         }
     }
-	
+	#ifdef FS_SUPPORT
+	fs::manager(getConfiguration()->fs);
+	#endif
     openxc::pipeline::process(&getConfiguration()->pipeline);
 }

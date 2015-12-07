@@ -8,20 +8,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
         
-#define SPI_MDD_CHANNEL_NO			   2
-
-#define CS_SPICHANNEL2_ENABLE()         LATESET  = (1 << 4); TRISECLR = (1 << 4)
-#define CS_SPICHANNEL2_DISABLE()        TRISESET = (1 << 4)
-
-#define CS_SPICHANNEL2_ON()             LATESET  = (1 << 4)
-#define CS_SPICHANNEL2_OFF()            LATECLR  = (1 << 4)
-
-#define CS_SD_ENABLE()      TRISGCLR = (1 << 9)
-#define CS_SD_LOW()         LATGCLR  = (1 << 9)
-#define CS_SD_HIGH()        LATGSET  = (1 << 9) 
-
 const char* fsmanGetErrStr(uint8_t code);
-
 uint8_t fsmanMountSD     (uint8_t * result_code);
 uint8_t fsmanInit        (uint8_t * result_code);
 uint8_t fsmanFormat		 (void);

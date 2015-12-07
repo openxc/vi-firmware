@@ -1,0 +1,99 @@
+*** FSIO.C	2010-10-22 19:47:36.000000000 +0000
+--- FSIOc.C	2015-12-03 21:02:54.684463700 +0000
+***************
+*** 9524,9529 ****
+--- 9524,9617 ----
+  
+  #endif
+  
++ /************************************************************
++ 	Modification of the Microchip function FSfclose.
++ 	
++   Function:
++     int FSfflush(FSFILE *fo)
++   Summary:
++     Update file information
++   Conditions:
++     File opened
++   Input:
++     fo -  Pointer to the file to flush
++   Return Values:
++     0 -   File flushed successfully
++     EOF - Error flushing the file
++   Side Effects:
++     The FSerrno variable will be changed.
++   Description:
++     A function to flush data to the device without closing the
++     file. Created from the FSfclose() function by removing the 
++     portion that frees the memory and the line that clears the 
++     write flag.
++   ************************************************************/
++ int FSfflush(FSFILE   *fo)
++ {
++     WORD        fHandle;
++     int        error = 72;
++ #ifdef ALLOW_WRITES
++     DIRENTRY    dir;
++ #endif
++ 
++     FSerrno = CE_GOOD;
++     fHandle = fo->entry;
++ 
++ #ifdef ALLOW_WRITES
++     if(fo->flags.write)
++     {
++         if (gNeedDataWrite)
++             if (flushData())
++             {
++                 FSerrno = CE_WRITE_ERROR;
++                 return EOF;
++             }
++ 
++         // Write the current FAT sector to the disk
++         WriteFAT (fo->dsk, 0, 0, TRUE);
++ 
++         // Get the file entry
++         dir = LoadDirAttrib(fo, &fHandle);
++ 
++         if (dir == NULL)
++         {
++             FSerrno = CE_BADCACHEREAD;
++             error = EOF;
++             return error;
++         }
++ 
++       // update the time
++ #ifdef INCREMENTTIMESTAMP
++         IncrementTimeStamp(dir);
++ #elif defined USERDEFINEDCLOCK
++         dir->DIR_WrtTime = gTimeWrtTime;
++         dir->DIR_WrtDate = gTimeWrtDate;
++ #elif defined USEREALTIMECLOCK
++         CacheTime();
++         dir->DIR_WrtTime = gTimeWrtTime;
++         dir->DIR_WrtDate = gTimeWrtDate;
++ #endif
++ 
++         dir->DIR_FileSize = fo->size;
++ 
++         dir->DIR_Attr = (BYTE)(fo->attributes);
++ 
++         // just write the last entry in
++         if(Write_File_Entry(fo,&fHandle))
++             error = 0;
++         else
++         {
++             FSerrno = CE_WRITE_ERROR;
++             error = EOF;
++         }
++     }
++ #endif
++ 
++     // File opened in read mode
++     if (error == 72)
++         error = 0;
+  
++     return(error);
++ } // FSfflush
+  
+  

@@ -1,0 +1,19 @@
+*** SD-SPI.C	2015-12-03 21:32:10.647942700 +0000
+--- SD-SPIc.C	2015-12-03 21:29:49.998082500 +0000
+***************
+*** 203,209 ****
+  		/* If the SPI module is not enabled, send manually the SEND_STATUS command */
+  		#if (GetSystemClock() >= 25600000)
+  			/* should only be here when GetSystemClock() >= 25600000 */
+! 	    	response = SendMMCCmdManual(SEND_STATUS,0x0);
+  		#endif
+  	}
+  	else
+--- 203,209 ----
+  		/* If the SPI module is not enabled, send manually the SEND_STATUS command */
+  		#if (GetSystemClock() >= 25600000)
+  			/* should only be here when GetSystemClock() >= 25600000 */
+! 	    	//response = SendMMCCmdManual(SEND_STATUS,0x0);
+  		#endif
+  	}
+  	else

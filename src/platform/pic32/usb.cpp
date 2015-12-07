@@ -25,7 +25,7 @@ using openxc::config::getConfiguration;
 extern volatile CTRL_TRF_SETUP SetupPkt;
 
 #ifdef FS_SUPPORT
-#include "USB/usb_function_msd.h"
+//#include "USB/usb_function_msd.h"
 #include "app_device_msd.h"
 namespace fs = openxc::interface::fs;
 #endif	

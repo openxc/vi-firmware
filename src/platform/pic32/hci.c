@@ -10,7 +10,7 @@
 #include "blueNRG.h"
 #include "WProgram.h" //for arduino millis  reference
 #include "hci.h"
-#include "libs/STBTLE/stlib/list.h"
+#include "libs/STBTLE/list.h"
 
 
 #if BLE_CONFIG_DBG_ENABLE

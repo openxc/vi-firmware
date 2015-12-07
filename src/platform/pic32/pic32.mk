@@ -134,15 +134,19 @@ endif
 endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BTLE)
-CPPFLAGS += -I$(LIBS_PATH)/STBTLE/stlib \
+CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
-			-Iinterface -DBLUENRG_MS
+			-Iinterface -DBLUENRG_MS \
+			-Iplatform/pic32/ringbuffer
 
-CFLAGS   += -I$(LIBS_PATH)/STBTLE/stlib -Iplatform/pic32 -DBLUENRG_MS
-LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/stlib/*.c)
-LOCAL_C_SRCS += $(platform/pic32/stlib/*.c)
+CFLAGS   += -I$(LIBS_PATH)/STBTLE -Iplatform/pic32 -DBLUENRG_MS -Iplatform/pic32/ringbuffer
+
+LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/*.c)
+LOCAL_C_SRCS += platform/pic32/ringbuffer/ringbuffer.c
+
 INCLUDE_PATHS += -Iplatform/pic32
+INCLUDE_PATHS += -Iplatform/pic32/ringbuffer
 
 endif
 

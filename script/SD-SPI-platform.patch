@@ -1,5 +1,4 @@
-206c206,207
+206c206
 < 	    	response = SendMMCCmdManual(SEND_STATUS,0x0);
 ---
-> 	    	//response = SendMMCCmdManual(SEND_STATUS,0x0);
-> 			response = SendMMCCmd(SEND_STATUS,0x0);
+> 	    	//response = SendMMCCmdManual(SEND_STATUS,0x0); we should not be called here anyway as we init media before this call

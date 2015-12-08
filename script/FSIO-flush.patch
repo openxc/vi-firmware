@@ -1,4 +1,4 @@
-9521a9522,9550
+9525a9526,9554
 > /************************************************************
 > 	Modification of the Microchip function FSfclose.
 > 	
@@ -28,7 +28,7 @@
 > #ifdef ALLOW_WRITES
 >     DIRENTRY    dir;
 > #endif
-9522a9552,9610
+9526a9556,9614
 >     FSerrno = CE_GOOD;
 >     fHandle = fo->entry;
 > 

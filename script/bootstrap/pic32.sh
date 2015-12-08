@@ -93,15 +93,10 @@ _popd
 _popd
 set -e
 
-echo "Patching FSIO.c to add flushing operation"
+echo "Patching MLA files MDD Files"
 set +e
 _pushd src/libs/MLA/MDD_File_System
 patch FSIO.c < ../../../../script/FSIO-flush.patch
-_popd
-set -e
-echo "Patching SD-SPI.c file SOFT-DETECT error"
-set +e
-_pushd src/libs/MLA/MDD_File_System
 patch SD-SPI.c < ../../../../script/SD-SPI-platform.patch
 _popd
 set -e

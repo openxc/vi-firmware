@@ -65,6 +65,9 @@ BOOL RTC_GetTimeDateDecimal(struct tm * ts){
 	return true;
 }
 
+uint32_t RTC_GetTimeDateUnix(void){	
+	return syst.tm;
+}
 
 void rtc_task(void){
 	

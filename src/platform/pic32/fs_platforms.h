@@ -2,7 +2,9 @@
 #define __FS_PLATFORMS_H_
 
 #if defined(CROSSCHASM_C5_BT) || defined(CROSSCHASM_C5_CELLULAR)
-	#define FS_SUPPORT
+	#if defined __MSD_ENABLE__
+		#define FS_SUPPORT
+	#endif
 #endif
 
 	#define FS_BUF_SZ 512 

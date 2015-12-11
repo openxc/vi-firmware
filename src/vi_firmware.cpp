@@ -106,30 +106,33 @@ void checkBusActivity() {
             // ALL_IO at initialization, so this is just a backup.
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
-#ifdef CROSSCHASM_C5_BTLE
+		#ifdef CROSSCHASM_C5_BTLE
 		lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
 		lights::disable(lights::LIGHT_A);
-#else
+		#else
 		lights::enable(lights::LIGHT_A, lights::COLORS.blue);
-#endif		
+		#endif		
         BUS_WAS_ACTIVE = true;
         SUSPENDED = false;
     } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
             !SUSPENDED))) {
         debug("CAN is quiet");
-#ifdef CROSSCHASM_C5_BTLE
+		#ifdef CROSSCHASM_C5_BTLE
 		lights::disable(lights::LIGHT_C); //disable green led
-#endif		
+		#endif		
 		lights::enable(lights::LIGHT_A, lights::COLORS.red);
 		
         SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
-#ifdef FS_SUPPORT
+		#ifdef FS_SUPPORT
 		if(fs::getmode() !=  FS_STATE::USB_CONNECTED){
-#endif		
+		#endif		
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
+		#ifdef RTC_SUPPORT
+		rtc_timer_ms_deinit();
+		#endif
             platform::suspend(&getConfiguration()->pipeline);
         }
 #ifdef FS_SUPPORT

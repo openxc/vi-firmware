@@ -77,3 +77,9 @@ void rtc_task(void){
 		last_time_check = syst.isr_unix_time[0];
 	}
 }
+
+void rtc_timer_ms_deinit(void){
+	T2CON = 0x0;
+	TMR2 = 0x0;    //stop timer
+	ConfigIntTimer2( T2_INT_OFF); //disable interrupts
+}

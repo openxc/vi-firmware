@@ -18,6 +18,7 @@ BOOL RTC_GetTimeDateDecimal(struct tm * ts);
 void RTC_IsrTimeVarUpdate(void);
 void rtc_task(void);
 uint32_t RTC_GetTimeDateUnix(void);
+void rtc_timer_ms_deinit(void);
 
 #ifdef __cplusplus
 }

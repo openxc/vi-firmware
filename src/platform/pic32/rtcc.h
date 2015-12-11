@@ -7,7 +7,7 @@ extern "C" {
 
 #include <time.h>
 #include "GenericTypeDefs.h"
-#include "rtc_platform.h"
+#include "platform_profile.h"
 #include <stdbool.h>
 #include <stdint.h>
 #define I2C_DATABUFFER_SIZE             32
@@ -16,13 +16,13 @@ extern "C" {
 
 #define I2C_BIT_TIME_MICROSECONDS       (1000000 / RTCC_I2C_BAUD)
 
-#define I2C_INIT_MILLISECONDS_DELAY     10//100
+#define I2C_INIT_MILLISECONDS_DELAY     100
 
-#define I2C_PINFLOAT_MILLISECONDS_DELAY 1//10
+#define I2C_PINFLOAT_MILLISECONDS_DELAY 10
 
-#define I2C_MAX_MILLISECONDS_EVENT      10//100
+#define I2C_MAX_MILLISECONDS_EVENT      100
 
-#define EEPROM_WRITECYCLE_MILLISECONDS  1//10
+#define EEPROM_WRITECYCLE_MILLISECONDS  10
 
 /*ENUMERATIONS*/
 

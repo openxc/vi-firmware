@@ -31,14 +31,19 @@
 #if defined(CROSSCHASM_C5_BT)
 
     #define UART_STATUS_PORT 0
-    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN 58     		  // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
 
 #elif defined(CROSSCHASM_C5_CELLULAR)
 
     #define UART_STATUS_PORT 0
-    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN 58            // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
+#elif defined(CROSSCHASM_C5_CELLULAR)
+
+    #define UART_STATUS_PORT 
+    #define UART_STATUS_PIN             // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN_POLARITY     // high == connected
     
 #elif defined(CHIPKIT)
 
@@ -62,49 +67,6 @@ using openxc::util::time::uptimeMs;
 extern const AtCommanderPlatform AT_PLATFORM_RN42;
 extern HardwareSerial Serial;
 
-
-#ifdef CROSSCHASM_C5_BTLE
-void openxc::interface::uart::read(UartDevice* device,openxc::util::bytebuffer::IncomingMessageCallback callback)
-{
-			
-}
-
-void openxc::interface::uart::changeBaudRate(UartDevice* device, int baud) 
-{
-	
-}
-
-void enableFlowControl(openxc::interface::uart::UartDevice* device)
-{
-	
-}
-
-void openxc::interface::uart::writeByte(UartDevice* device, uint8_t byte)
-{
-	
-}
-
-int openxc::interface::uart::readByte(UartDevice* device)
-{
-	return 0;
-}
-
-void openxc::interface::uart::initialize(UartDevice* device) 
-{
-	debug("UART Interface is not present on this device");
-}
-
-void openxc::interface::uart::processSendQueue(UartDevice* device) 
-{
-
-}
-
-bool openxc::interface::uart::connected(UartDevice* device)
-{
-	return false;
-}
-	
-#else
 // TODO see if we can do this with interrupts on the chipKIT
 // http://www.chipkit.org/forum/viewtopic.php?f=7&t=1088
 void openxc::interface::uart::read(UartDevice* device,
@@ -160,6 +122,8 @@ int openxc::interface::uart::readByte(UartDevice* device) {
 }
 
 void openxc::interface::uart::initialize(UartDevice* device) {
+#ifndef UART_LOGGING_DISABLE	
+	
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
         return;
@@ -174,11 +138,13 @@ void openxc::interface::uart::initialize(UartDevice* device) {
             gpio::GPIO_DIRECTION_INPUT);
 
     debug("Done.");
+#endif
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
 void openxc::interface::uart::processSendQueue(UartDevice* device) {
+#ifndef UART_LOGGING_DISABLE	
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -190,14 +156,16 @@ void openxc::interface::uart::processSendQueue(UartDevice* device) {
         ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
                 byteCount);
     }
+#endif
 }
 
 bool openxc::interface::uart::connected(UartDevice* device) {
-    
+ 
+ 
     static unsigned int timer;
     bool status = false;
     static bool last_status = false;
-
+#ifndef UART_LOGGING_DISABLE	
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require
@@ -240,8 +208,8 @@ bool openxc::interface::uart::connected(UartDevice* device) {
     }
     
     last_status = status;
-    
+#endif    
     return status;
 
 }
-#endif
+

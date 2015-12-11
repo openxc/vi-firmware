@@ -2,7 +2,7 @@
 
 #include "interface/ble.h"
 #include "config.h"
-#include "ST_BLE_platforms.h"
+#include "platform_profile.h"
 
 #include <stdio.h>
 #include <stdlib.h>

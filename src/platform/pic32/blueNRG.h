@@ -6,8 +6,6 @@
 extern "C" {
 #endif
 
-#ifdef CROSSCHASM_C5_BTLE
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -18,7 +16,6 @@ extern "C" {
 #define SPBTLE_RST_CONFIGURE()		 TRISECLR = (1 << 3)
 #define SPBTLE_RST_ENABLE()          LATECLR  = (1 << 3)
 #define SPBTLE_RST_DISABLE()         LATESET  = (1 << 3)
-
 
 
 extern uint8_t stickyfisr;
@@ -45,7 +42,6 @@ void BlueNRG_RST(void);
 
 void BlueNRG_PowerOff(void);
 
-#endif
 
 #ifdef __cplusplus
 }

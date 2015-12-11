@@ -1,7 +1,7 @@
 #ifndef _USB_CONFIG_H_
 #define _USB_CONFIG_H_
 
-#include "fs_platforms.h"
+#include "platform_profile.h"
 
 #ifdef __cplusplus
 extern "C" {

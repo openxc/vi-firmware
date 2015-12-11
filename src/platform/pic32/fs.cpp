@@ -1,11 +1,4 @@
 #include "fs_platforms.h"
-
-#ifdef FS_SUPPORT
-
-#ifdef RTCC_SUPPORT
-	#include "rtcc.h"
-#endif
-
 #include "interface/fs.h"
 #include "config.h"
 #include <stdio.h>
@@ -17,10 +10,9 @@
 #include <ctype.h>
 #include "util/log.h"
 #include "util/timer.h"
-#include "fsman.h"
 #include <stdarg.h>
 #include "lights.h"
-#include "fsman.h"
+#include "fs_support/fsman.h"
 #include "rtcc.h"
 #include "commands/commands.h"
 #include "commands/sd_mount_status_command.h"
@@ -29,10 +21,11 @@ static uint32_t file_elapsed_timer=0;
 static uint32_t file_flush_timer=0;
  
 using openxc::util::log::debug;
+using openxc::config::getConfiguration;
+
 namespace lights = openxc::lights;
 namespace uart = openxc::interface::uart;
 
-using openxc::config::getConfiguration;
 
 static FS_STATE fs_mode = FS_STATE::NONE_CONNECTED;
 
@@ -80,13 +73,7 @@ bool openxc::interface::fs::connected(FsDevice* device){
 	}
 }
 
-bool openxc::interface::fs::setRTC(uint32_t *unixtime){
-	debug("Set RTC Time %d", *unixtime);
 
-	RTCC_STATUS status  = RTCCSetTimeDateUnix(*unixtime);
-
-	return (status == RTCC_STATUS::RTCC_NO_ERROR)? true: false;
-}
 
 
 bool openxc::interface::fs::getSDStatus(void){
@@ -107,7 +94,7 @@ bool openxc::interface::fs::initialize(FsDevice* device){
 	
 	fs_mode = GetDevicePowerState();
 	
-	sd_mount_status = fsmanInit(&err);
+	sd_mount_status = fsmanInit(&err, device->buffer);
 	
 	openxc::commands::handleSDMountStatusCommand(); //publish msd status information to pipleline
 	
@@ -210,4 +197,3 @@ void openxc::interface::fs::deinitialize(FsDevice* device){
 	deinitializeCommon(device);
 	debug("de-initialized disk");
 }	
-#endif

@@ -9,7 +9,8 @@
 #define PIPELINE_ENDPOINT_COUNT 5
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
 #define QUEUE_FLUSH_MAX_TRIES 100
-#include "fs_platforms.h"
+#include "platform_profile.h"
+#include "platform/pic32/rtc.h"
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;
@@ -132,10 +133,14 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
 void openxc::pipeline::publish(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
-    #ifdef TELIT_HE910_SUPPORT
-    message->uptime = uptimeMs();
-    message->has_uptime = true;
-    #endif
+	#ifdef RTC_SUPPORT
+    message->timestamp = syst.tm;
+	message->has_timestamp = true;
+	#elif defined TELIT_HE910_SUPPORT
+	message->timestamp = uptimeMs();
+    message->has_timestamp = true;
+	#endif
+	
     size_t length = payload::serialize(message, payload, sizeof(payload),
             config::getConfiguration()->payloadFormat);
     MessageClass messageClass;

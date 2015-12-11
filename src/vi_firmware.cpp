@@ -10,11 +10,8 @@
 #include "lights.h"
 #include "power.h"
 #include "bluetooth.h"
-#include "bluetooth_platforms.h"
-#include "platform/pic32/ST_BLE_platforms.h"
-#include "fs_platforms.h"
+#include "platform_profile.h"
 #include "platform/pic32/telit_he910.h"
-#include "platform/pic32/telit_he910_platforms.h"
 #include "platform/pic32/server_task.h"
 #include "platform/platform.h"
 #include "diagnostics.h"
@@ -23,6 +20,7 @@
 #include "config.h"
 #include "commands/commands.h"
 #include "platform/pic32/nvm.h"
+#include "platform/pic32/rtc.h"
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;
@@ -177,9 +175,13 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 void initializeIO() {
 	
     debug("Moving to ALL I/O runlevel");
-#ifdef FS_SUPPORT	
+	#ifdef RTC_SUPPORT
+	RTC_Init();
+	#endif	
+	
+	#ifdef FS_SUPPORT	
 	fs::initialize(getConfiguration()->fs);
-#endif	
+	#endif	
     usb::initialize(&getConfiguration()->usb);
 	
 	#ifndef CROSSCHASM_C5_BTLE
@@ -306,6 +308,9 @@ void firmwareLoop() {
     }
 	#ifdef FS_SUPPORT
 	fs::manager(getConfiguration()->fs);
+	#endif
+	#ifdef RTC_SUPPORT
+	rtc_task();
 	#endif
     openxc::pipeline::process(&getConfiguration()->pipeline);
 }

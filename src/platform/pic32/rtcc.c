@@ -395,9 +395,9 @@ RTCC_STATUS RTCC_WriteBytes(RTCC_MEMTYPE memtype, uint8_t address, uint8_t lengt
 
     // small delay so we don't step on ourselves
     delay_ms(1);
-
+	__debug("status = %d", stat);
     fcn_exit:
-
+	
     return stat;
 
 }

@@ -630,8 +630,8 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-        if(message->has_uptime) {
-            cJSON_AddNumberToObject(root, "uptime", message->uptime);
+        if(message->has_timestamp) {
+            cJSON_AddNumberToObject(root, "timestamp", message->timestamp);
         }
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
             status = serializeSimple(message, root);

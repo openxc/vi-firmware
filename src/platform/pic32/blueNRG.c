@@ -1,6 +1,6 @@
 
 /* Includes ------------------------------------------------------------------*/
-#ifdef CROSSCHASM_C5_BTLE
+
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -9,7 +9,7 @@
 #include "blueNRG.h"
 #include "hci.h"
 #include "WProgram.h" //for arduino millis  reference
-
+#include "platform_profile.h"
 /**
  * @}
  */
@@ -27,7 +27,7 @@
 */
 uint8_t stickyfisr = 0;
 
-
+#ifdef BLE_SUPPORT
 void __ISR(_EXTERNAL_0_VECTOR, ipl7) INT0Interrupt() 
 { 
 	
@@ -41,20 +41,18 @@ void __ISR(_EXTERNAL_0_VECTOR, ipl7) INT0Interrupt()
 	}
 	
 } 
+#endif
 
-void BlueNRG_SPI_IRQ_Suspend(void)
-{
+
+void BlueNRG_SPI_IRQ_Suspend(void){
 	DisableINT0;
 }
 
-void BlueNRG_SPI_IRQ_Engage(void)
-{
+void BlueNRG_SPI_IRQ_Engage(void){
 	EnableINT0;
 }
 
-BOOL BlueNRG_DataPresent(void) 
-{
-   
+BOOL BlueNRG_DataPresent(void) {
   if( PORTDbits.RD0 > 0) return TRUE;    
   return FALSE;  
 }
@@ -64,44 +62,30 @@ BOOL BlueNRG_DataPresent(void)
 * @param  none
 * @retval status
 */
-int8_t BlueNRG_SpiInit(void) 
-{
+int8_t BlueNRG_SpiInit(void) {
   SPI_Open(STBTLE_SPICHANNEL);
-  
   SPI_CS_Enable(STBTLE_SPICHANNEL);
-
   SPI_CS_SetHigh(STBTLE_SPICHANNEL);
- 
   return(0);
 }/* end BlueNRGSpiInit() */
 
 
-int BlueNRG_ISRDeInit(void)
-{
+int BlueNRG_ISRDeInit(void){
 	BlueNRG_SPI_IRQ_Suspend();//should we float input?
 }
 
-int BlueNRG_ISRInit(void)
-{
-	
+int BlueNRG_ISRInit(void){
 	TRISDSET = (1 << 0);
-	
 	LATDSET  = (1 << 0);
-
 	ConfigINT0(EXT_INT_ENABLE | RISING_EDGE_INT | EXT_INT_PRI_7);
-	
 	return (0);
 }/* end BlueNRGISRInit() */
 
 
-static void SPI_SendRecieve(uint8_t channel, uint8_t * sendb, uint8_t * recvb, uint32_t n )
-{
+static void SPI_SendRecieve(uint8_t channel, uint8_t * sendb, uint8_t * recvb, uint32_t n ){
    uint32_t i;  
-   
    if(sendb == NULL && recvb == NULL)
 	   return;
-   
-
    if(sendb == NULL && recvb != NULL)
    {
 	   for( i=0 ; i < n ; i++)
@@ -268,9 +252,7 @@ void BlueNRG_Hal_Write_Serial(const void* data1, const void* data2, uint16_t n_b
 void BlueNRG_DelayMS(uint32_t d)
 {
 	uint32_t tm;
-	
 	tm = millis() + d;			//todo create a microsecond differential coretick timer delay
-	
 	while(millis() < tm);		//todo if millis does not increase will result in halt
 	
 }
@@ -278,11 +260,8 @@ void BlueNRG_DelayMS(uint32_t d)
 void BlueNRG_RST(void)
 {
 	SPBTLE_RST_ENABLE();  	
-	
 	BlueNRG_DelayMS(5);
-
 	SPBTLE_RST_DISABLE();  	
-	
 	BlueNRG_DelayMS(5);
 	
 }
@@ -290,7 +269,5 @@ void BlueNRG_RST(void)
 void BlueNRG_PowerOff(void)
 {
 	SPBTLE_RST_ENABLE();  
-	
 	BlueNRG_DelayMS(5);
 }
-#endif

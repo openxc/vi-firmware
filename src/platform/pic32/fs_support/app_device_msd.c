@@ -20,7 +20,7 @@
  CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
  *******************************************************************/
  
-#include "fs_platforms.h"
+#include "platform_profile.h"
 #include "USB/usb.h"
 #include "USB/usb_function_msd.h"
 #include "MDD File System/SD-SPI.h"

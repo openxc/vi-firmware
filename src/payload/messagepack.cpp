@@ -158,6 +158,13 @@ static void msgPackAddObject32bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32
 	cmp_write_u32(ctx, obj);
 	s->mobj.MsgPackMapPairCount++;
 }
+
+static void msgPackAddObject64bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32_t obj){
+	sFile *s = (sFile *)ctx->buf;
+	cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
+	cmp_write_u64(ctx, obj);
+	s->mobj.MsgPackMapPairCount++;
+}
 /*
 static void msgPackAddObjectFloat(cmp_ctx_t *ctx, const char* fname ,float obj){
 	sFile *s = (sFile *)ctx->buf;
@@ -361,9 +368,9 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
 	smsgpackb.mobj.MsgPackMapPairCount -=3;
 	goto x;
 	*/
-	if(message->has_uptime) {
+	if(message->has_timestamp) {
 		
-		msgPackAddObject32bNumeric(&cmp, "uptime", message->uptime);
+		msgPackAddObject64bNumeric(&cmp, "timestamp", message->timestamp);
 				
 	}
 	if(message->type == openxc_VehicleMessage_Type_SIMPLE) {

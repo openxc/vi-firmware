@@ -5,13 +5,15 @@
 #include "config.h"
 #include "gpio.h"
 #include "usb_config.h"
-
+#include "platform_profile.h"
+#include "platform/pic32/fs_support/app_device_msd.h"
 #define USB_HANDLE_MAX_WAIT_COUNT 1000
-#include "fs_platforms.h"
+
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
 namespace usb = openxc::interface::usb;
+namespace fs = openxc::interface::fs;
 
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -23,12 +25,6 @@ using openxc::config::getConfiguration;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
-
-#ifdef FS_SUPPORT
-//#include "USB/usb_function_msd.h"
-#include "app_device_msd.h"
-namespace fs = openxc::interface::fs;
-#endif	
 
 
 

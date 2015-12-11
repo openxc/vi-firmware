@@ -1,0 +1,76 @@
+#include "platform_profile.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <plib.h>
+#include "WProgram.h"
+#include "rtcc.h"
+#include "rtc.h"
+
+volatile ts syst;
+
+static uint32_t last_time_check;
+void RTC_IsrTimeVarUpdate(void);
+
+void __ISR(_TIMER_2_VECTOR,ipl2) _TIMER2_HANDLER(void) 
+{
+	syst.isr_unix_time[0]++;
+	if(syst.isr_unix_time[0] == 0) //overflow
+		syst.isr_unix_time[1]++;
+	mT2ClearIntFlag();
+}
+
+void RTC_InitTimer(void){
+	//Generate a 1ms timer event
+	OpenTimer2( T2_ON | T2_SOURCE_INT | T2_PS_1_256, 313);
+	ConfigIntTimer2( T2_INT_ON | T2_INT_PRIOR_2);
+}
+
+void RTC_IsrTimeVarUpdate(void) //Call this regularly somewhere ever hour or so
+{//convert and store in ms
+	__debug("RTC Time %x" , RTCCGetTimeDateUnix());
+	syst.tm = (uint64_t)RTCCGetTimeDateUnix()*1000;
+
+}
+
+BOOL RTC_Init(void){
+#ifdef RTC_SUPPORT
+	if(I2C_Initialize() != RTCC_NO_ERROR){
+		__debug("RTC I2C Init Error");
+	}
+	
+	RTC_IsrTimeVarUpdate();
+
+#endif
+	RTC_InitTimer();
+	return true;
+}
+
+BOOL RTC_SetTimeUnix(uint32_t unixtime){
+#ifdef RTC_SUPPORT	
+	__debug("Set RTC Time %x", unixtime);
+	return (RTCCSetTimeDateUnix(unixtime) == RTCC_NO_ERROR)? true: false;
+#else
+	return 0;
+#endif
+}
+
+BOOL RTC_GetTimeDateDecimal(struct tm * ts){
+#ifdef RTC_SUPPORT		
+	if(RTCCGetTimeDateDecimal(ts) != RTCC_NO_ERROR){
+		__debug("RTC Read Error");
+	}
+#endif
+	return true;
+}
+
+
+void rtc_task(void){
+	
+	if((syst.isr_unix_time[0] - last_time_check) > RTC_UPDATE_INT_MS)
+	{
+		RTC_IsrTimeVarUpdate();
+		last_time_check = syst.isr_unix_time[0];
+	}
+}

@@ -3,24 +3,17 @@
 #include "lights.h"
 #include "bluetooth.h"
 #include "platform/pic32/telit_he910.h"
-#include "platform/pic32/telit_he910_platforms.h"
-#include "platform/pic32/ST_BLE_platforms.h"
 #include "signals.h"
 #include "config.h"
 #include "util/timer.h"
 #include "util/log.h"
 #include "can/canread.h"
-
+#include "platform_profile.h"
 #define OBD2_IGNITION_CHECK_WATCHDOG_TIMEOUT_MICROSECONDS 15000000
 
-#ifdef FS_SUPPORT
+
 namespace fs = openxc::interface::fs;
-#endif
-
-#ifdef BLE_SUPPORT
 namespace ble = openxc::interface::ble;
-#endif
-
 namespace usb = openxc::interface::usb;
 namespace time = openxc::util::time;
 namespace telit = openxc::telitHE910;

@@ -1,10 +1,7 @@
 #include "rtc_config_command.h"
 #include "config.h"
 #include "util/log.h"
-#include "interface/fs.h"
-#include "fs_platforms.h"
-
-namespace fs = openxc::interface::fs;
+#include "rtc.h"
 
 bool openxc::commands::validateRTCConfigurationCommand(openxc_VehicleMessage* message) {
     bool valid = false;
@@ -21,22 +18,18 @@ bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* comm
 	
 	bool status = false;
 	
-    #ifdef FS_SUPPORT
     if(command->has_rtc_configuration_command) {
         openxc_RTCConfigurationCommand* rtcConfigurationCommand =
           &command->rtc_configuration_command;
 
 		if(rtcConfigurationCommand->has_unix_time){
-			uint32_t * new_unix_time =
-			  &rtcConfigurationCommand->unix_time;
+			uint32_t new_unix_time =
+			  rtcConfigurationCommand->unix_time;
 			
-			status = fs::setRTC(new_unix_time);
+			status = RTC_SetTimeUnix(new_unix_time);
 				
 		}
     }
-    #else 
-	status = false;
-    #endif
 	sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
 	
     return status;

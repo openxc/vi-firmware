@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "interface/interface.h"
 #include "util/bytebuffer.h" //to do remove this and add custom type to have 512 size
-#include "fs_platforms.h"
+#include "platform_profile.h"
 
 
 
@@ -23,12 +23,11 @@ namespace fs {
 typedef struct {
 	InterfaceDescriptor descriptor;
 	//since our write speeds are much higher to the SD card we are excluding the queue here
+	uint8_t buffer[FS_BUF_SZ];
 	bool configured;
 } FsDevice;
 
 void setmode(FS_STATE mode);
-
-bool setRTC(uint32_t *unixtime);
 
 FS_STATE getmode(void);
 

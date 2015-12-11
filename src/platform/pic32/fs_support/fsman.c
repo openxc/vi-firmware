@@ -1,4 +1,4 @@
-#include "fs_platforms.h"
+#include "platform_profile.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -6,23 +6,20 @@
 #include <plib.h>
 #include "WProgram.h"
 #include "usersd.h"
+#include "rtc.h"
+
 #ifdef FS_SUPPORT
 
 #include "MDD File System/FSIO.h"
 #include "fsman.h"
 #include <time.h>
 
-#ifdef RTCC_SUPPORT
-	#include "rtcc.h"
-#endif
-
 #ifndef MIN
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
-#define FS_WRITE_LIMIT 512 //should be 512 or multiple of 512 for optimized disk writes
 
-static uint8_t  fsbuf[FS_WRITE_LIMIT+1];
+static uint8_t* fsbuf;
 static uint32_t fsbufptr=0;
 
 static uint32_t fsnameseq=0;
@@ -75,36 +72,7 @@ const char *error_code_str []=
 #define UNKNOWN_SD_MOUNT_ERROR  90
 #define UNKNOWN_WRITE_ERROR 	91
 
-void _GetTimestamp (struct tm * t){
-	
-	RTCC_STATUS r = RTCCGetTimeDateDecimal(t);
-	if(r != RTCC_NO_ERROR){
-		;
-	}
-}
-uint32_t _GetEpochTime(void){
 
-	return ((uint32_t)RTCCGetTimeDateUnix());
-
-}
-
-void Init_RTC(void)
-{
-
-	RTCC_STATUS r = I2C_Initialize();
-	
-	if(r != RTCC_NO_ERROR)
-	{
-		__debug("RTC_INIT FAILED %d",r);
-	}
-}
-
-void FSUpdateTime (void)
-{
-	struct tm ts;
-	_GetTimestamp(&ts);
-	SetClockVars (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
-}
 
 const char* fsmanGetErrStr(uint8_t code){
 	
@@ -157,17 +125,15 @@ uint8_t fsmanFormat(void){
 	return 0;
 }
 
-uint8_t fsmanInit(uint8_t * result_code){
+uint8_t fsmanInit(uint8_t * result_code, uint8_t* buffer){
 	
-	uint8_t file_name[25];
-
-	//Initialize RTCC module for filetimestamping
-	Init_RTC();
-
-	FSUpdateTime();
+	struct tm ts;
+	
+	fsbuf =  buffer;
+	RTC_GetTimeDateDecimal(&ts);
+	SetClockVars (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
 	
 	fsmanInitHardwareSD();
-	
     if (!fsmanMountSD(result_code)){
 		
         *result_code = UNKNOWN_SD_MOUNT_ERROR;//from FILEIO_ERROR_TYPE
@@ -219,10 +185,15 @@ uint8_t fsmanSessionIsActive(void){
 uint8_t fsmanSessionStart(uint8_t * result_code){
 	//open file here
 	char file_name[25];
+	struct tm ts;
 	
 	uint32_t tm_code;
 	
-	tm_code = _GetEpochTime();
+	tm_code =  (uint32_t)RTC_GetTimeDateUnix();
+	
+	RTC_GetTimeDateDecimal(&ts);
+	
+	SetClockVars (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
 	
 	sprintf(file_name,"%X.TXT", tm_code);
 							
@@ -266,16 +237,16 @@ uint8_t fsmanSessionWrite(uint8_t * result_code, uint8_t* data, uint32_t len){
 	
 
 	//read and store 512 bytes after which you should probably write
-	uint32_t sz = MIN(len, FS_WRITE_LIMIT - fsbufptr);
+	uint32_t sz = MIN(len, FS_BUF_SZ - fsbufptr);
 
 	memcpy(&fsbuf[fsbufptr],data, sz);
 	fsbufptr += sz;
 	
 
-	if (fsbufptr >= FS_WRITE_LIMIT){ //todo add a time limit so that we do exceed file size limits
-		__debug("Writing to disk %d bytes", FS_WRITE_LIMIT);
+	if (fsbufptr >= FS_BUF_SZ){ //todo add a time limit so that we do exceed file size limits
+		__debug("Writing to disk %d bytes", FS_BUF_SZ);
 
-		if ( FSfwrite(fsbuf, 1, FS_WRITE_LIMIT, file) != FS_WRITE_LIMIT){
+		if ( FSfwrite(fsbuf, 1, FS_BUF_SZ, file) != FS_BUF_SZ){
 			*result_code = UNKNOWN_WRITE_ERROR;
 			return FALSE;
 		} else{

@@ -6,10 +6,10 @@
 #include "interface/network.h"
 #include "interface/ble.h"
 #include "interface/fs.h"
-#include "platform/pic32/ST_BLE_platforms.h"
+#include "platform_profile.h"
 #include "fs_platforms.h"
 #include "platform/pic32/telit_he910.h"
-#include "platform/pic32/telit_he910_platforms.h"
+
 
 #ifdef FS_SUPPORT
 #include "interface/fs.h"

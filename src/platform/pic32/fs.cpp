@@ -179,9 +179,11 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 	}
 	secs_elapsed = millis()/1000;
 
-	if(secs_elapsed > file_elapsed_timer + FILE_WRITE_RATE_SEC){
-		debug("SE:%d",secs_elapsed);
+	if(secs_elapsed > (file_elapsed_timer + FILE_WRITE_RATE_SEC)){
+		
 		file_elapsed_timer = secs_elapsed;
+		debug("SE:%d %d",secs_elapsed,file_elapsed_timer);
+		
 		if(!fsmanSessionReset(&ret)){
 			debug("Unable to reset session");
 			debug(fsmanGetErrStr(ret));

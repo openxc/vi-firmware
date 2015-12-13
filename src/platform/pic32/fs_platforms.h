@@ -1,7 +1,7 @@
 #ifndef __FS_PLATFORMS_H_
 #define __FS_PLATFORMS_H_
 
-#if defined(CROSSCHASM_C5_BT) || defined(CROSSCHASM_C5_CELLULAR)
+#if (defined(CROSSCHASM_C5_BT) || defined(CROSSCHASM_C5_CELLULAR))
 	#if defined __MSD_ENABLE__
 		#define FS_SUPPORT
 	#endif

@@ -1,7 +1,8 @@
 #include <stdbool.h>
 #include <stdint.h>
-
+#include <plib.h>
 inline uint8_t User_MDD_SDSPI_MediaDetect(void){
+	//Soft detect used
 	#ifdef CROSSCHASM_C5_BT
 		return 1; //Todo should we read SD status?
 	#elif CROSSCHASM_C5_CELLULAR

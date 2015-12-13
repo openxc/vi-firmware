@@ -7,7 +7,6 @@
 #include "interface/ble.h"
 #include "interface/fs.h"
 #include "platform_profile.h"
-#include "fs_platforms.h"
 #include "platform/pic32/telit_he910.h"
 
 

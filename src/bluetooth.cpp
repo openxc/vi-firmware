@@ -170,7 +170,7 @@ void openxc::bluetooth::start(UartDevice* device) {
     setStatus(true);
 
     strcpy(device->deviceId, "Unknown");
-    //configureExternalModule(device);
+    configureExternalModule(device);
     // re-init to flush any junk in the buffer
     uart::initializeCommon(device);
 

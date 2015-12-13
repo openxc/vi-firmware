@@ -208,6 +208,11 @@ uint8_t fsmanSessionStart(uint8_t * result_code){
 	return TRUE;
 }
 
+uint32_t fsman_available(void){
+	return (FS_BUF_SZ - fsbufptr);
+}
+
+
 uint32_t fsmanSessionCacheBytesWaiting(void){
 	
 	return fsbufptr;
@@ -217,11 +222,12 @@ uint8_t fsmanSessionReset(uint8_t * result_code){
 	
 	uint32_t pending = fsmanSessionCacheBytesWaiting();
 	if(pending){
-		__debug("Writing to disk %d bytes", pending);
+		__debug("Resetting session pending to disk %d bytes", pending);
 		
 		if (FSfwrite ((void *)fsbuf, 1, pending, file) != pending){
 			*result_code = UNKNOWN_WRITE_ERROR;
 			__debug("Write pending bytes failed");
+			file = NULL;
 			return FALSE;
 		}else{
 			fsbufptr = 0;
@@ -235,23 +241,17 @@ uint8_t fsmanSessionReset(uint8_t * result_code){
 }
 uint8_t fsmanSessionWrite(uint8_t * result_code, uint8_t* data, uint32_t len){
 	
-
-	//read and store 512 bytes after which you should probably write
 	uint32_t sz = MIN(len, FS_BUF_SZ - fsbufptr);
-
 	memcpy(&fsbuf[fsbufptr],data, sz);
 	fsbufptr += sz;
-	
-
 	if (fsbufptr >= FS_BUF_SZ){ //todo add a time limit so that we do exceed file size limits
-		__debug("Writing to disk %d bytes", FS_BUF_SZ);
-
 		if ( FSfwrite(fsbuf, 1, FS_BUF_SZ, file) != FS_BUF_SZ){
 			*result_code = UNKNOWN_WRITE_ERROR;
 			return FALSE;
 		} else{
 			memcpy(fsbuf,&data[sz], len-sz); //copy pending data if any
 			fsbufptr = len-sz;
+			__debug("Wrote %d bytes",FS_BUF_SZ);
 		}
 	}
 	*result_code = CE_GOOD;

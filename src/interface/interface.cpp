@@ -32,5 +32,8 @@ bool openxc::interface::anyConnected() {
 #ifdef BLE_SUPPORT
 			|| openxc::interface::ble::connected (getConfiguration()->ble ) 
 #endif
+#ifdef FS_SUPPORT
+			|| openxc::interface::fs::connected (getConfiguration()->fs ) 
+#endif			
 ;
 }

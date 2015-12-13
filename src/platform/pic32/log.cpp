@@ -14,7 +14,7 @@ void openxc::util::log::initialize() {
 #if defined(CROSSCHASM_C5_BTLE)
 		Serial.begin(115200);
 #elif defined(CROSSCHASM_C5_BT)
-		return; //Serial.begin(115200);;
+		return; //Serial.begin(115200);
 #else 
 		Serial2.begin(115200);
 #endif

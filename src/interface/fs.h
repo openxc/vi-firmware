@@ -23,6 +23,7 @@ namespace fs {
 typedef struct {
 	InterfaceDescriptor descriptor;
 	//since our write speeds are much higher to the SD card we are excluding the queue here
+	QUEUE_TYPE(uint8_t) sendQueue;
 	uint8_t buffer[FS_BUF_SZ];
 	bool configured;
 } FsDevice;
@@ -46,6 +47,8 @@ bool initialize(FsDevice* device);
  *
  */
 void write(FsDevice* device, uint8_t *data, uint32_t len);
+
+void processSendQueue(FsDevice* device);
  
 bool getSDStatus(void); 
 

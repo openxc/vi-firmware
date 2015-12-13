@@ -69,7 +69,9 @@ bool openxc::interface::fs::connected(FsDevice* device){
 		return false;
 	}
 	else{
+		if(device != NULL){
 		return device->configured; 
+		}else return false;
 	}
 }
 
@@ -84,12 +86,23 @@ bool openxc::interface::fs::getSDStatus(void){
 	return false;	
 	
 }
-
+void openxc::interface::fs::processSendQueue(FsDevice* device) 
+{	
+	uint8_t d;
+	while(QUEUE_EMPTY(uint8_t, &device->sendQueue)==false && fsman_available()>0)
+	{
+		d = QUEUE_POP(uint8_t,&device->sendQueue);
+		write(device, &d, 1);
+	}
+	
+}
 
 bool openxc::interface::fs::initialize(FsDevice* device){
 	
 	uint8_t err;
 
+	if(device == NULL)return false;
+	
 	device->configured = false;
 	
 	fs_mode = GetDevicePowerState();
@@ -124,6 +137,8 @@ void openxc::interface::fs::manager(FsDevice* device){ //session manager for FS
 	uint8_t ret;
 	uint32_t secs_elapsed;
 	
+	if(device == NULL)return;
+	
 	if(getmode() == FS_STATE::VI_CONNECTED)
 	{
 		secs_elapsed = millis()/1000;
@@ -135,6 +150,7 @@ void openxc::interface::fs::manager(FsDevice* device){ //session manager for FS
 		
 			//flush session based on timeout of data to write entries to the FAT
 			if(secs_elapsed > file_flush_timer + FILE_FLUSH_DATA_TIMEOUT_SEC){
+				debug("Performing Flush on FS");
 				if(!fsmanSessionFlush(&ret)){
 					debug("Unable to flush session");
 				}
@@ -149,6 +165,8 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 	uint8_t ret;
 	uint32_t secs_elapsed;
 
+	if(device == NULL)return;
+	
 	if(device->configured == false){
 		debug("USB Mode SD Card Uninitialized");
 		return;
@@ -179,6 +197,9 @@ void openxc::interface::fs::write(FsDevice* device, uint8_t *data, uint32_t len)
 
 void openxc::interface::fs::deinitialize(FsDevice* device){
 	uint8_t ret;
+	
+	if(device == NULL)return;
+	
 	if(getmode() == FS_STATE::VI_CONNECTED){
 		if(device->configured == true){
 			if(fsmanSessionIsActive()){

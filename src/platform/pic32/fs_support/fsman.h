@@ -22,7 +22,7 @@ uint8_t fsmanSessionStart(uint8_t * result_code);
 uint8_t fsmanSessionEnd(uint8_t * result_code);
 uint32_t fsmanSessionCacheBytesWaiting(void);
 void fsmanInitHardwareSD(void);
-
+uint32_t fsman_available(void);
 #ifdef	__cplusplus
 }
 #endif

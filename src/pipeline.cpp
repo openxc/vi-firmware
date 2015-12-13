@@ -120,6 +120,27 @@ void sendToBle(Pipeline* pipeline, uint8_t* message, int messageSize,
 
 }
 #endif
+#ifdef FS_SUPPORT
+void sendToFS(Pipeline* pipeline, uint8_t* message, int messageSize,
+        MessageClass messageClass) {
+    if(fs::connected(pipeline->fs) && messageClass != MessageClass::LOG
+					&& messageClass != MessageClass::COMMAND_RESPONSE
+	) { 
+        QUEUE_TYPE(uint8_t)* sendQueue = (QUEUE_TYPE(uint8_t)* )&pipeline->fs->sendQueue;
+        conditionalFlush(pipeline,sendQueue, message, messageSize);
+		openxc::interface::InterfaceType endpointType = pipeline->fs->descriptor.type;
+		if(!conditionalEnqueue(sendQueue, message, messageSize)) {
+			++droppedMessages[endpointType];
+		} else {
+        ++sentMessages[endpointType];
+        dataSent[endpointType] += messageSize;
+		}
+		sendQueueLength[endpointType] = QUEUE_LENGTH(uint8_t, sendQueue);
+	}
+}
+#endif
+
+
 void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
     if(pipeline->network != NULL && messageClass != MessageClass::LOG) {
@@ -185,9 +206,7 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
 	#endif
     #endif
 	#ifdef FS_SUPPORT
-	if(messageClass != MessageClass::LOG && messageClass != COMMAND_RESPONSE){
-		fs::write(pipeline->fs,message,messageSize);
-	}
+	sendToFS(pipeline, message, messageSize, messageClass);
 	#endif
 	
     sendToNetwork(pipeline, message, messageSize, messageClass);
@@ -208,11 +227,18 @@ void openxc::pipeline::process(Pipeline* pipeline) {
     if(telitHE910::connected(pipeline->telit)) {
         telitHE910::processSendQueue(pipeline->telit);
     }
-	#elif defined BLE_SUPPORT
+	#endif
+	#ifdef BLE_SUPPORT
 	if(ble::connected(pipeline->ble)){
 		ble::processSendQueue(pipeline->ble);
 	}
-    #else
+	#endif
+	#ifdef FS_SUPPORT
+	if(fs::connected(pipeline->fs)){
+		fs::processSendQueue(pipeline->fs);
+	}
+	#endif
+    #ifndef CROSSCHASM_C5_BTLE
     if(uart::connected(pipeline->uart)) {
         uart::processSendQueue(pipeline->uart);
     }

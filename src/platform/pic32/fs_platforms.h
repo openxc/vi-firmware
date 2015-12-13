@@ -7,7 +7,7 @@
 	#endif
 #endif
 
-	#define FS_BUF_SZ 512 
+	#define FS_BUF_SZ 2048 
 	
 	#ifndef DEFAULT_FILE_GENERATE_SECS
 		#define DEFAULT_FILE_GENERATE_SECS 180
@@ -22,6 +22,6 @@
 	
 	#define FILE_WRITE_RATE_SEC 	DEFAULT_FILE_GENERATE_SECS
 	
-	#define FILE_FLUSH_DATA_TIMEOUT_SEC 15
+	#define FILE_FLUSH_DATA_TIMEOUT_SEC 60
 
 #endif

@@ -25,13 +25,14 @@ env.logging_output = "OFF"
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
 env.msd_enable = False
+env.default_file_generate_secs = 180
 
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5_BT", "extension": "hex"}, #for backwards compatibility
     "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
-    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"}
+    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"},
 	"c5ble": {"name": "CROSSCHASM_C5_BLE", "extension": "hex"}
 }
 
@@ -140,11 +141,9 @@ def build_options():
 
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
 	
-    options['DEBUG'] = env.debug
-	
-	options['MSD_ENABLE'] = env.debug
-	options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
-	
+    options['DEBUG'] = env.debug	
+    options['MSD_ENABLE'] = env.msd_enable
+    options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
     options['BOOTLOADER'] = env.bootloader
     options['TRANSMITTER'] = env.transmitter
     options['PLATFORM'] = board_options['name']
@@ -184,6 +183,10 @@ def translated_obd2():
 @task
 def obd2():
     env.mode = 'obd2'
+	
+@task
+def msd_enable():
+    env.msd_enable = True	
 
 @task
 def test():

@@ -82,7 +82,7 @@ The Makefile will always print the configuration used so you can double check.
   .. code-block:: sh
 
       fab c5bt build
-      fab c5btle build
+      fab c5ble build
       fab c5cell build
 
   and finally, for the chipKIT Max32:
@@ -216,7 +216,7 @@ commmand line utility to simplify some of these build configurations. The
 ``fab`` commands are composable, following this simple formula:
 
 * Start your command with ``fab``
-* Specify the target platform with ``chipkit``, ``c5bt``, ``c5btle`` , ``c5cell``, or ``reference``.
+* Specify the target platform with ``chipkit``, ``c5bt``, ``c5ble`` , ``c5cell``, or ``reference``.
 * Optionally include ``emulator`` or ``translated_obd2`` to enable one of the
   example builds described above.
 * End with ``build`` to start the compilation.

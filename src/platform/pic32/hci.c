@@ -1,5 +1,5 @@
 
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
 #include <stdint.h>
 #include <stdbool.h>
 #include "hal_types.h"

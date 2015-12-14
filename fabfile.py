@@ -32,6 +32,7 @@ env.boards = {
     "c5": {"name": "CROSSCHASM_C5_BT", "extension": "hex"}, #for backwards compatibility
     "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
     "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"}
+	"c5ble": {"name": "CROSSCHASM_C5_BLE", "extension": "hex"}
 }
 
 def latest_git_tag():
@@ -278,8 +279,8 @@ def c5cell():
     env.board = 'c5cell'
 
 @task
-def btlec5():
-    env.board = 'btlec5'
+def c5ble():
+    env.board = 'c5ble'
 	
 @task
 def json():

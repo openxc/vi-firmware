@@ -1,4 +1,4 @@
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
 
 #include "interface/ble.h"
 #include "config.h"

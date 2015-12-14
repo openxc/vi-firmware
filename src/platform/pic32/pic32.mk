@@ -105,7 +105,7 @@ LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
 
-ifeq ($(PLATFORM), CROSSCHASM_C5_BTLE)
+ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
 CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \

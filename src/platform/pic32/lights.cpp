@@ -21,7 +21,7 @@
     #define USER_LED_B_POLARITY 0 // turn on LED = drive pin low
     #define USER_LED_B_PIN 4 // PORTC BIT14 (RC14) = BLUE
 
-#elif defined(CROSSCHASM_C5_BTLE)
+#elif defined(CROSSCHASM_C5_BLE)
 
 // GREEN- RB15 - 69 TOP
 // BLUE - RB12 - 67 CENTRE
@@ -66,7 +66,7 @@ void enablePin(openxc::lights::RGB color, int pin, int polarity) {
 
 void openxc::lights::enable(Light light, RGB color) {
     
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
 
     if(color.r == 255 && color.g == 0 && color.b == 0){
         gpio::setValue(0, USER_LED_A_PIN, GPIO_VALUE_LOW);
@@ -128,7 +128,7 @@ void openxc::lights::initialize() {
     gpio::setDirection(0, USER_LED_C_PIN, GPIO_DIRECTION_OUTPUT);
     #endif
 
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
     gpio::setValue(0, USER_LED_A_PIN, GPIO_VALUE_HIGH);
     gpio::setValue(0, USER_LED_B_PIN, GPIO_VALUE_HIGH);
     gpio::setValue(0, USER_LED_C_PIN, GPIO_VALUE_HIGH);

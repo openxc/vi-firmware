@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
 
 #include <hal_types.h>
 #include <link_layer.h>

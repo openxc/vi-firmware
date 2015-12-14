@@ -12,6 +12,6 @@ For information on how to add support for another embedded system, see the
     blueboard
     max32
     crosschasm-c5
-    crosschasm-c5-btle
+    crosschasm-c5-ble
     crosschasm-c5-cellular
 	

@@ -1,7 +1,7 @@
 #ifndef __C5_COMMON_PLATFORMS_H_
 #define __C5_COMMON_PLATFORMS_H_
 
-#if defined CROSSCHASM_C5_BT || defined CROSSCHASM_C5_BTLE ||  defined CROSSCHASM_C5_CELLULAR
+#if defined CROSSCHASM_C5_BT || defined CROSSCHASM_C5_BLE ||  defined CROSSCHASM_C5_CELLULAR
     #define RTC_SUPPORT
 
     #define RTC_UPDATE_INT_MS 60*60*1000
@@ -39,7 +39,7 @@
         #define SDA_STATE       PORTFbits.RF4
 
         #define SDA_MAGIC_PIN   0
-    #elif defined CROSSCHASM_C5_BTLE
+    #elif defined CROSSCHASM_C5_BLE
     
         #define RTCC_I2C_MODULE     I2C1    
         #define ALARMPIN            PORTBbits.RD11
@@ -79,7 +79,7 @@
 
 #endif
 
-#ifdef CROSSCHASM_C5_BTLE
+#ifdef CROSSCHASM_C5_BLE
     #define UART_LOGGING_DISABLE
 #endif
 

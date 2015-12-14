@@ -21,7 +21,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``PLATFORM``
   Select the target :doc:`microcontroller platform </platforms/platforms>`.
 
-  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_BT, CROSSCHASM_C5_BTLE,``
+  Values: ``FORDBOARD, CHIPKIT, CROSSCHASM_C5_BT, CROSSCHASM_C5_BLE,``
            ``CROSSCHASM_C5_CELLULAR, BLUEBOARD``
 
 

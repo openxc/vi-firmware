@@ -11,6 +11,7 @@
 #include <bitfield/bitfield.h>
 #include <limits.h>
 #include "interface/ble.h"
+#include "platform_profile.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -37,7 +38,7 @@ bool openxc::commands::handleDeviceIdCommmand() {
     // TODO move getDeviceId to openxc::platform, allow each platform to
     // define where the device ID comes from.
     
-#ifdef CROSSCHASM_C5_BTLE //deserialize mac address to do read from device flash
+#ifdef BLE_SUPPORT //deserialize mac address to do read from device flash
     //return the mac address of the device
     char ids[32];
     ble::BleDevice* ble = getConfiguration()->ble;

@@ -11,7 +11,7 @@ namespace uart = openxc::interface::uart;
 
 void openxc::util::log::initialize() {    
 
-#if defined(CROSSCHASM_C5_BTLE)
+#if defined(CROSSCHASM_C5_BLE)
         Serial.begin(115200);
 #elif defined(CROSSCHASM_C5_BT)
         return; //Serial.begin(115200);
@@ -22,7 +22,7 @@ void openxc::util::log::initialize() {
 
 void openxc::util::log::debugUart(const char* message) {
 
-#if defined(CROSSCHASM_C5_BTLE)
+#if defined(CROSSCHASM_C5_BLE)
         Serial.print(message);
 #elif defined(CROSSCHASM_C5_BT)
         return;//Serial.print(message);

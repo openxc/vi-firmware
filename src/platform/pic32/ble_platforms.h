@@ -1,4 +1,4 @@
-#if defined(CROSSCHASM_C5_BTLE)
+#if defined(CROSSCHASM_C5_BLE)
     
     #define BLE_NO_ACT_TIMEOUT_ENABLE 1
     

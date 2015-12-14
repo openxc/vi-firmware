@@ -7,7 +7,7 @@ Cellular device,see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
 firmware. To build for one of the C5s, compile with one of the flags: 
-``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BTLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR``.
+``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR``.
 
 .. note::
 
@@ -70,7 +70,7 @@ Compiling
 ---------
 
 The instructions for compiling from source are identical to the :doc:`chipKIT
-Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BTLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
+Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
 instead of ``CHIPKIT``.
 
 If you will not be using the avrdude bootloader and will be flashing directly

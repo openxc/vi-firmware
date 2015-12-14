@@ -110,7 +110,7 @@ void sendToTelit(Pipeline* pipeline, uint8_t* message, int messageSize,
 #ifdef BLE_SUPPORT
 void sendToBle(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
-		
+        
     if(ble::connected(pipeline->ble) && messageClass != MessageClass::LOG) { //TODO add a characteristic for sending debug notification messages
         QUEUE_TYPE(uint8_t)* sendQueue = (QUEUE_TYPE(uint8_t)* )&pipeline->ble->sendQueue;
         conditionalFlush(pipeline,sendQueue, message, messageSize);
@@ -124,19 +124,19 @@ void sendToBle(Pipeline* pipeline, uint8_t* message, int messageSize,
 void sendToFS(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
     if(fs::connected(pipeline->fs) && messageClass != MessageClass::LOG
-					&& messageClass != MessageClass::COMMAND_RESPONSE
-	) { 
+                    && messageClass != MessageClass::COMMAND_RESPONSE
+    ) { 
         QUEUE_TYPE(uint8_t)* sendQueue = (QUEUE_TYPE(uint8_t)* )&pipeline->fs->sendQueue;
         conditionalFlush(pipeline,sendQueue, message, messageSize);
-		openxc::interface::InterfaceType endpointType = pipeline->fs->descriptor.type;
-		if(!conditionalEnqueue(sendQueue, message, messageSize)) {
-			++droppedMessages[endpointType];
-		} else {
+        openxc::interface::InterfaceType endpointType = pipeline->fs->descriptor.type;
+        if(!conditionalEnqueue(sendQueue, message, messageSize)) {
+            ++droppedMessages[endpointType];
+        } else {
         ++sentMessages[endpointType];
         dataSent[endpointType] += messageSize;
-		}
-		sendQueueLength[endpointType] = QUEUE_LENGTH(uint8_t, sendQueue);
-	}
+        }
+        sendQueueLength[endpointType] = QUEUE_LENGTH(uint8_t, sendQueue);
+    }
 }
 #endif
 
@@ -154,14 +154,14 @@ void sendToNetwork(Pipeline* pipeline, uint8_t* message, int messageSize,
 void openxc::pipeline::publish(openxc_VehicleMessage* message,
         Pipeline* pipeline) {
     uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
-	#ifdef RTC_SUPPORT
+    #ifdef RTC_SUPPORT
     message->timestamp = syst.tm;
-	message->has_timestamp = true;
-	#elif defined TELIT_HE910_SUPPORT
-	message->timestamp = uptimeMs();
     message->has_timestamp = true;
-	#endif
-	
+    #elif defined TELIT_HE910_SUPPORT
+    message->timestamp = uptimeMs();
+    message->has_timestamp = true;
+    #endif
+    
     size_t length = payload::serialize(message, payload, sizeof(payload),
             config::getConfiguration()->payloadFormat);
     MessageClass messageClass;
@@ -198,17 +198,17 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     sendToUsb(pipeline, message, messageSize, messageClass);
     #ifdef TELIT_HE910_SUPPORT
     sendToTelit(pipeline, message, messageSize, messageClass);
-	#elif defined BLE_SUPPORT
-	sendToBle(pipeline, message, messageSize, messageClass);
+    #elif defined BLE_SUPPORT
+    sendToBle(pipeline, message, messageSize, messageClass);
     #else
-	#ifndef FS_SUPPORT //UART shared with RTC, disable
+    #ifndef FS_SUPPORT //UART shared with RTC, disable
     sendToUart(pipeline, message, messageSize, messageClass);
-	#endif
     #endif
-	#ifdef FS_SUPPORT
-	sendToFS(pipeline, message, messageSize, messageClass);
-	#endif
-	
+    #endif
+    #ifdef FS_SUPPORT
+    sendToFS(pipeline, message, messageSize, messageClass);
+    #endif
+    
     sendToNetwork(pipeline, message, messageSize, messageClass);
 
     if((config::getConfiguration()->loggingOutput == LoggingOutputInterface::BOTH ||
@@ -227,17 +227,17 @@ void openxc::pipeline::process(Pipeline* pipeline) {
     if(telitHE910::connected(pipeline->telit)) {
         telitHE910::processSendQueue(pipeline->telit);
     }
-	#endif
-	#ifdef BLE_SUPPORT
-	if(ble::connected(pipeline->ble)){
-		ble::processSendQueue(pipeline->ble);
-	}
-	#endif
-	#ifdef FS_SUPPORT
-	if(fs::connected(pipeline->fs)){
-		fs::processSendQueue(pipeline->fs);
-	}
-	#endif
+    #endif
+    #ifdef BLE_SUPPORT
+    if(ble::connected(pipeline->ble)){
+        ble::processSendQueue(pipeline->ble);
+    }
+    #endif
+    #ifdef FS_SUPPORT
+    if(fs::connected(pipeline->fs)){
+        fs::processSendQueue(pipeline->fs);
+    }
+    #endif
     #ifndef CROSSCHASM_C5_BTLE
     if(uart::connected(pipeline->uart)) {
         uart::processSendQueue(pipeline->uart);

@@ -213,9 +213,9 @@
     #elif defined __PIC24F__
 
         // Description: SD-SPI Chip Select Output bit
-        #define SD_CS				LATBbits.LATB1
+        #define SD_CS                LATBbits.LATB1
         // Description: SD-SPI Chip Select TRIS bit
-        #define SD_CS_TRIS			TRISBbits.TRISB1
+        #define SD_CS_TRIS            TRISBbits.TRISB1
         
         // Description: SD-SPI Card Detect Input bit
         #define SD_CD               PORTFbits.RF0
@@ -263,17 +263,17 @@
        // #define MDD_USE_SPI_1
         #define MDD_USE_SPI_2
 
-		//SPI Configuration
-		#define SPI_START_CFG_1     (PRI_PRESCAL_64_1 | SEC_PRESCAL_8_1 | MASTER_ENABLE_ON | SPI_CKE_ON | SPI_SMP_ON)
+        //SPI Configuration
+        #define SPI_START_CFG_1     (PRI_PRESCAL_64_1 | SEC_PRESCAL_8_1 | MASTER_ENABLE_ON | SPI_CKE_ON | SPI_SMP_ON)
         #define SPI_START_CFG_2     (SPI_ENABLE)
 
         // Define the SPI frequency
-        #define SPI_FREQUENCY			(8000000)
+        #define SPI_FREQUENCY            (8000000)
     
         #if defined MDD_USE_SPI_1
             // Description: SD-SPI Chip Select Output bit
-        	#define SD_CS               LATBbits.LATB1
-        	// Description: SD-SPI Chip Select TRIS bit
+            #define SD_CS               LATBbits.LATB1
+            // Description: SD-SPI Chip Select TRIS bit
             #define SD_CS_TRIS          TRISBbits.TRISB1
             
             // Description: SD-SPI Card Detect Input bit
@@ -301,7 +301,7 @@
             // Description: The enable bit for the SPI module
             #define SPIENABLE           SPICON1bits.ON
             // Description: The definition for the SPI baud rate generator register (PIC32)
-            #define SPIBRG			    SPI1BRG
+            #define SPIBRG                SPI1BRG
 
             // Tris pins for SCK/SDI/SDO lines
 
@@ -328,7 +328,7 @@
             #define SD_CD_TRIS          TRISBbits.TRISB6
 
             // Description: SD-SPI Write Protect Check Input bit --NC
-            #define SD_WE               PORTBbits.RB1	
+            #define SD_WE               PORTBbits.RB1    
             // Description: SD-SPI Write Protect Check TRIS bit
             #define SD_WE_TRIS          TRISBbits.TRISB1
             
@@ -347,7 +347,7 @@
             // Description: The enable bit for the SPI module
             #define SPIENABLE           SPI2CONbits.ON
             // Description: The definition for the SPI baud rate generator register (PIC32)
-            #define SPIBRG			    SPI2BRG
+            #define SPIBRG                SPI2BRG
 
             // Tris pins for SCK/SDI/SDO lines
 
@@ -384,51 +384,51 @@
         // Sample dsPIC30 defines
         
         // Description: The output latch for the CF Reset signal
-        #define CF_PMP_RST		    _RD0
+        #define CF_PMP_RST            _RD0
         // Description: The TRIS bit for the CF Reset signal
-        #define CF_PMP_RESETDIR	    _TRISD0
+        #define CF_PMP_RESETDIR        _TRISD0
         // Description: The input port for the CF Ready signal
-        #define CF_PMP_RDY	 	    _RD12
+        #define CF_PMP_RDY             _RD12
         // Description: The TRIS bit for the CF Ready signal
-        #define CF_PMP_READYDIR	    _TRISD12
+        #define CF_PMP_READYDIR        _TRISD12
         // Description: The input port for the CF card detect signal
-        #define CF_PMP_CD1		    _RC4
+        #define CF_PMP_CD1            _RC4
         // Description: The TRIS bit for the CF card detect signal
-        #define CF_PMP_CD1DIR	    _TRISC4
+        #define CF_PMP_CD1DIR        _TRISC4
     
     #elif defined __dsPIC33F__
     
         // Sample dsPIC33 defines
 
         // Description: The output latch for the CF Reset signal
-        #define CF_PMP_RST		    _RD0
+        #define CF_PMP_RST            _RD0
         // Description: The TRIS bit for the CF Reset signal
-        #define CF_PMP_RESETDIR	    _TRISD0
+        #define CF_PMP_RESETDIR        _TRISD0
         // Description: The input port for the CF Ready signal
-        #define CF_PMP_RDY	 	    _RD12
+        #define CF_PMP_RDY             _RD12
         // Description: The TRIS bit for the CF Ready signal
-        #define CF_PMP_READYDIR	    _TRISD12
+        #define CF_PMP_READYDIR        _TRISD12
         // Description: The input port for the CF card detect signal
-        #define CF_PMP_CD1		    _RC4
+        #define CF_PMP_CD1            _RC4
         // Description: The TRIS bit for the CF card detect signal
-        #define CF_PMP_CD1DIR	    _TRISC4
+        #define CF_PMP_CD1DIR        _TRISC4
     
     #elif defined __PIC24F__
     
         // Default case for PIC24F
 
         // Description: The output latch for the CF Reset signal
-        #define CF_PMP_RST		    LATDbits.LATD0
+        #define CF_PMP_RST            LATDbits.LATD0
         // Description: The TRIS bit for the CF Reset signal
-        #define CF_PMP_RESETDIR	    TRISDbits.TRISD0
+        #define CF_PMP_RESETDIR        TRISDbits.TRISD0
         // Description: The input port for the CF Ready signal
-        #define CF_PMP_RDY	 	    PORTDbits.RD12
+        #define CF_PMP_RDY             PORTDbits.RD12
         // Description: The TRIS bit for the CF Ready signal
-        #define CF_PMP_READYDIR	    TRISDbits.TRISD12
+        #define CF_PMP_READYDIR        TRISDbits.TRISD12
         // Description: The input port for the CF card detect signal
-        #define CF_PMP_CD1		    PORTCbits.RC4
+        #define CF_PMP_CD1            PORTCbits.RC4
         // Description: The TRIS bit for the CF card detect signal
-        #define CF_PMP_CD1DIR	    TRISCbits.TRISC4
+        #define CF_PMP_CD1DIR        TRISCbits.TRISC4
     
     #endif
     
@@ -449,7 +449,7 @@
         #define ADDBL                   LATA
         // Description: The CF address bus TRIS register (for PIC18)
         #define ADDDIR                  TRISA
-    	
+        
         // Data bus
 
         // Description: The Manual CF data bus port register
@@ -493,7 +493,7 @@
          // Description: The CF address bus bit 0 output latch definition (for PIC24/30/33/32)
         #define ADDR0                   _LATB15
         // Description: The CF address bus bit 1 output latch definition (for PIC24/30/33/32)
-        #define	ADDR1                   _LATB14
+        #define    ADDR1                   _LATB14
         // Description: The CF address bus bit 2 output latch definition (for PIC24/30/33/32)
         #define ADDR2                   _LATG9
         // Description: The CF address bus bit 3 output latch definition (for PIC24/30/33/32)
@@ -506,7 +506,7 @@
         #define ADRTRIS2                _TRISG9
         // Description: The CF address bus bit 3 TRIS definition (for PIC24/30/33/32)
         #define ADRTRIS3                _TRISG8
-    	
+        
         // Data bus
 
         // Description: The Manual CF data bus port register
@@ -515,7 +515,7 @@
         #define MDD_CFBT_DATABOUT       PORTE
         // Description: The Manual CF data bus TRIS register
         #define MDD_CFBT_DATADIR        TRISE
-    	
+        
         // control bus lines
 
         // Description: The CF card chip select output latch bit
@@ -525,7 +525,7 @@
         // Description: The CF card output enable strobe latch bit
         #define CF_OE                   _RD5
         // Description: The CF card output enable strobe TRIS bit
-        #define CF_OEDIR                _TRISD5	
+        #define CF_OEDIR                _TRISD5    
         // Description: The CF card write enable strobe latch bit
         #define CF_WE                   _RD4
         // Description: The CF card write enable strobe TRIS bit
@@ -550,7 +550,7 @@
         // Description: The CF address bus bit 0 output latch definition (for PIC24/30/33/32)
         #define ADDR0                   _LATB15
         // Description: The CF address bus bit 1 output latch definition (for PIC24/30/33/32)
-        #define	ADDR1                   _LATB14
+        #define    ADDR1                   _LATB14
         // Description: The CF address bus bit 2 output latch definition (for PIC24/30/33/32)
         #define ADDR2                   _LATG9
         // Description: The CF address bus bit 3 output latch definition (for PIC24/30/33/32)
@@ -563,7 +563,7 @@
         #define ADRTRIS2                _TRISG9
         // Description: The CF address bus bit 3 TRIS definition (for PIC24/30/33/32)
         #define ADRTRIS3                _TRISG8
-    	
+        
         // Data bus
 
         // Description: The Manual CF data bus port register
@@ -572,7 +572,7 @@
         #define MDD_CFBT_DATABOUT       PORTE
         // Description: The Manual CF data bus TRIS register
         #define MDD_CFBT_DATADIR        TRISE
-    	
+        
         // control bus lines
 
         // Description: The CF card chip select output latch bit
@@ -582,7 +582,7 @@
         // Description: The CF card output enable strobe latch bit
         #define CF_OE                   _RD5
         // Description: The CF card output enable strobe TRIS bit
-        #define CF_OEDIR                _TRISD5	
+        #define CF_OEDIR                _TRISD5    
         // Description: The CF card write enable strobe latch bit
         #define CF_WE                   _RD4
         // Description: The CF card write enable strobe TRIS bit
@@ -607,7 +607,7 @@
         // Description: The CF address bus bit 0 output latch definition (for PIC24/30/33/32)
         #define ADDR0                   LATBbits.LATB15
         // Description: The CF address bus bit 1 output latch definition (for PIC24/30/33/32)
-        #define	ADDR1                   LATBbits.LATB14
+        #define    ADDR1                   LATBbits.LATB14
         // Description: The CF address bus bit 2 output latch definition (for PIC24/30/33/32)
         #define ADDR2                   LATGbits.LATG9
         // Description: The CF address bus bit 3 output latch definition (for PIC24/30/33/32)
@@ -620,7 +620,7 @@
         #define ADRTRIS2                TRISGbits.TRISG9
         // Description: The CF address bus bit 3 TRIS definition (for PIC24/30/33/32)
         #define ADRTRIS3                TRISGbits.TRISG8
-    	
+        
         // Data bus
 
         // Description: The Manual CF data bus port register
@@ -629,7 +629,7 @@
         #define MDD_CFBT_DATABOUT       PORTE
         // Description: The Manual CF data bus TRIS register
         #define MDD_CFBT_DATADIR        TRISE
-    	
+        
         // control bus lines
 
         // Description: The CF card chip select output latch bit
@@ -639,7 +639,7 @@
         // Description: The CF card output enable strobe latch bit
         #define CF_OE                   PORTDbits.RD5
         // Description: The CF card output enable strobe TRIS bit
-        #define CF_OEDIR                TRISDbits.TRISD5	
+        #define CF_OEDIR                TRISDbits.TRISD5    
         // Description: The CF card write enable strobe latch bit
         #define CF_WE                   PORTDbits.RD4
         // Description: The CF card write enable strobe TRIS bit

@@ -58,13 +58,13 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
 #ifdef FS_SUPPORT
-	if(fs::getmode() == FS_STATE::USB_CONNECTED){
-		USER_USB_CALLBACK_EVENT_HANDLER_MSD(event, pdata, size);
-		return true;
-	}
-#endif	
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        USER_USB_CALLBACK_EVENT_HANDLER_MSD(event, pdata, size);
+        return true;
+    }
+#endif    
 
-	getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
+    getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
     case EVENT_CONFIGURED:
@@ -137,11 +137,11 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
 
-#ifdef FS_SUPPORT	
+#ifdef FS_SUPPORT    
     if(fs::getmode() == FS_STATE::USB_CONNECTED){
-		return;
-	}
-#endif	
+        return;
+    }
+#endif    
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
 
@@ -182,15 +182,15 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
-	
-	
-#ifdef FS_SUPPORT	
-	if(fs::getmode() == FS_STATE::USB_CONNECTED){
-		SelectUsbConf(1);
-	}else{
-		SelectUsbConf(0);
-	}
-#endif	
+    
+    
+#ifdef FS_SUPPORT    
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        SelectUsbConf(1);
+    }else{
+        SelectUsbConf(0);
+    }
+#endif    
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
@@ -212,14 +212,14 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         util::bytebuffer::IncomingMessageCallback callback) {
-		
+        
 #ifdef FS_SUPPORT
-	if(fs::getmode() == FS_STATE::USB_CONNECTED){
-		MSDActivity();
-		return;
-	}
-#endif	
-	
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        MSDActivity();
+        return;
+    }
+#endif    
+    
     if(endpoint->hostToDeviceHandle != 0 &&
             !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         size_t length = device->device.HandleGetLength(

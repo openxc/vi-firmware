@@ -54,20 +54,20 @@ LUN_FUNCTIONS LUN[MAX_LUN + 1] =
     }
 };
 
-/* Standard Response to INQUIRY command stored in ROM 	*/
+/* Standard Response to INQUIRY command stored in ROM     */
 const InquiryResponse inq_resp = {
-	0x00,		// peripheral device is connected, direct access block device
-	0x80,       // removable
-	0x04,	 	// version = 00=> does not conform to any standard, 4=> SPC-2
-	0x02,		// response is in format specified by SPC-2
-	0x20,		// n-4 = 36-4=32= 0x20
-	0x00,		// sccs etc.
-	0x00,		// bque=1 and cmdque=0,indicates simple queueing 00 is obsolete,
+    0x00,        // peripheral device is connected, direct access block device
+    0x80,       // removable
+    0x04,         // version = 00=> does not conform to any standard, 4=> SPC-2
+    0x02,        // response is in format specified by SPC-2
+    0x20,        // n-4 = 36-4=32= 0x20
+    0x00,        // sccs etc.
+    0x00,        // bque=1 and cmdque=0,indicates simple queueing 00 is obsolete,
                 // but as in case of other device, we are just using 00
-	0x00,		// 00 obsolete, 0x80 for basic task queueing
-	'M','i','c','r','o','c','h','p',    	// this is the T10 assigned Vendor ID
-	'M','a','s','s',' ','S','t','o','r','a','g','e',' ',' ',' ',' ',
-	'0','0','0','1'
+    0x00,        // 00 obsolete, 0x80 for basic task queueing
+    'M','i','c','r','o','c','h','p',        // this is the T10 assigned Vendor ID
+    'M','a','s','s',' ','S','t','o','r','a','g','e',' ',' ',' ',' ',
+    '0','0','0','1'
 };
 
 
@@ -111,41 +111,41 @@ void APP_DeviceMSDInitialize(void)
 ********************************************************************/
 void APP_DeviceMSDTasks(void)
 {
-	
+    
     MSDTasks();
 }
 
 void MSDActivity(void){
 
-	#if defined(USB_POLLING)
-		// Interrupt or polling method.  If using polling, must call
-		// this function periodically.  This function will take care
-		// of processing and responding to SETUP transactions
-		// (such as during the enumeration process when you first
-		// plug in).  USB hosts require that USB devices should accept
-		// and process SETUP packets in a timely fashion.  Therefore,
-		// when using polling, this function should be called
-		// regularly (such as once every 1.8ms or faster** [see
-		// inline code comments in usb_device.c for explanation when
-		// "or faster" applies])  In most cases, the USBDeviceTasks()
-		// function does not take very long to execute (ex: <100
-		// instruction cycles) before it returns.
-		USBDeviceTasks();
-	#endif
-		
-	if( USBGetDeviceState() < CONFIGURED_STATE )
-	{
-		return;
-	}
-	/* If we are currently suspended, then we need to see if we need to
-	 * issue a remote wakeup.  In either case, we shouldn't process any
-	 * keyboard commands since we aren't currently communicating to the host
-	 * thus just continue back to the start of the while loop. */
-	if( USBIsDeviceSuspended() == 1 )
-	{
-		return;
-	}
-	APP_DeviceMSDTasks();
+    #if defined(USB_POLLING)
+        // Interrupt or polling method.  If using polling, must call
+        // this function periodically.  This function will take care
+        // of processing and responding to SETUP transactions
+        // (such as during the enumeration process when you first
+        // plug in).  USB hosts require that USB devices should accept
+        // and process SETUP packets in a timely fashion.  Therefore,
+        // when using polling, this function should be called
+        // regularly (such as once every 1.8ms or faster** [see
+        // inline code comments in usb_device.c for explanation when
+        // "or faster" applies])  In most cases, the USBDeviceTasks()
+        // function does not take very long to execute (ex: <100
+        // instruction cycles) before it returns.
+        USBDeviceTasks();
+    #endif
+        
+    if( USBGetDeviceState() < CONFIGURED_STATE )
+    {
+        return;
+    }
+    /* If we are currently suspended, then we need to see if we need to
+     * issue a remote wakeup.  In either case, we shouldn't process any
+     * keyboard commands since we aren't currently communicating to the host
+     * thus just continue back to the start of the while loop. */
+    if( USBIsDeviceSuspended() == 1 )
+    {
+        return;
+    }
+    APP_DeviceMSDTasks();
 }
 
 
@@ -172,7 +172,7 @@ void MSDActivity(void){
  *******************************************************************/
 BOOL USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t size)
 {
-	
+    
     switch((int)event)
     {
         case EVENT_TRANSFER:
@@ -207,7 +207,7 @@ BOOL USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t 
             break;
 
         case EVENT_TRANSFER_TERMINATED:
-		
+        
             //Add application specific callback task or callback function here if desired.
             //The EVENT_TRANSFER_TERMINATED event occurs when the host performs a CLEAR
             //FEATURE (endpoint halt) request on an application endpoint which was
@@ -240,7 +240,7 @@ BOOL USER_USB_CALLBACK_EVENT_HANDLER_MSD(USB_EVENT event, void *pdata, uint16_t 
             //    }
             //}
 
-			
+            
             break;
 
         default:

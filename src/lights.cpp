@@ -36,7 +36,7 @@ void openxc::lights::flash(Light light, RGB color, int duration) {
 void openxc::lights::deinitialize() {
     disable(LIGHT_A);
     disable(LIGHT_B);
-	disable(LIGHT_C);
+    disable(LIGHT_C);
 }
 
 void openxc::lights::initializeCommon() {

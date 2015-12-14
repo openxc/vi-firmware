@@ -37,12 +37,12 @@ void openxc::platform::suspend(Pipeline* pipeline) {
     lights::deinitialize();
     usb::deinitialize(pipeline->usb);
     bluetooth::deinitialize();
-	#ifdef BLE_SUPPORT
-	ble::deinitialize(pipeline->ble);
-	#endif
-	#ifdef FS_SUPPORT
-	fs::deinitialize(pipeline->fs);
-	#endif
+    #ifdef BLE_SUPPORT
+    ble::deinitialize(pipeline->ble);
+    #endif
+    #ifdef FS_SUPPORT
+    fs::deinitialize(pipeline->fs);
+    #endif
     #ifdef TELIT_HE910_SUPPORT
     telit::deinitialize();
     #endif

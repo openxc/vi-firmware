@@ -15,22 +15,22 @@ bool openxc::commands::validateRTCConfigurationCommand(openxc_VehicleMessage* me
 }
 
 bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* command) {
-	
-	bool status = false;
-	
+    
+    bool status = false;
+    
     if(command->has_rtc_configuration_command) {
         openxc_RTCConfigurationCommand* rtcConfigurationCommand =
           &command->rtc_configuration_command;
 
-		if(rtcConfigurationCommand->has_unix_time){
-			uint32_t new_unix_time =
-			  rtcConfigurationCommand->unix_time;
-			
-			status = RTC_SetTimeUnix(new_unix_time);
-				
-		}
+        if(rtcConfigurationCommand->has_unix_time){
+            uint32_t new_unix_time =
+              rtcConfigurationCommand->unix_time;
+            
+            status = RTC_SetTimeUnix(new_unix_time);
+                
+        }
     }
-	sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
-	
+    sendCommandResponse(openxc_ControlCommand_Type_RTC_CONFIGURATION, status);
+    
     return status;
 }

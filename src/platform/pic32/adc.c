@@ -20,27 +20,27 @@
                     ADC_CONV_CLK_SYSTEM     |   \
                     ADC_CONV_CLK_32Tcy
 
-#define ADCR1VAL 	  220000.0
-#define ADCR2VAL   	  15000.0
-#define ADCVRATIO	  1.0*ADCR2VAL/(ADCR2VAL + ADCR1VAL)
-#define ADCVINFACTOR  (1.0/ADCVRATIO)		
-#define ADCCMAX       1024.0 //10 bit adc		 
-#define ADCVMAC		  3.3	
-#define ADCVRES		  ADCVMAC/ADCCMAX	
+#define ADCR1VAL       220000.0
+#define ADCR2VAL         15000.0
+#define ADCVRATIO      1.0*ADCR2VAL/(ADCR2VAL + ADCR1VAL)
+#define ADCVINFACTOR  (1.0/ADCVRATIO)        
+#define ADCCMAX       1024.0 //10 bit adc         
+#define ADCVMAC          3.3    
+#define ADCVRES          ADCVMAC/ADCCMAX    
 
 uint16_t adc_get_pval(void){
-	
-	uint16_t adc;
-	// ensure that ADC is disabled
-	CloseADC10();
-	//Read ADC and set the correct mode
-	OpenADC10(CONFIG1, CONFIG2, CONFIG3, ENABLE_AN3_ANA, SKIP_SCAN_ALL);
-	SetChanADC10(ADC_CH0_POS_SAMPLEA_AN3 | ADC_CH0_NEG_SAMPLEA_NVREF);
-	EnableADC10();
-	AcquireADC10();
-	while(!BusyADC10());
-	ConvertADC10();
-	adc = ReadADC10(0);
-	CloseADC10();
-	return adc;
+    
+    uint16_t adc;
+    // ensure that ADC is disabled
+    CloseADC10();
+    //Read ADC and set the correct mode
+    OpenADC10(CONFIG1, CONFIG2, CONFIG3, ENABLE_AN3_ANA, SKIP_SCAN_ALL);
+    SetChanADC10(ADC_CH0_POS_SAMPLEA_AN3 | ADC_CH0_NEG_SAMPLEA_NVREF);
+    EnableADC10();
+    AcquireADC10();
+    while(!BusyADC10());
+    ConvertADC10();
+    adc = ReadADC10(0);
+    CloseADC10();
+    return adc;
 }

@@ -6,9 +6,9 @@
  */
 
 #ifndef SPI_H
-#define	SPI_H
+#define    SPI_H
 
-#ifdef	__cplusplus
+#ifdef    __cplusplus
 extern "C" {
 #endif
 
@@ -36,9 +36,9 @@ void SPI_CS_SetHigh(uint8_t channel);
 void SPI_CS_SetLow(uint8_t channel);
 bool VerifyValidSpiChannel(uint8_t channel);
 
-#ifdef	__cplusplus
+#ifdef    __cplusplus
 }
 #endif
 
-#endif	/* SPI_H */
+#endif    /* SPI_H */
 

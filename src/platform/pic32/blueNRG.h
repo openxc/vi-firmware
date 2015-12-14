@@ -13,7 +13,7 @@ extern "C" {
 #define STBTLE_SPICHANNEL 2
 
 /*BTLE RST IO*/
-#define SPBTLE_RST_CONFIGURE()		 TRISECLR = (1 << 3)
+#define SPBTLE_RST_CONFIGURE()         TRISECLR = (1 << 3)
 #define SPBTLE_RST_ENABLE()          LATECLR  = (1 << 3)
 #define SPBTLE_RST_DISABLE()         LATESET  = (1 << 3)
 

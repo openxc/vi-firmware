@@ -38,21 +38,21 @@ bool openxc::commands::handleDeviceIdCommmand() {
     // define where the device ID comes from.
     
 #ifdef CROSSCHASM_C5_BTLE //deserialize mac address to do read from device flash
-	//return the mac address of the device
-	char ids[32];
-	ble::BleDevice* ble = getConfiguration()->ble;
-	
-	sprintf(ids,"%02X:%02X:%02X:%02X:%02X:%02X", 
-		ble->blesettings.bdaddr[0],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[2], 
-		ble->blesettings.bdaddr[3],ble->blesettings.bdaddr[4],ble->blesettings.bdaddr[5]
-	);
-	sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, true,
+    //return the mac address of the device
+    char ids[32];
+    ble::BleDevice* ble = getConfiguration()->ble;
+    
+    sprintf(ids,"%02X:%02X:%02X:%02X:%02X:%02X", 
+        ble->blesettings.bdaddr[0],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[2], 
+        ble->blesettings.bdaddr[3],ble->blesettings.bdaddr[4],ble->blesettings.bdaddr[5]
+    );
+    sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, true,
                 (char *)ids, strlen(ids));
-	return true;
-	
+    return true;
+    
 #else
-	uart::UartDevice* uart = &getConfiguration()->uart;
-	size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
+    uart::UartDevice* uart = &getConfiguration()->uart;
+    size_t deviceIdLength = strnlen(uart->deviceId, sizeof(uart->deviceId));
     bool status = false;
     if(deviceIdLength > 0) {
         status = true;

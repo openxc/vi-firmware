@@ -9,8 +9,8 @@ typedef enum {
     UART = 1,
     NETWORK = 2,
     TELIT = 3,
-	BLE = 4,
-	FS = 5,
+    BLE = 4,
+    FS = 5,
 } InterfaceType;
 
 /* Public:

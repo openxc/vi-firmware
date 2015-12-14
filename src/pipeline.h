@@ -50,10 +50,10 @@ typedef struct {
     UsbDevice* usb;
     UartDevice* uart;
 #ifdef BLE_SUPPORT
-	BleDevice*   ble;
+    BleDevice*   ble;
 #endif
 #ifdef FS_SUPPORT
-	FsDevice*   fs;
+    FsDevice*   fs;
 #endif
     TelitDevice* telit;
     NetworkDevice* network;

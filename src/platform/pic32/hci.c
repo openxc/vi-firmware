@@ -21,7 +21,7 @@
 
 #define HCI_LOG_ON 0
 
-#define HCI_READ_PACKET_NUM_MAX 		 (5)
+#define HCI_READ_PACKET_NUM_MAX          (5)
 
 #define MIN(a,b)            ((a) < (b) )? (a) : (b)
 #define MAX(a,b)            ((a) > (b) )? (a) : (b)
@@ -46,11 +46,11 @@ void __debug_hci(const unsigned char *s); //comment this if unimplemented
 
 void Disable_SPI_IRQ(void)
 {
-	BlueNRG_SPI_IRQ_Suspend();
+    BlueNRG_SPI_IRQ_Suspend();
 }
 void Enable_SPI_IRQ(void)
 {
-	BlueNRG_SPI_IRQ_Engage();
+    BlueNRG_SPI_IRQ_Engage();
 }
 
 void HCI_Init(void)
@@ -58,8 +58,8 @@ void HCI_Init(void)
   uint8_t index;
   
   /* Initialize list heads of ready and free hci data packet queues */
-  list_init_head (&hciReadPktPool);			//Queue to store free HCI data packets
-  list_init_head (&hciReadPktRxQueue);		//Queue to store events
+  list_init_head (&hciReadPktPool);            //Queue to store free HCI data packets
+  list_init_head (&hciReadPktRxQueue);        //Queue to store events
   
   /* Initialize the queue of free hci data packets */
   for (index = 0; index < HCI_READ_PACKET_NUM_MAX; index++)
@@ -102,47 +102,47 @@ int HCI_Process(void)
   {
     list_remove_head (&hciReadPktRxQueue, (tListNode **)&hciReadPacket);
  
-	HCI_Event_CB(hciReadPacket->dataBuff);
+    HCI_Event_CB(hciReadPacket->dataBuff);
     
     list_insert_tail(&hciReadPktPool, (tListNode *)hciReadPacket);
-	
+    
     list_empty = list_is_empty(&hciReadPktRxQueue); 
   }
   
 
-	if (readPacketListFull)  //readPacketListFull is set in interrupt context
-	{
-		while(BlueNRG_DataPresent()) 
-		{
-			__debug_hci("Data too fast"); 
-			
-			data_len = BlueNRG_SPI_Read_All(HCI_Process_buffer, HCI_READ_PACKET_SIZE);
-	  
-			if(data_len > 0)
-			{
-				HCI_Event_CB(hciReadPacket->dataBuff);
-	
-				retries = 0;
-			}
-			else
-			{
-				retries++;
-				if(retries > 1)
-				{
-					return -1;
-					break;
-				}
-				
-			}
-		}
-		readPacketListFull = FALSE; //check if we ever get here
-	}
-	if(ISRDevice_busy == TRUE)
-	{
-		ISRDevice_busy = FALSE;
-		return -2;
-	}
-	return 1;
+    if (readPacketListFull)  //readPacketListFull is set in interrupt context
+    {
+        while(BlueNRG_DataPresent()) 
+        {
+            __debug_hci("Data too fast"); 
+            
+            data_len = BlueNRG_SPI_Read_All(HCI_Process_buffer, HCI_READ_PACKET_SIZE);
+      
+            if(data_len > 0)
+            {
+                HCI_Event_CB(hciReadPacket->dataBuff);
+    
+                retries = 0;
+            }
+            else
+            {
+                retries++;
+                if(retries > 1)
+                {
+                    return -1;
+                    break;
+                }
+                
+            }
+        }
+        readPacketListFull = FALSE; //check if we ever get here
+    }
+    if(ISRDevice_busy == TRUE)
+    {
+        ISRDevice_busy = FALSE;
+        return -2;
+    }
+    return 1;
 }
 
 
@@ -160,35 +160,35 @@ void HCI_Isr(void)
       list_remove_head (&hciReadPktPool, (tListNode **)&hciReadPacket);
       
       data_len = BlueNRG_SPI_Read_All(hciReadPacket->dataBuff,HCI_READ_PACKET_SIZE);
-	  
+      
       if(data_len > 0){   
-	    
-		retries = 0;
-		
+        
+        retries = 0;
+        
         hciReadPacket->data_len = data_len;
-		
+        
         if(HCI_verify(hciReadPacket) == 0)
           list_insert_tail(&hciReadPktRxQueue, (tListNode *)hciReadPacket);
         else
           list_insert_head(&hciReadPktPool, (tListNode *)hciReadPacket);
 
-		i++;
-		if( i > HCI_READ_PACKET_NUM_MAX)
-		{
-			goto error;
-		}
+        i++;
+        if( i > HCI_READ_PACKET_NUM_MAX)
+        {
+            goto error;
+        }
       }
       else 
-	  {
-		// Insert the packet back into the pool.
+      {
+        // Insert the packet back into the pool.
         list_insert_head(&hciReadPktPool, (tListNode *)hciReadPacket);
-		
-		retries++; //Device was busy or did not respond correctly
-		
+        
+        retries++; //Device was busy or did not respond correctly
+        
         if(retries > 10)
-		{	
-			goto error;
-		}
+        {    
+            goto error;
+        }
       }
     }
     else{
@@ -253,7 +253,7 @@ int hci_send_req(struct hci_request *r, BOOL async)
   uint16_t opcode = htobs(cmd_opcode_pack(r->ogf, r->ocf));
   hci_event_pckt *event_pckt;
   hci_uart_pckt *hci_hdr;
-  uint32_t tm;	
+  uint32_t tm;    
   tHciDataPacket * hciReadPacket = NULL;
   tListNode hciTempQueue;
   
@@ -268,14 +268,14 @@ int hci_send_req(struct hci_request *r, BOOL async)
   tm = millis() + DEFAULT_TIMEOUT;
 
   while(1) {
-	  
+      
     evt_cmd_complete *cc;
     evt_cmd_status *cs;
     evt_le_meta_event *me;
     int len;
       
     while(1){
-		
+        
       if(millis() > tm){
         goto failed;
       }
@@ -286,13 +286,13 @@ int hci_send_req(struct hci_request *r, BOOL async)
     
     /* Extract packet from HCI event queue. */
     Disable_SPI_IRQ();
-	
+    
     list_remove_head(&hciReadPktRxQueue, (tListNode **)&hciReadPacket);    
     
     hci_hdr = (void *)hciReadPacket->dataBuff;
     if(hci_hdr->type != HCI_EVENT_PKT){
       list_insert_tail(&hciTempQueue, (tListNode *)hciReadPacket); // See comment below
-	  
+      
       Enable_SPI_IRQ();
       continue;
     }
@@ -318,9 +318,9 @@ int hci_send_req(struct hci_request *r, BOOL async)
       }
       
       r->rlen = MIN(len, r->rlen);
-	  
+      
       Osal_MemCpy(r->rparam, ptr, r->rlen);
-	  
+      
       goto done;
       
     case EVT_CMD_COMPLETE:
@@ -402,7 +402,7 @@ int hci_reset()
   return status;  
 }
 
-int hci_disconnect(uint16_t	handle, uint8_t reason)
+int hci_disconnect(uint16_t    handle, uint8_t reason)
 {
   struct hci_request rq;
   disconnect_cp cp;
@@ -567,9 +567,9 @@ int hci_le_set_advertise_enable(uint8_t enable)
   return status;
 }
 
-int hci_le_set_scan_parameters(uint8_t	type, uint16_t interval,
+int hci_le_set_scan_parameters(uint8_t    type, uint16_t interval,
                                uint16_t window, uint8_t own_bdaddr_type,
-                               uint8_t	filter)
+                               uint8_t    filter)
 {
   struct hci_request rq;
   le_set_scan_parameters_cp scan_cp;
@@ -747,9 +747,9 @@ int hci_read_bd_addr(tBDAddr bdaddr)
   return 0;
 }
 
-int hci_le_create_connection(uint16_t interval,	uint16_t window, uint8_t initiator_filter, uint8_t peer_bdaddr_type,
-                             const tBDAddr peer_bdaddr,	uint8_t	own_bdaddr_type, uint16_t min_interval,	uint16_t max_interval,
-                             uint16_t latency,	uint16_t supervision_timeout, uint16_t min_ce_length, uint16_t max_ce_length)
+int hci_le_create_connection(uint16_t interval,    uint16_t window, uint8_t initiator_filter, uint8_t peer_bdaddr_type,
+                             const tBDAddr peer_bdaddr,    uint8_t    own_bdaddr_type, uint16_t min_interval,    uint16_t max_interval,
+                             uint16_t latency,    uint16_t supervision_timeout, uint16_t min_ce_length, uint16_t max_ce_length)
 {
   struct hci_request rq;
   le_create_connection_cp create_cp;
@@ -909,7 +909,7 @@ int hci_le_clear_white_list()
   return status;
 }
 
-int hci_le_add_device_to_white_list(uint8_t	bdaddr_type, tBDAddr bdaddr)
+int hci_le_add_device_to_white_list(uint8_t    bdaddr_type, tBDAddr bdaddr)
 {
   struct hci_request rq;
   le_add_device_to_white_list_cp params;

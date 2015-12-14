@@ -11,10 +11,10 @@ static const char interfaceNames[][5] = {
     "NET",
     "TELT",
 #ifdef BLE_SUPPORT
-	"BLE",
+    "BLE",
 #endif
 #ifdef FS_SUPPORT
-	"FS",
+    "FS",
 #endif
 };
 
@@ -30,10 +30,10 @@ bool openxc::interface::anyConnected() {
             openxc::interface::usb::connected    (&getConfiguration()->usb    ) ||
             openxc::interface::network::connected(&getConfiguration()->network) 
 #ifdef BLE_SUPPORT
-			|| openxc::interface::ble::connected (getConfiguration()->ble ) 
+            || openxc::interface::ble::connected (getConfiguration()->ble ) 
 #endif
 #ifdef FS_SUPPORT
-			|| openxc::interface::fs::connected (getConfiguration()->fs ) 
-#endif			
+            || openxc::interface::fs::connected (getConfiguration()->fs ) 
+#endif            
 ;
 }

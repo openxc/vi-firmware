@@ -6,9 +6,9 @@
  */
 
 #ifndef RINGBUFFER_H
-#define	RINGBUFFER_H
+#define    RINGBUFFER_H
 
-#ifdef	__cplusplus
+#ifdef    __cplusplus
 extern "C" {
 #endif
 
@@ -34,9 +34,9 @@ uint32_t RingBuffer_UsedSpace(RingBuffer_t* ring);
 uint32_t RingBuffer_Peek(RingBuffer_t* ring, char* data, uint32_t size);
 void RingBuffer_Clear(RingBuffer_t* ring);
 
-#ifdef	__cplusplus
+#ifdef    __cplusplus
 }
 #endif
 
-#endif	/* RINGBUFFER_H */
+#endif    /* RINGBUFFER_H */
 

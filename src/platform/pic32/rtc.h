@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 typedef union {
-	uint64_t tm;
-	uint32_t isr_unix_time[2];
+    uint64_t tm;
+    uint32_t isr_unix_time[2];
 }ts;
 
 

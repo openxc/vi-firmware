@@ -15,7 +15,7 @@
 #elif defined(CROSSCHASM_C5_BTLE)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN         5 // PORTD BIT1 (RD1)	
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         5 // PORTD BIT1 (RD1)    
 #endif
 
 

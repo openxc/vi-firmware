@@ -43,8 +43,8 @@ size_t openxc::payload::deserialize(uint8_t payload[], size_t length,
     } else if(format == PayloadFormat::PROTOBUF) {
         bytesRead = payload::protobuf::deserialize(payload, length, message);
     } else if(format == PayloadFormat::MESSAGEPACK){
-		bytesRead = payload::messagepack::deserialize(payload, length, message);
-	} else {
+        bytesRead = payload::messagepack::deserialize(payload, length, message);
+    } else {
         debug("Invalid payload format: %d", format);
     }
     return bytesRead;

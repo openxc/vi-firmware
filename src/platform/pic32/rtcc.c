@@ -26,12 +26,12 @@ RTCC_STATUS I2C_Transmit(uint8_t data);
 
 static void delay_ms(uint32_t d)
 {
-	uint32_t tm;
-	
-	tm = millis() + d;			//todo create a microsecond differential coretick timer delay
-	
-	while(millis() < tm);		//todo if millis does not increase will result in halt
-	
+    uint32_t tm;
+    
+    tm = millis() + d;            //todo create a microsecond differential coretick timer delay
+    
+    while(millis() < tm);        //todo if millis does not increase will result in halt
+    
 }
 
 RTCC_STATUS I2C_Initialize() {
@@ -44,31 +44,31 @@ RTCC_STATUS I2C_Initialize() {
 
     // release I2C pins and give them time to float
     BUS_RELEASE();
-	
-	delay_ms(I2C_INIT_MILLISECONDS_DELAY);
+    
+    delay_ms(I2C_INIT_MILLISECONDS_DELAY);
 
-	stat = RTCC_I2C_INIT_MODULE_OFF_TIMEOUT;
-	
+    stat = RTCC_I2C_INIT_MODULE_OFF_TIMEOUT;
+    
     // check the bus condition
     if(SDA_STATE == 0 || SCL_STATE == 0)
     {
         // if the slave is driving the bus low, we need to call I2C_Reset()
-		__debug("I2C bus fault");
+        __debug("I2C bus fault");
         stat = I2C_Reset();
         if(stat != RTCC_NO_ERROR)
         {
-			__debug("RTC Init Failed SDA/SCL default low");
+            __debug("RTC Init Failed SDA/SCL default low");
             goto fcn_exit;
         }
     }
-	
+    
     // enable the I2C module
     I2C_CONFIGURATION conf = (I2C_STOP_IN_IDLE);
     I2CConfigure(RTCC_I2C_MODULE, conf);
     I2CEnable(RTCC_I2C_MODULE, TRUE);
-	
-	delay_ms(I2C_INIT_MILLISECONDS_DELAY);
-	
+    
+    delay_ms(I2C_INIT_MILLISECONDS_DELAY);
+    
     // set the baud rate generator
     I2CSetFrequency(RTCC_I2C_MODULE, vCPU_CLOCK_HZ, RTCC_I2C_BAUD);
 
@@ -386,8 +386,8 @@ RTCC_STATUS RTCC_WriteBytes(RTCC_MEMTYPE memtype, uint8_t address, uint8_t lengt
 
         if(memtype == RTCC_MEMTYPE_EEPROM)
         {
-			// EEPROM page write cycle delay
-			delay_ms(EEPROM_WRITECYCLE_MILLISECONDS);
+            // EEPROM page write cycle delay
+            delay_ms(EEPROM_WRITECYCLE_MILLISECONDS);
             
         }
 
@@ -395,9 +395,9 @@ RTCC_STATUS RTCC_WriteBytes(RTCC_MEMTYPE memtype, uint8_t address, uint8_t lengt
 
     // small delay so we don't step on ourselves
     delay_ms(1);
-	__debug("status = %d", stat);
+    __debug("status = %d", stat);
     fcn_exit:
-	
+    
     return stat;
 
 }
@@ -918,7 +918,7 @@ RTCC_STATUS I2C_Reset() {
         // pull SDA low
         SDA_LOW();
         delay_ms(1);        
-		// pull SCL low
+        // pull SCL low
         SCL_LOW();
         delay_ms(1);   
     }
@@ -942,14 +942,14 @@ RTCC_STATUS I2C_Reset() {
         {
             // pull SCL low
             SCL_LOW();
-			
+            
             delay_ms(1);   
             // break if the bus has been released
-			
+            
             if(SDA_STATE == 1) break;
             // float SCL high
             SCL_RELEASE();
-			
+            
             delay_ms(1);   
         }
 
@@ -959,15 +959,15 @@ RTCC_STATUS I2C_Reset() {
 
         // release bus
         BUS_RELEASE();
-		
+        
         delay_ms(1);   
         // pull SDA low
         SDA_LOW();
-		
+        
         delay_ms(1);   
         // pull SCL low
         SCL_LOW();
-		
+        
         delay_ms(1);   
 
     }

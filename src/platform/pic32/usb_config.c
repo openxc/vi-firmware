@@ -68,7 +68,7 @@ ROM BYTE configDescriptor_gen[]={
     1,                         // Interval, unused by bulk endpoint
 };
 
-#ifdef FS_SUPPORT	
+#ifdef FS_SUPPORT    
 ROM USB_DEVICE_DESCRIPTOR device_dsc_msd=
 {
     0x12,    // Size of this descriptor in bytes
@@ -96,7 +96,7 @@ ROM BYTE configDescriptor_msd[]={
     0,                      // Configuration string index
     _DEFAULT | _SELF,               // Attributes, see usb_device.h
     50,                     // Max power consumption (2X mA)
-							
+                            
     9,   // Size of this descriptor in bytes
     USB_DESCRIPTOR_INTERFACE,               // INTERFACE descriptor type
     0,                      // Interface Number
@@ -104,7 +104,7 @@ ROM BYTE configDescriptor_msd[]={
     2,                      // Number of endpoints in this intf
     MSD_INTF,               // Class code
     MSD_INTF_SUBCLASS,      // Subclass code
-    MSD_PROTOCOL, 		    // Protocol code
+    MSD_PROTOCOL,             // Protocol code
     0,                      // Interface string index
 
     7,
@@ -172,28 +172,28 @@ ROM BYTE *USB_CD_Ptr[1] = {configDescriptor_gen};
 ROM BYTE *USB_SD_Ptr[4] = {&sd000,&sd001,&sd002,NULL};
 
 void SelectUsbConf(BYTE no){
-	switch(no){
-		case 0:
-			device_dsc_user = 	&device_dsc_gen;
-			
-			USB_CD_Ptr[0] = configDescriptor_gen;
-			
-			USB_SD_Ptr[0] = (BYTE*)&sd000;
-			USB_SD_Ptr[1] = (BYTE*)&sd001;
-			USB_SD_Ptr[2] = (BYTE*)&sd002;
-		break;
-#ifdef FS_SUPPORT		
-		case 1:
-			device_dsc_user = 	&device_dsc_msd;
-			
-			USB_CD_Ptr[0] = configDescriptor_msd;
-	
-			USB_SD_Ptr[0] = (BYTE*)&sd003;
-			USB_SD_Ptr[1] = (BYTE*)&sd004;
-			USB_SD_Ptr[2] = (BYTE*)&sd005;
-			USB_SD_Ptr[3] = (BYTE*)&sd006;
-		break;
-#endif			
-	}
+    switch(no){
+        case 0:
+            device_dsc_user =     &device_dsc_gen;
+            
+            USB_CD_Ptr[0] = configDescriptor_gen;
+            
+            USB_SD_Ptr[0] = (BYTE*)&sd000;
+            USB_SD_Ptr[1] = (BYTE*)&sd001;
+            USB_SD_Ptr[2] = (BYTE*)&sd002;
+        break;
+#ifdef FS_SUPPORT        
+        case 1:
+            device_dsc_user =     &device_dsc_msd;
+            
+            USB_CD_Ptr[0] = configDescriptor_msd;
+    
+            USB_SD_Ptr[0] = (BYTE*)&sd003;
+            USB_SD_Ptr[1] = (BYTE*)&sd004;
+            USB_SD_Ptr[2] = (BYTE*)&sd005;
+            USB_SD_Ptr[3] = (BYTE*)&sd006;
+        break;
+#endif            
+    }
 
 }

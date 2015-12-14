@@ -21,36 +21,36 @@ namespace ble {
 
 
 typedef struct {
-	const char * advname;
-	uint16_t adv_min_ms;
-	uint16_t adv_max_ms;
-	uint16_t slave_min_ms; 
-	uint16_t slave_max_ms;
-	uint8_t  bdaddr[6];
+    const char * advname;
+    uint16_t adv_min_ms;
+    uint16_t adv_max_ms;
+    uint16_t slave_min_ms; 
+    uint16_t slave_max_ms;
+    uint8_t  bdaddr[6];
 }BleSettings;
 
 typedef enum {
-	SET_CONNECTABLE_FAILED = 128,
-	ISR_SPI_READ_TIMEDOUT  = 129,
-	DISCONNECT_DEVICE_FAILED = 130,
-	MULTIPLE_DEVICES_CONNECTED = 131,
+    SET_CONNECTABLE_FAILED = 128,
+    ISR_SPI_READ_TIMEDOUT  = 129,
+    DISCONNECT_DEVICE_FAILED = 130,
+    MULTIPLE_DEVICES_CONNECTED = 131,
 } BleError;
 
 typedef enum {
-	RADIO_OFF   = 0,
-	RADIO_ON_NOT_ADVERTISING = 1,
-	ADVERTISING = 2,
-	CONNECTED   = 3,
-	NOTIFICATION_ENABLED = 4,
+    RADIO_OFF   = 0,
+    RADIO_ON_NOT_ADVERTISING = 1,
+    ADVERTISING = 2,
+    CONNECTED   = 3,
+    NOTIFICATION_ENABLED = 4,
 } BleStatus;
 
 typedef struct {
-	InterfaceDescriptor descriptor;
-	BleSettings 		blesettings;
-	QUEUE_TYPE(uint8_t) sendQueue;
-	QUEUE_TYPE(uint8_t) receiveQueue;
-	bool configured;
-	BleStatus status;
+    InterfaceDescriptor descriptor;
+    BleSettings         blesettings;
+    QUEUE_TYPE(uint8_t) sendQueue;
+    QUEUE_TYPE(uint8_t) receiveQueue;
+    bool configured;
+    BleStatus status;
 } BleDevice;
 
 

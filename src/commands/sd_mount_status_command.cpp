@@ -21,11 +21,11 @@ bool openxc::commands::handleSDMountStatusCommand() {
   bool status = false;
 #ifdef FS_SUPPORT
   status = openxc::interface::fs::getSDStatus(); //returns true if SD card was initialized correctly
-#endif	
+#endif    
 
   sendCommandResponse(openxc_ControlCommand_Type_SD_MOUNT_STATUS, status,
             NULL, 0);
-			
+            
   return status;
     
 }

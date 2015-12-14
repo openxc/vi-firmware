@@ -30,26 +30,26 @@ uint8_t stickyfisr = 0;
 #ifdef BLE_SUPPORT
 void __ISR(_EXTERNAL_0_VECTOR, ipl7) INT0Interrupt() 
 { 
-	
-	mINT0ClearIntFlag(); 
-	if(BlueNRG_DataPresent()) //add a small amount of debounce
-	{
-		if(BlueNRG_DataPresent()) 
-		{
-			HCI_Isr(); 		
-		}
-	}
-	
+    
+    mINT0ClearIntFlag(); 
+    if(BlueNRG_DataPresent()) //add a small amount of debounce
+    {
+        if(BlueNRG_DataPresent()) 
+        {
+            HCI_Isr();         
+        }
+    }
+    
 } 
 #endif
 
 
 void BlueNRG_SPI_IRQ_Suspend(void){
-	DisableINT0;
+    DisableINT0;
 }
 
 void BlueNRG_SPI_IRQ_Engage(void){
-	EnableINT0;
+    EnableINT0;
 }
 
 BOOL BlueNRG_DataPresent(void) {
@@ -71,40 +71,40 @@ int8_t BlueNRG_SpiInit(void) {
 
 
 int BlueNRG_ISRDeInit(void){
-	BlueNRG_SPI_IRQ_Suspend();//should we float input?
+    BlueNRG_SPI_IRQ_Suspend();//should we float input?
 }
 
 int BlueNRG_ISRInit(void){
-	TRISDSET = (1 << 0);
-	LATDSET  = (1 << 0);
-	ConfigINT0(EXT_INT_ENABLE | RISING_EDGE_INT | EXT_INT_PRI_7);
-	return (0);
+    TRISDSET = (1 << 0);
+    LATDSET  = (1 << 0);
+    ConfigINT0(EXT_INT_ENABLE | RISING_EDGE_INT | EXT_INT_PRI_7);
+    return (0);
 }/* end BlueNRGISRInit() */
 
 
 static void SPI_SendRecieve(uint8_t channel, uint8_t * sendb, uint8_t * recvb, uint32_t n ){
    uint32_t i;  
    if(sendb == NULL && recvb == NULL)
-	   return;
+       return;
    if(sendb == NULL && recvb != NULL)
    {
-	   for( i=0 ; i < n ; i++)
-	   {
-			recvb[i] = SPI_SendByte(channel, 0xFF);
-	   }
+       for( i=0 ; i < n ; i++)
+       {
+            recvb[i] = SPI_SendByte(channel, 0xFF);
+       }
    }
    else if (sendb != NULL && recvb != NULL)
    {
-	  for( i=0 ; i < n ; i++)
-	  {
-		recvb[i] = SPI_SendByte(channel, sendb[i]); //send receive SPI information
-	  }
+      for( i=0 ; i < n ; i++)
+      {
+        recvb[i] = SPI_SendByte(channel, sendb[i]); //send receive SPI information
+      }
    }
    else
    {
       for( i=0 ; i < n ; i++)
-	  {
-		SPI_SendByte(channel, sendb[i]); 
+      {
+        SPI_SendByte(channel, sendb[i]); 
       }
    }
 }
@@ -137,12 +137,12 @@ uint8_t BlueNRG_SPI_Read_All(uint8_t *buffer, uint16_t buff_size)
       
       // avoid to read more data that size of the buffer
       if (byte_count > buff_size)
-	  {  
+      {  
         byte_count = buff_size;
-	  }
-	  
+      }
+      
       SPI_SendRecieve(STBTLE_SPICHANNEL, NULL, buffer, byte_count );
-	
+    
       len = byte_count;
     }    
   }
@@ -233,17 +233,17 @@ void BlueNRG_Hal_Write_Serial(const void* data1, const void* data2, uint16_t n_b
     ret = SPI_Write((uint8_t *)data1,(uint8_t *)data2 + data2_offset, n_bytes1, n_bytes2); 
     
     if(ret >= 0)
-	{      
+    {      
       n_bytes1 = 0;
       n_bytes2 -= ret;
-	  
+      
       data2_offset += ret;
       if(n_bytes2==0)
         break;
     }
 
     if(millis() > tm)
-	{
+    {
       break; //timeout on data handled by higher level application
     }
   }
@@ -251,23 +251,23 @@ void BlueNRG_Hal_Write_Serial(const void* data1, const void* data2, uint16_t n_b
 
 void BlueNRG_DelayMS(uint32_t d)
 {
-	uint32_t tm;
-	tm = millis() + d;			//todo create a microsecond differential coretick timer delay
-	while(millis() < tm);		//todo if millis does not increase will result in halt
-	
+    uint32_t tm;
+    tm = millis() + d;            //todo create a microsecond differential coretick timer delay
+    while(millis() < tm);        //todo if millis does not increase will result in halt
+    
 }
 
 void BlueNRG_RST(void)
 {
-	SPBTLE_RST_ENABLE();  	
-	BlueNRG_DelayMS(5);
-	SPBTLE_RST_DISABLE();  	
-	BlueNRG_DelayMS(5);
-	
+    SPBTLE_RST_ENABLE();      
+    BlueNRG_DelayMS(5);
+    SPBTLE_RST_DISABLE();      
+    BlueNRG_DelayMS(5);
+    
 }
 
 void BlueNRG_PowerOff(void)
 {
-	SPBTLE_RST_ENABLE();  
-	BlueNRG_DelayMS(5);
+    SPBTLE_RST_ENABLE();  
+    BlueNRG_DelayMS(5);
 }

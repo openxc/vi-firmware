@@ -21,11 +21,11 @@ namespace fs {
 
 
 typedef struct {
-	InterfaceDescriptor descriptor;
-	//since our write speeds are much higher to the SD card we are excluding the queue here
-	QUEUE_TYPE(uint8_t) sendQueue;
-	uint8_t buffer[FS_BUF_SZ];
-	bool configured;
+    InterfaceDescriptor descriptor;
+    //since our write speeds are much higher to the SD card we are excluding the queue here
+    QUEUE_TYPE(uint8_t) sendQueue;
+    uint8_t buffer[FS_BUF_SZ];
+    bool configured;
 } FsDevice;
 
 void setmode(FS_STATE mode);

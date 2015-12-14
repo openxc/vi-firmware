@@ -66,8 +66,8 @@ void updateInterfaceLight() {
     if(telit::connected(getConfiguration()->telit)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     }
-	#elif defined BLE_SUPPORT
-	if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble)) { //if either of the interface are connected
+    #elif defined BLE_SUPPORT
+    if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble)) { //if either of the interface are connected
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
     } else {
        lights::disable(lights::LIGHT_B);
@@ -75,12 +75,12 @@ void updateInterfaceLight() {
     #else
     if(uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-	}
+    }
     else if(getConfiguration()->usb.configured){ //if either of the interface are connected
         lights::enable(lights::LIGHT_B, lights::COLORS.green);
     } else {
        lights::disable(lights::LIGHT_B);
-    } 	
+    }     
     #endif
 
 }
@@ -106,37 +106,37 @@ void checkBusActivity() {
             // ALL_IO at initialization, so this is just a backup.
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
-		#ifdef CROSSCHASM_C5_BTLE
-		lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
-		lights::disable(lights::LIGHT_A);
-		#else
-		lights::enable(lights::LIGHT_A, lights::COLORS.blue);
-		#endif		
+        #ifdef CROSSCHASM_C5_BTLE
+        lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
+        lights::disable(lights::LIGHT_A);
+        #else
+        lights::enable(lights::LIGHT_A, lights::COLORS.blue);
+        #endif        
         BUS_WAS_ACTIVE = true;
         SUSPENDED = false;
     } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
             !SUSPENDED))) {
         debug("CAN is quiet");
-		#ifdef CROSSCHASM_C5_BTLE
-		lights::disable(lights::LIGHT_C); //disable green led
-		#endif		
-		lights::enable(lights::LIGHT_A, lights::COLORS.red);
-		
+        #ifdef CROSSCHASM_C5_BTLE
+        lights::disable(lights::LIGHT_C); //disable green led
+        #endif        
+        lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        
         SUSPENDED = true;
         BUS_WAS_ACTIVE = false;
-		#ifdef FS_SUPPORT
-		if(fs::getmode() !=  FS_STATE::USB_CONNECTED){
-		#endif		
+        #ifdef FS_SUPPORT
+        if(fs::getmode() !=  FS_STATE::USB_CONNECTED){
+        #endif        
         if(getConfiguration()->powerManagement != PowerManagement::ALWAYS_ON) {
             // stay awake at least CAN_ACTIVE_TIMEOUT_S after power on
-		#ifdef RTC_SUPPORT
-		rtc_timer_ms_deinit();
-		#endif
+        #ifdef RTC_SUPPORT
+        rtc_timer_ms_deinit();
+        #endif
             platform::suspend(&getConfiguration()->pipeline);
         }
 #ifdef FS_SUPPORT
-		}
+        }
 #endif
     }
 }
@@ -176,30 +176,30 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 }
 
 void initializeIO() {
-	
+    
     debug("Moving to ALL I/O runlevel");
-	#ifdef RTC_SUPPORT
-	RTC_Init();
-	#endif	
-	
-	#ifdef FS_SUPPORT	
-	fs::initialize(getConfiguration()->fs);
-	#endif	
+    #ifdef RTC_SUPPORT
+    RTC_Init();
+    #endif    
+    
+    #ifdef FS_SUPPORT    
+    fs::initialize(getConfiguration()->fs);
+    #endif    
     usb::initialize(&getConfiguration()->usb);
-	
-	#ifndef CROSSCHASM_C5_BTLE
+    
+    #ifndef CROSSCHASM_C5_BTLE
     uart::initialize(&getConfiguration()->uart); 
-	#endif
-	
-	#ifdef BLE_SUPPORT
-	ble::initialize(getConfiguration()->ble);
-	#endif
+    #endif
+    
+    #ifdef BLE_SUPPORT
+    ble::initialize(getConfiguration()->ble);
+    #endif
     #ifdef BLUETOOTH_SUPPORT
     bluetooth::start(&getConfiguration()->uart);
     #endif
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
-	
+    
 }
 
 void initializeVehicleInterface() {
@@ -272,8 +272,8 @@ void firmwareLoop() {
             server_task::flushDataBuffer(getConfiguration()->telit);
             server_task::commandCheck(getConfiguration()->telit);
         }
-		#elif defined BLE_SUPPORT
-		ble::read(getConfiguration()->ble); 
+        #elif defined BLE_SUPPORT
+        ble::read(getConfiguration()->ble); 
         #else
         uart::read(&getConfiguration()->uart, uart::handleIncomingMessage);
         #endif
@@ -309,11 +309,11 @@ void firmwareLoop() {
                     &getConfiguration()->pipeline);
         }
     }
-	#ifdef FS_SUPPORT
-	fs::manager(getConfiguration()->fs);
-	#endif
-	#ifdef RTC_SUPPORT
-	rtc_task();
-	#endif
+    #ifdef FS_SUPPORT
+    fs::manager(getConfiguration()->fs);
+    #endif
+    #ifdef RTC_SUPPORT
+    rtc_task();
+    #endif
     openxc::pipeline::process(&getConfiguration()->pipeline);
 }

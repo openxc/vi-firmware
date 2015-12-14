@@ -14,7 +14,7 @@ void setup() {
 
 START_TEST (test_passthrough_request)
 {
-	openxc_VehicleMessage message = {0};
+    openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.has_command_response = true;
@@ -143,11 +143,11 @@ END_TEST
 START_TEST (test_deserialize_can_message_write)
 {
     //{"bus": 1,"id": 42,"data":"0x1234"};
-	uint8_t rawRequest[21] = {
+    uint8_t rawRequest[21] = {
     0x83, 0xA3, 0x62, 0x75, 0x73, 0xCC, 0x01, 0xA2,
     0x69, 0x64, 0xCC, 0x2A, 0xA4, 0x64, 0x61, 0x74,
     0x61, 0xC4, 0x02, 0x12, 0x34 
-	};
+    };
     openxc_VehicleMessage deserialized = {0};
     messagepack::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
@@ -158,14 +158,14 @@ END_TEST
 START_TEST (test_deserialize_can_message_write_with_format)
 {
     //{"bus": 1,"id": 42,"data":"0x1234","frame_format":"standard"}
-	uint8_t rawRequest[43] = {
+    uint8_t rawRequest[43] = {
     0x84, 0xA3, 0x62, 0x75, 0x73, 0xCC, 0x01, 0xA2,
     0x69, 0x64, 0xCC, 0x2A, 0xA4, 0x64, 0x61, 0x74,
     0x61, 0xC4, 0x02, 0x12, 0x34, 0xAC, 0x66, 0x72,
     0x61, 0x6D, 0x65, 0x5F, 0x66, 0x6F, 0x72, 0x6D,
     0x61, 0x74, 0xA8, 0x73, 0x74, 0x61, 0x6E, 0x64,
     0x61, 0x72, 0x64 
-	};
+    };
     openxc_VehicleMessage deserialized = {0};
     messagepack::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
@@ -178,13 +178,13 @@ END_TEST
 START_TEST (test_deserialize_message_after_junk)
 {
     
-	//garbagebytes..{"bus": 1,"id": 42,"data":"0x1234"}
-	uint8_t rawRequest[25] = {
+    //garbagebytes..{"bus": 1,"id": 42,"data":"0x1234"}
+    uint8_t rawRequest[25] = {
     0x01, 0x02, 0x03, 0x04, 0x83, 0xA3, 0x62, 0x75, 0x73, 0xCC, 0x01, 0xA2,
     0x69, 0x64, 0xCC, 0x2A, 0xA4, 0x64, 0x61, 0x74,
     0x61, 0xC4, 0x02, 0x12, 0x34 
-	};
-	//Message pack payload format will just read the junk bytes ahead of the message and ignore it
+    };
+    //Message pack payload format will just read the junk bytes ahead of the message and ignore it
     openxc_VehicleMessage deserialized = {0};
     ck_assert_int_eq(25, messagepack::deserialize(rawRequest, sizeof(rawRequest), &deserialized));
     ck_assert(validate(&deserialized));
@@ -197,8 +197,8 @@ Suite* suite(void) {
     TCase *tc_msgpck_payload = tcase_create("messagepack_payload");
     tcase_add_checked_fixture(tc_msgpck_payload, setup, NULL);
     tcase_add_test(tc_msgpck_payload, test_passthrough_request);
-	tcase_add_test(tc_msgpck_payload, test_passthrough_response);
-	tcase_add_test(tc_msgpck_payload, test_af_bypass_response);
+    tcase_add_test(tc_msgpck_payload, test_passthrough_response);
+    tcase_add_test(tc_msgpck_payload, test_af_bypass_response);
     tcase_add_test(tc_msgpck_payload, test_af_bypass_request);
     tcase_add_test(tc_msgpck_payload, test_payload_format_response);
     tcase_add_test(tc_msgpck_payload, test_payload_format_request);
@@ -213,13 +213,13 @@ Suite* suite(void) {
 
 int main(void) {
 
-	int numberFailed;
-	Suite* s = suite();
-	SRunner *sr = srunner_create(s);
-	// Don't fork so we can actually use gdb
-	srunner_set_fork_status(sr, CK_NOFORK);
-	srunner_run_all(sr, CK_NORMAL);
-	numberFailed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (numberFailed == 0) ? 0 : 1;
+    int numberFailed;
+    Suite* s = suite();
+    SRunner *sr = srunner_create(s);
+    // Don't fork so we can actually use gdb
+    srunner_set_fork_status(sr, CK_NOFORK);
+    srunner_run_all(sr, CK_NORMAL);
+    numberFailed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    return (numberFailed == 0) ? 0 : 1;
 }

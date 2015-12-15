@@ -1,9 +1,12 @@
 CrossChasm C5 Interfaces
 ========================
-This page describes the CrossChasm C5 family of OBD interfaces, which includes 
-the Classic Bluetooth, Bluetooth Low Energy and Cellular devices. Most things are common
-between the different devices and are described on this page.For options specific to the
-Cellular device,see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
+CrossChasm C5 family of OBD interfaces include versions with different communication radios
+such as, :doc:`Classic Bluetooth</platforms/crosschasm-c5>`, :doc:`Bluetooth Low Energy</platforms/crosschasm-c5-ble>` and :doc:`Cellular(GPRS)</platforms/crosschasm-c5-cellular>`. Most things are common
+between the different devices and are described on this page. However this page particularly
+talks about the Classic Bluetooth version or ``PLATFORM=CROSSCHASM_C5_BT``.
+
+For options specific to the Cellular device,see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
+
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
 firmware. To build for one of the C5s, compile with one of the flags: 
@@ -15,6 +18,7 @@ firmware. To build for one of the C5s, compile with one of the flags:
    the fabric shortcut ``c5`` has been updated to ``c5bt``. Both old variables are 
    aliased to the new BT forms.
 
+   
 CrossChasm has further information on the C5 `available here
 <http://www.crosschasm.com/technology/openxc-hardware/>`_. The devices
 will soon be available on the `OpenXC Shop <http://shop.openxcplatform.com/>`_
@@ -24,6 +28,11 @@ hardware to load the OpenXC firmware.
 The C5 connects to the `CAN1 bus pins
 <http://openxcplatform.com/vehicle-interface/#obd-pins>`_ on the OBD-II
 connector.
+
+.. note::
+
+   CAN2 pins ``CROSSCHASM_C5_BLE`` are mapped to pin 2 and pin 11 of the OBD-II 
+   connector.
 
 Flashing a Pre-compiled Firmware
 --------------------------------
@@ -85,7 +94,7 @@ The micro-USB port on the board is used to send and receive OpenXC messages.
 UART
 ----
 
-On the C5, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
+On the CROSSCHASM_C5_BT, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
 receiving device before data will be sent.
 
@@ -95,6 +104,12 @@ UART data is sent only if pin 0.58 (or PORTB BIT 4, RB4) is pulled high (to
 5v into this pin to actually enabling UART. To disable UART, pull this pin low
 or leave it floating.
 
+
+Real Time Clock
+----------------
+The C5 family of devices have a low power RTC chip that is connected to the PIC32 over the I2C
+bus. The RTC enables timestamping of vehicle messages at the time of generation. Timestamps
+are generated with millisecond resolution.
 
 Debug Logging
 -------------

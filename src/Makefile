@@ -108,6 +108,15 @@ ifeq ($(TRANSMITTER), 1)
 	DEFAULT_USB_PRODUCT_ID = 0x2
 endif
 
+TEST_MODE_ONLY ?= 0
+ifeq ($(TEST_MODE_ONLY), 1)
+	SYMBOLS += __TEST_MODE__
+endif
+
+
+
+
+
 SYMBOLS += PB_FIELD_16BIT
 
 CC_SYMBOLS = $(addprefix -D,$(SYMBOLS))
@@ -204,6 +213,7 @@ endif
 define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
+	$(call show_vi_config_variable,TEST_MODE_ONLY)
 	$(call show_vi_config_variable,DEBUG)
 	$(call show_vi_config_variable,MSD_ENABLE)
 	$(call show_vi_config_variable,DEFAULT_FILE_GENERATE_SECS)

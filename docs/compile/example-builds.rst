@@ -29,6 +29,7 @@ want to send diagnostic requests through a VI:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
     -      0         = MSD_ENABLE
     -      180       = DEFAULT_FILE_GENERATE_SECS
@@ -112,6 +113,7 @@ options:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
     -      0         = MSD_ENABLE
     -      180       = DEFAULT_FILE_GENERATE_SECS	
@@ -175,6 +177,7 @@ The config a VI to emulate a vehicle:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
     -      0         = MSD_ENABLE
     -      180       = DEFAULT_FILE_GENERATE_SECS
@@ -198,7 +201,7 @@ There are 2 changes from the default build:
 * ``DEFAULT_POWER_MANAGEMENT`` is ``ALWAYS_ON``, so the VI will not go to sleep
   while plugged in. Make sure to clear this configuration option before making a
   build to run in a vehicle, or you could drain the battery!
-
+  
 .. NOTE::
   This build also has a shortcut using the Fabric script. Just add the keyword
   ``emulator`` before ``build`` in your call to ``fab`` at the command line.

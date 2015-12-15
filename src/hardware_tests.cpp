@@ -73,11 +73,11 @@ void initializeTestInterface(void){
 	time::initialize();
     power::initialize();
     lights::initialize(); 
-	 
+#ifdef RTC_SUPPORT	 
 	if(RTC_Init() == 0){
 		enter_fault_state(RTC_INIT_ERROR);
 	}
-	
+#endif	
 #ifdef BLE_SUPPORT
 	if(ble::initialize(getConfiguration()->ble) == 0){
 		enter_fault_state(BLE_INIT_ERROR);

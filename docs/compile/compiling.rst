@@ -21,4 +21,4 @@ other flags are optional.
     troubleshooting
     dependencies
     native-development
-	test_mode
+    test_mode

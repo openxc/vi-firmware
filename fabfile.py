@@ -120,10 +120,10 @@ def build_options():
 
     DEFAULT_COMPILER_OPTIONS = {
         'DEBUG': env.debug,
-		'MSD_ENABLE' : 0,
-		'DEFAULT_FILE_GENERATE_SECS' : 180,
+        'MSD_ENABLE' : 0,
+        'DEFAULT_FILE_GENERATE_SECS' : 180,
         'BOOTLOADER': env.bootloader,
-		'TEST_MODE_ONLY': 0,
+        'TEST_MODE_ONLY': 0,
         'TRANSMITTER': False,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
         'DEFAULT_METRICS_STATUS': False,
@@ -131,7 +131,7 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
-		'DEFAULT_ALLOW_RAW_WRITE_USB': False,
+        'DEFAULT_ALLOW_RAW_WRITE_USB': False,
         'DEFAULT_OUTPUT_FORMAT': env.payload_format,
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
         'DEFAULT_POWER_MANAGEMENT': env.power_management,
@@ -145,7 +145,7 @@ def build_options():
 	
     options['DEBUG'] = env.debug	
     options['MSD_ENABLE'] = env.msd_enable
-	options['TEST_MODE_ONLY'] = env.test_mode_only
+    options['TEST_MODE_ONLY'] = env.test_mode_only
     options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
     options['BOOTLOADER'] = env.bootloader
     options['TRANSMITTER'] = env.transmitter

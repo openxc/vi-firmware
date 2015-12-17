@@ -339,34 +339,34 @@ executable versions of such Licensed Software only for use with the Product;
 (ii) make copies, prepare derivatives works of the object code versions
 of the Licensed Software for the sole purpose of designing, developing
 and manufacturing the Products;(iii) make, use, sell, offer to sell, import
- or otherwise distribute Products. 
+or otherwise distribute Products. 
 
 You have the right to grant sub-licenses of the rights set forth in this
- section in order to execute all of the rights set forth herein, provided
- that you will impose to the sub-licensee the same terms and conditions set
- forth in this Agreement and that you will remain fully liable to indemnify
- ST against all and any loss, liability, costs, damages, expenses (including
- the fees of lawyers and other professionals), suffered, incurred or sustained
- as a result of or in relation to the breach of the terms of this Agreement.
+section in order to execute all of the rights set forth herein, provided
+that you will impose to the sub-licensee the same terms and conditions set
+forth in this Agreement and that you will remain fully liable to indemnify
+ST against all and any loss, liability, costs, damages, expenses (including
+the fees of lawyers and other professionals), suffered, incurred or sustained
+as a result of or in relation to the breach of the terms of this Agreement.
 
 
 OWNERSHIP AND COPYRIGHT
 Title to the Licensed Software, related documentation and all copies thereof
- remain with ST and/or its licensors. You may not remove the copyrights notices
- from the Licensed Software and to any copies of the Licensed Software. You agree
- to prevent any unauthorized copying of the Licensed Software and related documentation.
+remain with ST and/or its licensors. You may not remove the copyrights notices
+from the Licensed Software and to any copies of the Licensed Software. You agree
+to prevent any unauthorized copying of the Licensed Software and related documentation.
 
 
 RESTRICTIONS
 Unless otherwise explicitly stated in this Agreement, You may not sell, assign, sublicense,
- lease, rent or otherwise distribute the Licensed for commercial purposes, in whole or in part.
+lease, rent or otherwise distribute the Licensed for commercial purposes, in whole or in part.
 
 You acknowledge and agree that any use, adaptation translation or transcription of the Licensed
- Software or any portion or derivative thereof, for use with processors manufactured by or for
- an entity other than ST is a material breach of this Agreement and requires a separate license from ST. 
+Software or any portion or derivative thereof, for use with processors manufactured by or for
+an entity other than ST is a material breach of this Agreement and requires a separate license from ST. 
 
 No source code and/or object code relating to and/or based upon Licensed Software is to be made available
- by You unless expressly permitted under the section “License”.
+by You unless expressly permitted under the section “License”.
 
 You acknowledge and agree that the protection of the source code of the Licensed Software warrants the
 imposition of reasonable security precautions In the event ST demonstrates to You a reasonable belief

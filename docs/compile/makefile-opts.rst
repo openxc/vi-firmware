@@ -26,6 +26,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
 
 
   Default: ``CHIPKIT``
+
 .. note::
    
    The old Platform variable ``CROSSCHASM_C5`` has been renamed to ``CROSSCHASM_C5_BT``
@@ -33,11 +34,11 @@ These options are passed as shell environment variables to the Makefile, e.g.
 ``TEST_MODE_ONLY``
   Set to ``1``, will create a firmware build which will simply
   test onboard hardware and glow a LED based on the result of the test.
-  Description on test mode LED results can be found :doc:`here</compile/test_mode>`.
   
   Values: ``0`` or ``1``
 
   Default: ``0``
+
 .. note::
    
    Currently supported on CROSSCHASM C5 Platforms

@@ -211,6 +211,24 @@ There are 2 changes from the default build:
 
       fab reference emulator build
 
+Test Mode Build
+=====================
+
+It is often desired to know if a hardware is functional
+before performing other operations on the device. Currently
+supported on CrossChasm C5 hardware this option creates a firmware
+build that will check the hardware and glow an onboard LED depending
+on the result. More description about this test can be found in :ref:`hardware-test`.
+
+* ``TEST_MODE_ONLY`` is ``1``,will cause a hardware testing firmware to be generated on build.
+
+In fabric use the following command along with the correct C5 platform,
+in this case CrossChasm C5 BLE is used as an example:
+
+.. code-block:: sh
+
+  fab c5ble build test_mode_only
+  
 Fabric Shortcuts
 ================
 
@@ -235,5 +253,6 @@ while this builds the default firmware, ready for OBD2 requests for the chipKIT:
 .. code-block:: sh
 
   fab chipkit build
-
+    
+	
 The ``fab`` commands can be run from any folder in the vi-firmware repository.

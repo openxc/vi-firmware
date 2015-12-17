@@ -31,7 +31,7 @@ connector.
 
 .. note::
 
-   CAN2 pins ``CROSSCHASM_C5_BLE`` are mapped to pin 2 and pin 11 of the OBD-II 
+   CAN2 pins ``CROSSCHASM_C5_BLE`` are mapped to pin 3 and pin 11 of the OBD-II 
    connector.
 
 Flashing a Pre-compiled Firmware

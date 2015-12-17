@@ -55,7 +55,7 @@ SD card status message
 It may happen that the SD card which connected has become full or is unformatted. In such a scenario
 a message is sent to the user over the USB, Bluetooth and Cellular. User may also send a command to 
 check the status synchronously. Based on this the user can perform a format by connecting the device
- over USB or insert a new empty card.
+over USB or insert a new empty card.
 
 Example JSON command
 

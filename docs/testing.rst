@@ -114,11 +114,11 @@ Other Hardware Tests
 functionality on the device such as the BLE radio, RTC and SD card.
 Supported on CrossChasm C5 hardware this option creates a firmware
 build that will check that hardware and glow an onboard LED depending
-on the result.
-
-If all tests were a sucess then the green LED will glow on the device.
-Failure will result in blinking of red LED after which it will glow continuously
-red.
+on the result. The method for programming the test firmware is same as that for
+the default settings. If all tests were a sucess then the green LED will glow
+on the device. Failure will result in blinking of red LED after which it will
+glow continuously red. To repeat the test one has to unplug the device and power
+cycle the board.
 
   .. code-block:: sh
 

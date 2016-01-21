@@ -231,12 +231,12 @@ pre-configured Vagrant environment. See the docs for more information."
         echo "Installing Python..."
         _install "python"
     fi
-    
+
     if [ $OS != "cygwin" ]; then
         echo "Installing Python development headers..."
         _install "python-dev"
     fi
-    
+
     if ! command -v pip >/dev/null 2>&1; then
         echo "Installing Pip..."
         if ! command -v easy_install >/dev/null 2>&1; then
@@ -256,7 +256,6 @@ pre-configured Vagrant environment. See the docs for more information."
         PIP_SUDO_CMD=$SUDO_CMD
     fi
 
-    $PIP_SUDO_CMD pip install --upgrade setuptools
     $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/ci-requirements.txt
     if [ -z $CI ]; then
         $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/pip-requirements.txt

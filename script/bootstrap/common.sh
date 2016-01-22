@@ -256,9 +256,9 @@ pre-configured Vagrant environment. See the docs for more information."
         PIP_SUDO_CMD=$SUDO_CMD
     fi
 
-    $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/ci-requirements.txt
+    $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
     if [ -z $CI ]; then
-        $PIP_SUDO_CMD pip install --src dependencies --pre -Ur $BOOTSTRAP_DIR/pip-requirements.txt
+        $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
     fi
 
     COMMON_SOURCED=1

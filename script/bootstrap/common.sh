@@ -113,7 +113,11 @@ if [ -z $COMMON_SOURCED ]; then
     download() {
         url=$1
         filename=$2
-        curl $url -L -o $filename
+        # Disabling SSL cert checking (-k), which while strong discouraged, is
+        # used here because some dependency hosts CA bundle files are messed up,
+        # and this software doesn't store any secure data. If Digilent fixes
+        # their SSL certificate bundle we can remove it.
+        curl -k $url -L -o $filename
     }
 
     if [ `id -u` == 0 ]; then

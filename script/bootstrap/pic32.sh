@@ -8,9 +8,9 @@ source $BOOTSTRAP_DIR/flashing_chipkit.sh
 
 ## chipKIT libraries for USB, CAN and Network
 
-CHIPKIT_LIBRARY_AGREEMENT_URL="http://www.digilentinc.com/Agreement.cfm?DocID=DSD-0000318"
-CHIPKIT_LIBRARY_DOWNLOAD_URL="http://www.digilentinc.com/Data/Documents/Product%20Documentation/chipKIT%20Network%20and%20USB%20Libs-20130724a.zip"
-CHIPKIT_ZIP_FILE="chipkit-libraries-2013-07-24.zip"
+CHIPKIT_LIBRARY_AGREEMENT_URL="https://reference.digilentinc.com/agreement"
+CHIPKIT_LIBRARY_DOWNLOAD_URL="https://reference.digilentinc.com/_media/chipkit_network_and_usb_libs-20150115.zip"
+CHIPKIT_ZIP_FILE="chipkit_network_and_usb_libs-20150115.zip"
 
 _pushd $DEPENDENCIES_FOLDER
 if ! test -e $CHIPKIT_ZIP_FILE

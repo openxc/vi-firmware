@@ -20,7 +20,7 @@ OpenXC Vehicle Interface Firmware
     :target: http://vi-firmware.openxcplatform.com
     :alt: Documentation Status
 
-The OpenXC vehicle interface (VI) firmware runs on an microcontroller connected
+The OpenXC vehicle interface (VI) firmware runs on a microcontroller connected
 to one or more CAN buses. It receives either all CAN messages or a filtered
 subset, performs any unit conversion or factoring required and outputs a generic
 version to a USB interface.

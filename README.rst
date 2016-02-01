@@ -36,7 +36,7 @@ Installation
 =============
 
 For the full build instructions, see the `documentation
-<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`_.
+<http://vi-firmware.openxcplatform.com>`_.
 
 
 Releasing

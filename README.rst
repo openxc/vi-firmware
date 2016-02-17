@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 7.1.0
+:Version: 7.1.1
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -20,7 +20,7 @@ OpenXC Vehicle Interface Firmware
     :target: http://vi-firmware.openxcplatform.com
     :alt: Documentation Status
 
-The OpenXC vehicle interface (VI) firmware runs on an microcontroller connected
+The OpenXC vehicle interface (VI) firmware runs on a microcontroller connected
 to one or more CAN buses. It receives either all CAN messages or a filtered
 subset, performs any unit conversion or factoring required and outputs a generic
 version to a USB interface.
@@ -36,7 +36,7 @@ Installation
 =============
 
 For the full build instructions, see the `documentation
-<http://vi-firmware.openxcplatform.com/en/latest/installation/installation.html>`_.
+<http://vi-firmware.openxcplatform.com>`_.
 
 
 Releasing
@@ -50,6 +50,8 @@ Releasing
 - Make sure you release the openxc-message-format library first if there are any updates
 
 - Update the src/libs/openxc-message-format with ``git submodule update --remote``
+
+- Checkout next branch and make edits.
 
 - Bump the version using `semantic versioning`_ in
   - ``CHANGELOG.mkd``
@@ -68,7 +70,7 @@ Releasing
   next development release (one patch release up with the ``-dev`` suffix, e.g.
   ``v0.9.2-dev``
 
-- Also change ``script/pip-requirements.txt`` back to using the development
+- Also change ``script/bootstrap/pip-requirements.txt`` back to using the development
   version from Git: ``-e git+https://github.com/openxc/openxc-python.git@next#egg=openxc``
 
 - Go to https://github.com/openxc/vi-firmware/releases and promote the tag you

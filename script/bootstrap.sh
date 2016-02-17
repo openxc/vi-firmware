@@ -27,3 +27,5 @@ else
     source $SCRIPTS_DIR/bootstrap/pic32.sh
     source $SCRIPTS_DIR/bootstrap/devel.sh;
 fi
+
+echo "Bootstrap complete"

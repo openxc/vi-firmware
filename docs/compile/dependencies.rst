@@ -96,30 +96,19 @@ in all terminals (and you probably do), you need to add these
 Digilent / Microchip Libraries
 ------------------------------
 
-It also requires some libraries from Microchip that we are unfortunately unable
-to include or link to as a submodule from the source because of licensing
-issues:
-
--  Microchip USB device library (download DSD-0000318 from the bottom of
-   the `Network Shield
-   page <http://digilentinc.com/Products/Detail.cfm?NavPath=2,719,943&Prod=CHIPKIT-NETWORK-SHIELD>`_)
--  Microchip CAN library (included in the same DSD-0000318 package as
-   the USB device library)
-
-You can read and accept Microchip's license and download both libraries on the
-`Digilent download page
-<http://digilentinc.com/Agreement.cfm?DocID=DSD-0000318>`_.
-
-Once you've downloaded the .zip file, extract it into the ``libs``
-directory in this project. It should look like this:
+We also require some libraries from Microchip that are available from the bottom of the `Network Shield page <https://reference.digilentinc.com/chipkit_shield_network:chipkit_shield_network>`_. You can read and accept Microchip's license and download the libraries on the `Digilent download page <https://reference.digilentinc.com/agreement>`_. The bootstrap script does the above and then the ``libs`` directory should look like this:
 
 .. code-block:: sh
 
     - /Users/me/projects/vi-firmware/
-    ---- libs/
-    -------- chipKITUSBDevice/
-             chipKitCAN/
-            ... other libraries
+    -- src/
+    --- libs/
+    ---- 
+        ... other libraries
+       chipKitCAN/
+       chipKITEthernet/
+       chipKITUSBDevice/
+        ... other libraries
 
 .. _ftdi:
 

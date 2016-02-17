@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 7.1.1-dev
+:Version: 7.1.1
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -50,6 +50,8 @@ Releasing
 - Make sure you release the openxc-message-format library first if there are any updates
 
 - Update the src/libs/openxc-message-format with ``git submodule update --remote``
+
+- Checkout next branch and make edits.
 
 - Bump the version using `semantic versioning`_ in
   - ``CHANGELOG.mkd``

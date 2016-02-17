@@ -88,7 +88,7 @@ openxc::telitHE910::TelitDevice telitDevice = {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.1.1-dev",
+        version: "7.1.1",
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,

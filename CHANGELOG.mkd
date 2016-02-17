@@ -1,6 +1,11 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v7.1.1-dev
+## v7.1.1
+
+* Fix: Update nanpb repo location to Git.
+* Fix: Keep same setuptools version.
+* Fix: Update ChipKIT digitlent URL (requires disable SSL cert checks).
+* Fix: Minor doc updates.
 
 ## v7.1.0
 

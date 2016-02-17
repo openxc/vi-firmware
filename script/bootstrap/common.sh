@@ -113,11 +113,16 @@ if [ -z $COMMON_SOURCED ]; then
     download() {
         url=$1
         filename=$2
-        # Disabling SSL cert checking (-k), which while strong discouraged, is
-        # used here because some dependency hosts CA bundle files are messed up,
-        # and this software doesn't store any secure data. If Digilent fixes
-        # their SSL certificate bundle we can remove it.
-        curl -k $url -L -o $filename
+
+        #if 3rd arg exists, run curl and disable SSL cert checking. Added
+        #for digilent - see pic32.sh
+        if [ ! -z $3 ]; then 
+            k_opt="-k"
+        else
+            k_opt=""
+        fi
+        echo "download() running 'curl $k_opt $url -L -o $filename'"
+        curl $k_opt $url -L -o $filename
     }
 
     if [ `id -u` == 0 ]; then

@@ -3,7 +3,7 @@
 
 #if defined CROSSCHASM_C5_BT || defined CROSSCHASM_C5_BLE ||  defined CROSSCHASM_C5_CELLULAR
     #define RTC_SUPPORT
-
+	#define CROSSCHASM_C5_COMMON
     #define RTC_UPDATE_INT_MS 60*60*1000
     
     #if defined CROSSCHASM_C5_BT ||  defined CROSSCHASM_C5_CELLULAR

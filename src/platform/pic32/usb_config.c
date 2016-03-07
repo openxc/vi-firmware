@@ -1,5 +1,6 @@
 #include "usb_config.h"
 #include "USB/usb.h"
+#include "platform_profile.h"
 
 #ifdef FS_SUPPORT
 #include "USB/usb_function_msd.h"

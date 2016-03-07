@@ -193,8 +193,11 @@ def msd_enable():
 
 @task
 def test_mode_only():
-    env.test_mode_only = True	
-	
+	if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble":
+		env.test_mode_only = True
+	else:
+		abort("TEST MODE is only defined for crosschasm platform")
+
 @task
 def test():
     if current_branch() == "master":

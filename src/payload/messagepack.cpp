@@ -152,13 +152,14 @@ static void msgPackAddObject16bNumeric(cmp_ctx_t *ctx, const char* fname ,uint16
     cmp_write_u16(ctx, obj);
     s->mobj.MsgPackMapPairCount++;
 }
+/*
 static void msgPackAddObject32bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32_t obj){
     sFile *s = (sFile *)ctx->buf;
     cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));
     cmp_write_u32(ctx, obj);
     s->mobj.MsgPackMapPairCount++;
 }
-
+*/
 static void msgPackAddObject64bNumeric(cmp_ctx_t *ctx, const char* fname ,uint32_t obj){
     sFile *s = (sFile *)ctx->buf;
     cmp_write_str(ctx, (const char *)fname, strlen((const char *)fname));

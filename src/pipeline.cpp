@@ -10,7 +10,9 @@
 #define PIPELINE_STATS_LOG_FREQUENCY_S 15
 #define QUEUE_FLUSH_MAX_TRIES 100
 #include "platform_profile.h"
-#include "platform/pic32/rtc.h"
+#ifdef RTC_SUPPORT
+	#include "platform/pic32/rtc.h"
+#endif
 
 namespace uart = openxc::interface::uart;
 namespace usb = openxc::interface::usb;

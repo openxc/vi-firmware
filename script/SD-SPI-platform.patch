@@ -1,4 +1,4 @@
-206c206
-< 	    	response = SendMMCCmdManual(SEND_STATUS,0x0);
----
-> 	    	//response = SendMMCCmdManual(SEND_STATUS,0x0);
+206d205
+< 		/*
+208d206
+< 		*/

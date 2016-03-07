@@ -112,7 +112,7 @@ echo "Patching MLA files MDD Files"
 set +e
 _pushd src/libs/MLA/MDD_File_System
 patch --binary FSIO.c < ../../../../script/FSIO-flush.patch
-patch --binary SD-SPI.c < ../../../../script/SD-SPI-platform.patch
+patch --binary SD-SPI.c < ../../../../script/SD-SPI-platform.patch -t
 _popd
 set -e
 

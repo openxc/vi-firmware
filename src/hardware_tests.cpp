@@ -20,7 +20,9 @@
 #include "config.h"
 #include "commands/commands.h"
 #include "platform/pic32/nvm.h"
-#include "platform/pic32/rtc.h"
+#ifdef RTC_SUPPORT
+ #include "platform/pic32/rtc.h"
+#endif
 
 namespace uart = openxc::interface::uart;
 namespace network = openxc::interface::network;

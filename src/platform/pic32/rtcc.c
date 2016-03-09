@@ -5,9 +5,12 @@
 #include <time.h>
 #include "RTCC.h"
 #include "WProgram.h" 
+#include "platform_profile.h"
 
 /*PRIVATE VARIABLES*/
 I2CDataBuffer I2CRxBuffer;
+
+#ifdef RTC_SUPPORT
 
 
 /*PRIVATE FUNCTION PROTOTYPES*/
@@ -1220,3 +1223,4 @@ RTCC_STATUS I2C_Transmit(uint8_t data) {
     return RTCC_NO_ERROR;
 
 }
+#endif

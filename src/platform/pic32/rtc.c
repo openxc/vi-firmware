@@ -13,6 +13,7 @@ volatile ts syst;
 static uint32_t last_time_check;
 void RTC_IsrTimeVarUpdate(void);
 
+#ifdef RTC_SUPPORT
 void __ISR(_TIMER_2_VECTOR,ipl2) _TIMER2_HANDLER(void) 
 {
     syst.isr_unix_time[0]++;
@@ -35,33 +36,33 @@ void RTC_IsrTimeVarUpdate(void) //Call this regularly somewhere ever hour or so
 }
 
 BOOL RTC_Init(void){
-#ifdef RTC_SUPPORT
+
     if(I2C_Initialize() != RTCC_NO_ERROR){
         __debug("RTC I2C Init Error");
     }
     
     RTC_IsrTimeVarUpdate();
 
-#endif
+
     RTC_InitTimer();
     return true;
 }
 
 BOOL RTC_SetTimeUnix(uint32_t unixtime){
-#ifdef RTC_SUPPORT    
+  
     __debug("Set RTC Time %x", unixtime);
     return (RTCCSetTimeDateUnix(unixtime) == RTCC_NO_ERROR)? true: false;
-#else
+
     return 0;
-#endif
+
 }
 
 BOOL RTC_GetTimeDateDecimal(struct tm * ts){
-#ifdef RTC_SUPPORT        
+      
     if(RTCCGetTimeDateDecimal(ts) != RTCC_NO_ERROR){
         __debug("RTC Read Error");
     }
-#endif
+
     return true;
 }
 
@@ -84,3 +85,4 @@ void rtc_timer_ms_deinit(void){
     TMR2 = 0x0;    //stop timer
     ConfigIntTimer2( T2_INT_OFF); //disable interrupts
 }
+#endif

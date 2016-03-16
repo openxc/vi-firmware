@@ -28,8 +28,8 @@ define COMPILE_TEST_TEMPLATE
 $1: $3
 	@echo -n "$$(YELLOW)Compiling $1...$$(COLOR_RESET)"
 	@$2 make clean > /dev/null
-	#@$2 make -j4 $4 > /dev/null 2>&1
-	@$2 make -j4 $4 2>&1
+	@$2 make -j4 $4 > /dev/null 2>&1
+	#@$2 make -j4 $4 2>&1
 	@echo "$$(GREEN)passed.$$(COLOR_RESET)"
 endef
 

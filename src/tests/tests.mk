@@ -28,11 +28,12 @@ define COMPILE_TEST_TEMPLATE
 $1: $3
 	@echo -n "$$(YELLOW)Compiling $1...$$(COLOR_RESET)"
 	@$2 make clean > /dev/null
-	@$2 make -j4 $4 > /dev/null 2>&1
+	#@$2 make -j4 $4 > /dev/null 2>&1
+	@$2 make -j4 $4 2>&1
 	@echo "$$(GREEN)passed.$$(COLOR_RESET)"
 endef
 
-PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT
+PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR CROSSCHASM_C5_BLE
 define ALL_PLATFORMS_TEST_TEMPLATE
 $(foreach platform, $(PLATFORMS), \
 	$(eval $(call COMPILE_TEST_TEMPLATE, $(1)-$(platform)-bootloader,$(2) BOOTLOADER=1 PLATFORM=$(platform), $(3))) \

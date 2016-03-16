@@ -3,7 +3,7 @@
 #include <plib.h>
 #include <string.h>
 #include <time.h>
-#include "RTCC.h"
+#include "rtcc.h"
 #include "WProgram.h" 
 #include "platform_profile.h"
 

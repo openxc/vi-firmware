@@ -5,7 +5,8 @@ Mass Storage Device
 
 Operation
 -----------
-MSD mode is supported on ``CROSSCHASM_C5_BT`` and ``CROSSCHASM_C5_CELLULAR`` devices. 
+MSD mode is supported on ``CROSSCHASM_C5_BT``, ``CROSSCHASM_C5_BLE``, and 
+``CROSSCHASM_C5_CELLULAR`` devices. 
 With this mode enabled the devices store messages(except debug log messages)on to 
 the SD card storage that is formatted with FAT file system. The maximum storage 
 capacity supported is upto 2GB. To view the contents of the SD card the user can unplug
@@ -38,16 +39,6 @@ It is desired to have multiple log entries based on time rather than one large f
 option ``DEFAULT_FILE_GENERATE_SECS`` creates a new file each time this interval is elapsed.
 A larger interval will yeild to lesser files however the size of the files will depend upon the build configuration
 and the speed at which data is generated. By default the option ``DEFAULT_FILE_GENERATE_SECS`` is set to ``180``
-
-
-Real time Clock Configuration
-------------------------------
-For correct time stamping it is necessary that the RTC is configured with the correct time. 
-A new rtc configuration command is added to the _` OpenXC message format <https://github.com/openxc/openxc-message-format>`.
-
-Example JSON command
-
-{"command":"rtc_configuration", "unix_time":"1448551563"}
 
 
 SD card status message

@@ -12,3 +12,4 @@ Advanced Firmware Features
     devguide
     c5_cell_config
     msd
+    rtc

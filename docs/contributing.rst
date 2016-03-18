@@ -24,32 +24,32 @@ Authors and Contributors
 ------------------------
 
 A `complete list
-<https://github.com/openxc/openxc-python/blob/master/CONTRIBUTORS>`_ of all
+<https://github.com/openxc/vi-firmware/blob/master/CONTRIBUTORS>`_ of all
 authors is stored in the repository - thanks to everyone for the great
 contributions.
 
 Related Projects
-================
+---------------------
 
 Python Library
-----------------------
+~~~~~~~~~~~~~~~~~~~~
 
 The `OpenXC Python library`_, in particular the `openxc-dashboard` tool, is
 useful for testing the VI with a regular computer, to verify the
 data received from a vehicle before introducing an Android device. Documentation
 for this tool (and the list of required dependencies) is available on the OpenXC
-`vehicle interface testing`_ page.
+`Python`_ page.
 
-.. _`vehicle interface testing`: http://openxcplatform.com/vehicle-interface/testing.html
+.. _`Python`: http://openxcplatform.com/python/getting-started.html
 .. _`OpenXC Python library`: https://github.com/openxc/openxc-python
 
 Android Library
-----------------------
+~~~~~~~~~~~~~~~~~~~~
 
 The `OpenXC Android library`_ is the primary entry point for new OpenXC
 developers. More information on this library is available at in the
-`applications`_ section of the `OpenXC website`_.
+`Android`_ section of the `OpenXC website`_.
 
-.. _`applications`: http://openxcplatform.com/android/index.html
+.. _`Android`: http://openxcplatform.com/android/getting-started.html
 .. _`OpenXC Android library`: https://github.com/openxc/openxc-android
 .. _`OpenXC website`: http://openxcplatform.com

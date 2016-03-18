@@ -1,12 +1,9 @@
 CrossChasm C5 Interfaces
 ========================
 CrossChasm C5 family of OBD interfaces include versions with different communication radios
-such as, :doc:`Classic Bluetooth</platforms/crosschasm-c5>`, :doc:`Bluetooth Low Energy</platforms/crosschasm-c5-ble>` and :doc:`Cellular(GPRS)</platforms/crosschasm-c5-cellular>`. Most things are common
-between the different devices and are described on this page. However this page particularly
-talks about the Classic Bluetooth version or ``PLATFORM=CROSSCHASM_C5_BT``.
-
-For options specific to the Cellular device,see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
-
+such as the Bluetooth Classic, :doc:`Bluetooth Low Energy</platforms/crosschasm-c5-ble>` and :doc:`Cellular(GPRS)</platforms/crosschasm-c5-cellular>`. Most things are common
+between the different devices and are described on this page. This page covers the
+Bluetooth Classic version or ``PLATFORM=CROSSCHASM_C5_BT``.
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
 firmware. To build for one of the C5s, compile with one of the flags: 
@@ -41,8 +38,6 @@ Assuming your C5 has the :ref:`bootloader <bootloader>` already flashed, once
 you have the USB cable attached to your computer and to the C5, follow the same
 steps to upload as for the :doc:`chipKIT Max32 <max32>`.
 
-The OpenXC C5 units are pre-programmed with the bootloader.
-
 .. _bootloader:
 
 Bootloader
@@ -64,9 +59,6 @@ In Windows, you will need to install the `stk500v2.inf
 driver before the CDC/ACM modem will show up - download that file, right click
 and choose Install. The C5 should now show up as a COM port for for 5 seconds on
 bootup.
-
-
-The OpenXC C5 units are pre-programmed with the bootloader.
 
 If you need to reflash the bootloader yourself, a ready-to-go .hex file is
 available in the `GitHub repository
@@ -109,7 +101,7 @@ Real Time Clock
 ----------------
 The C5 family of devices have a low power RTC chip that is connected to the PIC32 over the I2C
 bus. The RTC enables timestamping of vehicle messages at the time of generation. Timestamps
-are generated with millisecond resolution.
+are generated with millisecond resolution. See TODO.
 
 Debug Logging
 -------------

@@ -17,6 +17,7 @@ extern const char PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[];
 
 extern const char PAYLOAD_FORMAT_JSON_NAME[];
 extern const char PAYLOAD_FORMAT_PROTOBUF_NAME[];
+extern const char PAYLOAD_FORMAT_MESSAGEPACK_NAME[];
 
 extern const char COMMAND_RESPONSE_FIELD_NAME[];
 extern const char COMMAND_RESPONSE_MESSAGE_FIELD_NAME[];
@@ -39,7 +40,10 @@ extern const char DIAGNOSTIC_SUCCESS_FIELD_NAME[];
 extern const char DIAGNOSTIC_NRC_FIELD_NAME[];
 extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
 extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
+
 extern const char MODEM_CONFIGURATION_COMMAND_NAME[];
+extern const char RTC_CONFIGURATION_COMMAND_NAME[];
+extern const char SD_MOUNT_STATUS_COMMAND_NAME[];
 
 /* Public: Deserialize an OpenXC message from a payload containing JSON.
  *

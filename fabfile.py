@@ -24,12 +24,17 @@ env.payload_format = "JSON"
 env.logging_output = "OFF"
 env.usb_product_id = 1
 env.power_management = "SILENT_CAN"
+env.msd_enable = False
+env.default_file_generate_secs = 180
+env.test_mode_only = False
+
 env.boards = {
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5_BT", "extension": "hex"}, #for backwards compatibility
     "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
-    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"}
+    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"},
+    "c5ble": {"name": "CROSSCHASM_C5_BLE", "extension": "hex"}
 }
 
 def latest_git_tag():
@@ -115,7 +120,10 @@ def build_options():
 
     DEFAULT_COMPILER_OPTIONS = {
         'DEBUG': env.debug,
+        'MSD_ENABLE' : 0,
+        'DEFAULT_FILE_GENERATE_SECS' : 180,
         'BOOTLOADER': env.bootloader,
+        'TEST_MODE_ONLY': 0,
         'TRANSMITTER': False,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
         'DEFAULT_METRICS_STATUS': False,
@@ -123,6 +131,7 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
+        'DEFAULT_ALLOW_RAW_WRITE_USB': False,
         'DEFAULT_OUTPUT_FORMAT': env.payload_format,
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
         'DEFAULT_POWER_MANAGEMENT': env.power_management,
@@ -133,7 +142,11 @@ def build_options():
     }
 
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-    options['DEBUG'] = env.debug
+	
+    options['DEBUG'] = env.debug	
+    options['MSD_ENABLE'] = env.msd_enable
+    options['TEST_MODE_ONLY'] = env.test_mode_only
+    options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
     options['BOOTLOADER'] = env.bootloader
     options['TRANSMITTER'] = env.transmitter
     options['PLATFORM'] = board_options['name']
@@ -173,6 +186,17 @@ def translated_obd2():
 @task
 def obd2():
     env.mode = 'obd2'
+	
+@task
+def msd_enable():
+    env.msd_enable = True	
+
+@task
+def test_mode_only():
+	if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble":
+		env.test_mode_only = True
+	else:
+		abort("TEST MODE is only defined for crosschasm platform")
 
 @task
 def test():
@@ -268,6 +292,10 @@ def c5cell():
     env.board = 'c5cell'
 
 @task
+def c5ble():
+    env.board = 'c5ble'
+	
+@task
 def json():
     env.payload_format = "JSON"
 
@@ -275,6 +303,10 @@ def json():
 def protobuf():
     env.payload_format = "PROTOBUF"
 
+@task
+def messagepack():
+    env.payload_format = "MESSAGEPACK"
+	
 @task
 def clean():
     with lcd("%s/src" % env.root_dir):

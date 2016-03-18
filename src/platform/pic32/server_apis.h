@@ -2,19 +2,19 @@
 
 /*SOCKET ASSIGNMENTS*/
 
-#define GET_FIRMWARE_SOCKET		1
-#define POST_DATA_SOCKET		2
-#define GET_COMMANDS_SOCKET		3
+#define GET_FIRMWARE_SOCKET        1
+#define POST_DATA_SOCKET        2
+#define GET_COMMANDS_SOCKET        3
 
 namespace openxc {
 namespace server_api{
 
 // typedef for SERVER API return codes
 typedef enum {
-	None,
-	Working,
-	Success,
-	Failed
+    None,
+    Working,
+    Success,
+    Failed
 } API_RETURN;
 
 // external functions

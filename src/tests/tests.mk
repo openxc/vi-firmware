@@ -10,7 +10,7 @@ TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
 TEST_LIBS = -lcheck -lrt -lpthread
 
-NON_TESTABLE_SRCS = signals.cpp main.cpp
+NON_TESTABLE_SRCS = signals.cpp main.cpp hardware_tests_main.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
 			  $(LIBS_PATH)/nanopb/pb_decode.c
@@ -32,7 +32,7 @@ $1: $3
 	@echo "$$(GREEN)passed.$$(COLOR_RESET)"
 endef
 
-PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT
+PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR CROSSCHASM_C5_BLE
 define ALL_PLATFORMS_TEST_TEMPLATE
 $(foreach platform, $(PLATFORMS), \
 	$(eval $(call COMPILE_TEST_TEMPLATE, $(1)-$(platform)-bootloader,$(2) BOOTLOADER=1 PLATFORM=$(platform), $(3))) \

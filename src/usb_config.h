@@ -1,9 +1,13 @@
 #ifndef _USB_CONFIG_H_
 #define _USB_CONFIG_H_
 
+#include "platform_profile.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
 
 #define ENDPOINT_DIR_OUT 0x00
 #define ENDPOINT_DIR_IN 0x80
@@ -72,13 +76,13 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 //Device descriptor - if these two definitions are not defined then
 //  a ROM USB_DEVICE_DESCRIPTOR variable by the exact name of device_dsc
 //  must exist.
-#define USB_USER_DEVICE_DESCRIPTOR &device_dsc
-#define USB_USER_DEVICE_DESCRIPTOR_INCLUDE extern ROM USB_DEVICE_DESCRIPTOR device_dsc
+#define USB_USER_DEVICE_DESCRIPTOR device_dsc_user
+#define USB_USER_DEVICE_DESCRIPTOR_INCLUDE extern ROM USB_DEVICE_DESCRIPTOR device_dsc,*device_dsc_user
 
 //Configuration descriptors - if these two definitions do not exist then
 //  a ROM BYTE *ROM variable named exactly USB_CD_Ptr[] must exist.
 #define USB_USER_CONFIG_DESCRIPTOR USB_CD_Ptr
-#define USB_USER_CONFIG_DESCRIPTOR_INCLUDE extern ROM BYTE *ROM USB_CD_Ptr[]
+#define USB_USER_CONFIG_DESCRIPTOR_INCLUDE extern  ROM BYTE *USB_CD_Ptr[1]
 
 #define USB_PING_PONG_MODE USB_PING_PONG__FULL_PING_PONG
 
@@ -101,6 +105,21 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 #define USB_USE_GEN
 
 #define USBGEN_EP_NUM            1
+    
+#ifdef FS_SUPPORT
+    #define USB_USE_MSD    
+    //#define USE_SD_INTERFACE_WITH_SPI
+    /* MSD */
+    #define MSD_INTF_ID             0x00
+    #define MSD_IN_EP_SIZE          64u
+    #define MSD_OUT_EP_SIZE         64u
+    #define MAX_LUN                 0u   //Includes 0 (ex: 0 = 1 LUN, 1 = 2 LUN, etc.)
+    #define MSD_DATA_IN_EP          1u
+    #define MSD_DATA_OUT_EP         1u
+    #define MSD_BUFFER_ADDRESS      0x600
+    extern void SelectUsbConf(unsigned char no);
+#endif // FS_SUPPORT
+
 
 #endif // __PIC32__
 

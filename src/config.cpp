@@ -7,8 +7,9 @@ using openxc::interface::uart::UartDevice;
 using openxc::payload::PayloadFormat;
 
 namespace usb = openxc::interface::usb;
+namespace ble = openxc::interface::ble;
+namespace fs =  openxc::interface::fs;
 namespace telit = openxc::telitHE910;
-
 namespace signals = openxc::signals;
 
 #ifdef TELIT_HE910_SUPPORT
@@ -19,6 +20,12 @@ static void initialize(openxc::config::Configuration* config) {
     config->pipeline = {
         &config->usb,
         &config->uart,
+#ifdef BLE_SUPPORT
+        config->ble,
+#endif
+#ifdef FS_SUPPORT
+        config->fs,
+#endif
 #ifdef TELIT_HE910_SUPPORT
         config->telit,
 #endif
@@ -26,64 +33,87 @@ static void initialize(openxc::config::Configuration* config) {
         &config->network,
 #endif // __USE_NETWORK__
     };
-	#ifdef TELIT_HE910_SUPPORT
+    #ifdef TELIT_HE910_SUPPORT
     // run flashHash
     getFlashHash(config);
-	#endif
-	#ifdef TELIT_HE910_SUPPORT
+    #endif
+    #ifdef TELIT_HE910_SUPPORT
     config->telit->uart = &config->uart;
-	#endif
+    #endif
     config->initialized = true;
 }
+
+#ifdef FS_SUPPORT
+fs::FsDevice fsDevice;
+#endif
+
+
+#ifdef BLE_SUPPORT
+ble::BleDevice bleDevice = {
+
+    descriptor: {
+        allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
+    },
+    blesettings: {
+        "OpenXC_C5_BTLE",
+        adv_min_ms: 100,
+        adv_max_ms: 100,
+        slave_min_ms : 8, //range 0x0006 to 0x0C80
+        slave_max_ms : 16,
+    }
+};        
+#endif
 
 // if we're going to conditionally compile our "Device" config structs, we
  // will need to declare them here (conditionally) and assign the pointers
  // on the config init call (conditionally)
 #ifdef TELIT_HE910_SUPPORT
 openxc::telitHE910::TelitDevice telitDevice = {
-	descriptor: {
-		allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
-	},
-	config: {
-		globalPositioningSettings: {
-			gpsEnable: true, 
-			gpsInterval: 5000, 
-			gpsEnableSignal_gps_time: false, 
-			gpsEnableSignal_gps_latitude: true, 
-			gpsEnableSignal_gps_longitude: true, 
-			gpsEnableSignal_gps_hdop: false, 
-			gpsEnableSignal_gps_altitude: true, 
-			gpsEnableSignal_gps_fix: true, 
-			gpsEnableSignal_gps_course: false, 
-			gpsEnableSignal_gps_speed: true, 
-			gpsEnableSignal_gps_speed_knots: false, 
-			gpsEnableSignal_gps_date: false, 
-			gpsEnableSignal_gps_nsat: false
-		},
-		networkOperatorSettings: {
-			allowDataRoaming: true,
-			operatorSelectMode: telit::AUTOMATIC,
-			networkDescriptor: {
-				PLMN: 0,
-				networkType: telit::UTRAN
-			}
-		},
-		networkDataSettings: {
-			"apn"
-		},
-		socketConnectSettings: {
-			packetSize: 0,
-			idleTimeout: 0,
-			connectTimeout: 150,
-			txFlushTimer: 50
-		},
-		serverConnectSettings: {
-			"openxcserverdemo.azurewebsites.net",
-			port: 80
-		}
-	}
+    descriptor: {
+        allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART
+    },
+    config: {
+        globalPositioningSettings: {
+            gpsEnable: true, 
+            gpsInterval: 5000, 
+            gpsEnableSignal_gps_time: false, 
+            gpsEnableSignal_gps_latitude: true, 
+            gpsEnableSignal_gps_longitude: true, 
+            gpsEnableSignal_gps_hdop: false, 
+            gpsEnableSignal_gps_altitude: true, 
+            gpsEnableSignal_gps_fix: true, 
+            gpsEnableSignal_gps_course: false, 
+            gpsEnableSignal_gps_speed: true, 
+            gpsEnableSignal_gps_speed_knots: false, 
+            gpsEnableSignal_gps_date: false, 
+            gpsEnableSignal_gps_nsat: false
+        },
+        networkOperatorSettings: {
+            allowDataRoaming: true,
+            operatorSelectMode: telit::AUTOMATIC,
+            networkDescriptor: {
+                PLMN: 0,
+                networkType: telit::UTRAN
+            }
+        },
+        networkDataSettings: {
+            "apn"
+        },
+        socketConnectSettings: {
+            packetSize: 0,
+            idleTimeout: 0,
+            connectTimeout: 150,
+            txFlushTimer: 50
+        },
+        serverConnectSettings: {
+            "openxcserverdemo.azurewebsites.net",
+            port: 80
+        }
+    }
 };
 #endif
+
+
 
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
@@ -124,11 +154,25 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
                     usb::UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN},
             }
         },
-		#ifdef TELIT_HE910_SUPPORT
+        #ifdef BLE_SUPPORT
+        ble: &bleDevice,
+        #else
+        ble: NULL,    
+        #endif    
+        
+        #ifdef FS_SUPPORT
+        fs : &fsDevice,
+        #else
+        fs: NULL,
+        #endif
+        
+        #ifdef TELIT_HE910_SUPPORT
         telit: &telitDevice,
-		#else
-		telit: NULL,
-		#endif
+        #else
+        telit: NULL,
+        #endif
+
+        
         diagnosticsManager: {},
         pipeline: {},
     };

@@ -39,6 +39,9 @@ SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_UART=$(DEFAULT_ALLOW_RAW_WRITE_UART)
 DEFAULT_ALLOW_RAW_WRITE_NETWORK ?= 0
 SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_NETWORK=$(DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 
+DEFAULT_ALLOW_RAW_WRITE_BLE ?= 0
+SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_BLE=$(DEFAULT_ALLOW_RAW_WRITE_BLE)
+
 DEFAULT_METRICS_STATUS ?= 0
 SYMBOLS += DEFAULT_METRICS_STATUS=$(DEFAULT_METRICS_STATUS)
 
@@ -87,11 +90,32 @@ else
 	SYMBOLS += NDEBUG
 endif
 
+#0 or 1
+MSD_ENABLE ?= 0
+ifeq ($(MSD_ENABLE), 1)
+	SYMBOLS += __MSD_ENABLE__
+endif
+
+#15-secs to 86400-secs upper limits will automatically be truncated
+DEFAULT_FILE_GENERATE_SECS ?= 180
+SYMBOLS += DEFAULT_FILE_GENERATE_SECS=$(DEFAULT_FILE_GENERATE_SECS)
+#endif
+
+
 TRANSMITTER ?= 0
 ifeq ($(TRANSMITTER), 1)
 	DEFAULT_POWER_MANAGEMENT = ALWAYS_ON
 	DEFAULT_USB_PRODUCT_ID = 0x2
 endif
+
+TEST_MODE_ONLY ?= 0
+ifeq ($(TEST_MODE_ONLY), 1)
+	SYMBOLS += __TEST_MODE__
+endif
+
+
+
+
 
 SYMBOLS += PB_FIELD_16BIT
 
@@ -102,11 +126,13 @@ ifneq ($(CJSON_EXISTS),0)
 $(error cJSON dependency is missing - run "script/bootstrap.sh")
 endif
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR
+
+
+VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_C5_BT CROSSCHASM_C5_BLE CROSSCHASM_C5_CELLULAR
 
 #for backwards compatibility
 ifeq ($(PLATFORM), CROSSCHASM_C5)
-PLATFORM = CROSSCHASM_C5_BT
+override PLATFORM = CROSSCHASM_C5_BT
 endif
 
 OBJDIR = build/$(PLATFORM)
@@ -126,6 +152,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cmp/cmp.c)
 # TODO put this under a "gen" folder separate from objdir
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
 						$(LIBS_PATH)/nanopb/pb_decode.c \
@@ -146,6 +173,7 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/bitfield-c/src \
 				-I$(LIBS_PATH)/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src \
+				-I$(LIBS_PATH)/cmp \
 
 CFLAGS_STD = -std=gnu99
 CXXFLAGS_STD = -std=gnu++0x
@@ -166,6 +194,8 @@ else ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
 override LINKER_SCRIPTS  += -T platform/pic32/chipKIT-application-32MX795F512_c5cell.ld
 override LINKER_SCRIPTS  += -T $(ARDUINO_CORE_PATH)/chipKIT-application-COMMON.ld
 include platform/pic32/pic32.mk
+else ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
+include platform/pic32/pic32.mk
 else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
 else ifeq ($(PLATFORM), BLUEBOARD)
@@ -183,11 +213,15 @@ endif
 define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
+	$(call show_vi_config_variable,TEST_MODE_ONLY)
 	$(call show_vi_config_variable,DEBUG)
+	$(call show_vi_config_variable,MSD_ENABLE)
+	$(call show_vi_config_variable,DEFAULT_FILE_GENERATE_SECS)
 	$(call show_vi_config_variable,DEFAULT_METRICS_STATUS)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_USB)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_UART)
 	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_NETWORK)
+	$(call show_vi_config_variable,DEFAULT_ALLOW_RAW_WRITE_BLE)
 	$(call show_vi_config_variable,DEFAULT_LOGGING_OUTPUT)
 	$(call show_vi_config_variable,DEFAULT_OUTPUT_FORMAT)
 	$(call show_vi_config_variable,DEFAULT_EMULATED_DATA_STATUS)

@@ -26,8 +26,6 @@
 [submodule "src/libs/openxc-message-format"]
 	path = src/libs/openxc-message-format
 	url = https://github.com/openxc/openxc-message-format
-	branch = master
-	ignore = untracked
 [submodule "src/libs/bitfield-c"]
 	path = src/libs/bitfield-c
 	url = https://github.com/openxc/bitfield-c
@@ -40,3 +38,9 @@
 [submodule "src/libs/http-parser"]
 	path = src/libs/http-parser
 	url = https://github.com/joyent/http-parser/
+[submodule "src/libs/cmp"]
+	path = src/libs/cmp
+	url = https://github.com/camgunz/cmp
+[submodule "src/libs/STBTLE"]
+	path = src/libs/STBTLE
+	url = https://github.com/openxc/STBTLE

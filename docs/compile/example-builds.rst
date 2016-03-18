@@ -29,7 +29,10 @@ want to send diagnostic requests through a VI:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -61,7 +64,11 @@ The Makefile will always print the configuration used so you can double check.
   configuration explicitly states they are writable (``DEFAULT_CAN_ACK_STATUS``
   is ``1``). This means that the VI may not work in a bench testing setup where
   nothing else on the bus is ACKing.
-
+* :ref:`Mass storage device <msd-storage>` (``MSD_ENABLE`` is ``0``) is disabled 
+  by default and is available on certain C5 devices which have a provision to connect 
+  a SD card. The time intervals at which the data is logged is 
+  (``DEFAULT_FILE_GENERATE_SECS``is ``180``) set to 180 seconds by default.
+  
 .. NOTE::
   There's a shortcut for this default build, using the Fabric tool and an
   included script. This will build the default build for the reference VI
@@ -76,6 +83,7 @@ The Makefile will always print the configuration used so you can double check.
   .. code-block:: sh
 
       fab c5bt build
+      fab c5ble build
       fab c5cell build
 
   and finally, for the chipKIT Max32:
@@ -105,7 +113,10 @@ options:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS	
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -166,7 +177,10 @@ The config a VI to emulate a vehicle:
     Compiled with options:
     -      FORDBOARD = PLATFORM
     -      1         = BOOTLOADER
+    -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
+    -      0         = MSD_ENABLE
+    -      180       = DEFAULT_FILE_GENERATE_SECS
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -187,7 +201,7 @@ There are 2 changes from the default build:
 * ``DEFAULT_POWER_MANAGEMENT`` is ``ALWAYS_ON``, so the VI will not go to sleep
   while plugged in. Make sure to clear this configuration option before making a
   build to run in a vehicle, or you could drain the battery!
-
+  
 .. NOTE::
   This build also has a shortcut using the Fabric script. Just add the keyword
   ``emulator`` before ``build`` in your call to ``fab`` at the command line.
@@ -197,6 +211,24 @@ There are 2 changes from the default build:
 
       fab reference emulator build
 
+Test Mode Build
+=====================
+
+It is often desired to know if a hardware is functional
+before performing other operations on the device. Currently
+supported on CrossChasm C5 hardware this option creates a firmware
+build that will check the hardware and glow an onboard LED depending
+on the result. More description about this test can be found in :ref:`hardware-test`.
+
+* ``TEST_MODE_ONLY`` is ``1``,will cause a hardware testing firmware to be generated on build.
+
+In fabric use the following command along with the correct C5 platform,
+in this case CrossChasm C5 BLE is used as an example:
+
+.. code-block:: sh
+
+  fab c5ble build test_mode_only
+  
 Fabric Shortcuts
 ================
 
@@ -205,7 +237,7 @@ commmand line utility to simplify some of these build configurations. The
 ``fab`` commands are composable, following this simple formula:
 
 * Start your command with ``fab``
-* Specify the target platform with ``chipkit``, ``c5bt``, ``c5cell``, or ``reference``.
+* Specify the target platform with ``chipkit``, ``c5bt``, ``c5ble`` , ``c5cell``, or ``reference``.
 * Optionally include ``emulator`` or ``translated_obd2`` to enable one of the
   example builds described above.
 * End with ``build`` to start the compilation.
@@ -221,5 +253,6 @@ while this builds the default firmware, ready for OBD2 requests for the chipKIT:
 .. code-block:: sh
 
   fab chipkit build
-
+    
+	
 The ``fab`` commands can be run from any folder in the vi-firmware repository.

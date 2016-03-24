@@ -5,8 +5,7 @@ Mass Storage Device
 
 Operation
 -----------
-MSD mode is supported on ``CROSSCHASM_C5_BT``, ``CROSSCHASM_C5_BLE``, and 
-``CROSSCHASM_C5_CELLULAR`` devices. 
+MSD mode is supported on ``CROSSCHASM_C5_BT``, and ``CROSSCHASM_C5_CELLULAR`` devices. 
 With this mode enabled the devices store messages(except debug log messages)on to 
 the SD card storage that is formatted with FAT file system. The maximum storage 
 capacity supported is upto 2GB. To view the contents of the SD card the user can unplug

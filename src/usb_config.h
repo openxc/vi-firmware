@@ -125,6 +125,20 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint8_t wIndex,
 
 #ifdef __cplusplus
 }
+#ifdef FS_SUPPORT
+    #define USB_USE_MSD    
+    //#define USE_SD_INTERFACE_WITH_SPI
+    /* MSD */
+    #define MSD_INTF_ID             0x00
+    #define MSD_IN_EP_SIZE          64u
+    #define MSD_OUT_EP_SIZE         64u
+    #define MAX_LUN                 0u   //Includes 0 (ex: 0 = 1 LUN, 1 = 2 LUN, etc.)
+    #define MSD_DATA_IN_EP          1u
+    #define MSD_DATA_OUT_EP         1u
+    #define MSD_BUFFER_ADDRESS      0x600
+    extern void SelectUsbConf(unsigned char no);
+#endif // FS_SUPPORT
+
 #endif
 
 #endif // _USB_CONFIG_H_

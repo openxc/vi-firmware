@@ -129,7 +129,6 @@ LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
 
-
 ifeq ($(MSD_ENABLE), 1)
 
 CPPFLAGS += -Iplatform/pic32/fs_support \
@@ -152,9 +151,8 @@ endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
-			-Iplatform/pic32 
-			
+CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
+
 ifeq ($(MSD_ENABLE), 1)
 
 CPPFLAGS += -Iplatform/pic32/fs_support \

@@ -189,17 +189,21 @@ def obd2():
 	
 @task
 def msd_enable():
-    env.msd_enable = True	
+    if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell":
+        env.msd_enable = True	
+    else:
+        abort("MSD_ENABLE is only defined for C5_BT or C5_CELL platforms")
 
 @task
 def test_mode_only():
-	if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble":
-		env.test_mode_only = True
-	else:
-		abort("TEST MODE is only defined for crosschasm platform")
+    if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble":
+        env.test_mode_only = True
+    else:
+        abort("TEST MODE is only defined for crosschasm platform")
 
 @task
-def test():
+#run fab test:True to run long test - same as Travis-CI
+def test(long=False):
     if current_branch() == "master":
         openxc_python_is_version = None
         with settings(warn_only=True):
@@ -210,7 +214,10 @@ def test():
                 "a released version in master branch"))
 
     with(lcd("src")):
-        local("PLATFORM=TESTING make -j4 test")
+        if long in (True, 'True', 'true'):
+            local("PLATFORM=TESTING make -j4 test_long")
+        else:
+            local("PLATFORM=TESTING make -j4 test")
 
 @task
 def functional_test_flash(skip_flashing=False):
@@ -335,7 +342,7 @@ def current_branch():
 def release(skip_tests=False):
     with lcd(env.root_dir):
         if not skip_tests:
-            test()
+            test(False)
 
         # Make sure this happens after test(), so we move aside and test
         # signals.cpp

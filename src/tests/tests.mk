@@ -28,11 +28,13 @@ define COMPILE_TEST_TEMPLATE
 $1: $3
 	@echo -n "$$(YELLOW)Compiling $1...$$(COLOR_RESET)"
 	@$2 make clean > /dev/null
-	@$2 make -j4 $4 > /dev/null 2>&1
+	#@$2 make -j4 $4 > /dev/null 2>&1
+	@$2 make -j4 $4 2>&1
 	@echo "$$(GREEN)passed.$$(COLOR_RESET)"
 endef
 
-PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR CROSSCHASM_C5_BLE
+#PLATFORMS = FORDBOARD BLUEBOARD CHIPKIT CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR CROSSCHASM_C5_BLE
+PLATFORMS = CROSSCHASM_C5_BT
 PLATFORMS_WITH_MSD = CROSSCHASM_C5_BT CROSSCHASM_C5_CELLULAR
 
 define ALL_PLATFORMS_TEST_TEMPLATE
@@ -71,6 +73,7 @@ test_long: test_short
 	@make debug_stats_compile_test
 	@make msd_mapped_compile_test
 	@make msd_passthrough_compile_test
+	@make msd_diag_compile_test
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 test_short: unit_tests
@@ -79,7 +82,7 @@ test_short: unit_tests
 	@make debug_compile_test
 	@make mapped_compile_test
 	@make passthrough_compile_test
-
+	@make diag_compile_test
 test: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
@@ -124,8 +127,8 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, mapped_compile_test, DEBUG=0, mapped_
 $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_mapped_compile_test, DEBUG=0 MSD_ENABLE=1, mapped_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, passthrough_compile_test, DEBUG=0, copy_passthrough_signals))
 $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_passthrough_compile_test, DEBUG=0 MSD_ENABLE=1, copy_passthrough_signals))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1, , all))
-$(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1 MSD_ENABLE=1, , all))
+$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1, )) #empty emulator
+$(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_emulator_compile_test, DEBUG=0 DEFAULT_EMULATED_DATA_STATUS=1 MSD_ENABLE=1, )) #empty emulator
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, stats_compile_test, DEFAULT_METRICS_STATUS=1 DEBUG=0, code_generation_test))
 $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_stats_compile_test, DEFAULT_METRICS_STATUS=1 DEBUG=0 MSD_ENABLE=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 DEFAULT_METRICS_STATUS=1, code_generation_test))

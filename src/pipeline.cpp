@@ -89,6 +89,7 @@ void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
 void sendToUart(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
     if(uart::connected(pipeline->uart) && messageClass != MessageClass::LOG) {
+		//if(uart::connected(pipeline->uart)) {
         QUEUE_TYPE(uint8_t)* sendQueue = &pipeline->uart->sendQueue;
         conditionalFlush(pipeline, sendQueue, message, messageSize);
         sendToEndpoint(pipeline->uart->descriptor.type, sendQueue,
@@ -203,9 +204,9 @@ void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
     #elif defined BLE_SUPPORT
     sendToBle(pipeline, message, messageSize, messageClass);
     #else
-    #ifndef FS_SUPPORT //UART shared with RTC, disable
+    //#ifndef FS_SUPPORT //UART shared with RTC, disable
     sendToUart(pipeline, message, messageSize, messageClass);
-    #endif
+    //#endif
     #endif
     #ifdef FS_SUPPORT
     sendToFS(pipeline, message, messageSize, messageClass);

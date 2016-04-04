@@ -65,15 +65,19 @@ static bool SUSPENDED;
  * the main program loop.
  */
 void updateInterfaceLight() {
+	//Interface connected = green led enabled/attached
+	//Interface disconnected = green led disabled
+	
     #ifdef TELIT_HE910_SUPPORT
     if(telit::connected(getConfiguration()->telit)) {
-        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
+        lights::enable(lights::LIGHT_A, lights::COLORS.green);
     }
-    #elif defined BLE_SUPPORT
-    if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble)) { //if either of the interface are connected
-        lights::enable(lights::LIGHT_B, lights::COLORS.blue);
-    } else {
-       lights::disable(lights::LIGHT_B);
+    #elif defined CROSSCHASM_C5_COMMON
+    if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble) ||
+		uart::connected(&getConfiguration()->uart)) {
+        lights::enable(lights::LIGHT_A, lights::COLORS.green);
+    }else {
+		lights::disable(lights::LIGHT_A);
     } 
     #else
     if(uart::connected(&getConfiguration()->uart)) {
@@ -109,22 +113,25 @@ void checkBusActivity() {
             // ALL_IO at initialization, so this is just a backup.
             // getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         }
-        #ifdef CROSSCHASM_C5_BLE
-        lights::enable(lights::LIGHT_C, lights::COLORS.green);//enable green led
-        lights::disable(lights::LIGHT_A);
-        #else
-        lights::enable(lights::LIGHT_A, lights::COLORS.blue);
-        #endif        
+		#ifdef CROSSCHASM_C5_COMMON
+			lights::enable(lights::LIGHT_B, lights::COLORS.blue); //enable red led
+		#else
+			lights::enable(lights::LIGHT_A, lights::COLORS.blue);
+		#endif
+    
         BUS_WAS_ACTIVE = true;
         SUSPENDED = false;
     } else if(!busActive && (BUS_WAS_ACTIVE || (time::uptimeMs() >
             (unsigned long)openxc::can::CAN_ACTIVE_TIMEOUT_S * 1000 &&
             !SUSPENDED))) {
         debug("CAN is quiet");
-        #ifdef CROSSCHASM_C5_BLE
-        lights::disable(lights::LIGHT_C); //disable green led
-        #endif        
-        lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        #ifdef CROSSCHASM_C5_COMMON
+			lights::enable(lights::LIGHT_C, lights::COLORS.red); //enable red led
+		#else
+			lights::enable(lights::LIGHT_A, lights::COLORS.red);
+        #endif  
+		
+        
         
         SUSPENDED = true;
         BUS_WAS_ACTIVE = false;

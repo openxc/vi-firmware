@@ -1,9 +1,59 @@
 #ifndef __C5_COMMON_PLATFORMS_H_
 #define __C5_COMMON_PLATFORMS_H_
 
+
 #if defined CROSSCHASM_C5_BT || defined CROSSCHASM_C5_BLE ||  defined CROSSCHASM_C5_CELLULAR
     #define RTC_SUPPORT
 	#define CROSSCHASM_C5_COMMON
+	//LED
+	
+	#if defined CROSSCHASM_C5_BT || defined CROSSCHASM_C5_CELLULAR
+	
+		#define LEDRED_ENABLE()     TRISCCLR = (1 << 13)
+		#define LEDRED_ON()       	LATCCLR  = (1 << 13)
+		#define LEDRED_OFF()        LATCSET  = (1 << 13)
+		
+		#define LEDGREEN_ENABLE()   TRISDCLR = (1 << 0)
+		#define LEDGREEN_ON()      	LATDCLR  = (1 << 0)
+		#define LEDGREEN_OFF()      LATDSET  = (1 << 0)
+		
+		#define LEDBLUE_ENABLE()    TRISCCLR = (1 << 14)
+		#define LEDBLUE_ON()       	LATCCLR  = (1 << 14)
+		#define LEDBLUE_OFF()       LATCSET  = (1 << 14)
+
+	
+		#elif defined CROSSCHASM_C5_BLE
+
+		#define LEDRED_ENABLE()     TRISBCLR = (1 << 13)
+		#define LEDRED_ON()       	LATBCLR  = (1 << 13)
+		#define LEDRED_OFF()        LATBSET  = (1 << 13)
+		
+		#define LEDGREEN_ENABLE()   TRISBCLR = (1 << 15)
+		#define LEDGREEN_ON()      	LATBCLR  = (1 << 15)
+		#define LEDGREEN_OFF()      LATBSET  = (1 << 15)
+		
+		#define LEDBLUE_ENABLE()    TRISBCLR = (1 << 12)
+		#define LEDBLUE_ON()       	LATBCLR  = (1 << 12)
+		#define LEDBLUE_OFF()       LATBSET  = (1 << 12)
+		
+		#else
+		#define LEDRED_ENABLE()    
+		#define LEDRED_ON()       	
+		#define LEDRED_OFF()        
+		
+		#define LEDGREEN_ENABLE()   
+		#define LEDGREEN_ON()      	
+		#define LEDGREEN_OFF()      
+		
+		#define LEDBLUE_ENABLE()    
+		#define LEDBLUE_ON()       	
+		#define LEDBLUE_OFF()       
+		
+		#endif
+	
+	
+	
+	
     #define RTC_UPDATE_INT_MS 60*60*1000
     
     #if defined CROSSCHASM_C5_BT ||  defined CROSSCHASM_C5_CELLULAR

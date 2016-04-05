@@ -12,13 +12,13 @@ extern "C" {
 #include <stdint.h>
 #define I2C_DATABUFFER_SIZE             32
 
-#define RTCC_I2C_BAUD                   400000
+#define RTCC_I2C_BAUD                   100000
 
 #define I2C_BIT_TIME_MICROSECONDS       (1000000 / RTCC_I2C_BAUD)
 
-#define I2C_INIT_MILLISECONDS_DELAY     100
+#define I2C_INIT_MILLISECONDS_DELAY     200
 
-#define I2C_PINFLOAT_MILLISECONDS_DELAY 10
+#define I2C_PINFLOAT_MILLISECONDS_DELAY 100
 
 #define I2C_MAX_MILLISECONDS_EVENT      100
 

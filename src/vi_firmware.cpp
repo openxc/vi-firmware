@@ -73,7 +73,10 @@ void updateInterfaceLight() {
         lights::enable(lights::LIGHT_A, lights::COLORS.green);
     }
     #elif defined CROSSCHASM_C5_COMMON
-    if(getConfiguration()->usb.configured || ble::connected(getConfiguration()->ble) ||
+    if(getConfiguration()->usb.configured ||	
+	#if defined CROSSCHASM_C5_BLE
+		ble::connected(getConfiguration()->ble) ||
+	#endif	
 		uart::connected(&getConfiguration()->uart)) {
         lights::enable(lights::LIGHT_A, lights::COLORS.green);
     }else {

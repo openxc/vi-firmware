@@ -40,49 +40,6 @@ for LIBRARY in chipKITUSBDevice chipKITCAN chipKITEthernet; do
 done
 _popd
 
-
-## Microchip Libraries for MSD (SD card for C5)
-
-if !  command -v p7zip >/dev/null 2>&1; then
-	echo "Installing 7zip..."
-	_install "p7zip-full"
-fi
-
-
-MLA_LIBRARY_AGREEMENT_URL="http://ww1.microchip.com/downloads/en/DeviceDoc/Microchip%20Application%20Solutions%20Users%20Agreement.pdf"
-MLA_LIBRARY_URL="http://ww1.microchip.com/downloads/en/DeviceDoc/MCHP_App_Lib_v2010_10_19_Installer.zip"
-MLA_ZIP_FILE="MCHP_App_Lib_v2010_10_19_Installer.zip"
-MLA_FOLDER_OUTPUT="MLA"
-
-_pushd $DEPENDENCIES_FOLDER
-if ! test -e $MLA_ZIP_FILE 
-then
-    echo
-    if [ -z $CI ] && [ -z $VAGRANT ]; then
-        echo "By running this command, you agree to Microchip's licensing agreement at $MLA_LIBRARY_AGREEMENT_URL"
-        echo "Press Enter to verify you have read the license agreement."
-        read
-    fi
-    download $MLA_LIBRARY_URL $MLA_ZIP_FILE
-    echo "Extracting MLA zip"
-    unzip -q $MLA_ZIP_FILE
-    echo "Extracting MLA exe"
-    #7z doesn't have a quiet mode??? Redirect o/p for now. Find better way later
-    7z x 'Microchip Application Libraries v2010-10-19 Installer.exe' -o$MLA_FOLDER_OUTPUT > 7z.log
-fi
-_popd
-
-_pushd src/libs
-if ! test -e $MLA_FOLDER_OUTPUT
-then
-    echo "Installing MLA MSD"
-    mkdir $MLA_FOLDER_OUTPUT
-    cp -R '../../dependencies/MLA/Microchip/USB/MSD Device Driver/'. ./MLA/MSD_Device_Driver
-    cp -R '../../dependencies/MLA/Microchip/MDD File System/'. ./MLA/MDD_File_System
-    cp -R '../../dependencies/MLA/Microchip/Include/'. ./MLA/Include
-fi
-_popd
-
 ### Patch libraries to avoid problems in case sensitive operating systems
 ### See https://github.com/chipKIT32/chipKIT32-MAX/issues/146
 ### and https://github.com/chipKIT32/chipKIT32-MAX/issues/199
@@ -107,16 +64,6 @@ _popd
 
 _popd
 set -e
-
-echo "Patching MLA files MDD Files"
-set +e
-_pushd src/libs/MLA/MDD_File_System
-patch --binary FSIO.c < ../../../../script/FSIO-flush.patch
-patch --binary SD-SPI.c < ../../../../script/SD-SPI-platform.patch -t
-_popd
-set -e
-
-
 
 ## Python pyserial module for the reset script in Arduino-Makefile
 

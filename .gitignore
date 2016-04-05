@@ -20,4 +20,3 @@ examples/signals.cpp
 .vagrant/
 .firmware_options
 src/.svn
-src/libs/MLA*

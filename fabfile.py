@@ -131,7 +131,6 @@ def build_options():
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,
-        'DEFAULT_ALLOW_RAW_WRITE_USB': False,
         'DEFAULT_OUTPUT_FORMAT': env.payload_format,
         'DEFAULT_RECURRING_OBD2_REQUESTS_STATUS': False,
         'DEFAULT_POWER_MANAGEMENT': env.power_management,

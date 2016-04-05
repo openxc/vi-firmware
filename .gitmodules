@@ -44,3 +44,6 @@
 [submodule "src/libs/STBTLE"]
 	path = src/libs/STBTLE
 	url = https://github.com/openxc/STBTLE
+[submodule "src/libs/MLA"]
+	path = src/libs/MLA
+	url = https://github.com/openxc/MLA

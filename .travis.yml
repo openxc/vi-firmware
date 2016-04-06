@@ -1,7 +1,7 @@
 language: c
 compiler:
 - clang
-script: PLATFORM=TESTING make test_long
+script: PLATFORM=TESTING make test
 install:
 - gem install coveralls-lcov
 before_install:

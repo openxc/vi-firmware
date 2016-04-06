@@ -3,7 +3,7 @@
  *               Microchip Memory Disk Drive File System
  *
  ******************************************************************************
- * FileName:        FSconfig.h
+ * FileName:        FSConfig.h
  * Processor:       PIC18/PIC24/dsPIC30/dsPIC33/PIC32
  * Dependencies:    None
  * Compiler:        C18/C30/C32

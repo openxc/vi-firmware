@@ -10,6 +10,6 @@ A new rtc configuration command is added to the `OpenXC message format <https://
 
 Example JSON command
 
-{"command":"rtc_configuration", "unix_time":"1448551563"}
+{ "command": "rtc_configuration", "unix_time": "1448551563"}
 
 

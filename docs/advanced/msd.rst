@@ -49,15 +49,15 @@ over USB or insert a new empty card.
 
 Example JSON command
 
-{"command":"sd_mount_status"}
+  { "command": "sd_mount_status"}
 
-Response 1(SD card correctly mounted)
+Response 1 (SD card correctly mounted)
 
-{"command_response":"sd_mount_status","status":true}
+  { "command_response": "sd_mount_status", "status": true}
 
-Response 2(SD card mounting failed)
+Response 2 (SD card mounting failed)
 
-{"command_response":"sd_mount_status","status":false}
+  { "command_response": "sd_mount_status", "status": false}
 
 .. NOTE::
   ``SD_MOUNT_STATUS`` command is not available when device is connected as a mass storage device.

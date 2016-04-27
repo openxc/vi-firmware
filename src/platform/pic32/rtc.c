@@ -53,8 +53,8 @@ BOOL RTC_Init(void){
 BOOL RTC_SetTimeUnix(uint32_t unixtime){
   
     __debug("Set RTC Time %x", unixtime);
+	RTC_IsrTimeVarUpdate();
     return (RTCCSetTimeDateUnix(unixtime) == RTCC_NO_ERROR)? true: false;
-
     return 0;
 
 }

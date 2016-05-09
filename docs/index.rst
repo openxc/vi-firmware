@@ -50,7 +50,7 @@ version to a USB, Bluetooth or network interface.
 License
 -------
 
-Copyright (c) 2012-2014 Ford Motor Company
+Copyright (c) 2012-2016 Ford Motor Company
 
 Licensed under the BSD license.
 

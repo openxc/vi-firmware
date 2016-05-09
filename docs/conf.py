@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'OpenXC Vehicle Interface Firmware'
-copyright = '2013, Ford Motor Company'
+copyright = '2016, Ford Motor Company'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

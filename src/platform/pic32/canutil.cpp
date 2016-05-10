@@ -4,15 +4,23 @@
 #include "util/log.h"
 #include "gpio.h"
 
-#if defined(CROSSCHASM_C5_CT)
+#if defined(CROSSCHASM_C5_BT)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // PORTD BIT10 (RD10)
 #elif defined(CROSSCHASM_C5_CELLULAR)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN            38 // PORTD BIT10 (RD10)
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // PORTD BIT10 (RD10)
+#elif defined(CROSSCHASM_C5_BLE)
+    #define CAN1_TRANSCEIVER_SWITCHED
+    #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         5 // PORTD BIT1 (RD1)    
 #endif
+
+
+
+
 
 #define CAN_RX_CHANNEL 1
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16

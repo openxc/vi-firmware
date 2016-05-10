@@ -89,7 +89,7 @@ The functional test suite is currently supported on the:
 Running the Suite
 -----------------
 
-MAke sure you have the following connected to your development machine:
+Make sure you have the following connected to your development machine:
 
 * Reference VI via USB
 * USB JTAG programming connected to the refernece VI
@@ -104,3 +104,24 @@ Then run the automated functional test suite:
 
 which will program each of the VIs and run the tests on them independently. The
 process takes a couple of minutes.
+
+.. _hardware-test:
+
+Other Hardware Tests
+---------------------
+
+``TEST_MODE_ONLY`` is ``1`` build configuration enables user to test hardware 
+functionality on the device such as the BLE radio, RTC and SD card.
+Supported on CrossChasm C5 hardware this option creates a firmware
+build that will check that hardware and glow an onboard LED depending
+on the result. The method for programming the test firmware is same as that for
+the default settings. If all tests were a sucess then the green LED will glow
+on the device. Failure will result in blinking of red LED after which it will
+glow continuously red. To repeat the test one has to unplug the device and power
+cycle the board.
+
+  .. code-block:: sh
+
+     Blink times = 1,  SD Card could not be mounted.
+     Blink times = 2,  RTC could not be mounted.
+     Blink times = 3,  Bluetooth low energy radio failed to initialize.

@@ -4,12 +4,16 @@
 #include "power.h"
 #include "config.h"
 #include "gpio.h"
-
+#include "usb_config.h"
+#include "platform_profile.h"
+#include "platform/pic32/fs_support/app_device_msd.h"
 #define USB_HANDLE_MAX_WAIT_COUNT 1000
+
 
 namespace gpio = openxc::gpio;
 namespace commands = openxc::commands;
 namespace usb = openxc::interface::usb;
+namespace fs = openxc::interface::fs;
 
 using openxc::util::log::debug;
 using openxc::interface::usb::UsbDevice;
@@ -21,6 +25,8 @@ using openxc::config::getConfiguration;
 
 // This is a reference to the last packet read
 extern volatile CTRL_TRF_SETUP SetupPkt;
+
+
 
 /* Private: Arm the given endpoint for a read from the device to host.
  *
@@ -51,6 +57,13 @@ static void handleCompletedEP0OutTransfer() {
 boolean usbCallback(USB_EVENT event, void *pdata, word size) {
     // initial connection up to configure will be handled by the default
     // callback routine.
+#ifdef FS_SUPPORT
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        USER_USB_CALLBACK_EVENT_HANDLER_MSD(event, pdata, size);
+        return true;
+    }
+#endif    
+
     getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
 
     switch(event) {
@@ -123,6 +136,12 @@ bool waitForHandle(UsbDevice* usbDevice, UsbEndpoint* endpoint) {
 }
 
 void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
+
+#ifdef FS_SUPPORT    
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        return;
+    }
+#endif    
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
 
@@ -163,6 +182,15 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
 }
 
 void openxc::interface::usb::initialize(UsbDevice* usbDevice) {
+    
+    
+#ifdef FS_SUPPORT    
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        SelectUsbConf(1);
+    }else{
+        SelectUsbConf(0);
+    }
+#endif    
     usb::initializeCommon(usbDevice);
     usbDevice->device = USBDevice(usbCallback);
     usbDevice->device.InitializeSystem(false);
@@ -184,6 +212,14 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         util::bytebuffer::IncomingMessageCallback callback) {
+        
+#ifdef FS_SUPPORT
+    if(fs::getmode() == FS_STATE::USB_CONNECTED){
+        MSDActivity();
+        return;
+    }
+#endif    
+    
     if(endpoint->hostToDeviceHandle != 0 &&
             !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         size_t length = device->device.HandleGetLength(
@@ -204,3 +240,4 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         armForRead(device, endpoint);
     }
 }
+

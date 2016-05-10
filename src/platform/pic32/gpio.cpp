@@ -6,7 +6,7 @@ void openxc::gpio::setDirection(uint32_t port, uint32_t pin, GpioDirection direc
 }
 
 void openxc::gpio::setValue(uint32_t port, uint32_t pin, GpioValue value) {
-    digitalWrite(pin, value);
+	digitalWrite(pin,value);
 }
 
 openxc::gpio::GpioValue openxc::gpio::getValue(uint32_t port, uint32_t pin) {

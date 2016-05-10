@@ -11,3 +11,5 @@ Advanced Firmware Features
     benchtesting
     devguide
     c5_cell_config
+    msd
+    rtc

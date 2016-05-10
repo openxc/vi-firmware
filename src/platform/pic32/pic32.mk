@@ -1,6 +1,6 @@
 BOARD_TAG = mega_pic32
 
-ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cJSON \
+ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cmp cJSON \
 			   emqueue AT-commander/atcommander \
 			   nanopb bitfield-c/src isotp-c/src uds-c/src
 ifeq ($(NETWORK), 1)
@@ -104,23 +104,82 @@ ARDUINO_MAKEFILE_HOME = $(LIBS_PATH)/arduino.mk
 LOCAL_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard platform/pic32/*.c)
 LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
+
+ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
+CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
+			-Iplatform/pic32 \
+			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
+			-Iinterface -DBLUENRG_MS \
+			-Iplatform/pic32/ringbuffer
+
+CFLAGS   += -I$(LIBS_PATH)/STBTLE -Iplatform/pic32 -DBLUENRG_MS -Iplatform/pic32/ringbuffer
+
+LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/*.c)
+LOCAL_C_SRCS += platform/pic32/ringbuffer/ringbuffer.c
+
+INCLUDE_PATHS += -Iplatform/pic32
+INCLUDE_PATHS += -Iplatform/pic32/ringbuffer
+
+endif
+
 ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
+
+CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
+
+ifeq ($(MSD_ENABLE), 1)
+
+CPPFLAGS += -Iplatform/pic32/fs_support \
+			-D__PIC32MX__ \
+			-D__PIC32MX \
+			-D__XC32__ \
+			-D__C32__
+LOCAL_C_SRCS += $(wildcard platform/pic32/fs_support/*.c)
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MSD_Device_Driver/usb_function_msd.c
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/FSIO.c
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/SD-SPI.c
+
+
+INCLUDE_PATHS += -Iplatform/pic32/fs_support
+INCLUDE_PATHS += -I$(LIBS_PATH)/MLA/Include
+
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
 endif
+endif
+
 ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
-LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
-LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
-INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
+
+CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
+
+ifeq ($(MSD_ENABLE), 1)
+
+CPPFLAGS += -Iplatform/pic32/fs_support \
+			-D__PIC32MX__ \
+			-D__PIC32MX \
+			-D__XC32__ \
+			-D__C32__
+LOCAL_C_SRCS += $(wildcard platform/pic32/fs_support/*.c)
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MSD_Device_Driver/usb_function_msd.c
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/FSIO.c
+LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/SD-SPI.c
+
+
+INCLUDE_PATHS += -Iplatform/pic32/fs_support
+INCLUDE_PATHS += -I$(LIBS_PATH)/MLA/Include
+
+CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
+
 endif
+endif
+
+
 ifeq ($(PLATFORM), CHIPKIT)
 CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
-INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
+INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser 
 endif
 
 

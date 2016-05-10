@@ -121,8 +121,8 @@ if [ -z $COMMON_SOURCED ]; then
         else
             k_opt=""
         fi
-        echo "download() running 'curl $k_opt $url -L -o $filename'"
-        curl $k_opt $url -L -o $filename
+        echo "download() running 'curl -Ss $k_opt $url -L -o $filename'"
+        curl -Ss $k_opt $url -L -o $filename
     }
 
     if [ `id -u` == 0 ]; then

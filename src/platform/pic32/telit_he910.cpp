@@ -94,483 +94,483 @@ TELIT_CONNECTION_STATE openxc::telitHE910::getDeviceState() {
 }
 
 TELIT_CONNECTION_STATE openxc::telitHE910::connectionManager(TelitDevice* device) 
-{	
-	switch(state)
-	{
-		case POWER_OFF:
-			state = DSM_Power_Off(device);
-			break;
-			
-		case POWER_ON_DELAY:
-			state = DSM_Power_On_Delay(device);
-			break;
-			
-		case POWER_ON:
-			state = DSM_Power_On(device);
-			break;
-			
-		case POWER_UP_DELAY:
-			state = DSM_Power_Up_Delay(device);
-			break;
-			
-		case INITIALIZE:
-			state = DSM_Initialize(device);
-			break;
-			
-		case WAIT_FOR_NETWORK:
-			state = DSM_Wait_For_Network(device);
-			break;
-			
-		case CLOSE_PDP:
-			state = DSM_Close_PDP(device);
-			break;
-			
-		case OPEN_PDP_DELAY:
-			state = DSM_Open_PDP_Delay(device);
-			break;
-			
-		case OPEN_PDP:
-			state = DSM_Open_PDP(device);
-			break;
-			
-		case READY:
-			state = DSM_Ready(device);
-			break;
-			
-		default:
-			state = POWER_OFF;
-			break;
-	}
-	
-	return state;
+{    
+    switch(state)
+    {
+        case POWER_OFF:
+            state = DSM_Power_Off(device);
+            break;
+            
+        case POWER_ON_DELAY:
+            state = DSM_Power_On_Delay(device);
+            break;
+            
+        case POWER_ON:
+            state = DSM_Power_On(device);
+            break;
+            
+        case POWER_UP_DELAY:
+            state = DSM_Power_Up_Delay(device);
+            break;
+            
+        case INITIALIZE:
+            state = DSM_Initialize(device);
+            break;
+            
+        case WAIT_FOR_NETWORK:
+            state = DSM_Wait_For_Network(device);
+            break;
+            
+        case CLOSE_PDP:
+            state = DSM_Close_PDP(device);
+            break;
+            
+        case OPEN_PDP_DELAY:
+            state = DSM_Open_PDP_Delay(device);
+            break;
+            
+        case OPEN_PDP:
+            state = DSM_Open_PDP(device);
+            break;
+            
+        case READY:
+            state = DSM_Ready(device);
+            break;
+            
+        default:
+            state = POWER_OFF;
+            break;
+    }
+    
+    return state;
 }
 
 void openxc::telitHE910::deinitialize() {
-	state = POWER_OFF;
-	setPowerState(false);
+    state = POWER_OFF;
+    setPowerState(false);
 }
 
 bool openxc::telitHE910::connected(TelitDevice* device) {
-	return connect;
+    return connect;
 }
 
 static bool autobaud(openxc::telitHE910::TelitDevice* device) {
 
-	bool rc = false;
-	unsigned int i = 0;
+    bool rc = false;
+    unsigned int i = 0;
 
-	// loop through a set of baud rates looking for a valid response
-	for(i = 0; i < 3; ++i)
-	{
-		// set local baud rate to next attempt
-		uart::changeBaudRate(device->uart, bauds[i]);
-		
-		// attempt set the remote baud rate to desired (config.h) value
-		if(openxc::telitHE910::setBaud(UART_BAUD_RATE) == true)
-		{
-			// match local baud to desired value
-			uart::changeBaudRate(device->uart, UART_BAUD_RATE);
-			
-			// we're good!
-			rc = true;
-			break;
-		}
-	}
-	
-	return rc;
+    // loop through a set of baud rates looking for a valid response
+    for(i = 0; i < 3; ++i)
+    {
+        // set local baud rate to next attempt
+        uart::changeBaudRate(device->uart, bauds[i]);
+        
+        // attempt set the remote baud rate to desired (config.h) value
+        if(openxc::telitHE910::setBaud(UART_BAUD_RATE) == true)
+        {
+            // match local baud to desired value
+            uart::changeBaudRate(device->uart, UART_BAUD_RATE);
+            
+            // we're good!
+            rc = true;
+            break;
+        }
+    }
+    
+    return rc;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Off(TelitDevice* device) {
 
-	TELIT_CONNECTION_STATE l_state = POWER_OFF;
+    TELIT_CONNECTION_STATE l_state = POWER_OFF;
 
-	device->descriptor.type = openxc::interface::InterfaceType::TELIT;
-		
-	setPowerState(false);
-	telitDevice = device;
-	l_state = POWER_ON_DELAY;
-	
-	return l_state;
+    device->descriptor.type = openxc::interface::InterfaceType::TELIT;
+        
+    setPowerState(false);
+    telitDevice = device;
+    l_state = POWER_ON_DELAY;
+    
+    return l_state;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_On_Delay(TelitDevice* device) {
 
-	TELIT_CONNECTION_STATE l_state = POWER_ON_DELAY;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
-	
-	switch(sub_state)
-	{
-		case 0:
-		
-			timer = uptimeMs() + 1000;
-			sub_state = 1;
-			
-			break;
-			
-		case 1:
-		
-			if(uptimeMs() > timer)
-			{
-				l_state = POWER_ON;
-				sub_state = 0;
-			}
-			
-			break;
-	}
-	
-	return l_state;
+    TELIT_CONNECTION_STATE l_state = POWER_ON_DELAY;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
+    
+    switch(sub_state)
+    {
+        case 0:
+        
+            timer = uptimeMs() + 1000;
+            sub_state = 1;
+            
+            break;
+            
+        case 1:
+        
+            if(uptimeMs() > timer)
+            {
+                l_state = POWER_ON;
+                sub_state = 0;
+            }
+            
+            break;
+    }
+    
+    return l_state;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_On(TelitDevice* device) {
 
-	TELIT_CONNECTION_STATE l_state = POWER_ON;
-	
-	setPowerState(true);
-	l_state = POWER_UP_DELAY;
-	
-	return l_state;
+    TELIT_CONNECTION_STATE l_state = POWER_ON;
+    
+    setPowerState(true);
+    l_state = POWER_UP_DELAY;
+    
+    return l_state;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Up_Delay(TelitDevice* device) {
 
-	TELIT_CONNECTION_STATE l_state = POWER_UP_DELAY;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
+    TELIT_CONNECTION_STATE l_state = POWER_UP_DELAY;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
 
-	switch(sub_state)
-	{
-		case 0:
-		
-			timer = uptimeMs() + 8500;
-			sub_state = 1;
-			
-			break;
-			
-		case 1:
-		
-			if(uptimeMs() > timer)
-			{
-				l_state = INITIALIZE;
-				sub_state = 0;
-			}
-			
-			break;
-	}
-	
-	return l_state;
+    switch(sub_state)
+    {
+        case 0:
+        
+            timer = uptimeMs() + 8500;
+            sub_state = 1;
+            
+            break;
+            
+        case 1:
+        
+            if(uptimeMs() > timer)
+            {
+                l_state = INITIALIZE;
+                sub_state = 0;
+            }
+            
+            break;
+    }
+    
+    return l_state;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Initialize(TelitDevice* device) {
 
-	TELIT_CONNECTION_STATE l_state = INITIALIZE;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
-	static unsigned int SIMstatus = 0;
-	static char ICCID[32];
-	static char IMEI[32];
-	
-	switch(sub_state)
-	{
-		case 0:
-		
-			// figure out the baud rate
-			if(autobaud(device))
-			{
-				timer = uptimeMs() + 1000;
-				sub_state = 1;
-			}
-			else
-			{
-				debug("Failed to set the baud rate for Telit HE910...is the device connected to 12V power?");
-				l_state = POWER_OFF;
-				break;
-			}
-		
-			break;
-			
-		case 1:
-		
-			if(uptimeMs() > timer)
-			{
-				sub_state = 2;
-			}
-		
-			break;
-			
-		case 2:
-			
-			// save settings
-			if(saveSettings() == false)
-			{
-				debug("Failed to save modem settings, continuing with device initialization.");
-			}
-			
-			// check SIM status
-			if(getSIMStatus(&SIMstatus) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			
-			// start the GPS chip
-			if(device->config.globalPositioningSettings.gpsEnable)
-			{
-				if(setGPSPowerState(true) == false)
-				{
-					sub_state = 0;
-					l_state = POWER_OFF;
-					break;
-				}
-			}
-			
-			// make sure SIM is installed, else exit
-			if(SIMstatus != 1)
-			{
-				debug("SIM not detected, aborting device initialization.");
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			
-			// get device identifier (IMEI)
-			if(getDeviceIMEI(IMEI) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			memcpy(device->deviceId, IMEI, strlen(IMEI) < MAX_DEVICE_ID_LENGTH ? strlen(IMEI) : MAX_DEVICE_ID_LENGTH);
-			
-			// get SIM number (ICCID)
-			if(getICCID(ICCID) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			memcpy(device->ICCID, ICCID, strlen(ICCID) < MAX_ICCID_LENGTH ? strlen(ICCID) : MAX_ICCID_LENGTH);
-			
-			// set mobile operator connect mode
-			if(setNetworkConnectionMode(device->config.networkOperatorSettings.operatorSelectMode, device->config.networkOperatorSettings.networkDescriptor) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			
-			// configure data session
-			if(configurePDPContext(device->config.networkDataSettings) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			
-			// configure a single TCP/IP socket
-			if(configureSocket(1, device->config.socketConnectSettings) == false)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-				break;
-			}
-			
-			sub_state = 0;
-			l_state = WAIT_FOR_NETWORK;
-			
-			break;
-	}
-	
-	return l_state;
+    TELIT_CONNECTION_STATE l_state = INITIALIZE;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
+    static unsigned int SIMstatus = 0;
+    static char ICCID[32];
+    static char IMEI[32];
+    
+    switch(sub_state)
+    {
+        case 0:
+        
+            // figure out the baud rate
+            if(autobaud(device))
+            {
+                timer = uptimeMs() + 1000;
+                sub_state = 1;
+            }
+            else
+            {
+                debug("Failed to set the baud rate for Telit HE910...is the device connected to 12V power?");
+                l_state = POWER_OFF;
+                break;
+            }
+        
+            break;
+            
+        case 1:
+        
+            if(uptimeMs() > timer)
+            {
+                sub_state = 2;
+            }
+        
+            break;
+            
+        case 2:
+            
+            // save settings
+            if(saveSettings() == false)
+            {
+                debug("Failed to save modem settings, continuing with device initialization.");
+            }
+            
+            // check SIM status
+            if(getSIMStatus(&SIMstatus) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            
+            // start the GPS chip
+            if(device->config.globalPositioningSettings.gpsEnable)
+            {
+                if(setGPSPowerState(true) == false)
+                {
+                    sub_state = 0;
+                    l_state = POWER_OFF;
+                    break;
+                }
+            }
+            
+            // make sure SIM is installed, else exit
+            if(SIMstatus != 1)
+            {
+                debug("SIM not detected, aborting device initialization.");
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            
+            // get device identifier (IMEI)
+            if(getDeviceIMEI(IMEI) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            memcpy(device->deviceId, IMEI, strlen(IMEI) < MAX_DEVICE_ID_LENGTH ? strlen(IMEI) : MAX_DEVICE_ID_LENGTH);
+            
+            // get SIM number (ICCID)
+            if(getICCID(ICCID) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            memcpy(device->ICCID, ICCID, strlen(ICCID) < MAX_ICCID_LENGTH ? strlen(ICCID) : MAX_ICCID_LENGTH);
+            
+            // set mobile operator connect mode
+            if(setNetworkConnectionMode(device->config.networkOperatorSettings.operatorSelectMode, device->config.networkOperatorSettings.networkDescriptor) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            
+            // configure data session
+            if(configurePDPContext(device->config.networkDataSettings) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            
+            // configure a single TCP/IP socket
+            if(configureSocket(1, device->config.socketConnectSettings) == false)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+                break;
+            }
+            
+            sub_state = 0;
+            l_state = WAIT_FOR_NETWORK;
+            
+            break;
+    }
+    
+    return l_state;
 
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Wait_For_Network(TelitDevice* device) {
-	
-	TELIT_CONNECTION_STATE l_state = WAIT_FOR_NETWORK;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
-	static unsigned int timeout = 0;
-	static NetworkDescriptor current_network = {};
-	static NetworkConnectionStatus connectStatus = UNKNOWN;
-	
-	switch(sub_state)
-	{
-		case 0:
-	
-			timeout = uptimeMs() + NETWORK_CONNECT_TIMEOUT;
-			sub_state = 1;
-	
-			break;
-	
-		case 1:
-			
-			if(getNetworkConnectionStatus(&connectStatus))
-			{
-				if(connectStatus == REGISTERED_HOME || (device->config.networkOperatorSettings.allowDataRoaming && connectStatus == REGISTERED_ROAMING))
-				{
-					if(getCurrentNetwork(&current_network))
-					{
-						debug("Telit connected to PLMN %u, access type %u", current_network.PLMN, current_network.networkType);
-					}
-					sub_state = 0;
-					l_state = CLOSE_PDP;
-				}
-				else
-				{
-					timer = uptimeMs() + 500;
-					sub_state = 2;
-				}
-			}
-			
-			break;
-			
-		case 2:
-		
-			if(uptimeMs() > timeout)
-			{
-				sub_state = 0;
-				l_state = POWER_OFF;
-			}
-			else if(uptimeMs() > timer)
-			{
-				sub_state = 1;
-			}
-		
-			break;
-	}
-	
-	return l_state;
-	
+    
+    TELIT_CONNECTION_STATE l_state = WAIT_FOR_NETWORK;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
+    static unsigned int timeout = 0;
+    static NetworkDescriptor current_network = {};
+    static NetworkConnectionStatus connectStatus = UNKNOWN;
+    
+    switch(sub_state)
+    {
+        case 0:
+    
+            timeout = uptimeMs() + NETWORK_CONNECT_TIMEOUT;
+            sub_state = 1;
+    
+            break;
+    
+        case 1:
+            
+            if(getNetworkConnectionStatus(&connectStatus))
+            {
+                if(connectStatus == REGISTERED_HOME || (device->config.networkOperatorSettings.allowDataRoaming && connectStatus == REGISTERED_ROAMING))
+                {
+                    if(getCurrentNetwork(&current_network))
+                    {
+                        debug("Telit connected to PLMN %u, access type %u", current_network.PLMN, current_network.networkType);
+                    }
+                    sub_state = 0;
+                    l_state = CLOSE_PDP;
+                }
+                else
+                {
+                    timer = uptimeMs() + 500;
+                    sub_state = 2;
+                }
+            }
+            
+            break;
+            
+        case 2:
+        
+            if(uptimeMs() > timeout)
+            {
+                sub_state = 0;
+                l_state = POWER_OFF;
+            }
+            else if(uptimeMs() > timer)
+            {
+                sub_state = 1;
+            }
+        
+            break;
+    }
+    
+    return l_state;
+    
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Close_PDP(TelitDevice* device) {
-	
-	TELIT_CONNECTION_STATE l_state = CLOSE_PDP;
-	static unsigned int sub_state = 0;
-	
-	// deactivate data session (just in case the network thinks we still have an active PDP context)
-	if(closePDPContext())
-	{
-		sub_state = 0;
-		l_state = OPEN_PDP_DELAY;
-	}
-	else
-	{	
-		sub_state = 0;
-		l_state = POWER_OFF;
-	}
-	
-	return l_state;
-	
+    
+    TELIT_CONNECTION_STATE l_state = CLOSE_PDP;
+    static unsigned int sub_state = 0;
+    
+    // deactivate data session (just in case the network thinks we still have an active PDP context)
+    if(closePDPContext())
+    {
+        sub_state = 0;
+        l_state = OPEN_PDP_DELAY;
+    }
+    else
+    {    
+        sub_state = 0;
+        l_state = POWER_OFF;
+    }
+    
+    return l_state;
+    
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP_Delay(TelitDevice* device) {
-	
-	TELIT_CONNECTION_STATE l_state = OPEN_PDP_DELAY;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
-	
-	switch(sub_state)
-	{
-		case 0:
-		
-			timer = uptimeMs() + 1000;
-			sub_state = 1;
-			
-			break;
-			
-		case 1:
+    
+    TELIT_CONNECTION_STATE l_state = OPEN_PDP_DELAY;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
+    
+    switch(sub_state)
+    {
+        case 0:
+        
+            timer = uptimeMs() + 1000;
+            sub_state = 1;
+            
+            break;
+            
+        case 1:
 
-			if(uptimeMs() > timer)
-			{
-				l_state = OPEN_PDP;
-				sub_state = 0;
-			}
-			
-			break;
-	}
-	
-	return l_state;
-	
+            if(uptimeMs() > timer)
+            {
+                l_state = OPEN_PDP;
+                sub_state = 0;
+            }
+            
+            break;
+    }
+    
+    return l_state;
+    
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP(TelitDevice* device) {
-	
-	TELIT_CONNECTION_STATE l_state = OPEN_PDP;
-	static uint8_t pdp_counter = 0;
-	
-	// activate data session
-	if(openPDPContext())
-	{
-		pdp_counter = 0;
-		l_state = READY;
-	}
-	else
-	{	
-		if(pdp_counter < PDP_MAX_ATTEMPTS)
-		{
-			pdp_counter++;
-			l_state = CLOSE_PDP;
-		}
-		else
-		{
-			pdp_counter = 0;
-			l_state = POWER_OFF;
-		}
-	}
-	
-	return l_state;
+    
+    TELIT_CONNECTION_STATE l_state = OPEN_PDP;
+    static uint8_t pdp_counter = 0;
+    
+    // activate data session
+    if(openPDPContext())
+    {
+        pdp_counter = 0;
+        l_state = READY;
+    }
+    else
+    {    
+        if(pdp_counter < PDP_MAX_ATTEMPTS)
+        {
+            pdp_counter++;
+            l_state = CLOSE_PDP;
+        }
+        else
+        {
+            pdp_counter = 0;
+            l_state = POWER_OFF;
+        }
+    }
+    
+    return l_state;
 }
 
 static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Ready(TelitDevice* device) 
 {
-	TELIT_CONNECTION_STATE l_state = READY;
-	static unsigned int sub_state = 0;
-	static unsigned int timer = 0;
-	bool pdp_connected = false;
-	NetworkConnectionStatus connectStatus = UNKNOWN;
+    TELIT_CONNECTION_STATE l_state = READY;
+    static unsigned int sub_state = 0;
+    static unsigned int timer = 0;
+    bool pdp_connected = false;
+    NetworkConnectionStatus connectStatus = UNKNOWN;
 
-	switch(sub_state)
-	{
-		case 0:
-		
-			if(getNetworkConnectionStatus(&connectStatus), (connectStatus != REGISTERED_HOME && connectStatus != REGISTERED_ROAMING))
-			{
-				debug("Modem has lost network connection");
-				connect = false;
-				l_state = WAIT_FOR_NETWORK;
-			}
-			else if(getPDPContext(&pdp_connected), !pdp_connected)
-			{
-				debug("Modem has lost data session");
-				connect = false;
-				l_state = CLOSE_PDP;
-			}
-			else
-			{
-				connect = true;
-				timer = uptimeMs() + 1000;
-				sub_state = 1;
-			}
-		
-			break;
-			
-		case 1:
-		
-			if(uptimeMs() > timer)
-				sub_state = 0;
-		
-			break;
-	}
-	
-	return l_state;
+    switch(sub_state)
+    {
+        case 0:
+        
+            if(getNetworkConnectionStatus(&connectStatus), (connectStatus != REGISTERED_HOME && connectStatus != REGISTERED_ROAMING))
+            {
+                debug("Modem has lost network connection");
+                connect = false;
+                l_state = WAIT_FOR_NETWORK;
+            }
+            else if(getPDPContext(&pdp_connected), !pdp_connected)
+            {
+                debug("Modem has lost data session");
+                connect = false;
+                l_state = CLOSE_PDP;
+            }
+            else
+            {
+                connect = true;
+                timer = uptimeMs() + 1000;
+                sub_state = 1;
+            }
+        
+            break;
+            
+        case 1:
+        
+            if(uptimeMs() > timer)
+                sub_state = 0;
+        
+            break;
+    }
+    
+    return l_state;
 }
 
 /*MODEM AT COMMANDS*/
@@ -1601,7 +1601,7 @@ void openxc::telitHE910::processSendQueue(TelitDevice* device) {
  * Returns number of bytes allocated for the device data send buffer.
  */
 unsigned int openxc::telitHE910::sizeSendBuffer(TelitDevice* device) {
-	return SEND_BUFFER_SIZE;
+    return SEND_BUFFER_SIZE;
  }
  
 
@@ -1611,7 +1611,7 @@ unsigned int openxc::telitHE910::sizeSendBuffer(TelitDevice* device) {
  * Resets the tracking pointer for the device data send buffer, which resets buffer to empty state.
  */
 void openxc::telitHE910::resetSendBuffer(TelitDevice* device) {
-	pSendBuffer = sendBuffer;
+    pSendBuffer = sendBuffer;
  }
  
 /*
@@ -1620,7 +1620,7 @@ void openxc::telitHE910::resetSendBuffer(TelitDevice* device) {
  * Returns number of bytes stored in the device data send buffer.
  */
 unsigned int openxc::telitHE910::bytesSendBuffer(TelitDevice* device) {
-	return int(pSendBuffer - sendBuffer);
+    return int(pSendBuffer - sendBuffer);
  }
  
 /*
@@ -1629,9 +1629,9 @@ unsigned int openxc::telitHE910::bytesSendBuffer(TelitDevice* device) {
  * Copies all bytes from the device data send buffer to the destination pointer, within the limits of the specified length.
  */
 unsigned int openxc::telitHE910::readAllSendBuffer(TelitDevice* device, char* destination, unsigned int read_len) {
-	unsigned int write_len;
-	unsigned int size_buf = bytesSendBuffer(device);
-	write_len = (read_len < size_buf) ? read_len : size_buf;
-	memcpy(destination, sendBuffer, write_len);
-	return write_len;
+    unsigned int write_len;
+    unsigned int size_buf = bytesSendBuffer(device);
+    write_len = (read_len < size_buf) ? read_len : size_buf;
+    memcpy(destination, sendBuffer, write_len);
+    return write_len;
  }

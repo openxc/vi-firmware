@@ -1,5 +1,13 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v7.2.0
+
+* BREAKING: This version requires updates to bootstrap. 'vagrant up --provision' must be run after 'git pull'.
+* Feature: Support for C5 BLE
+* Feature: Support for SD cards & RTC (real-time-clock) for C5 devices
+* Feature: TEST_MODE_ONLY compile option for hardware tests on C5
+* Feature: Support for MessagePack in addition to JSON & ProtoBuf
+
 ## v7.1.1
 
 * Fix: Update nanpb repo location to Git.

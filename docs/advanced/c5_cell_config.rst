@@ -1,4 +1,4 @@
-C5 CELLULAR Config
+C5 Cellular Config
 ------------------
 
 When building for the C5 Cellular, there are some modem-specific build

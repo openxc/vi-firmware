@@ -41,6 +41,9 @@ bool openxc::commands::handlePayloadFormatCommand(openxc_ControlCommand* command
                 case openxc_PayloadFormatCommand_PayloadFormat_PROTOBUF:
                     format = PayloadFormat::PROTOBUF;
                     break;
+                case openxc_PayloadFormatCommand_PayloadFormat_MESSAGEPACK:
+                    format = PayloadFormat::MESSAGEPACK;
+                    break;    
             }
 
             status = true;

@@ -1,13 +1,14 @@
 CrossChasm C5 Interfaces
 ========================
-This page describes the CrossChasm C5 family of OBD interfaces, which includes 
-the Bluetooth and Cellular devices. Most things are common
-between the different devices and are described on this page. For options specific
-to the Cellular device, see :doc:`C5 Cellular Config </advanced/c5_cell_config>`
+CrossChasm C5 family of OBD interfaces include versions with different communication radios
+such as the Bluetooth Classic, :doc:`Bluetooth Low Energy</platforms/crosschasm-c5-ble>` and :doc:`Cellular(GPRS)</platforms/crosschasm-c5-cellular>`. Most things are common
+between the different devices and are described on this page. This page covers the
+Bluetooth Classic version or ``PLATFORM=CROSSCHASM_C5_BT``. See the particular BLE and Cellular pages
+for specific differences.
 
 CrossChasm's C5 OBD interface is compatible with the OpenXC VI
 firmware. To build for one of the C5s, compile with one of the flags: 
-``PLATFORM=CROSSCHASM_C5`` or ``PLATFORM=CROSSCHASM_CELLULAR_C5``.
+``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BLE`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR``.
 
 .. note::
 
@@ -15,24 +16,26 @@ firmware. To build for one of the C5s, compile with one of the flags:
    the fabric shortcut ``c5`` has been updated to ``c5bt``. Both old variables are 
    aliased to the new BT forms.
 
-CrossChasm has further information on the C5 `available here
-<http://www.crosschasm.com/technology/openxc-hardware/>`_. The devices
-will soon be available on the `OpenXC Shop <http://shop.openxcplatform.com/>`_
-and come pre-loaded with the correct bootloader, so you don't need any additional
-hardware to load the OpenXC firmware.
+   
+All C5s come pre-loaded with the correct bootloader, so you don't need any additional
+hardware to load the OpenXC firmware. You do have flash an appropriate firmware for your
+application.
 
 The C5 connects to the `CAN1 bus pins
 <http://openxcplatform.com/vehicle-interface/#obd-pins>`_ on the OBD-II
 connector.
 
+.. note::
+
+   CAN2 pins ``CROSSCHASM_C5_BLE`` are mapped to pin 3 and pin 11 of the OBD-II 
+   connector.
+
 Flashing a Pre-compiled Firmware
 --------------------------------
 
-Assuming your C5 has the :ref:`bootloader <bootloader>` already flashed, once
-you have the USB cable attached to your computer and to the C5, follow the same
-steps to upload as for the :doc:`chipKIT Max32 <max32>`.
-
-The OpenXC C5 units are pre-programmed with the bootloader.
+Assuming your C5 has the :ref:`bootloader <bootloader>` already flashed, follow
+these :download:`instructions </_static/QuickStart guide to using C5 Hardware and OpenXC.pdf>`
+.. `instructions <http://vi-firmware.openxcplatform.com/en/master/_static/QuickStart%20guide%20to%20using%20C5%20Hardware%20and%20OpenXC.pdf>`_.
 
 .. _bootloader:
 
@@ -56,9 +59,6 @@ driver before the CDC/ACM modem will show up - download that file, right click
 and choose Install. The C5 should now show up as a COM port for for 5 seconds on
 bootup.
 
-
-The OpenXC C5 units are pre-programmed with the bootloader.
-
 If you need to reflash the bootloader yourself, a ready-to-go .hex file is
 available in the `GitHub repository
 <https://raw.github.com/openxc/PIC32-avrdude-bootloader/master/bootloaders/CrossChasm-C5-USB.hex>`_
@@ -70,8 +70,8 @@ Compiling
 ---------
 
 The instructions for compiling from source are identical to the :doc:`chipKIT
-Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT`` or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` 
-instead of ``CHIPKIT``.
+Max32 <max32>` except that ``PLATFORM=CROSSCHASM_C5_BT``, ``PLATFORM=CROSSCHASM_C5_BLE`` 
+or ``PLATFORM=CROSSCHASM_C5_CELLULAR`` instead of ``CHIPKIT``.
 
 If you will not be using the avrdude bootloader and will be flashing directly
 via ICSP, make sure to also compile with ``BOOTLOADER=0`` to enable the program
@@ -85,17 +85,28 @@ The micro-USB port on the board is used to send and receive OpenXC messages.
 UART
 ----
 
-On the C5, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
+On the CROSSCHASM_C5_BT, ``UART1A`` is used for OpenXC output at the 230000 baud rate.
 Hardware flow control (RTS/CTS) is enabled, so CTS must be pulled low by the
 receiving device before data will be sent.
 
-TODO add pinout of expansion header, probably a picture
-
 UART data is sent only if pin 0.58 (or PORTB BIT 4, RB4) is pulled high (to
-5vv). If you are using a Bluetooth module like the `BlueSMiRF
+5v). If you are using a Bluetooth module like the `BlueSMiRF
 <https://www.sparkfun.com/products/10269>`_ from SparkFun, you need to hard-wire
 5v into this pin to actually enabling UART. To disable UART, pull this pin low
 or leave it floating.
+
+Mass Storage Device
+-------------------
+
+The ``CROSSCHASM_C5_BT`` and ``CROSSCHASM_C5_CELLULAR`` are equipped with an SD card
+reader. If enabled, device messages (except debug messages) are logged to the SD card. See
+:doc:`MSD</advanced/msd>` for more info.
+
+Real Time Clock
+----------------
+The C5 family of devices have a low power RTC chip that is connected to the PIC32 over the I2C
+bus. The RTC enables timestamping of vehicle messages at the time of generation. Timestamps
+are generated with millisecond resolution. See :doc:`RTC</advanced/rtc>` for more info.
 
 Debug Logging
 -------------
@@ -106,6 +117,11 @@ with the ``DEFAULT_LOGGING_OUTPUT="UART"`` build option.
 
 On the C5, logging is on UART3A at 115200 baud (if the firmware was compiled
 with ``DEBUG=1``).
+
+.. note::
+
+   If ``MSD_ENABLE=1`` debug logging is not available as these pins are shared with 
+   the RTC for time stamping.
 
 LED Lights
 -----------

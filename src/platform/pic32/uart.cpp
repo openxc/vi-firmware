@@ -31,14 +31,19 @@
 #if defined(CROSSCHASM_C5_BT)
 
     #define UART_STATUS_PORT 0
-    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN 58               // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
 
 #elif defined(CROSSCHASM_C5_CELLULAR)
 
     #define UART_STATUS_PORT 0
-    #define UART_STATUS_PIN 58     // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN 58            // PORTB BIT4 (RB4)
     #define UART_STATUS_PIN_POLARITY 1    // high == connected
+#elif defined(CROSSCHASM_C5_CELLULAR)
+
+    #define UART_STATUS_PORT 
+    #define UART_STATUS_PIN             // PORTB BIT4 (RB4)
+    #define UART_STATUS_PIN_POLARITY     // high == connected
     
 #elif defined(CHIPKIT)
 
@@ -117,6 +122,8 @@ int openxc::interface::uart::readByte(UartDevice* device) {
 }
 
 void openxc::interface::uart::initialize(UartDevice* device) {
+#ifndef UART_LOGGING_DISABLE    
+    
     if(device == NULL) {
         debug("Can't initialize a NULL UartDevice");
         return;
@@ -131,11 +138,13 @@ void openxc::interface::uart::initialize(UartDevice* device) {
             gpio::GPIO_DIRECTION_INPUT);
 
     debug("Done.");
+#endif
 }
 
 // The chipKIT version of this function is blocking. It will entirely flush the
 // send queue before returning.
 void openxc::interface::uart::processSendQueue(UartDevice* device) {
+#ifndef UART_LOGGING_DISABLE    
     int byteCount = 0;
     char sendBuffer[MAX_MESSAGE_SIZE];
     while(!QUEUE_EMPTY(uint8_t, &device->sendQueue) &&
@@ -147,14 +156,16 @@ void openxc::interface::uart::processSendQueue(UartDevice* device) {
         ((HardwareSerial*)device->controller)->write((const uint8_t*)sendBuffer,
                 byteCount);
     }
+#endif
 }
 
 bool openxc::interface::uart::connected(UartDevice* device) {
-    
+ 
+ 
     static unsigned int timer;
     bool status = false;
     static bool last_status = false;
-
+#ifndef UART_LOGGING_DISABLE    
 #ifdef CHIPKIT
 
     // Use analogRead instead of digitalRead so we don't have to require
@@ -197,7 +208,8 @@ bool openxc::interface::uart::connected(UartDevice* device) {
     }
     
     last_status = status;
-    
+#endif    
     return status;
 
 }
+

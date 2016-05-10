@@ -16,7 +16,6 @@ CHIPKIT_LIBRARY_AGREEMENT_URL="https://reference.digilentinc.com/agreement"
 # their SSL certificate bundle we can remove it.
 NOT_SECURE="true"
 CHIPKIT_LIBRARY_DOWNLOAD_URL="https://reference.digilentinc.com/_media/chipkit_network_and_usb_libs-20150115.zip"
-
 CHIPKIT_ZIP_FILE="chipkit_network_and_usb_libs-20150115.zip"
 
 _pushd $DEPENDENCIES_FOLDER
@@ -29,7 +28,8 @@ then
         read
     fi
     download $CHIPKIT_LIBRARY_DOWNLOAD_URL $CHIPKIT_ZIP_FILE $NOT_SECURE
-    unzip $CHIPKIT_ZIP_FILE
+    echo "Extracting CHIPKit"
+    unzip -q $CHIPKIT_ZIP_FILE
 fi
 _popd
 

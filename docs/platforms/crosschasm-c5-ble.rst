@@ -1,5 +1,5 @@
-CrossChasm C5 Bluetooth LE Interface
-=====================================
+CrossChasm C5 Bluetooth LE
+==========================
 
 Bluetooth Low Energy Specifications
 ------------------------------------

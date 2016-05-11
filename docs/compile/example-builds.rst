@@ -67,7 +67,7 @@ The Makefile will always print the configuration used so you can double check.
 * :ref:`Mass storage device <msd-storage>` (``MSD_ENABLE`` is ``0``) is disabled 
   by default and is available on certain C5 devices which have a provision to connect 
   a SD card. The time intervals at which the data is logged is 
-  (``DEFAULT_FILE_GENERATE_SECS``is ``180``) set to 180 seconds by default.
+  (``DEFAULT_FILE_GENERATE_SECS`` is ``180``) set to 180 seconds by default.
   
 .. NOTE::
   There's a shortcut for this default build, using the Fabric tool and an
@@ -94,6 +94,7 @@ The Makefile will always print the configuration used so you can double check.
 
   Get the idea? These shortcuts will make sure the flags are set to their
   defaults, regardless of what you may have in your current shell environment.
+  See the fabfile.py or run % fab -l for a complete list of options.
 
 Automatic Recurring OBD-II Requests Build
 ==========================================
@@ -252,7 +253,14 @@ while this builds the default firmware, ready for OBD2 requests for the chipKIT:
 
 .. code-block:: sh
 
-  fab chipkit build
+  fab chipkit obd2 build
     
-	
+You can specify the message format with ``json``, ``protobuf``, or ``messagepack``:
+
+.. code-block:: sh
+
+  fab reference protobuf build
+
+Other useful options are ``debug``, ``msd_enable``, ``test``, and ``clean``.
+See the fabfile.py or run % fab -l for a complete list of options.
 The ``fab`` commands can be run from any folder in the vi-firmware repository.

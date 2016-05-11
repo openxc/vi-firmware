@@ -34,8 +34,7 @@ Flashing a Pre-compiled Firmware
 --------------------------------
 
 Assuming your C5 has the :ref:`bootloader <bootloader>` already flashed, follow
-these :download:`instructions </_static/QuickStart guide to using C5 Hardware and OpenXC.pdf>`
-.. `instructions <http://vi-firmware.openxcplatform.com/en/master/_static/QuickStart%20guide%20to%20using%20C5%20Hardware%20and%20OpenXC.pdf>`_.
+these :download:`instructions </_static/QuickStart guide to using C5 Hardware and OpenXC.pdf>`.
 
 .. _bootloader:
 

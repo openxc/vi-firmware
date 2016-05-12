@@ -70,9 +70,6 @@ Releasing
   next development release (one patch release up with the ``-dev`` suffix, e.g.
   ``v0.9.2-dev``
 
-- Also change ``script/bootstrap/pip-requirements.txt`` back to using the development
-  version from Git: ``-e git+https://github.com/openxc/openxc-python.git@next#egg=openxc``
-
 - Go to https://github.com/openxc/vi-firmware/releases and promote the tag you
   just created to a new release - copy and paste the changelog into the
   description.

@@ -37,6 +37,11 @@ env.boards = {
     "c5ble": {"name": "CROSSCHASM_C5_BLE", "extension": "hex"}
 }
 
+env.msd_boards = {
+    "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
+    "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"},
+}
+
 def latest_git_tag():
     description = local('git describe master', capture=True).rstrip('\n')
     if '-' in description:
@@ -120,11 +125,11 @@ def build_options():
 
     DEFAULT_COMPILER_OPTIONS = {
         'DEBUG': env.debug,
-        'MSD_ENABLE' : 0,
-        'DEFAULT_FILE_GENERATE_SECS' : 180,
+        'MSD_ENABLE' : env.msd_enable,
+        'DEFAULT_FILE_GENERATE_SECS' : env.default_file_generate_secs,
         'BOOTLOADER': env.bootloader,
-        'TEST_MODE_ONLY': 0,
-        'TRANSMITTER': False,
+        'TEST_MODE_ONLY': env.test_mode_only,
+        'TRANSMITTER': env.transmitter,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
         'DEFAULT_METRICS_STATUS': False,
         'DEFAULT_CAN_ACK_STATUS': False,
@@ -141,14 +146,8 @@ def build_options():
     }
 
     options = copy.copy(DEFAULT_COMPILER_OPTIONS)
-	
-    options['DEBUG'] = env.debug	
-    options['MSD_ENABLE'] = env.msd_enable
-    options['TEST_MODE_ONLY'] = env.test_mode_only
-    options['DEFAULT_FILE_GENERATE_SECS'] = env.default_file_generate_secs
-    options['BOOTLOADER'] = env.bootloader
-    options['TRANSMITTER'] = env.transmitter
     options['PLATFORM'] = board_options['name']
+
     if env.mode == 'emulator':
         options['DEFAULT_EMULATED_DATA_STATUS'] = True
         options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
@@ -170,6 +169,16 @@ def compile_firmware(build_name, target_path):
                         target_path, build_name, board['name'],
                         env.firmware_release, board['extension']))
 
+        for board_name, board in env.msd_boards.iteritems():
+            msd_enable()
+            env.board = board_name
+            build(capture=True, do_clean=True)
+            local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-msd-ct%s.%s"
+                    % (board['name'], board['name'], board['extension'],
+                        target_path, build_name, board['name'],
+                        env.firmware_release, board['extension']))
+            env.msd_enable = False #reset
+
 def compress_release(source, archive_path):
     with lcd(os.path.dirname(source)):
         local("zip -r %s %s" % (archive_path, os.path.basename(source)))
@@ -189,7 +198,7 @@ def obd2():
 @task
 def msd_enable():
     if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell":
-        env.msd_enable = True	
+        env.msd_enable = True
     else:
         abort("MSD_ENABLE is only defined for C5_BT or C5_CELL platforms")
 

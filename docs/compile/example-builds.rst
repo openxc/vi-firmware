@@ -229,7 +229,9 @@ in this case CrossChasm C5 BLE is used as an example:
 .. code-block:: sh
 
   fab c5ble build test_mode_only
-  
+
+.. _fabric-shortcuts:
+
 Fabric Shortcuts
 ================
 

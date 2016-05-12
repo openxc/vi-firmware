@@ -15,8 +15,8 @@ These options are passed as shell environment variables to the Makefile, e.g.
 
 .. note::
 
-   Don't miss the ``Fabric`` helper scripts for the :doc:`most common build
-   configurations <example-builds#fabric-shortcuts>`.
+   Don't miss the ``Fabric`` helper scripts for the common build configurations in 
+   :ref:`fabric-shortcuts`.
 
 ``PLATFORM``
   Select the target :doc:`microcontroller platform </platforms/platforms>`.

@@ -105,6 +105,20 @@ void openxc::can::read::publishStringMessage(const char* name,
     publishVehicleMessage(name, &decodedValue, pipeline);
 }
 
+void openxc::can::read::publishStringEventedMessage(const char* name,
+        const char* value, const char* event, openxc::pipeline::Pipeline* pipeline) {
+    openxc_DynamicField decodedValue = payload::wrapString(value);
+	openxc_DynamicField decodedEvent = payload::wrapString(event);
+    publishVehicleMessage(name, &decodedValue, &decodedEvent, pipeline);
+}
+
+void openxc::can::read::publishStringEventedBooleanMessage(const char* name,
+        const char* value, bool event, openxc::pipeline::Pipeline* pipeline) {
+    openxc_DynamicField decodedValue = payload::wrapString(value);
+	openxc_DynamicField decodedEvent = payload::wrapBoolean(event);
+    publishVehicleMessage(name, &decodedValue, &decodedEvent, pipeline);
+}
+
 void openxc::can::read::publishBooleanMessage(const char* name, bool value,
         openxc::pipeline::Pipeline* pipeline) {
     openxc_DynamicField decodedValue = payload::wrapBoolean(value);

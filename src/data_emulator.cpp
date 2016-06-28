@@ -78,19 +78,28 @@ void openxc::emulator::generateFakeMeasurements(Pipeline* pipeline) {
         ++emulatorRateLimiter;
         ++messageCount;
         if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY / 2) {
-            publishNumericalMessage(NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT], rand() % 50 + rand() % 100 * .1, pipeline);
-            publishBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT], rand() % 2 == 1 ? true : false, pipeline);
+            publishNumericalMessage(NUMERICAL_SIGNALS[rand() % NUMERICAL_SIGNAL_COUNT],
+			rand() % 50 + rand() % 100 * .1, pipeline);
+            publishBooleanMessage(BOOLEAN_SIGNALS[rand() % BOOLEAN_SIGNAL_COUNT],
+			rand() % 2 == 1 ? true : false, pipeline);
         } else if(emulatorRateLimiter == EMULATOR_SEND_FREQUENCY) {
             emulatorRateLimiter = 0;
             int stateSignalIndex = rand() % STATE_SIGNAL_COUNT;
-            publishStringMessage(STATE_SIGNALS[stateSignalIndex], EMULATED_SIGNAL_STATES[stateSignalIndex][rand() % 3], pipeline);
+            publishStringMessage(STATE_SIGNALS[stateSignalIndex], 
+			EMULATED_SIGNAL_STATES[stateSignalIndex][rand() % 3], pipeline);
+			//These signals are not reoccurring, so they are published at a
+			//slower rate then all of the other signals. The % 50 allows them to
+			//publish at a much more realistic rate
 			if(rand() % 50 == 0){
-				//door_status - cant just do a random call of the string like button event b/c emulator needs a boolean
-				publishStringEventedBooleanMessage(EVENT_SIGNALS[0], EVENT_SIGNAL_STATES[0][rand() % 4], rand() % 2 == 1 ? true : false, pipeline);
+				//door_status - cant just do a random call of the string like 
+				//button event b/c emulator needs a boolean
+				publishStringEventedBooleanMessage(EVENT_SIGNALS[0], 
+				EVENT_SIGNAL_STATES[0][rand() % 4], rand() % 2 == 1 ? true : false, pipeline);
 			}
 			else if(rand() % 50 == 1){
 				//button_event
-				publishStringEventedMessage(EVENT_SIGNALS[1], EVENT_SIGNAL_STATES[1][rand() % 4], EVENT_SIGNAL_EVENT[1][rand() % 2], pipeline);
+				publishStringEventedMessage(EVENT_SIGNALS[1], 
+				EVENT_SIGNAL_STATES[1][rand() % 4], EVENT_SIGNAL_EVENT[1][rand() % 2], pipeline);
 			}
         }
     }

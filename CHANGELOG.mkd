@@ -1,5 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
+## v7.2.1-dev
+
 ## v7.2.0
 
 * BREAKING: This version requires updates to bootstrap. 'vagrant up --provision' must be run after 'git pull'.

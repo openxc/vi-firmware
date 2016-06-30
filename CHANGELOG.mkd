@@ -2,6 +2,10 @@
 
 ## v7.2.1-dev
 
+* BREAKING: Removed fine_odometer_since_restart from emulator.
+* Feature: Added sending evented messages from emulator.
+	Evented messages will come at a slower rate then other messages to simulate real world frequency
+
 ## v7.2.0
 
 * BREAKING: This version requires updates to bootstrap. 'vagrant up --provision' must be run after 'git pull'.

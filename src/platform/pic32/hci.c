@@ -730,6 +730,9 @@ int hci_read_bd_addr(tBDAddr bdaddr)
   Osal_MemSet(&resp, 0, sizeof(resp));
   
   Osal_MemSet(&rq, 0, sizeof(rq));
+  rq.ogf = OGF_VENDOR_CMD;;
+  rq.ocf = 0x0D;//read config data;
+  rq.cparam = &offset;//offset address for mac address
   rq.clen = 1;
   rq.rparam = &resp;
   rq.rlen = READ_BD_ADDR_RP_SIZE;

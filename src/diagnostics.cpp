@@ -7,6 +7,7 @@
 #include "obd2.h"
 #include <bitfield/bitfield.h>
 #include <limits.h>
+#include "config.h"
 
 #define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
 #define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
@@ -24,6 +25,7 @@ using openxc::can::read::publishNumericalMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
+using openxc::config::getConfiguration;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
@@ -642,14 +644,39 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         "using first active: %d", bus->address);
             }
 
-            if(bus == NULL) {
-                debug("No active bus to send diagnostic request");
-                status = false;
-            } else if(bus->rawWritable) {
-                status = handleAuthorizedCommand(manager, bus, command);
-            } else {
-                debug("Raw CAN writes not allowed for bus %d", bus->address);
-                status = false;
+            if(getConfiguration()->emulatedData){
+                //Check for PID, only add if there is one
+                    openxc_VehicleMessage message = {0};
+                    message.has_type = true;
+                    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+                    message.has_diagnostic_response = true;
+                    message.diagnostic_response = {0};
+                    message.diagnostic_response.has_bus = true;
+                    message.diagnostic_response.bus = bus->address;
+                    message.diagnostic_response.has_message_id = true;
+                    message.diagnostic_response.message_id = commandRequest->message_id;
+                    message.diagnostic_response.has_mode = true;
+                    message.diagnostic_response.mode = commandRequest->mode;
+                    if(commandRequest->has_pid)
+                    {
+                        message.diagnostic_response.has_pid = true;
+                        message.diagnostic_response.pid = commandRequest->pid;
+                    }
+                    message.diagnostic_response.has_value = true;
+                    message.diagnostic_response.value = rand() % 100;
+                    pipeline::publish(&message, &getConfiguration()->pipeline);
+                }
+            else
+            {
+                if(bus == NULL) {
+                    debug("No active bus to send diagnostic request");
+                    status = false;
+                } else if(bus->rawWritable) {
+                        status = handleAuthorizedCommand(manager, bus, command);
+                } else {
+                    debug("Raw CAN writes not allowed for bus %d", bus->address);
+                    status = false;
+                }
             }
 
         } else {

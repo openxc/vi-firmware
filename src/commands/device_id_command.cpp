@@ -44,8 +44,8 @@ bool openxc::commands::handleDeviceIdCommmand() {
     ble::BleDevice* ble = getConfiguration()->ble;
     
     sprintf(ids,"%02X:%02X:%02X:%02X:%02X:%02X", 
-        ble->blesettings.bdaddr[0],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[2], 
-        ble->blesettings.bdaddr[3],ble->blesettings.bdaddr[4],ble->blesettings.bdaddr[5]
+        ble->blesettings.bdaddr[5],ble->blesettings.bdaddr[4],ble->blesettings.bdaddr[3], 
+        ble->blesettings.bdaddr[2],ble->blesettings.bdaddr[1],ble->blesettings.bdaddr[0]
     );
     sendCommandResponse(openxc_ControlCommand_Type_DEVICE_ID, true,
                 (char *)ids, strlen(ids));

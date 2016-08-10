@@ -341,6 +341,9 @@ static void receiveCanMessage(DiagnosticsManager* manager,
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }
+        } else if(!response.completed && response.multi_frame) {
+            // Reset the timeout clock while completing the multi-frame receive
+            time::tick(&entry->timeoutClock);
         }
     }
 }

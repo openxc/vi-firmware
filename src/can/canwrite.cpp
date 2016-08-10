@@ -9,7 +9,7 @@ using openxc::util::log::debug;
 
 QUEUE_DEFINE(CanMessage);
 
-void openxc::can::write::buildMessage(const CanSignal* signal, int value,
+void openxc::can::write::buildMessage(const CanSignal* signal, uint64_t value,
         uint8_t data[], size_t length) {
     bitfield_encode_float(value, signal->bitPosition, signal->bitSize,
             signal->factor, signal->offset, data, length);

@@ -5,6 +5,8 @@
 * BREAKING: Removed fine_odometer_since_restart from emulator.
 * Feature: Added sending evented messages from emulator.
 	Evented messages will come at a slower rate then other messages to simulate real world frequency
+* Feature: Add support for multi-frame diagnostic responses (currently just for
+  receiving, not sending)
 
 ## v7.2.0
 

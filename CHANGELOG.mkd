@@ -5,6 +5,8 @@
 * BREAKING: Removed fine_odometer_since_restart from emulator.
 * Feature: Added sending evented messages from emulator.
 	Evented messages will come at a slower rate then other messages to simulate real world frequency
+* Fix: When building emualtor, obd2, or translated_obd2 firmware, those designations will now be
+    indicated in the version number instead of the type number in signals.cpp.
 
 ## v7.2.0
 

@@ -768,6 +768,13 @@ START_TEST (test_validate_version_command)
 }
 END_TEST
 
+START_TEST (test_validate_device_platform_command)
+{
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PLATFORM;
+    ck_assert(validate(&CONTROL_COMMAND));
+}
+END_TEST
+
 START_TEST (test_validate_device_id_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DEVICE_ID;

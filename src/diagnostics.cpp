@@ -7,6 +7,7 @@
 #include "obd2.h"
 #include <bitfield/bitfield.h>
 #include <limits.h>
+#include "config.h"
 
 #define MAX_RECURRING_DIAGNOSTIC_FREQUENCY_HZ 10
 #define DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET 0x8
@@ -24,6 +25,7 @@ using openxc::can::read::publishNumericalMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
+using openxc::config::getConfiguration;
 
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
@@ -642,14 +644,57 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         "using first active: %d", bus->address);
             }
 
-            if(bus == NULL) {
-                debug("No active bus to send diagnostic request");
-                status = false;
-            } else if(bus->rawWritable) {
-                status = handleAuthorizedCommand(manager, bus, command);
-            } else {
-                debug("Raw CAN writes not allowed for bus %d", bus->address);
-                status = false;
+            if(getConfiguration()->emulatedData){
+                    //Checking to see if the message ID is in the "standard" OBD range (7DF or 7E0->7E7)
+                    //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
+                    if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
+                    {
+                        openxc_VehicleMessage message = {0};
+                        message.has_type = true;
+                        message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+                        message.has_diagnostic_response = true;
+                        message.diagnostic_response = {0};
+                        message.diagnostic_response.has_bus = true;
+                        message.diagnostic_response.bus = bus->address;
+                        message.diagnostic_response.has_message_id = true;
+                        //7DF should respond with a random message id between 7e8 and 7ef
+                        //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
+                        if(commandRequest->message_id == 0x7DF)
+                        {
+                            message.diagnostic_response.message_id = rand()%(0x7EF-0x7E8 + 1) + 0x7E8;
+                        }
+                        else if(commandRequest->message_id >= 0x7E0 && commandRequest->message_id <= 0x7E7)
+                        {
+                            message.diagnostic_response.message_id = commandRequest->message_id + 8;
+                        }
+                        message.diagnostic_response.has_mode = true;
+                        message.diagnostic_response.mode = commandRequest->mode;
+                        if(commandRequest->has_pid)
+                        {
+                            message.diagnostic_response.has_pid = true;
+                            message.diagnostic_response.pid = commandRequest->pid;
+                        }
+                        message.diagnostic_response.has_value = true;
+                        message.diagnostic_response.value = rand() % 100;
+                        pipeline::publish(&message, &getConfiguration()->pipeline);
+                    }
+                    else //If it's outside the range, the command_request will return false
+                    {
+                        debug("Sent message ID is outside the valid range for emulator (7DF to 7E7)");
+                        status=false;
+                    }
+                }
+            else
+            {
+                if(bus == NULL) {
+                    debug("No active bus to send diagnostic request");
+                    status = false;
+                } else if(bus->rawWritable) {
+                        status = handleAuthorizedCommand(manager, bus, command);
+                } else {
+                    debug("Raw CAN writes not allowed for bus %d", bus->address);
+                    status = false;
+                }
             }
 
         } else {

@@ -5,10 +5,12 @@
 * BREAKING: Removed fine_odometer_since_restart from emulator.
 * Feature: Added sending evented messages from emulator.
 	Evented messages will come at a slower rate then other messages to simulate real world frequency
+* Feature: Add support for multi-frame diagnostic responses (currently just for
+  receiving, not sending)
 * Feature: VIs running emulator firmware will now respond to basic diagnostic requests from enabler
-    and the command line. The response will mimic the request's bus, message ID, mode, and PID (if sent).
-    The response will also include a randomly generated value between 0 and 100.
-    Recurring diagnostic messages when running emulator firmware are currently not supported.
+  and the command line. The response will mimic the request's bus, message ID, mode, and PID (if sent).
+  The response will also include a randomly generated value between 0 and 100.
+  Recurring diagnostic messages when running emulator firmware are currently not supported.
 
 ## v7.2.0
 

@@ -964,6 +964,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation,
             test_validate_diagnostic_no_multiple_responses);
     tcase_add_test(tc_validation, test_validate_version_command);
+    tcase_add_test(tc_validation, test_validate_device_platform_command);
     tcase_add_test(tc_validation, test_validate_device_id_command);
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);
     tcase_add_test(tc_validation, test_validate_bypass_command);

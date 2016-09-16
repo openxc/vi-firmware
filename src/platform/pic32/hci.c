@@ -11,7 +11,7 @@
 #include "WProgram.h" //for arduino millis  reference
 #include "hci.h"
 #include "libs/STBTLE/list.h"
-
+#define OCF_HAL_READ_CONFIG_DATA            0x000D
 
 #if BLE_CONFIG_DBG_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -718,23 +718,25 @@ int hci_le_set_random_address(tBDAddr bdaddr)
   if (hci_send_req(&rq, FALSE) < 0)
     return BLE_STATUS_TIMEOUT;
   
-  return status;
+  return 0;
 }
 
 int hci_read_bd_addr(tBDAddr bdaddr)
 {
   struct hci_request rq;
   read_bd_addr_rp resp;
+  uint8_t offset = 0x80;
   
   Osal_MemSet(&resp, 0, sizeof(resp));
   
   Osal_MemSet(&rq, 0, sizeof(rq));
-  rq.ogf = OGF_INFO_PARAM;
-  rq.ocf = OCF_READ_BD_ADDR;
-  rq.cparam = NULL;
-  rq.clen = 0;
+  rq.ogf = OGF_VENDOR_CMD;;
+  rq.ocf = 0x0D;//read config data;
+  rq.cparam = &offset;//offset address for mac address
+  rq.clen = 1;
   rq.rparam = &resp;
   rq.rlen = READ_BD_ADDR_RP_SIZE;
+  
   
   if (hci_send_req(&rq, FALSE) < 0)
     return BLE_STATUS_TIMEOUT;

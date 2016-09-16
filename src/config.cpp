@@ -55,7 +55,7 @@ ble::BleDevice bleDevice = {
         allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
     },
     blesettings: {
-        "OpenXC_C5_BTLE",
+        "OPENXC-VI-XXXX",
         adv_min_ms: 100,
         adv_max_ms: 100,
         slave_min_ms : 8, //range 0x0006 to 0x0C80

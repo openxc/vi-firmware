@@ -29,6 +29,7 @@ using openxc::util::log::debug;
 
 const char openxc::payload::messagepack::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::messagepack::DEVICE_ID_COMMAND_NAME[] = "device_id";
+const char openxc::payload::messagepack::DEVICE_PLATFORM_COMMAND_NAME[] = "platform";
 const char openxc::payload::messagepack::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 const char openxc::payload::messagepack::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 const char openxc::payload::messagepack::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
@@ -288,6 +289,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message, cmp_ctx_t *
         typeString = payload::messagepack::VERSION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
         typeString = payload::messagepack::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
+        typeString = payload::messagepack::DEVICE_PLATFORM_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         typeString = payload::messagepack::DIAGNOSTIC_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
@@ -1116,6 +1119,10 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
                     DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
             command->has_type = true;
             command->type = openxc_ControlCommand_Type_DEVICE_ID;
+        } else if(!strncmp(commandNameObject->valuestring,
+                    DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
+            command->has_type = true;
+            command->type = openxc_ControlCommand_Type_PLATFORM;
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
             deserializeDiagnostic(root, command);

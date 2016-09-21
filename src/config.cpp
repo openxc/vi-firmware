@@ -119,6 +119,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
         version: "7.2.1-dev",
+        platform: PLATFORM,
         environmentMode: ENVIRONMENT_MODE,
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,

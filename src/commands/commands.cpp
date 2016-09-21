@@ -10,6 +10,7 @@
 #include "commands/diagnostic_request_command.h"
 #include "commands/version_command.h"
 #include "commands/device_id_command.h"
+#include "commands/device_platform_command.h"
 #include "commands/can_message_write_command.h"
 #include "commands/simple_write_command.h"
 #include "commands/af_bypass_command.h"
@@ -38,6 +39,9 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_DEVICE_ID:
             status = openxc::commands::handleDeviceIdCommmand();
+            break;
+        case openxc_ControlCommand_Type_PLATFORM:
+            status = openxc::commands::handleDevicePlatformCommmand();
             break;
         case openxc_ControlCommand_Type_PASSTHROUGH:
             status = openxc::commands::handlePassthroughModeCommand(command);
@@ -138,6 +142,7 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_VERSION:
         case openxc_ControlCommand_Type_DEVICE_ID:
+        case openxc_ControlCommand_Type_PLATFORM:
         case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
             valid =  true;
             break;

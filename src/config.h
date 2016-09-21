@@ -110,6 +110,7 @@ typedef enum {
 typedef struct {
     int messageSetIndex;
     const char* version;
+    const char* platform;
     const char* environmentMode;
     openxc::payload::PayloadFormat payloadFormat;
     bool recurringObd2Requests;

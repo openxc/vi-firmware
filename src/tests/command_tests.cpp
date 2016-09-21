@@ -768,6 +768,13 @@ START_TEST (test_validate_version_command)
 }
 END_TEST
 
+START_TEST (test_validate_device_platform_command)
+{
+    CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PLATFORM;
+    ck_assert(validate(&CONTROL_COMMAND));
+}
+END_TEST
+
 START_TEST (test_validate_device_id_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DEVICE_ID;
@@ -957,6 +964,7 @@ Suite* suite(void) {
     tcase_add_test(tc_validation,
             test_validate_diagnostic_no_multiple_responses);
     tcase_add_test(tc_validation, test_validate_version_command);
+    tcase_add_test(tc_validation, test_validate_device_platform_command);
     tcase_add_test(tc_validation, test_validate_device_id_command);
     tcase_add_test(tc_validation, test_validate_passthrough_commmand);
     tcase_add_test(tc_validation, test_validate_bypass_command);

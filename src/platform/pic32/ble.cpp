@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stddef.h>proce
+#include <stddef.h>
 #include <plib.h>
 #include <stdbool.h>
 #include <ctype.h>
@@ -104,7 +104,7 @@ static const uint8_t device_gap_name[]  = "CrossChasm";
 uint16_t vtServHandle, appComCharHandle, appRSPCharHandle;
 static uint16_t service_handle, dev_name_char_handle, appearance_char_handle;
 static uint16_t conn_handle=0;
-
+static char device_adv_name[16];
 
 
 #ifdef BLE_NO_ACT_TIMEOUT_ENABLE
@@ -444,7 +444,6 @@ static tBleStatus ST_BLE_Set_Connectable(BleDevice* device)
    {
        return ret;//failed
    }
-  
    adv[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
    ret = strlen(device->blesettings.advname);
    
@@ -589,12 +588,17 @@ bool openxc::interface::ble::initialize(BleDevice* device)
     
     if(ret = hci_read_bd_addr(device->blesettings.bdaddr), ret != BLE_STATUS_SUCCESS){
         debug("Ble mac add read failed");
+		memset(&device->blesettings.bdaddr[0],0xFF,6);		
     }
-    
-    debug("Mac address %x:%x:%x:%x:%x:%x", device->blesettings.bdaddr[0], device->blesettings.bdaddr[1], device->blesettings.bdaddr[2],
-                    device->blesettings.bdaddr[3], device->blesettings.bdaddr[4], device->blesettings.bdaddr[5]);
-    
 
+    //debug("Mac address %x:%x:%x:%x:%x:%x", device->blesettings.bdaddr[0], device->blesettings.bdaddr[1], device->blesettings.bdaddr[2],
+    //                device->blesettings.bdaddr[3], device->blesettings.bdaddr[4], device->blesettings.bdaddr[5]);
+    
+	sprintf(device_adv_name,"OPENXC-VI-%02X%02X",device->blesettings.bdaddr[1],device->blesettings.bdaddr[0]);
+								
+				
+	device->blesettings.advname = (const char*)device_adv_name;
+	
     //Initialize device name charactertistic
     ret = aci_gatt_update_char_value(service_handle, dev_name_char_handle, 0, strlen((const char*)device_gap_name), (uint8_t *)device_gap_name);  
 

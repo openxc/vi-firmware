@@ -75,6 +75,9 @@ SYMBOLS += DEFAULT_USB_PRODUCT_ID=$(DEFAULT_USB_PRODUCT_ID)
 DEFAULT_CAN_ACK_STATUS ?= 0
 SYMBOLS += DEFAULT_CAN_ACK_STATUS=$(DEFAULT_CAN_ACK_STATUS)
 
+ENVIRONMENT_MODE ?= "default_mode"
+SYMBOLS += ENVIRONMENT_MODE="\"$(ENVIRONMENT_MODE)\""
+
 # TODO see https://github.com/openxc/vi-firmware/issues/189
 # ifeq ($(NETWORK), 1)
 # SYMBOLS += __USE_NETWORK__
@@ -216,6 +219,7 @@ endif
 define show_options
 	$(call show_vi_config_variable,PLATFORM)
 	$(call show_vi_config_variable,BOOTLOADER)
+       $(call show_vi_config_variable,ENVIRONMENT_MODE)
 	$(call show_vi_config_variable,TEST_MODE_ONLY)
 	$(call show_vi_config_variable,DEBUG)
 	$(call show_vi_config_variable,MSD_ENABLE)

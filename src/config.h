@@ -75,6 +75,9 @@ typedef enum {
  * messageSetIndex - The index of the currently active message set from the
  *      signals module.
  * version - A string describing the firmware version.
+ * environmentMode - A string describing the what type of firmware it is.
+ *      Modes: default_mode, emulator, obd2, translated_obd2
+ *      "default_mode" is when there is no modifier present (ie: emulator, obd2, etc)
  * payloadFormat - The currently active payload format, from the payload module.
  *      This is used for both input and output.
  * recurringObd2Requests - True if the VI should automatically query for
@@ -108,6 +111,7 @@ typedef struct {
     int messageSetIndex;
     const char* version;
     const char* platform;
+    const char* environmentMode;
     openxc::payload::PayloadFormat payloadFormat;
     bool recurringObd2Requests;
     uint8_t obd2BusAddress;

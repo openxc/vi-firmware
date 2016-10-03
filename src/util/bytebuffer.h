@@ -4,7 +4,7 @@
 #include "emqueue.h"
 #include "commands/commands.h"
 
-QUEUE_DECLARE(uint8_t, 320)
+QUEUE_DECLARE(uint8_t, 512)
 
 namespace openxc {
 namespace util {

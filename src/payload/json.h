@@ -3,6 +3,8 @@
 
 #include "openxc.pb.h"
 
+#define MAX_DIAGNOSTIC_PAYLOAD_SIZE 260
+
 namespace openxc {
 namespace payload {
 namespace json {

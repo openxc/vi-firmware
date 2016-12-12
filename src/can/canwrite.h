@@ -86,7 +86,7 @@ uint64_t encodeNumber(const CanSignal* signal, float value, bool* send);
  * destination - The destination buffer.
  * length - The length of the destination buffer.
  */
-void buildMessage(const CanSignal* signal, int encodedValue,
+void buildMessage(const CanSignal* signal, uint64_t encodedValue,
                 uint8_t destination[], size_t length);
 
 /* Public: Write a CAN signal with the given value to the bus.

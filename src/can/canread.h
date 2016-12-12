@@ -90,6 +90,10 @@ void publishNumericalMessage(const char* name, float value,
         openxc::pipeline::Pipeline* pipeline);
 void publishStringMessage(const char* name, const char* value,
         openxc::pipeline::Pipeline* pipeline);
+void publishStringEventedMessage(const char* name, const char* value, const char* event,
+        openxc::pipeline::Pipeline* pipeline);
+void publishStringEventedBooleanMessage(const char* name, const char* value, bool event,
+        openxc::pipeline::Pipeline* pipeline);
 void publishBooleanMessage(const char* name, bool value,
         openxc::pipeline::Pipeline* pipeline);
 

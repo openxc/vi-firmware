@@ -55,7 +55,7 @@ ble::BleDevice bleDevice = {
         allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_BLE
     },
     blesettings: {
-        "OpenXC_C5_BTLE",
+        "OPENXC-VI-XXXX",
         adv_min_ms: 100,
         adv_max_ms: 100,
         slave_min_ms : 8, //range 0x0006 to 0x0C80
@@ -118,7 +118,9 @@ openxc::telitHE910::TelitDevice telitDevice = {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.2.0",
+        version: "7.2.1-dev",
+        platform: PLATFORM,
+        environmentMode: ENVIRONMENT_MODE,
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
         recurringObd2Requests: DEFAULT_RECURRING_OBD2_REQUESTS_STATUS,
         obd2BusAddress: DEFAULT_OBD2_BUS,
@@ -184,9 +186,16 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
 }
 
 void openxc::config::getFirmwareDescriptor(char* buffer, size_t length) {
-    snprintf(buffer, length, "%s (%s)", getConfiguration()->version,
+    const char* envMode = getConfiguration()->environmentMode;
+    if(strcmp(envMode, "default_mode") != 0)
+    {
+        snprintf(buffer, length, "%s (%s)", getConfiguration()->version, getConfiguration()->environmentMode);
+    }
+    else {
+        snprintf(buffer, length, "%s (%s)", getConfiguration()->version,
             signals::getActiveMessageSet() != NULL ?
                 signals::getActiveMessageSet()->name : "default");
+    }    
 }
 
 #ifdef TELIT_HE910_SUPPORT

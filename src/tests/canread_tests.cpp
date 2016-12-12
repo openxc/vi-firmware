@@ -372,10 +372,10 @@ START_TEST (test_translate_many_signals)
     }
     fail_unless(USB_PROCESSED);
     // 8 signals sent
-    ck_assert_int_eq(10 * 29 + 2, SENT_BYTES);
+    ck_assert_int_eq(15 * 34 + 2, SENT_BYTES);
     // 6 in the output queue
     fail_if(queueEmpty());
-    ck_assert_int_eq(6 * 29, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
+    ck_assert_int_eq(1 * 34, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
 }
 END_TEST
 

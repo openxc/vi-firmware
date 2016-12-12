@@ -21,7 +21,7 @@ using openxc::interface::network::NetworkDevice;
 using openxc::interface::ble::BleDevice;
 using openxc::telitHE910::TelitDevice;
 
-#define MAX_OUTGOING_PAYLOAD_SIZE 256
+#define MAX_OUTGOING_PAYLOAD_SIZE 340
 
 namespace openxc {
 namespace pipeline {

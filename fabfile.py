@@ -126,6 +126,7 @@ def build_options():
     DEFAULT_COMPILER_OPTIONS = {
         'DEBUG': env.debug,
         'MSD_ENABLE' : env.msd_enable,
+        'ENVIRONMENT_MODE' : 'default_mode',
         'DEFAULT_FILE_GENERATE_SECS' : env.default_file_generate_secs,
         'BOOTLOADER': env.bootloader,
         'TEST_MODE_ONLY': env.test_mode_only,
@@ -151,11 +152,14 @@ def build_options():
     if env.mode == 'emulator':
         options['DEFAULT_EMULATED_DATA_STATUS'] = True
         options['DEFAULT_POWER_MANAGEMENT'] = "ALWAYS_ON"
+        options['ENVIRONMENT_MODE'] = env.mode
     elif env.mode == 'translated_obd2':
         options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
         options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+        options['ENVIRONMENT_MODE'] = env.mode
     elif env.mode == 'obd2':
         options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+        options['ENVIRONMENT_MODE'] = env.mode
     return " ".join((build_option(key, value)
         for key, value in options.iteritems()))
 

@@ -16,6 +16,7 @@ using openxc::util::log::debug;
 
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
+const char openxc::payload::json::DEVICE_PLATFORM_COMMAND_NAME[] = "platform";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
@@ -75,7 +76,7 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
         cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
                 message->diagnostic_response.value);
     } else if(message->diagnostic_response.has_payload) {
-        char encodedData[67];
+        char encodedData[MAX_DIAGNOSTIC_PAYLOAD_SIZE];
         const char* maxAddress = encodedData + sizeof(encodedData);
         char* encodedDataIndex = encodedData;
         encodedDataIndex += sprintf(encodedDataIndex, "0x");
@@ -99,6 +100,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::VERSION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
+        typeString = payload::json::DEVICE_PLATFORM_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
@@ -571,6 +574,10 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
                 command->has_type = true;
                 command->type = openxc_ControlCommand_Type_DEVICE_ID;
+            } else if(!strncmp(commandNameObject->valuestring,
+                        DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
+                command->has_type = true;
+                command->type = openxc_ControlCommand_Type_PLATFORM;
             } else if(!strncmp(commandNameObject->valuestring,
                         DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
                 deserializeDiagnostic(root, command);

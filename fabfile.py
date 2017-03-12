@@ -29,6 +29,7 @@ env.default_file_generate_secs = 180
 env.test_mode_only = False
 
 env.boards = {
+    "linux": {"name": "LINUX", "extension": "bin"},
     "reference": {"name": "FORDBOARD", "extension": "bin"},
     "chipkit": {"name": "CHIPKIT", "extension": "hex"},
     "c5": {"name": "CROSSCHASM_C5_BT", "extension": "hex"}, #for backwards compatibility
@@ -208,7 +209,7 @@ def msd_enable():
 
 @task
 def test_mode_only():
-    if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble":
+    if env.board == "c5" or  env.board ==  "c5bt" or env.board == "c5cell" or env.board == "c5ble" or env.board == "linux":
         env.test_mode_only = True
     else:
         abort("TEST MODE is only defined for crosschasm platform")
@@ -292,6 +293,10 @@ def baremetal():
 @task
 def chipkit():
     env.board = 'chipkit'
+
+@task
+def linux():
+    env.board = 'linux'
 
 @task
 def reference():
@@ -386,3 +391,4 @@ def release(skip_tests=False):
         filename = "openxc-vi-firmware-%s.zip" % (env.firmware_release)
         archive = "%s/%s/%s" % (env.root_dir, env.releases_directory, filename)
         compress_release(env.temporary_path, archive)
+

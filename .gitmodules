@@ -47,3 +47,6 @@
 [submodule "src/libs/MLA"]
 	path = src/libs/MLA
 	url = https://github.com/openxc/MLA
+[submodule "src/libs/mqtt-paho-c"]
+	path = src/libs/mqtt-paho-c
+	url = https://github.com/eclipse/paho.mqtt.embedded-c

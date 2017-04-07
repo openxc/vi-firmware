@@ -4,6 +4,7 @@
 #include "config.h"
 #include "payload/payload.h"
 #include "power.h"
+#include "MQTTPacket.h"
 
 /*PRIVATE VARIABLES*/
 
@@ -27,64 +28,44 @@ using openxc::power::enableWatchdogTimer;
 
 API_RETURN openxc::server_api::serverPOSTdata(char* deviceId, char* host, char* data, unsigned int len) {
 
-    static API_RETURN ret = None;
-    static http::httpClient client;
-    static char header[256];
-    static unsigned int state = 0;
-    static const char* ctJSON = "application/json";
-    static const char* ctPROTOBUF = "application/x-protobuf";
-    
-    switch(state)
-    {
-        default:
-            state = 0;
-        case 0:
-            ret = Working;
-            // compose the header for POST /data
-            sprintf(header, "POST /api/%s/data HTTP/1.1\r\n"
-                    "Content-Length: %u\r\n"
-                    "Content-Type: %s\r\n"
-                    "Host: %s\r\n"
-                    "Connection: Keep-Alive\r\n\r\n", deviceId, len, getConfiguration()->payloadFormat == PayloadFormat::PROTOBUF ? ctPROTOBUF : ctJSON, host);
-            // configure the HTTP client
-            client = http::httpClient();
-            client.socketNumber = POST_DATA_SOCKET;
-            client.requestHeader = header;
-            client.requestBody = data;
-            client.requestBodySize = len;
-            client.cbGetRequestData = NULL;
-            client.cbPutResponseData = NULL;
-            client.sendSocketData = &openxc::telitHE910::writeSocket;
-            client.isReceiveDataAvailable = &openxc::telitHE910::isSocketDataAvailable;
-            client.receiveSocketData = &openxc::telitHE910::readSocket;
-            state = 1;
-            break;
-            
-        case 1:
-            // run the HTTP client
-            switch(client.execute())
-            {
-                case http::HTTP_READY:
-                case http::HTTP_SENDING_REQUEST_HEADER:
-                case http::HTTP_SENDING_REQUEST_BODY:
-                case http::HTTP_RECEIVING_RESPONSE:
-                case http::HTTP_WAIT:
-                    // nothing to do while client is in progress
-                    break;
-                case http::HTTP_COMPLETE:
-                    ret = Success;
-                    state = 0;
-                    break;
-                case http::HTTP_FAILED:
-                    ret = Failed;
-                    state = 0;
-                    break;
-            }
-            break;
-    }
-    
-    return ret;
+	static API_RETURN ret = None;
+	char buf[SEND_BUFFER_SIZE + 64]; //to match postBuffer
+	int buflen = sizeof(buf);
+	int mlen = 0;
 
+	MQTTPacket_connectData packet = MQTTPacket_connectData_initializer;
+	MQTTString topicString = MQTTString_initializer;
+	
+	char topicbuf[256];
+    snprintf(topicbuf, sizeof(topicbuf), "%s%s%s", "pid/", deviceId, "/data");
+	//topicString.cstring = "pid/352682050122968/data";
+	topicString.cstring = topicbuf;
+	
+	packet.clientID.cstring = "xchasm";
+	packet.keepAliveInterval = 20;
+	packet.cleansession = 1;
+	//packet.username.cstring = "testuser";
+	//packet.password.cstring = "testpassword";
+	packet.MQTTVersion = 3;
+	//int payloadlen = strlen(data);
+	
+	mlen  = MQTTSerialize_connect((unsigned char *)buf, buflen, &packet);
+	mlen += MQTTSerialize_publish((unsigned char *)(buf + mlen), buflen - mlen, 0, 0, 0, 0, topicString, (unsigned char *)data, (int)len);
+	mlen += MQTTSerialize_disconnect((unsigned char *)(buf + mlen), buflen - mlen);
+	
+	unsigned int *myptr = (unsigned int*)&mlen;
+	char *mybuf = buf;	
+
+	if(openxc::telitHE910::writeSocket(POST_DATA_SOCKET, mybuf, myptr))
+	{
+		ret = Success;
+	}
+	else
+	{
+		ret = Failed;
+	}
+		
+	return ret;
 }
 
 API_RETURN openxc::server_api::serverGETfirmware(char* deviceId, char* host) {

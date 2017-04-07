@@ -13,6 +13,7 @@
   and the command line. The response will mimic the request's bus, message ID, mode, and PID (if sent).
   The response will also include a randomly generated value between 0 and 100.
   Recurring diagnostic messages when running emulator firmware are currently not supported.
+* Add MQTT support using the Eclipse Paho C/C++ library.  Breaks HTTP posts for now
 
 ## v7.2.0
 

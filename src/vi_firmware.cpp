@@ -281,9 +281,10 @@ void firmwareLoop() {
             if(getConfiguration()->telit->config.globalPositioningSettings.gpsEnable) {
                 telit::getGPSLocation();
             }
-            server_task::firmwareCheck(getConfiguration()->telit);
+			//TODO: MQTT server does not support firmware and command checks yet
+            //server_task::firmwareCheck(getConfiguration()->telit);
             server_task::flushDataBuffer(getConfiguration()->telit);
-            server_task::commandCheck(getConfiguration()->telit);
+            //server_task::commandCheck(getConfiguration()->telit);
         }
         #elif defined BLE_SUPPORT
         ble::read(getConfiguration()->ble); 

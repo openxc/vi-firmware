@@ -134,7 +134,7 @@ endif
 
 
 
-VALID_PLATFORMS = CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_C5_BT CROSSCHASM_C5_BLE CROSSCHASM_C5_CELLULAR
+VALID_PLATFORMS = LINUX CHIPKIT BLUEBOARD FORDBOARD CROSSCHASM_C5 CROSSCHASM_C5_BT CROSSCHASM_C5_BLE CROSSCHASM_C5_CELLULAR
 
 #for backwards compatibility
 ifeq ($(PLATFORM), CROSSCHASM_C5)
@@ -206,6 +206,8 @@ else ifeq ($(PLATFORM), FORDBOARD)
 include platform/lpc17xx/lpc17xx.mk
 else ifeq ($(PLATFORM), BLUEBOARD)
 include platform/lpc17xx/lpc17xx.mk
+else ifeq ($(PLATFORM), LINUX)
+include platform/linux/linux.mk
 else ifneq ($(PLATFORM), TESTING)
 ifdef PLATFORM
 $(error "$(PLATFORM) is not a valid build platform - choose from $(VALID_PLATFORMS)")

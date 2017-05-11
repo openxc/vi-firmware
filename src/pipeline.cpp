@@ -241,11 +241,9 @@ void openxc::pipeline::process(Pipeline* pipeline) {
         fs::processSendQueue(pipeline->fs);
     }
     #endif
-    #ifndef UART_LOGGING_DISABLE
     if(uart::connected(pipeline->uart)) {
         uart::processSendQueue(pipeline->uart);
     }
-    #endif
     if(pipeline->network != NULL) {
        network::processSendQueue(pipeline->network);
     }

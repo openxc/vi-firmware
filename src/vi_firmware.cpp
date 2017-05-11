@@ -198,11 +198,9 @@ void initializeIO() {
     #ifdef FS_SUPPORT    
     fs::initialize(getConfiguration()->fs);
     #endif    
-    usb::initialize(&getConfiguration()->usb);
-    
-    #ifndef UART_LOGGING_DISABLE
+
+    usb::initialize(&getConfiguration()->usb);    
     uart::initialize(&getConfiguration()->uart); 
-    #endif
     
     #ifdef BLE_SUPPORT
     ble::initialize(getConfiguration()->ble);
@@ -213,6 +211,8 @@ void initializeIO() {
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
     
+    debug("ERIC: dummy can init call after uart setup - remove");
+    initializeAllCan();
 }
 
 void initializeVehicleInterface() {

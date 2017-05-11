@@ -4,23 +4,28 @@
 #include "util/log.h"
 #include "gpio.h"
 
+//pin numbers in comments below from actual schematic
+//Since we use ardunio libs, actual number comes from 
+//../dependencies/mpide/hardware/pic32/variants/Max32/Board_Data.c
+
+
 #if defined(CROSSCHASM_C5_BT)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // PORTD BIT10 (RD10)
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // pin #44 PORTD BIT10 (RD10)
 #elif defined(CROSSCHASM_C5_CELLULAR)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // PORTD BIT10 (RD10)
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         38 //  pin #44 PORTD BIT10 (RD10)
 #elif defined(CROSSCHASM_C5_BLE)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
-    #define CAN1_TRANSCEIVER_ENABLE_PIN         5 // PORTD BIT1 (RD1)    
+    #define CAN1_TRANSCEIVER_ENABLE_PIN         5 // pin #49 PORTD BIT1 (RD1)
+
+    #define CAN2_TRANSCEIVER_SWITCHED
+    #define CAN2_TRANSCEIVER_ENABLE_POLARITY    0
+    #define CAN2_TRANSCEIVER_ENABLE_PIN         37 // pin #60 PMD0/RE0
 #endif
-
-
-
-
 
 #define CAN_RX_CHANNEL 1
 #define BUS_MEMORY_BUFFER_SIZE 2 * 8 * 16
@@ -163,11 +168,24 @@ void openxc::can::deinitialize(CanBus* bus) {
     switchControllerMode(bus, CAN::DISABLE);
 
     // disable off-chip line driver
-    #if defined(CAN1_TRANSCEIVER_SWITCHED)
-    GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
-    gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
-    gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
-    #endif
+    if(bus->address == 1) {
+      debug("disable bus 1");
+      #if defined(CAN1_TRANSCEIVER_SWITCHED)
+      GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
+      gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+      gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
+      #endif
+    } else if(bus->address == 2) {
+      debug("disable bus 2");
+      #if defined(CAN2_TRANSCEIVER_SWITCHED)
+      GpioValue value = CAN2_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_LOW : GPIO_VALUE_HIGH;
+      gpio::setDirection(0, CAN2_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+      gpio::setValue(0, CAN2_TRANSCEIVER_ENABLE_PIN, value);
+      #endif
+    } else {
+      // TODO an error if the address isn't valid
+      debug("disable invalid bus - should be error");
+    }
 }
 
 /* Called by the Interrupt Service Routine whenever an event we registered for
@@ -237,11 +255,24 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     CAN_CONTROLLER(bus)->enableFeature(CAN::WAKEUP_BUS_FILTER, true);
 
     // switch ON off-chip CAN line drivers (if necessary)
-    #if defined(CAN1_TRANSCEIVER_SWITCHED)
-    GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
-    gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
-    gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
-    #endif
+    if(bus->address == 1) {
+      debug("enable bus 1");
+      #if defined(CAN1_TRANSCEIVER_SWITCHED)
+      GpioValue value = CAN1_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
+      gpio::setDirection(0, CAN1_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+      gpio::setValue(0, CAN1_TRANSCEIVER_ENABLE_PIN, value);
+      #endif
+    } else if(bus->address == 2) {
+      debug("enable bus 2");
+      #if defined(CAN2_TRANSCEIVER_SWITCHED)
+      GpioValue value = CAN2_TRANSCEIVER_ENABLE_POLARITY ? GPIO_VALUE_HIGH : GPIO_VALUE_LOW;
+      gpio::setDirection(0, CAN2_TRANSCEIVER_ENABLE_PIN, GPIO_DIRECTION_OUTPUT);
+      gpio::setValue(0, CAN2_TRANSCEIVER_ENABLE_PIN, value);
+      #endif
+    } else {
+      // TODO an error if the address isn't valid
+      debug("enable invalid bus - should be error");
+    }
 
     // move CAN module to OPERATIONAL state (go on bus)
     CAN::OP_MODE mode;
@@ -261,5 +292,5 @@ void openxc::can::initialize(CanBus* bus, bool writable, CanBus* buses,
     // TODO an error if the address isn't valid
     CAN_CONTROLLER(bus)->attachInterrupt(bus->address == 1 ?
             handleCan1Interrupt : handleCan2Interrupt);
-    debug("Done.");
+    debug("CAN setup done.");
 }

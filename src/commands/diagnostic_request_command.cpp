@@ -73,3 +73,57 @@ bool openxc::commands::validateDiagnosticRequest(openxc_VehicleMessage* message)
     return valid;
 }
 
+
+bool openxc::commands::handleDeviceUpdateCommmand(openxc_ControlCommand* command) {
+    //put in commands to change LED color
+    //lights::enable(lights::LIGHT_A, lights::COLORS.green);
+    return true;
+}
+
+bool openxc::commands::validateDeviceUpdateCommand(openxc_VehicleMessage* message) {
+    bool valid = true;
+    if(message->has_control_command) {
+        openxc_ControlCommand* command = &message->control_command;
+        if(command->has_type &&
+           command->type == openxc_ControlCommand_Type_UPDATE){
+            if(command->has_update_request) {
+                openxc_UpdateControlCommand update_request = command->update_request;
+                if (update_request.has_action)
+                {
+                    if (update_request.action == openxc_UpdateControlCommand_Action_START) {
+                        if (!update_request.has_size) {
+                            valid = false;
+                            debug("Size of file not available with start command");
+                        }
+                        
+                    }
+                    else if (update_request.action == openxc_UpdateControlCommand_Action_FILE) {
+                        if (!(update_request.has_number && update_request.has_data)) {
+                            valid = false;
+                            debug("count or data not available");
+                        }
+                    }
+                    else if (update_request.action == openxc_UpdateControlCommand_Action_STOP) {
+                        //no further validation required here
+                    }
+                }
+
+            } else {
+                valid = false;
+                debug("Update request is malformed, missing data");
+            }
+        } else {
+            valid = false;
+        }
+    } else {
+       valid = false;
+    }
+    if(valid == false)
+    {
+        debug("OTA: validateUpdateCommand status: false");
+    } else {
+        debug("OTA: validateUpdateCommand status: true");
+    }
+    return valid;
+}
+

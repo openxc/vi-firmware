@@ -10,6 +10,7 @@
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
 #include <limits.h>
+#include "lights.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -30,6 +31,7 @@ namespace diagnostics = openxc::diagnostics;
 namespace usb = openxc::interface::usb;
 namespace uart = openxc::interface::uart;
 namespace pipeline = openxc::pipeline;
+namespace lights = openxc::lights;
 
 bool openxc::commands::handleDevicePlatformCommmand() {
     char* platform_name;

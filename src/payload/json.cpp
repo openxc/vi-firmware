@@ -17,6 +17,7 @@ using openxc::util::log::debug;
 const char openxc::payload::json::VERSION_COMMAND_NAME[] = "version";
 const char openxc::payload::json::DEVICE_ID_COMMAND_NAME[] = "device_id";
 const char openxc::payload::json::DEVICE_PLATFORM_COMMAND_NAME[] = "platform";
+const char openxc::payload::json::DEVICE_UPDATE_COMMAND_NAME[] = "update";
 const char openxc::payload::json::DIAGNOSTIC_COMMAND_NAME[] = "diagnostic_request";
 const char openxc::payload::json::PASSTHROUGH_COMMAND_NAME[] = "passthrough";
 const char openxc::payload::json::ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[] = "af_bypass";
@@ -102,6 +103,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
         typeString = payload::json::DEVICE_PLATFORM_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_UPDATE) {
+        typeString = payload::json::DEVICE_UPDATE_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         typeString = payload::json::DIAGNOSTIC_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PASSTHROUGH) {
@@ -301,6 +304,53 @@ static void deserializeAfBypass(cJSON* root, openxc_ControlCommand* command) {
     }
 }
 
+static void deserializeUpdate(cJSON* root, openxc_ControlCommand* command) {
+    command->has_type = true;
+    command->type = openxc_ControlCommand_Type_UPDATE;
+    command->has_update_request = true;
+    
+    cJSON* action = cJSON_GetObjectItem(root, "action");
+    if(action != NULL) {// && action->type == cJSON_String) {
+        command->update_request.has_action = true;
+        debug("OTA: deserializeUpdate: action %s", action->valuestring);
+        
+        if(!strcmp(action->valuestring, "start")) {
+            command->update_request.action = openxc_UpdateControlCommand_Action_START;
+        } else if(!strcmp(action->valuestring, "file")) {
+            command->update_request.action = openxc_UpdateControlCommand_Action_FILE;
+        } else if(!strcmp(action->valuestring, "stop")) {
+            command->update_request.action = openxc_UpdateControlCommand_Action_STOP;
+        } else {
+            command->update_request.has_action = false;
+        }
+    }
+    
+    cJSON* data = cJSON_GetObjectItem(root, "data");
+    if(data != NULL) // && action->type == cJSON_Array??? or is it String???)
+    {
+        debug("OTA: deserializeUpdate: data not null");
+        command->update_request.has_data = true;
+        command->update_request.data.size = dehexlify(data->valuestring,
+                                                    command->update_request.data.bytes,
+                                                    sizeof(((openxc_UpdateControlCommand*)0)->data.bytes));
+        
+    }
+    
+    cJSON* number = cJSON_GetObjectItem(root, "number");
+    if(number != NULL && number->valueint > 0) {
+        debug("OTA: deserializeUpdate: number: %d", number->valueint);
+        command->update_request.has_number = true;
+        command->update_request.number = number->valueint;
+    }
+    
+    cJSON* size = cJSON_GetObjectItem(root, "size");
+    if(size != NULL && size->valuedouble > 0) {
+        debug("OTA: deserializeUpdate: size %lf", size->valuedouble);
+        command->update_request.has_size = true;
+        command->update_request.size = size->valuedouble;
+    }
+    
+}
 static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
     command->has_type = true;
     command->type = openxc_ControlCommand_Type_DIAGNOSTIC;
@@ -578,6 +628,9 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
                 command->has_type = true;
                 command->type = openxc_ControlCommand_Type_PLATFORM;
+           } else if(!strncmp(commandNameObject->valuestring,
+                        DEVICE_UPDATE_COMMAND_NAME, strlen(DEVICE_UPDATE_COMMAND_NAME))) {
+                deserializeUpdate(root, command);
             } else if(!strncmp(commandNameObject->valuestring,
                         DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
                 deserializeDiagnostic(root, command);

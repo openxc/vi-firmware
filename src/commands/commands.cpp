@@ -11,6 +11,7 @@
 #include "commands/version_command.h"
 #include "commands/device_id_command.h"
 #include "commands/device_platform_command.h"
+//#include "commands/device_update_command.h"
 #include "commands/can_message_write_command.h"
 #include "commands/simple_write_command.h"
 #include "commands/af_bypass_command.h"
@@ -19,12 +20,19 @@
 #include "commands/modem_config_command.h"
 #include "commands/rtc_config_command.h"
 #include "commands/sd_mount_status_command.h"
-
+#include "lights.h"
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
 using openxc::payload::PayloadFormat;
 using openxc::interface::InterfaceType;
+/***************************/
+namespace lights = openxc::lights;
+
+double firmwareUpdateSize = 0;
+uint32_t count;
+openxc_UpdateMessage_data_t file;
+/***************************/
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
@@ -42,6 +50,46 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_PLATFORM:
             status = openxc::commands::handleDevicePlatformCommmand();
+            break;
+        case openxc_ControlCommand_Type_UPDATE:
+             /*lights::enable(lights::LIGHT_A, lights::COLORS.green);
+             status = true;*/
+             //status = openxc::commands::handleDeviceUpdateCommand(command);
+            {
+             //when the whole firmware is received, do IAP
+             //Start command gives file size
+             //use a static variable to add on to the byte array
+             //EOF msg to know when to do the IAP
+                debug("OTA: Update command being handled");
+                openxc_UpdateControlCommand update_request = command->update_request;
+                static PB_BYTES_ARRAY_T(4000) firmwareFile;
+                if (update_request.has_action)
+                {
+                    if (update_request.action == openxc_UpdateControlCommand_Action_START) {
+                        // create array to store the file that's coming next
+                        //TODO: dynamic allocation with checks for runtime failures
+                        firmwareFile.size = update_request.size;;
+                        
+                    }
+                    else if (update_request.action == openxc_UpdateControlCommand_Action_FILE) {
+                        //int count = update_request.number;
+                        // copy data
+                        //memcpy(&firmwareFile.bytes[(count - 1) * 128],&update_request.data.bytes, update_request.data.size);
+                    }
+                    else if (update_request.action == openxc_UpdateControlCommand_Action_STOP) {
+                        //file has been received.
+                        //TODO: check if received == file size that was given
+                        //TODO: return a response to the phone
+                        //perform IAP
+                        
+                    }
+                }
+                
+                lights::enable(lights::LIGHT_A, lights::COLORS.green);
+                
+                
+            
+            }
             break;
         case openxc_ControlCommand_Type_PASSTHROUGH:
             status = openxc::commands::handlePassthroughModeCommand(command);
@@ -97,6 +145,7 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
                     handleSimple(&message);
                     break;
                 case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+                        debug("OTA: Control command being handled");
                     handleComplexCommand(&message);
                     break;
                 default:
@@ -104,6 +153,7 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
                     break;
                 }
             } else {
+                lights::enable(lights::LIGHT_A, lights::COLORS.red);
                 debug("Incoming message is complete but invalid");
             }
         } else {
@@ -140,6 +190,9 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_PAYLOAD_FORMAT:
             valid = openxc::commands::validatePayloadFormatCommand(message);
             break;
+        case openxc_ControlCommand_Type_UPDATE:
+            valid = openxc::commands::validateDeviceUpdateCommand(message);
+            break;
         case openxc_ControlCommand_Type_VERSION:
         case openxc_ControlCommand_Type_DEVICE_ID:
         case openxc_ControlCommand_Type_PLATFORM:
@@ -156,6 +209,12 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
             valid = false;
             break;
         }
+    }
+    if(valid == false)
+    {
+        debug("OTA: validateControlCommand status: false");
+    } else {
+        debug("OTA: validateControlCommand status: true");
     }
     return valid;
 }

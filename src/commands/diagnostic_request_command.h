@@ -8,6 +8,8 @@ namespace commands {
 
 bool handleDiagnosticRequestCommand(openxc_ControlCommand* command);
 bool validateDiagnosticRequest(openxc_VehicleMessage* message);
+bool handleDeviceUpdateCommmand(openxc_ControlCommand* command);
+bool validateDeviceUpdateCommand(openxc_VehicleMessage* message);
 
 } // namespace commands
 } // namespace openxc

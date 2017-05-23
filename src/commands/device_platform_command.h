@@ -5,7 +5,6 @@ namespace openxc {
 namespace commands {
 
 bool handleDevicePlatformCommmand();
-
 } // namespace commands
 } // namespace openxc
 

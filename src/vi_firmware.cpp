@@ -210,9 +210,7 @@ void initializeIO() {
     #endif
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
-    
-    debug("ERIC: dummy can init call after uart setup - remove");
-    initializeAllCan();
+
 }
 
 void initializeVehicleInterface() {

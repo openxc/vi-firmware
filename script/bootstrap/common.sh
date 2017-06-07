@@ -236,6 +236,14 @@ pre-configured Vagrant environment. See the docs for more information."
     fi
     set -e
 
+    #https://cryptography.io/en/latest/installation/#building-cryptography-on-linux
+    #cryptography is dependency of pyparsing - need to ensure other packages first
+    #otherwise cffi error
+    if [ $OS == "linux" ]; then
+	echo "Installing libffi-dev"
+	_install "libffi-dev"
+    fi
+    
     if ! command -v python >/dev/null 2>&1; then
         echo "Installing Python..."
         _install "python"

@@ -365,7 +365,7 @@ START_TEST (test_translate_many_signals)
 {
     getConfiguration()->pipeline.uart = NULL;
     ck_assert_int_eq(0, SENT_BYTES);
-    for(int i = 7; i < 23; i++) {
+    for(int i = 7; i < 19; i++) {
         can::read::translateSignal(&getSignals()[i],
                 &TEST_MESSAGE, getSignals(), getSignalCount(), &getConfiguration()->pipeline);
         fail_unless(getSignals()[i].received);

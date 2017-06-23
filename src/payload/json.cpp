@@ -76,7 +76,7 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
         cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
                 message->diagnostic_response.value);
     } else if(message->diagnostic_response.has_payload) {
-        char encodedData[67];
+        char encodedData[MAX_DIAGNOSTIC_PAYLOAD_SIZE];
         const char* maxAddress = encodedData + sizeof(encodedData);
         char* encodedDataIndex = encodedData;
         encodedDataIndex += sprintf(encodedDataIndex, "0x");

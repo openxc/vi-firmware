@@ -105,7 +105,7 @@ wireless I/O  with the VI.
 The VI will send all messages it is configured to received out over the UART
 interface using the OpenXC message format. The data may be serialized as either
 JSON or protocol buffers, depending on the selected output format. Each message
-is followed by a ``\r\n`` delimiter.
+is followed by a ``\0`` delimiter.
 
 The UART interface also accepts all valid OpenXC commands. JSON is the only
 support format for commands in this version. Commands must be delimited with a
@@ -125,7 +125,7 @@ go about 100KB/s.
 The VI will publish all messages it is configured to received to USB bulk ``IN``
 endpoint 2 using the OpenXC message format. The data may be serialized as either
 JSON or protocol buffers, depending on the selected output format. Each message
-is followed by a ``\r\n`` delimiter. A larger read request from the host request
+is followed by a ``\0`` delimiter. A larger read request from the host request
 will allow more messages to be batched together into one USB request and give
 high overall throughput (with the downside of introducing delay depending on the
 size of the request).
@@ -136,7 +136,7 @@ Commands must be delimited with a ``\0`` (NULL) character. Commands must
 be no more than 256 bytes (4 USB packets).
 
 Finally, the VI publishes log messages to bulk ``IN`` endpoint 11 when compiled
-with the ``DEBUG`` flag. The log messages are delimited with ``\r\n``.
+with the ``DEBUG`` flag. The log messages are delimited with ``\0``.
 
 If you are using one of the support libraries (e.g. `openxc-python
 <https://github.com/openxc/openxc-python>`_ or `openxc-android

@@ -8,8 +8,8 @@ top of things.
 ## Reporting an Issue
 
 * Make sure you have a [GitHub account](https://github.com/signup/free)
-* Check if a ticket already exists for your issue on [GitHub](gh-issues).
-* If one does not already exist, [create a new ticket](gh-issues)
+* Check if a ticket already exists for your issue on [GitHub](https://github.com/openxc/vi-firmware/issues).
+* If one does not already exist, [create a new ticket](https://github.com/openxc/vi-firmware/issues/new)
   * Clearly describe the issue including steps to reproduce when it is a bug.
   * Make sure you include in the earliest version that you know has the issue.
 

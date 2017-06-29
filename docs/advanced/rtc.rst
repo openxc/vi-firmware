@@ -12,4 +12,7 @@ Example JSON command
 
 { "command": "rtc_configuration", "unix_time": "1448551563"}
 
+To set the RTC to the correct unix time on Windows Git Bash, Mac, or Linux shell, use the following command:
 
+``% TIME=$(date+%s)``
+``$ openxc-control-set --time $TIME``

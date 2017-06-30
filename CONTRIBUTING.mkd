@@ -15,7 +15,7 @@ top of things.
 
 ## Making Changes
 
-* If you haven't already, create a new issue on [GitHub](gh-issues) for your bug
+* If you haven't already, create a new issue on [GitHub](https://github.com/openxc/vi-firmware/issues/new) for your bug
   fix or new feature.
 * Fork the repository on GitHub
 * Create a topic branch from where you want to base your work.

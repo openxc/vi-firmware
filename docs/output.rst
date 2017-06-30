@@ -139,8 +139,8 @@ Finally, the VI publishes log messages to bulk ``IN`` endpoint 11 when compiled
 with the ``DEBUG`` flag. The log messages are delimited with ``\0``.
 
 If you are using one of the support libraries (e.g. `openxc-python
-<https://github.com/openxc/openxc-python>`_ or `openxc-android
-<https://github.com/openxc/openxc-android>`_, you don't need to worry about the
+<https://github.com/openxc/openxc-python/>`_ or `openxc-android
+<https://github.com/openxc/openxc-android/>`_, you don't need to worry about the
 details of the USB device driver, but for creating new libraries the endpoints
 are documented here.
 

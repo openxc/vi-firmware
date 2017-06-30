@@ -30,7 +30,7 @@ top of things.
 * Make sure your commit messages are in the [proper format](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 * Make sure you have added the necessary tests for your changes in the
   `openxc-it` sub-project
-* Run the [full test suite](https://github.com/openxc/vi-firmware/blob/master/README_developers.mkd) to assure nothing else was accidentally broken.
+* Run the [full test suite](http://vi-firmware.openxcplatform.com/en/master/testing.html#test-suite) to assure nothing else was accidentally broken.
 
 ## Submitting Changes
 
@@ -42,6 +42,6 @@ top of things.
 # Additional Resources
 
 * [General GitHub documentation](http://help.github.com/)
-* [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
+* [GitHub pull request documentation](https://help.github.com/articles/about-pull-requests/)
 
 [gh-issues]: https://github.com/openxc/vi-firmware/issues

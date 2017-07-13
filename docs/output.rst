@@ -74,6 +74,15 @@ Device ID Query
 
     openxc-control id
 
+.. _platform-query:
+
+Platform Query
+---------------
+
+.. code-block:: sh
+
+    openxc-control platform
+
 Set CAN Message Passthrough Status
 ----------------------------------
 

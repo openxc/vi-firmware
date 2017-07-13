@@ -38,8 +38,7 @@ e.g. for the ``CHIPKIT`` platform it will be at
 Finally, test that you can receive the emulated data output stream using the
 OpenXC Python library:
 
-#. You should already have the OpenXC Python library installed after running the
-   ``bootstrap.sh`` script, but if not, `install the library
+#. If you don't already have the OpenXC Python library installed, `install the library
    <http://python.openxcplatform.com/#installation>`_ with ``pip``. Don't forget
    a `USB backend <http://python.openxcplatform.com/en/latest/#usb>`_.
 #. Attach the programmed VI to your computer with a USB cable. In Windows,

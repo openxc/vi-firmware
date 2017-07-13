@@ -8,14 +8,14 @@ top of things.
 ## Reporting an Issue
 
 * Make sure you have a [GitHub account](https://github.com/signup/free)
-* Check if a ticket already exists for your issue on [GitHub](gh-issues).
-* If one does not already exist, [create a new ticket](gh-issues)
+* Check if a ticket already exists for your issue on [GitHub](https://github.com/openxc/vi-firmware/issues).
+* If one does not already exist, [create a new ticket](https://github.com/openxc/vi-firmware/issues/new)
   * Clearly describe the issue including steps to reproduce when it is a bug.
   * Make sure you include in the earliest version that you know has the issue.
 
 ## Making Changes
 
-* If you haven't already, create a new issue on [GitHub](gh-issues) for your bug
+* If you haven't already, create a new issue on [GitHub](https://github.com/openxc/vi-firmware/issues/new) for your bug
   fix or new feature.
 * Fork the repository on GitHub
 * Create a topic branch from where you want to base your work.
@@ -30,7 +30,7 @@ top of things.
 * Make sure your commit messages are in the [proper format](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 * Make sure you have added the necessary tests for your changes in the
   `openxc-it` sub-project
-* Run the [full test suite](https://github.com/openxc/vi-firmware/blob/master/README_developers.mkd) to assure nothing else was accidentally broken.
+* Run the [full test suite](http://vi-firmware.openxcplatform.com/en/master/testing.html#test-suite) to assure nothing else was accidentally broken.
 
 ## Submitting Changes
 
@@ -42,6 +42,6 @@ top of things.
 # Additional Resources
 
 * [General GitHub documentation](http://help.github.com/)
-* [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
+* [GitHub pull request documentation](https://help.github.com/articles/about-pull-requests/)
 
 [gh-issues]: https://github.com/openxc/vi-firmware/issues

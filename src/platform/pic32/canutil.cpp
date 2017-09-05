@@ -4,8 +4,8 @@
 #include "util/log.h"
 #include "gpio.h"
 
-//pin numbers in comments below from actual schematic
-//Since we use ardunio libs, actual number comes from 
+//pin numbers and names in comments below from actual schematic
+//Since we use ardunio libs, actual number comes from
 //../dependencies/mpide/hardware/pic32/variants/Max32/Board_Data.c
 
 
@@ -13,10 +13,20 @@
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
     #define CAN1_TRANSCEIVER_ENABLE_PIN         38 // pin #44 PORTD BIT10 (RD10)
+
+    #define CAN2_TRANSCEIVER_SWITCHED
+    #define CAN2_TRANSCEIVER_ENABLE_POLARITY    0
+    #define CAN2_TRANSCEIVER_ENABLE_PIN         49 // pin #45 RD11
+
 #elif defined(CROSSCHASM_C5_CELLULAR)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0
     #define CAN1_TRANSCEIVER_ENABLE_PIN         38 //  pin #44 PORTD BIT10 (RD10)
+
+    #define CAN2_TRANSCEIVER_SWITCHED
+    #define CAN2_TRANSCEIVER_ENABLE_POLARITY    0
+    #define CAN2_TRANSCEIVER_ENABLE_PIN         49 // pin #45 RD11
+
 #elif defined(CROSSCHASM_C5_BLE)
     #define CAN1_TRANSCEIVER_SWITCHED
     #define CAN1_TRANSCEIVER_ENABLE_POLARITY    0

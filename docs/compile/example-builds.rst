@@ -48,8 +48,8 @@ want to send diagnostic requests through a VI:
 
 The Makefile will always print the configuration used so you can double check.
 
-* This default configuration will run on a _`Ford reference VI
-  <http://vi.openxcplatform.com/>` (``PLATFORM`` is ``FORDBOARD``) running the
+* This default configuration will run on a `Ford reference VI <http://vi.openxcplatform.com/>`_
+  (``PLATFORM`` is ``FORDBOARD``) running the
   pre-loaded bootloader (``BOOTLOADER`` is ``1``).
 * Debug mode is off (``DEBUG`` is ``0``) so no log messages will be output via
   USB for maximum performance.
@@ -57,18 +57,18 @@ The Makefile will always print the configuration used so you can double check.
   will only be permitted if set via USB (``DEFAULT_ALLOW_RAW_WRITE_USB`` is ``1``
   but the ``*_UART`` and ``*_NETWORK`` versions are ``0``.
 * The data sent from the VI will be serialized to JSON in the format defined by
-  the _`OpenXC message format <https://github.com/openxc/openxc-message-format>`.
+  the `OpenXC message format <https://github.com/openxc/openxc-message-format>`_.
 * The VI will go into sleep mode only when no CAN bus activity is detected for a
   few seconds (the ``DEFAULT_POWER_MANAGEMENT`` mode is ``SILENT_CAN``).
 * The CAN controllers will be initialized as listen only unless the VI
   configuration explicitly states they are writable (``DEFAULT_CAN_ACK_STATUS``
   is ``1``). This means that the VI may not work in a bench testing setup where
   nothing else on the bus is ACKing.
-* :ref:`Mass storage device <msd-storage>` (``MSD_ENABLE`` is ``0``) is disabled 
-  by default and is available on certain C5 devices which have a provision to connect 
-  a SD card. The time intervals at which the data is logged is 
+* :ref:`Mass storage device <msd-storage>` (``MSD_ENABLE`` is ``0``) is disabled
+  by default and is available on certain C5 devices which have a provision to connect
+  a SD card. The time intervals at which the data is logged is
   (``DEFAULT_FILE_GENERATE_SECS`` is ``180``) set to 180 seconds by default.
-  
+
 .. NOTE::
   There's a shortcut for this default build, using the Fabric tool and an
   included script. This will build the default build for the reference VI
@@ -117,7 +117,7 @@ options:
     -      0         = TEST_MODE_ONLY
     -      0         = DEBUG
     -      0         = MSD_ENABLE
-    -      180       = DEFAULT_FILE_GENERATE_SECS	
+    -      180       = DEFAULT_FILE_GENERATE_SECS
     -      0         = DEFAULT_METRICS_STATUS
     -      1         = DEFAULT_ALLOW_RAW_WRITE_USB
     -      0         = DEFAULT_ALLOW_RAW_WRITE_UART
@@ -162,9 +162,9 @@ to a vehicle, but you don't care about the actual vehicle data being generated,
 you can compile a build that generates random vehicle data and sends it via the
 normal I/O interfaces.
 
-If you are building an app, you'll want to use a _`trace file
-<http://openxcplatform.com/resources/traces.html>` or the _`vehicle simulator
-<https://github.com/openxc/openxc-vehicle-simulator>`.
+If you are building an app, you'll want to use a `trace file
+<http://openxcplatform.com/resources/traces.html>`_ or the `vehicle simulator
+<https://github.com/openxc/openxc-vehicle-simulator>`_.
 
 The config a VI to emulate a vehicle:
 
@@ -202,7 +202,7 @@ There are 2 changes from the default build:
 * ``DEFAULT_POWER_MANAGEMENT`` is ``ALWAYS_ON``, so the VI will not go to sleep
   while plugged in. Make sure to clear this configuration option before making a
   build to run in a vehicle, or you could drain the battery!
-  
+
 .. NOTE::
   This build also has a shortcut using the Fabric script. Just add the keyword
   ``emulator`` before ``build`` in your call to ``fab`` at the command line.
@@ -256,7 +256,7 @@ while this builds the default firmware, ready for OBD2 requests for the chipKIT:
 .. code-block:: sh
 
   fab chipkit obd2 build
-    
+
 You can specify the message format with ``json``, ``protobuf``, or ``messagepack``:
 
 .. code-block:: sh

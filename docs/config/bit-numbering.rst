@@ -7,7 +7,7 @@ Bit Numbering and Byte Order
 When dealing with binary data like CAN messages, there are two important details
 - byte order and bit numbering.
 
-Byte order, or _`endianness <http://en.wikipedia.org/wiki/Endianness>`, determines
+Byte order, or `endianness <http://en.wikipedia.org/wiki/Endianness>`_, determines
 the convention used to interpret a sequence of bytes as a number. Given 4 bytes
 of data, e.g. ``0x01 02 03 04``, the endianness determines which byte is the
 "zero-th" byte and which is the last. There are only two options: big endian

@@ -594,7 +594,7 @@ bool openxc::interface::ble::initialize(BleDevice* device)
     //debug("Mac address %x:%x:%x:%x:%x:%x", device->blesettings.bdaddr[0], device->blesettings.bdaddr[1], device->blesettings.bdaddr[2],
     //                device->blesettings.bdaddr[3], device->blesettings.bdaddr[4], device->blesettings.bdaddr[5]);
     
-	sprintf(device_adv_name,"OPENXC-VI-%02X%02X",device->blesettings.bdaddr[1],device->blesettings.bdaddr[0]);
+	sprintf(device_adv_name,"OpenXC-VI-%02X%02X",device->blesettings.bdaddr[1],device->blesettings.bdaddr[0]);
 								
 				
 	device->blesettings.advname = (const char*)device_adv_name;

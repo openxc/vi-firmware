@@ -150,25 +150,13 @@ supported - see the docs for the recommended approach"
 
     if [ $OS == "cygwin" ]; then
     # TODO need a warning colored promp
-        echo "It looks like you're developing in Cygwin. Cygwin is no \
-longer the recommended build environment for \
-Windows developers. It is unofficially supported by the bootstrap \
-scripts, but the recommended method is to use Vagrant - see the docs for \
-more information."
-        echo -n "Press Enter to continue anyway, or Control-C to cancel"
-        read
-        echo "Continuing with bootstrap..."
+        die "Compiling the VI firmware from a Cigwin prompt is not \
+supported - see the docs for the recommended approach"
     fi
 
     if [ $OS == "mac" ]; then
-        echo "It looks like you're developing in Mac OS X. We recommend \
-using Vagrant to compile the VI firmware. OS X is unofficially supported by \
-the bootstrap scripts and you should be able to compile just fine, but you \
-can save yourself some trouble by using the pre-configured Vagrant \
-environment. See the docs for more information."
-        echo -n "Press Enter to continue anyway, or Control-C to cancel"
-        read
-        echo "Continuing with bootstrap..."
+        die "Compiling the VI firmware from a MacOS prompt is not \
+supported - see the docs for the recommended approach"
     fi
 
     if [ $OS == "linux" ] && [ -z $VAGRANT ] && [ -z $CI ]; then
@@ -182,22 +170,13 @@ pre-configured Vagrant environment. See the docs for more information."
         echo "Continuing with bootstrap..."
     fi
 
-    if [ $OS == "mac" ] && ! command -v brew >/dev/null 2>&1; then
-        echo "Installing Homebrew..."
-        ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
-    fi
+
 
     if ! command -v make >/dev/null 2>&1; then
-        if [ $OS == "cygwin" ]; then
-            _cygwin_error "make"
-        elif [ $OS == "mac" ]; then
-                die "Missing 'make' - install the Xcode CLI tools"
-        else
-            if [ $DISTRO == "arch" ]; then
-                _install "base-devel"
-            elif [ $DISTRO == "Ubuntu" ]; then
-                _install "build-essential"
-            fi
+        if [ $DISTRO == "arch" ]; then
+            _install "base-devel"
+        elif [ $DISTRO == "Ubuntu" ]; then
+            _install "build-essential"
         fi
     fi
 
@@ -213,11 +192,7 @@ pre-configured Vagrant environment. See the docs for more information."
 
 
     if ! command -v git >/dev/null 2>&1; then
-        if [ $OS == "cygwin" ]; then
-            die "You need to install Git for Windows from http://git-scm.com/ and select the option to \"Run Git from the Windows Command Prompt\" during the installation."
-        elif [ $OS == "mac" ] || [ $OS == "linux" ]; then
-            _install git
-        fi
+        _install git
     fi
 
     echo "Updating Git submodules..."
@@ -228,10 +203,6 @@ pre-configured Vagrant environment. See the docs for more information."
     if ! git submodule update --init --recursive --quiet; then
         echo "Unable to update git submodules - try running \"git submodule update --init --recursive\" to see the full error"
         echo "If git complains that it \"Needed a single revision\", run \"rm -rf src/libs\" and then try the bootstrap script again"
-        if [ $OS == "cygwin" ]; then
-            echo "In Cygwin this may be true (ignore if you know ca-certifications is installed:"
-            _cygwin_error "ca-certificates"
-        fi
         die
     fi
     set -e
@@ -249,11 +220,6 @@ pre-configured Vagrant environment. See the docs for more information."
         _install "python"
     fi
 
-    if [ $OS != "cygwin" ]; then
-        echo "Installing Python development headers..."
-        _install "python-dev"
-    fi
-
     if ! command -v pip >/dev/null 2>&1; then
 		curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
         $SUDO_CMD python /tmp/get-pip.py
@@ -268,6 +234,15 @@ pre-configured Vagrant environment. See the docs for more information."
     $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
     if [ -z $CI ]; then
         $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
+    fi
+	
+    if ! command -v pip >/dev/null 2>&1; then
+        curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+        $SUDO_CMD python /tmp/get-pip.py
+    fi
+	
+	if ! command -v clang >/dev/null 2>&1; then
+        $SUDO_CMD sudo apt-get install clang -y
     fi
 
     COMMON_SOURCED=1

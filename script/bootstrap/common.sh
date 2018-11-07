@@ -255,16 +255,8 @@ pre-configured Vagrant environment. See the docs for more information."
     fi
 
     if ! command -v pip >/dev/null 2>&1; then
-        echo "Installing Pip..."
-        if ! command -v easy_install >/dev/null 2>&1; then
-            _install "python-setuptools"
-        fi
-
-        if ! command -v easy_install >/dev/null 2>&1; then
-            die "easy_install not available, can't install pip"
-        fi
-
-        $SUDO_CMD easy_install pip
+		curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+        $SUDO_CMD python /tmp/get-pip.py
     fi
 
     PIP_SUDO_CMD=

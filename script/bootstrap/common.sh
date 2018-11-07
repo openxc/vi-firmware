@@ -236,11 +236,6 @@ pre-configured Vagrant environment. See the docs for more information."
         $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
     fi
 	
-    if ! command -v pip >/dev/null 2>&1; then
-        curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-        $SUDO_CMD python /tmp/get-pip.py
-    fi
-	
 	if ! command -v clang >/dev/null 2>&1; then
         $SUDO_CMD sudo apt-get install clang -y
     fi

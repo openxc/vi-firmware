@@ -1,4 +1,5 @@
 language: c
+dist: precise
 compiler:
 - clang
 script: PLATFORM=TESTING make test

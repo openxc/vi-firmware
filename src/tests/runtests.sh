@@ -2,6 +2,7 @@ echo "Running unit tests:"
 
 for i in $1/*.bin
 do
+	find . -name "*.gcda" -type f -delete
     if test -f $i
     then
         if ./$i

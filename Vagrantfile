@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -9,10 +10,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/precise64"
+  config.vm.box = "ubuntu/xenial64"
+  
+  # Check for proxy enviroment variable and set it
+  if ENV['HTTP_PROXY'] || ENV['HTTPS_PROXY']
+    if Vagrant.has_plugin?("vagrant-proxyconf")
+      if ENV['HTTP_PROXY']
+        config.proxy.http = ENV['HTTP_PROXY']
+        config.apt_proxy.http = ENV['HTTP_PROXY']
+      end
+      if ENV['HTTPS_PROXY']
+        config.proxy.https = ENV['HTTPS_PROXY']
+        config.apt_proxy.https = ENV['HTTP_PROXY']
+      end
+      if ENV['NO_PROXY'] 
+        config.proxy.no_proxy = ENV['NO_PROXY']
+      end
+    else
+      abort("ERROR, vagrant-proxyconf not installed run ‘vagrant plugin install vagrant-proxyconf’ to install it") 
+    end
+  end
 
+  
   config.vm.provision "shell", privileged: false, keep_color: true do |s|
     s.inline = "ln -fs /vagrant vi-firmware;"
     s.inline += "VAGRANT=1 vi-firmware/script/bootstrap.sh"
+
   end
 end

@@ -1,4 +1,7 @@
+#keep Ubuntu 12.04 on Travis to match Vagrant
+dist: precise
 language: c
+dist: precise
 compiler:
 - clang
 script: PLATFORM=TESTING make test
@@ -6,7 +9,7 @@ install:
 - gem install coveralls-lcov
 before_install:
 - sudo apt-get update -qq
-- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs
+- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs libsubunit-dev
   ia32-libs-multiarch; fi
 - travis_wait script/bootstrap.sh
 - cd src

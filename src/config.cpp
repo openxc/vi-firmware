@@ -118,7 +118,7 @@ openxc::telitHE910::TelitDevice telitDevice = {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.2.1-dev",
+        version: "7.3.0",
         platform: PLATFORM,
         environmentMode: ENVIRONMENT_MODE,
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,

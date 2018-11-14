@@ -1,6 +1,6 @@
 # OpenXC Vehicle Interface Firmware Changelog
 
-## v7.2.1-dev
+## v7.3.0
 
 * BREAKING: Removed fine_odometer_since_restart from emulator.
 * Feature: Added sending evented messages from emulator.
@@ -13,6 +13,15 @@
   and the command line. The response will mimic the request's bus, message ID, mode, and PID (if sent).
   The response will also include a randomly generated value between 0 and 100.
   Recurring diagnostic messages when running emulator firmware are currently not supported.
+* Update: Moved Vagrant VM to xenial64. Several updated packages.
+* Fix: Fixed a few bugs with C5 support from initial release:
+	- BLE Broadcast name and MAC
+	- CAN2 access
+	- UART debug access
+	- Updated flash instructions
+* Feature: Add PLATFORM command
+
+
 
 ## v7.2.0
 

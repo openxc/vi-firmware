@@ -8,7 +8,7 @@ TEST_OBJDIR = build/$(TEST_DIR)
 
 TEST_SRC=$(wildcard $(TEST_DIR)/*_tests.cpp)
 TESTS=$(patsubst %.cpp,$(TEST_OBJDIR)/%.bin,$(TEST_SRC))
-TEST_LIBS = -lcheck -lrt -lpthread
+TEST_LIBS = -lcheck -lrt -lpthread -lsubunit
 
 NON_TESTABLE_SRCS = signals.cpp main.cpp hardware_tests_main.cpp
 

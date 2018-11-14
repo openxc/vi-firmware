@@ -129,8 +129,4 @@
 
 #endif
 
-#ifdef CROSSCHASM_C5_BLE
-    #define UART_LOGGING_DISABLE
-#endif
-
 #endif

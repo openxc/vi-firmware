@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /docs/_static/logo.png
 
-:Version: 7.2.1-dev
+:Version: 7.3.0
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware
@@ -82,7 +82,7 @@ Releasing
 License
 =======
 
-Copyright (c) 2012-2014 Ford Motor Company
+Copyright (c) 2012-2018 Ford Motor Company
 
 Licensed under the BSD license.
 

@@ -1,5 +1,5 @@
 #keep Ubuntu 12.04 on Travis to match Vagrant
-dist: precise
+dist: xenial
 language: c
 dist: precise
 compiler:

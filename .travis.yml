@@ -1,5 +1,4 @@
-#keep Ubuntu 12.04 on Travis to match Vagrant
-dist: xenial
+#keep Ubuntu 16.04 on Travis to match Vagrant
 language: c
 dist: xenial
 compiler:

@@ -67,7 +67,7 @@ set -e
 
 ## Python pyserial module for the reset script in Arduino-Makefile
 
-$PIP_SUDO_CMD pip install --upgrade pyserial
+## $PIP_SUDO_CMD pip install --upgrade pyserial
 
 echo
 echo "${bldgreen}PIC32 / chipKIT compilation dependencies installed.$txtrst"

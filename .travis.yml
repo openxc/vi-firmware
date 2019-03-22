@@ -1,7 +1,5 @@
-#keep Ubuntu 12.04 on Travis to match Vagrant
-dist: precise
 language: c
-dist: precise
+dist: xenial
 compiler:
 - clang
 script: PLATFORM=TESTING make test

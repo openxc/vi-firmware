@@ -132,8 +132,8 @@ def build_options():
         'TEST_MODE_ONLY': env.test_mode_only,
         'TRANSMITTER': env.transmitter,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
-        'DEFAULT_METRICS_STATUS': False,
-        'DEFAULT_CAN_ACK_STATUS': False,
+        'DEFAULT_METRICS_STATUS': True,
+        'DEFAULT_CAN_ACK_STATUS': True, # Acks required for multi-frame VIN response
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
         'DEFAULT_ALLOW_RAW_WRITE_USB': True,

@@ -40,6 +40,9 @@ namespace diagnostics {
 typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
         float parsed_payload);
 
+typedef const char* (*VinResponseDecoder)(const DiagnosticResponse* response,
+        float parsed_payload);
+
 /* Public: The signature for an optional function to handle a new diagnostic
  * response.
  *
@@ -98,6 +101,7 @@ struct ActiveDiagnosticRequest {
     DiagnosticRequestHandle handle;
     char name[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;
+    VinResponseDecoder vinDecoder;
     DiagnosticResponseCallback callback;
     bool recurring;
     bool waitForMultipleResponses;
@@ -224,6 +228,7 @@ void reset(DiagnosticsManager* manager);
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz);
 
 /* Public: Add and send a new one-time diagnostic request.

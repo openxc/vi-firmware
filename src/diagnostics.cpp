@@ -15,6 +15,7 @@
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::diagnostics::DiagnosticResponseDecoder;
+using openxc::diagnostics::VinResponseDecoder;
 using openxc::diagnostics::DiagnosticResponseCallback;
 using openxc::diagnostics::passthroughDecoder;
 using openxc::util::log::debug;
@@ -22,6 +23,7 @@ using openxc::can::lookupBus;
 using openxc::can::addAcceptanceFilter;
 using openxc::can::removeAcceptanceFilter;
 using openxc::can::read::publishNumericalMessage;
+using openxc::can::read::publishStringMessage;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
@@ -161,6 +163,7 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
         LIST_INSERT_HEAD(&manager->freeRequestEntries,
                 &manager->requestListEntries[i], listEntries);
     }
+
     debug("Reset diagnostics requests");
 }
 
@@ -208,6 +211,7 @@ static inline bool clearToSend(DiagnosticsManager* manager,
             return false;
         }
     }
+
     return true;
 }
 
@@ -252,7 +256,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, float parsedValue) {
+        const DiagnosticResponse* response, float parsedValue, const char* str_value) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
@@ -285,9 +289,12 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
             response->negative_response_code;
 
     if(response->payload_length > 0) {
-        if(request->decoder != NULL)  {
+        if (request->decoder != NULL)  {
             message.diagnostic_response.has_value = true;
             message.diagnostic_response.value = parsedValue;
+        } else if (request->vinDecoder != NULL) {
+            message.diagnostic_response.has_str_value = true;
+            message.diagnostic_response.str_value = str_value;
         } else {
             message.diagnostic_response.has_payload = true;
             memcpy(message.diagnostic_response.payload.bytes, response->payload,
@@ -303,21 +310,31 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
     float value = diagnostic_payload_to_integer(response);
+    const char* str_value;
     if(request->decoder != NULL) {
         value = request->decoder(response, value);
+    }
+
+    if (NULL != request->vinDecoder) {
+        str_value = request->vinDecoder(response, value);
     }
 
     if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-        publishNumericalMessage(request->name, value, pipeline);
+
+        if (NULL != str_value) {
+            publishStringMessage(request->name, str_value, pipeline);
+        } else {
+            publishNumericalMessage(request->name, value, pipeline);
+        }
     } else {
         // If no name, send full details of response but still include 'value'
         // instead of 'payload' if they provided a decoder. The one case you
         // can't get is the full detailed response with 'value'. We could add
         // another parameter for that but it's onerous to carry that around.
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
-                request->bus, request, response, value);
+                request->bus, request, response, value, str_value);
         pipeline::publish(&message, pipeline);
     }
 
@@ -330,20 +347,20 @@ static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
-    if(bus == entry->bus && entry->inFlight) {
+    if (bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
                 // TODO eek, is bus address and array index this tightly
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-        if(response.completed && entry->handle.completed) {
+        if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
                 relayDiagnosticResponse(manager, entry, &response,
                         pipeline);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }
-        } else if(!response.completed && response.multi_frame) {
+        } else if (!response.completed && response.multi_frame) {
             // Reset the timeout clock while completing the multi-frame receive
             time::tick(&entry->timeoutClock);
         }
@@ -353,6 +370,7 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
     ActiveDiagnosticRequest* entry;
+
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
         receiveCanMessage(manager, bus, entry, message, pipeline);
     }
@@ -433,6 +451,7 @@ static void updateDiagnosticRequestEntry(ActiveDiagnosticRequest* entry,
         DiagnosticsManager* manager, CanBus* bus, DiagnosticRequest* request,
         const char* name, bool waitForMultipleResponses,
         const DiagnosticResponseDecoder decoder,
+        const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz) {
     entry->bus = bus;
     entry->arbitration_id = request->arbitration_id;
@@ -446,6 +465,7 @@ static void updateDiagnosticRequestEntry(ActiveDiagnosticRequest* entry,
     entry->waitForMultipleResponses = waitForMultipleResponses;
 
     entry->decoder = decoder;
+    entry->vinDecoder = vinDecoder;
     entry->callback = callback;
     entry->recurring = frequencyHz != 0;
     entry->frequencyClock = {0};
@@ -467,7 +487,7 @@ bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
     if(entry != NULL) {
         if(updateRequiredAcceptanceFilters(bus, request)) {
             updateDiagnosticRequestEntry(entry, manager, bus, request, name,
-                    waitForMultipleResponses, decoder, callback, 0);
+                    waitForMultipleResponses, decoder, NULL, callback, 0);
 
             char request_string[128] = {0};
             diagnostic_request_to_string(&entry->handle.request, request_string,
@@ -500,6 +520,7 @@ static bool validateOptionalRequestAttributes(float frequencyHz) {
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz) {
 
     if(!validateOptionalRequestAttributes(frequencyHz)) {
@@ -514,7 +535,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         if(entry != NULL) {
             if(updateRequiredAcceptanceFilters(bus, request)) {
                 updateDiagnosticRequestEntry(entry, manager, bus, request, name,
-                        waitForMultipleResponses, decoder, callback, frequencyHz);
+                        waitForMultipleResponses, decoder, vinDecoder, callback, frequencyHz);
 
                 char request_string[128] = {0};
                 diagnostic_request_to_string(&entry->handle.request, request_string,
@@ -542,7 +563,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, float frequencyHz) {
     return addRecurringRequest(manager, bus, request, name,
-            waitForMultipleResponses, NULL, NULL, frequencyHz);
+            waitForMultipleResponses, NULL, NULL, NULL, frequencyHz);
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
@@ -615,6 +636,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                     multipleResponses,
                     decoder,
                     NULL,
+                    NULL,
                     commandRequest->frequency);
         } else {
             status = addRequest(manager, bus, &request,
@@ -679,6 +701,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         }
                         message.diagnostic_response.has_value = true;
                         message.diagnostic_response.value = rand() % 100;
+                        debug("Response message id: %d", message.diagnostic_response.message_id);
                         pipeline::publish(&message, &getConfiguration()->pipeline);
                     }
                     else //If it's outside the range, the command_request will return false

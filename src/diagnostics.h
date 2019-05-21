@@ -228,6 +228,11 @@ void reset(DiagnosticsManager* manager);
 bool addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback, float frequencyHz);
+
+bool addRecurringRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz);
 

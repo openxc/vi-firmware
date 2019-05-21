@@ -561,6 +561,14 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
+        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
+        const DiagnosticResponseCallback callback, float frequencyHz) {
+    return addRecurringRequest(manager, bus, request, name,
+        waitForMultipleResponses, decoder, NULL, callback, frequencyHz);
+}
+
+bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
+        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, float frequencyHz) {
     return addRecurringRequest(manager, bus, request, name,
             waitForMultipleResponses, NULL, NULL, NULL, frequencyHz);

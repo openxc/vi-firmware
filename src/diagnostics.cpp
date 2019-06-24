@@ -310,7 +310,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
     float value = diagnostic_payload_to_integer(response);
-    const char* str_value;
+    const char* str_value = NULL;
     if(request->decoder != NULL) {
         value = request->decoder(response, value);
     }

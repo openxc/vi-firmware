@@ -268,9 +268,9 @@ static void serializeDiagnostic(openxc_VehicleMessage* message, cmp_ctx_t *ctx) 
                 message->diagnostic_response.negative_response_code);
     }
 
-    if(message->diagnostic_response.has_value) {
+    if(message->diagnostic_response.has_numeric_value) {
         msgPackAddObjectDouble(ctx, payload::messagepack::DIAGNOSTIC_VALUE_FIELD_NAME,
-                message->diagnostic_response.value);
+                message->diagnostic_response.numeric_value);
                 
     } else if(message->diagnostic_response.has_payload) {
         

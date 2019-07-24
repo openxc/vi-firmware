@@ -36,12 +36,14 @@ namespace diagnostics {
  *      a byte array). This is most often used when the byte order is
  *      signiticant, i.e. with many OBD-II PID formulas.
  * parsed_payload - the entire payload of the response parsed as an int.
+ * str_buf - string buffer that holds the decoded value. 
+ * buf_size - size of the string buffer in bytes.
  */
-typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
-        float parsed_payload);
-
-typedef const char* (*VinResponseDecoder)(const DiagnosticResponse* response,
-        float parsed_payload);
+typedef void (*DiagnosticResponseDecoder)(
+        const DiagnosticResponse* response,
+        float parsed_payload, 
+        char* str_buf,
+        int buf_size);
 
 /* Public: The signature for an optional function to handle a new diagnostic
  * response.
@@ -101,7 +103,6 @@ struct ActiveDiagnosticRequest {
     DiagnosticRequestHandle handle;
     char name[MAX_GENERIC_NAME_LENGTH];
     DiagnosticResponseDecoder decoder;
-    VinResponseDecoder vinDecoder;
     DiagnosticResponseCallback callback;
     bool recurring;
     bool waitForMultipleResponses;
@@ -230,12 +231,6 @@ bool addRecurringRequest(DiagnosticsManager* manager,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
         const DiagnosticResponseCallback callback, float frequencyHz);
 
-bool addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* name,
-        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
-        const VinResponseDecoder vinDecoder,
-        const DiagnosticResponseCallback callback, float frequencyHz);
-
 /* Public: Add and send a new one-time diagnostic request.
  *
  * A one-time (aka non-recurring) request can existing in parallel with a
@@ -358,8 +353,8 @@ bool handleDiagnosticCommand(DiagnosticsManager* manager,
  *
  * Returns the already parsed payload with no modifications.
  */
-float passthroughDecoder(const DiagnosticResponse* response,
-        float parsed_payload);
+void passthroughDecoder(const DiagnosticResponse* response,
+        float parsed_payload, char* str_buf, int buf_size);
 
 } // namespace diagnostics
 } // namespace openxc

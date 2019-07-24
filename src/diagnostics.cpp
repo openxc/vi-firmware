@@ -15,7 +15,6 @@
 using openxc::diagnostics::ActiveDiagnosticRequest;
 using openxc::diagnostics::DiagnosticsManager;
 using openxc::diagnostics::DiagnosticResponseDecoder;
-using openxc::diagnostics::VinResponseDecoder;
 using openxc::diagnostics::DiagnosticResponseCallback;
 using openxc::diagnostics::passthroughDecoder;
 using openxc::util::log::debug;
@@ -256,7 +255,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, float parsedValue, const char* str_value) {
+        const DiagnosticResponse* response, float floatValue, const char* stringValue) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
@@ -290,11 +289,13 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {
-            message.diagnostic_response.has_value = true;
-            message.diagnostic_response.value = parsedValue;
-        } else if (request->vinDecoder != NULL) {
-            message.diagnostic_response.has_str_value = true;
-            message.diagnostic_response.str_value = str_value;
+            if (response->multi_frame) {
+                message.diagnostic_response.has_string_value = true;
+                message.diagnostic_response.string_value = stringValue;
+            } else {
+                message.diagnostic_response.has_numeric_value = true;
+                message.diagnostic_response.numeric_value = floatValue;
+            }
         } else {
             message.diagnostic_response.has_payload = true;
             memcpy(message.diagnostic_response.payload.bytes, response->payload,
@@ -309,24 +310,28 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
-    float value = diagnostic_payload_to_integer(response);
-    const char* str_value = NULL;
-    if(request->decoder != NULL) {
-        value = request->decoder(response, value);
-    }
+    // Take the first frame of the response payload and store it as a float--
+    // acts as a sort of 'default' decoding.
+    float decoded_value_as_float = diagnostic_payload_to_integer(response);
+ 
+    char decoded_value_as_string[MAX_UDS_RESPONSE_PAYLOAD_LENGTH];
+    snprintf(decoded_value_as_string, sizeof(decoded_value_as_string), "%f", decoded_value_as_float);
 
-    if (NULL != request->vinDecoder) {
-        str_value = request->vinDecoder(response, value);
+    if(request->decoder != NULL) {
+        memset(decoded_value_as_string, 0, sizeof(decoded_value_as_string));
+        request->decoder(response, decoded_value_as_float, decoded_value_as_string, sizeof(decoded_value_as_string));
+        if (!response->multi_frame) {
+            decoded_value_as_float = atof(decoded_value_as_string);
+        }
     }
 
     if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-
-        if (NULL != str_value) {
-            publishStringMessage(request->name, str_value, pipeline);
+        if (response->multi_frame) {
+            publishStringMessage(request->name, decoded_value_as_string, pipeline);
         } else {
-            publishNumericalMessage(request->name, value, pipeline);
+            publishNumericalMessage(request->name, decoded_value_as_float, pipeline);
         }
     } else {
         // If no name, send full details of response but still include 'value'
@@ -334,12 +339,12 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         // can't get is the full detailed response with 'value'. We could add
         // another parameter for that but it's onerous to carry that around.
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
-                request->bus, request, response, value, str_value);
+                request->bus, request, response, decoded_value_as_float, decoded_value_as_string);
         pipeline::publish(&message, pipeline);
     }
 
     if(request->callback != NULL) {
-        request->callback(manager, request, response, value);
+        request->callback(manager, request, response, decoded_value_as_float);
     }
 }
 
@@ -451,7 +456,6 @@ static void updateDiagnosticRequestEntry(ActiveDiagnosticRequest* entry,
         DiagnosticsManager* manager, CanBus* bus, DiagnosticRequest* request,
         const char* name, bool waitForMultipleResponses,
         const DiagnosticResponseDecoder decoder,
-        const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz) {
     entry->bus = bus;
     entry->arbitration_id = request->arbitration_id;
@@ -465,7 +469,6 @@ static void updateDiagnosticRequestEntry(ActiveDiagnosticRequest* entry,
     entry->waitForMultipleResponses = waitForMultipleResponses;
 
     entry->decoder = decoder;
-    entry->vinDecoder = vinDecoder;
     entry->callback = callback;
     entry->recurring = frequencyHz != 0;
     entry->frequencyClock = {0};
@@ -487,7 +490,7 @@ bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
     if(entry != NULL) {
         if(updateRequiredAcceptanceFilters(bus, request)) {
             updateDiagnosticRequestEntry(entry, manager, bus, request, name,
-                    waitForMultipleResponses, decoder, NULL, callback, 0);
+                    waitForMultipleResponses, decoder, callback, 0);
 
             char request_string[128] = {0};
             diagnostic_request_to_string(&entry->handle.request, request_string,
@@ -520,7 +523,6 @@ static bool validateOptionalRequestAttributes(float frequencyHz) {
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
-        const VinResponseDecoder vinDecoder,
         const DiagnosticResponseCallback callback, float frequencyHz) {
 
     if(!validateOptionalRequestAttributes(frequencyHz)) {
@@ -535,7 +537,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         if(entry != NULL) {
             if(updateRequiredAcceptanceFilters(bus, request)) {
                 updateDiagnosticRequestEntry(entry, manager, bus, request, name,
-                        waitForMultipleResponses, decoder, vinDecoder, callback, frequencyHz);
+                        waitForMultipleResponses, decoder, callback, frequencyHz);
 
                 char request_string[128] = {0};
                 diagnostic_request_to_string(&entry->handle.request, request_string,
@@ -561,17 +563,9 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
-        bool waitForMultipleResponses, const DiagnosticResponseDecoder decoder,
-        const DiagnosticResponseCallback callback, float frequencyHz) {
-    return addRecurringRequest(manager, bus, request, name,
-        waitForMultipleResponses, decoder, NULL, callback, frequencyHz);
-}
-
-bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
-        CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses, float frequencyHz) {
     return addRecurringRequest(manager, bus, request, name,
-            waitForMultipleResponses, NULL, NULL, NULL, frequencyHz);
+            waitForMultipleResponses, NULL, NULL, frequencyHz);
 }
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
@@ -644,7 +638,6 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                     multipleResponses,
                     decoder,
                     NULL,
-                    NULL,
                     commandRequest->frequency);
         } else {
             status = addRequest(manager, bus, &request,
@@ -707,8 +700,8 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                             message.diagnostic_response.has_pid = true;
                             message.diagnostic_response.pid = commandRequest->pid;
                         }
-                        message.diagnostic_response.has_value = true;
-                        message.diagnostic_response.value = rand() % 100;
+                        message.diagnostic_response.has_numeric_value = true;
+                        message.diagnostic_response.numeric_value = rand() % 100;
                         debug("Response message id: %d", message.diagnostic_response.message_id);
                         pipeline::publish(&message, &getConfiguration()->pipeline);
                     }
@@ -742,7 +735,11 @@ bool openxc::diagnostics::handleDiagnosticCommand(
     return status;
 }
 
-float openxc::diagnostics::passthroughDecoder(
-        const DiagnosticResponse* response, float parsed_payload) {
-    return parsed_payload;
+void openxc::diagnostics::passthroughDecoder(
+        const DiagnosticResponse* response, float parsed_payload, char* str_buf, int buf_size) {
+    if (response->multi_frame) {
+        snprintf(str_buf, buf_size, "%s", response->payload);
+    } else {
+        snprintf(str_buf, buf_size, "%f", parsed_payload);
+    }
 }

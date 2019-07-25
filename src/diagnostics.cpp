@@ -255,7 +255,7 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, float floatValue, const char* stringValue) {
+        const DiagnosticResponse* response, openxc_DynamicField value) {
     openxc_VehicleMessage message = {0};
     message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
@@ -289,13 +289,8 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {
-            if (response->multi_frame) {
-                message.diagnostic_response.has_string_value = true;
-                message.diagnostic_response.string_value = stringValue;
-            } else {
-                message.diagnostic_response.has_numeric_value = true;
-                message.diagnostic_response.numeric_value = floatValue;
-            }
+            message.diagnostic_response.has_value = true;
+            message.diagnostic_response.value = value;
         } else {
             message.diagnostic_response.has_payload = true;
             memcpy(message.diagnostic_response.payload.bytes, response->payload,
@@ -310,28 +305,41 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
-    // Take the first frame of the response payload and store it as a float--
-    // acts as a sort of 'default' decoding.
-    float decoded_value_as_float = diagnostic_payload_to_integer(response);
- 
-    char decoded_value_as_string[MAX_UDS_RESPONSE_PAYLOAD_LENGTH];
-    snprintf(decoded_value_as_string, sizeof(decoded_value_as_string), "%f", decoded_value_as_float);
+    float parsed_value = diagnostic_payload_to_integer(response);
 
-    if(request->decoder != NULL) {
-        memset(decoded_value_as_string, 0, sizeof(decoded_value_as_string));
-        request->decoder(response, decoded_value_as_float, decoded_value_as_string, sizeof(decoded_value_as_string));
-        if (!response->multi_frame) {
-            decoded_value_as_float = atof(decoded_value_as_string);
+    uint8_t buf_size = response->multi_frame ? response->payload_length + 1 : 20;
+    char decoded_value_buf[buf_size];
+
+    bool has_decoder = NULL != request->decoder;
+    if (has_decoder) {
+        request->decoder(response, parsed_value, decoded_value_buf, buf_size);
+    }
+
+    openxc_DynamicField field = {0};
+    field.has_type = true;
+    if (response->multi_frame) {
+        field.type = openxc_DynamicField_Type_STRING;
+        field.has_string_value = true;
+        if (!has_decoder) {
+            snprintf(decoded_value_buf, buf_size, "%s", response->payload);
         }
+        strcpy(field.string_value, decoded_value_buf);
+    } else {
+        field.type = openxc_DynamicField_Type_NUM;
+        field.has_numeric_value = true;
+        if (!has_decoder) {
+            field.numeric_value = parsed_value;
+        }
+        field.numeric_value = atof(decoded_value_buf);
     }
 
     if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-        if (response->multi_frame) {
-            publishStringMessage(request->name, decoded_value_as_string, pipeline);
+        if (field.has_string_value) {
+            publishStringMessage(request->name, field.string_value, pipeline);
         } else {
-            publishNumericalMessage(request->name, decoded_value_as_float, pipeline);
+            publishNumericalMessage(request->name, field.numeric_value, pipeline);
         }
     } else {
         // If no name, send full details of response but still include 'value'
@@ -339,12 +347,12 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         // can't get is the full detailed response with 'value'. We could add
         // another parameter for that but it's onerous to carry that around.
         openxc_VehicleMessage message = wrapDiagnosticResponseWithSabot(
-                request->bus, request, response, decoded_value_as_float, decoded_value_as_string);
+                request->bus, request, response, field);
         pipeline::publish(&message, pipeline);
     }
 
     if(request->callback != NULL) {
-        request->callback(manager, request, response, decoded_value_as_float);
+        request->callback(manager, request, response, parsed_value);
     }
 }
 
@@ -700,8 +708,15 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                             message.diagnostic_response.has_pid = true;
                             message.diagnostic_response.pid = commandRequest->pid;
                         }
-                        message.diagnostic_response.has_numeric_value = true;
-                        message.diagnostic_response.numeric_value = rand() % 100;
+
+                        message.diagnostic_response.has_value = true;
+                        openxc_DynamicField value = {0};
+                        value.has_type = true;
+                        value.type = openxc_DynamicField_Type_NUM;
+                        value.has_numeric_value = true;
+                        value.numeric_value = rand() % 100;
+                        message.diagnostic_response.value = value;
+
                         debug("Response message id: %d", message.diagnostic_response.message_id);
                         pipeline::publish(&message, &getConfiguration()->pipeline);
                     }

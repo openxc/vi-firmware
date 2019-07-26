@@ -1,5 +1,5 @@
 #include "can/canread.h"
 
-float handleMyDiagRequest(const DiagnosticResponse* response, float parsedPayload) {
-    return response->payload[0] * 3 + response->payload[1] * 2;
+void handleMyDiagRequest(const DiagnosticResponse* response, float parsedPayload, char* str_buf, int buf_size) {
+    snprintf(str_buf, buf_size, "%f", response->payload[0] * 3 + response->payload[1] * 2);
 }

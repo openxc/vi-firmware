@@ -328,7 +328,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         field.type = openxc_DynamicField_Type_NUM;
         field.has_numeric_value = true;
         if (!has_decoder) {
-            field.numeric_value = parsed_value;
+            snprintf(decoded_value_buf, buf_size, "%f", parsed_value);
         }
         field.numeric_value = atof(decoded_value_buf);
     }

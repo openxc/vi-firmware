@@ -145,13 +145,15 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
         if(ignitionCheckCount >= MAX_IGNITION_CHECK_COUNT &&
                 getConfiguration()->powerManagement ==
                         PowerManagement::OBD2_IGNITION_CHECK) {
-            debug("Ceasing diagnostic requests as ignition went off");
+            debug("Ignition appears to be off - reducing frequency of ignition checks");
             diagnostics::reset(manager);
-            // Don't reset diagnostics here, because if the CAN bus is still
-            // active we want to keep querying for igntion. If we de-init
-            // diagnosicts here we risk getting stuck awake, but not querying
-            // for any diagnostics messages.
-            IGNITION_STATUS_TIMER.frequency = .1;
+            // Don't stop sending requests altogether, because if the CAN bus is still
+            // active we want to keep querying for ignition. If we stop sending
+            // ignition checks here we risk getting stuck awake, but not querying
+            // for any diagnostics messages. Additionally the time between ignition checks
+            // must be larger than the CAN_ACTIVE_TIMEOUT, otherwise we'll never suspend
+            // even if the CAN bus goes inactive.
+            IGNITION_STATUS_TIMER.frequency = 1.0 / (openxc::can::CAN_ACTIVE_TIMEOUT_S + 5);
             ignitionCheckCount = 0;
             pidSupportQueried = false;
         } else {
@@ -164,7 +166,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
             ++ignitionCheckCount;
         }
     } else if(ENGINE_STARTED || VEHICLE_IN_MOTION) {
-        IGNITION_STATUS_TIMER.frequency = .5;
+        IGNITION_STATUS_TIMER.frequency = 0.5;
         ignitionCheckCount = 0;
         getConfiguration()->desiredRunLevel = RunLevel::ALL_IO;
         if(getConfiguration()->recurringObd2Requests && !pidSupportQueried) {

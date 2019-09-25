@@ -410,9 +410,9 @@ START_TEST (test_add_request_with_name)
 }
 END_TEST
 
-static float decodeFloatTimes2(const DiagnosticResponse* response,
-        float parsed_payload) {
-    return parsed_payload * 2;
+static void decodeFloatTimes2(const DiagnosticResponse* response,
+        float parsed_payload, char* str_buf, int buf_size) {
+    snprintf(str_buf, buf_size, "%f", parsed_payload * 2);
 }
 
 START_TEST (test_add_request_with_decoder_no_name_allowed)

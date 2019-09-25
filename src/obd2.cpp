@@ -190,7 +190,7 @@ bool openxc::diagnostics::obd2::isObd2Request(DiagnosticRequest* request) {
     return request->mode == 0x1 && request->has_pid && request->pid < 0xff;
 }
 
-float openxc::diagnostics::obd2::handleObd2Pid(
-        const DiagnosticResponse* response, float parsedPayload) {
-    return diagnostic_decode_obd2_pid(response);
+void openxc::diagnostics::obd2::handleObd2Pid(
+        const DiagnosticResponse* response, float parsedPayload, char* str_buf, int buf_size) {
+    snprintf(str_buf, buf_size, "%f", diagnostic_decode_obd2_pid(response));
 }

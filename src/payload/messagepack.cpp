@@ -269,8 +269,8 @@ static void serializeDiagnostic(openxc_VehicleMessage* message, cmp_ctx_t *ctx) 
     }
 
     if(message->diagnostic_response.has_value) {
-        msgPackAddObjectDouble(ctx, payload::messagepack::DIAGNOSTIC_VALUE_FIELD_NAME,
-                message->diagnostic_response.value);
+        cmp_write_str(ctx, payload::messagepack::VALUE_FIELD_NAME, strlen(payload::messagepack::VALUE_FIELD_NAME));
+        msgPackAddDynamicField(ctx, &message->diagnostic_response.value);
                 
     } else if(message->diagnostic_response.has_payload) {
         

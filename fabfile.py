@@ -132,7 +132,7 @@ def build_options():
         'TEST_MODE_ONLY': env.test_mode_only,
         'TRANSMITTER': env.transmitter,
         'DEFAULT_LOGGING_OUTPUT': env.logging_output,
-        'DEFAULT_METRICS_STATUS': False,
+        'DEFAULT_METRICS_STATUS': True,
         'DEFAULT_CAN_ACK_STATUS': False,
         'DEFAULT_ALLOW_RAW_WRITE_NETWORK': False,
         'DEFAULT_ALLOW_RAW_WRITE_UART': env.allow_raw_uart_write,
@@ -156,9 +156,11 @@ def build_options():
     elif env.mode == 'translated_obd2':
         options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
         options['DEFAULT_RECURRING_OBD2_REQUESTS_STATUS'] = True
+        options['DEFAULT_CAN_ACK_STATUS'] = True
         options['ENVIRONMENT_MODE'] = env.mode
     elif env.mode == 'obd2':
         options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
+        options['DEFAULT_CAN_ACK_STATUS'] = True
         options['ENVIRONMENT_MODE'] = env.mode
     return " ".join((build_option(key, value)
         for key, value in options.iteritems()))

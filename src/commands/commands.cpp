@@ -76,12 +76,14 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
     openxc_VehicleMessage message = {0};
     size_t bytesRead = 0;
 
+#if (DO_NOT_PROCESS_BINARY_UART_PROTOBUFF == 1)
     // TODO Not attempting to deserialize binary messages via UART,
     // see https://github.com/openxc/vi-firmware/issues/313
     if(sourceInterfaceDescriptor->type == InterfaceType::UART &&
             getConfiguration()->payloadFormat == PayloadFormat::PROTOBUF) {
         return 0;
     }
+#endif
 
     // Ignore anything less than 2 bytes, we know it's an incomplete payload -
     // wait for more to come in before trying to parse it

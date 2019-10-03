@@ -207,6 +207,26 @@ pre-configured Vagrant environment. See the docs for more information."
     fi
     set -e
 
+    echo "Fixing gitdir for nested submodules"
+
+    # https://marc.info/?l=git&m=145937129606918&w=2
+    # There's a bug with the git submodule update command (still unfixed as of v2.23.0) that causes nested submodules to use an absolue
+    # path for their gitdir, whereas everything else uses relative paths. Since the project root in this context
+    # is /vagrant/, the gitdirs for the nested submodules will be incorrect and consequentially most git commands won't 
+    # work (unless you're in a vagrant machine). For now we'll just rewrite the gitdirs for the nested submodules to use relative paths
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/BSP/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/CDL/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/emqueue/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/isotp-c/deps/bitfield-c/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/openxc-message-format/libs/nanopb/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/bitfield-c/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/deps/bitfield-c/.git
+
+    # Force git to use CR/LF line endings. The default from within a vagrant machine is different, so without this
+    # it'll think all of the files have changed when inside a vagrant machine
+    git config --global core.autocrlf true
+
     #https://cryptography.io/en/latest/installation/#building-cryptography-on-linux
     #cryptography is dependency of pyparsing - need to ensure other packages first
     #otherwise cffi error

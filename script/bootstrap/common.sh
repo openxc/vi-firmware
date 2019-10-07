@@ -218,7 +218,6 @@ pre-configured Vagrant environment. See the docs for more information."
     sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/CDL/.git
     sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/emqueue/.git
     sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/openxc-message-format/libs/nanopb/.git
-    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/bitfield-c/.git
     sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/.git
     sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/deps/bitfield-c/.git
 

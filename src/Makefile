@@ -156,7 +156,7 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcommander.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/deps/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cmp/cmp.c)
 # TODO put this under a "gen" folder separate from objdir
@@ -177,7 +177,7 @@ INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
 				-I$(LIBS_PATH)/bitfield-c/src \
-				-I$(LIBS_PATH)/isotp-c/src \
+				-I$(LIBS_PATH)/uds-c/deps/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src \
 				-I$(LIBS_PATH)/cmp \
 

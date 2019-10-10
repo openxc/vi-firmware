@@ -33,9 +33,9 @@ extern openxc_DynamicField LAST_COMMAND_EVENT;
 QUEUE_TYPE(uint8_t)* OUTPUT_QUEUE = &getConfiguration()->usb.endpoints[
         IN_ENDPOINT_INDEX].queue;
 
-openxc_VehicleMessage CAN_MESSAGE = {0};
-openxc_VehicleMessage SIMPLE_MESSAGE = {0};
-openxc_VehicleMessage CONTROL_COMMAND = {0};
+openxc_VehicleMessage CAN_MESSAGE = openxc_VehicleMessage();	// Zero Fill
+openxc_VehicleMessage SIMPLE_MESSAGE = openxc_VehicleMessage();	// Zero Fill
+openxc_VehicleMessage CONTROL_COMMAND = openxc_VehicleMessage();	// Zero Fill
 
 InterfaceDescriptor DESCRIPTOR = {
     allowRawWrites: true,
@@ -71,51 +71,51 @@ void setup() {
     getCanBuses()[0].rawWritable = true;
     resetQueues();
 
-    CAN_MESSAGE.has_type = true;
+    //CAN_MESSAGE.has_type = true;
     CAN_MESSAGE.type = openxc_VehicleMessage_Type_CAN;
-    CAN_MESSAGE.has_can_message = true;
-    CAN_MESSAGE.can_message.has_id = true;
+    //CAN_MESSAGE.has_can_message = true;
+    //CAN_MESSAGE.can_message.has_id = true;
     CAN_MESSAGE.can_message.id = 1;
-    CAN_MESSAGE.can_message.has_data = true;
+    //CAN_MESSAGE.can_message.has_data = true;
     CAN_MESSAGE.can_message.data.bytes[0] = 0xff;
-    CAN_MESSAGE.can_message.has_bus = true;
+    //CAN_MESSAGE.can_message.has_bus = true;
     CAN_MESSAGE.can_message.bus = 2;
 
-    SIMPLE_MESSAGE.has_type = true;
+    //SIMPLE_MESSAGE.has_type = true;
     SIMPLE_MESSAGE.type = openxc_VehicleMessage_Type_SIMPLE;
-    SIMPLE_MESSAGE.has_simple_message = true;
-    SIMPLE_MESSAGE.simple_message.has_name = true;
+    //SIMPLE_MESSAGE.has_simple_message = true;
+    //SIMPLE_MESSAGE.simple_message.has_name = true;
     strcpy(SIMPLE_MESSAGE.simple_message.name, "foo");
-    SIMPLE_MESSAGE.simple_message.has_value = true;
-    SIMPLE_MESSAGE.simple_message.value.has_type = true;
+    //SIMPLE_MESSAGE.simple_message.has_value = true;
+    //SIMPLE_MESSAGE.simple_message.value.has_type = true;
     SIMPLE_MESSAGE.simple_message.value.type =
             openxc_DynamicField_Type_NUM;
     SIMPLE_MESSAGE.simple_message.value.numeric_value = 42;
 
-    CONTROL_COMMAND.has_type = true;
+    //CONTROL_COMMAND.has_type = true;
     CONTROL_COMMAND.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-    CONTROL_COMMAND.has_control_command = true;
-    CONTROL_COMMAND.control_command.has_type = true;
+    //CONTROL_COMMAND.has_control_command = true;
+    //CONTROL_COMMAND.control_command.has_type = true;
     CONTROL_COMMAND.control_command.type =
             openxc_ControlCommand_Type_DIAGNOSTIC;
-    CONTROL_COMMAND.control_command.has_diagnostic_request = true;
-    CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
+    //CONTROL_COMMAND.control_command.has_diagnostic_request = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.has_action = true;
     CONTROL_COMMAND.control_command.diagnostic_request.action =
             openxc_DiagnosticControlCommand_Action_ADD;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.bus = 1;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.message_id = 2;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.mode = 22;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.pid = 23;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.payload.bytes[0] = 0xff;
     CONTROL_COMMAND.control_command.diagnostic_request.request.payload.size = 1;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.multiple_responses = false;
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = true;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = true;
     CONTROL_COMMAND.control_command.diagnostic_request.request.frequency = 10;
 }
 
@@ -489,18 +489,18 @@ START_TEST (test_custom_evented_command)
     uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true, \"event\": 2}\0";
     ck_assert(handleIncomingMessage(command, sizeof(command), &DESCRIPTOR));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.boolean_value, true);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
-    ck_assert_int_eq(LAST_COMMAND_EVENT.has_type, true);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_EVENT.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_EVENT.type, openxc_DynamicField_Type_NUM);
-    ck_assert_int_eq(LAST_COMMAND_EVENT.has_numeric_value, true);
+    //ck_assert_int_eq(LAST_COMMAND_EVENT.has_numeric_value, true);
     ck_assert_int_eq(LAST_COMMAND_EVENT.numeric_value, 2);
-    ck_assert_int_eq(LAST_COMMAND_EVENT.has_boolean_value, false);
-    ck_assert_int_eq(LAST_COMMAND_EVENT.has_string_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_EVENT.has_boolean_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_EVENT.has_string_value, false);
 }
 END_TEST
 
@@ -509,12 +509,12 @@ START_TEST (test_custom_command)
     uint8_t command[] = "{\"name\": \"turn_signal_status\", \"value\": true}\0";
     ck_assert(handleIncomingMessage(command, sizeof(command), &DESCRIPTOR));
     ck_assert_str_eq(LAST_COMMAND_NAME, "turn_signal_status");
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_type, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.type, openxc_DynamicField_Type_BOOL);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_boolean_value, true);
     ck_assert_int_eq(LAST_COMMAND_VALUE.boolean_value, true);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
-    ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_numeric_value, false);
+    //ck_assert_int_eq(LAST_COMMAND_VALUE.has_string_value, false);
 }
 END_TEST
 
@@ -620,7 +620,7 @@ END_TEST
 
 START_TEST (test_validate_raw_with_format)
 {
-    CAN_MESSAGE.can_message.has_frame_format = true;
+    //CAN_MESSAGE.can_message.has_frame_format = true;
     CAN_MESSAGE.can_message.frame_format = openxc_CanMessage_FrameFormat_EXTENDED;
     ck_assert(validate(&CAN_MESSAGE));
 }
@@ -628,7 +628,7 @@ END_TEST
 
 START_TEST (test_validate_raw_with_format_incompatible_id)
 {
-    CAN_MESSAGE.can_message.has_frame_format = true;
+    //CAN_MESSAGE.can_message.has_frame_format = true;
     CAN_MESSAGE.can_message.frame_format =
             openxc_CanMessage_FrameFormat_STANDARD;
     CAN_MESSAGE.can_message.id = 0x8ff;
@@ -638,28 +638,28 @@ END_TEST
 
 START_TEST (test_validate_raw_missing_bus)
 {
-    CAN_MESSAGE.can_message.has_bus = false;
+    //CAN_MESSAGE.can_message.has_bus = false;
     ck_assert(validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_missing_type)
 {
-    CAN_MESSAGE.has_type = false;
+    //CAN_MESSAGE.has_type = false;
     ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_missing_id)
 {
-    CAN_MESSAGE.can_message.has_id = false;
+    //CAN_MESSAGE.can_message.has_id = false;
     ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_raw_missing_data)
 {
-    CAN_MESSAGE.can_message.has_data = false;
+    //CAN_MESSAGE.can_message.has_data = false;
     ck_assert(!validate(&CAN_MESSAGE));
 }
 END_TEST
@@ -672,29 +672,29 @@ END_TEST
 
 START_TEST (test_validate_simple_bad_value)
 {
-    SIMPLE_MESSAGE.simple_message.value.has_type = false;
+    //SIMPLE_MESSAGE.simple_message.value.has_type = false;
     ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_simple_missing_name)
 {
-    SIMPLE_MESSAGE.simple_message.has_name = false;
+    //SIMPLE_MESSAGE.simple_message.has_name = false;
     ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_simple_missing_value)
 {
-    SIMPLE_MESSAGE.simple_message.has_value = false;
+    //SIMPLE_MESSAGE.simple_message.has_value = false;
     ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
 
 START_TEST (test_validate_simple_bad_event)
 {
-    SIMPLE_MESSAGE.simple_message.has_event = true;
-    SIMPLE_MESSAGE.simple_message.event.has_type = false;
+    //SIMPLE_MESSAGE.simple_message.has_event = true;
+    //SIMPLE_MESSAGE.simple_message.event.has_type = false;
     ck_assert(!validate(&SIMPLE_MESSAGE));
 }
 END_TEST
@@ -707,56 +707,56 @@ END_TEST
 
 START_TEST (test_validate_diagnostic_missing_action)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.has_action = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.has_action = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_mode)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_mode = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_bus)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_bus = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_missing_id)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_message_id = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_pid)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_pid = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_payload)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_payload = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_multiple_responses)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_multiple_responses = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
 
 START_TEST (test_validate_diagnostic_no_frequency)
 {
-    CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = false;
+    //CONTROL_COMMAND.control_command.diagnostic_request.request.has_frequency = false;
     ck_assert(validate(&CONTROL_COMMAND));
 }
 END_TEST
@@ -781,7 +781,7 @@ START_TEST (test_validate_device_id_command)
     ck_assert(validate(&CONTROL_COMMAND));
 
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_DEVICE_ID;
-    CONTROL_COMMAND.control_command.has_type = false;
+    //CONTROL_COMMAND.control_command.has_type = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
@@ -789,14 +789,14 @@ END_TEST
 START_TEST (test_validate_passthrough_commmand)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PASSTHROUGH;
-    CONTROL_COMMAND.control_command.has_passthrough_mode_request = true;
-    CONTROL_COMMAND.control_command.passthrough_mode_request.has_bus = true;
+    //CONTROL_COMMAND.control_command.has_passthrough_mode_request = true;
+    //CONTROL_COMMAND.control_command.passthrough_mode_request.has_bus = true;
     CONTROL_COMMAND.control_command.passthrough_mode_request.bus = 1;
-    CONTROL_COMMAND.control_command.passthrough_mode_request.has_enabled = true;
+    //CONTROL_COMMAND.control_command.passthrough_mode_request.has_enabled = true;
     CONTROL_COMMAND.control_command.passthrough_mode_request.enabled = true;
     ck_assert(validate(&CONTROL_COMMAND));
 
-    CONTROL_COMMAND.control_command.has_type = false;
+    //CONTROL_COMMAND.control_command.has_type = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
@@ -813,14 +813,14 @@ END_TEST
 START_TEST (test_validate_bypass_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
-    CONTROL_COMMAND.control_command.has_acceptance_filter_bypass_command = true;
-    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bus = true;
+    //CONTROL_COMMAND.control_command.has_acceptance_filter_bypass_command = true;
+    //CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bus = true;
     CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.bus = 1;
-    CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bypass = true;
+    //CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.has_bypass = true;
     CONTROL_COMMAND.control_command.acceptance_filter_bypass_command.bypass = true;
     ck_assert(validate(&CONTROL_COMMAND));
 
-    CONTROL_COMMAND.control_command.has_type = false;
+    //CONTROL_COMMAND.control_command.has_type = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
@@ -837,13 +837,13 @@ END_TEST
 START_TEST (test_validate_payload_format_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
-    CONTROL_COMMAND.control_command.has_payload_format_command = true;
-    CONTROL_COMMAND.control_command.payload_format_command.has_format = true;
+    //CONTROL_COMMAND.control_command.has_payload_format_command = true;
+    //CONTROL_COMMAND.control_command.payload_format_command.has_format = true;
     CONTROL_COMMAND.control_command.payload_format_command.format =
             openxc_PayloadFormatCommand_PayloadFormat_JSON;
     ck_assert(validate(&CONTROL_COMMAND));
 
-    CONTROL_COMMAND.control_command.has_type = false;
+    //CONTROL_COMMAND.control_command.has_type = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST
@@ -860,12 +860,12 @@ END_TEST
 START_TEST (test_validate_predefined_obd2_command)
 {
     CONTROL_COMMAND.control_command.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
-    CONTROL_COMMAND.control_command.has_predefined_obd2_requests_command = true;
-    CONTROL_COMMAND.control_command.predefined_obd2_requests_command.has_enabled = true;
+    //CONTROL_COMMAND.control_command.has_predefined_obd2_requests_command = true;
+    //CONTROL_COMMAND.control_command.predefined_obd2_requests_command.has_enabled = true;
     CONTROL_COMMAND.control_command.predefined_obd2_requests_command.enabled = true;
     ck_assert(validate(&CONTROL_COMMAND));
 
-    CONTROL_COMMAND.control_command.has_type = false;
+    //CONTROL_COMMAND.control_command.has_type = false;
     ck_assert(!validate(&CONTROL_COMMAND));
 }
 END_TEST

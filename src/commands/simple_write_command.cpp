@@ -39,7 +39,7 @@ bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
         openxc_SimpleMessage* simpleMessage =
                 &message->simple_message;
         //if(simpleMessage->has_name) {
-        if((simpleMessage->name != NULL) && (strlen(simpleMessage->name) > 0)) {
+        if(strlen(simpleMessage->name) > 0) {
             CanSignal* signal = lookupSignal(simpleMessage->name,
                     getSignals(), getSignalCount(), true);
             if(signal != NULL) {
@@ -83,7 +83,7 @@ bool openxc::commands::validateSimple(openxc_VehicleMessage* message) {
     if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
         openxc_SimpleMessage* simple = &message->simple_message;
         //if(!simple->has_name) {
-        if((simple->name != NULL) && (strlen(simple->name) > 0)) {
+        if(strlen(simple->name) > 0) {
             valid = false;
             debug("Write request is missing name");
         }
@@ -98,7 +98,7 @@ bool openxc::commands::validateSimple(openxc_VehicleMessage* message) {
 
         //if(simple->has_event) {
             //if(!simple->event.has_type) {
-            if(!simple->event.type == openxc_DynamicField_Type_UNUSED) {
+            if(simple->event.type == openxc_DynamicField_Type_UNUSED) {
                 valid = false;
                 debug("Unsupported type in event field of %s", simple->name);
             }

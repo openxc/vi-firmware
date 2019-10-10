@@ -339,7 +339,7 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         // If name, include 'value' instead of payload, and leave of response
         // details.
         //if (field.has_string_value) {
-        if ((field.string_value != NULL) && (strlen(field.string_value) > 0)) {
+        if (strlen(field.string_value) > 0) {
             publishStringMessage(request->name, field.string_value, pipeline);
         } else {
             publishNumericalMessage(request->name, field.numeric_value, pipeline);
@@ -651,7 +651,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
         if(commandRequest->frequency != 0.0) {
             status = addRecurringRequest(manager, bus, &request,
                     //commandRequest->has_name ?
-                    ((commandRequest->name != NULL) && strlen(commandRequest->name) > 0) ?
+                    (strlen(commandRequest->name) > 0) ?
                             commandRequest->name : NULL,
                     multipleResponses,
                     decoder,
@@ -660,7 +660,7 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
         } else {
             status = addRequest(manager, bus, &request,
                     //commandRequest->has_name ?
-                    ((commandRequest->name != NULL) && strlen(commandRequest->name) > 0) ?
+                    (strlen(commandRequest->name) > 0) ?
                             commandRequest->name : NULL,
                     multipleResponses,
                     decoder,

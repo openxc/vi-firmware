@@ -66,7 +66,7 @@ static void buildBaseSimpleVehicleMessage(openxc_VehicleMessage* message,
     //message->has_type = true;
     message->type = openxc_VehicleMessage_Type_SIMPLE;
     //message->has_simple_message = true;
-    message->simple_message = {0};
+    message->simple_message = openxc_SimpleMessage();		// Zero Fill
     //message->simple_message.has_name = true;
     strcpy(message->simple_message.name, name);
 }

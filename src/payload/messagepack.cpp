@@ -200,11 +200,14 @@ static void msgPackAddObjectMap(cmp_ctx_t *ctx, const char* fname ,uint8_t* obj,
 
 static void msgPackAddDynamicField(cmp_ctx_t *ctx, openxc_DynamicField* field) {
 
-    if(field->has_numeric_value) {
+    //if(field->has_numeric_value) {
+    if(field->type == openxc_DynamicField_Type_NUM) {
         cmp_write_double(ctx, field->numeric_value);
-    } else if(field->has_boolean_value) {
+    //} else if(field->has_boolean_value) {
+    } else if(field->type == openxc_DynamicField_Type_BOOL) {
         cmp_write_bool(ctx, field->boolean_value);
-    } else if(field->has_string_value) {
+    //} else if(field->has_string_value) {
+    } else if(field->type == openxc_DynamicField_Type_STRING) {
         cmp_write_str(ctx, field->string_value, strlen(field->string_value));
     }
 
@@ -216,13 +219,15 @@ static void serializeSimple(openxc_VehicleMessage* message,  cmp_ctx_t *ctx) {
     sFile *s = (sFile *)ctx->buf;
     msgPackAddObjectString(ctx, payload::messagepack::NAME_FIELD_NAME, name);
 
-    if(message->simple_message.has_value) {
+    //if(message->simple_message.has_value) {
+    if(message->simple_message.value.type != openxc_DynamicField_Type_UNUSED) {
         cmp_write_str(ctx, payload::messagepack::VALUE_FIELD_NAME, strlen(payload::messagepack::VALUE_FIELD_NAME));
         msgPackAddDynamicField(ctx, &message->simple_message.value);
         s->mobj.MsgPackMapPairCount++;
     }
     
-    if(message->simple_message.has_event) {
+    //if(message->simple_message.has_event) {
+    if(message->simple_message.event.type != openxc_DynamicField_Type_UNUSED) {
         cmp_write_str(ctx, payload::messagepack::EVENT_FIELD_NAME, strlen(payload::messagepack::EVENT_FIELD_NAME));        
         msgPackAddDynamicField(ctx, &message->simple_message.event);
         s->mobj.MsgPackMapPairCount++;
@@ -238,7 +243,8 @@ void serializeCan(openxc_VehicleMessage* message, cmp_ctx_t *ctx) {
     msgPackAddObjectBinary(ctx, payload::messagepack::DATA_FIELD_NAME,
             message->can_message.data.bytes,message->can_message.data.size);
             
-    if(message->can_message.has_frame_format) {
+    //if(message->can_message.has_frame_format) {
+    if(message->can_message.frame_format != openxc_CanMessage_FrameFormat_UNUSED) {
         msgPackAddObjectString(ctx, payload::messagepack::FRAME_FORMAT_FIELD_NAME,
                 message->can_message.frame_format == openxc_CanMessage_FrameFormat_STANDARD ?
                     payload::messagepack::FRAME_FORMAT_STANDARD_NAME :
@@ -258,22 +264,25 @@ static void serializeDiagnostic(openxc_VehicleMessage* message, cmp_ctx_t *ctx) 
             message->diagnostic_response.success);
 
             
-    if(message->diagnostic_response.has_pid) {
+    //if(message->diagnostic_response.has_pid) {
+    if(message->diagnostic_response.pid != 0) {
         msgPackAddObject16bNumeric(ctx, payload::messagepack::DIAGNOSTIC_PID_FIELD_NAME,
                 message->diagnostic_response.pid);
     }
 
-    if(message->diagnostic_response.has_negative_response_code) {
+    //if(message->diagnostic_response.has_negative_response_code) {
+    if(message->diagnostic_response.negative_response_code != 0) {
         msgPackAddObjectDouble(ctx, payload::messagepack::DIAGNOSTIC_NRC_FIELD_NAME,
                 message->diagnostic_response.negative_response_code);
     }
 
-    if(message->diagnostic_response.has_value) {
+    //if(message->diagnostic_response.has_value) {
+    if(message->diagnostic_response.value.type != openxc_DynamicField_Type_UNUSED) {
         cmp_write_str(ctx, payload::messagepack::VALUE_FIELD_NAME, strlen(payload::messagepack::VALUE_FIELD_NAME));
         msgPackAddDynamicField(ctx, &message->diagnostic_response.value);
                 
-    } else if(message->diagnostic_response.has_payload) {
-        
+    //} else if(message->diagnostic_response.has_payload) {
+    } else if(message->diagnostic_response.payload.size > 0) {
         msgPackAddObjectBinary(ctx, payload::messagepack::DIAGNOSTIC_PAYLOAD_FIELD_NAME, 
                 message->diagnostic_response.payload.bytes, message->diagnostic_response.payload.size);
         
@@ -315,13 +324,15 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message, cmp_ctx_t *
             typeString);
             
             
-    if(message->command_response.has_message) {
+    //if(message->command_response.has_message) {
+    if(message->command_response.type != openxc_ControlCommand_Type_UNUSED) {
         msgPackAddObjectString(ctx,
                 payload::messagepack::COMMAND_RESPONSE_MESSAGE_FIELD_NAME,
                 message->command_response.message);
     }
 
-    if(message->command_response.has_status) {
+    //if(message->command_response.has_status) {
+    if(message->command_response.type != openxc_ControlCommand_Type_UNUSED) {
         msgPackAddObjectBoolean(ctx,
                 payload::messagepack::COMMAND_RESPONSE_STATUS_FIELD_NAME,
                 message->command_response.status);
@@ -372,7 +383,8 @@ int openxc::payload::messagepack::serialize(openxc_VehicleMessage* message, uint
     smsgpackb.mobj.MsgPackMapPairCount -=3;
     goto x;
     */
-    if(message->has_timestamp) {
+    //if(message->has_timestamp) {
+    if(message->type != openxc_VehicleMessage_Type_UNUSED) {
         
         msgPackAddObject64bNumeric(&cmp, "timestamp", message->timestamp);
                 
@@ -759,20 +771,20 @@ sMsgPackNode* msgPackParse(uint8_t* buf,uint32_t* len){ //reentrant
 
 static void deserializePassthrough(sMsgPackNode* root, openxc_ControlCommand* command) {
     
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_PASSTHROUGH;
-    command->has_passthrough_mode_request = true;
+    //command->has_passthrough_mode_request = true;
 
     sMsgPackNode* element = msgPackSeekNode(root, "bus");
     
     if(element != NULL) {
-        command->passthrough_mode_request.has_bus = true;
+        //command->passthrough_mode_request.has_bus = true;
         command->passthrough_mode_request.bus = element->valueint;
     }
 
     element = msgPackSeekNode(root, "enabled");
     if(element != NULL) {
-        command->passthrough_mode_request.has_enabled = true;
+        //command->passthrough_mode_request.has_enabled = true;
         command->passthrough_mode_request.enabled = bool(element->valueint);
     }
 }
@@ -780,25 +792,25 @@ static void deserializePassthrough(sMsgPackNode* root, openxc_ControlCommand* co
 static void deserializePayloadFormat(sMsgPackNode* root,
         openxc_ControlCommand* command) {
             
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
-    command->has_payload_format_command = true;
+    //command->has_payload_format_command = true;
 
     sMsgPackNode* element = msgPackSeekNode(root, "format");
     if(element != NULL) {
         if(!strcmp(element->valuestring,
                     openxc::payload::messagepack::PAYLOAD_FORMAT_JSON_NAME)) {
-            command->payload_format_command.has_format = true;
+            //command->payload_format_command.has_format = true;
             command->payload_format_command.format =
                     openxc_PayloadFormatCommand_PayloadFormat_JSON;
         } else if(!strcmp(element->valuestring,
                     openxc::payload::messagepack::PAYLOAD_FORMAT_PROTOBUF_NAME)) {
-            command->payload_format_command.has_format = true;
+            //command->payload_format_command.has_format = true;
             command->payload_format_command.format =
                     openxc_PayloadFormatCommand_PayloadFormat_PROTOBUF;
         } else if(!strcmp(element->valuestring,
                     openxc::payload::messagepack::PAYLOAD_FORMAT_MESSAGEPACK_NAME)) {
-            command->payload_format_command.has_format = false;
+            //command->payload_format_command.has_format = false;
             command->payload_format_command.format = openxc_PayloadFormatCommand_PayloadFormat_MESSAGEPACK;
         }
     }
@@ -807,44 +819,44 @@ static void deserializePayloadFormat(sMsgPackNode* root,
 static void deserializePredefinedObd2RequestsCommand(sMsgPackNode* root,
         openxc_ControlCommand* command) {
             
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
-    command->has_predefined_obd2_requests_command = true;
+    //command->has_predefined_obd2_requests_command = true;
 
     sMsgPackNode* element = msgPackSeekNode(root, "enabled");
     if(element != NULL) {
-        command->predefined_obd2_requests_command.has_enabled = true;
+        //command->predefined_obd2_requests_command.has_enabled = true;
         command->predefined_obd2_requests_command.enabled = bool(element->valueint);
     }
 }
 
 static void deserializeAfBypass(sMsgPackNode* root, openxc_ControlCommand* command) {
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
-    command->has_acceptance_filter_bypass_command = true;
+    //command->has_acceptance_filter_bypass_command = true;
 
     sMsgPackNode* element = msgPackSeekNode(root, "bus");
     if(element != NULL) {
-        command->acceptance_filter_bypass_command.has_bus = true;
+        //command->acceptance_filter_bypass_command.has_bus = true;
         command->acceptance_filter_bypass_command.bus = element->valueint;
     }
 
     element = msgPackSeekNode(root, "bypass");
     if(element != NULL) {
-        command->acceptance_filter_bypass_command.has_bypass = true;
+        //command->acceptance_filter_bypass_command.has_bypass = true;
         command->acceptance_filter_bypass_command.bypass =
             bool(element->valueint);
     }
 }
 
 static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* command) {
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command->has_diagnostic_request = true;
+    //command->has_diagnostic_request = true;
 
     sMsgPackNode* action = msgPackSeekNode(root, "action");
     if(action != NULL && action->type == msgpack_var_type::TYPE_STRING) {
-        command->diagnostic_request.has_action = true;
+        //command->diagnostic_request.has_action = true;
         if(!strcmp(action->valuestring, "add")) {
             command->diagnostic_request.action =
                     openxc_DiagnosticControlCommand_Action_ADD;
@@ -852,7 +864,7 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
             command->diagnostic_request.action =
                     openxc_DiagnosticControlCommand_Action_CANCEL;
         } else {
-            command->diagnostic_request.has_action = false;
+            //command->diagnostic_request.has_action = false;
         }
     }
 
@@ -860,31 +872,31 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
     if(request != NULL) {
      sMsgPackNode * element = msgPackSeekNode(request, "bus");
         if(element != NULL) {
-            command->diagnostic_request.request.has_bus = true;
+            //command->diagnostic_request.request.has_bus = true;
             command->diagnostic_request.request.bus = element->valueint;
         }
 
         element = msgPackSeekNode(request, "mode");
         if(element != NULL) {
-            command->diagnostic_request.request.has_mode = true;
+            //command->diagnostic_request.request.has_mode = true;
             command->diagnostic_request.request.mode = element->valueint;
         }
 
         element = msgPackSeekNode(request, "id");
         if(element != NULL) {
-            command->diagnostic_request.request.has_message_id = true;
+            //command->diagnostic_request.request.has_message_id = true;
             command->diagnostic_request.request.message_id = element->valueint;
         }
 
         element = msgPackSeekNode(request, "pid");
         if(element != NULL) {
-            command->diagnostic_request.request.has_pid = true;
+            //command->diagnostic_request.request.has_pid = true;
             command->diagnostic_request.request.pid = element->valueint;
         }
 
         element = msgPackSeekNode(request, "payload");
         if(element != NULL) {
-            command->diagnostic_request.request.has_payload = true;
+            //command->diagnostic_request.request.has_payload = true;
             if(request->type == msgpack_var_type::TYPE_BINARY){
                 command->diagnostic_request.request.payload.size = request->binsz;
                 memcpy(command->diagnostic_request.request.payload.bytes, 
@@ -894,14 +906,14 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
 
         element = msgPackSeekNode(request, "multiple_responses");
         if(element != NULL) {
-            command->diagnostic_request.request.has_multiple_responses = true;
+            //command->diagnostic_request.request.has_multiple_responses = true;
             command->diagnostic_request.request.multiple_responses =
                 bool(element->valueint);
         }
 
         element = msgPackSeekNode(request, "frequency");
         if(element != NULL) {
-            command->diagnostic_request.request.has_frequency = true;
+            //command->diagnostic_request.request.has_frequency = true;
             command->diagnostic_request.request.frequency =
                 element->valuedouble;
         }
@@ -909,11 +921,11 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
         element = msgPackSeekNode(request, "decoded_type");
         if(element != NULL) {
             if(!strcmp(element->valuestring, "obd2")) {
-                command->diagnostic_request.request.has_decoded_type = true;
+                //command->diagnostic_request.request.has_decoded_type = true;
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_OBD2;
             } else if(!strcmp(element->valuestring, "none")) {
-                command->diagnostic_request.request.has_decoded_type = true;
+                //command->diagnostic_request.request.has_decoded_type = true;
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_NONE;
             }
@@ -921,7 +933,7 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
 
         element = msgPackSeekNode(request, "name");
         if(element != NULL && element->type == msgpack_var_type::TYPE_STRING) {
-            command->diagnostic_request.request.has_name = true;
+            //command->diagnostic_request.request.has_name = true;
             strcpy(command->diagnostic_request.request.name,
                     element->valuestring);    
         }
@@ -931,27 +943,27 @@ static void deserializeDiagnostic(sMsgPackNode* root, openxc_ControlCommand* com
 static bool deserializeDynamicField(sMsgPackNode* element,
         openxc_DynamicField* field) {
     bool status = true;
-    field->has_type = true;
+    //field->has_type = true;
     switch(element->type) {
         case msgpack_var_type::TYPE_STRING:
             field->type = openxc_DynamicField_Type_STRING;
-            field->has_string_value = true;
+            //field->has_string_value = true;
             strcpy(field->string_value, element->valuestring);
             break;
         case msgpack_var_type::TYPE_FALSE:
         case msgpack_var_type::TYPE_TRUE:
             field->type = openxc_DynamicField_Type_BOOL;
-            field->has_boolean_value = true;
+            //field->has_boolean_value = true;
             field->boolean_value = bool(element->valueint);
             break;
         case msgpack_var_type::TYPE_NUMBER:
             field->type = openxc_DynamicField_Type_NUM;
-            field->has_numeric_value = true;
+            //field->has_numeric_value = true;
             field->numeric_value = element->valuedouble;
             break;
         default:
             debug("Unsupported type in value field: %d", element->type);
-            field->has_type = false;
+            //field->has_type = false;
             status = false;
             break;
     }
@@ -959,46 +971,46 @@ static bool deserializeDynamicField(sMsgPackNode* element,
 }
 
 static void deserializeSimple(sMsgPackNode* root, openxc_VehicleMessage* message) {
-    message->has_type = true;
+    //message->has_type = true;
     message->type = openxc_VehicleMessage_Type_SIMPLE;
-    message->has_simple_message = true;
+    //message->has_simple_message = true;
     openxc_SimpleMessage* simpleMessage = &message->simple_message;
 
     sMsgPackNode* element = msgPackSeekNode(root, "name");
     if(element != NULL && element->type == msgpack_var_type::TYPE_STRING) {
-        simpleMessage->has_name = true;
+        //simpleMessage->has_name = true;
         strcpy(simpleMessage->name, element->valuestring);
     }
 
     element = msgPackSeekNode(root, "value");
     if(element != NULL) {
         if(deserializeDynamicField(element, &simpleMessage->value)) {
-            simpleMessage->has_value = true;
+            //simpleMessage->has_value = true;
         }
     }
 
     element = msgPackSeekNode(root, "event");
     if(element != NULL) {
         if(deserializeDynamicField(element, &simpleMessage->event)) {
-            simpleMessage->has_event = true;
+            //simpleMessage->has_event = true;
         }
     }
 }
 
 static void deserializeCan(sMsgPackNode* root, openxc_VehicleMessage* message) {
-    message->has_type = true;
+    //message->has_type = true;
     message->type = openxc_VehicleMessage_Type_CAN;
-    message->has_can_message = true;
+    //message->has_can_message = true;
     openxc_CanMessage* canMessage = &message->can_message;
 
     sMsgPackNode* element = msgPackSeekNode(root, "id");
     if(element != NULL) {
-        canMessage->has_id = true;
+        //canMessage->has_id = true;
         canMessage->id = element->valueint;
         element = msgPackSeekNode(root, "data");
         if(element != NULL) { 
             if(element->type == msgpack_var_type::TYPE_BINARY){
-                 canMessage->has_data = true;
+                 //canMessage->has_data = true;
                  canMessage->data.size = element->binsz;
                  memcpy(canMessage->data.bytes,
                         element->bin,element->binsz);
@@ -1007,13 +1019,13 @@ static void deserializeCan(sMsgPackNode* root, openxc_VehicleMessage* message) {
 
         element = msgPackSeekNode(root, "bus");
         if(element != NULL) {
-            canMessage->has_bus = true;
+            //canMessage->has_bus = true;
             canMessage->bus = element->valueint;
         }
 
         element = msgPackSeekNode(root, payload::messagepack::FRAME_FORMAT_FIELD_NAME);
         if(element != NULL) {
-            canMessage->has_frame_format = true;
+            //canMessage->has_frame_format = true;
             if(!strcmp(element->valuestring,
                         payload::messagepack::FRAME_FORMAT_STANDARD_NAME)) {
                 canMessage->frame_format = openxc_CanMessage_FrameFormat_STANDARD;
@@ -1021,33 +1033,33 @@ static void deserializeCan(sMsgPackNode* root, openxc_VehicleMessage* message) {
                         payload::messagepack::FRAME_FORMAT_EXTENDED_NAME)) {
                 canMessage->frame_format = openxc_CanMessage_FrameFormat_EXTENDED;
             } else {
-                canMessage->has_frame_format = false;
+                //canMessage->has_frame_format = false;
             }
         }
     } else {
-        message->has_can_message = false;
+        //message->has_can_message = false;
     }
 }
 
 static void deserializeModemConfiguration(sMsgPackNode* root, openxc_ControlCommand* command) {
     // set up the struct for a modem configuration message
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_MODEM_CONFIGURATION;
-    command->has_modem_configuration_command = true;
+    //command->has_modem_configuration_command = true;
     openxc_ModemConfigurationCommand* modemConfigurationCommand = &command->modem_configuration_command;
     
     // parse server command
     sMsgPackNode* server = msgPackSeekNode(root, "server");
     if(server != NULL) {
-        modemConfigurationCommand->has_serverConnectSettings = true;
+        //modemConfigurationCommand->has_serverConnectSettings = true;
         sMsgPackNode* host = msgPackSeekNode(server, "host");
         if(host != NULL) {
-            modemConfigurationCommand->serverConnectSettings.has_host = true;
+            //modemConfigurationCommand->serverConnectSettings.has_host = true;
             strcpy(modemConfigurationCommand->serverConnectSettings.host, host->valuestring);
         }
         sMsgPackNode* port = msgPackSeekNode(server, "port");
         if(port != NULL) {
-            modemConfigurationCommand->serverConnectSettings.has_port = true;
+            //modemConfigurationCommand->serverConnectSettings.has_port = true;
             modemConfigurationCommand->serverConnectSettings.port = port->valueint;
         }
     }
@@ -1055,15 +1067,15 @@ static void deserializeModemConfiguration(sMsgPackNode* root, openxc_ControlComm
 
 static void deserializeRTCConfiguration(sMsgPackNode* root, openxc_ControlCommand* command) {
 
-    command->has_type = true;
+    //command->has_type = true;
     command->type = openxc_ControlCommand_Type_RTC_CONFIGURATION;
-    command->has_rtc_configuration_command = true;
+    //command->has_rtc_configuration_command = true;
     openxc_RTCConfigurationCommand* rtcConfigurationCommand = &command->rtc_configuration_command;
     
     sMsgPackNode* time = msgPackSeekNode(root, "time");
     
     if(time != NULL) {
-        rtcConfigurationCommand->has_unix_time = true;
+        //rtcConfigurationCommand->has_unix_time = true;
         rtcConfigurationCommand->unix_time = time->valueint;
 
     }
@@ -1106,22 +1118,22 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
 
     if(commandNameObject != NULL) {
         
-        message->has_type = true;
+        //message->has_type = true;
         message->type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-        message->has_control_command = true;
+        //message->has_control_command = true;
         openxc_ControlCommand* command = &message->control_command;
         
         if(!strncmp(commandNameObject->valuestring, VERSION_COMMAND_NAME,
                     strlen(VERSION_COMMAND_NAME))) {
-            command->has_type = true;
+            //command->has_type = true;
             command->type = openxc_ControlCommand_Type_VERSION;
         } else if(!strncmp(commandNameObject->valuestring,
                     DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
-            command->has_type = true;
+            //command->has_type = true;
             command->type = openxc_ControlCommand_Type_DEVICE_ID;
         } else if(!strncmp(commandNameObject->valuestring,
                     DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
-            command->has_type = true;
+            //command->has_type = true;
             command->type = openxc_ControlCommand_Type_PLATFORM;
         } else if(!strncmp(commandNameObject->valuestring,
                     DIAGNOSTIC_COMMAND_NAME, strlen(DIAGNOSTIC_COMMAND_NAME))) {
@@ -1156,12 +1168,12 @@ size_t openxc::payload::messagepack::deserialize(uint8_t payload[], size_t lengt
                     SD_MOUNT_STATUS_COMMAND_NAME,
                     strlen(SD_MOUNT_STATUS_COMMAND_NAME))) {
                         
-                command->has_type = true;
+                //command->has_type = true;
                 command->type = openxc_ControlCommand_Type_SD_MOUNT_STATUS;
         }
         else {
             debug("Unrecognized command: %s", commandNameObject->valuestring);
-            message->has_control_command = false;
+            //message->has_control_command = false;
         }    
     } else{
         sMsgPackNode* nameObject = msgPackSeekNode(root, "name");

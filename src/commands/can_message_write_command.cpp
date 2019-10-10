@@ -22,10 +22,12 @@ namespace interface = openxc::interface;
 bool openxc::commands::handleCan(openxc_VehicleMessage* message,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     bool status = true;
-    if(message->has_can_message) {
+    //if(message->has_can_message) {
+    if(message->type == openxc_VehicleMessage_Type_CAN) {
         openxc_CanMessage* canMessage = &message->can_message;
         CanBus* matchingBus = NULL;
-        if(canMessage->has_bus) {
+        //if(canMessage->has_bus) {
+        if(canMessage->bus > 0) {
             matchingBus = lookupBus(canMessage->bus, getCanBuses(), getCanBusCount());
         } else if(getCanBusCount() > 0) {
             matchingBus = &getCanBuses()[0];
@@ -44,7 +46,8 @@ bool openxc::commands::handleCan(openxc_VehicleMessage* message,
             uint8_t size = canMessage->data.size;
             CanMessageFormat format;
 
-            if(canMessage->has_frame_format) {
+            //if(canMessage->has_frame_format) {
+            if(canMessage->frame_format != openxc_CanMessage_FrameFormat_UNUSED) {
                 format = canMessage->frame_format ==
                         openxc_CanMessage_FrameFormat_STANDARD ?
                             CanMessageFormat::STANDARD :
@@ -71,21 +74,24 @@ bool openxc::commands::handleCan(openxc_VehicleMessage* message,
 
 bool openxc::commands::validateCan(openxc_VehicleMessage* message) {
     bool valid = true;
-    if(message->has_type && message->type == openxc_VehicleMessage_Type_CAN &&
-            message->has_can_message) {
+    //if(message->has_type && message->type == openxc_VehicleMessage_Type_CAN && message->has_can_message) {
+    if(message->type == openxc_VehicleMessage_Type_CAN) {
         openxc_CanMessage* canMessage = &message->can_message;
-        if(!canMessage->has_id) {
+        //if(!canMessage->has_id) {
+        if(canMessage->id > 0) {
             valid = false;
             debug("Write request is malformed, missing id");
         }
 
-        if(!canMessage->has_data) {
-            valid = false;
-            debug("Raw write request for 0x%02x missing data", canMessage->id);
-        }
+        //if(!canMessage->has_data) {
+        //    valid = false;
+        //    debug("Raw write request for 0x%02x missing data", canMessage->id);
+        //}
 
-        if(canMessage->has_frame_format &&
-                canMessage->frame_format == openxc_CanMessage_FrameFormat_STANDARD &&
+        //if(canMessage->has_frame_format &&
+        //        canMessage->frame_format == openxc_CanMessage_FrameFormat_STANDARD &&
+        //        canMessage->id > 0xff) {
+        if (canMessage->frame_format == openxc_CanMessage_FrameFormat_STANDARD &&
                 canMessage->id > 0xff) {
             valid = false;
             debug("ID in raw write request (0x%02x) is too large "

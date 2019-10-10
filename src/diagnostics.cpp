@@ -256,14 +256,15 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, openxc_DynamicField value) {
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
+    //openxc_VehicleMessage message = {0};
+    openxc_VehicleMessage message = openxc_VehicleMessage();		// Zero fill
+    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-    message.has_diagnostic_response = true;
+    //message.has_diagnostic_response = true;
     message.diagnostic_response = {0};
-    message.diagnostic_response.has_bus = true;
+    //message.diagnostic_response.has_bus = true;
     message.diagnostic_response.bus = bus->address;
-    message.diagnostic_response.has_message_id = true;
+    //message.diagnostic_response.has_message_id = true;
 
     if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
         message.diagnostic_response.message_id = response->arbitration_id
@@ -275,24 +276,25 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         message.diagnostic_response.message_id = response->arbitration_id;
     }
 
-    message.diagnostic_response.has_mode = true;
+    //message.diagnostic_response.has_mode = true;
     message.diagnostic_response.mode = response->mode;
-    message.diagnostic_response.has_pid = response->has_pid;
-    if(message.diagnostic_response.has_pid) {
+    //message.diagnostic_response.has_pid = response->has_pid;
+    //if(message.hasField("pid")) {
+    if(message.diagnostic_response.pid != 0) {
         message.diagnostic_response.pid = response->pid;
     }
-    message.diagnostic_response.has_success = true;
+    //message.diagnostic_response.has_success = true;
     message.diagnostic_response.success = response->success;
-    message.diagnostic_response.has_negative_response_code = !response->success;
+    //message.diagnostic_response.has_negative_response_code = !response->success;
     message.diagnostic_response.negative_response_code =
             response->negative_response_code;
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {
-            message.diagnostic_response.has_value = true;
+            //message.diagnostic_response.has_value = true;
             message.diagnostic_response.value = value;
         } else {
-            message.diagnostic_response.has_payload = true;
+            //message.diagnostic_response.has_payload = true;
             memcpy(message.diagnostic_response.payload.bytes, response->payload,
                     response->payload_length);
             message.diagnostic_response.payload.size = response->payload_length;
@@ -315,18 +317,18 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         request->decoder(response, parsed_value, decoded_value_buf, buf_size);
     }
 
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();    // Zero fill
+    //field.has_type = true;
     if (response->multi_frame) {
         field.type = openxc_DynamicField_Type_STRING;
-        field.has_string_value = true;
+        //field.has_string_value = true;
         if (!has_decoder) {
             snprintf(decoded_value_buf, buf_size, "%s", response->payload);
         }
         strcpy(field.string_value, decoded_value_buf);
     } else {
         field.type = openxc_DynamicField_Type_NUM;
-        field.has_numeric_value = true;
+        //field.has_numeric_value = true;
         if (!has_decoder) {
             snprintf(decoded_value_buf, buf_size, "%f", parsed_value);
         }
@@ -336,7 +338,8 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
     if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
-        if (field.has_string_value) {
+        //if (field.has_string_value) {
+        if ((field.string_value != NULL) && (strlen(field.string_value) > 0)) {
             publishStringMessage(request->name, field.string_value, pipeline);
         } else {
             publishNumericalMessage(request->name, field.numeric_value, pipeline);
@@ -606,19 +609,21 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
         mode: uint8_t(commandRequest->mode),
     };
 
-    if(commandRequest->has_payload) {
+    //if(commandRequest->has_payload) {
+    if(commandRequest->payload.size > 0) {
         request.payload_length = commandRequest->payload.size;
         memcpy(request.payload, commandRequest->payload.bytes,
                 request.payload_length);
     }
 
-    if(commandRequest->has_pid) {
+    //if(commandRequest->has_pid) {
+    if(commandRequest->pid != 0) {
         request.has_pid = true;
         request.pid = commandRequest->pid;
     }
 
     DiagnosticResponseDecoder decoder = NULL;
-    if(commandRequest->has_decoded_type) {
+    if(commandRequest->decoded_type != openxc_DiagnosticRequest_DecodedType_UNUSED) {
         switch(commandRequest->decoded_type) {
             case openxc_DiagnosticRequest_DecodedType_NONE:
                 decoder = passthroughDecoder;
@@ -626,6 +631,9 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
             case openxc_DiagnosticRequest_DecodedType_OBD2:
                 decoder = obd2::handleObd2Pid;
                 break;
+	    default:
+		decoder = NULL;
+		break;
         }
     } else if(obd2::isObd2Request(&request)) {
         decoder = obd2::handleObd2Pid;
@@ -633,15 +641,17 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
 
     bool multipleResponses = commandRequest->message_id ==
             OBD2_FUNCTIONAL_BROADCAST_ID;
-    if(commandRequest->has_multiple_responses) {
+    if(commandRequest->multiple_responses == true) {
         multipleResponses = commandRequest->multiple_responses;
     }
 
     bool status = true;
     if(diagControlCommand->action == openxc_DiagnosticControlCommand_Action_ADD) {
-        if(commandRequest->has_frequency) {
+        //if(commandRequest->has_frequency) {
+        if(commandRequest->frequency != 0.0) {
             status = addRecurringRequest(manager, bus, &request,
-                    commandRequest->has_name ?
+                    //commandRequest->has_name ?
+                    ((commandRequest->name != NULL) && strlen(commandRequest->name) > 0) ?
                             commandRequest->name : NULL,
                     multipleResponses,
                     decoder,
@@ -649,7 +659,8 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                     commandRequest->frequency);
         } else {
             status = addRequest(manager, bus, &request,
-                    commandRequest->has_name ?
+                    //commandRequest->has_name ?
+                    ((commandRequest->name != NULL) && strlen(commandRequest->name) > 0) ?
                             commandRequest->name : NULL,
                     multipleResponses,
                     decoder,
@@ -664,12 +675,14 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
 bool openxc::diagnostics::handleDiagnosticCommand(
         DiagnosticsManager* manager, openxc_ControlCommand* command) {
     bool status = true;
-    if(command->has_diagnostic_request) {
+    //if(command->has_diagnostic_request) {
         openxc_DiagnosticRequest* commandRequest =
                 &command->diagnostic_request.request;
-        if(commandRequest->has_message_id && commandRequest->has_mode) {
+        //if(commandRequest->has_message_id && commandRequest->has_mode) {
+        if((commandRequest->message_id != 0) && (commandRequest->mode != 0)) {
             CanBus* bus = NULL;
-            if(commandRequest->has_bus) {
+            //if(commandRequest->has_bus) {
+            if(commandRequest->bus != 0) {
                 bus = lookupBus(commandRequest->bus, getCanBuses(),
                         getCanBusCount());
             } else if(getCanBusCount() > 0) {
@@ -683,14 +696,15 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                     //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
                     if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
                     {
-                        openxc_VehicleMessage message = {0};
-                        message.has_type = true;
+                        //openxc_VehicleMessage message = {0};
+                        openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
+                        //message.has_type = true;
                         message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-                        message.has_diagnostic_response = true;
+                        //message.has_diagnostic_response = true;
                         message.diagnostic_response = {0};
-                        message.diagnostic_response.has_bus = true;
+                        //message.diagnostic_response.has_bus = true;
                         message.diagnostic_response.bus = bus->address;
-                        message.diagnostic_response.has_message_id = true;
+                        //message.diagnostic_response.has_message_id = true;
                         //7DF should respond with a random message id between 7e8 and 7ef
                         //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
                         if(commandRequest->message_id == 0x7DF)
@@ -701,19 +715,20 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         {
                             message.diagnostic_response.message_id = commandRequest->message_id + 8;
                         }
-                        message.diagnostic_response.has_mode = true;
+                        //message.diagnostic_response.has_mode = true;
                         message.diagnostic_response.mode = commandRequest->mode;
-                        if(commandRequest->has_pid)
+                        //if(commandRequest->has_pid)
+                        if(commandRequest->pid != 0)
                         {
-                            message.diagnostic_response.has_pid = true;
+                            //message.diagnostic_response.has_pid = true;
                             message.diagnostic_response.pid = commandRequest->pid;
                         }
 
-                        message.diagnostic_response.has_value = true;
-                        openxc_DynamicField value = {0};
-                        value.has_type = true;
+                        //message.diagnostic_response.has_value = true;
+                        openxc_DynamicField value = openxc_DynamicField();	// Zero fill
+                        //value.has_type = true;
                         value.type = openxc_DynamicField_Type_NUM;
-                        value.has_numeric_value = true;
+                        //value.has_numeric_value = true;
                         value.numeric_value = rand() % 100;
                         message.diagnostic_response.value = value;
 
@@ -743,10 +758,10 @@ bool openxc::diagnostics::handleDiagnosticCommand(
             debug("Diagnostic requests need at least an arb. ID and mode");
             status = false;
         }
-    } else {
-        debug("Command was not a diagnostic request");
-        status = false;
-    }
+    //} else {
+    //    debug("Command was not a diagnostic request");
+    //    status = false;
+    //}
     return status;
 }
 

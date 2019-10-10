@@ -11,9 +11,11 @@ using openxc::config::getConfiguration;
 
 bool openxc::commands::validateModemConfigurationCommand(openxc_VehicleMessage* message) {
     bool valid = false;
-    if(message->has_control_command) {
+    //if(message->has_control_command) {
+    if(message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
-        if(command->has_modem_configuration_command) {
+        //if(command->has_modem_configuration_command) {
+        if(command->type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
             valid = true;
         }
     }

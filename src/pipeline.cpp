@@ -187,6 +187,7 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
             matched = true;
             break;
         case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+        default:
             break;
     }
     if(matched) {

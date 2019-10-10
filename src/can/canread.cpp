@@ -38,17 +38,19 @@ openxc_DynamicField openxc::can::read::ignoreDecoder(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     *send = false;
-    openxc_DynamicField decodedValue = {0};
+    //openxc_DynamicField decodedValue = {0};
+    openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
     return decodedValue;
 }
 
 openxc_DynamicField openxc::can::read::stateDecoder(CanSignal* signal,
         CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    openxc_DynamicField decodedValue = {0};
-    decodedValue.has_type = true;
+    //openxc_DynamicField decodedValue = {0};
+    openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
+    //decodedValue.has_type = true;
     decodedValue.type = openxc_DynamicField_Type_STRING;
-    decodedValue.has_string_value = true;
+    //decodedValue.has_string_value = true;
 
     const CanSignalState* signalState = lookupSignalState(value, signal);
     if(signalState != NULL) {
@@ -61,27 +63,28 @@ openxc_DynamicField openxc::can::read::stateDecoder(CanSignal* signal,
 
 static void buildBaseSimpleVehicleMessage(openxc_VehicleMessage* message,
         const char* name) {
-    message->has_type = true;
+    //message->has_type = true;
     message->type = openxc_VehicleMessage_Type_SIMPLE;
-    message->has_simple_message = true;
+    //message->has_simple_message = true;
     message->simple_message = {0};
-    message->simple_message.has_name = true;
+    //message->simple_message.has_name = true;
     strcpy(message->simple_message.name, name);
 }
 
 void openxc::can::read::publishVehicleMessage(const char* name,
         openxc_DynamicField* value, openxc_DynamicField* event,
         openxc::pipeline::Pipeline* pipeline) {
-    openxc_VehicleMessage message = {0};
+    //openxc_VehicleMessage message = {0};
+    openxc_VehicleMessage message = openxc_VehicleMessage();		// Zero fill
     buildBaseSimpleVehicleMessage(&message, name);
 
     if(value != NULL) {
-        message.simple_message.has_value = true;
+        //message.simple_message.has_value = true;
         message.simple_message.value = *value;
     }
 
     if(event != NULL) {
-        message.simple_message.has_event = true;
+        //message.simple_message.has_event = true;
         message.simple_message.event = *event;
     }
 
@@ -150,16 +153,17 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     size_t adjustedSize = message->length == 0 ?
             CAN_MESSAGE_SIZE : message->length;
     if(send) {
-        openxc_VehicleMessage vehicleMessage = {0};
-        vehicleMessage.has_type = true;
+        //openxc_VehicleMessage vehicleMessage = {0};
+        openxc_VehicleMessage vehicleMessage = openxc_VehicleMessage();		// Zero fill
+        //vehicleMessage.has_type = true;
         vehicleMessage.type = openxc_VehicleMessage_Type_CAN;
-        vehicleMessage.has_can_message = true;
+        //vehicleMessage.has_can_message = true;
         vehicleMessage.can_message = {0};
-        vehicleMessage.can_message.has_id = true;
+        //vehicleMessage.can_message.has_id = true;
         vehicleMessage.can_message.id = message->id;
-        vehicleMessage.can_message.has_bus = true;
+        //vehicleMessage.can_message.has_bus = true;
         vehicleMessage.can_message.bus = bus->address;
-        vehicleMessage.can_message.has_data = true;
+        //vehicleMessage.can_message.has_data = true;
         vehicleMessage.can_message.data.size = adjustedSize;
         memcpy(vehicleMessage.can_message.data.bytes, message->data,
                 adjustedSize);

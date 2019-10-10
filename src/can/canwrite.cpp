@@ -97,29 +97,32 @@ bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
 }
 
 bool openxc::can::write::encodeAndSendNumericSignal(CanSignal* signal, float value, bool force) {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    //openxc_DynamicField field = {0};
+    openxc_DynamicField field = openxc_DynamicField();	// Zero fill
+    //field.has_type = true;
     field.type = openxc_DynamicField_Type_NUM;
-    field.has_numeric_value = true;
+    //field.has_numeric_value = true;
     field.numeric_value = value;
     return encodeAndSendSignal(signal, &field, force);
 }
 
 bool openxc::can::write::encodeAndSendStateSignal(CanSignal* signal, const char* value,
         bool force) {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    //openxc_DynamicField field = {0};
+    openxc_DynamicField field = openxc_DynamicField();		// Zero fill
+    //field.has_type = true;
     field.type = openxc_DynamicField_Type_STRING;
-    field.has_string_value = true;
+    //field.has_string_value = true;
     strcpy(field.string_value, value);
     return encodeAndSendSignal(signal, &field, force);
 }
 
 bool openxc::can::write::encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force) {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    //openxc_DynamicField field = {0};
+    openxc_DynamicField field = openxc_DynamicField();		// Zero fill
+    //field.has_type = true;
     field.type = openxc_DynamicField_Type_BOOL;
-    field.has_boolean_value = true;
+    //field.has_boolean_value = true;
     field.boolean_value = value;
     return encodeAndSendSignal(signal, &field, force);
 }

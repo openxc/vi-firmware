@@ -28,7 +28,8 @@ using openxc::interface::InterfaceType;
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
-    if(message != NULL && message->has_control_command) {
+    //if(message != NULL && message->has_control_command) {
+    if(message != NULL && message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
         switch(command->type) {
         case openxc_ControlCommand_Type_DIAGNOSTIC:
@@ -60,7 +61,7 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_RTC_CONFIGURATION:
             status = openxc::commands::handleRTCConfigurationCommand(command);
-        break;
+            break;
         case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
             status =  openxc::commands::handleSDMountStatusCommand();
         default:
@@ -73,7 +74,7 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
 
 size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
-    openxc_VehicleMessage message = {0};
+    openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
     size_t bytesRead = 0;
 
 #if (DO_NOT_PROCESS_BINARY_UART_PROTOBUFF == 1)
@@ -121,10 +122,12 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
 }
 
 static bool validateControlCommand(openxc_VehicleMessage* message) {
-    bool valid = message->has_type &&
-            message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND &&
-            message->has_control_command &&
-            message->control_command.has_type;
+    //bool valid = message->has_type &&
+    //        message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND &&
+    //        message->has_control_command &&
+    //        message->control_command.has_type;
+    bool valid = (message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) &&
+            (message->control_command.type != openxc_ControlCommand_Type_UNUSED);
     if(valid) {
         switch(message->control_command.type) {
         case openxc_ControlCommand_Type_DIAGNOSTIC:
@@ -164,7 +167,8 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
 
 bool openxc::commands::validate(openxc_VehicleMessage* message) {
     bool valid = false;
-    if(message != NULL && message->has_type) {
+    //if(message != NULL && message->has_type) {
+    if(message != NULL) {
         switch(message->type) {
         case openxc_VehicleMessage_Type_CAN:
             valid = validateCan(message);
@@ -185,17 +189,17 @@ bool openxc::commands::validate(openxc_VehicleMessage* message) {
 
 void openxc::commands::sendCommandResponse(openxc_ControlCommand_Type commandType,
         bool status, char* responseMessage, size_t responseMessageLength) {
-    openxc_VehicleMessage message = {0};
-    message.has_type = true;
+    openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
+    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    message.has_command_response = true;
-    message.command_response.has_type = true;
+    //message.has_command_response = true;
+    //message.command_response.has_type = true;
     message.command_response.type = commandType;
-    message.command_response.has_message = false;
-    message.command_response.has_status = true;
+    //message.command_response.has_message = false;
+    //message.command_response.has_status = true;
     message.command_response.status = status;
     if(responseMessage != NULL && responseMessageLength > 0) {
-        message.command_response.has_message = true;
+        //message.command_response.has_message = true;
         strncpy(message.command_response.message, responseMessage,
                 MIN(sizeof(message.command_response.message),
                     responseMessageLength));

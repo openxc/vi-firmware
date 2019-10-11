@@ -2,7 +2,10 @@ BOARD_TAG = mega_pic32
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cmp cJSON \
 			   emqueue AT-commander/atcommander \
-			   nanopb uds-c/deps/isotp-c/deps/bitfield-c/src uds-c/deps/isotp-c/src uds-c/src
+			   openxc-message-format/libs/nanopb \
+			   uds-c/deps/isotp-c/deps/bitfield-c/src \
+			   uds-c/deps/isotp-c/src \
+			   uds-c/src
 ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif

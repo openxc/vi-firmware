@@ -23,12 +23,6 @@
 [submodule "src/libs/openxc-message-format"]
 	path = src/libs/openxc-message-format
 	url = https://github.com/openxc/openxc-message-format
-[submodule "src/libs/bitfield-c"]
-	path = src/libs/bitfield-c
-	url = https://github.com/openxc/bitfield-c
-[submodule "src/libs/isotp-c"]
-	path = src/libs/isotp-c
-	url = https://github.com/openxc/isotp-c
 [submodule "src/libs/uds-c"]
 	path = src/libs/uds-c
 	url = https://github.com/openxc/uds-c

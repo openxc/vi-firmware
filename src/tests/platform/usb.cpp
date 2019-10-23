@@ -16,7 +16,7 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
         if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_IN) {
-            printf("USB endpoint %d buffer:\n", i);
+            //printf("USB endpoint %d buffer:\n", i);
             uint8_t snapshot[QUEUE_LENGTH(uint8_t, &endpoint->queue) + 1];
             QUEUE_SNAPSHOT(uint8_t, &endpoint->queue, snapshot, sizeof(snapshot));
             SENT_BYTES += sizeof(snapshot);

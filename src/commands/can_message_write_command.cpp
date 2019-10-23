@@ -78,7 +78,7 @@ bool openxc::commands::validateCan(openxc_VehicleMessage* message) {
     if(message->type == openxc_VehicleMessage_Type_CAN) {
         openxc_CanMessage* canMessage = &message->can_message;
         //if(!canMessage->has_id) {
-        if(canMessage->id > 0) {
+        if(canMessage->id == 0) {
             valid = false;
             debug("Write request is malformed, missing id");
         }

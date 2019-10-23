@@ -82,28 +82,10 @@ bool openxc::commands::validateSimple(openxc_VehicleMessage* message) {
     //if(message->has_type && message->type == openxc_VehicleMessage_Type_SIMPLE && message->has_simple_message) {
     if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
         openxc_SimpleMessage* simple = &message->simple_message;
-        //if(!simple->has_name) {
-        if(strlen(simple->name) > 0) {
+        if (strlen(simple->name) == 0) {
             valid = false;
             debug("Write request is missing name");
         }
-
-        //if(!simple->has_value) {
-        //    valid = false;
-        //} else if(!simple->value.has_type) {
-	if (simple->value.type == openxc_DynamicField_Type_UNUSED) {
-            valid = false;
-            debug("Unsupported type in value field of %s", simple->name);
-        }
-
-        //if(simple->has_event) {
-            //if(!simple->event.has_type) {
-            if(simple->event.type == openxc_DynamicField_Type_UNUSED) {
-                valid = false;
-                debug("Unsupported type in event field of %s", simple->name);
-            }
-        //}
-
     } else {
         valid = false;
     }

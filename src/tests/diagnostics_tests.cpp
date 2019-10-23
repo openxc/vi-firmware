@@ -297,7 +297,8 @@ START_TEST (test_add_basic_request)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
+    //ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");	// Protobuff 2
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"payload\":\"0x45\"}\0");
 }
 END_TEST
 
@@ -389,7 +390,8 @@ START_TEST (test_add_request_other_bus)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
+    //ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");		// Protobuf 2
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
@@ -406,7 +408,8 @@ START_TEST (test_add_request_with_name)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
+    //ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");		// Protobuf 2
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
@@ -481,7 +484,8 @@ START_TEST (test_add_request_with_name_and_decoder)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":138}\0");
+    //ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":138}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":138}\0");
 }
 END_TEST
 
@@ -697,7 +701,7 @@ START_TEST(test_command_missing_mode)
     //command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
     //command.diagnostic_request.request.has_mode = false;
-    command.diagnostic_request.request.mode = request.mode;
+    //command.diagnostic_request.request.mode = request.mode;
     //command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 

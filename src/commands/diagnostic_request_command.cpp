@@ -51,7 +51,7 @@ bool openxc::commands::validateDiagnosticRequest(openxc_VehicleMessage* message)
             openxc_DiagnosticRequest* request = &diagControlCommand->request;
 
             //if(!diagControlCommand->has_action) {
-            if(diagControlCommand->action == 0) {
+            if(diagControlCommand->action == openxc_DiagnosticControlCommand_Action_UNUSED) {
                 valid = false;
                 debug("Diagnostic request command missing action");
             }

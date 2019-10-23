@@ -167,7 +167,6 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
 
 bool openxc::commands::validate(openxc_VehicleMessage* message) {
     bool valid = false;
-    //if(message != NULL && message->has_type) {
     if(message != NULL) {
         switch(message->type) {
         case openxc_VehicleMessage_Type_CAN:

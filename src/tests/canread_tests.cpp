@@ -122,7 +122,8 @@ START_TEST (test_send_numerical)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\0");
+    //ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\0");	// Protobuff 2
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"test\",\"value\":42}\0");
 }
 END_TEST
 
@@ -137,7 +138,8 @@ START_TEST (test_preserve_float_precision)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":42.500000}\0");
+            //"{\"name\":\"test\",\"value\":42.500000}\0");		// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":42.500000}\0");
 }
 END_TEST
 
@@ -151,7 +153,8 @@ START_TEST (test_send_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":false}\0");
+            //"{\"name\":\"test\",\"value\":false}\0");			// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":false}\0");
 }
 END_TEST
 
@@ -165,7 +168,8 @@ START_TEST (test_send_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"string\"}\0");
+            //"{\"name\":\"test\",\"value\":\"string\"}\0");		// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"string\"}\0");
 }
 END_TEST
 
@@ -173,16 +177,16 @@ START_TEST (test_send_evented_boolean)
 {
     fail_unless(queueEmpty());
 
-    openxc_DynamicField value = {0};
-    value.has_type = true;
+    openxc_DynamicField value = openxc_DynamicField();	// Zero fill
+    //value.has_type = true;
     value.type = openxc_DynamicField_Type_STRING;
-    value.has_string_value = true;
+    //value.has_string_value = true;
     strcpy(value.string_value, "value");
 
-    openxc_DynamicField event = {0};
-    event.has_type = true;
+    openxc_DynamicField event = openxc_DynamicField();	// Zero fill
+    //event.has_type = true;
     event.type = openxc_DynamicField_Type_BOOL;
-    event.has_boolean_value = true;
+    //event.has_boolean_value = true;
     event.boolean_value = false;
 
     publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
@@ -192,7 +196,8 @@ START_TEST (test_send_evented_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");
+            //"{\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");
 }
 END_TEST
 
@@ -200,16 +205,16 @@ START_TEST (test_send_evented_string)
 {
     fail_unless(queueEmpty());
 
-    openxc_DynamicField value = {0};
-    value.has_type = true;
+    openxc_DynamicField value = openxc_DynamicField();		// Zero fill
+    //value.has_type = true;
     value.type = openxc_DynamicField_Type_STRING;
-    value.has_string_value = true;
+    //value.has_string_value = true;
     strcpy(value.string_value, "value");
 
-    openxc_DynamicField event = {0};
-    event.has_type = true;
+    openxc_DynamicField event = openxc_DynamicField();		// Zero fill
+    //event.has_type = true;
     event.type = openxc_DynamicField_Type_STRING;
-    event.has_string_value = true;
+    //event.has_string_value = true;
     strcpy(event.string_value, "event");
 
     publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
@@ -219,23 +224,24 @@ START_TEST (test_send_evented_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");
+            //"{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");
 }
 END_TEST
 
 START_TEST (test_send_evented_float)
 {
     fail_unless(queueEmpty());
-    openxc_DynamicField value = {0};
-    value.has_type = true;
+    openxc_DynamicField value = openxc_DynamicField();		// Zero fill
+    //value.has_type = true;
     value.type = openxc_DynamicField_Type_STRING;
-    value.has_string_value = true;
+    //value.has_string_value = true;
     strcpy(value.string_value, "value");
 
-    openxc_DynamicField event = {0};
-    event.has_type = true;
+    openxc_DynamicField event = openxc_DynamicField();		// Zero fill
+    //event.has_type = true;
     event.type = openxc_DynamicField_Type_NUM;
-    event.has_numeric_value = true;
+    //event.has_numeric_value = true;
     event.numeric_value = 43.0;
 
     publishVehicleMessage("test", &value, &event, &getConfiguration()->pipeline);
@@ -245,7 +251,8 @@ START_TEST (test_send_evented_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
+            //"{\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
+            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
 }
 END_TEST
 
@@ -311,16 +318,17 @@ START_TEST (test_passthrough_message)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");
+            //"{\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");
 }
 END_TEST
 
 openxc_DynamicField floatDecoder(CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    openxc_DynamicField decodedValue = {0};
-    decodedValue.has_type = true;
+    openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
+    //decodedValue.has_type = true;
     decodedValue.type = openxc_DynamicField_Type_NUM;
-    decodedValue.has_numeric_value = true;
+    //decodedValue.has_numeric_value = true;
     decodedValue.numeric_value = 42;
     return decodedValue;
 }
@@ -347,7 +355,8 @@ START_TEST (test_default_decoder)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
+            //"{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -372,10 +381,12 @@ START_TEST (test_translate_many_signals)
     }
     fail_unless(USB_PROCESSED);
     // 8 signals sent - depends on queue size
-    ck_assert_int_eq(11 * 34 + 2, SENT_BYTES);
+    //ck_assert_int_eq(11 * 34 + 2, SENT_BYTES);	// Protobuff 2 result
+    ck_assert_int_eq(338, SENT_BYTES);
     // 1 in the output queue
     fail_if(queueEmpty());
-    ck_assert_int_eq(1 * 34, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
+    //ck_assert_int_eq(1 * 34, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));	// Protobuff 2 result
+    ck_assert_int_eq(240, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
 }
 END_TEST
 
@@ -391,7 +402,8 @@ START_TEST (test_translate_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":42}\0");
+            //"{\"name\":\"torque_at_transmission\",\"value\":42}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":42}\0");
 }
 END_TEST
 
@@ -429,10 +441,10 @@ END_TEST
 
 openxc_DynamicField stringDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
-    openxc_DynamicField decodedValue = {0};
-    decodedValue.has_type = true;
+    openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
+    //decodedValue.has_type = true;
     decodedValue.type = openxc_DynamicField_Type_STRING;
-    decodedValue.has_string_value = true;
+    //decodedValue.has_string_value = true;
     strcpy(decodedValue.string_value, "foo");
     return decodedValue;
 }
@@ -448,7 +460,8 @@ START_TEST (test_translate_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
+            //"{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
 }
 END_TEST
 
@@ -500,10 +513,10 @@ END_TEST
 
 openxc_DynamicField preserveDecoder(CanSignal* signal, CanSignal* signals,
         int signalCount, Pipeline* pipeline, float value, bool* send) {
-    openxc_DynamicField decodedValue = {0};
-    decodedValue.has_type = true;
+    openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
+    //decodedValue.has_type = true;
     decodedValue.type = openxc_DynamicField_Type_NUM;
-    decodedValue.has_numeric_value = true;
+    //decodedValue.has_numeric_value = true;
     decodedValue.numeric_value = signal->lastValue;
     return decodedValue;
 }
@@ -529,7 +542,8 @@ START_TEST (test_preserve_last_value)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
+            //"{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");	// Protobuff 2
+            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -545,7 +559,8 @@ START_TEST (test_dont_send_same)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"name\":\"brake_pedal_status\",\"value\":true}\0");
+            //"{\"name\":\"brake_pedal_status\",\"value\":true}\0");
+            "{\"timestamp\":0,\"name\":\"brake_pedal_status\",\"value\":true}\0");
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(&getSignals()[2],

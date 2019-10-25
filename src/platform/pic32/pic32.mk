@@ -64,7 +64,7 @@ endif
 # available
 CPPFLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
-				  -I $(LIBS_PATH)/nanopb
+				  -I $(LIBS_PATH)/openxc-message-format/libs/nanopb
 CFLAGS += $(EXTRA_BOTH_FLAGS)
 CXXFLAGS += $(EXTRA_BOTH_FLAGS)
 

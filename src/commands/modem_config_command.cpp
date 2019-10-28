@@ -11,10 +11,8 @@ using openxc::config::getConfiguration;
 
 bool openxc::commands::validateModemConfigurationCommand(openxc_VehicleMessage* message) {
     bool valid = false;
-    //if(message->has_control_command) {
     if(message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
-        //if(command->has_modem_configuration_command) {
         if(command->type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
             valid = true;
         }
@@ -25,15 +23,12 @@ bool openxc::commands::validateModemConfigurationCommand(openxc_VehicleMessage* 
 bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* command) {
     #ifdef TELIT_HE910_SUPPORT
     bool status = false;
-    //if(command->has_modem_configuration_command) {
     if(command->type == openxc_ControlCommand_Type_MODEM_CONFIGURATION) {
         openxc_ModemConfigurationCommand* modemConfigurationCommand =
           &command->modem_configuration_command;
         // extract configs for each has_<sub-messages>
-        //if(modemConfigurationCommand->has_serverConnectSettings) {
             openxc_ServerConnectSettings* serverConnectSettings = 
               &modemConfigurationCommand->serverConnectSettings;
-            //if(serverConnectSettings->has_host) {
             if(strlen(serverConnectSettings->host)>0) {
                 strcpy(getConfiguration()->telit->config.serverConnectSettings.host, 
                   serverConnectSettings->host);
@@ -42,14 +37,12 @@ bool openxc::commands::handleModemConfigurationCommand(openxc_ControlCommand* co
                   getConfiguration()->telit->config.serverConnectSettings.host);
                 status = true;
             }
-            //if(serverConnectSettings->has_port) {
             if(serverConnectSettings->port > 0) {
                 getConfiguration()->telit->config.serverConnectSettings.port = 
                   serverConnectSettings->port;
                 debug("Set server port to %u", 
                   getConfiguration()->telit->config.serverConnectSettings.port);
             }
-        //}
     }
 
     if(status) {

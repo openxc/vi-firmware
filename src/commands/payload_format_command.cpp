@@ -17,11 +17,8 @@ namespace pipeline = openxc::pipeline;
 
 bool openxc::commands::validatePayloadFormatCommand(openxc_VehicleMessage* message) {
     bool valid = false;
-    //if(message->has_control_command) {
     if(message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
-        //if(command->has_payload_format_command &&
-        //        command->payload_format_command.has_format) {
         if(command->type == openxc_ControlCommand_Type_PAYLOAD_FORMAT &&
                 command->payload_format_command.format != openxc_PayloadFormatCommand_PayloadFormat_UNUSED) {
             valid = true;
@@ -33,11 +30,9 @@ bool openxc::commands::validatePayloadFormatCommand(openxc_VehicleMessage* messa
 bool openxc::commands::handlePayloadFormatCommand(openxc_ControlCommand* command) {
     bool status = false;
     PayloadFormat format;
-    //if(command->has_payload_format_command) {
     if(command->type == openxc_ControlCommand_Type_PAYLOAD_FORMAT) {
         openxc_PayloadFormatCommand* messageFormatCommand =
                 &command->payload_format_command;
-        //if(messageFormatCommand->has_format) {
         if(messageFormatCommand->format != openxc_PayloadFormatCommand_PayloadFormat_UNUSED) {
             switch(messageFormatCommand->format) {
                 default:

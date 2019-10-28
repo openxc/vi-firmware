@@ -41,28 +41,23 @@ bool openxc::commands::handleDiagnosticRequestCommand(openxc_ControlCommand* com
 
 bool openxc::commands::validateDiagnosticRequest(openxc_VehicleMessage* message) {
     bool valid = true;
-    //if(message->has_control_command) {
     if(message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
-        //if(command->has_type && command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
         if(command->type == openxc_ControlCommand_Type_DIAGNOSTIC) {
             openxc_DiagnosticControlCommand* diagControlCommand =
                     &command->diagnostic_request;
             openxc_DiagnosticRequest* request = &diagControlCommand->request;
 
-            //if(!diagControlCommand->has_action) {
             if(diagControlCommand->action == openxc_DiagnosticControlCommand_Action_UNUSED) {
                 valid = false;
                 debug("Diagnostic request command missing action");
             }
 
-            //if(!request->has_message_id) {
             if(request->message_id == 0) {
                 valid = false;
                 debug("Diagnostic request missing message ID");
             }
 
-            //if(!request->has_mode) {
             if(request->mode == 0) {
                 valid = false;
                 debug("Diagnostic request missing mode");

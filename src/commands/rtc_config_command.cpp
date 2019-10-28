@@ -10,10 +10,8 @@
 
 bool openxc::commands::validateRTCConfigurationCommand(openxc_VehicleMessage* message) {
     bool valid = false;
-    //if(message->has_control_command) {
     if(message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
-        //if(command->has_rtc_configuration_command) {
         if(command->type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
             valid = true;
         }
@@ -25,12 +23,10 @@ bool openxc::commands::handleRTCConfigurationCommand(openxc_ControlCommand* comm
     
     bool status = false;
     
-    //if(command->has_rtc_configuration_command) {
     if(command->type == openxc_ControlCommand_Type_RTC_CONFIGURATION) {
         openxc_RTCConfigurationCommand* rtcConfigurationCommand =
           &command->rtc_configuration_command;
 
-        //if(rtcConfigurationCommand->has_unix_time){
         if(rtcConfigurationCommand->unix_time > 0){
 #ifdef RTC_SUPPORT
             uint32_t new_unix_time =

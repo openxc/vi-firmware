@@ -28,7 +28,6 @@ using openxc::interface::InterfaceType;
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
-    //if(message != NULL && message->has_control_command) {
     if(message != NULL && message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
         switch(command->type) {
@@ -122,10 +121,6 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
 }
 
 static bool validateControlCommand(openxc_VehicleMessage* message) {
-    //bool valid = message->has_type &&
-    //        message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND &&
-    //        message->has_control_command &&
-    //        message->control_command.has_type;
     bool valid = (message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) &&
             (message->control_command.type != openxc_ControlCommand_Type_UNUSED);
     if(valid) {
@@ -189,16 +184,10 @@ bool openxc::commands::validate(openxc_VehicleMessage* message) {
 void openxc::commands::sendCommandResponse(openxc_ControlCommand_Type commandType,
         bool status, char* responseMessage, size_t responseMessageLength) {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = commandType;
-    //message.command_response.has_message = false;
-    //message.command_response.has_status = true;
     message.command_response.status = status;
     if(responseMessage != NULL && responseMessageLength > 0) {
-        //message.command_response.has_message = true;
         strncpy(message.command_response.message, responseMessage,
                 MIN(sizeof(message.command_response.message),
                     responseMessageLength));

@@ -47,12 +47,9 @@ openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(CanSignal* sign
     // attribute of the signal) since this decoder handles sending the message
     // itself instead of letting the caller do that.
     if(send && shouldSend(signal, value)) {
-        //doorIdValue.has_type = true;
         doorIdValue.type = openxc_DynamicField_Type_STRING;
-        //doorIdValue.has_string_value = true;
         if(!strcmp(signal->genericName, "driver_door")) {
             strcpy(doorIdValue.string_value, "driver");
-            //doorIdValue.set_string_value("driver");
         } else if(!strcmp(signal->genericName, "passenger_door")) {
             strcpy(doorIdValue.string_value, "passenger");
         } else if(!strcmp(signal->genericName, "rear_right_door")) {
@@ -75,15 +72,12 @@ openxc_DynamicField openxc::signals::handlers::tirePressureDecoder(
         CanSignal* signal, CanSignal* signals, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
     openxc_DynamicField pressure = payload::wrapNumber(value);
-    //openxc_DynamicField tireIdValue = {0};
     openxc_DynamicField tireIdValue = openxc_DynamicField();	// zero fill
     // Must manually check if the signal should send (e.g. based on send_same
     // attribute of the signal) since this decoder handles sending the message
     // itself instead of letting the caller do that.
     if(send && shouldSend(signal, value)) {
-        //tireIdValue.has_type = true;
         tireIdValue.type = openxc_DynamicField_Type_STRING;
-        //tireIdValue.has_string_value = true;
         if(!strcmp(signal->genericName, "tire_pressure_front_left")) {
             strcpy(tireIdValue.string_value, "front_left");
         } else if(!strcmp(signal->genericName, "tire_pressure_front_right")) {

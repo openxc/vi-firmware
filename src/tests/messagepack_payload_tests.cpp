@@ -15,12 +15,8 @@ void setup() {
 START_TEST (test_passthrough_request)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();		// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_PASSTHROUGH;
-    //message.command_response.has_status = true;
     message.command_response.status = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -30,12 +26,8 @@ END_TEST
 START_TEST (test_passthrough_response)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();		// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_PASSTHROUGH;
-    //message.command_response.has_status = true;
     message.command_response.status = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -46,12 +38,8 @@ END_TEST
 START_TEST (test_af_bypass_response)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
-    //message.command_response.has_status = true;
     message.command_response.status = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -61,15 +49,9 @@ END_TEST
 START_TEST (test_af_bypass_request)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-    //message.has_control_command = true;
-    //message.control_command.has_type = true;
     message.control_command.type = openxc_ControlCommand_Type_ACCEPTANCE_FILTER_BYPASS;
-    //message.control_command.has_acceptance_filter_bypass_command = true;
-    //message.control_command.acceptance_filter_bypass_command.has_bus = true;
     message.control_command.acceptance_filter_bypass_command.bus = 1;
-    //message.control_command.acceptance_filter_bypass_command.has_bypass = true;
     message.control_command.acceptance_filter_bypass_command.bypass = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -79,12 +61,8 @@ END_TEST
 START_TEST (test_payload_format_response)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
-    //message.command_response.has_status = true;
     message.command_response.status = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -94,13 +72,8 @@ END_TEST
 START_TEST (test_payload_format_request)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-    //message.has_control_command = true;
-    //message.control_command.has_type = true;
     message.control_command.type = openxc_ControlCommand_Type_PAYLOAD_FORMAT;
-    //message.control_command.has_payload_format_command = true;
-    //message.control_command.payload_format_command.has_format = true;
     message.control_command.payload_format_command.format = openxc_PayloadFormatCommand_PayloadFormat_MESSAGEPACK;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -112,12 +85,8 @@ END_TEST
 START_TEST (test_predefined_obd2_requests_response)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
-    //message.has_command_response = true;
-    //message.command_response.has_type = true;
     message.command_response.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
-    //message.command_response.has_status = true;
     message.command_response.status = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -127,13 +96,8 @@ END_TEST
 START_TEST (test_predefined_obd2_requests_request)
 {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
-    //message.has_type = true;
     message.type = openxc_VehicleMessage_Type_CONTROL_COMMAND;
-    //message.has_control_command = true;
-    //message.control_command.has_type = true;
     message.control_command.type = openxc_ControlCommand_Type_PREDEFINED_OBD2_REQUESTS;
-    //message.control_command.has_predefined_obd2_requests_command = true;
-    //message.control_command.predefined_obd2_requests_command.has_enabled = true;
     message.control_command.predefined_obd2_requests_command.enabled = true;
     uint8_t payload[256] = {0};
     ck_assert(messagepack::serialize(&message, payload, sizeof(payload)) > 0);
@@ -151,7 +115,6 @@ START_TEST (test_deserialize_can_message_write)
     openxc_VehicleMessage deserialized = openxc_VehicleMessage();	// Zero Fill
     messagepack::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    //ck_assert(!deserialized.can_message.has_frame_format);
 }
 END_TEST
 
@@ -169,7 +132,6 @@ START_TEST (test_deserialize_can_message_write_with_format)
     openxc_VehicleMessage deserialized = openxc_VehicleMessage();	// Zero Fill
     messagepack::deserialize(rawRequest, sizeof(rawRequest), &deserialized);
     ck_assert(validate(&deserialized));
-    //ck_assert(deserialized.can_message.has_frame_format);
     ck_assert_int_eq(openxc_CanMessage_FrameFormat_STANDARD,
             deserialized.can_message.frame_format);
 }

@@ -25,13 +25,13 @@ bool openxc::commands::handleCan(openxc_VehicleMessage* message,
     if(message->type == openxc_VehicleMessage_Type_CAN) {
         openxc_CanMessage* canMessage = &message->can_message;
         CanBus* matchingBus = NULL;
-        if(canMessage->bus > 0) {
+        if(canMessage->bus >= 0) {
             matchingBus = lookupBus(canMessage->bus, getCanBuses(), getCanBusCount());
-        } else if(getCanBusCount() > 0) {
+	}
+        if((matchingBus == NULL) && (canMessage->bus == 0) && (getCanBusCount() > 0)) {	// Could not find a bus of 0 so use 1st one if one not asked for
             matchingBus = &getCanBuses()[0];
             debug("No bus specified for write, using the first active: %d", matchingBus->address);
         }
-
         if(!sourceInterfaceDescriptor->allowRawWrites) {
             debug("Direct CAN message writes not allowed from %s interface",
                     interface::descriptorToString(sourceInterfaceDescriptor));

@@ -61,11 +61,8 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
             message->diagnostic_response.mode);
     cJSON_AddBoolToObject(root, payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME,
             message->diagnostic_response.success);
-
-    if(message->diagnostic_response.pid != 0) {
-        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
                 message->diagnostic_response.pid);
-    }
 
     if(message->diagnostic_response.negative_response_code != 0) {
         cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_NRC_FIELD_NAME,

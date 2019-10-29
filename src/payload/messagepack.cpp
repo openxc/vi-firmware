@@ -256,12 +256,8 @@ static void serializeDiagnostic(openxc_VehicleMessage* message, cmp_ctx_t *ctx) 
             message->diagnostic_response.mode);
     msgPackAddObjectBoolean(ctx, payload::messagepack::DIAGNOSTIC_SUCCESS_FIELD_NAME,
             message->diagnostic_response.success);
-
-            
-    if(message->diagnostic_response.pid != 0) {
-        msgPackAddObject16bNumeric(ctx, payload::messagepack::DIAGNOSTIC_PID_FIELD_NAME,
-                message->diagnostic_response.pid);
-    }
+    msgPackAddObject16bNumeric(ctx, payload::messagepack::DIAGNOSTIC_PID_FIELD_NAME,
+            message->diagnostic_response.pid);
 
     if(message->diagnostic_response.negative_response_code != 0) {
         msgPackAddObjectDouble(ctx, payload::messagepack::DIAGNOSTIC_NRC_FIELD_NAME,

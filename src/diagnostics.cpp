@@ -272,9 +272,7 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     }
 
     message.diagnostic_response.mode = response->mode;
-    if(message.diagnostic_response.pid != 0) {
-        message.diagnostic_response.pid = response->pid;
-    }
+    message.diagnostic_response.pid = response->pid;
     message.diagnostic_response.success = response->success;
     message.diagnostic_response.negative_response_code =
             response->negative_response_code;
@@ -599,10 +597,8 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                 request.payload_length);
     }
 
-    if(commandRequest->pid != 0) {
-        request.has_pid = true;
-        request.pid = commandRequest->pid;
-    }
+    //request.has_pid = true;
+    request.pid = commandRequest->pid;
 
     DiagnosticResponseDecoder decoder = NULL;
     if(commandRequest->decoded_type != openxc_DiagnosticRequest_DecodedType_UNUSED) {
@@ -658,10 +654,11 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                 &command->diagnostic_request.request;
         if((commandRequest->message_id != 0) && (commandRequest->mode != 0)) {
             CanBus* bus = NULL;
-            if(commandRequest->bus != 0) {
+            if(commandRequest->bus >= 0) {
                 bus = lookupBus(commandRequest->bus, getCanBuses(),
                         getCanBusCount());
-            } else if(getCanBusCount() > 0) {
+            } 
+	    if((bus == NULL) && (commandRequest->bus == 0) && (getCanBusCount() > 0)) {	// Could not find a bus of 0 so use the 1st one if one not asked for
                 bus = &getCanBuses()[0];
                 debug("No bus specified for diagnostic request, "
                         "using first active: %d", bus->address);
@@ -688,10 +685,7 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                             message.diagnostic_response.message_id = commandRequest->message_id + 8;
                         }
                         message.diagnostic_response.mode = commandRequest->mode;
-                        if(commandRequest->pid != 0)
-                        {
-                            message.diagnostic_response.pid = commandRequest->pid;
-                        }
+                        message.diagnostic_response.pid = commandRequest->pid;
 
                         openxc_DynamicField value = openxc_DynamicField();	// Zero fill
                         value.type = openxc_DynamicField_Type_NUM;

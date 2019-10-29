@@ -282,7 +282,7 @@ START_TEST (test_add_basic_request)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"payload\":\"0x45\"}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
 }
 END_TEST
 

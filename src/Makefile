@@ -160,9 +160,9 @@ CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/deps/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cmp/cmp.c)
 # TODO put this under a "gen" folder separate from objdir
-CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
-						$(LIBS_PATH)/nanopb/pb_decode.c \
-						$(LIBS_PATH)/nanopb/pb_common.c
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_encode.c \
+						$(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_decode.c \
+						$(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_common.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
@@ -174,7 +174,7 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard payload/*.cpp)
 
 INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
-				-I$(LIBS_PATH)/nanopb \
+				-I$(LIBS_PATH)/openxc-message-format/libs/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
 				-I$(LIBS_PATH)/uds-c/deps/isotp-c/deps/bitfield-c/src \
 				-I$(LIBS_PATH)/uds-c/deps/isotp-c/src \

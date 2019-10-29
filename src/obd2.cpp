@@ -187,7 +187,7 @@ void openxc::diagnostics::obd2::loop(DiagnosticsManager* manager) {
 }
 
 bool openxc::diagnostics::obd2::isObd2Request(DiagnosticRequest* request) {
-    return request->mode == 0x1 && request->has_pid && request->pid < 0xff;
+    return request->mode == 0x1 && request->pid < 0xff;
 }
 
 void openxc::diagnostics::obd2::handleObd2Pid(

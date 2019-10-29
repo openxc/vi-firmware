@@ -159,10 +159,8 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     uint8_t payload[MAX_OUTGOING_PAYLOAD_SIZE] = {0};
     #ifdef RTC_SUPPORT
     message->timestamp = syst.tm;
-    message->has_timestamp = true;
     #elif defined TELIT_HE910_SUPPORT
     message->timestamp = uptimeMs();
-    message->has_timestamp = true;
     #endif
     
     size_t length = payload::serialize(message, payload, sizeof(payload),
@@ -187,6 +185,7 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
             matched = true;
             break;
         case openxc_VehicleMessage_Type_CONTROL_COMMAND:
+        default:
             break;
     }
     if(matched) {

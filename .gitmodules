@@ -20,9 +20,6 @@
 [submodule "src/libs/AT-commander"]
 	path = src/libs/AT-commander
 	url = https://github.com/openxc/AT-commander
-[submodule "src/libs/nanopb"]
-	path = src/libs/nanopb
-	url = https://github.com/nanopb/nanopb.git
 [submodule "src/libs/openxc-message-format"]
 	path = src/libs/openxc-message-format
 	url = https://github.com/openxc/openxc-message-format

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "config.h"
 #include <stdarg.h>
+#include "debug_connector.h"
 
 #define LOG_QUEUE_FLUSH_MAX_TRIES 5
 
@@ -32,4 +33,19 @@ void openxc::util::log::debug(const char* format, ...) {
 
     va_end(args);
 #endif // __DEBUG__
+}
+
+void c_debug(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    char buffer[openxc::util::log::MAX_LOG_LINE_LENGTH];
+    vsnprintf(buffer, openxc::util::log::MAX_LOG_LINE_LENGTH, format, args);
+
+    // Send strlen + 1 so we make sure to include the NULL character as a
+    // delimiter
+    openxc::pipeline::sendMessage(&getConfiguration()->pipeline, (uint8_t*) buffer,
+            strnlen(buffer, openxc::util::log::MAX_LOG_LINE_LENGTH) + 1, MessageClass::LOG);
+
+    va_end(args);
 }

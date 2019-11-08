@@ -4,7 +4,7 @@
 #include "canutil_lpc17xx.h"
 #include "can/canwrite.h"
 
-bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* request) {
+bool openxc::can::write::sendMessage(CanBus* bus, CanMessage* request) {
     CAN_MSG_Type message;
     message.id =  request->id;
     message.len = request->length;

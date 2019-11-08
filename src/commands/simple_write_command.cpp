@@ -38,7 +38,7 @@ bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
         openxc_SimpleMessage* simpleMessage =
                 &message->simple_message;
         if(strlen(simpleMessage->name) > 0) {
-            CanSignal* signal = lookupSignal(simpleMessage->name,
+            const CanSignal* signal = lookupSignal(simpleMessage->name,
                     getSignals(), getSignalCount(), true);
             if(signal != NULL) {
                 if(simpleMessage->value.type == openxc_DynamicField_Type_UNUSED) {

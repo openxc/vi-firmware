@@ -113,7 +113,7 @@ float firstReceivedOdometerValue(const CanSignal* signals, int signalCount) {
 openxc_DynamicField handleRollingOdometer(const CanSignal* signal, const CanSignal* signals,
        int signalCount, float value, bool* send,
        float factor) {
-       CanSignalWrapper* signalWrapper = lookupWrapper(signal);
+       SignalManager* signalManager = lookupSignalManagerDetails(signal);
     if(value < signalWrapper->lastValue) {
         rollingOdometerSinceRestart += signal->maxValue - signalWrapper->lastValue
             + value;

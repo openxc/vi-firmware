@@ -637,4 +637,6 @@ bool shouldAcceptMessage(CanBus* bus, uint32_t messageId);
 } // can
 } // openxc
 
+SignalManager lookupSignalManagerDetails(const char* signalName, const CanSignalWrapper* signalWrappers, int signalCount);
+
 #endif // __CANUTIL_H__

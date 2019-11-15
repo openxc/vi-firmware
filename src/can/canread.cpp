@@ -11,6 +11,7 @@ using openxc::pipeline::MessageClass;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::pipeline::publish;
+using openxc::signals::getSignals;
 
 namespace pipeline = openxc::pipeline;
 namespace time = openxc::util::time;
@@ -161,13 +162,12 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
 }
 
 void openxc::can::read::translateSignal(const CanSignal* signal,
-        const CanMessage* message,
-        const CanSignal* signals, int signalCount,
+        CanMessage* message,
+        const CanSignal* signals, const SignalManager signalManager, int signalCount,
         openxc::pipeline::Pipeline* pipeline) {
     if(signal == NULL || message == NULL) {
         return;
     }
-
     float value = parseSignalBitfield(signal, message);
 
     bool send = true;
@@ -178,16 +178,19 @@ void openxc::can::read::translateSignal(const CanSignal* signal,
     if(send && shouldSend(signal, value)) {
         openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
-    *signal->received = true;
-    *signal->lastValue = value;
+    SignalManager* signalManagerDetails = lookupSignalManagerDetails(signal->name, signalWrappers, signalCount);
+    signalManagerDetails->received = true;
+    signalManagerDetails->lastValue = value;
 }
+
+
 
 bool openxc::can::read::shouldSend(const CanSignal* signal, float value) {
     bool send = true;
-    if(time::conditionalTick((time::FrequencyClock*) &signal->frequencyClock) ||
-            (value != *signal->lastValue && signal->forceSendChanged)) {
-        if(*signal->received && !signal->sendSame
-                && value == *signal->lastValue) {
+    if(time::conditionalTick((time::FrequencyClock*) signal->frequencyClock) ||
+            (value != signalWrapper->lastValue && signal->forceSendChanged)) {
+        if(signalWrapper->received && !signal->sendSame
+                && value == signalWrapper->lastValue) {
             send = false;
         }
     } else {
@@ -202,6 +205,7 @@ openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal,
             noopDecoder : signal->decoder;
     openxc_DynamicField decodedValue = decoder(signal, signals,
             signalCount, &getConfiguration()->pipeline, value, send);
+            debug("DecodeSignal message 1");
     return decodedValue;
 }
 

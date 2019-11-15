@@ -191,6 +191,15 @@ CanBus* openxc::can::lookupBus(uint8_t address, CanBus* buses, const int busCoun
     return bus;
 }
 
+CanSignalWrapper* openxc::can::read::lookupWrapper(const char* signalName, const CanSignalWrapper* signalWrappers, int signalCount) {
+    for(int i = 0; i < signalCount; i++) {
+        if(strcmp(signalWrappers[i]->signal->name, signalName) {
+            return signalWrappers[i];
+        }
+    }
+    
+}
+
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageFormat format,
         const CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {

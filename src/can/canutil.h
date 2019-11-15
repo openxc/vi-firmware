@@ -119,7 +119,7 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
-    openxc::util::time::FrequencyClock frequencyClock;
+    float frequency;
     bool sendSame;
     bool forceSendChanged;
     const CanSignalState* states;
@@ -127,32 +127,15 @@ struct CanSignal {
     bool writable;
     SignalDecoder decoder;
     SignalEncoder encoder;
-    bool* received;
-    float* lastValue;
 };
 typedef struct CanSignal CanSignal;
 
-struct CanSignal2 {
-    //const struct CanMessageDefinition* message;
-    //const char* genericName;
-    unsigned char bitPosition;
-    unsigned char bitSize;
-    float factor;
-    float offset;
-    float minValue;
-    float maxValue;
-    //openxc::util::time::FrequencyClock frequencyClock;
-    bool sendSame;
-    bool forceSendChanged;
-    //const CanSignalState* states;
-    unsigned char stateCount;
-    bool writable;
-    //SignalDecoder decoder;
-    //SignalEncoder encoder;
+struct SignalManager {
+    CanSignal* signal;
+    openxc::util::time::FrequencyClock frequencyClock;
     bool received;
     float lastValue;
-};
-typedef struct CanSignal2 CanSignal2;
+}
 
 /* Public: The definition of a CAN message. This includes a lot of metadata, so
  * to save memory this struct should not be used for storing incoming and

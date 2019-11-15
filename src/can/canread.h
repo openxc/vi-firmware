@@ -27,7 +27,7 @@ namespace read {
  * string or boolean.
  */
 void translateSignal(const CanSignal* signal,
-        const CanMessage* message, const CanSignal* signals, int signalCount,
+        CanMessage* message, const CanSignal* signals, const SignalManager* signalManager, int signalCount,
         openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Publish a CAN message to the pipeline without any parsing or

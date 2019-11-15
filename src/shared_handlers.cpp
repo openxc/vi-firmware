@@ -113,11 +113,12 @@ float firstReceivedOdometerValue(const CanSignal* signals, int signalCount) {
 openxc_DynamicField handleRollingOdometer(const CanSignal* signal, const CanSignal* signals,
        int signalCount, float value, bool* send,
        float factor) {
-    if(value < *signal->lastValue) {
-        rollingOdometerSinceRestart += signal->maxValue - *signal->lastValue
+       CanSignalWrapper* signalWrapper = lookupWrapper(signal);
+    if(value < signalWrapper->lastValue) {
+        rollingOdometerSinceRestart += signal->maxValue - signalWrapper->lastValue
             + value;
     } else {
-        rollingOdometerSinceRestart += value - *signal->lastValue;
+        rollingOdometerSinceRestart += value - signalWrapper->lastValue;
     }
 
     return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals, signalCount) +
@@ -153,10 +154,11 @@ openxc_DynamicField openxc::signals::handlers::handleStrictBoolean(const CanSign
 openxc_DynamicField openxc::signals::handlers::handleFuelFlow(const CanSignal* signal,
         const CanSignal* signals, int signalCount, float value,
         bool* send, float multiplier) {
-    if(value < *signal->lastValue) {
-        value = signal->maxValue - *signal->lastValue + value;
+        CanSignalWrapper* signalWrapper = lookupWrapper(signal);
+    if(value < signalWrapper->lastValue) {
+        value = signal->maxValue - signalWrapper->lastValue + value;
     } else {
-        value = value - *signal->lastValue;
+        value = value - signalWrapper->lastValue;
     }
     fuelConsumedSinceRestartLiters += multiplier * value;
     return openxc::payload::wrapNumber(fuelConsumedSinceRestartLiters);
@@ -258,10 +260,11 @@ openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(
 openxc_DynamicField openxc::signals::handlers::handleMultisizeWheelRotationCount(
         const CanSignal* signal, const CanSignal* signals, int signalCount,
         float value, bool* send, float tireRadius) {
-    if(value < *signal->lastValue) {
-        rotationsSinceRestart += signal->maxValue - *signal->lastValue + value;
+        CanSignalWrapper* signalWrapper = lookupWrapper(signal);
+    if(value < signalWrapper->lastValue) {
+        rotationsSinceRestart += signal->maxValue - signalWrapper->lastValue + value;
     } else {
-        rotationsSinceRestart += value - *signal->lastValue;
+        rotationsSinceRestart += value - signalWrapper->lastValue;
     }
     return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals,
             signalCount) + (2 * PI * tireRadius * rotationsSinceRestart));

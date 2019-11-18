@@ -124,6 +124,16 @@ const CanSignal* openxc::can::lookupSignal(const char* name, const CanSignal* si
     return lookupSignal(name, signals, signalCount, false);
 }
 
+SignalManager* openxc::can::lookupSignalManagerDetails(const char* signalName, SignalManager* signalManagers, int signalCount) {
+    for (int i = 0; i < signalCount; i++) {
+        if (strcmp(signalManagers[i].signal->genericName, signalName) == 0) {
+            return &signalManagers[i];
+        }
+    } 
+
+    return NULL;
+}
+
 static bool commandComparator(void* name, int index, void* commands) {
     return !strcmp((const char*)name,
             ((CanCommand*)commands)[index].genericName);
@@ -191,15 +201,6 @@ CanBus* openxc::can::lookupBus(uint8_t address, CanBus* buses, const int busCoun
     return bus;
 }
 
-SignalManager* openxc::can::read::lookupSignalManagerDetails(const char* signalName, const SignalManager* signalManagerDetails, int signalCount) {
-    for(int i = 0; i < signalCount; i++) {
-        if(strcmp(signalManagerDetails[i]->signal->name, signalName) {
-            return signalManagerDetails[i];
-        }
-    }
-    
-}
-
 bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageFormat format,
         const CanMessageDefinition* predefinedMessages, int predefinedMessageCount) {
@@ -209,15 +210,6 @@ bool openxc::can::registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageDefinitionListEntry* entry = LIST_FIRST(
                 &bus->freeMessageDefinitions);
         LIST_REMOVE(entry, entries);
-
-        /*
-        *(entry->definition) = {
-            bus: bus,
-            id: id,
-            frequencyClock: {bus->maxMessageFrequency},
-            forceSendChanged: true
-        };
-        */
 
         entry->definition.bus = bus;
         entry->definition.id = id;

@@ -27,7 +27,7 @@ namespace read {
  * string or boolean.
  */
 void translateSignal(const CanSignal* signal,
-        CanMessage* message, const CanSignal* signals, const SignalManager* signalManager, int signalCount,
+        CanMessage* message, const CanSignal* signals, SignalManager* signalManager, int signalCount,
         openxc::pipeline::Pipeline* pipeline);
 
 /* Public: Publish a CAN message to the pipeline without any parsing or
@@ -117,6 +117,7 @@ void publishBooleanMessage(const char* name, bool value,
  * return value is undefined.
  */
 openxc_DynamicField stateDecoder(const CanSignal* signal, const CanSignal* signals,
+        SignalManager* signalManager, SignalManager* signalManagers,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
@@ -139,8 +140,8 @@ openxc_DynamicField stateDecoder(const CanSignal* signal, const CanSignal* signa
  * decoder always succeeds.
  */
 openxc_DynamicField booleanDecoder(const CanSignal* signal, const CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
-        bool* send);
+        SignalManager* signalManager, SignalManager* signalManagers, int signalCount, 
+        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Public: Update the metadata for a signal and the newly received value, but
  * stop anything from being published to the pipeline.
@@ -162,6 +163,7 @@ openxc_DynamicField booleanDecoder(const CanSignal* signal, const CanSignal* sig
  * The return value is undefined.
  */
 openxc_DynamicField ignoreDecoder(const CanSignal* signal, const CanSignal* signals,
+        SignalManager* signalManager,  SignalManager* signalManagers,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
@@ -184,6 +186,7 @@ openxc_DynamicField ignoreDecoder(const CanSignal* signal, const CanSignal* sign
  * always succeeds.
  */
 openxc_DynamicField noopDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager,  SignalManager* signalManagers,
         int signalCount, openxc::pipeline::Pipeline* pipeline, float value,
         bool* send);
 
@@ -215,8 +218,9 @@ float parseSignalBitfield(const CanSignal* signal, const CanMessage* message);
  * The decoder returns an openxc_DynamicField, which may contain a number,
  * string or boolean. If 'send' is false, the return value is undefined.
  */
-openxc_DynamicField decodeSignal(const CanSignal* signal,
-        const CanMessage* message, const CanSignal* signals, int signalCount,
+openxc_DynamicField decodeSignal(const CanSignal* signal, const CanSignal* signals,
+        SignalManager* signalManager, SignalManager* signalManagers,
+        int signalCount, const CanMessage* message,
         bool* send);
 
 /* Public: Decode a transformed, human readable value from an raw CAN signal
@@ -227,8 +231,9 @@ openxc_DynamicField decodeSignal(const CanSignal* signal,
  * message yourself. This is useful if you need that raw value for something
  * else.
  */
-openxc_DynamicField decodeSignal(const CanSignal* signal, float value,
-        const CanSignal* signals, int signalCount, bool* send);
+openxc_DynamicField decodeSignal(const CanSignal* signal, const CanSignal* signals,
+        SignalManager* signalManager, SignalManager* signalManagers,
+        int signalCount, float value, bool* send);
 
 /* Public: Based on a signal's metadata and the most recent value received,
  * decide if it should be translated and published.
@@ -239,7 +244,7 @@ openxc_DynamicField decodeSignal(const CanSignal* signal, float value,
  *
  * Returns true of the value should be published.
  */
-bool shouldSend(const CanSignal* signal, float value);
+bool shouldSend(const CanSignal* signal, SignalManager* signalManager, float value);
 
 } // namespace read
 } // namespace can

@@ -11,7 +11,6 @@ using openxc::pipeline::MessageClass;
 using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::pipeline::publish;
-using openxc::signals::getSignals;
 
 namespace pipeline = openxc::pipeline;
 namespace time = openxc::util::time;
@@ -24,28 +23,28 @@ float openxc::can::read::parseSignalBitfield(const CanSignal* signal,
 }
 
 openxc_DynamicField openxc::can::read::noopDecoder(const CanSignal* signal,
-        const CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers,
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return payload::wrapNumber(value);
 }
 
 openxc_DynamicField openxc::can::read::booleanDecoder(const CanSignal* signal,
-        const CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return payload::wrapBoolean(value == 0.0 ? false : true);
 }
 
 openxc_DynamicField openxc::can::read::ignoreDecoder(const CanSignal* signal,
-        const CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     *send = false;
     openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
     return decodedValue;
 }
 
 openxc_DynamicField openxc::can::read::stateDecoder(const CanSignal* signal,
-        const CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+        const CanSignal* signals,  SignalManager* signalManager,  SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
     decodedValue.type = openxc_DynamicField_Type_STRING;
 
@@ -161,36 +160,37 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     }
 }
 
-void openxc::can::read::translateSignal(const CanSignal* signal,
-        CanMessage* message,
-        const CanSignal* signals, const SignalManager signalManager, int signalCount,
+void openxc::can::read::translateSignal(const CanSignal* signal, CanMessage* message,
+        const CanSignal* signals, SignalManager* signalManagers, int signalCount,
         openxc::pipeline::Pipeline* pipeline) {
-    if(signal == NULL || message == NULL) {
+    SignalManager* signalManager = lookupSignalManagerDetails(signal->genericName, signalManagers, signalCount);
+    if(signal == NULL || message == NULL || signalManager == NULL) {
         return;
     }
-    float value = parseSignalBitfield(signal, message);
 
+    float value = parseSignalBitfield(signal, message);
     bool send = true;
     // Must call the decoders every time, regardless of if we are going to
     // decide to send the signal or not.
-    openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
-            value, signals, signalCount, &send);
-    if(send && shouldSend(signal, value)) {
+    openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal, signals, 
+        signalManager, signalManagers, signalCount, value, &send);
+
+    if(send && shouldSend(signal, signalManager, value)) {
         openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
-    SignalManager* signalManagerDetails = lookupSignalManagerDetails(signal->name, signalWrappers, signalCount);
-    signalManagerDetails->received = true;
-    signalManagerDetails->lastValue = value;
+
+    signalManager->received = true;
+    signalManager->lastValue = value;
 }
 
 
 
-bool openxc::can::read::shouldSend(const CanSignal* signal, float value) {
+bool openxc::can::read::shouldSend(const CanSignal* signal, SignalManager* signalManager, float value) {
     bool send = true;
-    if(time::conditionalTick((time::FrequencyClock*) signal->frequencyClock) ||
-            (value != signalWrapper->lastValue && signal->forceSendChanged)) {
-        if(signalWrapper->received && !signal->sendSame
-                && value == signalWrapper->lastValue) {
+    if(time::conditionalTick((time::FrequencyClock*) &signalManager->frequencyClock) ||
+            (value != signalManager->lastValue && signal->forceSendChanged)) {
+        if(signalManager->received && !signal->sendSame
+                && value == signalManager->lastValue) {
             send = false;
         }
     } else {
@@ -199,19 +199,20 @@ bool openxc::can::read::shouldSend(const CanSignal* signal, float value) {
     return send;
 }
 
-openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal,
-        float value, const CanSignal* signals, int signalCount, bool* send) {
+openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal, const CanSignal* signals, 
+    SignalManager* signalManager, SignalManager* signalManagers, int signalCount, 
+    float value, bool* send) {
     SignalDecoder decoder = signal->decoder == NULL ?
             noopDecoder : signal->decoder;
-    openxc_DynamicField decodedValue = decoder(signal, signals,
+    openxc_DynamicField decodedValue = decoder(signal, signals, signalManager, signalManagers,
             signalCount, &getConfiguration()->pipeline, value, send);
             debug("DecodeSignal message 1");
     return decodedValue;
 }
 
-openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal,
-        const CanMessage* message, const CanSignal* signals, int signalCount,
-        bool* send) {
+openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal, const CanSignal* signals, 
+        SignalManager* signalManager, SignalManager* signalManagers, int signalCount,
+        const CanMessage* message, bool* send) {
     float value = parseSignalBitfield(signal, message);
-    return decodeSignal(signal, value, signals, signalCount, send);
+    return decodeSignal(signal, signals, signalManager, signalManagers, signalCount, value, send);
 }

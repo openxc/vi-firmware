@@ -36,8 +36,8 @@
  *
  * Returns a decoded value in an openxc_DynamicField struct.
  */
-typedef openxc_DynamicField (*SignalDecoder)(const struct CanSignal* signal,
-        const CanSignal* signals, int signalCount,
+typedef openxc_DynamicField (*SignalDecoder)(const struct CanSignal* signal, const CanSignal* signals, 
+        struct SignalManager* signalManager, SignalManager* signalManagers, int signalCount,
         openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Public: The type signature for a CAN signal encoder.
@@ -131,11 +131,12 @@ struct CanSignal {
 typedef struct CanSignal CanSignal;
 
 struct SignalManager {
-    CanSignal* signal;
+    const CanSignal* signal;
     openxc::util::time::FrequencyClock frequencyClock;
     bool received;
     float lastValue;
-}
+};
+typedef struct SignalManager SignalManager;
 
 /* Public: The definition of a CAN message. This includes a lot of metadata, so
  * to save memory this struct should not be used for storing incoming and
@@ -419,6 +420,8 @@ const CanSignal* lookupSignal(const char* name, const CanSignal* signals, int si
 const CanSignal* lookupSignal(const char* name, const CanSignal* signals, int signalCount,
         bool writable);
 
+SignalManager* lookupSignalManagerDetails(const char* signalName, SignalManager* signalManagers, int signalCount);
+
 /* Public: Look up the CanCommand representation of a command based on its
  * generic name.
  *
@@ -636,7 +639,5 @@ bool shouldAcceptMessage(CanBus* bus, uint32_t messageId);
 
 } // can
 } // openxc
-
-SignalManager lookupSignalManagerDetails(const char* signalName, const CanSignalWrapper* signalWrappers, int signalCount);
 
 #endif // __CANUTIL_H__

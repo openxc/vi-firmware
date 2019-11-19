@@ -206,7 +206,6 @@ openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal, con
             noopDecoder : signal->decoder;
     openxc_DynamicField decodedValue = decoder(signal, signals, signalManager, signalManagers,
             signalCount, &getConfiguration()->pipeline, value, send);
-            debug("DecodeSignal message 1");
     return decodedValue;
 }
 

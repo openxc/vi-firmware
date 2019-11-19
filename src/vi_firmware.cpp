@@ -174,11 +174,8 @@ void initializeAllCan() {
  */
 void receiveCan(Pipeline* pipeline, CanBus* bus) {
     if(!QUEUE_EMPTY(CanMessage, &bus->receiveQueue)) {
-        debug("Memory Debug A");
         CanMessage message = QUEUE_POP(CanMessage, &bus->receiveQueue);
-        debug("Memory Debug B");
         signals::decodeCanMessage(pipeline, bus, &message);
-        debug("Memory Debug C");
         if(bus->passthroughCanMessages) {
             openxc::can::read::passthroughMessage(bus, &message, getMessages(),
                     getMessageCount(), pipeline);

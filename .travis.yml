@@ -7,7 +7,7 @@ install:
 - gem install coveralls-lcov
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install python3
+- sudo apt-get install python3-pip
 - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src

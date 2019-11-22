@@ -97,8 +97,8 @@ if [ -z $COMMON_SOURCED ]; then
                 if [ $DISTRO == "arch" ]; then
                     $SUDO_CMD pacman -S $1
                 elif [ $DISTRO == "Ubuntu" ]; then
-                    $SUDO_CMD apt-get update -qq
-                    $SUDO_CMD apt-get install $1 -y
+                    $SUDO_CMD apt-get update -qq -y
+                    $SUDO_CMD apt install -y $1 
                 else
                     echo
                     echo "Missing $1 - install it using your distro's package manager or build from source"
@@ -212,17 +212,16 @@ pre-configured Vagrant environment. See the docs for more information."
     #otherwise cffi error
     if [ $OS == "linux" ]; then
 	echo "Installing libffi-dev"
-	_install "libffi-dev"
+	#_install "libffi-dev"
     fi
     
-    if ! command -v python >/dev/null 2>&1; then
+    if ! command -v python3 >/dev/null 2>&1; then
         echo "Installing Python..."
-        _install "python"
+        _install "python3"
     fi
 
-    if ! command -v pip >/dev/null 2>&1; then
-		curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-        $SUDO_CMD python /tmp/get-pip.py
+    if ! command -v pip3 >/dev/null 2>&1; then
+        _install python3-pip
     fi
 
     PIP_SUDO_CMD=
@@ -231,9 +230,9 @@ pre-configured Vagrant environment. See the docs for more information."
         PIP_SUDO_CMD=$SUDO_CMD
     fi
 
-    $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
+    $PIP_SUDO_CMD pip3 install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
     if [ -z $CI ]; then
-        $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
+        $PIP_SUDO_CMD pip3 install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
     fi
 	
     if ! command -v clang >/dev/null 2>&1; then

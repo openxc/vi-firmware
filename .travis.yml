@@ -13,7 +13,7 @@ before_install:
 - sudo rm /usr/bin/python3
 - sudo ln -s /usr/bin/python3.6 /usr/bin/python3
 - wget https://bootstrap.pypa.io/get-pip.py
-- python3 get-pip.py
+- sudo python3 get-pip.py
 - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src

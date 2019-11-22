@@ -1,4 +1,6 @@
 language: c
+python:
+- "3.6"
 dist: xenial
 compiler:
 - clang

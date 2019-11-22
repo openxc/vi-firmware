@@ -80,6 +80,9 @@ if [ -z $COMMON_SOURCED ]; then
         fi
     }
 
+
+
+
     _install() {
         if [ $OS == "cygwin" ]; then
             _cygwin_error $1
@@ -107,6 +110,35 @@ if [ -z $COMMON_SOURCED ]; then
             fi
         fi
     }
+
+
+    _ppa() {
+        if [ $OS == "cygwin" ]; then
+            _cygwin_error $1
+        elif [ $OS == "mac" ]; then
+            # brew exists with 1 if it's already installed
+            echo "Not Ubuntu - Not adding ppa $1"
+        else
+            if [ -z $DISTRO ]; then
+                echo
+                echo "Not Ubuntu - Not adding ppa $1"
+                _wait
+            else
+                if [ $DISTRO == "arch" ]; then
+                    echo "Not Ubuntu - Not adding ppa $1"
+                elif [ $DISTRO == "Ubuntu" ]; then
+                    $SUDO_CMD add-apt-repository $1 -y
+                else
+                    echo
+                    echo "Not Ubuntu - Not adding ppa $1"
+                    _wait
+                fi
+            fi
+        fi
+    }
+
+
+
 
     CYGWIN_PACKAGES="make, gcc-core, patch, unzip, python, check, curl, libsasl2, python-setuptools, ncurses"
 
@@ -215,14 +247,15 @@ pre-configured Vagrant environment. See the docs for more information."
 	_install "libffi-dev"
     fi
     
-    if ! command -v python >/dev/null 2>&1; then
+    if ! command -v python3.6 >/dev/null 2>&1; then
         echo "Installing Python..."
-        _install "python"
+        _ppa "ppa:jonathonf/python-3.6"
+        _install "python3.6"
     fi
 
     if ! command -v pip >/dev/null 2>&1; then
 		curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-        $SUDO_CMD python /tmp/get-pip.py
+        $SUDO_CMD python3.6 /tmp/get-pip.py
     fi
 
     PIP_SUDO_CMD=

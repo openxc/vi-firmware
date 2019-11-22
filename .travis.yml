@@ -1,6 +1,4 @@
 language: c
-python:
-- "3.6"
 dist: xenial
 compiler:
 - clang
@@ -9,7 +7,10 @@ install:
 - gem install coveralls-lcov
 before_install:
 - sudo apt-get update -qq
-- python3 -V
+- sudo add-apt-repository ppa:deadsnakes/ppa -y
+- sudo apt-get update -qq
+- sudo apt-get install python3.6 -y
+- python3.6 -V
 - sudo pip3 install setuptools
 - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh

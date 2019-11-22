@@ -8,6 +8,7 @@ install:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install python3-pip
+- sudo pip3 install setuptools
 - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src

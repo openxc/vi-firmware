@@ -218,10 +218,12 @@ pre-configured Vagrant environment. See the docs for more information."
     if ! command -v python3 >/dev/null 2>&1; then
         echo "Installing Python..."
         _install "python3"
+        ln -s /usr/bin/python3 /usr/bin/python
     fi
 
     if ! command -v pip3 >/dev/null 2>&1; then
         _install python3-pip
+        ln -s /usr/bin/pip3 /usr/bin/pip
     fi
 
     PIP_SUDO_CMD=

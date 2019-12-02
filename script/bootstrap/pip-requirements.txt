@@ -1,4 +1,4 @@
-Fabric==1.13.1
+Fabric3==1.14.post1
 ecdsa==0.13
 prettyprint==0.1.5
 pyparsing==2.2.0

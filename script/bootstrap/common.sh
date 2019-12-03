@@ -224,14 +224,6 @@ pre-configured Vagrant environment. See the docs for more information."
     # Force git to use CR/LF line endings. The default from within a vagrant machine is different, so without this
     # it'll think all of the files have changed when inside a vagrant machine
     git config --global core.autocrlf true
-
-    #https://cryptography.io/en/latest/installation/#building-cryptography-on-linux
-    #cryptography is dependency of pyparsing - need to ensure other packages first
-    #otherwise cffi error
-    if [ $OS == "linux" ]; then
-	echo "Installing libffi-dev"
-	#_install "libffi-dev"
-    fi
     
     if ! command -v python3 >/dev/null 2>&1; then
         echo "Installing Python..."

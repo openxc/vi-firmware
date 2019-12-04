@@ -1,4 +1,3 @@
-#keep Ubuntu 16.04 on Travis to match Vagrant
 language: c
 dist: xenial
 compiler:
@@ -8,6 +7,14 @@ install:
 - gem install coveralls-lcov
 before_install:
 - sudo apt-get update -qq
+- sudo add-apt-repository ppa:deadsnakes/ppa -y
+- sudo apt-get update -qq
+- sudo apt-get install python3.6 -y
+- sudo rm /usr/bin/python3
+- sudo ln -s /usr/bin/python3.6 /usr/bin/python3
+- wget https://bootstrap.pypa.io/get-pip.py
+- sudo python3 get-pip.py
+- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src
 after_success:

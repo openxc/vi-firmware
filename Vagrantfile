@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/xenial64"
+  config.vm.box = "bento/ubuntu-18.04"
   
   # Check for proxy enviroment variable and set it
   if ENV['HTTP_PROXY'] || ENV['HTTPS_PROXY']

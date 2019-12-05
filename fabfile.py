@@ -228,9 +228,9 @@ def test(long=False):
 
     with(lcd("src")):
         if long in (True, 'True', 'true'):
-            local("PLATFORM=TESTING make -j4 test_long")
+            local("PLATFORM=TESTING make -j1 test_long")
         else:
-            local("PLATFORM=TESTING make -j4 test")
+            local("PLATFORM=TESTING make -j1 test")
 
 @task
 def functional_test_flash(skip_flashing=False):
@@ -338,7 +338,7 @@ def build(capture=False, do_clean=False):
     with lcd("%s/src" % env.root_dir):
         if do_clean:
             clean();
-        output = local("%s make -j4" % options, capture=capture)
+        output = local("%s make -j1 " % options, capture=capture)
         if output.failed:
             puts(output)
             abort(red("Building %s failed" % board_options['name']))

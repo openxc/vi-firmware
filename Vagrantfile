@@ -18,7 +18,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "bento/ubuntu-18.04"
   config.vm.box_version = "201912.03.0"
   config.vm.provider :virtualbox do |v|
-    v.cpus = total_cpus - 1
+    if total_cpus > 1
+      v.cpus = total_cpus - 1
+	else
+	  v.cpus = 1
+	end
   end
   
   # Check for proxy enviroment variable and set it

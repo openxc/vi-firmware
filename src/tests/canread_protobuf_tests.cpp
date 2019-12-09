@@ -20,9 +20,11 @@ using openxc::can::read::noopDecoder;
 using openxc::can::read::publishBooleanMessage;
 using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::publishStringMessage;
+using openxc::can::lookupSignalManagerDetails;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
+using openxc::signals::getSignalManagers;
 using openxc::signals::getCanBuses;
 using openxc::config::getConfiguration;
 
@@ -40,9 +42,11 @@ void setup() {
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {
-        getSignals()[i].received = false;
-        getSignals()[i].sendSame = true;
-        getSignals()[i].frequencyClock = {0};
+        const CanSignal* testSignal = &getSignals()[i];
+        SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
+        signalManager->received = false;
+        ((CanSignal*)testSignal)->sendSame = true;
+        signalManager->frequencyClock = {0};
     }
 }
 

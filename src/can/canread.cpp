@@ -5,6 +5,7 @@
 #include "config.h"
 #include "util/log.h"
 #include "util/timer.h"
+#include <stdio.h>
 
 using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;

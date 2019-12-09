@@ -64,6 +64,7 @@ const CanMessageDefinition* getMessages() __attribute__((weak));
  */
 const CanSignal* getSignals() __attribute__((weak));
 
+SignalManager* getSignalManagers() __attribute__((weak));
 /* Public: Return an array of all OpenXC CAN commands enabled in the active
  * configuration that can write back to CAN with a custom handler.
  *

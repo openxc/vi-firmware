@@ -2,6 +2,7 @@
 #include <canutil/write.h>
 #include "can/canwrite.h"
 #include "util/log.h"
+#include <stdio.h>
 
 namespace can = openxc::can;
 

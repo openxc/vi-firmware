@@ -1,5 +1,5 @@
 #include "can/canwrite.h"
 
-bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* request) {
+bool openxc::can::write::sendMessage(CanBus* bus, CanMessage* request) {
     return false;
 }

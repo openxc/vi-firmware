@@ -132,6 +132,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         desiredRunLevel: RunLevel::CAN_ONLY,
         initialized: false,
         runLevel: RunLevel::NOT_RUNNING,
+	bluetoothPin: DEFAULT_BLUETOOTH_PIN,
         uart: {
             descriptor: {
                 allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART

@@ -5,6 +5,7 @@
 #include "atcommander.h"
 #include "util/timer.h"
 #include "gpio.h"
+#include "config.h"
 #include <string.h>
 
 #define BLUETOOTH_DEVICE_NAME "OpenXC-VI"
@@ -21,6 +22,7 @@ using openxc::gpio::GPIO_DIRECTION_OUTPUT;
 using openxc::gpio::GPIO_DIRECTION_INPUT;
 using openxc::gpio::GPIO_VALUE_HIGH;
 using openxc::gpio::GPIO_VALUE_LOW;
+using openxc::config::getConfiguration;
 using openxc::util::time::delayMs;
 using openxc::util::log::debug;
 
@@ -78,6 +80,18 @@ void openxc::bluetooth::configureExternalModule(UartDevice* device) {
             debug("Successfully disabled remote Bluetooth configuration");
         } else {
             debug("Unable to disable remote Bluetooth configuration");
+        }
+
+        AtCommand pinCommand = {
+            request_format: "SP,%s\r",
+            expected_response: "AOK",
+            error_response: "ERR"
+        };
+	
+        if(at_commander_set(&config, &pinCommand, getConfiguration()->bluetoothPin)) {
+            debug("Changed Bluetooth Pairing Pin to %s.", getConfiguration()->bluetoothPin);
+        } else {
+            debug("Unable to change Bluetooth Pairing Pin.");
         }
 
         AtCommand inquiryCommand = {

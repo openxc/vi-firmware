@@ -13,7 +13,7 @@ TEST_LIBS = -lcheck -lrt -lpthread -lsubunit
 NON_TESTABLE_SRCS = signals.cpp main.cpp hardware_tests_main.cpp
 
 TEST_C_SRCS = $(CROSSPLATFORM_C_SRCS) $(wildcard tests/platform/*.c) \
-			  $(LIBS_PATH)/nanopb/pb_decode.c
+			  $(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_decode.c
 TEST_CPP_SRCS = $(wildcard tests/platform/*.cpp) $(CROSSPLATFORM_CPP_SRCS)
 TEST_CPP_SRCS := $(filter-out $(NON_TESTABLE_SRCS),$(TEST_CPP_SRCS))
 

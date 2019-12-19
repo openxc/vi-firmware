@@ -2,7 +2,10 @@ BOARD_TAG = mega_pic32
 
 ARDUINO_LIBS = chipKITCAN chipKITUSBDevice chipKITUSBDevice/utility cmp cJSON \
 			   emqueue AT-commander/atcommander \
-			   nanopb bitfield-c/src isotp-c/src uds-c/src
+			   openxc-message-format/libs/nanopb \
+			   uds-c/deps/isotp-c/deps/bitfield-c/src \
+			   uds-c/deps/isotp-c/src \
+			   uds-c/src
 ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
@@ -61,7 +64,7 @@ endif
 # available
 CPPFLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
-				  -I $(LIBS_PATH)/nanopb
+				  -I $(LIBS_PATH)/openxc-message-format/libs/nanopb
 CFLAGS += $(EXTRA_BOTH_FLAGS)
 CXXFLAGS += $(EXTRA_BOTH_FLAGS)
 

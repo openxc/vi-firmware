@@ -4,7 +4,7 @@ from fabric.api import *
 from fabric.colors import green, yellow, red
 from fabric.contrib.console import confirm
 
-from prettyprint import pp
+import pprint
 import copy
 import re
 
@@ -93,6 +93,7 @@ def make_tag():
     if confirm(yellow("Tag this release?"), default=True):
         print(green("The last 5 tags were: "))
         tags = local('git tag | tail -n 20', capture=True)
+        pp = pprint.PrettyPrinter()
         pp(sorted(tags.split('\n'), compare_versions, reverse=True))
         prompt("New release tag in the format vX.Y[.Z]?", 'tag',
                 validate=VERSION_PATTERN)
@@ -161,11 +162,11 @@ def build_options():
         options['DEFAULT_POWER_MANAGEMENT'] = "OBD2_IGNITION_CHECK"
         options['ENVIRONMENT_MODE'] = env.mode
     return " ".join((build_option(key, value)
-        for key, value in options.iteritems()))
+        for key, value in options.items()))
 
 def compile_firmware(build_name, target_path):
     with lcd("src"):
-        for board_name, board in env.boards.iteritems():
+        for board_name, board in env.boards.items():
             env.board = board_name
             build(capture=True, do_clean=True)
             local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-ct%s.%s"
@@ -173,7 +174,7 @@ def compile_firmware(build_name, target_path):
                         target_path, build_name, board['name'],
                         env.firmware_release, board['extension']))
 
-        for board_name, board in env.msd_boards.iteritems():
+        for board_name, board in env.msd_boards.items():
             msd_enable()
             env.board = board_name
             build(capture=True, do_clean=True)
@@ -227,9 +228,9 @@ def test(long=False):
 
     with(lcd("src")):
         if long in (True, 'True', 'true'):
-            local("PLATFORM=TESTING make -j4 test_long")
+            local("PLATFORM=TESTING make -j1 test_long")
         else:
-            local("PLATFORM=TESTING make -j4 test")
+            local("PLATFORM=TESTING make -j1 test")
 
 @task
 def functional_test_flash(skip_flashing=False):
@@ -337,7 +338,7 @@ def build(capture=False, do_clean=False):
     with lcd("%s/src" % env.root_dir):
         if do_clean:
             clean();
-        output = local("%s make -j4" % options, capture=capture)
+        output = local("%s make -j1 " % options, capture=capture)
         if output.failed:
             puts(output)
             abort(red("Building %s failed" % board_options['name']))

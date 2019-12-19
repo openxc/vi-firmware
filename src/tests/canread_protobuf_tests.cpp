@@ -50,7 +50,7 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot, sizeof(snapshot));
 
-    openxc_VehicleMessage decodedMessage = {0};
+    openxc_VehicleMessage decodedMessage = openxc_VehicleMessage();	// Zero fill
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));
     bool status = pb_decode_delimited(&stream, openxc_VehicleMessage_fields, &decodedMessage);
     ck_assert_msg(status, PB_GET_ERROR(&stream));

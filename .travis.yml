@@ -1,7 +1,5 @@
-#keep Ubuntu 12.04 on Travis to match Vagrant
-dist: precise
 language: c
-dist: precise
+dist: xenial
 compiler:
 - clang
 script: PLATFORM=TESTING make test
@@ -9,8 +7,14 @@ install:
 - gem install coveralls-lcov
 before_install:
 - sudo apt-get update -qq
-- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libgd2-xpm ia32-libs libsubunit-dev
-  ia32-libs-multiarch; fi
+- sudo add-apt-repository ppa:deadsnakes/ppa -y
+- sudo apt-get update -qq
+- sudo apt-get install python3.6 -y
+- sudo rm /usr/bin/python3
+- sudo ln -s /usr/bin/python3.6 /usr/bin/python3
+- wget https://bootstrap.pypa.io/get-pip.py
+- sudo python3 get-pip.py
+- if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src
 after_success:

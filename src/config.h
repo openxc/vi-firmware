@@ -123,6 +123,7 @@ typedef struct {
     RunLevel desiredRunLevel;
     bool initialized;
     RunLevel runLevel;
+    const char* bluetoothPin;
     openxc::interface::uart::UartDevice uart;
     openxc::interface::network::NetworkDevice network;
     openxc::interface::usb::UsbDevice usb;

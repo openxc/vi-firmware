@@ -597,8 +597,10 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
                 request.payload_length);
     }
 
-    //request.has_pid = true;
-    request.pid = commandRequest->pid;
+    if (commandRequest->pid > 0) {
+        request.has_pid = true;
+        request.pid = commandRequest->pid;
+    }
 
     DiagnosticResponseDecoder decoder = NULL;
     if(commandRequest->decoded_type != openxc_DiagnosticRequest_DecodedType_UNUSED) {

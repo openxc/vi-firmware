@@ -8,7 +8,8 @@ void handleSteeringWheelMessage(const CanSignal* signal, const CanSignal* signal
     publishNumericalMessage("latitude", 42.0, pipeline);
 }
 
-openxc_DynamicField handleInverted(CanSignal* signal, CanSignal* signals,
+openxc_DynamicField handleInverted(const CanSignal* signal, const CanSignal* signals,
+	SignalManager* signalManager, SignalManager* signalManagers,
         int signalCount, float value, bool* send) {
     return openxc::payload::wrapNumber(value * -1);
 }

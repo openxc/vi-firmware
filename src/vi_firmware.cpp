@@ -167,6 +167,7 @@ void initializeAllCan() {
     }
 }
 
+
 /*
  * Check to see if a packet has been received. If so, read the packet and print
  * the packet payload to the uart monitor.
@@ -179,7 +180,6 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
             openxc::can::read::passthroughMessage(bus, &message, getMessages(),
                     getMessageCount(), pipeline);
         }
-
         bus->lastMessageReceived = time::systemTimeMs();
         ++bus->messagesReceived;
 
@@ -189,7 +189,6 @@ void receiveCan(Pipeline* pipeline, CanBus* bus) {
 }
 
 void initializeIO() {
-    
     debug("Moving to ALL I/O runlevel");
     #ifdef RTC_SUPPORT
     RTC_Init();
@@ -210,6 +209,7 @@ void initializeIO() {
     #endif
     network::initialize(&getConfiguration()->network);
     getConfiguration()->runLevel = RunLevel::ALL_IO;
+
 
 }
 
@@ -248,12 +248,15 @@ void initializeVehicleInterface() {
     // If we don't delay a little bit, time::elapsed seems to return true no
     // matter what for DEBUG=0 builds.
     time::delayMs(500);
+    
 }
 
 void firmwareLoop() {
+    
     if(getConfiguration()->runLevel != RunLevel::ALL_IO &&
             getConfiguration()->desiredRunLevel == RunLevel::ALL_IO) {
         initializeIO();
+        
     }
     for(int i = 0; i < getCanBusCount(); i++) {
         // In normal operation, if no output interface is enabled/attached (e.g.
@@ -267,9 +270,11 @@ void firmwareLoop() {
         CanBus* bus = &(getCanBuses()[i]);
         receiveCan(&getConfiguration()->pipeline, bus);
         diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, bus);
+        
     }
 
     diagnostics::obd2::loop(&getConfiguration()->diagnosticsManager);
+    
 
     if(getConfiguration()->runLevel == RunLevel::ALL_IO) {
         usb::read(&getConfiguration()->usb, usb::handleIncomingMessage);
@@ -290,6 +295,7 @@ void firmwareLoop() {
         #endif
         network::read(&getConfiguration()->network,
                 network::handleIncomingMessage);
+                
     }
 
     for(int i = 0; i < getCanBusCount(); i++) {
@@ -327,4 +333,5 @@ void firmwareLoop() {
     rtc_task();
     #endif
     openxc::pipeline::process(&getConfiguration()->pipeline);
+    
 }

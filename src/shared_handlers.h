@@ -37,8 +37,8 @@ extern const float PI;
  *
  * Returns the absolute distance travelled since the car started.
  */
-openxc_DynamicField handleMultisizeWheelRotationCount(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value, bool* send,
+openxc_DynamicField handleMultisizeWheelRotationCount(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, float value, bool* send,
         float tireRadius);
 
 /* Interpret the given signal as a rolling counter of km travelled, but keep
@@ -55,8 +55,8 @@ openxc_DynamicField handleMultisizeWheelRotationCount(CanSignal* signal,
  *
  * Returns total km travelled since the car started.
  */
-openxc_DynamicField handleRollingOdometerKilometers(CanSignal* signal, CanSignal* signals,
-       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleRollingOdometerKilometers(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of miles travelled, but keep
  * a log of the values and output the total km travelled since the car was
@@ -72,8 +72,8 @@ openxc_DynamicField handleRollingOdometerKilometers(CanSignal* signal, CanSignal
  *
  * Returns total km travelled since the car started.
  */
-openxc_DynamicField handleRollingOdometerMiles(CanSignal* signal, CanSignal* signals,
-       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleRollingOdometerMiles(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the given signal as a rolling counter of meters travelled, but
  * keep a log of the values and output the total kilometers travelled since the
@@ -89,8 +89,8 @@ openxc_DynamicField handleRollingOdometerMiles(CanSignal* signal, CanSignal* sig
  *
  * Returns total km travelled since the car started.
  */
-openxc_DynamicField handleRollingOdometerMeters(CanSignal* signal, CanSignal* signals,
-       int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleRollingOdometerMeters(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Interpret the signal as a "strict" boolean - anything besides 0 is true.
  *
@@ -102,8 +102,8 @@ openxc_DynamicField handleRollingOdometerMeters(CanSignal* signal, CanSignal* si
  *
  * Returns false if value is 0, otherwise true.
  */
-openxc_DynamicField handleStrictBoolean(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleStrictBoolean(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in gallons) to obtain a
  * total since the vehicle started, and convert the result from gallons to
@@ -117,8 +117,8 @@ openxc_DynamicField handleStrictBoolean(CanSignal* signal, CanSignal* signals, i
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-openxc_DynamicField handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleFuelFlowGallons(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal (in uL) to obtain a
  * total since the vehicle started, and convert the result from uL to
@@ -132,8 +132,8 @@ openxc_DynamicField handleFuelFlowGallons(CanSignal* signal, CanSignal* signals,
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-openxc_DynamicField handleFuelFlowMicroliters(CanSignal* signal, CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleFuelFlowMicroliters(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Keep track of a rolling fuel flow counter signal to obtain a
  * total since the vehicle started, and multiply the results by the given
@@ -148,8 +148,8 @@ openxc_DynamicField handleFuelFlowMicroliters(CanSignal* signal, CanSignal* sign
  *
  * Returns the total fuel consumed since the vehicle started in liters.
  */
-openxc_DynamicField handleFuelFlow(CanSignal* signal, CanSignal* signals, int signalCount,
-              float value, bool* send, float multiplier);
+openxc_DynamicField handleFuelFlow(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, float value, bool* send, float multiplier);
 
 /* Flip the sign of the value, e.g. if the steering wheel should be negative to
  * the left and positive to the right, but the CAN signal is the opposite.
@@ -162,8 +162,8 @@ openxc_DynamicField handleFuelFlow(CanSignal* signal, CanSignal* signals, int si
  *
  * Returns value with the sign flipped.
  */
-openxc_DynamicField handleInverted(CanSignal* signal, CanSignal* signals, int signalCount,
-        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleInverted(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Change the sign of the steering wheel angle value depending on the value of
  * another CAN signal, "steering_wheel_angle_sign".
@@ -179,9 +179,8 @@ openxc_DynamicField handleInverted(CanSignal* signal, CanSignal* signals, int si
  *
  * Returns a signed steering wheel angle value.
  */
-openxc_DynamicField handleUnsignedSteeringWheelAngle(CanSignal* signal,
-       CanSignal* signals, int signalCount,
-       openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleUnsignedSteeringWheelAngle(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Combine latitude and longitude signals split into their components (degrees,
  * minutes and fractional minutes) into 2 output message: latitude and longitude
@@ -206,8 +205,8 @@ openxc_DynamicField handleUnsignedSteeringWheelAngle(CanSignal* signal,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleGpsMessage(CanMessage* message, CanSignal* signals,
-        int signalCount, openxc::pipeline::Pipeline* pipeline);
+void handleGpsMessage(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 
 /* Pull two signal out of the CAN message, "button_type" and "button_state" and
  * combine the result into a single OpenXC JSON with both a value (the button
@@ -220,17 +219,17 @@ void handleGpsMessage(CanMessage* message, CanSignal* signals,
  * send - (output) Flip this to false if the message should not be sent.
  * pipeline - The pipeline that wraps the output devices.
  */
-void handleButtonEventMessage(CanMessage* message,
-        CanSignal* signals, int signalCount, openxc::pipeline::Pipeline* pipeline);
+void handleButtonEventMessage(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, CanMessage* message, openxc::pipeline::Pipeline* pipeline);
 
 /**
  * We consider dipped beam or auto to be lights on.
  */
-openxc_DynamicField handleExteriorLightSwitch(CanSignal* signal, CanSignal* signals,
-            int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
+openxc_DynamicField handleExteriorLightSwitch(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 void handleTurnSignalCommand(const char* name, openxc_DynamicField* value,
-              openxc_DynamicField* event, CanSignal* signals, int signalCount);
+              openxc_DynamicField* event, const CanSignal* signals, int signalCount);
 
 /* Public: Decode a door status from a signal and send it out as an evented
  * simple vehicle message, e.g. :
@@ -243,8 +242,8 @@ void handleTurnSignalCommand(const char* name, openxc_DynamicField* value,
  * parameter as false, indicating to the pipeline that this signal has already
  * been handled.
  */
-openxc_DynamicField doorStatusDecoder(CanSignal* signal,
-       CanSignal* signals, int signalCount,
+openxc_DynamicField doorStatusDecoder(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Public: Decode a tire pressure from a signal and send it out as an evented
@@ -259,8 +258,8 @@ openxc_DynamicField doorStatusDecoder(CanSignal* signal,
  * parameter as false, indicating to the pipeline that this signal has already
  * been handled.
  */
-openxc_DynamicField tirePressureDecoder(CanSignal* signal,
-       CanSignal* signals, int signalCount,
+openxc_DynamicField tirePressureDecoder(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
        openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 } // namespace handlers

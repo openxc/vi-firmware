@@ -67,7 +67,7 @@ void setup() {
     initializeVehicleInterface();
     getConfiguration()->usb.configured = true;
     fail_unless(canQueueEmpty(0));
-    getActiveMessageSet()->busCount = 2;
+    ((CanMessageSet*)getActiveMessageSet())->busCount = 2;
     getCanBuses()[0].rawWritable = true;
     resetQueues();
 
@@ -127,7 +127,7 @@ END_TEST
 START_TEST (test_raw_write_missing_bus_no_buses)
 {
     getCanBuses()[0].rawWritable = true;
-    getActiveMessageSet()->busCount = 0;
+    ((CanMessageSet*)getActiveMessageSet())->busCount = 0;
     uint8_t request[] = "{\"id\": 42, \"data\": \"0x1234\"}\0";
     ck_assert(handleIncomingMessage(request, sizeof(request), &DESCRIPTOR));
     fail_unless(canQueueEmpty(0));
@@ -512,8 +512,8 @@ END_TEST
 START_TEST (test_simple_write_not_allowed)
 {
     ck_assert(handleIncomingMessage(NON_WRITABLE_SIMPLE_REQUEST,
-                sizeof(WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
-    fail_if(canQueueEmpty(0));
+                sizeof(NON_WRITABLE_SIMPLE_REQUEST), &DESCRIPTOR));
+    fail_unless(canQueueEmpty(0));
 }
 END_TEST
 

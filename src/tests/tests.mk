@@ -28,7 +28,7 @@ define COMPILE_TEST_TEMPLATE
 $1: $3
 	@echo -n "$$(YELLOW)Compiling $1...$$(COLOR_RESET)"
 	@$2 make clean > /dev/null
-	@$2 make -j4 $4 > /dev/null 2>&1
+	@$2 make -j1 $4 
 	@echo "$$(GREEN)passed.$$(COLOR_RESET)"
 endef
 
@@ -116,7 +116,7 @@ unit_tests: $(TESTS)
 	@set -o $(TEST_SET_OPTS) >/dev/null 2>&1
 	@export SHELLOPTS
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
-
+	
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, DEBUG=0, code_generation_test))
 $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_default_compile_test, DEBUG=0 MSD_ENABLE=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, diag_compile_test, DEBUG=0, diagnostic_code_generation_test))

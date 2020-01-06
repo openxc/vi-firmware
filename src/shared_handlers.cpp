@@ -21,6 +21,7 @@ using openxc::can::read::translateSignal;
 using openxc::can::read::parseSignalBitfield;
 using openxc::can::read::shouldSend;
 using openxc::can::lookupSignal;
+using openxc::can::lookupSignalManagerDetails;
 using openxc::pipeline::Pipeline;
 
 const float openxc::signals::handlers::LITERS_PER_GALLON = 3.78541178;
@@ -37,16 +38,16 @@ const char openxc::signals::handlers::TIRE_PRESSURE_GENERIC_NAME[] =
 const float openxc::signals::handlers::PI = 3.14159265;
 #endif
 
-openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount,
+openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    openxc_DynamicField ajarStatus = can::read::booleanDecoder(signal, signals,
+    openxc_DynamicField ajarStatus = can::read::booleanDecoder(signal, signals, signalManager, signalManagers,
             signalCount, pipeline, value, send);
     openxc_DynamicField doorIdValue = openxc_DynamicField();		// 0 fill the structure
     // Must manually check if the signal should send (e.g. based on send_same
     // attribute of the signal) since this decoder handles sending the message
     // itself instead of letting the caller do that.
-    if(send && shouldSend(signal, value)) {
+    if(send && shouldSend(signal, signalManager, value)) {
         doorIdValue.type = openxc_DynamicField_Type_STRING;
         if(!strcmp(signal->genericName, "driver_door")) {
             strcpy(doorIdValue.string_value, "driver");
@@ -69,14 +70,14 @@ openxc_DynamicField openxc::signals::handlers::doorStatusDecoder(CanSignal* sign
 }
 
 openxc_DynamicField openxc::signals::handlers::tirePressureDecoder(
-        CanSignal* signal, CanSignal* signals, int signalCount,
-        Pipeline* pipeline, float value, bool* send) {
+        const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     openxc_DynamicField pressure = payload::wrapNumber(value);
     openxc_DynamicField tireIdValue = openxc_DynamicField();	// zero fill
     // Must manually check if the signal should send (e.g. based on send_same
     // attribute of the signal) since this decoder handles sending the message
     // itself instead of letting the caller do that.
-    if(send && shouldSend(signal, value)) {
+    if(send && shouldSend(signal, signalManager, value)) {
         tireIdValue.type = openxc_DynamicField_Type_STRING;
         if(!strcmp(signal->genericName, "tire_pressure_front_left")) {
             strcpy(tireIdValue.string_value, "front_left");
@@ -99,101 +100,102 @@ openxc_DynamicField openxc::signals::handlers::tirePressureDecoder(
     return tireIdValue;
 }
 
-float firstReceivedOdometerValue(CanSignal* signals, int signalCount) {
+float firstReceivedOdometerValue(SignalManager* signalManagers, int signalCount) {
     if(totalOdometerAtRestart == 0) {
-        CanSignal* odometerSignal = lookupSignal("total_odometer", signals,
+        SignalManager* odometerSignalManager = lookupSignalManagerDetails("total_odometer", signalManagers,
                 signalCount);
-        if(odometerSignal != NULL && odometerSignal->received) {
-            totalOdometerAtRestart = odometerSignal->lastValue;
+        if(odometerSignalManager != NULL && odometerSignalManager->received) {
+            totalOdometerAtRestart = odometerSignalManager->lastValue;
         }
     }
     return totalOdometerAtRestart;
 }
 
-openxc_DynamicField handleRollingOdometer(CanSignal* signal, CanSignal* signals,
-       int signalCount, float value, bool* send,
+openxc_DynamicField handleRollingOdometer(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, float value, bool* send,
        float factor) {
-    if(value < signal->lastValue) {
-        rollingOdometerSinceRestart += signal->maxValue - signal->lastValue
+    if(value < signalManager->lastValue) {
+        rollingOdometerSinceRestart += signal->maxValue - signalManager->lastValue
             + value;
     } else {
-        rollingOdometerSinceRestart += value - signal->lastValue;
+        rollingOdometerSinceRestart += value - signalManager->lastValue;
     }
 
-    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals, signalCount) +
+    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signalManagers, signalCount) +
         (factor * rollingOdometerSinceRestart));
 }
 
 openxc_DynamicField openxc::signals::handlers::handleRollingOdometerKilometers(
-        CanSignal* signal, CanSignal* signals, int signalCount,
+        const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    return handleRollingOdometer(signal, signals, signalCount, value, send, 1);
+    return handleRollingOdometer(signal, signals, signalManager, signalManagers, signalCount, value, send, 1);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMiles(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMiles(const CanSignal* signal, const CanSignal* signals, 
+        SignalManager* signalManager, SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return handleRollingOdometer(signal, signals, signalCount, value, send,
+    return handleRollingOdometer(signal, signals, signalManager, signalManagers, signalCount, value, send,
             KM_PER_MILE);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMeters(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleRollingOdometerMeters(const CanSignal* signal, const CanSignal* signals,
+        SignalManager* signalManager, SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return handleRollingOdometer(signal, signals, signalCount, value, send,
+    return handleRollingOdometer(signal, signals, signalManager, signalManagers, signalCount, value, send,
             KM_PER_M);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleStrictBoolean(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleStrictBoolean(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return openxc::payload::wrapBoolean(value != 0);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleFuelFlow(CanSignal* signal,
-        CanSignal* signals, int signalCount, float value,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlow(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, float value,
         bool* send, float multiplier) {
-    if(value < signal->lastValue) {
-        value = signal->maxValue - signal->lastValue + value;
+    if(value < signalManager->lastValue) {
+        value = signal->maxValue - signalManager->lastValue + value;
     } else {
-        value = value - signal->lastValue;
+        value = value - signalManager->lastValue;
     }
     fuelConsumedSinceRestartLiters += multiplier * value;
     return openxc::payload::wrapNumber(fuelConsumedSinceRestartLiters);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleFuelFlowGallons(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlowGallons(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return handleFuelFlow(signal, signals, signalCount, value, send,
+    return handleFuelFlow(signal, signals, signalManager, signalManagers, signalCount, value, send,
             LITERS_PER_GALLON);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleFuelFlowMicroliters(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleFuelFlowMicroliters(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
-    return handleFuelFlow(signal, signals, signalCount, value, send,
+    return handleFuelFlow(signal, signals, signalManager, signalManagers, signalCount, value, send,
             LITERS_PER_UL);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleInverted(CanSignal* signal, CanSignal*
-        signals, int signalCount, Pipeline* pipeline, float value, bool* send) {
+openxc_DynamicField openxc::signals::handlers::handleInverted(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value, bool* send) {
     return openxc::payload::wrapNumber(value * -1);
 }
 
-void openxc::signals::handlers::handleGpsMessage(CanMessage* message,
-        CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    CanSignal* latitudeDegreesSignal =
+void openxc::signals::handlers::handleGpsMessage(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, CanMessage* message, Pipeline* pipeline) {
+    const CanSignal* latitudeDegreesSignal =
         lookupSignal("latitude_degrees", signals, signalCount);
-    CanSignal* latitudeMinutesSignal =
+    const CanSignal* latitudeMinutesSignal =
         lookupSignal("latitude_minutes", signals, signalCount);
-    CanSignal* latitudeMinuteFractionSignal =
+    const CanSignal* latitudeMinuteFractionSignal =
         lookupSignal("latitude_minute_fraction", signals, signalCount);
-    CanSignal* longitudeDegreesSignal =
+    const CanSignal* longitudeDegreesSignal =
         lookupSignal("longitude_degrees", signals, signalCount);
-    CanSignal* longitudeMinutesSignal =
+    const CanSignal* longitudeMinutesSignal =
         lookupSignal("longitude_minutes", signals, signalCount);
-    CanSignal* longitudeMinuteFractionSignal =
+    const CanSignal* longitudeMinuteFractionSignal =
         lookupSignal("longitude_minute_fraction", signals, signalCount);
 
     if(latitudeDegreesSignal == NULL ||
@@ -231,17 +233,18 @@ void openxc::signals::handlers::handleGpsMessage(CanMessage* message,
     publishNumericalMessage("longitude", longitude, pipeline);
 }
 
-openxc_DynamicField openxc::signals::handlers::handleExteriorLightSwitch(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
+openxc_DynamicField openxc::signals::handlers::handleExteriorLightSwitch(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, Pipeline* pipeline, float value,
         bool* send) {
     return openxc::payload::wrapBoolean(value == 2 || value == 3);
 }
 
 openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(
-        CanSignal* signal, CanSignal* signals, int signalCount,
+        const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
         Pipeline* pipeline, float value, bool* send) {
-    CanSignal* steeringAngleSign = lookupSignal("steering_wheel_angle_sign",
-            signals, signalCount);
+    SignalManager* steeringAngleSign = lookupSignalManagerDetails("steering_wheel_angle_sign",
+            signalManagers, signalCount);
 
     if(steeringAngleSign == NULL) {
         debug("Unable to find stering wheel angle sign signal");
@@ -256,22 +259,23 @@ openxc_DynamicField openxc::signals::handlers::handleUnsignedSteeringWheelAngle(
 }
 
 openxc_DynamicField openxc::signals::handlers::handleMultisizeWheelRotationCount(
-        CanSignal* signal, CanSignal* signals, int signalCount,
+        const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount,
         float value, bool* send, float tireRadius) {
-    if(value < signal->lastValue) {
-        rotationsSinceRestart += signal->maxValue - signal->lastValue + value;
+    if(value < signalManager->lastValue) {
+        rotationsSinceRestart += signal->maxValue - signalManager->lastValue + value;
     } else {
-        rotationsSinceRestart += value - signal->lastValue;
+        rotationsSinceRestart += value - signalManager->lastValue;
     }
-    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signals,
+    return openxc::payload::wrapNumber(firstReceivedOdometerValue(signalManagers,
             signalCount) + (2 * PI * tireRadius * rotationsSinceRestart));
 }
 
-void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,
-        CanSignal* signals, int signalCount, Pipeline* pipeline) {
-    CanSignal* buttonTypeSignal = lookupSignal("button_type", signals,
+void openxc::signals::handlers::handleButtonEventMessage(const CanSignal* signal, const CanSignal* signals, SignalManager* signalManager,
+        SignalManager* signalManagers, int signalCount, CanMessage* message, Pipeline* pipeline) {
+    const CanSignal* buttonTypeSignal = lookupSignal("button_type", signals,
             signalCount);
-    CanSignal* buttonStateSignal = lookupSignal("button_state", signals,
+    const CanSignal* buttonStateSignal = lookupSignal("button_state", signals,
             signalCount);
 
     if(buttonTypeSignal == NULL || buttonStateSignal == NULL) {
@@ -284,13 +288,13 @@ void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,
     float rawButtonState = parseSignalBitfield(buttonStateSignal, message);
 
     openxc_DynamicField buttonType = stateDecoder(buttonTypeSignal,
-            signals, signalCount, pipeline, rawButtonType, &send);
+            signals, signalManager, signalManagers, signalCount, pipeline, rawButtonType, &send);
     if(!send) {
         debug("Unable to find button type corresponding to %f",
                 rawButtonType);
     } else {
         openxc_DynamicField buttonState = stateDecoder(buttonStateSignal,
-                signals, signalCount, pipeline, rawButtonState, &send);
+                signals, signalManager, signalManagers, signalCount, pipeline, rawButtonState, &send);
         if(!send) {
             debug("Unable to find button state corresponding to %f",
                     rawButtonState);
@@ -303,9 +307,9 @@ void openxc::signals::handlers::handleButtonEventMessage(CanMessage* message,
 
 void openxc::signals::handlers::handleTurnSignalCommand(const char* name,
         openxc_DynamicField* value, openxc_DynamicField* event,
-        CanSignal* signals, int signalCount) {
+        const CanSignal* signals, int signalCount) {
     const char* direction = value->string_value;
-    CanSignal* signal = NULL;
+    const CanSignal* signal = NULL;
     if(!strcmp("left", direction)) {
         signal = lookupSignal("turn_signal_left", signals, signalCount);
     } else if(!strcmp("right", direction)) {

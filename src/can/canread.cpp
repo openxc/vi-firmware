@@ -5,6 +5,7 @@
 #include "config.h"
 #include "util/log.h"
 #include "util/timer.h"
+#include <stdio.h>
 
 using openxc::util::log::debug;
 using openxc::pipeline::MessageClass;
@@ -15,36 +16,36 @@ using openxc::pipeline::publish;
 namespace pipeline = openxc::pipeline;
 namespace time = openxc::util::time;
 
-float openxc::can::read::parseSignalBitfield(CanSignal* signal,
+float openxc::can::read::parseSignalBitfield(const CanSignal* signal,
         const CanMessage* message) {
     return bitfield_parse_float(message->data, CAN_MESSAGE_SIZE,
             signal->bitPosition, signal->bitSize, signal->factor,
             signal->offset);
 }
 
-openxc_DynamicField openxc::can::read::noopDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+openxc_DynamicField openxc::can::read::noopDecoder(const CanSignal* signal,
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers,
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return payload::wrapNumber(value);
 }
 
-openxc_DynamicField openxc::can::read::booleanDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+openxc_DynamicField openxc::can::read::booleanDecoder(const CanSignal* signal,
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     return payload::wrapBoolean(value == 0.0 ? false : true);
 }
 
-openxc_DynamicField openxc::can::read::ignoreDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+openxc_DynamicField openxc::can::read::ignoreDecoder(const CanSignal* signal,
+        const CanSignal* signals, SignalManager* signalManager, SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     *send = false;
     openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
     return decodedValue;
 }
 
-openxc_DynamicField openxc::can::read::stateDecoder(CanSignal* signal,
-        CanSignal* signals, int signalCount, Pipeline* pipeline, float value,
-        bool* send) {
+openxc_DynamicField openxc::can::read::stateDecoder(const CanSignal* signal,
+        const CanSignal* signals,  SignalManager* signalManager,  SignalManager* signalManagers, 
+        int signalCount, Pipeline* pipeline, float value, bool* send) {
     openxc_DynamicField decodedValue = openxc_DynamicField();		// Zero fill
     decodedValue.type = openxc_DynamicField_Type_STRING;
 
@@ -119,7 +120,7 @@ void openxc::can::read::publishBooleanMessage(const char* name, bool value,
 }
 
 void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
-        CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
+        const CanMessageDefinition* messages, int messageCount, Pipeline* pipeline) {
     bool send = true;
     CanMessageDefinition* messageDefinition = lookupMessageDefinition(bus,
             message->id, message->format, messages, messageCount);
@@ -160,34 +161,37 @@ void openxc::can::read::passthroughMessage(CanBus* bus, CanMessage* message,
     }
 }
 
-void openxc::can::read::translateSignal(CanSignal* signal,
-        const CanMessage* message,
-        CanSignal* signals, int signalCount,
+void openxc::can::read::translateSignal(const CanSignal* signal, CanMessage* message,
+        const CanSignal* signals, SignalManager* signalManagers, int signalCount,
         openxc::pipeline::Pipeline* pipeline) {
-    if(signal == NULL || message == NULL) {
+    SignalManager* signalManager = lookupSignalManagerDetails(signal->genericName, signalManagers, signalCount);
+    if(signal == NULL || message == NULL || signalManager == NULL) {
         return;
     }
 
     float value = parseSignalBitfield(signal, message);
-
     bool send = true;
     // Must call the decoders every time, regardless of if we are going to
     // decide to send the signal or not.
-    openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal,
-            value, signals, signalCount, &send);
-    if(send && shouldSend(signal, value)) {
+    openxc_DynamicField decodedValue = openxc::can::read::decodeSignal(signal, signals, 
+        signalManager, signalManagers, signalCount, value, &send);
+
+    if(send && shouldSend(signal, signalManager, value)) {
         openxc::can::read::publishVehicleMessage(signal->genericName, &decodedValue, pipeline);
     }
-    signal->received = true;
-    signal->lastValue = value;
+
+    signalManager->received = true;
+    signalManager->lastValue = value;
 }
 
-bool openxc::can::read::shouldSend(CanSignal* signal, float value) {
+
+
+bool openxc::can::read::shouldSend(const CanSignal* signal, SignalManager* signalManager, float value) {
     bool send = true;
-    if(time::conditionalTick(&signal->frequencyClock) ||
-            (value != signal->lastValue && signal->forceSendChanged)) {
-        if(signal->received && !signal->sendSame
-                && value == signal->lastValue) {
+    if(time::conditionalTick((time::FrequencyClock*) &signalManager->frequencyClock) ||
+            (value != signalManager->lastValue && signal->forceSendChanged)) {
+        if(signalManager->received && !signal->sendSame
+                && value == signalManager->lastValue) {
             send = false;
         }
     } else {
@@ -196,18 +200,19 @@ bool openxc::can::read::shouldSend(CanSignal* signal, float value) {
     return send;
 }
 
-openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
-        float value, CanSignal* signals, int signalCount, bool* send) {
+openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal, const CanSignal* signals, 
+    SignalManager* signalManager, SignalManager* signalManagers, int signalCount, 
+    float value, bool* send) {
     SignalDecoder decoder = signal->decoder == NULL ?
             noopDecoder : signal->decoder;
-    openxc_DynamicField decodedValue = decoder(signal, signals,
+    openxc_DynamicField decodedValue = decoder(signal, signals, signalManager, signalManagers,
             signalCount, &getConfiguration()->pipeline, value, send);
     return decodedValue;
 }
 
-openxc_DynamicField openxc::can::read::decodeSignal(CanSignal* signal,
-        const CanMessage* message, CanSignal* signals, int signalCount,
-        bool* send) {
+openxc_DynamicField openxc::can::read::decodeSignal(const CanSignal* signal, const CanSignal* signals, 
+        SignalManager* signalManager, SignalManager* signalManagers, int signalCount,
+        const CanMessage* message, bool* send) {
     float value = parseSignalBitfield(signal, message);
-    return decodeSignal(signal, value, signals, signalCount, send);
+    return decodeSignal(signal, signals, signalManager, signalManagers, signalCount, value, send);
 }

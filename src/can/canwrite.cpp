@@ -2,6 +2,7 @@
 #include <canutil/write.h>
 #include "can/canwrite.h"
 #include "util/log.h"
+#include <stdio.h>
 
 namespace can = openxc::can;
 
@@ -75,12 +76,12 @@ uint64_t openxc::can::write::encodeDynamicField(const CanSignal* signal,
     return value;
 }
 
-bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
+bool openxc::can::write::encodeAndSendSignal(const CanSignal* signal,
         openxc_DynamicField* value, bool force) {
     return encodeAndSendSignal(signal, value, signal->encoder, force);
 }
 
-bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
+bool openxc::can::write::encodeAndSendSignal(const CanSignal* signal,
         openxc_DynamicField* value, SignalEncoder encoder, bool force) {
     bool send = true;
     uint64_t encodedValue = 0;
@@ -96,14 +97,14 @@ bool openxc::can::write::encodeAndSendSignal(CanSignal* signal,
     return send;
 }
 
-bool openxc::can::write::encodeAndSendNumericSignal(CanSignal* signal, float value, bool force) {
+bool openxc::can::write::encodeAndSendNumericSignal(const CanSignal* signal, float value, bool force) {
     openxc_DynamicField field = openxc_DynamicField();	// Zero fill
     field.type = openxc_DynamicField_Type_NUM;
     field.numeric_value = value;
     return encodeAndSendSignal(signal, &field, force);
 }
 
-bool openxc::can::write::encodeAndSendStateSignal(CanSignal* signal, const char* value,
+bool openxc::can::write::encodeAndSendStateSignal(const CanSignal* signal, const char* value,
         bool force) {
     openxc_DynamicField field = openxc_DynamicField();		// Zero fill
     field.type = openxc_DynamicField_Type_STRING;
@@ -111,14 +112,14 @@ bool openxc::can::write::encodeAndSendStateSignal(CanSignal* signal, const char*
     return encodeAndSendSignal(signal, &field, force);
 }
 
-bool openxc::can::write::encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force) {
+bool openxc::can::write::encodeAndSendBooleanSignal(const CanSignal* signal, bool value, bool force) {
     openxc_DynamicField field = openxc_DynamicField();		// Zero fill
     field.type = openxc_DynamicField_Type_BOOL;
     field.boolean_value = value;
     return encodeAndSendSignal(signal, &field, force);
 }
 
-bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bool force) {
+bool openxc::can::write::sendEncodedSignal(const CanSignal* signal, uint64_t value, bool force) {
     bool send = signal->writable;
 
     uint8_t data[CAN_MESSAGE_SIZE] = {0};
@@ -140,12 +141,12 @@ bool openxc::can::write::sendEncodedSignal(CanSignal* signal, uint64_t value, bo
 
 void openxc::can::write::flushOutgoingCanMessageQueue(CanBus* bus) {
     while(!QUEUE_EMPTY(CanMessage, &bus->sendQueue)) {
-        const CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
+        CanMessage message = QUEUE_POP(CanMessage, &bus->sendQueue);
         sendCanMessage(bus, &message);
     }
 }
 
-bool openxc::can::write::sendCanMessage(const CanBus* bus, const CanMessage* message) {
+bool openxc::can::write::sendCanMessage(CanBus* bus, CanMessage* message) {
     debug("Sending CAN message on bus 0x%03x: id = 0x%03x, data = 0x%02x%02x%02x%02x%02x%02x%02x%02x",
         bus->address, message->id,
         ((uint8_t*)&message->data)[0],

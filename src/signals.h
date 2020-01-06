@@ -21,13 +21,13 @@ namespace openxc {
 namespace signals {
 
 /** Public: Return the currently active CAN configuration. */
-CanMessageSet* getActiveMessageSet() __attribute__((weak));
+const CanMessageSet* getActiveMessageSet() __attribute__((weak));
 
 /** Public: Retrive a list of all possible CAN configurations.
  *
  * Returns a pointer to an array of all configurations.
  */
-CanMessageSet* getMessageSets() __attribute__((weak));
+const CanMessageSet* getMessageSets() __attribute__((weak));
 
 /** Public: Return the length of the array returned by getMessageSets() */
 int getMessageSetCount() __attribute__((weak));
@@ -57,13 +57,14 @@ int getCanBusCount() __attribute__((weak));
 /* Public: Return an array of all CAN messages to be processed in the active
  * configuration.
  */
-CanMessageDefinition* getMessages() __attribute__((weak));
+const CanMessageDefinition* getMessages() __attribute__((weak));
 
 /* Public: Return an array of all CAN signals to be processed in the active
  * configuration.
  */
-CanSignal* getSignals() __attribute__((weak));
+const CanSignal* getSignals() __attribute__((weak));
 
+SignalManager* getSignalManagers() __attribute__((weak));
 /* Public: Return an array of all OpenXC CAN commands enabled in the active
  * configuration that can write back to CAN with a custom handler.
  *

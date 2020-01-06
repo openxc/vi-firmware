@@ -12,11 +12,12 @@ using openxc::pipeline::Pipeline;
 using openxc::config::getConfiguration;
 using openxc::diagnostics::DiagnosticsManager;
 using namespace openxc::signals::handlers;
+using openxc::can::lookupSignalManagerDetails;
 
 
 const int MESSAGE_SET_COUNT = 2;
 CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
-    { 0, "tests", 2, 4, 7, 1 },
+    { 0, "tests", 2, 4, 23, 1 },
     { 1, "shared_handler_tests", 2, 4, 13, 0 },
 };
 
@@ -75,60 +76,59 @@ const CanSignalState SIGNAL_STATES[][2][6] = {
 CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
     { // message set: tests
         {&CAN_MESSAGES[0][0], "torque_at_transmission", 2, 4, 1001.0, -30000.000000,
-            -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
+            -5000.000000, 33522.000000, 0, false, false, NULL},
         {&CAN_MESSAGES[0][1], "transmission_gear_position", 1, 3, 1.000000, 0.000000,
-            0.000000, 0.000000, {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL,
-            false, 4.0},
+            0.000000, 0.000000, 0, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL},
         {&CAN_MESSAGES[0][2], "brake_pedal_status", 0, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][3], "measurement", 2, 19, 0.001000, 0.000000, 0, 500.0,
-            {0}, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL, false, 4.0},
+            0, false, false, SIGNAL_STATES[0][0], 6, true, NULL, NULL},
         {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000},
-        {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, {0},
-            false, false, NULL, 0, true},
+        {&CAN_MESSAGES[0][2], "command", 0, 1, 1.000000, 0.000000, 0.000000, 0.000000, 0,
+            false, false, NULL},
         {&CAN_MESSAGES[0][0], "torque_at_transmission", 2, 6, 1001.0, -30000.000000,
-            -5000.000000, 33522.000000, {0}, false, false, NULL, 0, true},
+            -5000.000000, 33522.000000, 0, false, false, NULL},
 
         // The messages for test_translate_many_signals, with 8 signals per
         // message to replicate a bug reported in the discussion group
         {&CAN_MESSAGES[0][4], "test_signal1", 0, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal2", 1, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal3", 2, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal4", 3, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal5", 4, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal6", 5, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal7", 6, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][4], "test_signal8", 7, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signal9", 0, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa10", 1, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa11", 2, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL,},
         {&CAN_MESSAGES[0][5], "test_signa12", 3, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa13", 4, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa14", 5, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa15", 6, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true},
+            0.000000, 0, true, false, NULL},
         {&CAN_MESSAGES[0][5], "test_signa16", 7, 1, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, NULL, 0, true}
+            0.000000, 0, true, false, NULL}
     },
     { // message set: shared_handler_tests
         {&CAN_MESSAGES[1][0], "button_type", 8, 8, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, SIGNAL_STATES[1][0], 5, false, NULL, NULL},
+            0.000000, 0, true, false, SIGNAL_STATES[1][0], 5, false, NULL, NULL},
         {&CAN_MESSAGES[1][0], "button_state", 20, 4, 1.000000, 0.000000, 0.000000,
-            0.000000, {0}, true, false, SIGNAL_STATES[1][1], 6, false, NULL, NULL},
+            0.000000, 0, true, false, SIGNAL_STATES[1][1], 6, false, NULL, NULL},
         {&CAN_MESSAGES[1][1], "driver_door", 15, 1, 1.000000, 0.000000, 0.000000,
                 0.000000},
         {&CAN_MESSAGES[1][1], "passenger_door", 16, 1, 1.000000, 0.000000, 0.000000,
@@ -150,8 +150,51 @@ CanSignal SIGNALS[][MAX_SIGNAL_COUNT] = {
         {&CAN_MESSAGES[1][3], "passenger_occupancy_lower", 17, 1, 1.000000, 0.000000,
                 0.000000, 0.000000},
         {&CAN_MESSAGES[1][3], "passenger_occupancy_upper", 18, 1, 1.000000, 0.000000,
-                0.000000, 0.000000},
-    }
+                0.000000, 0.000000}
+    },
+};
+
+SignalManager SIGNAL_MANAGERS[][MAX_SIGNAL_COUNT] = {
+    { // message set: type-3
+        {signal: &SIGNALS[0][0]},
+        {signal: &SIGNALS[0][1], received: false, lastValue: 4.0},
+        {signal: &SIGNALS[0][2]},
+        {signal: &SIGNALS[0][3], received: false, lastValue: 4.0},
+        {signal: &SIGNALS[0][4]},
+        {signal: &SIGNALS[0][5]},
+        {signal: &SIGNALS[0][6]},
+        {signal: &SIGNALS[0][7]},
+        {signal: &SIGNALS[0][8]},
+        {signal: &SIGNALS[0][9]},
+        {signal: &SIGNALS[0][10]},
+        {signal: &SIGNALS[0][11]},
+        {signal: &SIGNALS[0][12]},
+        {signal: &SIGNALS[0][13]},
+        {signal: &SIGNALS[0][14]},
+        {signal: &SIGNALS[0][15]},
+        {signal: &SIGNALS[0][16]},
+        {signal: &SIGNALS[0][17]},
+        {signal: &SIGNALS[0][18]},
+        {signal: &SIGNALS[0][19]},
+        {signal: &SIGNALS[0][20]},
+        {signal: &SIGNALS[0][21]},
+        {signal: &SIGNALS[0][22]}
+    },
+    { // message set: type-3
+        {signal: &SIGNALS[1][0]},
+        {signal: &SIGNALS[1][1]},
+        {signal: &SIGNALS[1][2]},
+        {signal: &SIGNALS[1][3]},
+        {signal: &SIGNALS[1][4]},
+        {signal: &SIGNALS[1][5]},
+        {signal: &SIGNALS[1][6]},
+        {signal: &SIGNALS[1][7]},
+        {signal: &SIGNALS[1][8]},
+        {signal: &SIGNALS[1][9]},
+        {signal: &SIGNALS[1][10]},
+        {signal: &SIGNALS[1][11]},
+        {signal: &SIGNALS[1][12]}
+    },
 };
 
 void openxc::signals::initialize(DiagnosticsManager* diagnosticsManager) {
@@ -173,7 +216,7 @@ openxc_DynamicField LAST_COMMAND_VALUE;
 openxc_DynamicField LAST_COMMAND_EVENT;
 
 void turnSignalCommandHandler(const char* name, openxc_DynamicField* value,
-        openxc_DynamicField* event, CanSignal* signals, int signalCount) {
+        openxc_DynamicField* event, const CanSignal* signals, int signalCount) {
     strcpy(LAST_COMMAND_NAME, name);
     LAST_COMMAND_VALUE = *value;
     if(event != NULL) {
@@ -216,7 +259,7 @@ int openxc::signals::getCommandCount() {
     return getActiveMessageSet()->commandCount;
 }
 
-CanMessageDefinition* openxc::signals::getMessages() {
+const CanMessageDefinition* openxc::signals::getMessages() {
     return CAN_MESSAGES[getActiveMessageSet()->index];
 }
 
@@ -224,8 +267,12 @@ int openxc::signals::getMessageCount() {
     return getActiveMessageSet()->messageCount;
 }
 
-CanSignal* openxc::signals::getSignals() {
-    return SIGNALS[getActiveMessageSet()->index];
+const CanSignal* openxc::signals::getSignals() {
+    return (const CanSignal*) SIGNALS[getActiveMessageSet()->index];
+}
+
+SignalManager* openxc::signals::getSignalManagers() {
+    return SIGNAL_MANAGERS[getActiveMessageSet()->index];
 }
 
 int openxc::signals::getSignalCount() {
@@ -240,12 +287,12 @@ int openxc::signals::getCanBusCount() {
     return getActiveMessageSet()->busCount;
 }
 
-CanMessageSet* openxc::signals::getActiveMessageSet() {
+const CanMessageSet* openxc::signals::getActiveMessageSet() {
     return &MESSAGE_SETS[getConfiguration()->messageSetIndex];
 }
 
-CanMessageSet* openxc::signals::getMessageSets() {
-    return MESSAGE_SETS;
+const CanMessageSet* openxc::signals::getMessageSets() {
+    return (const CanMessageSet*) MESSAGE_SETS;
 }
 
 int openxc::signals::getMessageSetCount() {

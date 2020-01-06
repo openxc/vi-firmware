@@ -103,7 +103,7 @@ void buildMessage(const CanSignal* signal, uint64_t encodedValue,
  *
  * Returns true if the message was sent successfully.
  */
-bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value,
+bool encodeAndSendSignal(const CanSignal* signal, openxc_DynamicField* value,
         SignalEncoder writer, bool force);
 
 /* Public: Write a CAN signal with the given value to the bus.
@@ -113,7 +113,7 @@ bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value,
  *
  * See above for argument descriptions.
  */
-bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value, bool force);
+bool encodeAndSendSignal(const CanSignal* signal, openxc_DynamicField* value, bool force);
 
 // value is already encoded
 /* Public: Write a previously encoded CAN signal to a CAN message on the bus.
@@ -125,14 +125,14 @@ bool encodeAndSendSignal(CanSignal* signal, openxc_DynamicField* value, bool for
  * force - true if the signals should be sent regardless of the writable status
  *         in the CAN message structure.
  */
-bool sendEncodedSignal(CanSignal* signal, uint64_t value, bool force);
+bool sendEncodedSignal(const CanSignal* signal, uint64_t value, bool force);
 
 /* Public: Three shortcut functions to encode and send a signal without manually
  * creating an openxc_DynamicField.
  */
-bool encodeAndSendBooleanSignal(CanSignal* signal, bool value, bool force);
-bool encodeAndSendStateSignal(CanSignal* signal, const char* value, bool force);
-bool encodeAndSendNumericSignal(CanSignal* signal, float value, bool force);
+bool encodeAndSendBooleanSignal(const CanSignal* signal, bool value, bool force);
+bool encodeAndSendStateSignal(const CanSignal* signal, const char* value, bool force);
+bool encodeAndSendNumericSignal(const CanSignal* signal, float value, bool force);
 
 /* Public: The lowest-level API available to send a CAN message. The byte order
  * of the data is swapped, but otherwise this function queues the data to write
@@ -165,7 +165,7 @@ void flushOutgoingCanMessageQueue(CanBus* bus);
  *
  * Returns true if the message was sent successfully.
  */
-bool sendCanMessage(const CanBus* bus, const CanMessage* request);
+bool sendCanMessage(CanBus* bus, CanMessage* request);
 
 /* Private: Actually, finally write a CAN message with the given data and node
  * ID to the bus.
@@ -177,7 +177,7 @@ bool sendCanMessage(const CanBus* bus, const CanMessage* request);
  *
  * Returns true if the message was sent successfully.
  */
-bool sendMessage(const CanBus* bus, const CanMessage* request);
+bool sendMessage(CanBus* bus, CanMessage* request);
 
 } // namespace write
 } // namespace can

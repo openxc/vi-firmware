@@ -15,6 +15,15 @@ ifneq ($(shell expr $(OXC_PYTHON_VER_NUM) \>= 2.0),1)
 $(error You do not have the necessary openxc-python installed: openxc-python 2.0+)
 endif
 
+# Verify signals.cpp syntax
+ifneq ($(wildcard signals.cpp),)
+FILE_CONTENTS=$(shell cat signals.cpp)
+STRING_MATCH=$(findstring SignalManager SIGNAL_MANAGERS,$(FILE_CONTENTS))
+ifneq ($(STRING_MATCH),SignalManager SIGNAL_MANAGERS)
+$(error You do not have the necessary openxc-python installed: openxc-python 2.0+)
+endif
+endif
+
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"

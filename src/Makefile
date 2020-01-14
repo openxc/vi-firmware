@@ -1,6 +1,20 @@
 SYMBOLS =
 SHELL := /bin/bash
 
+# Verify operating system is Ubuntu 18.04
+OS_NAME=$(shell lsb_release -si)
+OS_VER=$(shell lsb_release -sr)
+ifneq ($(OS_NAME) $(OS_VER),Ubuntu 18.04)
+$(error You do not have the necessary OS installed: Ubuntu 18.04)
+endif
+
+# Verify openxc-python is 2.0+
+OXC_PYTHON_VER=$(shell pip show openxc | grep Version)
+OXC_PYTHON_VER_NUM=$(subst Version: ,,$(OXC_PYTHON_VER))
+ifneq ($(shell expr $(OXC_PYTHON_VER_NUM) \>= 2.0),1)
+$(error You do not have the necessary openxc-python installed: openxc-python 2.0+)
+endif
+
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"

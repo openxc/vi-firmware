@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from fabric.api import *
 from fabric.colors import green, yellow, red
@@ -188,6 +189,10 @@ def compress_release(source, archive_path):
     with lcd(os.path.dirname(source)):
         local("zip -r %s %s" % (archive_path, os.path.basename(source)))
 
+def quiet_build():
+    output = subprocess.call("make", cwd="src", env={"PLATFORM": "FORDBOARD"}, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    return output
+
 @task
 def emulator():
     env.mode = 'emulator'
@@ -227,6 +232,33 @@ def test(long=False):
                 "a released version in master branch"))
 
     with(lcd("src")):
+        try:
+            f = open("src/signals.cpp")
+            f.close()
+            local("mv signals.cpp samples/signals.cpp")
+        except:
+            pass
+
+        local("touch signals.cpp")
+        failed_build = quiet_build()
+        local("cp samples/valid_signals.cpp signals.cpp")
+        passed_build = quiet_build()
+
+        tests_passed = 0
+        if failed_build == 2:
+            tests_passed = tests_passed + 1
+        if passed_build == 0:
+            tests_passed = tests_passed + 1
+
+        print(f"Make tests passed: {tests_passed}/2")
+
+        try:
+            f = open("src/samples/signals.cpp")
+            f.close()
+            local("mv samples/signals.cpp signals.cpp")
+        except:
+            pass
+
         if long in (True, 'True', 'true'):
             local("PLATFORM=TESTING make -j1 test_long")
         else:

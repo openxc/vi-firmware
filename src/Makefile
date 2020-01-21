@@ -1,6 +1,8 @@
 SYMBOLS =
 SHELL := /bin/bash
 
+# Begin if-not Travis
+ifndef TRAVIS
 # Verify operating system is Ubuntu 18.04
 TARGET_OS=Ubuntu 18.04
 OS_NAME=$(shell lsb_release -si)
@@ -25,6 +27,8 @@ SIGNALS_CPP_MATCH=$(findstring $(TARGET_SIGNALS_CPP_STRING),$(SINGALS_CPP_CONTEN
 ifneq ($(SIGNALS_CPP_MATCH),$(TARGET_SIGNALS_CPP_STRING))
 $(error You do not have the necessary openxc-python installed: openxc-python $(TARGET_OXC_PY_VER)+)
 endif
+endif
+# End if-not travis
 endif
 
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)

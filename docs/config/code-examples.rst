@@ -271,8 +271,9 @@ In ``my_handlers.cpp``:
      *
      * This type signature is required for all custom message handlers.
      */
-    void latitudeMessageHandler(CanMessage* message, CanSignal* signals,
-            int signalCount, Pipeline* pipeline) {
+    void latitudeMessageHandler(const CanSignal* signal, const CanSignal* signals,
+	SignalManager* signalManager, SignalManager* signalManagers,
+    int signalCount, Pipeline* pipeline, float value, bool* send) {
         // Retrieve the CanSignal struct representations of the 3 latitude
         // component signals. These are still included in the firmware build
         // when the 'ignore' flag was true for the signals.

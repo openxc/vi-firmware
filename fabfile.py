@@ -338,24 +338,14 @@ def build(capture=False, do_clean=False):
     with lcd("%s/src" % env.root_dir):
         if do_clean:
             clean()
-        if env.mode == 'emulator':
-            try:
-                f = open("src/signals.cpp")
-                f.close()
-                with quiet():
-                    local(f"mv signals.cpp signals.cpp.oxc")
-            except:
-                pass
+        if env.mode == 'emulator' and os.path.exists("src/signals.cpp"):
+            with quiet():
+                local(f"mv signals.cpp signals.cpp.oxc")
         output = local("%s make -j1 " % options, capture=capture)
-        if env.mode == 'emulator':
-            try:
-                f = open(f"src/signals.cpp.oxc")
-                f.close()
-                with quiet():
-                    local(f"mv signals.cpp.oxc signals.cpp")
-                print("Since this is an emulator build, your signals.cpp was backed up and restored.")
-            except:
-                pass
+        if env.mode == 'emulator' and os.path.exists("src/signals.cpp.oxc"):
+            with quiet():
+                local(f"mv signals.cpp.oxc signals.cpp")
+            print("Since this is an emulator build, your \'signals.cpp\' was backed up and restored.")
         if output.failed:
             puts(output)
             abort(red("Building %s failed" % board_options['name']))

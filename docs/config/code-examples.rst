@@ -64,9 +64,9 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Round the value down to 0 if it's less than 100. */
-   float ourRoundingDecoder(const CanSignal* signals, SignalManager* signalManager,
-		 SignalManager* signalManagers, int signalCount, Pipeline* pipeline, 
-		 float value, bool* send) {
+   float ourRoundingDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
       if(value < 100) {
          value = 0;
       }
@@ -142,9 +142,9 @@ we look up the sign signal and use its value to transform the absolute value. In
 
    /* Load the last value for the sign signal and multiply the absolute value
    by it. */
-   float ourRoundingDecoder(const CanSignal* signals, SignalManager* signalManager,
-		 SignalManager* signalManagers, int signalCount, Pipeline* pipeline, 
-		 float value, bool* send) {
+   float ourRoundingDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
        SignalManager* signSignal = lookupSignal("sign_of_signal",
                signals, signalCount);
 
@@ -485,9 +485,9 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Ignore the signal if the value is less than 100 */
-   float ourFilteringDecoder(const CanSignal* signals, SignalManager* signalManager,
-		 SignalManager* signalManagers, int signalCount, Pipeline* pipeline, 
-		 float value, bool* send) {
+   float ourFilteringDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
       if(value < 100) {
          *send = false;
       }

@@ -64,8 +64,9 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Round the value down to 0 if it's less than 100. */
-   float ourRoundingDecoder(CanSignal* signal, CanSignal* signals,
-         int signalCount, float value, bool* send) {
+   float ourRoundingDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
       if(value < 100) {
          value = 0;
       }
@@ -141,9 +142,10 @@ we look up the sign signal and use its value to transform the absolute value. In
 
    /* Load the last value for the sign signal and multiply the absolute value
    by it. */
-   float ourRoundingDecoder(CanSignal* signal, CanSignal* signals,
-         int signalCount, float value, bool* send) {
-       CanSignal* signSignal = lookupSignal("sign_of_signal",
+   float ourRoundingDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
+       SignalManager* signSignal = lookupSignalManagerDetails("sign_of_signal",
                signals, signalCount);
 
        if(signSignal == NULL) {
@@ -271,8 +273,9 @@ In ``my_handlers.cpp``:
      *
      * This type signature is required for all custom message handlers.
      */
-    void latitudeMessageHandler(CanMessage* message, CanSignal* signals,
-            int signalCount, Pipeline* pipeline) {
+    void latitudeMessageHandler(const CanSignal* signal, const CanSignal* signals,
+	SignalManager* signalManager, SignalManager* signalManagers,
+    int signalCount, Pipeline* pipeline, float value, bool* send) {
         // Retrieve the CanSignal struct representations of the 3 latitude
         // component signals. These are still included in the firmware build
         // when the 'ignore' flag was true for the signals.
@@ -482,8 +485,9 @@ In ``my_handlers.cpp``:
 .. code-block:: cpp
 
    /* Ignore the signal if the value is less than 100 */
-   float ourFilteringDecoder(CanSignal* signal, CanSignal* signals,
-         int signalCount, float value, bool* send) {
+   float ourFilteringDecoder(const CanSignal* signal, const CanSignal* signals,
+         SignalManager* signalManager, SignalManager* signalManagers,
+		 int signalCount, Pipeline* pipeline, float value, bool* send) {
       if(value < 100) {
          *send = false;
       }

@@ -689,10 +689,18 @@ bool openxc::diagnostics::handleDiagnosticCommand(
                         message.diagnostic_response.mode = commandRequest->mode;
                         message.diagnostic_response.pid = commandRequest->pid;
 
-                        openxc_DynamicField value = openxc_DynamicField();	// Zero fill
-                        value.type = openxc_DynamicField_Type_NUM;
-                        value.numeric_value = rand() % 100;
-                        message.diagnostic_response.value = value;
+                        message.diagnostic_response.success = rand() & 1;
+                        if (message.diagnostic_response.success)
+                        {
+                            openxc_DynamicField value = openxc_DynamicField();	// Zero fill
+                            value.type = openxc_DynamicField_Type_NUM;
+                            value.numeric_value = rand() % 100;
+                            message.diagnostic_response.value = value;
+                        }
+                        else
+                        {
+                            message.diagnostic_response.negative_response_code = rand() % 15 + 1;
+                        }
 
                         debug("Response message id: %d", message.diagnostic_response.message_id);
                         pipeline::publish(&message, &getConfiguration()->pipeline);

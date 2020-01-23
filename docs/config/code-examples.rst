@@ -145,7 +145,7 @@ we look up the sign signal and use its value to transform the absolute value. In
    float ourRoundingDecoder(const CanSignal* signal, const CanSignal* signals,
          SignalManager* signalManager, SignalManager* signalManagers,
 		 int signalCount, Pipeline* pipeline, float value, bool* send) {
-       SignalManager* signSignal = lookupSignal("sign_of_signal",
+       SignalManager* signSignal = lookupSignalManagerDetails("sign_of_signal",
                signals, signalCount);
 
        if(signSignal == NULL) {

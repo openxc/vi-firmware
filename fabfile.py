@@ -232,12 +232,8 @@ def test(long=False):
                 "a released version in master branch"))
 
     with(lcd("src")):
-        try:
-            f = open("src/signals.cpp")
-            f.close()
-            local("mv signals.cpp samples/signals.cpp")
-        except:
-            pass
+        if os.path.exists("src/signals.cpp"):
+            local("mv signals.cpp signals.cpp.oxc")
 
         local("touch signals.cpp")
         failed_build = quiet_build()
@@ -252,12 +248,8 @@ def test(long=False):
 
         print(f"Make tests passed: {tests_passed}/2")
 
-        try:
-            f = open("src/samples/signals.cpp")
-            f.close()
-            local("mv samples/signals.cpp signals.cpp")
-        except:
-            pass
+        if os.path.exists("src/signals.cpp.oxc"):
+            local("mv signals.cpp.oxc signals.cpp")
 
         if long in (True, 'True', 'true'):
             local("PLATFORM=TESTING make -j1 test_long")

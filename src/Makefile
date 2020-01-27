@@ -5,9 +5,9 @@ SHELL := /bin/bash
 TARGET_OS=Ubuntu 18.04
 OS_NAME=$(shell lsb_release -si)
 OS_VER=$(shell lsb_release -sr)
-ifneq ($(OS_NAME) $(OS_VER),$(TARGET_OS))
-$(error You do not have the necessary OS installed: $(TARGET_OS))
-endif
+# ifneq ($(OS_NAME) $(OS_VER),$(TARGET_OS))
+# $(error You do not have the necessary OS installed: $(TARGET_OS))
+# endif
 
 # Verify openxc-python is 2.0+
 TARGET_OXC_PY_VER=2.0

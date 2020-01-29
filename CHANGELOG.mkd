@@ -9,7 +9,7 @@
 * Update: Update vm to use python3.
 * Fix: Out of memory error, drastically reduced memory cost per message.
 * Fix: Fix gitdir for submodules allowing host machine to still use git on vi-firmware.
-* Fix: Cleand up multiple imports of the same submodules.
+* Fix: Cleaned up multiple imports of the isotp and uds-c.
 * Fix: Fix bug with ignition detection.
 * Feature: Added code to remove signals.cpp when compiling emulator firmware.
 * Feature: Added checks to vm for old python and vm versions.

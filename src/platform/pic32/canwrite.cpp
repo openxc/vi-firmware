@@ -4,7 +4,7 @@
 
 using openxc::util::log::debug;
 
-bool openxc::can::write::sendMessage(const CanBus* bus, const CanMessage* request) {
+bool openxc::can::write::sendMessage(CanBus* bus, CanMessage* request) {
     CAN::TxMessageBuffer* message = CAN_CONTROLLER(bus)->getTxMessageBuffer(
             CAN::CHANNEL0);
     if (message != NULL) {

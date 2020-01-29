@@ -1,6 +1,32 @@
 SYMBOLS =
 SHELL := /bin/bash
 
+# Verify operating system is Ubuntu 18.04
+TARGET_OS=Ubuntu 18.04
+OS_NAME=$(shell lsb_release -si)
+OS_VER=$(shell lsb_release -sr)
+ifneq ($(OS_NAME) $(OS_VER),$(TARGET_OS))
+$(error You do not have the necessary OS installed: $(TARGET_OS))
+endif
+
+# Verify openxc-python is 2.0+
+TARGET_OXC_PY_VER=2.0
+OXC_PY_VER=$(shell pip show openxc | grep Version)
+OXC_PY_VER_NUM=$(subst Version: ,,$(OXC_PY_VER))
+ifneq ($(shell expr $(OXC_PY_VER_NUM) \>= $(TARGET_OXC_PY_VER)),1)
+$(error You do not have the necessary openxc-python installed: openxc-python $(TARGET_OXC_PY_VER)+)
+endif
+
+# Verify signals.cpp syntax
+TARGET_SIGNALS_CPP_STRING=const CanSignal*
+ifneq ($(wildcard signals.cpp),)
+SINGALS_CPP_CONTENTS=$(shell cat signals.cpp)
+SIGNALS_CPP_MATCH=$(findstring $(TARGET_SIGNALS_CPP_STRING),$(SINGALS_CPP_CONTENTS))
+ifneq ($(SIGNALS_CPP_MATCH),$(TARGET_SIGNALS_CPP_STRING))
+$(error You do not have the necessary openxc-python installed: openxc-python $(TARGET_OXC_PY_VER)+)
+endif
+endif
+
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"
@@ -44,6 +70,9 @@ SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_NETWORK=$(DEFAULT_ALLOW_RAW_WRITE_NETWORK)
 
 DEFAULT_ALLOW_RAW_WRITE_BLE ?= 0
 SYMBOLS += DEFAULT_ALLOW_RAW_WRITE_BLE=$(DEFAULT_ALLOW_RAW_WRITE_BLE)
+
+DEFAULT_BLUETOOTH_PIN ?= "\"1234\""
+SYMBOLS += DEFAULT_BLUETOOTH_PIN=$(DEFAULT_BLUETOOTH_PIN)
 
 DEFAULT_METRICS_STATUS ?= 0
 SYMBOLS += DEFAULT_METRICS_STATUS=$(DEFAULT_METRICS_STATUS)
@@ -155,14 +184,14 @@ CROSSPLATFORM_C_SRCS += $(wildcard payload/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cJSON/cJSON.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/AT-commander/atcommander/atcommander.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/emqueue/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/bitfield-c/src/**/*.c)
-CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/isotp-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/deps/isotp-c/deps/bitfield-c/src/**/*.c)
+CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/deps/isotp-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/uds-c/src/**/*.c)
 CROSSPLATFORM_C_SRCS += $(wildcard $(LIBS_PATH)/cmp/cmp.c)
 # TODO put this under a "gen" folder separate from objdir
-CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/nanopb/pb_encode.c \
-						$(LIBS_PATH)/nanopb/pb_decode.c \
-						$(LIBS_PATH)/nanopb/pb_common.c
+CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_encode.c \
+						$(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_decode.c \
+						$(LIBS_PATH)/openxc-message-format/libs/nanopb/pb_common.c
 CROSSPLATFORM_C_SRCS += $(LIBS_PATH)/openxc-message-format/gen/cpp/openxc.pb.c
 CROSSPLATFORM_CPP_SRCS = $(wildcard *.cpp)
 CROSSPLATFORM_CPP_SRCS += $(wildcard can/*.cpp)
@@ -174,10 +203,10 @@ CROSSPLATFORM_CPP_SRCS += $(wildcard payload/*.cpp)
 
 INCLUDE_PATHS = -I. -I$(LIBS_PATH)/cJSON -I$(LIBS_PATH)/emqueue \
 				-I$(LIBS_PATH)/AT-commander/atcommander \
-				-I$(LIBS_PATH)/nanopb \
+				-I$(LIBS_PATH)/openxc-message-format/libs/nanopb \
 				-I$(LIBS_PATH)/openxc-message-format/gen/cpp \
-				-I$(LIBS_PATH)/bitfield-c/src \
-				-I$(LIBS_PATH)/isotp-c/src \
+				-I$(LIBS_PATH)/uds-c/deps/isotp-c/deps/bitfield-c/src \
+				-I$(LIBS_PATH)/uds-c/deps/isotp-c/src \
 				-I$(LIBS_PATH)/uds-c/src \
 				-I$(LIBS_PATH)/cmp \
 

@@ -13,14 +13,18 @@ using openxc::can::write::encodeState;
 using openxc::can::write::buildMessage;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
+using openxc::signals::getSignalManagers;
+using openxc::can::lookupSignalManagerDetails;
 using openxc::signals::getCanBuses;
 
 void setup() {
     for(int i = 0; i < getSignalCount(); i++) {
-        getSignals()[i].writable = true;
-        getSignals()[i].received = false;
-        getSignals()[i].sendSame = true;
-        getSignals()[i].frequencyClock = {0};
+        const CanSignal* testSignal = &getSignals()[i];
+        SignalManager* signalManager = openxc::can::lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
+        ((CanSignal*)testSignal)->writable = true;
+        signalManager->received = false;
+        ((CanSignal*)testSignal)->sendSame = true;
+        signalManager->frequencyClock = {0};
     }
     QUEUE_INIT(CanMessage, &getCanBuses()[0].sendQueue);
 }
@@ -58,8 +62,7 @@ END_TEST
 
 START_TEST (test_encode_invalid_field)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = false;
+    openxc_DynamicField field = openxc_DynamicField();	// Zero Fill
 
     bool send = true;
     encodeDynamicField(&getSignals()[6], &field, &send);
@@ -149,19 +152,18 @@ END_TEST
 
 START_TEST (test_write_not_allowed)
 {
-    getSignals()[1].writable = false;
-    can::write::encodeAndSendNumericSignal(&getSignals()[1], 0x6, false);
+    const CanSignal* testSignal = &getSignals()[1];
+    ((CanSignal*)testSignal)->writable = false;
+    can::write::encodeAndSendNumericSignal(testSignal, 0x6, false);
     fail_unless(QUEUE_EMPTY(CanMessage,
-                &getSignals()[1].message->bus->sendQueue));
+                &testSignal->message->bus->sendQueue));
 }
 END_TEST
 
 START_TEST (test_send_with_null_writer)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();		// Zero Fill
     field.type = openxc_DynamicField_Type_NUM;
-    field.has_numeric_value = true;
     field.numeric_value = 0xa;
 
     fail_unless(can::write::encodeAndSendSignal(
@@ -174,10 +176,8 @@ END_TEST
 
 START_TEST (test_send_using_default)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();		// Zero Fill
     field.type = openxc_DynamicField_Type_NUM;
-    field.has_numeric_value = true;
     field.numeric_value = 0xa;
 
     fail_unless(can::write::encodeAndSendSignal(
@@ -198,7 +198,7 @@ START_TEST (test_send_with_custom_with_states)
 }
 END_TEST
 
-uint64_t customStateWriter(CanSignal* signal, openxc_DynamicField* value,
+uint64_t customStateWriter(const CanSignal* signal, openxc_DynamicField* value,
         bool* send) {
     *send = false;
     return 0;
@@ -206,10 +206,8 @@ uint64_t customStateWriter(CanSignal* signal, openxc_DynamicField* value,
 
 START_TEST (test_send_with_custom_says_no_send)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();	// Zero Fill
     field.type = openxc_DynamicField_Type_STRING;
-    field.has_string_value = true;
     strcpy(field.string_value, getSignals()[1].states[1].name);
 
     fail_if(can::write::encodeAndSendSignal(&getSignals()[1], &field,
@@ -221,10 +219,8 @@ END_TEST
 
 START_TEST (test_force_send)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();		// Zero Fill
     field.type = openxc_DynamicField_Type_STRING;
-    field.has_string_value = true;
     strcpy(field.string_value, getSignals()[1].states[1].name);
 
     fail_unless(can::write::encodeAndSendSignal(&getSignals()[1],
@@ -242,10 +238,8 @@ END_TEST
 
 START_TEST (test_no_flush_handler)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();		// Zero Fill
     field.type = openxc_DynamicField_Type_NUM;
-    field.has_numeric_value = true;
     field.numeric_value = 0xa;
 
     fail_unless(can::write::encodeAndSendSignal(
@@ -257,16 +251,14 @@ START_TEST (test_no_flush_handler)
 }
 END_TEST
 
-bool writeHandler(const CanBus* bus, const CanMessage* message) {
+bool writeHandler(CanBus* bus, CanMessage* message) {
     return false;
 }
 
 START_TEST (test_failed_flush_handler)
 {
-    openxc_DynamicField field = {0};
-    field.has_type = true;
+    openxc_DynamicField field = openxc_DynamicField();		// Zero Fill
     field.type = openxc_DynamicField_Type_NUM;
-    field.has_numeric_value = true;
     field.numeric_value = 0xa;
 
     fail_unless(can::write::encodeAndSendSignal(

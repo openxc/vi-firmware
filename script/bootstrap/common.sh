@@ -97,8 +97,8 @@ if [ -z $COMMON_SOURCED ]; then
                 if [ $DISTRO == "arch" ]; then
                     $SUDO_CMD pacman -S $1
                 elif [ $DISTRO == "Ubuntu" ]; then
-                    $SUDO_CMD apt-get update -qq
-                    $SUDO_CMD apt-get install $1 -y
+                    $SUDO_CMD apt-get update -qq -y
+                    $SUDO_CMD apt install -y $1 
                 else
                     echo
                     echo "Missing $1 - install it using your distro's package manager or build from source"
@@ -207,22 +207,33 @@ pre-configured Vagrant environment. See the docs for more information."
     fi
     set -e
 
-    #https://cryptography.io/en/latest/installation/#building-cryptography-on-linux
-    #cryptography is dependency of pyparsing - need to ensure other packages first
-    #otherwise cffi error
-    if [ $OS == "linux" ]; then
-	echo "Installing libffi-dev"
-	_install "libffi-dev"
-    fi
+    echo "Fixing gitdir for nested submodules"
+
+    # https://marc.info/?l=git&m=145937129606918&w=2
+    # There's a bug with the git submodule update command (still unfixed as of v2.23.0) that causes nested submodules to use an absolue
+    # path for their gitdir, whereas everything else uses relative paths. Since the project root in this context
+    # is /vagrant/, the gitdirs for the nested submodules will be incorrect and consequentially most git commands won't 
+    # work (unless you're in a vagrant machine). For now we'll just rewrite the gitdirs for the nested submodules to use relative paths
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/BSP/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/CDL/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/AT-commander/lpc17xx/emqueue/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/openxc-message-format/libs/nanopb/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/.git
+    sed -i -e 's/\/vagrant\//..\/..\/..\/..\/..\/..\/..\//g' src/libs/uds-c/deps/isotp-c/deps/bitfield-c/.git
+
+    # Force git to use CR/LF line endings. The default from within a vagrant machine is different, so without this
+    # it'll think all of the files have changed when inside a vagrant machine
+    git config --global core.autocrlf true
     
-    if ! command -v python >/dev/null 2>&1; then
+    if ! command -v python3 >/dev/null 2>&1; then
         echo "Installing Python..."
-        _install "python"
+        _install "python3"
+        $SUDO_CMD ln -s /usr/bin/python3 /usr/bin/python
     fi
 
-    if ! command -v pip >/dev/null 2>&1; then
-		curl -Ss https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-        $SUDO_CMD python /tmp/get-pip.py
+    if ! command -v pip3 >/dev/null 2>&1; then
+        _install python3-pip
+        $SUDO_CMD ln -s /usr/bin/pip3 /usr/bin/pip
     fi
 
     PIP_SUDO_CMD=
@@ -231,9 +242,9 @@ pre-configured Vagrant environment. See the docs for more information."
         PIP_SUDO_CMD=$SUDO_CMD
     fi
 
-    $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
+    $PIP_SUDO_CMD pip3 install --src dependencies --pre -r $BOOTSTRAP_DIR/ci-requirements.txt
     if [ -z $CI ]; then
-        $PIP_SUDO_CMD pip install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
+        $PIP_SUDO_CMD pip3 install --src dependencies --pre -r $BOOTSTRAP_DIR/pip-requirements.txt
     fi
 	
     if ! command -v clang >/dev/null 2>&1; then

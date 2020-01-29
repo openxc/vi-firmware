@@ -118,7 +118,7 @@ openxc::telitHE910::TelitDevice telitDevice = {
 openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
-        version: "7.3.0",
+        version: "8.0.0",
         platform: PLATFORM,
         environmentMode: ENVIRONMENT_MODE,
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,
@@ -132,6 +132,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
         desiredRunLevel: RunLevel::CAN_ONLY,
         initialized: false,
         runLevel: RunLevel::NOT_RUNNING,
+	bluetoothPin: DEFAULT_BLUETOOTH_PIN,
         uart: {
             descriptor: {
                 allowRawWrites: DEFAULT_ALLOW_RAW_WRITE_UART

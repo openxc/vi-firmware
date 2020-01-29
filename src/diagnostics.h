@@ -36,9 +36,14 @@ namespace diagnostics {
  *      a byte array). This is most often used when the byte order is
  *      signiticant, i.e. with many OBD-II PID formulas.
  * parsed_payload - the entire payload of the response parsed as an int.
+ * str_buf - string buffer that holds the decoded value. 
+ * buf_size - size of the string buffer in bytes.
  */
-typedef float (*DiagnosticResponseDecoder)(const DiagnosticResponse* response,
-        float parsed_payload);
+typedef void (*DiagnosticResponseDecoder)(
+        const DiagnosticResponse* response,
+        float parsed_payload, 
+        char* str_buf,
+        int buf_size);
 
 /* Public: The signature for an optional function to handle a new diagnostic
  * response.
@@ -348,8 +353,8 @@ bool handleDiagnosticCommand(DiagnosticsManager* manager,
  *
  * Returns the already parsed payload with no modifications.
  */
-float passthroughDecoder(const DiagnosticResponse* response,
-        float parsed_payload);
+void passthroughDecoder(const DiagnosticResponse* response,
+        float parsed_payload, char* str_buf, int buf_size);
 
 } // namespace diagnostics
 } // namespace openxc

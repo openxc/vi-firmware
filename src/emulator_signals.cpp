@@ -14,7 +14,7 @@ using openxc::pipeline::Pipeline;
 using openxc::diagnostics::DiagnosticsManager;
 
 const int MESSAGE_SET_COUNT = 1;
-CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
+const CanMessageSet MESSAGE_SETS[MESSAGE_SET_COUNT] = {
     { 0, "emulator", 0, 0, 0, 0 },
 };
 
@@ -25,7 +25,7 @@ CanBus CAN_BUSES[][MAX_CAN_BUS_COUNT] = {
 };
 
 const int MAX_MESSAGE_COUNT = 0;
-CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
+const CanMessageDefinition CAN_MESSAGES[][MAX_MESSAGE_COUNT] = {
 };
 
 const int MAX_SIGNAL_STATES = 0;
@@ -46,7 +46,7 @@ const int MAX_COMMAND_COUNT = 1;
 CanCommand COMMANDS[][MAX_COMMAND_COUNT] = {
 };
 
-void openxc::signals::decodeCanMessage(Pipeline* pipeline, CanBus* bus, CanMessage* message) {
+void openxc::signals::decodeCanMessage(Pipeline* pipeline, const CanBus* bus, CanMessage* message) {
 }
 
 
@@ -58,7 +58,7 @@ int openxc::signals::getCommandCount() {
     return getActiveMessageSet()->commandCount;
 }
 
-CanMessageDefinition* openxc::signals::getMessages() {
+const CanMessageDefinition* openxc::signals::getMessages() {
     return CAN_MESSAGES[getActiveMessageSet()->index];
 }
 
@@ -82,11 +82,11 @@ int openxc::signals::getCanBusCount() {
     return getActiveMessageSet()->busCount;
 }
 
-CanMessageSet* openxc::signals::getActiveMessageSet() {
+const CanMessageSet* openxc::signals::getActiveMessageSet() {
     return &MESSAGE_SETS[0];
 }
 
-CanMessageSet* openxc::signals::getMessageSets() {
+const CanMessageSet* openxc::signals::getMessageSets() {
     return MESSAGE_SETS;
 }
 

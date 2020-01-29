@@ -47,7 +47,7 @@ bool isObd2Request(DiagnosticRequest* request);
  * value of the PID, using the standard formulas (see
  * http://en.wikipedia.org/wiki/OBD-II_PIDs#Mode_01).
  */
-float handleObd2Pid(const DiagnosticResponse* response, float parsedPayload);
+void handleObd2Pid(const DiagnosticResponse* response, float parsedPayload, char* str_buf, int buf_size);
 
 } // namespace obd2
 } // namespace diagnostics

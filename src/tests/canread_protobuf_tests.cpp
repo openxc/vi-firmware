@@ -20,9 +20,11 @@ using openxc::can::read::noopDecoder;
 using openxc::can::read::publishBooleanMessage;
 using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::publishStringMessage;
+using openxc::can::lookupSignalManagerDetails;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
+using openxc::signals::getSignalManagers;
 using openxc::signals::getCanBuses;
 using openxc::config::getConfiguration;
 
@@ -40,9 +42,11 @@ void setup() {
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {
-        getSignals()[i].received = false;
-        getSignals()[i].sendSame = true;
-        getSignals()[i].frequencyClock = {0};
+        const CanSignal* testSignal = &getSignals()[i];
+        SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
+        signalManager->received = false;
+        ((CanSignal*)testSignal)->sendSame = true;
+        signalManager->frequencyClock = {0};
     }
 }
 
@@ -50,7 +54,7 @@ openxc_VehicleMessage decodeProtobufMessage(Pipeline* pipeline) {
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue) + 1];
     QUEUE_SNAPSHOT(uint8_t, &pipeline->usb->endpoints[IN_ENDPOINT_INDEX].queue, snapshot, sizeof(snapshot));
 
-    openxc_VehicleMessage decodedMessage = {0};
+    openxc_VehicleMessage decodedMessage = openxc_VehicleMessage();	// Zero fill
     pb_istream_t stream = pb_istream_from_buffer(snapshot, sizeof(snapshot));
     bool status = pb_decode_delimited(&stream, openxc_VehicleMessage_fields, &decodedMessage);
     ck_assert_msg(status, PB_GET_ERROR(&stream));

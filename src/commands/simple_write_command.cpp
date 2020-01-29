@@ -34,14 +34,14 @@ namespace pipeline = openxc::pipeline;
 
 bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
     bool status = true;
-    if(message->has_simple_message) {
+    if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
         openxc_SimpleMessage* simpleMessage =
                 &message->simple_message;
-        if(simpleMessage->has_name) {
-            CanSignal* signal = lookupSignal(simpleMessage->name,
+        if(strlen(simpleMessage->name) > 0) {
+            const CanSignal* signal = lookupSignal(simpleMessage->name,
                     getSignals(), getSignalCount(), true);
             if(signal != NULL) {
-                if(!simpleMessage->has_value) {
+                if(simpleMessage->value.type == openxc_DynamicField_Type_UNUSED) {
                     debug("Write request for %s missing value", simpleMessage->name);
                     status = false;
                 }
@@ -60,7 +60,7 @@ bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
                     // SimpleMessage to the handler
                     command->handler(simpleMessage->name,
                             &simpleMessage->value,
-                            simpleMessage->has_event ? &simpleMessage->event : NULL,
+                            (simpleMessage->event.type != openxc_DynamicField_Type_UNUSED) ? &simpleMessage->event : NULL,
                             getSignals(), getSignalCount());
                 } else {
                     debug("Writing not allowed for signal \"%s\"",
@@ -75,28 +75,12 @@ bool openxc::commands::handleSimple(openxc_VehicleMessage* message) {
 
 bool openxc::commands::validateSimple(openxc_VehicleMessage* message) {
     bool valid = true;
-    if(message->has_type && message->type == openxc_VehicleMessage_Type_SIMPLE &&
-            message->has_simple_message) {
+    if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
         openxc_SimpleMessage* simple = &message->simple_message;
-        if(!simple->has_name) {
+        if (strlen(simple->name) == 0) {
             valid = false;
             debug("Write request is missing name");
         }
-
-        if(!simple->has_value) {
-            valid = false;
-        } else if(!simple->value.has_type) {
-            valid = false;
-            debug("Unsupported type in value field of %s", simple->name);
-        }
-
-        if(simple->has_event) {
-            if(!simple->event.has_type) {
-                valid = false;
-                debug("Unsupported type in event field of %s", simple->name);
-            }
-        }
-
     } else {
         valid = false;
     }

@@ -19,6 +19,8 @@ using openxc::signals::handlers::handleInverted;
 using openxc::pipeline::Pipeline;
 using openxc::signals::getSignalCount;
 using openxc::signals::getSignals;
+using openxc::signals::getSignalManagers;
+using openxc::can::lookupSignalManagerDetails;
 using openxc::signals::getCanBuses;
 using openxc::config::getConfiguration;
 
@@ -34,15 +36,18 @@ void setup() {
     usb::initialize(&getConfiguration()->usb);
     getConfiguration()->usb.configured = true;
     for(int i = 0; i < getSignalCount(); i++) {
-        getSignals()[i].received = false;
-        getSignals()[i].frequencyClock = {0};
+        SignalManager* signalManager = lookupSignalManagerDetails(getSignals()[i].genericName, getSignalManagers(), getSignalCount());
+        signalManager->received = false;
+        signalManager->frequencyClock = {0};
     }
 }
 
 START_TEST (test_inverted_handler)
 {
     bool send = true;
-    openxc_DynamicField result = handleInverted(&getSignals()[0], getSignals(), getSignalCount(),
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
+    openxc_DynamicField result = handleInverted(testSignal, getSignals(), signalManager, getSignalManagers(), getSignalCount(),
             &getConfiguration()->pipeline, 1, &send);
     ck_assert(result.numeric_value == -1.0);
 }
@@ -53,9 +58,11 @@ START_TEST (test_button_event_handler)
     fail_unless(queueEmpty());
     bool send = true;
     CanMessage message = {0};
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down", &send), message.data, sizeof(message.data));
     buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send), message.data, sizeof(message.data));
-    handleButtonEventMessage(&message, getSignals(), getSignalCount(),
+    handleButtonEventMessage(&getSignals()[0], getSignals(), signalManager, getSignalManagers(), getSignalCount(), &message,
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 }
@@ -66,9 +73,11 @@ START_TEST (test_button_event_handler_bad_type)
     fail_unless(queueEmpty());
     bool send = true;
     CanMessage message = {0};
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "bad", &send), message.data, sizeof(message.data));
     buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send), message.data, sizeof(message.data));
-    handleButtonEventMessage(&message, getSignals(), getSignalCount(),
+    handleButtonEventMessage(&getSignals()[0], getSignals(), signalManager, getSignalManagers(), getSignalCount(), &message,
             &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
@@ -79,9 +88,11 @@ START_TEST (test_button_event_handler_correct_types)
     fail_unless(queueEmpty());
     bool send = true;
     CanMessage message = {0};
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down", &send), message.data, sizeof(message.data));
     buildMessage(&getSignals()[1], encodeState(&getSignals()[1], "stuck", &send), message.data, sizeof(message.data));
-    handleButtonEventMessage(&message, getSignals(), getSignalCount(),
+    handleButtonEventMessage(&getSignals()[0], getSignals(), signalManager, getSignalManagers(), getSignalCount(), &message,
             &getConfiguration()->pipeline);
     fail_if(queueEmpty());
 
@@ -100,9 +111,11 @@ START_TEST (test_button_event_handler_bad_state)
     fail_unless(queueEmpty());
     bool send = true;
     CanMessage message = {0};
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     buildMessage(&getSignals()[0], encodeState(&getSignals()[0], "down", &send), message.data, sizeof(message.data));
     buildMessage(&getSignals()[1], encodeNumber(&getSignals()[1], 11, &send), message.data, sizeof(message.data));
-    handleButtonEventMessage(&message, getSignals(), getSignalCount(),
+    handleButtonEventMessage(&getSignals()[0], getSignals(), signalManager, getSignalManagers(), getSignalCount(), &message,
             &getConfiguration()->pipeline);
     fail_unless(queueEmpty());
 }
@@ -111,15 +124,17 @@ END_TEST
 START_TEST (test_tire_pressure_as_decoder)
 {
     bool send = true;
-    CanSignal* signal = &getSignals()[7];
-    signal->decoder = &tirePressureDecoder;
+    const CanSignal* signal = &getSignals()[7];
+    ((CanSignal*)signal)->decoder = &tirePressureDecoder;
     CanMessage message = {
         id: signal->message->id,
         format: CanMessageFormat::STANDARD,
         data: {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
         length: 8
     };
-    openxc::can::read::decodeSignal(signal, &message, getSignals(), getSignalCount(), &send);
+    SignalManager* signalManager = lookupSignalManagerDetails(signal->genericName, getSignalManagers(), getSignalCount());
+    openxc::can::read::decodeSignal(signal, getSignals(), signalManager,
+        getSignalManagers(), getSignalCount(), &message, &send);
     fail_if(queueEmpty());
 
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
@@ -132,8 +147,10 @@ END_TEST
 START_TEST (test_tire_pressure_handler)
 {
     bool send = true;
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     openxc_DynamicField decodedTireId = tirePressureDecoder(&getSignals()[7],
-            getSignals(), getSignalCount(), &getConfiguration()->pipeline,
+            getSignals(), signalManager, getSignalManagers(), getSignalCount(), &getConfiguration()->pipeline,
             23.1, &send);
     // This decoder handles sending its own messages
     fail_if(queueEmpty());
@@ -150,30 +167,33 @@ START_TEST (test_fuel_handler)
 {
     bool send = true;
     float result = 0;
-    CanSignal* signal = &getSignals()[6];
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 0, &send, 1).numeric_value;
+    const CanSignal* signal = &getSignals()[6];
+    SignalManager* signalManager = lookupSignalManagerDetails(signal->genericName, getSignalManagers(), getSignalCount());
+    result = handleFuelFlow(signal, getSignals(), signalManager, getSignalManagers(), getSignalCount(), 0, &send, 1).numeric_value;
     ck_assert_int_eq(0, result);
-    signal->lastValue = 0;
+    signalManager->lastValue = 0;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 1, &send, 1).numeric_value;
+    result = handleFuelFlow(signal, getSignals(), signalManager, getSignalManagers(), getSignalCount(), 1, &send, 1).numeric_value;
     ck_assert_int_eq(1, result);
-    signal->lastValue = 1;
+    signalManager->lastValue = 1;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 255, &send, 1).numeric_value;
+    result = handleFuelFlow(signal, getSignals(), signalManager, getSignalManagers(), getSignalCount(), 255, &send, 1).numeric_value;
     ck_assert_int_eq(255, result);
-    signal->lastValue = 255;
+    signalManager->lastValue = 255;
 
-    result = handleFuelFlow(signal, getSignals(), getSignalCount(), 2, &send, 1).numeric_value;
+    result = handleFuelFlow(signal, getSignals(), signalManager, getSignalManagers(), getSignalCount(), 2, &send, 1).numeric_value;
     ck_assert_int_eq(257, result);
-    signal->lastValue = 2;
+    signalManager->lastValue = 2;
 }
 END_TEST
 
 START_TEST (test_door_handler)
 {
     bool send = true;
+    const CanSignal* testSignal = &getSignals()[0];
+    SignalManager* signalManager = lookupSignalManagerDetails(testSignal->genericName, getSignalManagers(), getSignalCount());
     openxc_DynamicField decodedDoorId = doorStatusDecoder(&getSignals()[2],
-            getSignals(), getSignalCount(), &getConfiguration()->pipeline, 1,
+            getSignals(), signalManager, getSignalManagers(), getSignalCount(), &getConfiguration()->pipeline, 1,
             &send);
     // This decoder handles sending its own messages
     fail_if(queueEmpty());

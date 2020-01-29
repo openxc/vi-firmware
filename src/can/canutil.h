@@ -36,8 +36,8 @@
  *
  * Returns a decoded value in an openxc_DynamicField struct.
  */
-typedef openxc_DynamicField (*SignalDecoder)(struct CanSignal* signal,
-        CanSignal* signals, int signalCount,
+typedef openxc_DynamicField (*SignalDecoder)(const struct CanSignal* signal, const CanSignal* signals, 
+        struct SignalManager* signalManager, SignalManager* signalManagers, int signalCount,
         openxc::pipeline::Pipeline* pipeline, float value, bool* send);
 
 /* Public: The type signature for a CAN signal encoder.
@@ -50,7 +50,7 @@ typedef openxc_DynamicField (*SignalDecoder)(struct CanSignal* signal,
  * send - An output parameter. If the encoding failed or the CAN signal should
  * not be encoded for some other reason, this will be flipped to false.
  */
-typedef uint64_t (*SignalEncoder)(struct CanSignal* signal,
+typedef uint64_t (*SignalEncoder)(const struct CanSignal* signal,
         openxc_DynamicField* value, bool* send);
 
 /* Public: The ID format for a CAN message.
@@ -111,7 +111,7 @@ typedef struct CanSignalState CanSignalState;
  *      this value is undefined.
  */
 struct CanSignal {
-    struct CanMessageDefinition* message;
+    const struct CanMessageDefinition* message;
     const char* genericName;
     uint8_t bitPosition;
     uint8_t bitSize;
@@ -119,7 +119,7 @@ struct CanSignal {
     float offset;
     float minValue;
     float maxValue;
-    openxc::util::time::FrequencyClock frequencyClock;
+    float frequency;
     bool sendSame;
     bool forceSendChanged;
     const CanSignalState* states;
@@ -127,10 +127,16 @@ struct CanSignal {
     bool writable;
     SignalDecoder decoder;
     SignalEncoder encoder;
+};
+typedef struct CanSignal CanSignal;
+
+struct SignalManager {
+    const CanSignal* signal;
+    openxc::util::time::FrequencyClock frequencyClock;
     bool received;
     float lastValue;
 };
-typedef struct CanSignal CanSignal;
+typedef struct SignalManager SignalManager;
 
 /* Public: The definition of a CAN message. This includes a lot of metadata, so
  * to save memory this struct should not be used for storing incoming and
@@ -267,7 +273,7 @@ struct CanBus {
     CanMessageDefinitionList dynamicMessages;
     CanMessageDefinitionList freeMessageDefinitions;
     CanMessageDefinitionListEntry definitionEntries[MAX_DYNAMIC_MESSAGE_COUNT];
-    bool (*writeHandler)(const CanBus*, const CanMessage*);
+    bool (*writeHandler)(CanBus*, CanMessage*);
     unsigned long lastMessageReceived;
     unsigned int messagesReceived;
     unsigned int messagesDropped;
@@ -324,7 +330,7 @@ extern const int CAN_ACTIVE_TIMEOUT_S;
  * signalCount - The length of the signals array.
  */
 typedef void (*CommandHandler)(const char* name, openxc_DynamicField* value,
-        openxc_DynamicField* event, CanSignal* signals, int signalCount);
+        openxc_DynamicField* event, const CanSignal* signals, int signalCount);
 
 /* Public: The structure to represent a supported custom OpenXC command.
  *
@@ -399,7 +405,7 @@ bool busActive(CanBus* bus);
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount);
+const CanSignal* lookupSignal(const char* name, const CanSignal* signals, int signalCount);
 
 /* Public: Look up the CanSignal representation of a signal based on its generic
  * name.
@@ -411,8 +417,10 @@ CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount);
  *
  * Returns a pointer to the CanSignal if found, otherwise NULL.
  */
-CanSignal* lookupSignal(const char* name, CanSignal* signals, int signalCount,
+const CanSignal* lookupSignal(const char* name, const CanSignal* signals, int signalCount,
         bool writable);
+
+SignalManager* lookupSignalManagerDetails(const char* signalName, SignalManager* signalManagers, int signalCount);
 
 /* Public: Look up the CanCommand representation of a command based on its
  * generic name.
@@ -462,7 +470,7 @@ const CanSignalState* lookupSignalState(int value, const CanSignal* signal);
  */
 CanMessageDefinition* lookupMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageFormat format,
-        CanMessageDefinition* predefinedMessages,
+        const CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
 /* Public: Search all active CAN buses for one using the given controller
@@ -496,7 +504,7 @@ CanBus* lookupBus(uint8_t address, CanBus* buses, const int busCount);
  */
 bool registerMessageDefinition(CanBus* bus, uint32_t id,
         CanMessageFormat format,
-        CanMessageDefinition* predefinedMessages,
+        const CanMessageDefinition* predefinedMessages,
         int predefinedMessageCount);
 
 /* Public: The opposite of registerMessageDefinition(...) - removes a definition
@@ -607,7 +615,7 @@ bool setAcceptanceFilterStatus(CanBus* bus, bool enabled,
  *
  * Returns true if any signals on the bus are writable.
  */
-bool signalsWritable(CanBus* bus, CanSignal* signals, int signalCount);
+bool signalsWritable(CanBus* bus, const CanSignal* signals, int signalCount);
 
 /* Public: Log transfer statistics about all active CAN buses to the debug log.
  *

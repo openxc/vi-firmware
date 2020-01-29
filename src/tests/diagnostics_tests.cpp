@@ -179,19 +179,12 @@ END_TEST
 
 START_TEST(test_unable_to_cancel_nonrecurring)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
@@ -204,21 +197,13 @@ END_TEST
 
 START_TEST(test_cancel_recurring_from_command)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
-    command.diagnostic_request.request.has_frequency = true;
     command.diagnostic_request.request.frequency = 2;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
@@ -297,7 +282,7 @@ START_TEST (test_add_basic_request)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
 }
 END_TEST
 
@@ -389,7 +374,7 @@ START_TEST (test_add_request_other_bus)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
@@ -406,13 +391,13 @@ START_TEST (test_add_request_with_name)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
-static float decodeFloatTimes2(const DiagnosticResponse* response,
-        float parsed_payload) {
-    return parsed_payload * 2;
+static void decodeFloatTimes2(const DiagnosticResponse* response,
+        float parsed_payload, char* str_buf, int buf_size) {
+    snprintf(str_buf, buf_size, "%f", parsed_payload * 2);
 }
 
 START_TEST (test_add_request_with_decoder_no_name_allowed)
@@ -481,7 +466,7 @@ START_TEST (test_add_request_with_name_and_decoder)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":138}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":138}\0");
 }
 END_TEST
 
@@ -647,23 +632,14 @@ END_TEST
 
 START_TEST(test_command_single_response_recurring)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
-    command.diagnostic_request.request.has_frequency = true;
     command.diagnostic_request.request.frequency = 2;
-
 
     ck_assert(diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -686,19 +662,11 @@ END_TEST
 
 START_TEST(test_command_missing_mode)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = false;
-    command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(!diagnostics::handleDiagnosticCommand(
@@ -708,18 +676,11 @@ END_TEST
 
 START_TEST(test_command_missing_id)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = false;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(!diagnostics::handleDiagnosticCommand(
@@ -729,10 +690,8 @@ END_TEST
 
 START_TEST(test_command_missing_request)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = false;
 
     ck_assert(!diagnostics::handleDiagnosticCommand(
              &getConfiguration()->diagnosticsManager, &command));
@@ -741,19 +700,12 @@ END_TEST
 
 START_TEST(test_command_single_response_default)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
@@ -772,19 +724,12 @@ END_TEST
 
 START_TEST(test_command_multiple_responses_default_broadcast)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = OBD2_FUNCTIONAL_BROADCAST_ID;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
 
     ck_assert(diagnostics::handleDiagnosticCommand(
@@ -803,21 +748,13 @@ END_TEST
 
 START_TEST(test_command_multiple_responses)
 {
-    openxc_ControlCommand command = {0};
-    command.has_type = true;
+    openxc_ControlCommand command = openxc_ControlCommand();		// Zero Fill
     command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
-    command.has_diagnostic_request = true;
-    command.diagnostic_request.has_action = true;
     command.diagnostic_request.action = openxc_DiagnosticControlCommand_Action_ADD;
-    command.diagnostic_request.request.has_bus = true;
     command.diagnostic_request.request.bus = 1;
-    command.diagnostic_request.request.has_message_id = true;
     command.diagnostic_request.request.message_id = request.arbitration_id;
-    command.diagnostic_request.request.has_mode = true;
     command.diagnostic_request.request.mode = request.mode;
-    command.diagnostic_request.request.has_pid = true;
     command.diagnostic_request.request.pid = request.pid;
-    command.diagnostic_request.request.has_multiple_responses = true;
     command.diagnostic_request.request.multiple_responses = true;
 
     ck_assert(diagnostics::handleDiagnosticCommand(

@@ -331,6 +331,9 @@ void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
  */
 void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
+openxc_VehicleMessage createEmulatorDiagnosticResponse( openxc_DiagnosticRequest* commandRequest,
+        CanBus* bus, bool success);
+
 /* Public: Handle an incoming command that claims to be a diagnostic request.
  *
  * This handles requests in the OpenXC message format

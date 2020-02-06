@@ -937,6 +937,46 @@ START_TEST(test_can_filters_disabled)
 }
 END_TEST
 
+START_TEST(test_emulator_diagnostic_response_returns_true)
+{
+    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
+    commandRequest.message_id = 0x7DF;
+    commandRequest.mode = 0x1;
+    commandRequest.pid = 0x5;
+    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], true);
+
+    ck_assert(message.diagnostic_response.success);
+    ck_assert_int_ge(message.diagnostic_response.value.numeric_value, 0);
+    ck_assert_int_le(message.diagnostic_response.value.numeric_value, 100);
+}
+END_TEST
+
+START_TEST(test_emulator_diagnostic_response_returns_false)
+{
+    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
+    commandRequest.message_id = 0x7DF;
+    commandRequest.mode = 0x1;
+    commandRequest.pid = 0x5;
+    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], false);
+
+    ck_assert(!message.diagnostic_response.success);
+    ck_assert_int_ge(message.diagnostic_response.negative_response_code, 1);
+    ck_assert_int_le(message.diagnostic_response.negative_response_code, 15);
+}
+END_TEST
+
+START_TEST(test_emulator_diagnostic_response_outside_range)
+{
+    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
+    commandRequest.message_id = 0x7F0;
+    commandRequest.mode = 0x1;
+    commandRequest.pid = 0x5;
+    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], true);
+
+    ck_assert(message.type != openxc_VehicleMessage_Type_DIAGNOSTIC);
+}
+END_TEST
+
 Suite* suite(void) {
     Suite* s = suite_create("diagnostics");
     TCase *tc_core = tcase_create("core");
@@ -993,6 +1033,10 @@ Suite* suite(void) {
     tcase_add_test(tc_core, test_recurring_obd2_build);
 
     tcase_add_test(tc_core, test_ignition_check_power_management_uses_watchdog);
+
+    tcase_add_test(tc_core, test_emulator_diagnostic_response_returns_true);
+    tcase_add_test(tc_core, test_emulator_diagnostic_response_returns_false);
+    tcase_add_test(tc_core, test_emulator_diagnostic_response_outside_range);
 
     suite_add_tcase(s, tc_core);
 

@@ -649,6 +649,55 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
     return status;
 }
 
+openxc_VehicleMessage openxc::diagnostics::createEmulatorDiagnosticResponse(
+        openxc_DiagnosticRequest* commandRequest, CanBus* bus, bool success)
+{
+    openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
+
+    //Checking to see if the message ID is in the "standard" OBD range (7DF or 7E0->7E7)
+    //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
+    if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
+    {
+        message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+        message.diagnostic_response = {0};
+        message.diagnostic_response.bus = bus->address;
+        //message.diagnostic_response.has_message_id = true;
+        //7DF should respond with a random message id between 7e8 and 7ef
+        //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
+        if(commandRequest->message_id == 0x7DF)
+        {
+            message.diagnostic_response.message_id = rand()%(0x7EF-0x7E8 + 1) + 0x7E8;
+        }
+        else if(commandRequest->message_id >= 0x7E0 && commandRequest->message_id <= 0x7E7)
+        {
+            message.diagnostic_response.message_id = commandRequest->message_id + 8;
+        }
+        message.diagnostic_response.mode = commandRequest->mode;
+        message.diagnostic_response.pid = commandRequest->pid;
+
+        message.diagnostic_response.success = success;
+        if (message.diagnostic_response.success)
+        {
+            openxc_DynamicField value = openxc_DynamicField();	// Zero fill
+            value.type = openxc_DynamicField_Type_NUM;
+            value.numeric_value = rand() % 100;
+            message.diagnostic_response.value = value;
+        }
+        else
+        {
+            message.diagnostic_response.negative_response_code = rand() % 15 + 1;
+        }
+
+        debug("Response message id: %d", message.diagnostic_response.message_id);
+    }
+    else //If it's outside the range, the command_request will return false
+    {
+        debug("Sent message ID is outside the valid range for emulator (7DF to 7E7)");
+    }
+
+    return message;
+}
+
 bool openxc::diagnostics::handleDiagnosticCommand(
         DiagnosticsManager* manager, openxc_ControlCommand* command) {
     bool status = true;
@@ -667,50 +716,18 @@ bool openxc::diagnostics::handleDiagnosticCommand(
             }
 
             if(getConfiguration()->emulatedData){
-                    //Checking to see if the message ID is in the "standard" OBD range (7DF or 7E0->7E7)
-                    //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
-                    if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
-                    {
-                        openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
-                        message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-                        message.diagnostic_response = {0};
-                        message.diagnostic_response.bus = bus->address;
-                        //message.diagnostic_response.has_message_id = true;
-                        //7DF should respond with a random message id between 7e8 and 7ef
-                        //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
-                        if(commandRequest->message_id == 0x7DF)
-                        {
-                            message.diagnostic_response.message_id = rand()%(0x7EF-0x7E8 + 1) + 0x7E8;
-                        }
-                        else if(commandRequest->message_id >= 0x7E0 && commandRequest->message_id <= 0x7E7)
-                        {
-                            message.diagnostic_response.message_id = commandRequest->message_id + 8;
-                        }
-                        message.diagnostic_response.mode = commandRequest->mode;
-                        message.diagnostic_response.pid = commandRequest->pid;
-
-                        message.diagnostic_response.success = rand() & 1;
-                        if (message.diagnostic_response.success)
-                        {
-                            openxc_DynamicField value = openxc_DynamicField();	// Zero fill
-                            value.type = openxc_DynamicField_Type_NUM;
-                            value.numeric_value = rand() % 100;
-                            message.diagnostic_response.value = value;
-                        }
-                        else
-                        {
-                            message.diagnostic_response.negative_response_code = rand() % 15 + 1;
-                        }
-
-                        debug("Response message id: %d", message.diagnostic_response.message_id);
-                        pipeline::publish(&message, &getConfiguration()->pipeline);
-                    }
-                    else //If it's outside the range, the command_request will return false
-                    {
-                        debug("Sent message ID is outside the valid range for emulator (7DF to 7E7)");
-                        status=false;
-                    }
+                bool success = rand() & 1;
+                openxc_VehicleMessage message = createEmulatorDiagnosticResponse(commandRequest, bus, success);
+                
+                if (message.type == openxc_VehicleMessage_Type_DIAGNOSTIC)
+                {
+                    pipeline::publish(&message, &getConfiguration()->pipeline);
                 }
+                else
+                {
+                    status = false;
+                }
+            }
             else
             {
                 if(bus == NULL) {

@@ -39,7 +39,6 @@ env.boards = {
 }
 
 env.msd_boards = {
-    "c5bt": {"name": "CROSSCHASM_C5_BT", "extension": "hex"},
     "c5cell": {"name": "CROSSCHASM_C5_CELLULAR", "extension": "hex"},
 }
 
@@ -62,7 +61,7 @@ def prepare_releases_path():
     local("cp %(root_dir)s/release-README %(temporary_path)s/README.txt" % env)
 
 
-def compare_versions(x, y):
+def compare_versions(x):
     """
     Expects 2 strings in the format of 'X.Y.Z' where X, Y and Z are
     integers. It will compare the items which will organize things
@@ -83,19 +82,16 @@ def compare_versions(x, y):
             return tuple((int(version) for version in version_list))
         except ValueError: # not an integer, so it goes to the bottom
             return (0, 0, 0)
+			
+    return version_to_tuple(x)
 
-    x_major, x_minor, x_bugfix = version_to_tuple(x)
-    y_major, y_minor, y_bugfix = version_to_tuple(y)
-    return (cmp(x_major, y_major) or cmp(x_minor, y_minor)
-            or cmp(x_bugfix, y_bugfix))
 
 
 def make_tag():
     if confirm(yellow("Tag this release?"), default=True):
         print(green("The last 5 tags were: "))
         tags = local('git tag | tail -n 20', capture=True)
-        pp = pprint.PrettyPrinter()
-        pp(sorted(tags.split('\n'), compare_versions, reverse=True))
+        pprint.pprint(sorted(tags.split('\n'), key=compare_versions, reverse=True))
         prompt("New release tag in the format vX.Y[.Z]?", 'tag',
                 validate=VERSION_PATTERN)
         local('git tag -as %(tag)s' % env)
@@ -176,6 +172,7 @@ def compile_firmware(build_name, target_path):
                         env.firmware_release, board['extension']))
 
         for board_name, board in env.msd_boards.items():
+            
             msd_enable()
             env.board = board_name
             build(capture=True, do_clean=True)

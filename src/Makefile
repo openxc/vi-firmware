@@ -292,4 +292,4 @@ custom_all: display_options all
 	$(call show_options)
 
 clean::
-	@echo "A"
+	rm -rf $(TEST_OBJDIR)

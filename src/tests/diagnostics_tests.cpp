@@ -937,43 +937,94 @@ START_TEST(test_can_filters_disabled)
 }
 END_TEST
 
-START_TEST(test_emulator_diagnostic_response_returns_true)
+START_TEST(test_emulator_message_ids_supported_range)
 {
-    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
-    commandRequest.message_id = 0x7DF;
-    commandRequest.mode = 0x1;
-    commandRequest.pid = 0x5;
-    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], true);
-
-    ck_assert(message.diagnostic_response.success);
-    ck_assert_int_ge(message.diagnostic_response.value.numeric_value, 0);
-    ck_assert_int_le(message.diagnostic_response.value.numeric_value, 100);
+    ck_assert(diagnostics::isSupportedMessageID(0x701) == true);
+    ck_assert(diagnostics::isSupportedMessageID(0x7DF) == true);
+    ck_assert(diagnostics::isSupportedMessageID(0x7F1) == true);
 }
 END_TEST
 
-START_TEST(test_emulator_diagnostic_response_returns_false)
+START_TEST(test_emulator_message_ids_not_supported_range)
 {
-    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
-    commandRequest.message_id = 0x7DF;
-    commandRequest.mode = 0x1;
-    commandRequest.pid = 0x5;
-    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], false);
-
-    ck_assert(!message.diagnostic_response.success);
-    ck_assert_int_ge(message.diagnostic_response.negative_response_code, 1);
-    ck_assert_int_le(message.diagnostic_response.negative_response_code, 15);
+    ck_assert(diagnostics::isSupportedMessageID(0x700) == false);
+    ck_assert(diagnostics::isSupportedMessageID(0x7F2) == false);
 }
 END_TEST
 
-START_TEST(test_emulator_diagnostic_response_outside_range)
+START_TEST(test_emulator_message_ids_not_supported_reserved)
 {
-    openxc_DiagnosticRequest commandRequest = openxc_DiagnosticRequest();
-    commandRequest.message_id = 0x7F0;
-    commandRequest.mode = 0x1;
-    commandRequest.pid = 0x5;
-    openxc_VehicleMessage message = diagnostics::createEmulatorDiagnosticResponse(&commandRequest, &getCanBuses()[0], true);
+    ck_assert(diagnostics::isSupportedMessageID(0x703) == false);
+    ck_assert(diagnostics::isSupportedMessageID(0x750) == false);
+    ck_assert(diagnostics::isSupportedMessageID(0x7B0) == false);
+    ck_assert(diagnostics::isSupportedMessageID(0x7D7) == false);
+    ck_assert(diagnostics::isSupportedMessageID(0x7F0) == false);
+}
+END_TEST
 
-    ck_assert(message.type != openxc_VehicleMessage_Type_DIAGNOSTIC);
+START_TEST(test_emulator_response_message_id)
+{
+    int responseMessageID = diagnostics::getEmulatedMessageID(0x7DF);
+    ck_assert_int_ge(responseMessageID, 0x7E8);
+    ck_assert_int_le(responseMessageID, 0x7EF);
+
+    responseMessageID = diagnostics::getEmulatedMessageID(0x7E0);
+    ck_assert_int_eq(responseMessageID, 0x7E0 + 0x8);
+}
+END_TEST
+
+START_TEST(test_emulator_modes_supported)
+{
+    ck_assert(diagnostics::isSupportedMode(0x1) == true);
+    ck_assert(diagnostics::isSupportedMode(0x9) == true);
+    ck_assert(diagnostics::isSupportedMode(0x22) == true);
+}
+END_TEST
+
+START_TEST(test_emulator_modes_not_supported)
+{
+    ck_assert(diagnostics::isSupportedMode(0x2) == false);
+    ck_assert(diagnostics::isSupportedMode(0x7) == false);
+    ck_assert(diagnostics::isSupportedMode(0x23) == false);
+}
+END_TEST
+
+START_TEST(test_emulator_pids_supported)
+{
+    ck_assert(diagnostics::isSupportedPID(0x1, 0xA0) == true);
+    ck_assert(diagnostics::isSupportedPID(0x9, 0xA) == true);
+    ck_assert(diagnostics::isSupportedPID(0x22, 0xDE05) == true);
+}
+END_TEST
+
+START_TEST(test_emulator_pids_not_supported)
+{
+    ck_assert(diagnostics::isSupportedPID(0x1, 0xA7) == false);
+    ck_assert(diagnostics::isSupportedPID(0x9, 0xC) == false);
+    ck_assert(diagnostics::isSupportedPID(0x22, 0xDEF0) == false);
+    ck_assert(diagnostics::isSupportedPID(0x2, 0x0) == false);
+}
+END_TEST
+
+START_TEST(test_emulator_returns_successful)
+{
+    openxc_VehicleMessage message = openxc_VehicleMessage();
+    diagnostics::generateEmulatorPayload(&message, true);
+
+    ck_assert(message.diagnostic_response.success == true);
+    ck_assert_int_ge(message.diagnostic_response.value.numeric_value, 0x0);
+    ck_assert_int_le(message.diagnostic_response.value.numeric_value, 0x1000);
+}
+END_TEST
+
+START_TEST(test_emulator_returns_not_successful)
+{
+    openxc_VehicleMessage message = openxc_VehicleMessage();
+    diagnostics::generateEmulatorPayload(&message, false);
+
+    ck_assert(message.diagnostic_response.success == false);
+    ck_assert_int_ge(message.diagnostic_response.negative_response_code, 0x10);
+    ck_assert_int_le(message.diagnostic_response.negative_response_code, 0xF1);
 }
 END_TEST
 
@@ -1034,9 +1085,16 @@ Suite* suite(void) {
 
     tcase_add_test(tc_core, test_ignition_check_power_management_uses_watchdog);
 
-    tcase_add_test(tc_core, test_emulator_diagnostic_response_returns_true);
-    tcase_add_test(tc_core, test_emulator_diagnostic_response_returns_false);
-    tcase_add_test(tc_core, test_emulator_diagnostic_response_outside_range);
+    tcase_add_test(tc_core, test_emulator_message_ids_supported_range);
+    tcase_add_test(tc_core, test_emulator_message_ids_not_supported_range);
+    tcase_add_test(tc_core, test_emulator_message_ids_not_supported_reserved);
+    tcase_add_test(tc_core, test_emulator_response_message_id);
+    tcase_add_test(tc_core, test_emulator_modes_supported);
+    tcase_add_test(tc_core, test_emulator_modes_not_supported);
+    tcase_add_test(tc_core, test_emulator_pids_supported);
+    tcase_add_test(tc_core, test_emulator_pids_not_supported);
+    tcase_add_test(tc_core, test_emulator_returns_successful);
+    tcase_add_test(tc_core, test_emulator_returns_not_successful);
 
     suite_add_tcase(s, tc_core);
 

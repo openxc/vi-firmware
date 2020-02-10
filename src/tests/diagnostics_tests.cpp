@@ -977,13 +977,15 @@ START_TEST(test_emulator_modes_supported)
 {
     ck_assert(diagnostics::isSupportedMode(0x1) == true);
     ck_assert(diagnostics::isSupportedMode(0x9) == true);
+    ck_assert(diagnostics::isSupportedMode(0x22) == true);
 }
 END_TEST
 
 START_TEST(test_emulator_modes_not_supported)
 {
     ck_assert(diagnostics::isSupportedMode(0x2) == false);
-    ck_assert(diagnostics::isSupportedMode(0x22) == false);
+    ck_assert(diagnostics::isSupportedMode(0x7) == false);
+    ck_assert(diagnostics::isSupportedMode(0x23) == false);
 }
 END_TEST
 
@@ -991,6 +993,7 @@ START_TEST(test_emulator_pids_supported)
 {
     ck_assert(diagnostics::isSupportedPID(0x1, 0xA0) == true);
     ck_assert(diagnostics::isSupportedPID(0x9, 0xA) == true);
+    ck_assert(diagnostics::isSupportedPID(0x22, 0xDE05) == true);
 }
 END_TEST
 
@@ -998,6 +1001,7 @@ START_TEST(test_emulator_pids_not_supported)
 {
     ck_assert(diagnostics::isSupportedPID(0x1, 0xA7) == false);
     ck_assert(diagnostics::isSupportedPID(0x9, 0xC) == false);
+    ck_assert(diagnostics::isSupportedPID(0x22, 0xDEF0) == false);
     ck_assert(diagnostics::isSupportedPID(0x2, 0x0) == false);
 }
 END_TEST

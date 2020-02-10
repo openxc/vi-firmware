@@ -690,15 +690,15 @@ int openxc::diagnostics::getEmulatedMessageID(int requestID)
 
 bool openxc::diagnostics::isSupportedMode(int requestMode)
 {
-    // Supported Modes (1 & 9)
-    if (requestMode == 0x1 || requestMode == 0x9)
+    // Supported Modes
+    if (requestMode == 0x1 || requestMode == 0x9 || requestMode == 0x22)
     {
         return true;
     }
     else
     {
-        // ID Outside Valid Range (701 - 7F1)
-        debug("Request mode is not supported by the emulator! Supported: 0x1, 0x9");
+        // Unsupported Modes
+        debug("Request mode is not supported by the emulator! Supported: 0x1, 0x9, 0x22");
         return false;
     }
 }
@@ -725,6 +725,16 @@ bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
             else
             {
                 debug("Mode 0x2 does not support that PID! Range: 0x0 - 0xB");
+            }
+            break;
+        case 0x22:
+            if (requestPID >= 0xDE00 && requestPID <= 0xDEEF)
+            {
+                return true;
+            }
+            else
+            {
+                debug("Mode 0x22 does not support that PID! Range: 0xDE00 - 0xDEEF");
             }
             break;
         default:

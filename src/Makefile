@@ -1,6 +1,32 @@
 SYMBOLS =
 SHELL := /bin/bash
 
+# Verify operating system is Ubuntu 18.04
+TARGET_OS=Ubuntu 18.04
+OS_NAME=$(shell lsb_release -si)
+OS_VER=$(shell lsb_release -sr)
+ifneq ($(OS_NAME) $(OS_VER),$(TARGET_OS))
+$(error You do not have the necessary OS installed: $(TARGET_OS))
+endif
+
+# Verify openxc-python is 2.0+
+TARGET_OXC_PY_VER=2.0
+OXC_PY_VER=$(shell pip show openxc | grep Version)
+OXC_PY_VER_NUM=$(subst Version: ,,$(OXC_PY_VER))
+ifneq ($(shell expr $(OXC_PY_VER_NUM) \>= $(TARGET_OXC_PY_VER)),1)
+$(error You do not have the necessary openxc-python installed: openxc-python $(TARGET_OXC_PY_VER)+)
+endif
+
+# Verify signals.cpp syntax
+TARGET_SIGNALS_CPP_STRING=const CanSignal*
+ifneq ($(wildcard signals.cpp),)
+SINGALS_CPP_CONTENTS=$(shell cat signals.cpp)
+SIGNALS_CPP_MATCH=$(findstring $(TARGET_SIGNALS_CPP_STRING),$(SINGALS_CPP_CONTENTS))
+ifneq ($(SIGNALS_CPP_MATCH),$(TARGET_SIGNALS_CPP_STRING))
+$(error You do not have the necessary openxc-python installed: openxc-python $(TARGET_OXC_PY_VER)+)
+endif
+endif
+
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"

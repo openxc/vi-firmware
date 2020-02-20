@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from fabric.api import *
 from fabric.colors import green, yellow, red
@@ -188,6 +189,10 @@ def compress_release(source, archive_path):
     with lcd(os.path.dirname(source)):
         local("zip -r %s %s" % (archive_path, os.path.basename(source)))
 
+def quiet_build():
+    output = subprocess.call("make", cwd="src", env={"PLATFORM": "FORDBOARD"}, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    return output
+
 @task
 def emulator():
     env.mode = 'emulator'
@@ -227,6 +232,25 @@ def test(long=False):
                 "a released version in master branch"))
 
     with(lcd("src")):
+        if os.path.exists("src/signals.cpp"):
+            local("mv signals.cpp signals.cpp.oxc")
+
+        local("touch signals.cpp")
+        failed_build = quiet_build()
+        local("cp samples/valid_signals.cpp signals.cpp")
+        passed_build = quiet_build()
+
+        tests_passed = 0
+        if failed_build == 2:
+            tests_passed = tests_passed + 1
+        if passed_build == 0:
+            tests_passed = tests_passed + 1
+
+        print(f"Make tests passed: {tests_passed}/2")
+
+        if os.path.exists("src/signals.cpp.oxc"):
+            local("mv signals.cpp.oxc signals.cpp")
+
         if long in (True, 'True', 'true'):
             local("PLATFORM=TESTING make -j1 test_long")
         else:
@@ -337,8 +361,15 @@ def build(capture=False, do_clean=False):
     options = build_options()
     with lcd("%s/src" % env.root_dir):
         if do_clean:
-            clean();
+            clean()
+        if env.mode == 'emulator' and os.path.exists("src/signals.cpp"):
+            with quiet():
+                local(f"mv signals.cpp signals.cpp.oxc")
         output = local("%s make -j1 " % options, capture=capture)
+        if env.mode == 'emulator' and os.path.exists("src/signals.cpp.oxc"):
+            with quiet():
+                local(f"mv signals.cpp.oxc signals.cpp")
+            print("Since this is an emulator build, your \'signals.cpp\' was backed up and restored.")
         if output.failed:
             puts(output)
             abort(red("Building %s failed" % board_options['name']))

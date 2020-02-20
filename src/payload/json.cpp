@@ -594,6 +594,10 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             finalLength = MIN(length, strlen(serialized) + 1);
             memcpy(payload, serialized, finalLength);
 
+            // if (message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
+            //     debug(serialized);
+            // }
+
             free(serialized);
         } else {
             debug("Converting JSON to string failed -- possibly OOM");
@@ -603,5 +607,6 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     } else {
         debug("JSON object is NULL -- probably OOM");
     }
+
     return finalLength;
 }

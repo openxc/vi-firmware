@@ -649,85 +649,197 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
     return status;
 }
 
-bool openxc::diagnostics::handleDiagnosticCommand(
-        DiagnosticsManager* manager, openxc_ControlCommand* command) {
-    bool status = true;
-        openxc_DiagnosticRequest* commandRequest =
-                &command->diagnostic_request.request;
-        if((commandRequest->message_id != 0) && (commandRequest->mode != 0)) {
-            CanBus* bus = NULL;
-            if(commandRequest->bus >= 0) {
-                bus = lookupBus(commandRequest->bus, getCanBuses(),
-                        getCanBusCount());
-            } 
-	    if((bus == NULL) && (commandRequest->bus == 0) && (getCanBusCount() > 0)) {	// Could not find a bus of 0 so use the 1st one if one not asked for
-                bus = &getCanBuses()[0];
-                debug("No bus specified for diagnostic request, "
-                        "using first active: %d", bus->address);
+bool openxc::diagnostics::isSupportedMessageID(int requestID)
+{
+    // ID Within Valid Range (701 - 7F1)
+    if (requestID >= 0x701 && requestID <= 0x7F1)
+    {
+        // Reserved IDs
+        if (requestID != 0x703 && requestID != 0x750 && requestID != 0x7B0 && requestID != 0x7D7 && requestID != 0x7F0)
+        {
+            return true;
+        }
+        else
+        {
+            // Request ID = Reserved
+            debug("Request ID is reserved and not supported by the emulator! Reserved: 0x703, 0x750, 0x7B0, 0x7D7, 0x7F0");
+            return false;
+        }
+    }
+    else
+    {
+        // ID Outside Valid Range (701 - 7F1)
+        debug("Request ID is outside the supported range by the emulator! Range: 0x701 - 0x7F1");
+        return false;
+    }
+}
+
+int openxc::diagnostics::getEmulatedMessageID(int requestID)
+{
+    if(requestID == 0x7DF)
+    {
+        // 7E8 <= Response ID <= 7EF
+        return rand() % (0x7EF - 0x7E8 + 0x1) + 0x7E8;
+    }
+    else
+    {
+        // Response ID = Request ID + 8
+        return requestID + 0x8;
+    }
+}
+
+bool openxc::diagnostics::isSupportedMode(int requestMode)
+{
+    // Supported Modes
+    if (requestMode == 0x1 || requestMode == 0x9 || requestMode == 0x22)
+    {
+        return true;
+    }
+    else
+    {
+        // Unsupported Modes
+        debug("Request mode is not supported by the emulator! Supported: 0x1, 0x9, 0x22");
+        return false;
+    }
+}
+
+bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
+{
+    switch (requestMode)
+    {
+        case 0x1:
+            if (requestPID >= 0x0 && requestPID <= 0xA6)
+            {
+                return true;
             }
-
-            if(getConfiguration()->emulatedData){
-                    //Checking to see if the message ID is in the "standard" OBD range (7DF or 7E0->7E7)
-                    //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
-                    if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
-                    {
-                        openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
-                        message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-                        message.diagnostic_response = {0};
-                        message.diagnostic_response.bus = bus->address;
-                        //message.diagnostic_response.has_message_id = true;
-                        //7DF should respond with a random message id between 7e8 and 7ef
-                        //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
-                        if(commandRequest->message_id == 0x7DF)
-                        {
-                            message.diagnostic_response.message_id = rand()%(0x7EF-0x7E8 + 1) + 0x7E8;
-                        }
-                        else if(commandRequest->message_id >= 0x7E0 && commandRequest->message_id <= 0x7E7)
-                        {
-                            message.diagnostic_response.message_id = commandRequest->message_id + 8;
-                        }
-                        message.diagnostic_response.mode = commandRequest->mode;
-                        message.diagnostic_response.pid = commandRequest->pid;
-
-                        message.diagnostic_response.success = rand() & 1;
-                        if (message.diagnostic_response.success)
-                        {
-                            openxc_DynamicField value = openxc_DynamicField();	// Zero fill
-                            value.type = openxc_DynamicField_Type_NUM;
-                            value.numeric_value = rand() % 100;
-                            message.diagnostic_response.value = value;
-                        }
-                        else
-                        {
-                            message.diagnostic_response.negative_response_code = rand() % 15 + 1;
-                        }
-
-                        debug("Response message id: %d", message.diagnostic_response.message_id);
-                        pipeline::publish(&message, &getConfiguration()->pipeline);
-                    }
-                    else //If it's outside the range, the command_request will return false
-                    {
-                        debug("Sent message ID is outside the valid range for emulator (7DF to 7E7)");
-                        status=false;
-                    }
-                }
             else
             {
-                if(bus == NULL) {
-                    debug("No active bus to send diagnostic request");
-                    status = false;
-                } else if(bus->rawWritable) {
-                        status = handleAuthorizedCommand(manager, bus, command);
-                } else {
-                    debug("Raw CAN writes not allowed for bus %d", bus->address);
+                debug("Mode 0x1 does not support that PID! Range: 0x0 - 0xA6");
+            }
+            break;
+        case 0x9:
+            if (requestPID >= 0x0 && requestPID <= 0xB)
+            {
+                return true;
+            }
+            else
+            {
+                debug("Mode 0x2 does not support that PID! Range: 0x0 - 0xB");
+            }
+            break;
+        case 0x22:
+            if (requestPID >= 0xDE00 && requestPID <= 0xDEEF)
+            {
+                return true;
+            }
+            else
+            {
+                debug("Mode 0x22 does not support that PID! Range: 0xDE00 - 0xDEEF");
+            }
+            break;
+        default:
+            break;
+    }
+    return false;
+}
+
+void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess)
+{
+    vehicleMessage->diagnostic_response.success = isSuccess;
+    if (isSuccess)
+    {
+        openxc_DynamicField value = openxc_DynamicField();
+        value.type = openxc_DynamicField_Type_NUM;
+        value.numeric_value = rand() % 0x1000;
+        vehicleMessage->diagnostic_response.value = value;
+    }
+    else
+    {
+        vehicleMessage->diagnostic_response.negative_response_code = rand() % (0xF1 - 0x10 + 0x1) + 0x10;
+    }
+}
+
+bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, openxc_ControlCommand* command)
+{
+    bool status = true;
+    openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request.request;
+
+    if((commandRequest->message_id != 0) && (commandRequest->mode != 0))
+    {
+        CanBus* bus = NULL;
+        if(commandRequest->bus >= 0)
+        {
+            bus = lookupBus(commandRequest->bus, getCanBuses(), getCanBusCount());
+        } 
+	    if((bus == NULL) && (commandRequest->bus == 0) && (getCanBusCount() > 0))
+        {
+            // Could not find a bus of 0 so use the 1st one if one not asked for
+            bus = &getCanBuses()[0];
+            debug("No bus specified for diagnostic request, using first active: %d", bus->address);
+        }
+
+        if(getConfiguration()->emulatedData)
+        {
+            openxc_VehicleMessage message = openxc_VehicleMessage();
+            message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+            message.diagnostic_response = { 0 };
+            message.diagnostic_response.bus = bus->address;
+
+            if (isSupportedMessageID(commandRequest->message_id))
+            {
+                message.diagnostic_response.message_id = getEmulatedMessageID(commandRequest->message_id);
+
+                if (isSupportedMode(commandRequest->mode))
+                {
+                    message.diagnostic_response.mode = commandRequest->mode;
+
+                    if (isSupportedPID(commandRequest->mode, commandRequest->pid))
+                    {
+                        message.diagnostic_response.pid = commandRequest->pid;
+
+                        generateEmulatorPayload(&message, rand() & 1);
+
+                        pipeline::publish(&message, &getConfiguration()->pipeline);
+                    }
+                    else
+                    {
+                        status = false;
+                    }
+                }
+                else
+                {
                     status = false;
                 }
             }
-
-        } else {
-            debug("Diagnostic requests need at least an arb. ID and mode");
-            status = false;
+            else
+            {
+                status = false;
+            }
         }
+        else
+        {
+            if (bus == NULL)
+            {
+                debug("No active bus to send diagnostic request");
+                status = false;
+            }
+            else if (bus->rawWritable)
+            {
+                status = handleAuthorizedCommand(manager, bus, command);
+            }
+            else
+            {
+                debug("Raw CAN writes not allowed for bus %d", bus->address);
+                status = false;
+            }
+        }
+
+    }
+    else
+    {
+        debug("Diagnostic requests need at least an arb. ID and mode");
+        status = false;
+    }
     return status;
 }
 

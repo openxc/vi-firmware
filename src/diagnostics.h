@@ -331,6 +331,16 @@ void receiveCanMessage(DiagnosticsManager* manager, CanBus* bus,
  */
 void sendRequests(DiagnosticsManager* manager, CanBus* bus);
 
+bool isSupportedMessageID(int requestID);
+
+int getEmulatedMessageID(int requestID);
+
+bool isSupportedMode(int requestMode);
+
+bool isSupportedPID(int requestMode, int requestPID);
+
+void generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess);
+
 /* Public: Handle an incoming command that claims to be a diagnostic request.
  *
  * This handles requests in the OpenXC message format

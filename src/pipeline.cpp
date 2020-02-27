@@ -65,7 +65,6 @@ void sendToEndpoint(openxc::interface::InterfaceType endpointType,
 
 void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
         MessageClass messageClass) {
-    // debug("sendtoUSB");
     if(pipeline->usb->configured) {
         QUEUE_TYPE(uint8_t)* sendQueue;
         if(messageClass == MessageClass::LOG) {
@@ -192,22 +191,6 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     if(matched) {
         sendMessage(pipeline, payload, length, messageClass);
 
-        // if (message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
-        //     debug("publish Diagnotic message");
-        // //}
-        //     int finished = 0; size_t offset = 0; size_t MAX = 12;
-        //     while(!finished) {
-        //         char buf[26]; size_t l = length-offset; if (l > MAX) l = MAX;
-        //         for(size_t i=0; i<l; i++) {
-        //             buf[i*2]= ((payload[i+offset]>>4) > 9) ? (payload[i+offset]>>4) + 'A' - 10 : (payload[i+offset]>>4) + '0';
-        //             buf[i*2+1]=((payload[i+offset]&0xf) > 9) ? (payload[i+offset]&0x0f) + 'A' - 10 : (payload[i+offset]&0xf) + '0';
-        //             buf[i*2+2]=0;        
-        //         }
-        //         debug(buf);
-        //         offset += MAX;
-        //         if (offset >= length) finished = 1;
-        //     }
-        // }
     } else {
         debug("Trying to serialize unrecognized type: %d", message->type);
     }

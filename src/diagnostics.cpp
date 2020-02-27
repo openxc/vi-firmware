@@ -262,27 +262,6 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
     }
 }
 
-// Diagnostically print out the hex values in the payload
-static void dumpPayload(unsigned char *payload, size_t length) {
-    int finished = 0;
-    size_t offset = 0;
-    const size_t MAX = 12;
-    while(!finished) {
-        char buf[26];
-        size_t l = length-offset;
-        if (l > MAX) 
-            l = MAX;
-        for(size_t i=0; i<l; i++) {
-            buf[i*2]= ((payload[i+offset]>>4) > 9) ? (payload[i+offset]>>4) + 'A' - 10 : (payload[i+offset]>>4) + '0';
-            buf[i*2+1]=((payload[i+offset]&0xf) > 9) ? (payload[i+offset]&0x0f) + 'A' - 10 : (payload[i+offset]&0xf) + '0';
-            buf[i*2+2]=0;        
-        }
-        debug(buf);
-        offset += MAX;
-        if (offset >= length) finished = 1;
-    }
-}
-
 static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, openxc_DynamicField value) {
@@ -397,11 +376,11 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
         prevFrame = frame;
 
         // see wrapDiagnosticResponseWithSabot
-        sendPartialMessage(88,                      // long timestamp,          TODO - Get proper timestamp
-                           frame,
+        sendPartialMessage(00,                                  //     long timestamp,
+                           frame,                               //     int frame
                            response->arbitration_id,            //     int message_id,
                            request->bus->address,               //     int bus,
-                           0,                                   //     int total_size,      TODO - Get proper size
+                           0,                                   //     int total_size,
                            response->mode,                      //     int mode,
                            response->pid,                       //     int pid,
                            0,                                   //     int value, - when the payload is a bitfield or numeric - parsed value
@@ -409,8 +388,6 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
                            (char *)response->payload,           //     char *payload
                            response->payload_length,
                            pipeline);
-
-        dumpPayload((unsigned char *)response->payload, response->payload_length);
 
         if (response->completed && (request->callback != NULL)) {
             request->callback(manager, request, response, diagnostic_payload_to_integer(response));
@@ -445,8 +422,6 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         field.numeric_value = atof(decoded_value_buf);
     }
 
-    debug("relayDiagnosticResponse - field structure populated");
-
     if(response->success && strnlen(request->name, sizeof(request->name)) > 0) {
         // If name, include 'value' instead of payload, and leave of response
         // details.
@@ -468,8 +443,6 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
     if(request->callback != NULL) {
         request->callback(manager, request, response, parsed_value);
     }
-
-    debug("relayDiagnosticResponse - Exited");
 }
 
 static void receiveCanMessage(DiagnosticsManager* manager,
@@ -483,9 +456,6 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-
-        // debug("Raw Can Message:");
-        // dumpPayload(message->data, 8);
 
         if (response.multi_frame) {
 #if (PERFORM_MULTIFRAME == 0)

@@ -593,11 +593,6 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             // character as a delimiter
             finalLength = MIN(length, strlen(serialized) + 1);
             memcpy(payload, serialized, finalLength);
-
-            // if (message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
-            //     debug(serialized);
-            // }
-
             free(serialized);
         } else {
             debug("Converting JSON to string failed -- possibly OOM");

@@ -23,7 +23,9 @@ using openxc::can::addAcceptanceFilter;
 using openxc::can::removeAcceptanceFilter;
 using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::publishStringMessage;
+using openxc::can::read::publishVehicleMessage;
 using openxc::pipeline::Pipeline;
+using openxc::pipeline::MessageClass;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::config::getConfiguration;
@@ -31,6 +33,13 @@ using openxc::config::getConfiguration;
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
 namespace obd2 = openxc::diagnostics::obd2;
+
+//  receiveCanMessage - called from vi_firmware every time a CanMessage
+//                  is QUEUE_POP from the busses' receiveQueue
+// PERFORM_MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
+// PERFORM_MULTIFRAME  1       Multi-frame stitched message feature
+//
+#define PERFORM_MULTIFRAME  1
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -286,8 +295,103 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
             message.diagnostic_response.payload.size = response->payload_length;
         }
     }
-
     return message;
+}
+
+const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
+
+static void sendPartialMessage(long timestamp,
+                                int frame,
+                                int message_id,
+                                int bus,
+                                int total_size,
+                                int mode,
+                                int pid,
+                                int value,
+                                int negative_response_code,
+                                const char *payload,
+                                int payload_size,
+                                Pipeline* pipeline) {
+
+    char messageBuffer[MAX_MULTI_FRAME_MESSAGE_SIZE];
+            
+    // Manually form the message that is going out.
+
+    int numWritten = snprintf(messageBuffer,
+            MAX_MULTI_FRAME_MESSAGE_SIZE,
+            "{\"timestamp\":%ld,\"frame\":%d,\"message_id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
+            timestamp,
+            frame,
+            message_id+8,
+            bus,
+            total_size,
+            mode,
+            pid,
+            value);
+    
+    if (negative_response_code != 0) {  // Is there a failure code?
+        numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"success\":false,\"negative_response_code\":%d",
+                            negative_response_code);
+    } else {    // Success
+        numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"success\":true");
+    }
+
+    numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"payload\":\"0x");
+
+    for(int index=0; (index<payload_size) && (numWritten < MAX_MULTI_FRAME_MESSAGE_SIZE); index++) {
+        messageBuffer[numWritten++]=((payload[index]>>4) > 9) ? (payload[index]>>4) + 'a' - 10 : (payload[index]>>4) + '0';
+        messageBuffer[numWritten++]=((payload[index]&0xf) > 9) ? (payload[index]&0x0f) + 'a' - 10 : (payload[index]&0xf) + '0';
+    }
+    numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            "\"}");
+
+    debug("Before sendMessage in sendPartialMessage");
+    debug(messageBuffer);
+
+    int messageLen = strlen(messageBuffer) +1;
+    pipeline::sendMessage(pipeline,
+        (uint8_t*)messageBuffer, messageLen, MessageClass::SIMPLE);
+}
+
+
+// relayPartialFrame - Send the partial frame to the mobile device/web
+
+static int prevFrame = -1;
+static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the callback
+        ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response, 
+        Pipeline* pipeline) {
+        
+        int frame = prevFrame + 1;
+        if (response->completed) {
+            frame = -1;     // Marks the last frame in the response
+        }
+        prevFrame = frame;
+
+        // see wrapDiagnosticResponseWithSabot
+        sendPartialMessage(00,                                  //     long timestamp,
+                           frame,                               //     int frame
+                           response->arbitration_id,            //     int message_id,
+                           request->bus->address,               //     int bus,
+                           0,                                   //     int total_size,
+                           response->mode,                      //     int mode,
+                           response->pid,                       //     int pid,
+                           0,                                   //     int value, - when the payload is a bitfield or numeric - parsed value
+                           response->negative_response_code,    //     int negative_response_code
+                           (char *)response->payload,           //     char *payload
+                           response->payload_length,
+                           pipeline);
+
+        if (response->completed && (request->callback != NULL)) {
+            request->callback(manager, request, response, diagnostic_payload_to_integer(response));
+        }
 }
 
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
@@ -345,22 +449,35 @@ static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
+
     if (bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
                 // TODO eek, is bus address and array index this tightly
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-        if (response.completed && entry->handle.completed) {
+
+        if (response.multi_frame) {
+#if (PERFORM_MULTIFRAME == 0)
+            if (0==1)       // Do not call next but still keep reference
+#else
+            relayPartialFrame(manager, entry, &response, pipeline);
+#endif
+            if (!response.completed) {
+                time::tick(&entry->timeoutClock);
+            } else {
+#if (PERFORM_MULTIFRAME == 0)
+                // This is the OLD Way of sending a Diagnostic Response
+                relayDiagnosticResponse(manager, entry, &response, pipeline);
+#endif
+            }
+        } else if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
-                relayDiagnosticResponse(manager, entry, &response,
-                        pipeline);
+                // Handle Single frame messages here!
+                relayDiagnosticResponse(manager, entry, &response, pipeline);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }
-        } else if (!response.completed && response.multi_frame) {
-            // Reset the timeout clock while completing the multi-frame receive
-            time::tick(&entry->timeoutClock);
         }
     }
 }

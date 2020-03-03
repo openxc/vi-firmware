@@ -39,7 +39,7 @@ namespace obd2 = openxc::diagnostics::obd2;
 // PERFORM_MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
 // PERFORM_MULTIFRAME  1       Multi-frame stitched message feature
 //
-#define PERFORM_MULTIFRAME  1
+#define PERFORM_MULTIFRAME  0
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -298,6 +298,7 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
+#if (PERFORM_MULTIFRAME != 0)
 const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
 
 static void sendPartialMessage(long timestamp,
@@ -393,6 +394,7 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
             request->callback(manager, request, response, diagnostic_payload_to_integer(response));
         }
 }
+#endif
 
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
@@ -458,9 +460,7 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 &entry->handle, message->id, message->data, message->length);
 
         if (response.multi_frame) {
-#if (PERFORM_MULTIFRAME == 0)
-            if (0==1)       // Do not call next but still keep reference
-#else
+#if (PERFORM_MULTIFRAME != 0)
             relayPartialFrame(manager, entry, &response, pipeline);
 #endif
             if (!response.completed) {

@@ -4,6 +4,8 @@
 #include "payload/messagepack.h"
 #include "util/log.h"
 
+#include <stdio.h>
+
 namespace payload = openxc::payload;
 
 using openxc::util::log::debug;
@@ -64,6 +66,7 @@ size_t openxc::payload::deserialize(uint8_t payload[], size_t length,
     } else if(format == PayloadFormat::PROTOBUF) {
         bytesRead = payload::protobuf::deserialize(payload, length, message);
         debug("deserialize protobuf");
+        dumpNum(bytesRead);
         dumpPayload(payload, bytesRead);
     } else if(format == PayloadFormat::MESSAGEPACK){
         bytesRead = payload::messagepack::deserialize(payload, length, message);

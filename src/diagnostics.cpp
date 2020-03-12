@@ -250,14 +250,19 @@ static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
+
     cleanupActiveRequests(manager, false);
 
     ActiveDiagnosticRequest* entry;
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
+        debug("sendRequests-LIST");
+
         sendRequest(manager, bus, entry);
     }
 
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
+        debug("sendRequests-TAILQ");
+
         sendRequest(manager, bus, entry);
     }
 }
@@ -401,6 +406,8 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         const DiagnosticResponse* response, Pipeline* pipeline) {
     float parsed_value = diagnostic_payload_to_integer(response);
 
+    debug("relayDiagnosticResponse");
+
     uint8_t buf_size = response->multi_frame ? response->payload_length + 1 : 20;
     char decoded_value_buf[buf_size];
 
@@ -447,10 +454,35 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
     }
 }
 
+// Diagnostically print out the hex values in the payload
+static void dumpPayload(unsigned char *payload, size_t length) {
+    int finished = 0;
+    size_t offset = 0;
+    const size_t MAX = 12;
+    while(!finished) {
+        char buf[26];
+        size_t l = length-offset;
+        if (l > MAX) 
+            l = MAX;
+        for(size_t i=0; i<l; i++) {
+            buf[i*2]= ((payload[i+offset]>>4) > 9) ? (payload[i+offset]>>4) + 'A' - 10 : (payload[i+offset]>>4) + '0';
+            buf[i*2+1]=((payload[i+offset]&0xf) > 9) ? (payload[i+offset]&0x0f) + 'A' - 10 : (payload[i+offset]&0xf) + '0';
+            buf[i*2+2]=0;        
+        }
+        debug(buf);
+        offset += MAX;
+        if (offset >= length) finished = 1;
+    }
+}
+
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
+
+    // gja left off here
+    debug("CanMessage:");
+    dumpPayload(message->data, 8);
 
     if (bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
@@ -681,6 +713,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses) {
+    debug("addRequest#1");
     return addRequest(manager, bus, request, name,
             waitForMultipleResponses, NULL, NULL);
 }
@@ -692,6 +725,7 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request) {
+    debug("addRequest#2");
     return addRequest(manager, bus, request, NULL, false, NULL, NULL);
 }
 

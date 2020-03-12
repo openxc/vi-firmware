@@ -38,6 +38,7 @@ static void dumpPayload(unsigned char *payload, size_t length) {
     const size_t MAX = 12;
     while(!finished) {
         char buf[26];
+        buf[0] = 0;
         size_t l = length-offset;
         if (l > MAX) 
             l = MAX;

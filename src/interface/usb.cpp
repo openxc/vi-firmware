@@ -21,15 +21,20 @@ void openxc::interface::usb::deinitializeCommon(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device,
         openxc::util::bytebuffer::IncomingMessageCallback callback) {
+    //debug("usb::read-2 arg"); // called every loop
     for(int i = 0; i < ENDPOINT_COUNT; i++) {
         UsbEndpoint* endpoint = &device->endpoints[i];
         if(endpoint->direction == UsbEndpointDirection::USB_ENDPOINT_DIRECTION_OUT) {
+            //debug("usb::read - inner"); // called very frequesntly
             read(device, endpoint, callback);
         }
     }
 }
 
+// This does handle in the incoming diagnotic request - gja
+// What calls this??
 size_t openxc::interface::usb::handleIncomingMessage(uint8_t payload[], size_t length) {
+    debug("usb::handleIncomingMessage");
     return commands::handleIncomingMessage(payload, length,
             &config::getConfiguration()->usb.descriptor);
 }

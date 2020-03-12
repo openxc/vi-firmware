@@ -28,6 +28,7 @@ using openxc::interface::InterfaceType;
 
 static bool handleComplexCommand(openxc_VehicleMessage* message) {
     bool status = true;
+    debug("handleComplexCommand");
     if(message != NULL && message->type == openxc_VehicleMessage_Type_CONTROL_COMMAND) {
         openxc_ControlCommand* command = &message->control_command;
         switch(command->type) {
@@ -75,6 +76,8 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
         openxc::interface::InterfaceDescriptor* sourceInterfaceDescriptor) {
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
     size_t bytesRead = 0;
+
+    //debug("commands::handleIncomingMessage");
 
 #if (DO_NOT_PROCESS_BINARY_UART_PROTOBUFF == 1)
     // TODO Not attempting to deserialize binary messages via UART,

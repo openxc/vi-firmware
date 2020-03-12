@@ -230,6 +230,7 @@ void openxc::server_task::flushDataBuffer(TelitDevice* device) {
 }
 
 void openxc::server_task::commandCheck(TelitDevice* device) {
+    debug("commandCheck");
 
     static unsigned int state = 0;
     static bool first = true;
@@ -279,6 +280,7 @@ void openxc::server_task::commandCheck(TelitDevice* device) {
             break;
             
         case 2:
+            debug("server_task-before serverGETcommands");
             // call the GETconfigure API
             switch(serverGETcommands(device->deviceId, device->config.serverConnectSettings.host, &pCommand, &cmd_len))
             {

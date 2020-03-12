@@ -33,3 +33,9 @@ void openxc::util::log::debug(const char* format, ...) {
     va_end(args);
 #endif // __DEBUG__
 }
+
+extern "C" {
+	void c_debug(char *str) {
+		openxc::util::log::debug(str);
+	}
+}

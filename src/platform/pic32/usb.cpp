@@ -48,6 +48,7 @@ static uint8_t INCOMING_EP0_DATA_BUFFER[256];
 static size_t INCOMING_EP0_DATA_SIZE;
 static void handleCompletedEP0OutTransfer() {
     if(INCOMING_EP0_DATA_SIZE > 0) {
+        debug("handleCompletedEP0OutTransfer");
         openxc::interface::usb::handleIncomingMessage(INCOMING_EP0_DATA_BUFFER,
                 INCOMING_EP0_DATA_SIZE);
     }
@@ -212,7 +213,9 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         util::bytebuffer::IncomingMessageCallback callback) {
-        
+
+    debug("openxc::interface::usb::read");  // GJA - This is not called from usb:read(arg1, arg2) in the other usb.cpp
+
 #ifdef FS_SUPPORT
     if(fs::getmode() == FS_STATE::USB_CONNECTED){
         MSDActivity();
@@ -235,6 +238,8 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
             while(processQueue(&endpoint->queue, callback)) {
                 continue;
             }
+
+            debug("openxc::interface::usb::read len>0");
         }
 
         armForRead(device, endpoint);

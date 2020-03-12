@@ -30,4 +30,8 @@ void debugUart(const char* message);
 } // namespace util
 } // namespace openxc
 
+extern "C" {
+	void c_debug(char *str);
+}
+
 #endif // _LOG_H_

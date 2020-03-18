@@ -448,19 +448,19 @@ static void deserializeModemConfiguration(cJSON* root, openxc_ControlCommand* co
     // set up the struct for a modem configuration message
     command->type = openxc_ControlCommand_Type_MODEM_CONFIGURATION;
     openxc_ModemConfigurationCommand* modemConfigurationCommand = &command->modem_configuration_command;
-    
+    // Keeping if statement commented out, was used for a depricated way to deserialize Modem Configuration.
     // parse server command
-    cJSON* server = cJSON_GetObjectItem(root, "server");
-    if(server != NULL) {
-        cJSON* host = cJSON_GetObjectItem(server, "host");
+    // cJSON* server = cJSON_GetObjectItem(root, "server");
+    // if(server != NULL) {
+        cJSON* host = cJSON_GetObjectItem(root, "host");
         if(host != NULL) {
             strcpy(modemConfigurationCommand->serverConnectSettings.host, host->valuestring);
         }
-        cJSON* port = cJSON_GetObjectItem(server, "port");
+        cJSON* port = cJSON_GetObjectItem(root, "port");
         if(port != NULL) {
             modemConfigurationCommand->serverConnectSettings.port = port->valueint;
         }
-    }
+    // }
 }
 
 static void deserializeRTCConfiguration(cJSON* root, openxc_ControlCommand* command) {

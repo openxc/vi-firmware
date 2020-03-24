@@ -87,8 +87,9 @@ int openxc::payload::serialize(openxc_VehicleMessage* message,
         }
     } else if(format == PayloadFormat::PROTOBUF) {
         serializedLength = payload::protobuf::serialize(message, payload, length);
-        if ((message->type > 2) & (serializedLength > 4)) {
-            debug("ser-proto:%d", serializedLength);
+        if ((message->type == 3) & (serializedLength > 4)) {
+            debug("ser-proto:%d,%d", serializedLength, message->type);
+            dumpPayload(payload, serializedLength);
         }
 } else if(format == PayloadFormat::MESSAGEPACK) {
         serializedLength = payload::messagepack::serialize(message, payload, length);

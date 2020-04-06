@@ -32,7 +32,7 @@ openxc_DynamicField openxc::payload::wrapBoolean(bool value) {
 }
 
 // Diagnostically print out the hex values in the payload
-static void dumpPayload(unsigned char *payload, size_t length) {
+void dumpPayload(unsigned char *payload, size_t length) {
     int finished = 0;
     size_t offset = 0;
     const size_t MAX = 12;

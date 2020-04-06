@@ -77,6 +77,8 @@ size_t openxc::commands::handleIncomingMessage(uint8_t payload[], size_t length,
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
     size_t bytesRead = 0;
 
+    //debug("handleIncomingMessage");       // Way too noisy to keep on gja
+
 #if (DO_NOT_PROCESS_BINARY_UART_PROTOBUFF == 1)
     // TODO Not attempting to deserialize binary messages via UART,
     // see https://github.com/openxc/vi-firmware/issues/313

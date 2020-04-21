@@ -17,7 +17,7 @@ from openxc.interface import UsbVehicleInterface, BluetoothVehicleInterface
 
 SOURCE = None
 
-def setUpModule():
+def set_up_module():
     configure_logging()
 
     # A bit of a hack to let us pass the product ID in at the command line, so
@@ -34,7 +34,7 @@ def setUpModule():
         SOURCE = UsbVehicleInterface(payload_format="json", product_id=usb_product_id)
     SOURCE.start()
 
-def tearDownModule():
+def tear_down_module():
     SOURCE.set_payload_format("json")
 
 class ViFunctionalTests(unittest.TestCase):

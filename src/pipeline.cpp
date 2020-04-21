@@ -190,6 +190,7 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     }
     if(matched) {
         sendMessage(pipeline, payload, length, messageClass);
+
     } else {
         debug("Trying to serialize unrecognized type: %d", message->type);
     }

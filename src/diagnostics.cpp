@@ -36,10 +36,10 @@ namespace obd2 = openxc::diagnostics::obd2;
 
 //  receiveCanMessage - called from vi_firmware every time a CanMessage
 //                  is QUEUE_POP from the busses' receiveQueue
-// PERFORM_MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
-// PERFORM_MULTIFRAME  1       Multi-frame stitched message feature
+// MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
+// MULTIFRAME  1       Multi-frame stitched message feature
 //
-#define PERFORM_MULTIFRAME  0
+#define MULTIFRAME  1
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -159,7 +159,6 @@ static bool sendDiagnosticCanMessageBus2(
 
 void openxc::diagnostics::reset(DiagnosticsManager* manager) {
     if(manager->initialized) {
-        debug("Clearing existing diagnostic requests");
         cleanupActiveRequests(manager, true);
     }
 
@@ -171,8 +170,6 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
         LIST_INSERT_HEAD(&manager->freeRequestEntries,
                 &manager->requestListEntries[i], listEntries);
     }
-
-    debug("Reset diagnostics requests");
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
@@ -191,7 +188,6 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
 
     manager->obd2Bus = lookupBus(obd2BusAddress, buses, busCount);
     obd2::initialize(manager);
-    debug("Initialized diagnostics");
 }
 
 static inline bool conflicting(ActiveDiagnosticRequest* request,
@@ -255,14 +251,10 @@ void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
 
     ActiveDiagnosticRequest* entry;
     LIST_FOREACH(entry, &manager->nonrecurringRequests, listEntries) {
-        debug("sendRequests-LIST");
-
         sendRequest(manager, bus, entry);
     }
 
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
-        debug("sendRequests-TAILQ");
-
         sendRequest(manager, bus, entry);
     }
 }
@@ -303,7 +295,7 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-#if (PERFORM_MULTIFRAME != 0)
+#if (MULTIFRAME != 0)
 const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
 
 static void sendPartialMessage(long timestamp,
@@ -358,9 +350,6 @@ static void sendPartialMessage(long timestamp,
                             MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
                             "\"}");
 
-    debug("Before sendMessage in sendPartialMessage");
-    debug(messageBuffer);
-
     int messageLen = strlen(messageBuffer) +1;
     pipeline::sendMessage(pipeline,
         (uint8_t*)messageBuffer, messageLen, MessageClass::SIMPLE);
@@ -405,8 +394,6 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline) {
     float parsed_value = diagnostic_payload_to_integer(response);
-
-    debug("relayDiagnosticResponse");
 
     uint8_t buf_size = response->multi_frame ? response->payload_length + 1 : 20;
     char decoded_value_buf[buf_size];
@@ -454,35 +441,10 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
     }
 }
 
-// Diagnostically print out the hex values in the payload
-static void dumpPayload(unsigned char *payload, size_t length) {
-    int finished = 0;
-    size_t offset = 0;
-    const size_t MAX = 12;
-    while(!finished) {
-        char buf[26];
-        size_t l = length-offset;
-        if (l > MAX) 
-            l = MAX;
-        for(size_t i=0; i<l; i++) {
-            buf[i*2]= ((payload[i+offset]>>4) > 9) ? (payload[i+offset]>>4) + 'A' - 10 : (payload[i+offset]>>4) + '0';
-            buf[i*2+1]=((payload[i+offset]&0xf) > 9) ? (payload[i+offset]&0x0f) + 'A' - 10 : (payload[i+offset]&0xf) + '0';
-            buf[i*2+2]=0;        
-        }
-        debug(buf);
-        offset += MAX;
-        if (offset >= length) finished = 1;
-    }
-}
-
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
-
-    // gja left off here
-    debug("CanMessage:");
-    dumpPayload(message->data, 8);
 
     if (bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
@@ -492,14 +454,15 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 &entry->handle, message->id, message->data, message->length);
 
         if (response.multi_frame) {
-#if (PERFORM_MULTIFRAME != 0)
+#if (MULTIFRAME != 0)
             relayPartialFrame(manager, entry, &response, pipeline);
 #endif
             if (!response.completed) {
                 time::tick(&entry->timeoutClock);
             } else {
-#if (PERFORM_MULTIFRAME == 0)
-                // This is the OLD Way of sending a Diagnostic Response
+#if (MULTIFRAME == 0)
+                // This is the pre 2020 Way of sending a Diagnostic Response
+                // (all at once)
                 relayDiagnosticResponse(manager, entry, &response, pipeline);
 #endif
             }
@@ -713,7 +676,6 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request, const char* name,
         bool waitForMultipleResponses) {
-    debug("addRequest#1");
     return addRequest(manager, bus, request, name,
             waitForMultipleResponses, NULL, NULL);
 }
@@ -725,7 +687,6 @@ bool openxc::diagnostics::addRecurringRequest(DiagnosticsManager* manager,
 
 bool openxc::diagnostics::addRequest(DiagnosticsManager* manager,
         CanBus* bus, DiagnosticRequest* request) {
-    debug("addRequest#2");
     return addRequest(manager, bus, request, NULL, false, NULL, NULL);
 }
 

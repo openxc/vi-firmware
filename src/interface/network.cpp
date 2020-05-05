@@ -17,7 +17,6 @@ void openxc::interface::network::initializeCommon(NetworkDevice* device) {
 }
 
 size_t openxc::interface::network::handleIncomingMessage(uint8_t payload[], size_t length) {
-    debug("network::handleIncomingMessage");
     return commands::handleIncomingMessage(payload, length,
             &config::getConfiguration()->network.descriptor);
 }

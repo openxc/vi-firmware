@@ -35,7 +35,6 @@ namespace pipeline = openxc::pipeline;
 bool openxc::commands::handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
     bool status = diagnostics::handleDiagnosticCommand(
             &getConfiguration()->diagnosticsManager, command);
-    debug("handleDiagnosticRequestCommand");
     sendCommandResponse(openxc_ControlCommand_Type_DIAGNOSTIC, status);
     return status;
 }

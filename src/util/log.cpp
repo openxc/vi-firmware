@@ -39,3 +39,4 @@ extern "C" {
 		openxc::util::log::debug(str);
 	}
 }
+

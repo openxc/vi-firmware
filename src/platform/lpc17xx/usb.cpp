@@ -61,22 +61,10 @@ void EVENT_USB_Device_Disconnect() {
     getConfiguration()->usb.configured = false;
 }
 
-static void dumpNum(const char *str, int value) {
-    char buf[10];
-    sprintf(buf,"0x%x",value);
-    debug(str);
-    debug(buf);
-}
-
 void EVENT_USB_Device_ControlRequest() {
-
-    debug("EVENT_USB_Device_ControlRequest entered");
-
     if(!(Endpoint_IsSETUPReceived())) {
         return;
     }
-
-    debug("EVENT_USB_Device_ControlRequest init");
 
     QUEUE_TYPE(uint8_t) payloadQueue;
     QUEUE_INIT(uint8_t, &payloadQueue);
@@ -97,7 +85,6 @@ void EVENT_USB_Device_ControlRequest() {
                 }
                 ++bytesReceived;
             }
-            dumpNum("bytes recd:",bytesReceived);
             Endpoint_ClearOUT();
         }
 
@@ -105,12 +92,9 @@ void EVENT_USB_Device_ControlRequest() {
     }
 
     int length = QUEUE_LENGTH(uint8_t, &payloadQueue);
-    dumpNum("len:",length);
     uint8_t snapshot[length];
     if(length > 0) {
         QUEUE_SNAPSHOT(uint8_t, &payloadQueue, snapshot, length);
-
-        debug("EVENT_USB_Device_ControlRequest!!!");
         openxc::interface::usb::handleIncomingMessage(snapshot, length);
     }
 }
@@ -264,13 +248,9 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
     uint8_t previousEndpoint = Endpoint_GetCurrentEndpoint();
     Endpoint_SelectEndpoint(endpoint->address);
 
-    //debug("openxc::interface::usb::read");    // In Main loop
-
     bool receivedData = false;
     while(Endpoint_IsOUTReceived()) {
-        debug("usb::read -- Endpoint_IsOUTReceived()");
         while(Endpoint_BytesInEndpoint()) {
-            debug("usb::read -- QUEUE_PUSH");
             if(!QUEUE_PUSH(uint8_t, &endpoint->queue, Endpoint_Read_8())) {
                 debug("Dropped write from host -- queue is full");
             }
@@ -280,7 +260,6 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
     }
 
     if(receivedData) {
-        debug("usb::read -- receivedData()");
         while(processQueue(&endpoint->queue, callback)) {
             continue;
         }

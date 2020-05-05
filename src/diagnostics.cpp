@@ -246,7 +246,6 @@ static void sendRequest(DiagnosticsManager* manager, CanBus* bus,
 
 void openxc::diagnostics::sendRequests(DiagnosticsManager* manager,
         CanBus* bus) {
-
     cleanupActiveRequests(manager, false);
 
     ActiveDiagnosticRequest* entry;

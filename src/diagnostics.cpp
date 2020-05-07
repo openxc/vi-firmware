@@ -854,6 +854,38 @@ bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
     return false;
 }
 
+bool openxc::diagnostics::isStitchPID(int requestMode, int requestPID)
+{
+#if (MULTIFRAME==1)
+    if ((requestMode == 0x22) && (requestPID == 0xde00)) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(Pipeline* pipeline) {
+#if (MULTIFRAME!=1)
+    return false;
+#else
+    char emulPayload[] = {0x62, 0xDE, 0x00, 0x22, 0x2a, 0x04};
+
+    sendPartialMessage(0x00000000,      // long timestamp,
+                       -1,              // int frame,
+                       0x7d8,           // int message_id,
+                       0,               // int bus,
+                       0,               // int total_size,
+                       0x22,            // int mode,
+                       0xde00,          // int pid,
+                       0,               // int value,
+                       0,               // int negative_response_code,
+                       emulPayload,     // const char *payload,
+                       sizeof(emulPayload), // int payload_size,
+                       pipeline);
+    return true;
+#endif
+}
+
 void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess)
 {
     vehicleMessage->diagnostic_response.success = isSuccess;
@@ -904,7 +936,10 @@ bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, o
                 {
                     message.diagnostic_response.mode = commandRequest->mode;
 
-                    if (isSupportedPID(commandRequest->mode, commandRequest->pid))
+                    if (isStitchPID(commandRequest->mode, commandRequest->pid)) {
+                        generateAndSendEmulatedStitchMessages(&getConfiguration()->pipeline);
+                    }
+                    else if (isSupportedPID(commandRequest->mode, commandRequest->pid))
                     {
                         message.diagnostic_response.pid = commandRequest->pid;
 

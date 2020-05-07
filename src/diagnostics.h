@@ -339,6 +339,10 @@ bool isSupportedMode(int requestMode);
 
 bool isSupportedPID(int requestMode, int requestPID);
 
+bool isStitchPID(int requestMode, int requestPID);
+
+bool generateAndSendEmulatedStitchMessages(openxc::pipeline::Pipeline* pipeline);
+
 void generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess);
 
 /* Public: Handle an incoming command that claims to be a diagnostic request.

@@ -857,31 +857,67 @@ bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
 bool openxc::diagnostics::isStitchPID(int requestMode, int requestPID)
 {
 #if (MULTIFRAME==1)
-    if ((requestMode == 0x22) && (requestPID == 0xde00)) {
+    if ((requestMode == 0x22) && 
+        ((requestPID == 0xde00) || (requestPID == 0xde01))) {
         return true;
     }
 #endif
     return false;
 }
 
-bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(Pipeline* pipeline) {
+bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, Pipeline* pipeline) {
 #if (MULTIFRAME!=1)
     return false;
 #else
-    char emulPayload[] = {0x62, 0xDE, 0x00, 0x22, 0x2a, 0x04};
 
-    sendPartialMessage(0x00000000,      // long timestamp,
-                       -1,              // int frame,
-                       0x7d8,           // int message_id,
-                       0,               // int bus,
-                       0,               // int total_size,
-                       0x22,            // int mode,
-                       0xde00,          // int pid,
-                       0,               // int value,
-                       0,               // int negative_response_code,
-                       emulPayload,     // const char *payload,
-                       sizeof(emulPayload), // int payload_size,
-                       pipeline);
+    if (requestPID == 0xde00) {
+        char emulPayload[] = {(char)0x62, (char)0xDE, (char)0x00, 
+                                (char)0x22, (char)0x2a, (char)0x04};
+
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           -1,              // int frame,
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload,     // const char *payload,
+                           sizeof(emulPayload), // int payload_size,
+                           pipeline);
+    } else {
+        char emulPayload1[] = {(char)0x62, (char)0xDE, (char)0x00, 
+                                (char)0x22, (char)0x2a, (char)0x04};
+        char emulPayload2[] = {(char)0x03, (char)0x00, (char)0x0a,
+                                (char)0xc8, (char)0x00, (char)0x00,
+                                (char)0x8a};
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           0,               // int frame,  (First Frame)
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload1,     // const char *payload,
+                           sizeof(emulPayload1), // int payload_size,
+                           pipeline);
+
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           -1,               // int frame,  (Last Frame)
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload2,     // const char *payload,
+                           sizeof(emulPayload2), // int payload_size,
+                           pipeline);
+    }
     return true;
 #endif
 }
@@ -937,7 +973,8 @@ bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, o
                     message.diagnostic_response.mode = commandRequest->mode;
 
                     if (isStitchPID(commandRequest->mode, commandRequest->pid)) {
-                        generateAndSendEmulatedStitchMessages(&getConfiguration()->pipeline);
+                        generateAndSendEmulatedStitchMessages(commandRequest->mode, commandRequest->pid,
+                                                                &getConfiguration()->pipeline);
                     }
                     else if (isSupportedPID(commandRequest->mode, commandRequest->pid))
                     {

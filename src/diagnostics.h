@@ -341,7 +341,7 @@ bool isSupportedPID(int requestMode, int requestPID);
 
 bool isStitchPID(int requestMode, int requestPID);
 
-bool generateAndSendEmulatedStitchMessages(openxc::pipeline::Pipeline* pipeline);
+bool generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, openxc::pipeline::Pipeline* pipeline);
 
 void generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess);
 

@@ -342,7 +342,7 @@ static void sendPartialMessage(long timestamp,
                             ",\"payload\":\"0x");
 
     for(int index=0; (index<payload_size) && (numWritten < MAX_MULTI_FRAME_MESSAGE_SIZE); index++) {
-        messageBuffer[numWritten++]=((payload[index]>>4) > 9) ? (payload[index]>>4) + 'a' - 10 : (payload[index]>>4) + '0';
+        messageBuffer[numWritten++]=(((payload[index]>>4) & 0x0f) > 9) ? ((payload[index]>>4) & 0x0f) + 'a' - 10 : ((payload[index]>>4) & 0x0f) + '0';
         messageBuffer[numWritten++]=((payload[index]&0xf) > 9) ? (payload[index]&0x0f) + 'a' - 10 : (payload[index]&0xf) + '0';
     }
     numWritten += snprintf(messageBuffer+numWritten,
@@ -873,7 +873,6 @@ bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode,
     if (requestPID == 0xde00) {
         char emulPayload[] = {(char)0x62, (char)0xDE, (char)0x00, 
                                 (char)0x22, (char)0x2a, (char)0x04};
-
         sendPartialMessage(0x00000000,      // long timestamp,
                            -1,              // int frame,
                            0x7d8,           // int message_id,

@@ -873,6 +873,8 @@ bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode,
     if (requestPID == 0xde00) {
         char emulPayload[] = {(char)0x62, (char)0xDE, (char)0x00, 
                                 (char)0x22, (char)0x2a, (char)0x04};
+        emulPayload[4] = rand() % 256;
+        emulPayload[5] = rand() % 256;
         sendPartialMessage(0x00000000,      // long timestamp,
                            -1,              // int frame,
                            0x7d8,           // int message_id,
@@ -891,6 +893,11 @@ bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode,
         char emulPayload2[] = {(char)0x03, (char)0x00, (char)0x0a,
                                 (char)0xc8, (char)0x00, (char)0x00,
                                 (char)0x8a};
+        emulPayload1[5] = rand() % 256;
+        for(int cnt=0; cnt<7; cnt++) {
+            emulPayload2[cnt] = rand() % 256;
+        }
+
         sendPartialMessage(0x00000000,      // long timestamp,
                            0,               // int frame,  (First Frame)
                            0x7d8,           // int message_id,
@@ -937,6 +944,72 @@ void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicle
     }
 }
 
+bool openxc::diagnostics::isVINPid(int requestMode, int requestPID)
+{
+#if (MULTIFRAME==1)
+    if ((requestMode == 9) && (requestPID == 2)) {
+        return true;
+    }
+#endif
+    return false; 
+}
+
+static const char *VINArray[] = {
+            "1FDWX3C60C0012685",   // 2012 Ford
+            "2FTDX15G0C0010824",   // 1982 Ford F150
+            "2FDHF37M0R0011608",   // 1994 Ford F350
+            "1FTNX20L71EC79927",   // 2001 Ford F250 Super Duty
+            "1FTFX1CF2DFC76209",   // 2013 Ford F150
+            "1FDXF46P37EB40030",   // 2007 Ford F450
+            "1FTBR10T9GUA26470",   // 1986 Ford Ranger
+            "1FTNS2ELXADB03208",   // 2010 Ford E Series Van
+            "JH4KA3150HC004866",   // 1987 Acura Legend
+            "1G8MC35B38Y119771",   // 2008 Saturn Sky
+            "1ZVBP8CH7A5121324",   // 2020 Ford Mustang
+            "WD5WD641525381291",   // 2002 Freightliner Sprinter
+            "WBANF73576CG65408",   // 2006 BMW 5 Series
+            "1FTEX14H0RKA51281",   // 1994 Ford F150
+            "1GNEL19X73B130926",   // 2003 Chevrolet Astro
+            "1C6RD6KT4CS332867",   // 2012 Dodge Ram 1500
+            "3D4GG47B09T581222",   // 2009 Dodge Journey
+            "JH4DB1670MS000448",   // 1991 Acura Integra
+            "1GNDT13W5R2133070",   // 1994 Chevrolet S10 Blazer
+            "1G6CD1184H4323745"    // 1987 Cadillac Deville
+};
+
+bool openxc::diagnostics::generateAndSendVINStitchMessages(int messageId, int requestMode, int requestPID, Pipeline* pipeline) {
+#if (MULTIFRAME!=1)
+    return false;
+#endif
+
+    int sampleSize = sizeof(VINArray) / sizeof(VINArray[0]);
+    int selection = rand() % sampleSize;
+    const int packetSize = 4;       // Send max "packetSize" ascii per message
+    int numPackets = (strlen(VINArray[selection]) + packetSize - 1) / packetSize;
+
+    int index = 0;
+    for(int count=0; count<numPackets; count++) {
+        int remaining = strlen(VINArray[selection]) - index;
+        int payloadSize = (packetSize < remaining) ? packetSize : remaining;
+        int frame = (count == numPackets - 1) ? -1 : count;
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           frame,           // int frame,
+                           messageId + 8,   // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           requestMode,     // int mode,
+                           requestPID,      // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           &VINArray[selection][index],     // const char *payload,
+                           payloadSize,     // int payload_size,
+                           pipeline);
+        index += packetSize;
+    }
+
+    return true;
+}
+
 bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, openxc_ControlCommand* command)
 {
     bool status = true;
@@ -973,6 +1046,10 @@ bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, o
 
                     if (isStitchPID(commandRequest->mode, commandRequest->pid)) {
                         generateAndSendEmulatedStitchMessages(commandRequest->mode, commandRequest->pid,
+                                                                &getConfiguration()->pipeline);
+                    } else if (isVINPid(commandRequest->mode, commandRequest->pid)) {
+                        generateAndSendVINStitchMessages(commandRequest->message_id,
+                                                                commandRequest->mode, commandRequest->pid,
                                                                 &getConfiguration()->pipeline);
                     }
                     else if (isSupportedPID(commandRequest->mode, commandRequest->pid))

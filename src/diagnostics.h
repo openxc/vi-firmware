@@ -345,6 +345,13 @@ bool generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, open
 
 void generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess);
 
+bool isVINPid(int requestMode, int requestPID);
+
+//const char *VINArray[];
+
+bool generateAndSendVINStitchMessages(int messageId, int requestMode, int requestPID, openxc::pipeline::Pipeline* pipeline);
+
+
 /* Public: Handle an incoming command that claims to be a diagnostic request.
  *
  * This handles requests in the OpenXC message format

@@ -6,12 +6,15 @@
 
 using openxc::util::log::debug;
 
+extern void dumpPayload(unsigned char *payload, size_t length);
+
 size_t openxc::payload::protobuf::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
     pb_istream_t stream = pb_istream_from_buffer(payload, length);
     if(!pb_decode_delimited(&stream, openxc_VehicleMessage_fields, message)) {
         debug("Protobuf decoding failed with %s", PB_GET_ERROR(&stream));
-        return 0;
+        dumpPayload(payload, length);
+        //return 0;     // gja commented out since it was not clearing queue and resulting in overflowed queue and crash
     }
     return length - stream.bytes_left;
 }
@@ -28,5 +31,6 @@ int openxc::payload::protobuf::serialize(openxc_VehicleMessage* message,
             message)) {
         debug("Error encoding protobuf: %s", PB_GET_ERROR(&stream));
     }
+
     return stream.bytes_written;
 }

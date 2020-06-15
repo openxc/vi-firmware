@@ -294,7 +294,58 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
+const bool originalStitchAlgo = false;
+static int prevFrame = -1;
+static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
+        const ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response, openxc_DynamicField value) {
+    openxc_VehicleMessage message = openxc_VehicleMessage();        // Zero fill
+    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH;
+    message.diagnostic_stitch_response = {0};
+    message.diagnostic_stitch_response.bus = bus->address;
+
+    if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
+        message.diagnostic_stitch_response.message_id = response->arbitration_id
+            - DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET;
+    } else {
+        // must preserve responding arb ID for responses to functional broadcast
+        // requests, as they are the actual module address and not just arb ID +
+        // 8.
+        message.diagnostic_stitch_response.message_id = response->arbitration_id;
+    }
+
+    message.diagnostic_stitch_response.mode = response->mode;
+    message.diagnostic_stitch_response.pid = response->pid;
+    message.diagnostic_stitch_response.success = response->success;
+    message.diagnostic_stitch_response.negative_response_code =
+            response->negative_response_code;
+
+    message.diagnostic_stitch_response.frame = prevFrame + 1;
+    if (response->completed) {
+        message.diagnostic_stitch_response.frame = -1;     // Marks the last frame in the response
+    } else {
+        message.diagnostic_stitch_response.success = true;
+    }
+    prevFrame = message.diagnostic_stitch_response.frame;
+
+    if(response->payload_length > 0) {
+        if (request->decoder != NULL)  {
+            message.diagnostic_stitch_response.value = value;
+        } else {
+            memcpy(message.diagnostic_stitch_response.payload.bytes, response->payload,
+                    response->payload_length);
+            message.diagnostic_stitch_response.payload.size = response->payload_length;
+        }
+    }
+    return message;
+}
+
 #if (MULTIFRAME != 0)
+// The next 2 methods are the origial way that multi-frame
+// stitching was achieved.  It has been replaced with a new
+// openxc.proto file and uses a new message type.
+// These are here for reference until we know the new messages are working
+// 6/15/2020
 const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
 
 static void sendPartialMessage(long timestamp,
@@ -357,7 +408,6 @@ static void sendPartialMessage(long timestamp,
 
 // relayPartialFrame - Send the partial frame to the mobile device/web
 
-static int prevFrame = -1;
 static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the callback
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, 
@@ -391,7 +441,8 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
 
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, Pipeline* pipeline) {
+        const DiagnosticResponse* response, Pipeline* pipeline,
+        bool stitchMessage) {
     float parsed_value = diagnostic_payload_to_integer(response);
 
     uint8_t buf_size = response->multi_frame ? response->payload_length + 1 : 20;
@@ -425,6 +476,15 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         } else {
             publishNumericalMessage(request->name, field.numeric_value, pipeline);
         }
+    } else if (stitchMessage) {
+        openxc_VehicleMessage message = wrapDiagnosticStitchResponseWithSabot(
+                request->bus, request, response, field);
+        pipeline::publish(&message, pipeline);
+
+        if (!(response->completed)) {
+            return; // Only return if this is not the last partial
+                    // Otherwise if this is last we want to invoke the callback
+        }
     } else {
         // If no name, send full details of response but still include 'value'
         // instead of 'payload' if they provided a decoder. The one case you
@@ -454,7 +514,11 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 
         if (response.multi_frame) {
 #if (MULTIFRAME != 0)
-            relayPartialFrame(manager, entry, &response, pipeline);
+            if (originalStitchAlgo) {
+                relayPartialFrame(manager, entry, &response, pipeline);
+            } else { 
+                relayDiagnosticResponse(manager, entry, &response, pipeline, TRUE);   // Added 6/11/2020
+            }
 #endif
             if (!response.completed) {
                 time::tick(&entry->timeoutClock);
@@ -462,13 +526,13 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 #if (MULTIFRAME == 0)
                 // This is the pre 2020 Way of sending a Diagnostic Response
                 // (all at once)
-                relayDiagnosticResponse(manager, entry, &response, pipeline);
+                relayDiagnosticResponse(manager, entry, &response, pipeline, FALSE);
 #endif
             }
         } else if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
                 // Handle Single frame messages here!
-                relayDiagnosticResponse(manager, entry, &response, pipeline);
+                relayDiagnosticResponse(manager, entry, &response, pipeline, FALSE);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }

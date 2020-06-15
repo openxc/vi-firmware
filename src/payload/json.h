@@ -43,6 +43,8 @@ extern const char DIAGNOSTIC_SUCCESS_FIELD_NAME[];
 extern const char DIAGNOSTIC_NRC_FIELD_NAME[];
 extern const char DIAGNOSTIC_PAYLOAD_FIELD_NAME[];
 extern const char DIAGNOSTIC_VALUE_FIELD_NAME[];
+extern const char DIAGNOSTIC_FRAME_FIELD_NAME[];
+extern const char DIAGNOSTIC_TOTAL_SIZE_FIELD_NAME[];
 
 extern const char MODEM_CONFIGURATION_COMMAND_NAME[];
 extern const char RTC_CONFIGURATION_COMMAND_NAME[];

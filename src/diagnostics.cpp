@@ -517,7 +517,7 @@ static void receiveCanMessage(DiagnosticsManager* manager,
             if (originalStitchAlgo) {
                 relayPartialFrame(manager, entry, &response, pipeline);
             } else { 
-                relayDiagnosticResponse(manager, entry, &response, pipeline, TRUE);   // Added 6/11/2020
+                relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020
             }
 #endif
             if (!response.completed) {
@@ -526,13 +526,13 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 #if (MULTIFRAME == 0)
                 // This is the pre 2020 Way of sending a Diagnostic Response
                 // (all at once)
-                relayDiagnosticResponse(manager, entry, &response, pipeline, FALSE);
+                relayDiagnosticResponse(manager, entry, &response, pipeline, false);
 #endif
             }
         } else if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
                 // Handle Single frame messages here!
-                relayDiagnosticResponse(manager, entry, &response, pipeline, FALSE);
+                relayDiagnosticResponse(manager, entry, &response, pipeline, false);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }

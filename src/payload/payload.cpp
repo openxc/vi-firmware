@@ -52,7 +52,7 @@ void dumpPayload(unsigned char *payload, size_t length) {
     }
 }
 
-static void dumpNum(int value) {
+void dumpNum(int value) {
     char buf[10];
     sprintf(buf,"%d",value);
     debug(buf);

@@ -62,7 +62,7 @@ endif
 # but the openxc-message-format depends on nanopb - this is a
 # little hack to make sure the header files are always
 # available
-CPPFLAGS = -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
+CPPFLAGS = -Werror -D__PIC32__ -D_BOARD_MEGA_ -D$(PLATFORM) $(CC_SYMBOLS) \
 				  -I $(LIBS_PATH)/openxc-message-format/gen/cpp \
 				  -I $(LIBS_PATH)/openxc-message-format/libs/nanopb
 CFLAGS += $(EXTRA_BOTH_FLAGS)
@@ -109,7 +109,7 @@ LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 # provide flash erase/write routines (flash.h and flash.c) for cellular c5 (might be better imported into "src" during environment setup)
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
-CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
+CPPFLAGS += -Werror -I$(LIBS_PATH)/STBTLE \
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
 			-Iinterface -DBLUENRG_MS \
@@ -127,14 +127,14 @@ endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
 
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32
+CPPFLAGS += -Werror -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
 
 ifeq ($(MSD_ENABLE), 1)
 
-CPPFLAGS += -Iplatform/pic32/fs_support \
+CPPFLAGS += -Werror -Iplatform/pic32/fs_support \
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ \
@@ -154,11 +154,11 @@ endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
+CPPFLAGS += -Werror -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
 
 ifeq ($(MSD_ENABLE), 1)
 
-CPPFLAGS += -Iplatform/pic32/fs_support \
+CPPFLAGS += -Werror -Iplatform/pic32/fs_support \
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ \
@@ -179,7 +179,7 @@ endif
 
 
 ifeq ($(PLATFORM), CHIPKIT)
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
+CPPFLAGS += -Werror -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser 

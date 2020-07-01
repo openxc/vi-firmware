@@ -27,6 +27,15 @@ $(error You do not have the necessary openxc-python installed: openxc-python $(T
 endif
 endif
 
+# Verify signals.cpp version
+ifneq ($(wildcard signals.cpp),)
+Signals_Version = $(shell grep -Po '(?<=Generated\sfor\sv)\d+\.\S+(?=\sof\sthe\sOpenXC\sVI\sfirmware\.)' signals.cpp)
+Firmware_Signals_Version = $(shell grep -Po '(?<=Signals:\s)\d+\.\S+' Versions)
+ifneq ($(Signals_Version),$(Firmware_Signals_Version))
+$(error You are using an invalid signals.ccp version ($(Signals_Version)), This firmware supports ($(Firmware_Signals_Version)))
+endif
+endif
+
 COLORS_AVAILABLE = $(shell command -v tput >/dev/null 2>&1; echo $$?)
 ifeq ($(COLORS_AVAILABLE),0)
 RED="$${txtbld}$$(tput setaf 1)"

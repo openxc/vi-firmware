@@ -17,6 +17,9 @@ before_install:
 - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq -y libsubunit-dev; fi
 - travis_wait script/bootstrap.sh
 - cd src
+cache:
+  directories:
+    - src/libs
 after_success:
 - PLATFORM=TESTING make coverage
 - coveralls-lcov build/tests/coverage.info

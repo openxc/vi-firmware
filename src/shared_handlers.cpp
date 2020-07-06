@@ -290,8 +290,8 @@ void openxc::signals::handlers::handleButtonEventMessage(const CanSignal* signal
     openxc_DynamicField buttonType = stateDecoder(buttonTypeSignal,
             signals, signalManager, signalManagers, signalCount, pipeline, rawButtonType, &send);
     if(!send) {
-        debug("Unable to find button type corresponding to %f",
-                rawButtonType);
+        // debug("Unable to find button type corresponding to %f",
+        //         rawButtonType);
     } else {
         openxc_DynamicField buttonState = stateDecoder(buttonStateSignal,
                 signals, signalManager, signalManagers, signalCount, pipeline, rawButtonState, &send);

@@ -1,6 +1,6 @@
 #include "ringbuffer.h"
 
-#warning "reader and writer may only write the tail and head, respectively, but they do read the other's pointer....no guarantee this is atomic!...are locks the only solution or is the sequence LW-LW-SW ok?"
+//#warning "reader and writer may only write the tail and head, respectively, but they do read the other's pointer....no guarantee this is atomic!...are locks the only solution or is the sequence LW-LW-SW ok?"
 
 void RingBuffer_Initialize(RingBuffer_t* ring, char* data, uint32_t size) {
     ring->head = 0;

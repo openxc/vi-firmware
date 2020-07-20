@@ -18,12 +18,12 @@ static _EEPROM* eeprom = (_EEPROM*)NVM_START;
 
 void openxc::nvm::store() {
     unsigned int i = 0;
-    unsigned int writeWord;
+    //unsigned int writeWord;
     unsigned int* config = (unsigned int*)&(getConfiguration()->telit->config);
     eraseFlashPage((void*)NVM_START);
-    writeFlashWord((void*)NVM_START+i, (unsigned int)0x00000000);
+    writeFlashWord((unsigned char*)NVM_START+i, (unsigned int)0x00000000);
     while(i < sizeof(ModemConfigurationDescriptor)) {
-        writeFlashWord((void*)NVM_START+i+4, *(unsigned int*)config);
+        writeFlashWord((unsigned char*)NVM_START+i+4, *(unsigned int*)config);
         config++;
         i += 4;
     }

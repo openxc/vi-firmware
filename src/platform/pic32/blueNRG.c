@@ -28,7 +28,7 @@
 uint8_t stickyfisr = 0;
 
 #ifdef BLE_SUPPORT
-void __ISR(_EXTERNAL_0_VECTOR, ipl7) INT0Interrupt() 
+void __ISR(_EXTERNAL_0_VECTOR, ipl7AUTO) INT0Interrupt()
 { 
     
     mINT0ClearIntFlag(); 
@@ -72,6 +72,7 @@ int8_t BlueNRG_SpiInit(void) {
 
 int BlueNRG_ISRDeInit(void){
     BlueNRG_SPI_IRQ_Suspend();//should we float input?
+    return (0);
 }
 
 int BlueNRG_ISRInit(void){

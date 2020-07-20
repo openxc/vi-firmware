@@ -61,7 +61,7 @@ static TELIT_CONNECTION_STATE state = telit::POWER_OFF;
 /*PRIVATE FUNCTIONS*/
 
 static bool autobaud(openxc::telitHE910::TelitDevice* device);
-static void telit_setIoDirection(void);
+ void telit_setIoDirection(void);
 static void setPowerState(bool enable);
 static bool sendCommand(TelitDevice* device, const char* command, const char* response, uint32_t timeoutMs);
 static bool sendCommand(TelitDevice* device, const char* command, const char* response, const char* error, uint32_t timeoutMs);
@@ -1307,7 +1307,7 @@ static bool getResponse(const char* startToken, const char* stopToken, char* res
         goto fcn_exit;
     }
     p1 += strlen(startToken);
-    memcpy(response, p1, (maxLen < p2-p1) ? (maxLen) : (p2-p1));
+    memcpy(response, p1, (maxLen < (unsigned int)(p2-p1)) ? (maxLen) : (p2-p1));
     
     fcn_exit:
     return rc;
@@ -1333,7 +1333,7 @@ static void sendData(TelitDevice* device, char* data, unsigned int len) {
 
 // Only want to set the directly once because it flips the power on/off.
 #ifdef TELIT_HE910_ENABLE_SUPPORT
-static void telit_setIoDirection() {
+ void telit_setIoDirection() {
     static bool directionSet = false;
     if(!directionSet) {
         // be aware that setting the direction here will default it to the off

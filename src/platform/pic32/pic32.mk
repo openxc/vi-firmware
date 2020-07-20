@@ -110,6 +110,7 @@ LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
 CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
+			-Werror \
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
 			-Iinterface -DBLUENRG_MS \
@@ -127,7 +128,7 @@ endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_CELLULAR)
 
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32
+CPPFLAGS += -Werror -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32
 LOCAL_C_SRCS += $(wildcard $(MPIDE_DIR)/hardware/pic32/libraries/EEPROM/utility/*.c)
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/http-parser/http_parser.c)
 INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
@@ -135,6 +136,7 @@ INCLUDE_PATHS += -I$(LIBS_PATH)/http-parser
 ifeq ($(MSD_ENABLE), 1)
 
 CPPFLAGS += -Iplatform/pic32/fs_support \
+			-Werror
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ \
@@ -154,11 +156,12 @@ endif
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BT)
 
-CPPFLAGS += -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
+CPPFLAGS += -Werror -I. -I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility -Iplatform/pic32 
 
 ifeq ($(MSD_ENABLE), 1)
 
 CPPFLAGS += -Iplatform/pic32/fs_support \
+			-Werror \
 			-D__PIC32MX__ \
 			-D__PIC32MX \
 			-D__XC32__ \

@@ -367,7 +367,7 @@ static void sendPartialMessage(long timestamp,
 
     int numWritten = snprintf(messageBuffer,
             MAX_MULTI_FRAME_MESSAGE_SIZE,
-            "{\"timestamp\":%ld,\"frame\":%d,\"message_id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
+            "{\"timestamp\":%ld,\"frame\":%d,\"id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
             timestamp,
             frame,
             message_id+8,

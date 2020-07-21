@@ -77,7 +77,7 @@ test_long: test_short
 	@echo "$(GREEN)All tests passed.$(COLOR_RESET)"
 
 test_short: unit_tests
-	@make default_compile_test
+	# @make default_compile_test
 	# @make msd_default_compile_test
 	@make debug_compile_test
 	@make mapped_compile_test

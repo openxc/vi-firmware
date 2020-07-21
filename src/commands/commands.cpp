@@ -187,8 +187,6 @@ bool openxc::commands::validate(openxc_VehicleMessage* message) {
 
 void openxc::commands::sendCommandResponse(openxc_ControlCommand_Type commandType,
         bool status, char* responseMessage, size_t responseMessageLength) {
-            debug("Command response value %d", responseMessage);
-            debug("Command response value %s", responseMessage);
     openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero Fill
     message.type = openxc_VehicleMessage_Type_COMMAND_RESPONSE;
     message.command_response.type = commandType;

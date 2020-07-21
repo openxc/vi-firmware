@@ -119,6 +119,7 @@ openxc::config::Configuration* openxc::config::getConfiguration() {
     static openxc::config::Configuration CONFIG = {
         messageSetIndex: 0,
         version: "8.0.0",
+        dummyVin: "00000000123456789",
         platform: PLATFORM,
         environmentMode: ENVIRONMENT_MODE,
         payloadFormat: PayloadFormat::DEFAULT_OUTPUT_FORMAT,

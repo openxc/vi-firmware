@@ -12,6 +12,7 @@ namespace json {
 extern const char VERSION_COMMAND_NAME[];
 extern const char DEVICE_ID_COMMAND_NAME[];
 extern const char DEVICE_PLATFORM_COMMAND_NAME[];
+extern const char GET_VIN_COMMAND_NAME[];
 extern const char DIAGNOSTIC_COMMAND_NAME[];
 extern const char PASSTHROUGH_COMMAND_NAME[];
 extern const char ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[];

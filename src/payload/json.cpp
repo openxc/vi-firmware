@@ -25,6 +25,7 @@ const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "pre
 const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
 const char openxc::payload::json::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
 const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_status";
+const char openxc::payload::json::GET_VIN_COMMAND_NAME[] = "get_vin";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -154,6 +155,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::VERSION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_GET_VIN) {
+        typeString = payload::json::GET_VIN_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
         typeString = payload::json::DEVICE_PLATFORM_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
@@ -565,6 +568,10 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_DEVICE_ID;
             } else if(!strncmp(commandNameObject->valuestring,
+                        GET_VIN_COMMAND_NAME, strlen(GET_VIN_COMMAND_NAME))) {
+                command->type = openxc_ControlCommand_Type_GET_VIN;
+                        }
+             else if(!strncmp(commandNameObject->valuestring,
                         DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_PLATFORM;
             } else if(!strncmp(commandNameObject->valuestring,

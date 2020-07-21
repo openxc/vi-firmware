@@ -110,7 +110,7 @@ LOCAL_CPP_SRCS = $(CROSSPLATFORM_CPP_SRCS) $(wildcard platform/pic32/*.cpp)
 
 ifeq ($(PLATFORM), CROSSCHASM_C5_BLE)
 CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
-			-Werror \
+			-Werror
 			-Iplatform/pic32 \
 			-I../dependencies/mpide/hardware/pic32/libraries/EEPROM/utility \
 			-Iinterface -DBLUENRG_MS \

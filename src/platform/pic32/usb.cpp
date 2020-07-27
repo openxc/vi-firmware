@@ -212,7 +212,6 @@ void openxc::interface::usb::deinitialize(UsbDevice* usbDevice) {
 
 void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
         util::bytebuffer::IncomingMessageCallback callback) {
-        
 #ifdef FS_SUPPORT
     if(fs::getmode() == FS_STATE::USB_CONNECTED){
         MSDActivity();

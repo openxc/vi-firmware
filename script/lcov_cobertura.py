@@ -77,24 +77,23 @@ class LcovCobertura(object):
         file_branches_covered = 0
 
         for line in self.lcov_data.split('\n'):
-            if line.strip() == 'end_of_record':
-                if current_file is not None:
-                    package_dict = coverage_data['packages'][package]
-                    package_dict['lines-total'] += file_lines_total
-                    package_dict['lines-covered'] += file_lines_covered
-                    package_dict['branches-total'] += file_branches_total
-                    package_dict['branches-covered'] += file_branches_covered
-                    file_dict = package_dict['classes'][current_file]
-                    file_dict['lines-total'] = file_lines_total
-                    file_dict['lines-covered'] = file_lines_covered
-                    file_dict['lines'] = dict(file_lines)
-                    file_dict['methods'] = dict(file_methods)
-                    file_dict['branches-total'] = file_branches_total
-                    file_dict['branches-covered'] = file_branches_covered
-                    coverage_data['summary']['lines-total'] += file_lines_total
-                    coverage_data['summary']['lines-covered'] += file_lines_covered
-                    coverage_data['summary']['branches-total'] += file_branches_total
-                    coverage_data['summary']['branches-covered'] += file_branches_covered
+            if line.strip() == 'end_of_record' and current_file is not None:
+                package_dict = coverage_data['packages'][package]
+                package_dict['lines-total'] += file_lines_total
+                package_dict['lines-covered'] += file_lines_covered
+                package_dict['branches-total'] += file_branches_total
+                package_dict['branches-covered'] += file_branches_covered
+                file_dict = package_dict['classes'][current_file]
+                file_dict['lines-total'] = file_lines_total
+                file_dict['lines-covered'] = file_lines_covered
+                file_dict['lines'] = dict(file_lines)
+                file_dict['methods'] = dict(file_methods)
+                file_dict['branches-total'] = file_branches_total
+                file_dict['branches-covered'] = file_branches_covered
+                coverage_data['summary']['lines-total'] += file_lines_total
+                coverage_data['summary']['lines-covered'] += file_lines_covered
+                coverage_data['summary']['branches-total'] += file_branches_total
+                coverage_data['summary']['branches-covered'] += file_branches_covered
 
             line_parts = line.split(':',1)
             input_type = line_parts[0]
@@ -116,7 +115,6 @@ class LcovCobertura(object):
                     'lines-covered': 0, 'branches-total': 0,
                     'branches-covered': 0
                 }
-                package = package
                 current_file = relative_file_name
                 file_lines_total = 0
                 file_lines_covered = 0

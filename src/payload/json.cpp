@@ -51,6 +51,9 @@ const char openxc::payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME[] = "success";
 const char openxc::payload::json::DIAGNOSTIC_NRC_FIELD_NAME[] = "negative_response_code";
 const char openxc::payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME[] = "payload";
 const char openxc::payload::json::DIAGNOSTIC_VALUE_FIELD_NAME[] = "value";
+const char openxc::payload::json::DIAGNOSTIC_FRAME_FIELD_NAME[] = "frame";
+const char openxc::payload::json::DIAGNOSTIC_TOTAL_SIZE_FIELD_NAME[] = "total_size";
+
 
 static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
@@ -88,6 +91,55 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
                     maxAddress - encodedDataIndex,
                     "%02x",
                     message->diagnostic_response.payload.bytes[i]);
+        }
+        cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
+                encodedData);
+    }
+    return true;
+}
+
+static bool serializeStitchDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
+    cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
+            message->diagnostic_stitch_response.bus);
+    cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
+            message->diagnostic_stitch_response.message_id);
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_MODE_FIELD_NAME,
+            message->diagnostic_stitch_response.mode);
+    cJSON_AddBoolToObject(root, payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME,
+            message->diagnostic_stitch_response.success);
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
+                message->diagnostic_stitch_response.pid);
+
+    // These next 2 fields are only in a stitched message frame
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_FRAME_FIELD_NAME,
+                message->diagnostic_stitch_response.frame);
+    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_TOTAL_SIZE_FIELD_NAME,
+                message->diagnostic_stitch_response.total_size);
+
+    if(message->diagnostic_stitch_response.negative_response_code != 0) {
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_NRC_FIELD_NAME,
+                message->diagnostic_stitch_response.negative_response_code);
+    }
+
+    if(message->diagnostic_stitch_response.value.type != openxc_DynamicField_Type_UNUSED) {
+        if (message->diagnostic_stitch_response.value.type == openxc_DynamicField_Type_NUM) {
+            cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
+                    message->diagnostic_stitch_response.value.numeric_value);
+        } else {
+            cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
+                    message->diagnostic_stitch_response.value.string_value);
+        }
+    } else if(message->diagnostic_stitch_response.payload.size > 0) {
+        char encodedData[MAX_DIAGNOSTIC_PAYLOAD_SIZE];
+        const char* maxAddress = encodedData + sizeof(encodedData);
+        char* encodedDataIndex = encodedData;
+        encodedDataIndex += sprintf(encodedDataIndex, "0x");
+        for(uint8_t i = 0; i < message->diagnostic_stitch_response.payload.size &&
+                encodedDataIndex < maxAddress; i++) {
+            encodedDataIndex += snprintf(encodedDataIndex,
+                    maxAddress - encodedDataIndex,
+                    "%02x",
+                    message->diagnostic_stitch_response.payload.bytes[i]);
         }
         cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
                 encodedData);
@@ -448,19 +500,19 @@ static void deserializeModemConfiguration(cJSON* root, openxc_ControlCommand* co
     // set up the struct for a modem configuration message
     command->type = openxc_ControlCommand_Type_MODEM_CONFIGURATION;
     openxc_ModemConfigurationCommand* modemConfigurationCommand = &command->modem_configuration_command;
-    
+    // Keeping if statement commented out, was used for a depricated way to deserialize Modem Configuration.
     // parse server command
-    cJSON* server = cJSON_GetObjectItem(root, "server");
-    if(server != NULL) {
-        cJSON* host = cJSON_GetObjectItem(server, "host");
+    // cJSON* server = cJSON_GetObjectItem(root, "server");
+    // if(server != NULL) {
+        cJSON* host = cJSON_GetObjectItem(root, "host");
         if(host != NULL) {
             strcpy(modemConfigurationCommand->serverConnectSettings.host, host->valuestring);
         }
-        cJSON* port = cJSON_GetObjectItem(server, "port");
+        cJSON* port = cJSON_GetObjectItem(root, "port");
         if(port != NULL) {
             modemConfigurationCommand->serverConnectSettings.port = port->valueint;
         }
-    }
+    // }
 }
 
 static void deserializeRTCConfiguration(cJSON* root, openxc_ControlCommand* command) {
@@ -581,6 +633,8 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             status = serializeCan(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
             status = serializeDiagnostic(message, root);
+        } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH) {
+            status =serializeStitchDiagnostic(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
             status = serializeCommandResponse(message, root);
         } else {
@@ -593,7 +647,6 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             // character as a delimiter
             finalLength = MIN(length, strlen(serialized) + 1);
             memcpy(payload, serialized, finalLength);
-
             free(serialized);
         } else {
             debug("Converting JSON to string failed -- possibly OOM");
@@ -603,5 +656,6 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     } else {
         debug("JSON object is NULL -- probably OOM");
     }
+
     return finalLength;
 }

@@ -177,6 +177,7 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
             matched = true;
             break;
         case openxc_VehicleMessage_Type_DIAGNOSTIC:
+        case openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH:
             messageClass = MessageClass::DIAGNOSTIC;
             matched = true;
             break;
@@ -190,6 +191,7 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     }
     if(matched) {
         sendMessage(pipeline, payload, length, messageClass);
+
     } else {
         debug("Trying to serialize unrecognized type: %d", message->type);
     }

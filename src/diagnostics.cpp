@@ -23,7 +23,9 @@ using openxc::can::addAcceptanceFilter;
 using openxc::can::removeAcceptanceFilter;
 using openxc::can::read::publishNumericalMessage;
 using openxc::can::read::publishStringMessage;
+using openxc::can::read::publishVehicleMessage;
 using openxc::pipeline::Pipeline;
+using openxc::pipeline::MessageClass;
 using openxc::signals::getCanBuses;
 using openxc::signals::getCanBusCount;
 using openxc::config::getConfiguration;
@@ -31,6 +33,13 @@ using openxc::config::getConfiguration;
 namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
 namespace obd2 = openxc::diagnostics::obd2;
+
+//  receiveCanMessage - called from vi_firmware every time a CanMessage
+//                  is QUEUE_POP from the busses' receiveQueue
+// MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
+// MULTIFRAME  1       Multi-frame stitched message feature
+//
+#define MULTIFRAME  1
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -150,7 +159,6 @@ static bool sendDiagnosticCanMessageBus2(
 
 void openxc::diagnostics::reset(DiagnosticsManager* manager) {
     if(manager->initialized) {
-        debug("Clearing existing diagnostic requests");
         cleanupActiveRequests(manager, true);
     }
 
@@ -162,8 +170,6 @@ void openxc::diagnostics::reset(DiagnosticsManager* manager) {
         LIST_INSERT_HEAD(&manager->freeRequestEntries,
                 &manager->requestListEntries[i], listEntries);
     }
-
-    debug("Reset diagnostics requests");
 }
 
 void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
@@ -182,7 +188,6 @@ void openxc::diagnostics::initialize(DiagnosticsManager* manager, CanBus* buses,
 
     manager->obd2Bus = lookupBus(obd2BusAddress, buses, busCount);
     obd2::initialize(manager);
-    debug("Initialized diagnostics");
 }
 
 static inline bool conflicting(ActiveDiagnosticRequest* request,
@@ -286,13 +291,158 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
             message.diagnostic_response.payload.size = response->payload_length;
         }
     }
-
     return message;
 }
 
+const bool originalStitchAlgo = false;
+static int prevFrame = -1;
+static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
+        const ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response, openxc_DynamicField value) {
+    openxc_VehicleMessage message = openxc_VehicleMessage();        // Zero fill
+    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH;
+    message.diagnostic_stitch_response = {0};
+    message.diagnostic_stitch_response.bus = bus->address;
+
+    if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
+        message.diagnostic_stitch_response.message_id = response->arbitration_id
+            - DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET;
+    } else {
+        // must preserve responding arb ID for responses to functional broadcast
+        // requests, as they are the actual module address and not just arb ID +
+        // 8.
+        message.diagnostic_stitch_response.message_id = response->arbitration_id;
+    }
+
+    message.diagnostic_stitch_response.mode = response->mode;
+    message.diagnostic_stitch_response.pid = response->pid;
+    message.diagnostic_stitch_response.success = response->success;
+    message.diagnostic_stitch_response.negative_response_code =
+            response->negative_response_code;
+
+    message.diagnostic_stitch_response.frame = prevFrame + 1;
+    if (response->completed) {
+        message.diagnostic_stitch_response.frame = -1;     // Marks the last frame in the response
+    } else {
+        message.diagnostic_stitch_response.success = true;
+    }
+    prevFrame = message.diagnostic_stitch_response.frame;
+
+    if(response->payload_length > 0) {
+        if (request->decoder != NULL)  {
+            message.diagnostic_stitch_response.value = value;
+        } else {
+            memcpy(message.diagnostic_stitch_response.payload.bytes, response->payload,
+                    response->payload_length);
+            message.diagnostic_stitch_response.payload.size = response->payload_length;
+        }
+    }
+    return message;
+}
+
+#if (MULTIFRAME != 0)
+// The next 2 methods are the origial way that multi-frame
+// stitching was achieved.  It has been replaced with a new
+// openxc.proto file and uses a new message type.
+// These are here for reference until we know the new messages are working
+// 6/15/2020
+const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
+
+static void sendPartialMessage(long timestamp,
+                                int frame,
+                                int message_id,
+                                int bus,
+                                int total_size,
+                                int mode,
+                                int pid,
+                                int value,
+                                int negative_response_code,
+                                const char *payload,
+                                int payload_size,
+                                Pipeline* pipeline) {
+
+    char messageBuffer[MAX_MULTI_FRAME_MESSAGE_SIZE];
+            
+    // Manually form the message that is going out.
+
+    int numWritten = snprintf(messageBuffer,
+            MAX_MULTI_FRAME_MESSAGE_SIZE,
+            "{\"timestamp\":%ld,\"frame\":%d,\"id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
+            timestamp,
+            frame,
+            message_id+8,
+            bus,
+            total_size,
+            mode,
+            pid,
+            value);
+    
+    if (negative_response_code != 0) {  // Is there a failure code?
+        numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"success\":false,\"negative_response_code\":%d",
+                            negative_response_code);
+    } else {    // Success
+        numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"success\":true");
+    }
+
+    numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            ",\"payload\":\"0x");
+
+    for(int index=0; (index<payload_size) && (numWritten < MAX_MULTI_FRAME_MESSAGE_SIZE); index++) {
+        messageBuffer[numWritten++]=(((payload[index]>>4) & 0x0f) > 9) ? ((payload[index]>>4) & 0x0f) + 'a' - 10 : ((payload[index]>>4) & 0x0f) + '0';
+        messageBuffer[numWritten++]=((payload[index]&0xf) > 9) ? (payload[index]&0x0f) + 'a' - 10 : (payload[index]&0xf) + '0';
+    }
+    numWritten += snprintf(messageBuffer+numWritten,
+                            MAX_MULTI_FRAME_MESSAGE_SIZE-numWritten,
+                            "\"}");
+
+    int messageLen = strlen(messageBuffer) +1;
+    pipeline::sendMessage(pipeline,
+        (uint8_t*)messageBuffer, messageLen, MessageClass::SIMPLE);
+}
+
+
+// relayPartialFrame - Send the partial frame to the mobile device/web
+
+static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the callback
+        ActiveDiagnosticRequest* request,
+        const DiagnosticResponse* response, 
+        Pipeline* pipeline) {
+        
+        int frame = prevFrame + 1;
+        if (response->completed) {
+            frame = -1;     // Marks the last frame in the response
+        }
+        prevFrame = frame;
+
+        // see wrapDiagnosticResponseWithSabot
+        sendPartialMessage(00,                                  //     long timestamp,
+                           frame,                               //     int frame
+                           response->arbitration_id,            //     int message_id,
+                           request->bus->address,               //     int bus,
+                           0,                                   //     int total_size,
+                           response->mode,                      //     int mode,
+                           response->pid,                       //     int pid,
+                           0,                                   //     int value, - when the payload is a bitfield or numeric - parsed value
+                           response->negative_response_code,    //     int negative_response_code
+                           (char *)response->payload,           //     char *payload
+                           response->payload_length,
+                           pipeline);
+
+        if (response->completed && (request->callback != NULL)) {
+            request->callback(manager, request, response, diagnostic_payload_to_integer(response));
+        }
+}
+#endif
+
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, Pipeline* pipeline) {
+        const DiagnosticResponse* response, Pipeline* pipeline,
+        bool stitchMessage) {
     float parsed_value = diagnostic_payload_to_integer(response);
 
     uint8_t buf_size = response->multi_frame ? response->payload_length + 1 : 20;
@@ -326,6 +476,15 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         } else {
             publishNumericalMessage(request->name, field.numeric_value, pipeline);
         }
+    } else if (stitchMessage) {
+        openxc_VehicleMessage message = wrapDiagnosticStitchResponseWithSabot(
+                request->bus, request, response, field);
+        pipeline::publish(&message, pipeline);
+
+        if (!(response->completed)) {
+            return; // Only return if this is not the last partial
+                    // Otherwise if this is last we want to invoke the callback
+        }
     } else {
         // If no name, send full details of response but still include 'value'
         // instead of 'payload' if they provided a decoder. The one case you
@@ -345,22 +504,38 @@ static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
         CanMessage* message, Pipeline* pipeline) {
+
     if (bus == entry->bus && entry->inFlight) {
         DiagnosticResponse response = diagnostic_receive_can_frame(
                 // TODO eek, is bus address and array index this tightly
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-        if (response.completed && entry->handle.completed) {
+
+        if (response.multi_frame) {
+#if (MULTIFRAME != 0)
+            if (originalStitchAlgo) {
+                relayPartialFrame(manager, entry, &response, pipeline);
+            } else { 
+                relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020
+            }
+#endif
+            if (!response.completed) {
+                time::tick(&entry->timeoutClock);
+            } else {
+#if (MULTIFRAME == 0)
+                // This is the pre 2020 Way of sending a Diagnostic Response
+                // (all at once)
+                relayDiagnosticResponse(manager, entry, &response, pipeline, false);
+#endif
+            }
+        } else if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
-                relayDiagnosticResponse(manager, entry, &response,
-                        pipeline);
+                // Handle Single frame messages here!
+                relayDiagnosticResponse(manager, entry, &response, pipeline, false);
             } else {
                 debug("Fatal error sending or receiving diagnostic request");
             }
-        } else if (!response.completed && response.multi_frame) {
-            // Reset the timeout clock while completing the multi-frame receive
-            time::tick(&entry->timeoutClock);
         }
     }
 }
@@ -649,85 +824,345 @@ static bool handleAuthorizedCommand(DiagnosticsManager* manager,
     return status;
 }
 
-bool openxc::diagnostics::handleDiagnosticCommand(
-        DiagnosticsManager* manager, openxc_ControlCommand* command) {
-    bool status = true;
-        openxc_DiagnosticRequest* commandRequest =
-                &command->diagnostic_request.request;
-        if((commandRequest->message_id != 0) && (commandRequest->mode != 0)) {
-            CanBus* bus = NULL;
-            if(commandRequest->bus >= 0) {
-                bus = lookupBus(commandRequest->bus, getCanBuses(),
-                        getCanBusCount());
-            } 
-	    if((bus == NULL) && (commandRequest->bus == 0) && (getCanBusCount() > 0)) {	// Could not find a bus of 0 so use the 1st one if one not asked for
-                bus = &getCanBuses()[0];
-                debug("No bus specified for diagnostic request, "
-                        "using first active: %d", bus->address);
+bool openxc::diagnostics::isSupportedMessageID(int requestID)
+{
+    // ID Within Valid Range (701 - 7F1)
+    if (requestID >= 0x701 && requestID <= 0x7F1)
+    {
+        // Reserved IDs
+        if (requestID != 0x703 && requestID != 0x750 && requestID != 0x7B0 && requestID != 0x7D7 && requestID != 0x7F0)
+        {
+            return true;
+        }
+        else
+        {
+            // Request ID = Reserved
+            debug("Request ID is reserved and not supported by the emulator! Reserved: 0x703, 0x750, 0x7B0, 0x7D7, 0x7F0");
+            return false;
+        }
+    }
+    else
+    {
+        // ID Outside Valid Range (701 - 7F1)
+        debug("Request ID is outside the supported range by the emulator! Range: 0x701 - 0x7F1");
+        return false;
+    }
+}
+
+int openxc::diagnostics::getEmulatedMessageID(int requestID)
+{
+    if(requestID == 0x7DF)
+    {
+        // 7E8 <= Response ID <= 7EF
+        return rand() % (0x7EF - 0x7E8 + 0x1) + 0x7E8;
+    }
+    else
+    {
+        // Response ID = Request ID + 8
+        return requestID + 0x8;
+    }
+}
+
+bool openxc::diagnostics::isSupportedMode(int requestMode)
+{
+    // Supported Modes
+    if (requestMode == 0x1 || requestMode == 0x9 || requestMode == 0x22)
+    {
+        return true;
+    }
+    else
+    {
+        // Unsupported Modes
+        debug("Request mode is not supported by the emulator! Supported: 0x1, 0x9, 0x22");
+        return false;
+    }
+}
+
+bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
+{
+    switch (requestMode)
+    {
+        case 0x1:
+            if (requestPID >= 0x0 && requestPID <= 0xA6)
+            {
+                return true;
             }
-
-            if(getConfiguration()->emulatedData){
-                    //Checking to see if the message ID is in the "standard" OBD range (7DF or 7E0->7E7)
-                    //See: https://en.wikipedia.org/wiki/OBD-II_PIDs#CAN_.2811-bit.29_bus_format
-                    if(commandRequest->message_id >= 0x7DF && commandRequest->message_id <= 0x7E7)
-                    {
-                        openxc_VehicleMessage message = openxc_VehicleMessage();	// Zero fill
-                        message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
-                        message.diagnostic_response = {0};
-                        message.diagnostic_response.bus = bus->address;
-                        //message.diagnostic_response.has_message_id = true;
-                        //7DF should respond with a random message id between 7e8 and 7ef
-                        //7E0 through 7E7 should respond with a id that is 8 higher (7E0->7E8)
-                        if(commandRequest->message_id == 0x7DF)
-                        {
-                            message.diagnostic_response.message_id = rand()%(0x7EF-0x7E8 + 1) + 0x7E8;
-                        }
-                        else if(commandRequest->message_id >= 0x7E0 && commandRequest->message_id <= 0x7E7)
-                        {
-                            message.diagnostic_response.message_id = commandRequest->message_id + 8;
-                        }
-                        message.diagnostic_response.mode = commandRequest->mode;
-                        message.diagnostic_response.pid = commandRequest->pid;
-
-                        message.diagnostic_response.success = rand() & 1;
-                        if (message.diagnostic_response.success)
-                        {
-                            openxc_DynamicField value = openxc_DynamicField();	// Zero fill
-                            value.type = openxc_DynamicField_Type_NUM;
-                            value.numeric_value = rand() % 100;
-                            message.diagnostic_response.value = value;
-                        }
-                        else
-                        {
-                            message.diagnostic_response.negative_response_code = rand() % 15 + 1;
-                        }
-
-                        debug("Response message id: %d", message.diagnostic_response.message_id);
-                        pipeline::publish(&message, &getConfiguration()->pipeline);
-                    }
-                    else //If it's outside the range, the command_request will return false
-                    {
-                        debug("Sent message ID is outside the valid range for emulator (7DF to 7E7)");
-                        status=false;
-                    }
-                }
             else
             {
-                if(bus == NULL) {
-                    debug("No active bus to send diagnostic request");
-                    status = false;
-                } else if(bus->rawWritable) {
-                        status = handleAuthorizedCommand(manager, bus, command);
-                } else {
-                    debug("Raw CAN writes not allowed for bus %d", bus->address);
+                debug("Mode 0x1 does not support that PID! Range: 0x0 - 0xA6");
+            }
+            break;
+        case 0x9:
+            if (requestPID >= 0x0 && requestPID <= 0xB)
+            {
+                return true;
+            }
+            else
+            {
+                debug("Mode 0x2 does not support that PID! Range: 0x0 - 0xB");
+            }
+            break;
+        case 0x22:
+            if (requestPID >= 0xDE00 && requestPID <= 0xDEEF)
+            {
+                return true;
+            }
+            else
+            {
+                debug("Mode 0x22 does not support that PID! Range: 0xDE00 - 0xDEEF");
+            }
+            break;
+        default:
+            break;
+    }
+    return false;
+}
+
+bool openxc::diagnostics::isStitchPID(int requestMode, int requestPID)
+{
+#if (MULTIFRAME==1)
+    if ((requestMode == 0x22) && 
+        ((requestPID == 0xde00) || (requestPID == 0xde01))) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, Pipeline* pipeline) {
+#if (MULTIFRAME!=1)
+    return false;
+#else
+
+    if (requestPID == 0xde00) {
+        char emulPayload[] = {(char)0x62, (char)0xDE, (char)0x00, 
+                                (char)0x22, (char)0x2a, (char)0x04};
+        emulPayload[4] = rand() % 256;
+        emulPayload[5] = rand() % 256;
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           -1,              // int frame,
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload,     // const char *payload,
+                           sizeof(emulPayload), // int payload_size,
+                           pipeline);
+    } else {
+        char emulPayload1[] = {(char)0x62, (char)0xDE, (char)0x00, 
+                                (char)0x22, (char)0x2a, (char)0x04};
+        char emulPayload2[] = {(char)0x03, (char)0x00, (char)0x0a,
+                                (char)0xc8, (char)0x00, (char)0x00,
+                                (char)0x8a};
+        emulPayload1[5] = rand() % 256;
+        for(int cnt=0; cnt<7; cnt++) {
+            emulPayload2[cnt] = rand() % 256;
+        }
+
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           0,               // int frame,  (First Frame)
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload1,     // const char *payload,
+                           sizeof(emulPayload1), // int payload_size,
+                           pipeline);
+
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           -1,               // int frame,  (Last Frame)
+                           0x7d8,           // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           0x22,            // int mode,
+                           0xde00,          // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           emulPayload2,     // const char *payload,
+                           sizeof(emulPayload2), // int payload_size,
+                           pipeline);
+    }
+    return true;
+#endif
+}
+
+void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess)
+{
+    vehicleMessage->diagnostic_response.success = isSuccess;
+    if (isSuccess)
+    {
+        openxc_DynamicField value = openxc_DynamicField();
+        value.type = openxc_DynamicField_Type_NUM;
+        value.numeric_value = rand() % 0x1000;
+        vehicleMessage->diagnostic_response.value = value;
+    }
+    else
+    {
+        vehicleMessage->diagnostic_response.negative_response_code = rand() % (0xF1 - 0x10 + 0x1) + 0x10;
+    }
+}
+
+bool openxc::diagnostics::isVINPid(int requestMode, int requestPID)
+{
+#if (MULTIFRAME==1)
+    if ((requestMode == 9) && (requestPID == 2)) {
+        return true;
+    }
+#endif
+    return false; 
+}
+
+static const char *VINArray[] = {
+            "1FDWX3C60C0012685",   // 2012 Ford
+            "2FTDX15G0C0010824",   // 1982 Ford F150
+            "2FDHF37M0R0011608",   // 1994 Ford F350
+            "1FTNX20L71EC79927",   // 2001 Ford F250 Super Duty
+            "1FTFX1CF2DFC76209",   // 2013 Ford F150
+            "1FDXF46P37EB40030",   // 2007 Ford F450
+            "1FTBR10T9GUA26470",   // 1986 Ford Ranger
+            "1FTNS2ELXADB03208",   // 2010 Ford E Series Van
+            "JH4KA3150HC004866",   // 1987 Acura Legend
+            "1G8MC35B38Y119771",   // 2008 Saturn Sky
+            "1ZVBP8CH7A5121324",   // 2020 Ford Mustang
+            "WD5WD641525381291",   // 2002 Freightliner Sprinter
+            "WBANF73576CG65408",   // 2006 BMW 5 Series
+            "1FTEX14H0RKA51281",   // 1994 Ford F150
+            "1GNEL19X73B130926",   // 2003 Chevrolet Astro
+            "1C6RD6KT4CS332867",   // 2012 Dodge Ram 1500
+            "3D4GG47B09T581222",   // 2009 Dodge Journey
+            "JH4DB1670MS000448",   // 1991 Acura Integra
+            "1GNDT13W5R2133070",   // 1994 Chevrolet S10 Blazer
+            "1G6CD1184H4323745"    // 1987 Cadillac Deville
+};
+
+bool openxc::diagnostics::generateAndSendVINStitchMessages(int messageId, int requestMode, int requestPID, Pipeline* pipeline) {
+#if (MULTIFRAME!=1)
+    return false;
+#endif
+
+    int sampleSize = sizeof(VINArray) / sizeof(VINArray[0]);
+    int selection = rand() % sampleSize;
+    const int packetSize = 4;       // Send max "packetSize" ascii per message
+    int numPackets = (strlen(VINArray[selection]) + packetSize - 1) / packetSize;
+
+    int index = 0;
+    for(int count=0; count<numPackets; count++) {
+        int remaining = strlen(VINArray[selection]) - index;
+        int payloadSize = (packetSize < remaining) ? packetSize : remaining;
+        int frame = (count == numPackets - 1) ? -1 : count;
+        sendPartialMessage(0x00000000,      // long timestamp,
+                           frame,           // int frame,
+                           messageId + 8,   // int message_id,
+                           0,               // int bus,
+                           0,               // int total_size,
+                           requestMode,     // int mode,
+                           requestPID,      // int pid,
+                           0,               // int value,
+                           0,               // int negative_response_code,
+                           &VINArray[selection][index],     // const char *payload,
+                           payloadSize,     // int payload_size,
+                           pipeline);
+        index += packetSize;
+    }
+
+    return true;
+}
+
+bool openxc::diagnostics::handleDiagnosticCommand(DiagnosticsManager* manager, openxc_ControlCommand* command)
+{
+    bool status = true;
+    openxc_DiagnosticRequest* commandRequest = &command->diagnostic_request.request;
+
+    if((commandRequest->message_id != 0) && (commandRequest->mode != 0))
+    {
+        CanBus* bus = NULL;
+        if(commandRequest->bus >= 0)
+        {
+            bus = lookupBus(commandRequest->bus, getCanBuses(), getCanBusCount());
+        } 
+	    if((bus == NULL) && (commandRequest->bus == 0) && (getCanBusCount() > 0))
+        {
+            // Could not find a bus of 0 so use the 1st one if one not asked for
+            bus = &getCanBuses()[0];
+            debug("No bus specified for diagnostic request, using first active: %d", bus->address);
+        }
+
+        if(getConfiguration()->emulatedData)
+        {
+            openxc_VehicleMessage message = openxc_VehicleMessage();
+            message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+            message.diagnostic_response = { 0 };
+            message.diagnostic_response.bus = bus->address;
+
+            if (isSupportedMessageID(commandRequest->message_id))
+            {
+                message.diagnostic_response.message_id = getEmulatedMessageID(commandRequest->message_id);
+
+                if (isSupportedMode(commandRequest->mode))
+                {
+                    message.diagnostic_response.mode = commandRequest->mode;
+
+                    if (isStitchPID(commandRequest->mode, commandRequest->pid)) {
+                        generateAndSendEmulatedStitchMessages(commandRequest->mode, commandRequest->pid,
+                                                                &getConfiguration()->pipeline);
+                    } else if (isVINPid(commandRequest->mode, commandRequest->pid)) {
+                        generateAndSendVINStitchMessages(commandRequest->message_id,
+                                                                commandRequest->mode, commandRequest->pid,
+                                                                &getConfiguration()->pipeline);
+                    }
+                    else if (isSupportedPID(commandRequest->mode, commandRequest->pid))
+                    {
+                        message.diagnostic_response.pid = commandRequest->pid;
+
+                        generateEmulatorPayload(&message, rand() & 1);
+
+                        pipeline::publish(&message, &getConfiguration()->pipeline);
+                    }
+                    else
+                    {
+                        status = false;
+                    }
+                }
+                else
+                {
                     status = false;
                 }
             }
-
-        } else {
-            debug("Diagnostic requests need at least an arb. ID and mode");
-            status = false;
+            else
+            {
+                status = false;
+            }
         }
+        else
+        {
+            if (bus == NULL)
+            {
+                debug("No active bus to send diagnostic request");
+                status = false;
+            }
+            else if (bus->rawWritable)
+            {
+                status = handleAuthorizedCommand(manager, bus, command);
+            }
+            else
+            {
+                debug("Raw CAN writes not allowed for bus %d", bus->address);
+                status = false;
+            }
+        }
+
+    }
+    else
+    {
+        debug("Diagnostic requests need at least an arb. ID and mode");
+        status = false;
+    }
     return status;
 }
 

@@ -439,6 +439,45 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
 }
 #endif
 
+const int VIN_STORAGE_LENGTH = VIN_LENGTH+1;  // 17 characters + 1 pad
+const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
+unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
+bool vinComplete = false;
+
+void filterForVIN(CanMessage* message) {
+
+    if ((message->id == 0x40a) &&
+        (message->data[0] == 0xc1) && 
+        (message->data[1] <= 0x02)) {
+
+        // gja debug here!
+        char buffer[26];
+        buffer[0] = '>';
+        int indx=1;
+        for(int cnt=0; cnt<message->length; cnt++) {
+            int c = (message->data[cnt] & 0xf0) >> 4;
+            buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
+            c = (message->data[cnt] & 0x0f);
+            buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
+            buffer[indx++] = ' ';
+            buffer[indx] = 0;
+        }
+        debug(buffer);
+        // gja debug above here!
+
+        int index = message->data[1] * VIN_SNIPPET_LENGTH;
+        for(int cnt=2; cnt<8; cnt++, index++) {
+            vinBuffer[index] = message->data[cnt];
+        }
+
+        bool emptySpace = false;
+        for (int cnt=0; cnt<VIN_LENGTH; cnt++) {
+            if (vinBuffer[cnt] == 0) emptySpace = true;
+        }
+        vinComplete = !emptySpace;
+    }
+}
+
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline,
@@ -543,6 +582,8 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
     ActiveDiagnosticRequest* entry;
+
+    filterForVIN(message);
 
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
         receiveCanMessage(manager, bus, entry, message, pipeline);

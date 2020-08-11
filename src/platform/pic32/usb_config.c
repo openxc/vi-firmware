@@ -6,6 +6,13 @@
 #include "USB/usb_function_msd.h"
 #endif
 
+#ifdef ROM
+#undef ROM
+#define ROM
+#else
+#define ROM
+#endif
+
 ROM USB_DEVICE_DESCRIPTOR device_dsc_gen=
 {
     sizeof(USB_DEVICE_DESCRIPTOR),

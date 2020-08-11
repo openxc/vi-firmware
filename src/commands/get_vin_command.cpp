@@ -35,10 +35,15 @@ namespace pipeline = openxc::pipeline;
 bool openxc::commands::handleGetVinCommand() {
     char* vin;
     bool status = false;
-    if((rand() % (10-1+1)+1)<=9) {
+
+    if (openxc::diagnostics::haveVINfromCan()) {
+    	status = true;
+    	vin = (char *)openxc::diagnostics::getVIN();
+    } else {
         status = true;
         vin = strdup(config::getConfiguration()->dummyVin);
-        sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, status, vin, strlen(vin));
-    }   
+    }
+    sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, status, vin, strlen(vin));
+
     return status;
 }

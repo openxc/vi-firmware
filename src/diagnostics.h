@@ -377,6 +377,19 @@ bool handleDiagnosticCommand(DiagnosticsManager* manager,
 void passthroughDecoder(const DiagnosticResponse* response,
         float parsed_payload, char* str_buf, int buf_size);
 
+
+/*
+* If the VIN has been scanned from the CAN bus and stored
+* this method will return true.
+*/
+bool haveVINfromCan();
+
+/*
+* Get the VIN that was scanned from the CAN
+*/
+unsigned char *getVIN();
+
+
 } // namespace diagnostics
 } // namespace openxc
 

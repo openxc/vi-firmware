@@ -444,6 +444,14 @@ const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
 unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
 bool vinComplete = false;
 
+bool openxc::diagnostics::haveVINfromCan() {
+    return vinComplete;
+}
+
+unsigned char *openxc::diagnostics::getVIN() {
+    return vinBuffer;
+}
+
 void filterForVIN(CanMessage* message) {
 
     if ((message->id == 0x40a) &&

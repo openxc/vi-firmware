@@ -116,7 +116,7 @@ CPPFLAGS += -I$(LIBS_PATH)/STBTLE \
 			-Iinterface -DBLUENRG_MS \
 			-Iplatform/pic32/ringbuffer
 
-CFLAGS   += -I$(LIBS_PATH)/STBTLE -Iplatform/pic32 -DBLUENRG_MS -Iplatform/pic32/ringbuffer
+CFLAGS   += -Werror -I$(LIBS_PATH)/STBTLE -Iplatform/pic32 -DBLUENRG_MS -Iplatform/pic32/ringbuffer
 
 LOCAL_C_SRCS += $(wildcard $(LIBS_PATH)/STBTLE/*.c)
 LOCAL_C_SRCS += platform/pic32/ringbuffer/ringbuffer.c
@@ -150,7 +150,7 @@ LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/SD-SPI.c
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
 INCLUDE_PATHS += -I$(LIBS_PATH)/MLA/Include
 
-CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
+CFLAGS   += -Werror -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
 endif
 endif
 
@@ -175,7 +175,7 @@ LOCAL_C_SRCS += $(LIBS_PATH)/MLA/MDD_File_System/SD-SPI.c
 INCLUDE_PATHS += -Iplatform/pic32/fs_support
 INCLUDE_PATHS += -I$(LIBS_PATH)/MLA/Include
 
-CFLAGS   += -I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
+CFLAGS   += -Werror-I$(LIBS_PATH)/fileio/inc  -Iplatform/pic32/fs_support -I$(LIBS_PATH)/fileio/drivers/sd_spi -D__XC32__ -I$(LIBS_PATH)/MLA/Include -D__C32__ -I$(LIBS_PATH)/MLA/Include -Iplatform/pic32
 
 endif
 endif

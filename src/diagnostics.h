@@ -389,6 +389,11 @@ bool haveVINfromCan();
 */
 unsigned char *getVIN();
 
+/*
+* Sniff the can traffic for the specific VIN CAN messages
+*/
+void filterForVIN(CanMessage* message);
+
 
 } // namespace diagnostics
 } // namespace openxc

@@ -452,7 +452,7 @@ unsigned char *openxc::diagnostics::getVIN() {
     return vinBuffer;
 }
 
-void filterForVIN(CanMessage* message) {
+void openxc::diagnostics::filterForVIN(CanMessage* message) {
 
     if ((message->id == 0x40a) &&
         (message->data[0] == 0xc1) && 
@@ -590,8 +590,6 @@ static void receiveCanMessage(DiagnosticsManager* manager,
 void openxc::diagnostics::receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus, CanMessage* message, Pipeline* pipeline) {
     ActiveDiagnosticRequest* entry;
-
-    filterForVIN(message);
 
     TAILQ_FOREACH(entry, &manager->recurringRequests, queueEntries) {
         receiveCanMessage(manager, bus, entry, message, pipeline);

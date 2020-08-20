@@ -459,18 +459,18 @@ void openxc::diagnostics::filterForVIN(CanMessage* message) {
         (message->data[1] <= 0x02)) {
 
         // gja debug here!
-        char buffer[26];
-        buffer[0] = '>';
-        int indx=1;
-        for(int cnt=0; cnt<message->length; cnt++) {
-            int c = (message->data[cnt] & 0xf0) >> 4;
-            buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
-            c = (message->data[cnt] & 0x0f);
-            buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
-            buffer[indx++] = ' ';
-            buffer[indx] = 0;
-        }
-        debug(buffer);
+        // char buffer[26];
+        // buffer[0] = '>';
+        // int indx=1;
+        // for(int cnt=0; cnt<message->length; cnt++) {
+        //     int c = (message->data[cnt] & 0xf0) >> 4;
+        //     buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
+        //     c = (message->data[cnt] & 0x0f);
+        //     buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
+        //     buffer[indx++] = ' ';
+        //     buffer[indx] = 0;
+        // }
+        // debug(buffer);
         // gja debug above here!
 
         int index = message->data[1] * VIN_SNIPPET_LENGTH;

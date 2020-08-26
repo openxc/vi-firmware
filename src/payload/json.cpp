@@ -234,6 +234,12 @@ static cJSON* serializeDynamicField(openxc_DynamicField* field) {
     }
     return value;
 }
+void dumpNum(int value);
+void dumpDouble(double value) {
+    char buff[20];
+    sprintf(buff, "%f", value);
+    debug(buff);
+}
 
 static bool serializeSimple(openxc_VehicleMessage* message, cJSON* root) {
     const char* name = message->simple_message.name;
@@ -366,6 +372,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "mode");
         if(element != NULL) {
+            debug("mode");
+            dumpNum(element->valueint);
             command->diagnostic_request.request.mode = element->valueint;
         }
 
@@ -389,12 +397,16 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
+        debug("multiple_responses:");
+        dumpNum(element->valueint);
             command->diagnostic_request.request.multiple_responses =
                 bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
+        debug("frequency:");
+        dumpDouble(element->valuedouble);
             command->diagnostic_request.request.frequency =
                 element->valuedouble;
         }
@@ -402,9 +414,11 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "decoded_type");
         if(element != NULL) {
             if(!strcmp(element->valuestring, "obd2")) {
+                debug("decoded_type is obd2");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_OBD2;
             } else if(!strcmp(element->valuestring, "none")) {
+                debug("decoded_type is none");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_NONE;
             }
@@ -412,6 +426,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "name");
         if(element != NULL && element->type == cJSON_String) {
+            debug("name");
+            debug(element->valuestring);
             strcpy(command->diagnostic_request.request.name,
                     element->valuestring);
         }

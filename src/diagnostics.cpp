@@ -546,7 +546,8 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         request->callback(manager, request, response, parsed_value);
     }
 }
-
+void sendCommandResponse(openxc_ControlCommand_Type commandType,
+    bool status, char* responseMessage, size_t responseMessageLength);
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
@@ -558,8 +559,12 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-
+                debug("Raw Message for get_vin");
+                debug((const char*)message->data);
         if (response.multi_frame) {
+            // checkForVinCommand(message);
+            char* vin = (char*)"receiveCanMessage";
+            openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
 #if (MULTIFRAME != 0)
             if (originalStitchAlgo) {
                 relayPartialFrame(manager, entry, &response, pipeline);

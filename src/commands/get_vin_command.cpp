@@ -11,6 +11,7 @@
 #include <can/canutil.h>
 #include <bitfield/bitfield.h>
 #include <limits.h>
+#include <openxc.pb.h>
 
 using openxc::util::log::debug;
 using openxc::config::getConfiguration;
@@ -35,15 +36,39 @@ namespace pipeline = openxc::pipeline;
 bool openxc::commands::handleGetVinCommand() {
     char* vin;
     bool status = false;
+    vin = (char*)openxc::diagnostics::getVIN();
 
-    if (openxc::diagnostics::haveVINfromCan()) {
-    	status = true;
-    	vin = (char *)openxc::diagnostics::getVIN();
-    } else {
+    // if (openxc::diagnostics::haveVINfromCan()) {
+    // 	status = true;
+    // 	vin = (char *)openxc::diagnostics::getVIN();
+    // } else 
+    if(status == false) {
+        openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
+    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+
+        command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+        command.diagnostic_request.action =
+                    openxc_DiagnosticControlCommand_Action_ADD;
+
+        command.diagnostic_request.request.bus = 1;
+        command.diagnostic_request.request.mode = 9;
+        command.diagnostic_request.request.message_id = 0x7e0;
+        command.diagnostic_request.request.pid = 2;
+
+        diagnostics::handleDiagnosticCommand(
+            &getConfiguration()->diagnosticsManager, &command);
+        // sendCommandResponse(openxc_ControlCommand_Type_DIAGNOSTIC, status);
+        // vin = "test";
+        diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
+    }
+    else {
         status = true;
         vin = strdup(config::getConfiguration()->dummyVin);
     }
-    sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, status, vin, strlen(vin));
+    // debug("Testing for Jamez line 66 getVinCommand.cpp");
+    // debug(vin);
+    // debug((const char*)strlen(vin));
+    // sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, status, vin, strlen(vin));
 
     return status;
 }

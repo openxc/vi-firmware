@@ -389,6 +389,7 @@ bool haveVINfromCan();
 */
 unsigned char *getVIN();
 
+unsigned char *getDiagnosticVIN();
 /*
 * Sniff the can traffic for the specific VIN CAN messages
 */

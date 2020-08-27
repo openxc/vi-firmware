@@ -443,6 +443,7 @@ const int VIN_STORAGE_LENGTH = VIN_LENGTH+1;  // 17 characters + 1 pad
 const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
 unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
 bool vinComplete = false;
+bool vinCommandInProgress = false;
 
 bool openxc::diagnostics::haveVINfromCan() {
     return vinComplete;
@@ -450,6 +451,10 @@ bool openxc::diagnostics::haveVINfromCan() {
 
 unsigned char *openxc::diagnostics::getVIN() {
     return vinBuffer;
+}
+
+void openxc::diagnostics::setVinCommandInProgress(bool vinInProgress) {
+    vinCommandInProgress = vinInProgress;
 }
 
 void openxc::diagnostics::filterForVIN(CanMessage* message) {
@@ -483,6 +488,59 @@ void openxc::diagnostics::filterForVIN(CanMessage* message) {
             if (vinBuffer[cnt] == 0) emptySpace = true;
         }
         vinComplete = !emptySpace;
+    }
+}
+
+void dumpNum(int);
+bool vinCommandFailed = false;
+int selector = -1;
+
+void openxc::diagnostics::checkForVinCommand(CanMessage *message) {
+
+    // Step 1: Check to see if get vin command is in progrees
+    debug("diag:checkForVinCommand");
+    dumpNum(message->id);
+    if(message->id != 2024) {
+        return;
+    }
+    char buffer[18];
+    int bufferindex = 0;
+    // Step 2: unpackage Can data into VIN buffer
+    if (message->length > 2) {
+        for(int index=0; index<message->length; index++) {
+            int high = ((message->data[index] >> 4) & 0xf);
+            int letter = (high > 9) ? high - 10 + 'A' : high + '0';
+            int low = (message->data[index] & 0xf);
+            int letter2 = (low > 9) ? low - 10 + 'A' : low + '0';
+            buffer[bufferindex] = letter; bufferindex++;
+            buffer[bufferindex] = letter2; bufferindex++;
+        }
+        buffer[bufferindex] = 0;
+        debug(buffer);
+    }
+
+    if (selector >= 3) selector = -1;
+
+    selector++;
+    if(selector == 0) {
+        for(int cnt=5, index=0; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    } else if(selector == 1) {
+        for(int cnt=1, index=3; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    } else {
+        for(int cnt=1, index=10; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    // Step 3: When all of the VIN data is complete return sendCommandResponse with VIN
+
+        char* vin = (char *)vinBuffer;
+        openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
+        setVinCommandInProgress(false);
+    // VIN command completed 
+        vinComplete = true;
     }
 }
 
@@ -561,10 +619,12 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 &entry->handle, message->id, message->data, message->length);
                 debug("Raw Message for get_vin");
                 debug((const char*)message->data);
+                // If this is a VIN command we don't want to send a diagnostic response.
+                if(vinCommandInProgress == true) {
+                    openxc::diagnostics::checkForVinCommand(message);
+                    return;
+                }
         if (response.multi_frame) {
-            // checkForVinCommand(message);
-            char* vin = (char*)"receiveCanMessage";
-            openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
 #if (MULTIFRAME != 0)
             if (originalStitchAlgo) {
                 relayPartialFrame(manager, entry, &response, pipeline);

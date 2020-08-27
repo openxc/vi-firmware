@@ -394,6 +394,8 @@ unsigned char *getDiagnosticVIN();
 * Sniff the can traffic for the specific VIN CAN messages
 */
 void filterForVIN(CanMessage* message);
+void checkForVinCommand(CanMessage *message);
+void setVinCommandInProgress(bool vinInProgress);
 
 
 } // namespace diagnostics

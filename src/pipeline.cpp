@@ -80,8 +80,6 @@ void sendToUsb(Pipeline* pipeline, uint8_t* message, int messageSize,
         }
 
         conditionalFlush(pipeline, sendQueue, message, messageSize);
-        debug("sendtoUSB debug pipeline line 83");
-        debug((const char*)message);
         sendToEndpoint(pipeline->usb->descriptor.type, sendQueue,
                 &pipeline->usb->endpoints[OUT_ENDPOINT_INDEX].queue,
                 message, messageSize);
@@ -192,7 +190,6 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
             break;
     }
     if(matched) {
-        debug("debug for Ja'mez pipeline line 195 %d", message->type);
         sendMessage(pipeline, payload, length, messageClass);
 
     } else {

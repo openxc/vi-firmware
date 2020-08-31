@@ -34,16 +34,14 @@ namespace uart = openxc::interface::uart;
 namespace pipeline = openxc::pipeline;
 
 bool openxc::commands::handleGetVinCommand() {
+    char* vin;
 
     if (openxc::diagnostics::haveVINfromCan()) {
-    char* vin = (char *)openxc::diagnostics::getVIN();
-    debug("Testing for Jamez line 66 getVinCommand.cpp");
-    debug(vin);
-    debug((const char*)strlen(vin));
-    sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, true, vin, strlen(vin));
-    } else if(!openxc::diagnostics::haveVINfromCan()) {
+    	vin = (char *)openxc::diagnostics::getVIN();
+        sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, true, vin, strlen(vin));
+    } else {
         openxc_ControlCommand command = openxc_ControlCommand();	// Zero Fill
-    command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
+        command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
 
         command.type = openxc_ControlCommand_Type_DIAGNOSTIC;
         command.diagnostic_request.action =
@@ -59,11 +57,6 @@ bool openxc::commands::handleGetVinCommand() {
             &getConfiguration()->diagnosticsManager, &command);
         diagnostics::sendRequests(&getConfiguration()->diagnosticsManager, &getCanBuses()[0]);
     }
-    else {
-        char* vin = strdup(config::getConfiguration()->dummyVin);
-        sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, true, vin, strlen(vin));
-    }
-    
 
     return true;
 }

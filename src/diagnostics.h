@@ -14,7 +14,7 @@
 /* Private: The maximum number of simultanous diagnostic requests. Increasing
  * this number will use more memory on the stack.
  */
-#define MAX_SIMULTANEOUS_DIAG_REQUESTS 5
+#define MAX_SIMULTANEOUS_DIAG_REQUESTS 20
 
 /* Private: The maximum length for a human-readable name for a diagnostic
  * response.

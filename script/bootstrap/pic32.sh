@@ -30,14 +30,16 @@ then
     download $CHIPKIT_LIBRARY_DOWNLOAD_URL $CHIPKIT_ZIP_FILE $NOT_SECURE
     echo "Extracting CHIPKit"
     unzip -q $CHIPKIT_ZIP_FILE
+    rm -rf $CHIPKIT_ZIP_FILE
 fi
 _popd
 
 _pushd src/libs
 for LIBRARY in chipKITUSBDevice chipKITCAN chipKITEthernet; do
     echo "Installing chipKIT library $LIBRARY..."
-    cp -R ../../dependencies/libraries/$LIBRARY .
+    sudo cp -R ../../dependencies/libraries/$LIBRARY /usr/lib/chipkit
 done
+rm -rf ../../dependencies/libraries
 _popd
 
 ### Patch libraries to avoid problems in case sensitive operating systems
@@ -45,10 +47,6 @@ _popd
 ### and https://github.com/chipKIT32/chipKIT32-MAX/issues/199
 
 echo "Patching case-sensitivity bugs in chipKIT libraries..."
-
-if [ $OS == "cygwin" ] && ! [ -e /usr/bin/patch ]; then
-    _cygwin_error "patchutils"
-fi
 
 # If the patch is already applied, patch will error out, so disable quit on
 # error temporarily

@@ -37,32 +37,24 @@ if [ -z $COMMON_SOURCED ]; then
         DISTRO=`lsb_release -si`
     fi
 
-
     die() {
         echo >&2 "${bldred}$@${txtrst}"
         exit 1
     }
 
-    _cygwin_error() {
-        echo
-        echo "${bldred}Missing \"$1\"${txtrst} - run the Cygwin installer again and select the base package set:"
-        echo "    $CYGWIN_PACKAGES"
-        echo "After installing the packages, re-run this bootstrap script."
-        die
-    }
-
-    if ! command -v tput >/dev/null 2>&1; then
-        if [ $OS == "cygwin" ]; then
-            echo "OPTIONAL: Install the \"ncurses\" package in Cygwin to get colored shell output"
-        fi
+    if [ $OS == "linux" ]; then
+        echo "Sane build distro"
     else
-        set +e
-        # These exit with 1 when provisioning in a Vagrant box...?
-        txtrst=$(tput sgr0) # reset
-        bldred=${txtbld}$(tput setaf 1)
-        bldgreen=${txtbld}$(tput setaf 2)
-        set -e
+        die "Compiling the VI firmware from a $OS prompt is not \
+        supported - see the docs for the recommended approach"
     fi
+
+    set +e
+    # These exit with 1 when provisioning in a Vagrant box...?
+    txtrst=$(tput sgr0) # reset
+    bldred=${txtbld}$(tput setaf 1)
+    bldgreen=${txtbld}$(tput setaf 2)
+    set -e
 
 
     _pushd() {
@@ -81,30 +73,14 @@ if [ -z $COMMON_SOURCED ]; then
     }
 
     _install() {
-        if [ $OS == "cygwin" ]; then
-            _cygwin_error $1
-        elif [ $OS == "mac" ]; then
-            # brew exists with 1 if it's already installed
-            set +e
-            brew install $1
-            set -e
+
+        if [ -z $DISTRO ]; then
+            echo
+            echo "Missing $1 - install it using your distro's package manager or build from source"
+            _wait
         else
-            if [ -z $DISTRO ]; then
-                echo
-                echo "Missing $1 - install it using your distro's package manager or build from source"
-                _wait
-            else
-                if [ $DISTRO == "arch" ]; then
-                    $SUDO_CMD pacman -S $1
-                elif [ $DISTRO == "Ubuntu" ]; then
-                    $SUDO_CMD apt-get update -qq -y
-                    $SUDO_CMD apt install -y $1 
-                else
-                    echo
-                    echo "Missing $1 - install it using your distro's package manager or build from source"
-                    _wait
-                fi
-            fi
+            $SUDO_CMD apt-get update -qq -y
+            $SUDO_CMD apt install -y $1 
         fi
     }
 
@@ -130,34 +106,13 @@ if [ -z $COMMON_SOURCED ]; then
     fi
 
     if ! command -v curl >/dev/null 2>&1; then
-        if [ $OS == "cygwin" ]; then
-            _cygwin_error "curl"
-        else
-            _install curl
-        fi
+        _install curl
     fi
 
     echo "Storing all downloaded dependencies in the \"dependencies\" folder"
 
     DEPENDENCIES_FOLDER="dependencies"
     mkdir -p $DEPENDENCIES_FOLDER
-
-
-    if [ $OS == "windows" ]; then
-        die "Compiling the VI firmware from a Windows prompt is not \
-supported - see the docs for the recommended approach"
-    fi
-
-    if [ $OS == "cygwin" ]; then
-    # TODO need a warning colored promp
-        die "Compiling the VI firmware from a Cigwin prompt is not \
-supported - see the docs for the recommended approach"
-    fi
-
-    if [ $OS == "mac" ]; then
-        die "Compiling the VI firmware from a MacOS prompt is not \
-supported - see the docs for the recommended approach"
-    fi
 
     if [ $OS == "linux" ] && [ -z $VAGRANT ] && [ -z $CI ]; then
         echo "It looks like you're developing in Linux. We recommend \
@@ -173,21 +128,14 @@ pre-configured Vagrant environment. See the docs for more information."
 
 
     if ! command -v make >/dev/null 2>&1; then
-        if [ $DISTRO == "arch" ]; then
-            _install "base-devel"
-        elif [ $DISTRO == "Ubuntu" ]; then
-            _install "build-essential"
-        fi
+        _install "build-essential"
     fi
 
-    if [ $DISTRO == "Ubuntu" ] && [ $ARCH == "x86_64" ]; then
-        _install "libc6-i386"
-    fi
+    _install "libc6-i386"
 
     if ! command -v g++ >/dev/null 2>&1; then
-        if [ $DISTRO == "Ubuntu" ]; then
-            _install "g++"
-        fi
+        _install "g++"
+        _install "check"
     fi
 
 

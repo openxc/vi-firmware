@@ -10,7 +10,7 @@ ifeq ($(NETWORK), 1)
 ARDUINO_LIBS += chipKITEthernet chipKITEthernet/utility
 endif
 
-DEPENDENCIES_MPIDE_DIR = $(DEPENDENCIES_FOLDER)/mpide
+DEPENDENCIES_MPIDE_DIR = /usr/lib/mpide
 
 OSTYPE := $(shell uname)
 ifneq ($(OSTYPE),Darwin)

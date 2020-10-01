@@ -537,7 +537,7 @@ void openxc::diagnostics::checkForVinCommand(CanMessage *message) {
     // Step 3: When all of the VIN data is complete return sendCommandResponse with VIN
 
         char* vin = (char *)vinBuffer;
-        if (vin) {
+        if (strlen(vin)) {
             openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
             setVinCommandInProgress(false);
     // VIN command completed 

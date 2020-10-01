@@ -34,6 +34,15 @@ namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
 namespace obd2 = openxc::diagnostics::obd2;
 
+const int VIN_STORAGE_LENGTH = VIN_LENGTH+1;  // 17 characters + 1 pad
+const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
+unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
+bool vinComplete = false;
+bool vinCommandInProgress = false;
+int selector = -1;
+void dumpNum(int);
+
+
 //  receiveCanMessage - called from vi_firmware every time a CanMessage
 //                  is QUEUE_POP from the busses' receiveQueue
 // MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
@@ -112,6 +121,10 @@ static void cleanupRequest(DiagnosticsManager* manager,
                     request_string);
             LIST_REMOVE(entry, listEntries);
             cancelRequest(manager, entry);
+
+            if (vinCommandInProgress) {
+                openxc::diagnostics::sendGetVinError();
+            }
         }
     }
 }
@@ -439,12 +452,6 @@ static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the
 }
 #endif
 
-const int VIN_STORAGE_LENGTH = VIN_LENGTH+1;  // 17 characters + 1 pad
-const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
-unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
-bool vinComplete = false;
-bool vinCommandInProgress = false;
-
 bool openxc::diagnostics::haveVINfromCan() {
     return vinComplete;
 }
@@ -463,21 +470,6 @@ void openxc::diagnostics::filterForVIN(CanMessage* message) {
         (message->data[0] == 0xc1) && 
         (message->data[1] <= 0x02)) {
 
-        // gja debug here!
-        // char buffer[26];
-        // buffer[0] = '>';
-        // int indx=1;
-        // for(int cnt=0; cnt<message->length; cnt++) {
-        //     int c = (message->data[cnt] & 0xf0) >> 4;
-        //     buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
-        //     c = (message->data[cnt] & 0x0f);
-        //     buffer[indx++] = (c > 9) ? (c - 10 + 'a') : c + '0';
-        //     buffer[indx++] = ' ';
-        //     buffer[indx] = 0;
-        // }
-        // debug(buffer);
-        // gja debug above here!
-
         int index = message->data[1] * VIN_SNIPPET_LENGTH;
         for(int cnt=2; cnt<8; cnt++, index++) {
             vinBuffer[index] = message->data[cnt];
@@ -491,14 +483,10 @@ void openxc::diagnostics::filterForVIN(CanMessage* message) {
     }
 }
 
-void dumpNum(int);
-bool vinCommandFailed = false;
-int selector = -1;
 
 void openxc::diagnostics::checkForVinCommand(CanMessage *message) {
 
     // Step 1: Check to see if get vin command is in progrees
-    debug("diag:checkForVinCommand");
     dumpNum(message->id);
     if(message->id != 2024) {
         return;
@@ -537,21 +525,18 @@ void openxc::diagnostics::checkForVinCommand(CanMessage *message) {
     // Step 3: When all of the VIN data is complete return sendCommandResponse with VIN
 
         char* vin = (char *)vinBuffer;
-        if (strlen(vin) == VIN_LENGTH) {
-            openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
-            setVinCommandInProgress(false);
-    // VIN command completed 
-            vinComplete = true;
-        } else {
-            vin = config::getConfiguration()->dummyVin;
-            debug("get_vin Command failed.");
-            openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
-            setVinCommandInProgress(false);
-    // VIN command completed 
-            vinComplete = true;
-            
-        }
+        openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
+        setVinCommandInProgress(false);
+        vinComplete = true;
     }
+}
+
+void openxc::diagnostics::sendGetVinError() {
+
+    char *errorGetVin = (char *)"Unable to get VIN - timeout";
+
+    openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 0, errorGetVin, strlen(errorGetVin));
+    vinCommandInProgress = false;
 }
 
 static void relayDiagnosticResponse(DiagnosticsManager* manager,

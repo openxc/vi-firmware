@@ -396,6 +396,7 @@ unsigned char *getDiagnosticVIN();
 void filterForVIN(CanMessage* message);
 void checkForVinCommand(CanMessage *message);
 void setVinCommandInProgress(bool vinInProgress);
+void sendGetVinError();
 
 
 } // namespace diagnostics

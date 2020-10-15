@@ -28,7 +28,6 @@ const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_sta
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
-const char openxc::payload::json::PAYLOAD_FORMAT_MESSAGEPACK_NAME[] = "messagepack";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";

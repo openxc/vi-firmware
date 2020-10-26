@@ -623,7 +623,7 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-        if(message->type != openxc_VehicleMessage_Type_UNUSED) {
+        if(message->timestamp != 0) {
             cJSON_AddNumberToObject(root, "timestamp", message->timestamp);
         }
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {

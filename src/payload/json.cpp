@@ -28,7 +28,6 @@ const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_sta
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
-const char openxc::payload::json::PAYLOAD_FORMAT_MESSAGEPACK_NAME[] = "messagepack";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -583,7 +582,7 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-        if(message->type != openxc_VehicleMessage_Type_UNUSED) {
+        if(message->timestamp != 0) {
             cJSON_AddNumberToObject(root, "timestamp", message->timestamp);
         }
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {

@@ -159,7 +159,7 @@ These options are passed as shell environment variables to the Makefile, e.g.
   By default, the output format is ``JSON``. Set this to ``PROTOBUF`` to use a
   binary output format, described more in :doc:`/advanced/binary`.
 
-  Values: ``JSON``, ``PROTOBUF``, ``MESSAGEPACK``
+  Values: ``JSON``, ``PROTOBUF``
 
   Default: ``JSON``
 

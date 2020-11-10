@@ -189,7 +189,6 @@ void openxc::server_task::flushDataBuffer(TelitDevice* device) {
                     break;
                     
                 case PayloadFormat::PROTOBUF:
-                case PayloadFormat::MESSAGEPACK:
                 
                     // get all bytes from the send buffer (so we have room to fill it again as we POST)
                     byteCount = 0;

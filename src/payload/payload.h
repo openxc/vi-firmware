@@ -12,7 +12,6 @@ namespace payload {
 typedef enum {
     JSON,
     PROTOBUF,
-    MESSAGEPACK,
 } PayloadFormat;
 
 /* Public: Deserialize an OpenXC message from the given payload, using the given

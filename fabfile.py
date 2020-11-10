@@ -346,10 +346,6 @@ def json():
 @task
 def protobuf():
     env.payload_format = "PROTOBUF"
-
-@task
-def messagepack():
-    env.payload_format = "MESSAGEPACK"
 	
 @task
 def clean():

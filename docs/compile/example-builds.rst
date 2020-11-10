@@ -257,7 +257,7 @@ while this builds the default firmware, ready for OBD2 requests for the chipKIT:
 
   fab chipkit obd2 build
 
-You can specify the message format with ``json``, ``protobuf``, or ``messagepack``:
+You can specify the message format with ``json``, or ``protobuf``:
 
 .. code-block:: sh
 

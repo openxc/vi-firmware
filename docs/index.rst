@@ -4,7 +4,7 @@ OpenXC Vehicle Interface Firmware
 
 .. image:: /_static/logo.png
 
-:Version: 8.0.0
+:Version: 8.1.0
 :Web: http://openxcplatform.com
 :Documentation: http://vi-firmware.openxcplatform.com
 :Source: http://github.com/openxc/vi-firmware

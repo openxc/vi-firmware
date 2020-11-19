@@ -65,8 +65,9 @@ boolean usbCallback(USB_EVENT event, void *pdata, word size) {
 #endif    
 
     getConfiguration()->usb.device.DefaultCBEventHandler(event, pdata, size);
-
-    switch(event) {
+    int temp = (USB_EVENT)event;
+    switch(temp) {
+            
     case EVENT_CONFIGURED:
         debug("USB Configured");
         getConfiguration()->usb.configured = true;
@@ -223,7 +224,7 @@ void openxc::interface::usb::read(UsbDevice* device, UsbEndpoint* endpoint,
             !device->device.HandleBusy(endpoint->hostToDeviceHandle)) {
         size_t length = device->device.HandleGetLength(
                 endpoint->hostToDeviceHandle);
-        for(int i = 0; i < endpoint->size && i < length; i++) {
+        for(unsigned int i = 0; i < endpoint->size && i < length; i++) {
             if(!QUEUE_PUSH(uint8_t, &endpoint->queue,
                         endpoint->receiveBuffer[i])) {
                 debug("Dropped write from host -- queue is full");

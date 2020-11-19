@@ -13,6 +13,7 @@ volatile ts syst;
 static uint32_t last_time_check;
 void RTC_IsrTimeVarUpdate(void);
 static uint8_t timer_deinit = 0;
+void __debug();
 #ifdef RTC_SUPPORT
 void __ISR(_TIMER_2_VECTOR,ipl2) _TIMER2_HANDLER(void) 
 {

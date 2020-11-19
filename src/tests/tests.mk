@@ -77,7 +77,7 @@ test_long: test_short
 
 test_short: unit_tests
 	@make default_compile_test
-	@make msd_default_compile_test
+	# @make msd_default_compile_test
 	@make debug_compile_test
 	@make mapped_compile_test
 	@make passthrough_compile_test
@@ -117,7 +117,7 @@ unit_tests: $(TESTS)
 	@sh tests/runtests.sh $(TEST_OBJDIR)/$(TEST_DIR)
 	
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, default_compile_test, DEBUG=0, code_generation_test))
-$(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_default_compile_test, DEBUG=0 MSD_ENABLE=1, code_generation_test))
+# $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_default_compile_test, DEBUG=0 MSD_ENABLE=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, diag_compile_test, DEBUG=0, diagnostic_code_generation_test))
 $(eval $(call MSD_PLATFORMS_TEST_TEMPLATE, msd_diag_compile_test, DEBUG=0 MSD_ENABLE=1, diagnostic_code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_compile_test, DEBUG=1, code_generation_test))

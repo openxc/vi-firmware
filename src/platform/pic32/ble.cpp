@@ -382,7 +382,7 @@ void HCI_Event_CB(void *pckt)
                 break;
                 case EVT_BLUE_L2CAP_CONN_UPD_RESP:
                 {
-                        evt_l2cap_conn_upd_resp *resp = (evt_l2cap_conn_upd_resp*)blue_evt->data;
+                        //evt_l2cap_conn_upd_resp *resp = (evt_l2cap_conn_upd_resp*)blue_evt->data;
                         //debug("L2CAP Updated Response:%d",resp->result);
                         send_l2cap_request = false;
                 }
@@ -507,8 +507,8 @@ uint8_t ST_BLE_Get_Version(uint8_t *hwVersion, uint16_t *fwVersion)
 bool openxc::interface::ble::initialize(BleDevice* device)
 {
     uint8_t ret;
-    uint32_t timer;
-    uint8_t macadd[10];
+    //uint32_t timer;
+   // uint8_t macadd[10];
     uint8_t hwVersion; 
     uint16_t fwVersion;
     

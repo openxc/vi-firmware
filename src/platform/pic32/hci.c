@@ -41,7 +41,7 @@ uint8_t HCI_Process_buffer[HCI_READ_PACKET_SIZE];
 volatile BOOL ISRDevice_busy = FALSE;
 
 
-void __debug_hci(const unsigned char *s); //comment this if unimplemented
+void __debug_hci( char *s); //comment this if unimplemented
 
 
 void Disable_SPI_IRQ(void)
@@ -114,7 +114,7 @@ int HCI_Process(void)
     {
         while(BlueNRG_DataPresent()) 
         {
-            __debug_hci("Data too fast"); 
+            __debug_hci("Data too fast");
             
             data_len = BlueNRG_SPI_Read_All(HCI_Process_buffer, HCI_READ_PACKET_SIZE);
       

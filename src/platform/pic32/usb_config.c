@@ -6,6 +6,13 @@
 #include "USB/usb_function_msd.h"
 #endif
 
+#ifdef ROM
+#undef ROM
+#define ROM
+#else
+#define ROM
+#endif
+
 ROM USB_DEVICE_DESCRIPTOR device_dsc_gen=
 {
     sizeof(USB_DEVICE_DESCRIPTOR),
@@ -170,7 +177,7 @@ sizeof(sd006),USB_DESCRIPTOR_STRING,
 ROM USB_DEVICE_DESCRIPTOR device_dsc;
 ROM USB_DEVICE_DESCRIPTOR *device_dsc_user = &device_dsc_gen;;
 ROM BYTE *USB_CD_Ptr[1] = {configDescriptor_gen};
-ROM BYTE *USB_SD_Ptr[4] = {&sd000,&sd001,&sd002,NULL};
+ROM BYTE *USB_SD_Ptr[4] = {(BYTE*)&sd000,(BYTE*)&sd001,(BYTE*)&sd002,NULL};
 
 void SelectUsbConf(BYTE no){
     switch(no){

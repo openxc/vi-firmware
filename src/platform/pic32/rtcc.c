@@ -23,9 +23,11 @@ RTCC_STATUS I2C_Acknowledge_ACK(void);
 RTCC_STATUS I2C_Acknowledge_NACK(void);
 RTCC_STATUS I2C_Receive(void);
 RTCC_STATUS I2C_Transmit(uint8_t data);
+RTCC_STATUS I2C_Initialize();
+
 
 /*PUBLIC FUNCTIONS*/
-
+void __debug();
 
 static void delay_ms(uint32_t d)
 {
@@ -280,7 +282,7 @@ RTCC_STATUS RTCC_WriteBytes(RTCC_MEMTYPE memtype, uint8_t address, uint8_t lengt
     // return code
     RTCC_STATUS stat = RTCC_NO_ERROR;
     // write cycle delay time
-    uint32_t writecycledelay;
+    //uint32_t writecycledelay;
 
     // validate read address and read length
     if(memtype == RTCC_MEMTYPE_SRAM)
@@ -590,10 +592,10 @@ RTCC_STATUS RTCCGetPowerDownTimestampBCD(struct tm * TimeDate) {
     // return code
     RTCC_STATUS stat;
     // packed data structure
-    char TimestampRegisters[4];
+    unsigned char TimestampRegisters[4];
 
     // read the time, date, and settings registers from the RTCC
-    stat = RTCC_ReadBytes(RTCC_MEMTYPE_SRAM, RTCC_POWERDOWN_STARTADDR, 4, TimestampRegisters);
+    stat = RTCC_ReadBytes(RTCC_MEMTYPE_SRAM, RTCC_POWERDOWN_STARTADDR, 4,TimestampRegisters);
     if(stat != RTCC_NO_ERROR) goto fcn_exit;
 
     // unpack the registers into the calling function tm struct
@@ -640,7 +642,7 @@ RTCC_STATUS RTCCGetPowerUpTimestampBCD(struct tm * TimeDate) {
     // return code
     RTCC_STATUS stat;
     // packed data structure
-    char TimestampRegisters[4];
+    unsigned char TimestampRegisters[4];
 
     // read the time, date, and settings registers from the RTCC
     stat = RTCC_ReadBytes(RTCC_MEMTYPE_SRAM, RTCC_POWERUP_STARTADDR, 4, TimestampRegisters);
@@ -1029,7 +1031,7 @@ RTCC_STATUS I2C_Start() {
     // block until start sequence is complete
     dms =  millis();
     //while(I2C1CONbits.SEN);
-    uint32_t s = status & I2C_START;
+    //uint32_t s = status & I2C_START;
     while((status & I2C_START) == 0)
     {
         status = I2CGetStatus(RTCC_I2C_MODULE);
@@ -1060,7 +1062,7 @@ RTCC_STATUS I2C_Restart() {
     // block until restart sequence is complete
     dms = millis();
     //while(I2C5CONbits.RSEN)
-    uint32_t s = status & I2C_START;
+    //uint32_t s = status & I2C_START;
     while((status & I2C_START) == 0)
     {
         status = I2CGetStatus(RTCC_I2C_MODULE);
@@ -1076,7 +1078,7 @@ RTCC_STATUS I2C_Restart() {
 
 RTCC_STATUS I2C_Stop() {
 
-    I2C_RESULT res = I2C_SUCCESS;
+    //I2C_RESULT res = I2C_SUCCESS;
     uint32_t dms;
 
     // start I2C stop sequence
@@ -1099,7 +1101,7 @@ RTCC_STATUS I2C_Stop() {
 
 RTCC_STATUS I2C_Receive() {
 
-    I2C_RESULT res = I2C_SUCCESS;
+   //I2C_RESULT res = I2C_SUCCESS;
     uint32_t dms;
 
     // start I2C receive sequence
@@ -1126,7 +1128,7 @@ RTCC_STATUS I2C_Receive() {
 
 RTCC_STATUS I2C_Acknowledge_ACK() {
 
-    I2C_RESULT res = I2C_SUCCESS;
+   // I2C_RESULT res = I2C_SUCCESS;
     uint32_t dms;
 
     // set acknowledge type ACK
@@ -1153,7 +1155,7 @@ RTCC_STATUS I2C_Acknowledge_ACK() {
 
 RTCC_STATUS I2C_Acknowledge_NACK() {
 
-    I2C_RESULT res = I2C_SUCCESS;
+   // I2C_RESULT res = I2C_SUCCESS;
     uint32_t dms;
 
     // set acknowledge type NACK

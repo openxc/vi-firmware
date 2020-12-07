@@ -35,13 +35,12 @@ bool openxc::commands::handlePayloadFormatCommand(openxc_ControlCommand* command
                 &command->payload_format_command;
         if(messageFormatCommand->format != openxc_PayloadFormatCommand_PayloadFormat_UNUSED) {
             switch(messageFormatCommand->format) {
+                default:
                 case openxc_PayloadFormatCommand_PayloadFormat_JSON:
                     format = PayloadFormat::JSON;
                     break;
                 case openxc_PayloadFormatCommand_PayloadFormat_PROTOBUF:
                     format = PayloadFormat::PROTOBUF;
-                    break;
-                default: //Do nothing by default
                     break;
             }
 

@@ -220,8 +220,8 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_On_Delay(TelitDevice
             
             break;
 
-        default: //Do nothing by default
-            break;
+//         default: //Do nothing by default
+//             break;
     }
     
     return l_state;
@@ -264,8 +264,8 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Power_Up_Delay(TelitDevice
             
             break;
 
-        default: //Do nothing by default
-            break;
+//         default: //Do nothing by default
+//             break;
     }
     
     return l_state;
@@ -454,8 +454,8 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Wait_For_Network(TelitDevi
         
             break;
 
-        default: //Do nothing by default
-            break;
+//         default: //Do nothing by default
+//             break;
     }
     
     return l_state;
@@ -508,8 +508,8 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Open_PDP_Delay(TelitDevice
             
             break;
 
-        default: //Do nothing by default
-            break;
+//         default: //Do nothing by default
+//             break;
     }
     
     return l_state;
@@ -584,8 +584,8 @@ static TELIT_CONNECTION_STATE openxc::telitHE910::DSM_Ready(TelitDevice* device)
         
             break;
 
-        default: //Do nothing by default
-            break;
+//         default: //Do nothing by default
+//             break;
     }
     
     return l_state;

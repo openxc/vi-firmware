@@ -225,8 +225,8 @@ HTTP_STATUS httpClient::execute() {
             goto fcn_exit;
             break;
 
-        default: //Do nothing by default
-            break;
+        //default: //Do nothing by default
+            //break;
     }
     
     // watch for timeout

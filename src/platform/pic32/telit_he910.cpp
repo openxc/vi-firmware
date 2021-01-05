@@ -581,11 +581,8 @@ bool openxc::telitHE910::saveSettings() {
     
     if(sendCommand(telitDevice, "AT&W0\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -597,11 +594,8 @@ bool openxc::telitHE910::setBaud(unsigned int baudRate) {
     sprintf(command, "AT+IPR=%u\r\n", baudRate);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -611,15 +605,12 @@ bool openxc::telitHE910::getDeviceFirmwareVersion(char* firmwareVersion) {
     
     if(sendCommand(telitDevice, "AT+CGMR\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("AT+CGMR\r\n\r\n", "\r\n\r\nOK\r\n", firmwareVersion, 31) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -630,16 +621,14 @@ bool openxc::telitHE910::getSIMStatus(unsigned int* status) {
 
     if(sendCommand(telitDevice, "AT#QSS?\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("#QSS: ", "\r\n\r\n", temp, 7) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     *status = atoi(&temp[2]);
-    
-    fcn_exit:
-    return rc;
+
 
 }
 
@@ -649,15 +638,12 @@ bool openxc::telitHE910::getICCID(char* ICCID) {
 
     if(sendCommand(telitDevice, "AT#CCID\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("#CCID: ", "\r\n\r\n", ICCID, 31) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -667,15 +653,12 @@ bool openxc::telitHE910::getDeviceIMEI(char* IMEI) {
 
     if(sendCommand(telitDevice, "AT+CGSN\r\n", "\r\n\r\nOK\r\n", 2000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("AT+CGSN\r\n\r\n", "\r\n\r\nOK\r\n", IMEI, 31) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return true;
 
 }
 
@@ -724,11 +707,8 @@ bool openxc::telitHE910::setNetworkConnectionMode(OperatorSelectMode mode, Netwo
     
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-
-    fcn_exit:
-    return rc;    
 
 }
 
@@ -739,16 +719,13 @@ bool openxc::telitHE910::getNetworkConnectionStatus(NetworkConnectionStatus* sta
     
     if(sendCommand(telitDevice, "AT+CREG?\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("+CREG: ", "\r\n\r\nOK\r\n", temp, 7) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     *status = (NetworkConnectionStatus)atoi(&temp[2]);
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -762,11 +739,11 @@ bool openxc::telitHE910::getCurrentNetwork(NetworkDescriptor* network) {
     
     if(sendCommand(telitDevice, "AT+COPS?\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("+COPS: ", "\r\n\r\nOK\r\n", temp, 31) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(p = strchr(temp, ','), p) {
         p++;
@@ -779,9 +756,6 @@ bool openxc::telitHE910::getCurrentNetwork(NetworkDescriptor* network) {
             }
         }
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -793,11 +767,8 @@ bool openxc::telitHE910::configurePDPContext(NetworkDataSettings dataSettings) {
     sprintf(command,"AT+CGDCONT=1,\"IP\",\"%s\"\r\n", dataSettings.APN);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -808,18 +779,15 @@ bool openxc::telitHE910::configureSocket(unsigned int socketNumber, SocketConnec
     
     if(socketNumber == 0 || socketNumber > 6) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     
     sprintf(command,"AT#SCFG=%u,1,%u,%u,%u,%u\r\n", socketNumber, socketSettings.packetSize, 
         socketSettings.idleTimeout, socketSettings.connectTimeout, socketSettings.txFlushTimer);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -829,11 +797,8 @@ bool openxc::telitHE910::openPDPContext() {
     
     if(sendCommand(telitDevice, "AT#SGACT=1,1\r\n", "\r\n\r\nOK\r\n", "ERROR", 30000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -843,11 +808,8 @@ bool openxc::telitHE910::closePDPContext() {
     
     if(sendCommand(telitDevice, "AT#SGACT=1,0\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -858,16 +820,13 @@ bool openxc::telitHE910::getPDPContext(bool* connected) {
     
     if(sendCommand(telitDevice, "AT#SGACT?\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("#SGACT: 1,", "\r\n\r\nOK\r\n", temp, 31) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     *connected = (bool)atoi(temp);
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -879,11 +838,8 @@ bool openxc::telitHE910::openSocket(unsigned int socketNumber, ServerConnectSett
     sprintf(command,"AT#SD=%u,0,%u,\"%s\",255,1,1\r\n", socketNumber, serverSettings.port, serverSettings.host);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", "ERROR", 15000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
     
 }
 
@@ -907,11 +863,8 @@ bool openxc::telitHE910::closeSocket(unsigned int socketNumber) {
     sprintf(command,"AT#SH=%u\r\n", socketNumber);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", "ERROR", 5000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
     
 }
 
@@ -924,16 +877,13 @@ bool openxc::telitHE910::getSocketStatus(unsigned int socketNumber, SocketStatus
     sprintf(command, "AT#SS=%u\r\n", socketNumber);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("#SS: ", "\r\n\r\nOK\r\n", temp, 7) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     *status = (SocketStatus)atoi(&temp[2]);
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -965,7 +915,7 @@ bool openxc::telitHE910::writeSocket(unsigned int socketNumber, char* data, unsi
     sprintf(command, "AT#SSENDEXT=%u,%u\r\n", socketNumber, maxWrite);
     if(sendCommand(telitDevice, command, "> ", 5000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     
     // clear the receive buffer
@@ -987,7 +937,7 @@ bool openxc::telitHE910::writeSocket(unsigned int socketNumber, char* data, unsi
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
 
@@ -1002,15 +952,12 @@ bool openxc::telitHE910::writeSocket(unsigned int socketNumber, char* data, unsi
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
 
     // update write count
     *len = maxWrite;
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1034,7 +981,7 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
     sprintf(reply, "#SRECV: %u,", socketNumber);
     if(sendCommand(telitDevice, command, reply, 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     
     // start the receive timer
@@ -1044,7 +991,7 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
     pS = recv_data;
     if(pS = strstr(pS, reply), !pS) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     pS += 10;
     pRx = pS;
@@ -1059,7 +1006,7 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }    
     // get the read count
@@ -1078,7 +1025,7 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
     // put the read data into caller
@@ -1096,12 +1043,9 @@ bool openxc::telitHE910::readSocket(unsigned int socketNumber, char* data, unsig
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
-
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1125,7 +1069,7 @@ bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, un
     sprintf(reply, "#SRECV: %u,", socketNumber);
     if(sendCommand(telitDevice, command, reply, 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     
     // start the receive timer
@@ -1135,7 +1079,7 @@ bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, un
     pS = recv_data;
     if(pS = strstr(pS, reply), !pS) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     pS += 10;
     pRx = pS;
@@ -1150,7 +1094,7 @@ bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, un
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }    
     // get the read count
@@ -1169,7 +1113,7 @@ bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, un
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
     // put the read data into caller
@@ -1187,12 +1131,9 @@ bool openxc::telitHE910::readSocketOne(unsigned int socketNumber, char* data, un
         }
         if(uptimeMs() >= timer) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
     }
-
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1300,17 +1241,14 @@ static bool getResponse(const char* startToken, const char* stopToken, char* res
     
     if(p1 = strstr(recv_data, startToken), !p1) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(p2 = strstr(recv_data, stopToken), !p2) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     p1 += strlen(startToken);
     memcpy(response, p1, (maxLen < p2-p1) ? (maxLen) : (p2-p1));
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1371,11 +1309,8 @@ bool openxc::telitHE910::setGPSPowerState(bool enable) {
     sprintf(command, "AT$GPSP=%u\r\n", (unsigned int)enable);
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1388,16 +1323,13 @@ bool openxc::telitHE910::getGPSPowerState(bool* enable) {
     sprintf(command, "AT$GPSP?\r\n");
     if(sendCommand(telitDevice, command, "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("$GPSP: ", "\r\n\r\nOK\r\n", temp, 7) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     *enable = (bool)atoi(&temp[0]);
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1408,26 +1340,23 @@ bool openxc::telitHE910::getGPSLocation() {
     static unsigned long next_update = 0;
     
     if(uptimeMs() < next_update) {
-        goto fcn_exit;
+        return rc;
     }
 
     // retrieve the GPS location string from the modem
     if(sendCommand(telitDevice, "AT$GPSACP\r\n", "\r\n\r\nOK\r\n", 1000) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     if(getResponse("$GPSACP: ", "\r\n\r\nOK\r\n", temp, 127) == false) {
         rc = false;
-        goto fcn_exit;
+        return rc;
     }
     
     // now we have the GPS string in 'temp', send to parser to publish signals
     rc = parseGPSACP(temp);
     
     next_update = uptimeMs() + getConfiguration()->telit->config.globalPositioningSettings.gpsInterval;
-    
-    fcn_exit:
-    return rc;
 
 }
 
@@ -1479,7 +1408,7 @@ static bool parseGPSACP(const char* GPSACP) {
     for(i = 0; i < 10; ++i) {
         if(p2 = strchr(p1, ','), !p2) {
             rc = false;
-            goto fcn_exit;
+            return rc;
         }
         memcpy(&splitString[i][0], p1, p2-p1);
         validString[i] = (p2-p1 > 0) ? true : false;
@@ -1560,9 +1489,6 @@ static bool parseGPSACP(const char* GPSACP) {
         field_value_numerical = atof(&splitString[10][0]);
         publishGPSSignal("gps_nsat", field_value_numerical, pipeline);
     }
-    
-    fcn_exit:
-    return rc;
 }
 
 /*PIPELINE*/

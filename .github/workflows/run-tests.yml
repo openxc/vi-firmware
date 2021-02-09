@@ -37,6 +37,7 @@ jobs:
           
       - name: Build Tests
         run: |
+          cd src
           PLATFORM=TESTING make test
 
           

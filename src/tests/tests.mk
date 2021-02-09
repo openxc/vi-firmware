@@ -65,7 +65,6 @@ test_long: test_short
 	@make usb_raw_write_compile_test
 	@make bluetooth_raw_write_compile_test
 	@make binary_output_compile_test
-	@make messagepack_output_compile_test
 	@make emulator_compile_test
 	@make msd_emulator_compile_test
 	@make stats_compile_test
@@ -139,7 +138,6 @@ $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, debug_stats_compile_test, DEBUG=1 DEF
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, usb_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_USB=0, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, bluetooth_raw_write_compile_test, DEBUG=0 DEFAULT_ALLOW_RAW_WRITE_UART=1, code_generation_test))
 $(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, binary_output_compile_test, DEBUG=0 DEFAULT_OUTPUT_FORMAT=PROTOBUF, code_generation_test))
-$(eval $(call ALL_PLATFORMS_TEST_TEMPLATE, messagepack_output_compile_test, DEBUG=0 DEFAULT_OUTPUT_FORMAT=MESSAGEPACK, code_generation_test))
 
 copy_passthrough_signals:
 	@echo "Testing example passthrough config in repo for FORDBOARD..."

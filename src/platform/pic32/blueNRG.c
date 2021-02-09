@@ -179,8 +179,11 @@ static int16_t SPI_Write(uint8_t* data1, uint8_t* data2, uint16_t Nb_bytes1, uin
   SPI_SendRecieve(STBTLE_SPICHANNEL, header_master, header_slave, 5);
   
   if(header_slave[0] != 0x02){
-    result = -1;
-    goto failed; // BlueNRG not awake.
+    result = -1; 
+    // Release CS line
+    SPI_CS_SetHigh(STBTLE_SPICHANNEL);
+  
+    return result;// BlueNRG not awake.
   }
   
   rx_bytes = header_slave[1];
@@ -188,7 +191,10 @@ static int16_t SPI_Write(uint8_t* data1, uint8_t* data2, uint16_t Nb_bytes1, uin
   if(rx_bytes < Nb_bytes1)
   {
     result = -2;
-    goto failed; // underflow      
+    // Release CS line
+    SPI_CS_SetHigh(STBTLE_SPICHANNEL);
+  
+    return result;// underflow.      
   }
   
   SPI_SendRecieve(STBTLE_SPICHANNEL, data1, NULL, Nb_bytes1);

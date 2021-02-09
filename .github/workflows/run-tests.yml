@@ -20,7 +20,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install vagrant
         run: |
-          sudo apt-get install vagrant
+          sudo apt-get update -qq
+          sudo apt-get install vagrant -qq -y
 
       # Runs a single command using the runners shell
       - name: Vagrant Up

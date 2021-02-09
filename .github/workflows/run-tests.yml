@@ -20,6 +20,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Set Up Python 3.6
         run: |
+          tput setab 0; tput clear
           sudo apt-get update -qq
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update -qq

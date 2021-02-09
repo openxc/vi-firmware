@@ -18,12 +18,21 @@ jobs:
       - uses: actions/checkout@v2
         
       # Runs a single command using the runners shell
-      - name: Install vagrant
+      - name: Set Up Python 3.6
         run: |
           sudo apt-get update -qq
-          sudo apt-get install vagrant -qq -y
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update -qq
+          sudo apt-get install python3.6 -y
+          sudo rm /usr/bin/python3
+          sudo ln -s /usr/bin/python3.6 /usr/bin/python3
+          wget https://bootstrap.pypa.io/get-pip.py
+          sudo python3 get-pip.py
+          sudo apt-get install -qq -y libsubunit-dev
 
       # Runs a single command using the runners shell
-      - name: Vagrant Up
+      - name: Bootstrap
         run: |
-          vagrant up
+          script/bootstrap.sh
+
+          

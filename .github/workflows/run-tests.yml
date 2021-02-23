@@ -30,6 +30,8 @@ jobs:
           wget https://bootstrap.pypa.io/get-pip.py
           sudo python3 get-pip.py
           sudo apt-get install -qq -y libsubunit-dev
+          sudo apt-get install python-apt
+          sudo apt-get install python3-apt
 
       # Runs a single command using the runners shell
       - name: Bootstrap

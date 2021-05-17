@@ -294,7 +294,9 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-static int prevFrame = -1;
+void dumpPayload2(unsigned char *, size_t);
+
+static int prevFrames[] = {-1,-1,-1,-1,-1,-1,-1,-1}; // 7e8-7ef
 static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, openxc_DynamicField value) {
@@ -319,13 +321,14 @@ static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
     message.diagnostic_response.negative_response_code =
             response->negative_response_code;
 
-    message.diagnostic_response.frame = prevFrame + 1;
+    int frame_offset = (response->arbitration_id - 0x07e8) & 0x7;   // Prevent overflow
+    message.diagnostic_response.frame = prevFrames[frame_offset] + 1;
     if (response->completed) {
         message.diagnostic_response.frame = -1;     // Marks the last frame in the response
     } else {
         message.diagnostic_response.success = true;
     }
-    prevFrame = message.diagnostic_response.frame;
+    prevFrames[frame_offset] = message.diagnostic_response.frame;
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {

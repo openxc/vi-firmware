@@ -30,8 +30,8 @@ extern "C" {
 void CAN_IRQHandler() {
     for(int i = 0; i < getCanBusCount(); i++) {
         CanBus* bus = &getCanBuses()[i];
-        if((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) {
-            CanMessage message = receiveCanMessage(bus);
+        CanMessage message = receiveCanMessage(bus);
+        if(((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) || (message.format == CanMessageFormat::STANDARD)) {
             if(shouldAcceptMessage(bus, message.id) &&
                     !QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
                 // An exception to the "don't leave commented out code" rule,

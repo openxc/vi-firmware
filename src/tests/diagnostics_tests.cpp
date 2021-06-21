@@ -282,7 +282,7 @@ START_TEST (test_add_basic_request)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"bus\":1,\"id\":2016,\"mode\":1,\"success\":true,\"pid\":2,\"payload\":\"0x45\"}\0");
 }
 END_TEST
 
@@ -374,7 +374,7 @@ START_TEST (test_add_request_other_bus)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
@@ -391,7 +391,7 @@ START_TEST (test_add_request_with_name)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":69}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":69}\0");
 }
 END_TEST
 
@@ -466,7 +466,7 @@ START_TEST (test_add_request_with_name_and_decoder)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"mypid\",\"value\":138}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"mypid\",\"value\":138}\0");
 }
 END_TEST
 

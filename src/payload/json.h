@@ -21,7 +21,6 @@ extern const char PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[];
 
 extern const char PAYLOAD_FORMAT_JSON_NAME[];
 extern const char PAYLOAD_FORMAT_PROTOBUF_NAME[];
-extern const char PAYLOAD_FORMAT_MESSAGEPACK_NAME[];
 
 extern const char COMMAND_RESPONSE_FIELD_NAME[];
 extern const char COMMAND_RESPONSE_MESSAGE_FIELD_NAME[];

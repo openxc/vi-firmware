@@ -146,7 +146,7 @@ void openxc::interface::usb::processSendQueue(UsbDevice* usbDevice) {
         UsbEndpoint* endpoint = &usbDevice->endpoints[i];
 
         // Don't touch usbDevice->sendBuffer if there's still a pending transfer
-        if(waitForHandle(usbDevice, endpoint)) {
+        if(!waitForHandle(usbDevice, endpoint)) {
             return;
         }
 

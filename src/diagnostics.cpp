@@ -307,47 +307,50 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-const bool originalStitchAlgo = false;
-static int prevFrame = -1;
+void dumpPayload2(unsigned char *, size_t);
+
+static int prevFrames[] = {-1,-1,-1,-1,-1,-1,-1,-1}; // 7e8-7ef
 static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, openxc_DynamicField value) {
     openxc_VehicleMessage message = openxc_VehicleMessage();        // Zero fill
-    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH;
-    message.diagnostic_stitch_response = {0};
-    message.diagnostic_stitch_response.bus = bus->address;
+    message.type = openxc_VehicleMessage_Type_DIAGNOSTIC;
+    message.diagnostic_response = {0};
+    message.diagnostic_response.bus = bus->address;
 
     if(request->arbitration_id != OBD2_FUNCTIONAL_BROADCAST_ID) {
-        message.diagnostic_stitch_response.message_id = response->arbitration_id
+        message.diagnostic_response.message_id = response->arbitration_id
             - DIAGNOSTIC_RESPONSE_ARBITRATION_ID_OFFSET;
     } else {
         // must preserve responding arb ID for responses to functional broadcast
         // requests, as they are the actual module address and not just arb ID +
         // 8.
-        message.diagnostic_stitch_response.message_id = response->arbitration_id;
+        message.diagnostic_response.message_id = response->arbitration_id;
     }
 
-    message.diagnostic_stitch_response.mode = response->mode;
-    message.diagnostic_stitch_response.pid = response->pid;
-    message.diagnostic_stitch_response.success = response->success;
-    message.diagnostic_stitch_response.negative_response_code =
+    message.diagnostic_response.mode = response->mode;
+    message.diagnostic_response.pid = response->pid;
+    message.diagnostic_response.success = response->success;
+    message.diagnostic_response.negative_response_code =
             response->negative_response_code;
 
-    message.diagnostic_stitch_response.frame = prevFrame + 1;
+    int frame_offset = (response->arbitration_id - 0x07e8) & 0x7;   // Prevent overflow
+    message.diagnostic_response.frame = prevFrames[frame_offset] + 1;
     if (response->completed) {
-        message.diagnostic_stitch_response.frame = -1;     // Marks the last frame in the response
+        message.diagnostic_response.frame = -1;     // Marks the last frame in the response
     } else {
-        message.diagnostic_stitch_response.success = true;
+        message.diagnostic_response.success = true;
     }
-    prevFrame = message.diagnostic_stitch_response.frame;
+    prevFrames[frame_offset] = message.diagnostic_response.frame;
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {
-            message.diagnostic_stitch_response.value = value;
+            message.diagnostic_response.value = value;
         } else {
-            memcpy(message.diagnostic_stitch_response.payload.bytes, response->payload,
+            memcpy(message.diagnostic_response.payload.bytes, response->payload,
                     response->payload_length);
-            message.diagnostic_stitch_response.payload.size = response->payload_length;
+            message.diagnostic_response.payload.size = response->payload_length;
+            message.diagnostic_response.total_size = response->payload_length;
         }
     }
     return message;
@@ -380,7 +383,7 @@ static void sendPartialMessage(long timestamp,
 
     int numWritten = snprintf(messageBuffer,
             MAX_MULTI_FRAME_MESSAGE_SIZE,
-            "{\"timestamp\":%ld,\"frame\":%d,\"message_id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
+            "{\"timestamp\":%ld,\"frame\":%d,\"id\":%d,\"bus\":%d,\"total_size\":%d,\"mode\":%d,\"pid\":%d,\"value\":%d",
             timestamp,
             frame,
             message_id+8,
@@ -418,38 +421,6 @@ static void sendPartialMessage(long timestamp,
         (uint8_t*)messageBuffer, messageLen, MessageClass::SIMPLE);
 }
 
-
-// relayPartialFrame - Send the partial frame to the mobile device/web
-
-static void relayPartialFrame(DiagnosticsManager* manager,  // Only need for the callback
-        ActiveDiagnosticRequest* request,
-        const DiagnosticResponse* response, 
-        Pipeline* pipeline) {
-        
-        int frame = prevFrame + 1;
-        if (response->completed) {
-            frame = -1;     // Marks the last frame in the response
-        }
-        prevFrame = frame;
-
-        // see wrapDiagnosticResponseWithSabot
-        sendPartialMessage(00,                                  //     long timestamp,
-                           frame,                               //     int frame
-                           response->arbitration_id,            //     int message_id,
-                           request->bus->address,               //     int bus,
-                           0,                                   //     int total_size,
-                           response->mode,                      //     int mode,
-                           response->pid,                       //     int pid,
-                           0,                                   //     int value, - when the payload is a bitfield or numeric - parsed value
-                           response->negative_response_code,    //     int negative_response_code
-                           (char *)response->payload,           //     char *payload
-                           response->payload_length,
-                           pipeline);
-
-        if (response->completed && (request->callback != NULL)) {
-            request->callback(manager, request, response, diagnostic_payload_to_integer(response));
-        }
-}
 #endif
 
 bool openxc::diagnostics::haveVINfromCan() {
@@ -621,11 +592,7 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 }
         if (response.multi_frame) {
 #if (MULTIFRAME != 0)
-            if (originalStitchAlgo) {
-                relayPartialFrame(manager, entry, &response, pipeline);
-            } else { 
-                relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020
-            }
+            relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020
 #endif
             if (!response.completed) {
                 time::tick(&entry->timeoutClock);

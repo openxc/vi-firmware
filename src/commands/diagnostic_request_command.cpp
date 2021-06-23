@@ -33,6 +33,7 @@ namespace uart = openxc::interface::uart;
 namespace pipeline = openxc::pipeline;
 
 bool openxc::commands::handleDiagnosticRequestCommand(openxc_ControlCommand* command) {
+    openxc::diagnostics::setVinCommandInProgress(false);
     bool status = diagnostics::handleDiagnosticCommand(
             &getConfiguration()->diagnosticsManager, command);
     sendCommandResponse(openxc_ControlCommand_Type_DIAGNOSTIC, status);

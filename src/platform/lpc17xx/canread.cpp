@@ -2,6 +2,7 @@
 #include "canutil_lpc17xx.h"
 #include "signals.h"
 #include "util/log.h"
+#include "diagnostics.h"
 
 using openxc::util::log::debug;
 using openxc::signals::getCanBusCount;
@@ -25,6 +26,10 @@ CanMessage receiveCanMessage(CanBus* bus) {
     return result;
 }
 
+void filterForVinLocal(CanMessage* message) {
+    openxc::diagnostics::filterForVIN(message);
+}
+
 extern "C" {
 
 void CAN_IRQHandler() {
@@ -32,6 +37,7 @@ void CAN_IRQHandler() {
         CanBus* bus = &getCanBuses()[i];
         CanMessage message = receiveCanMessage(bus);
         if(((CAN_IntGetStatus(CAN_CONTROLLER(bus)) & 0x01) == 1) || (message.format == CanMessageFormat::STANDARD)) {
+            filterForVinLocal(&message);
             if(shouldAcceptMessage(bus, message.id) &&
                     !QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
                 // An exception to the "don't leave commented out code" rule,

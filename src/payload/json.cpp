@@ -25,6 +25,7 @@ const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "pre
 const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
 const char openxc::payload::json::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
 const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_status";
+const char openxc::payload::json::GET_VIN_COMMAND_NAME[] = "get_vin";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
@@ -112,6 +113,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::VERSION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_GET_VIN) {
+        typeString = payload::json::GET_VIN_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
         typeString = payload::json::DEVICE_PLATFORM_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
@@ -188,6 +191,12 @@ static cJSON* serializeDynamicField(openxc_DynamicField* field) {
         value = cJSON_CreateString(field->string_value);
     }
     return value;
+}
+void dumpNum(int value);
+void dumpDouble(double value) {
+    char buff[20];
+    sprintf(buff, "%f", value);
+    debug(buff);
 }
 
 static bool serializeSimple(openxc_VehicleMessage* message, cJSON* root) {
@@ -321,6 +330,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "mode");
         if(element != NULL) {
+            debug("mode");
+            dumpNum(element->valueint);
             command->diagnostic_request.request.mode = element->valueint;
         }
 
@@ -344,12 +355,16 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
+        debug("multiple_responses:");
+        dumpNum(element->valueint);
             command->diagnostic_request.request.multiple_responses =
                 bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
+        debug("frequency:");
+        dumpDouble(element->valuedouble);
             command->diagnostic_request.request.frequency =
                 element->valuedouble;
         }
@@ -357,9 +372,11 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "decoded_type");
         if(element != NULL) {
             if(!strcmp(element->valuestring, "obd2")) {
+                debug("decoded_type is obd2");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_OBD2;
             } else if(!strcmp(element->valuestring, "none")) {
+                debug("decoded_type is none");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_NONE;
             }
@@ -367,6 +384,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "name");
         if(element != NULL && element->type == cJSON_String) {
+            debug("name");
+            debug(element->valuestring);
             strcpy(command->diagnostic_request.request.name,
                     element->valuestring);
         }
@@ -523,6 +542,10 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_DEVICE_ID;
             } else if(!strncmp(commandNameObject->valuestring,
+                        GET_VIN_COMMAND_NAME, strlen(GET_VIN_COMMAND_NAME))) {
+                command->type = openxc_ControlCommand_Type_GET_VIN;
+                        }
+             else if(!strncmp(commandNameObject->valuestring,
                         DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_PLATFORM;
             } else if(!strncmp(commandNameObject->valuestring,

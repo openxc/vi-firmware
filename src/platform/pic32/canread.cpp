@@ -3,6 +3,7 @@
 #include "signals.h"
 #include "util/log.h"
 #include "power.h"
+#include "diagnostics.h"
 
 namespace power = openxc::power;
 
@@ -47,6 +48,7 @@ void openxc::can::pic32::handleCanInterrupt(CanBus* bus) {
                 CAN::RX_CHANNEL_NOT_EMPTY, false);
 
         CanMessage message = receiveCanMessage(bus);
+        openxc::diagnostics::filterForVIN(&message);
         if(!QUEUE_PUSH(CanMessage, &bus->receiveQueue, message)) {
             // An exception to the "don't leave commented out code" rule,
             // this log statement is useful for debugging performance issues

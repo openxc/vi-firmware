@@ -176,8 +176,8 @@ def compile_firmware(build_name, target_path):
                         env.firmware_release, board['extension']))
 
         for board_name, board in env.msd_boards.items():
-            msd_enable()
             env.board = board_name
+            msd_enable()
             build(capture=True, do_clean=True)
             local("cp build/%s/vi-firmware-%s.%s %s/vi-%s-firmware-%s-msd-ct%s.%s"
                     % (board['name'], board['name'], board['extension'],
@@ -346,10 +346,6 @@ def json():
 @task
 def protobuf():
     env.payload_format = "PROTOBUF"
-
-@task
-def messagepack():
-    env.payload_format = "MESSAGEPACK"
 	
 @task
 def clean():

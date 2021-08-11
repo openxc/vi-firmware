@@ -19,6 +19,7 @@
 #include "commands/modem_config_command.h"
 #include "commands/rtc_config_command.h"
 #include "commands/sd_mount_status_command.h"
+#include "commands/get_vin_command.h"
 
 
 using openxc::util::log::debug;
@@ -63,6 +64,8 @@ static bool handleComplexCommand(openxc_VehicleMessage* message) {
             break;
         case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
             status =  openxc::commands::handleSDMountStatusCommand();
+        case openxc_ControlCommand_Type_GET_VIN:
+            status = openxc::commands::handleGetVinCommand();
         default:
             status = false;
             break;
@@ -144,6 +147,7 @@ static bool validateControlCommand(openxc_VehicleMessage* message) {
         case openxc_ControlCommand_Type_DEVICE_ID:
         case openxc_ControlCommand_Type_PLATFORM:
         case openxc_ControlCommand_Type_SD_MOUNT_STATUS:
+        case openxc_ControlCommand_Type_GET_VIN:
             valid =  true;
             break;
         case openxc_ControlCommand_Type_MODEM_CONFIGURATION:

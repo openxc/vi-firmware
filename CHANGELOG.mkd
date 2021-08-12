@@ -1,4 +1,7 @@
 # OpenXC Vehicle Interface Firmware Changelog
+## v8.2.1
+* Fix: Bootstrap fix
+
 ## v8.2.0
 * Removed: Removed messagepack format support
 * Feature: get_vin command added and is accessible from openxc-control python and from Android and iOS clients

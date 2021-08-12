@@ -234,6 +234,7 @@ pre-configured Vagrant environment. See the docs for more information."
     if ! command -v pip3 >/dev/null 2>&1; then
         _install python3-pip
         $SUDO_CMD ln -s /usr/bin/pip3 /usr/bin/pip
+	$SUDO_CMD pip install --upgrade pip
     fi
 
     PIP_SUDO_CMD=

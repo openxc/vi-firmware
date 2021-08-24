@@ -34,6 +34,15 @@ namespace time = openxc::util::time;
 namespace pipeline = openxc::pipeline;
 namespace obd2 = openxc::diagnostics::obd2;
 
+const int VIN_STORAGE_LENGTH = VIN_LENGTH+1;  // 17 characters + 1 pad
+const int VIN_SNIPPET_LENGTH = 6;   // 6 VIN characters per CAN msg
+unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
+bool vinComplete = false;
+bool vinCommandInProgress = false;
+int selector = -1;
+void dumpNum(int);
+
+
 //  receiveCanMessage - called from vi_firmware every time a CanMessage
 //                  is QUEUE_POP from the busses' receiveQueue
 // MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
@@ -112,6 +121,10 @@ static void cleanupRequest(DiagnosticsManager* manager,
                     request_string);
             LIST_REMOVE(entry, listEntries);
             cancelRequest(manager, entry);
+
+            if (vinCommandInProgress) {
+                openxc::diagnostics::sendGetVinError();
+            }
         }
     }
 }
@@ -294,7 +307,9 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-static int prevFrame = -1;
+void dumpPayload2(unsigned char *, size_t);
+
+static int prevFrames[] = {-1,-1,-1,-1,-1,-1,-1,-1}; // 7e8-7ef
 static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, openxc_DynamicField value) {
@@ -319,13 +334,14 @@ static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
     message.diagnostic_response.negative_response_code =
             response->negative_response_code;
 
-    message.diagnostic_response.frame = prevFrame + 1;
+    int frame_offset = (response->arbitration_id - 0x07e8) & 0x7;   // Prevent overflow
+    message.diagnostic_response.frame = prevFrames[frame_offset] + 1;
     if (response->completed) {
         message.diagnostic_response.frame = -1;     // Marks the last frame in the response
     } else {
         message.diagnostic_response.success = true;
     }
-    prevFrame = message.diagnostic_response.frame;
+    prevFrames[frame_offset] = message.diagnostic_response.frame;
 
     if(response->payload_length > 0) {
         if (request->decoder != NULL)  {
@@ -407,6 +423,93 @@ static void sendPartialMessage(long timestamp,
 
 #endif
 
+bool openxc::diagnostics::haveVINfromCan() {
+    return vinComplete;
+}
+
+unsigned char *openxc::diagnostics::getVIN() {
+    return vinBuffer;
+}
+
+void openxc::diagnostics::setVinCommandInProgress(bool vinInProgress) {
+    vinCommandInProgress = vinInProgress;
+}
+
+void openxc::diagnostics::filterForVIN(CanMessage* message) {
+
+    if ((message->id == 0x40a) &&
+        (message->data[0] == 0xc1) && 
+        (message->data[1] <= 0x02)) {
+
+        int index = message->data[1] * VIN_SNIPPET_LENGTH;
+        for(int cnt=2; cnt<8; cnt++, index++) {
+            vinBuffer[index] = message->data[cnt];
+        }
+
+        bool emptySpace = false;
+        for (int cnt=0; cnt<VIN_LENGTH; cnt++) {
+            if (vinBuffer[cnt] == 0) emptySpace = true;
+        }
+        vinComplete = !emptySpace;
+    }
+}
+
+
+void openxc::diagnostics::checkForVinCommand(CanMessage *message) {
+
+    // Step 1: Check to see if get vin command is in progrees
+    dumpNum(message->id);
+    if(message->id != 2024) {
+        return;
+    }
+    char buffer[18];
+    int bufferindex = 0;
+    // Step 2: unpackage Can data into VIN buffer
+    if (message->length > 2) {
+        for(int index=0; index<message->length; index++) {
+            int high = ((message->data[index] >> 4) & 0xf);
+            int letter = (high > 9) ? high - 10 + 'A' : high + '0';
+            int low = (message->data[index] & 0xf);
+            int letter2 = (low > 9) ? low - 10 + 'A' : low + '0';
+            buffer[bufferindex] = letter; bufferindex++;
+            buffer[bufferindex] = letter2; bufferindex++;
+        }
+        buffer[bufferindex] = 0;
+        debug(buffer);
+    }
+
+    if (selector >= 3) selector = -1;
+
+    selector++;
+    if(selector == 0) {
+        for(int cnt=5, index=0; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    } else if(selector == 1) {
+        for(int cnt=1, index=3; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    } else {
+        for(int cnt=1, index=10; cnt<8; cnt++, index++) {
+        vinBuffer[index] = message->data[cnt];
+        }
+    // Step 3: When all of the VIN data is complete return sendCommandResponse with VIN
+
+        char* vin = (char *)vinBuffer;
+        openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 1, vin, strlen(vin));
+        setVinCommandInProgress(false);
+        vinComplete = true;
+    }
+}
+
+void openxc::diagnostics::sendGetVinError() {
+
+    char *errorGetVin = (char *)"Unable to get VIN - timeout";
+
+    openxc::commands::sendCommandResponse(openxc_ControlCommand_Type_GET_VIN, 0, errorGetVin, strlen(errorGetVin));
+    vinCommandInProgress = false;
+}
+
 static void relayDiagnosticResponse(DiagnosticsManager* manager,
         ActiveDiagnosticRequest* request,
         const DiagnosticResponse* response, Pipeline* pipeline,
@@ -467,7 +570,8 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         request->callback(manager, request, response, parsed_value);
     }
 }
-
+void sendCommandResponse(openxc_ControlCommand_Type commandType,
+    bool status, char* responseMessage, size_t responseMessageLength);
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
@@ -479,7 +583,13 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-
+                debug("Raw Message for get_vin");
+                debug((const char*)message->data);
+                // If this is a VIN command we don't want to send a diagnostic response.
+                if(vinCommandInProgress == true) {
+                    openxc::diagnostics::checkForVinCommand(message);
+                    return;
+                }
         if (response.multi_frame) {
 #if (MULTIFRAME != 0)
             relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020

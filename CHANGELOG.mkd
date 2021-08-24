@@ -1,6 +1,14 @@
 # OpenXC Vehicle Interface Firmware Changelog
+## v8.2.1
+* Fix: Bootstrap fix
+
 ## v8.2.0
 * Removed: Removed messagepack format support
+* Feature: get_vin command added and is accessible from openxc-control python and from Android and iOS clients
+* Update: Improvements to diagnostic response communication
+* Update: sonarqube support updates
+* Build: build moved from travis to github actions for Travis decommision
+* Fix: 7DF Broadcast messaging
 
 ## v8.1.0
 * BREAKING: VI-Firmware 8.0.0 is not backwards compatable due to stitched diagnostic responses and must be used with OpenXC-Python 2.1.0 or greater.

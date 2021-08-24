@@ -1,7 +1,6 @@
 #include "payload.h"
 #include "payload/json.h"
 #include "payload/protobuf.h"
-#include "payload/messagepack.h"
 #include "util/log.h"
 #include <stdio.h>
 
@@ -68,8 +67,6 @@ size_t openxc::payload::deserialize(uint8_t payload[], size_t length,
         debug("deserialize protobuf");
         dumpNum(bytesRead);
         dumpPayload(payload, bytesRead);
-    } else if(format == PayloadFormat::MESSAGEPACK){
-        bytesRead = payload::messagepack::deserialize(payload, length, message);
     } else {
         debug("Invalid payload format: %d", format);
     }
@@ -83,8 +80,6 @@ int openxc::payload::serialize(openxc_VehicleMessage* message,
         serializedLength = payload::json::serialize(message, payload, length);
     } else if(format == PayloadFormat::PROTOBUF) {
         serializedLength = payload::protobuf::serialize(message, payload, length);
-    } else if(format == PayloadFormat::MESSAGEPACK) {
-        serializedLength = payload::messagepack::serialize(message, payload, length);
     } else {
         debug("Invalid payload format: %d", format);
     }

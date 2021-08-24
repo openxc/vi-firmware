@@ -12,6 +12,7 @@ namespace json {
 extern const char VERSION_COMMAND_NAME[];
 extern const char DEVICE_ID_COMMAND_NAME[];
 extern const char DEVICE_PLATFORM_COMMAND_NAME[];
+extern const char GET_VIN_COMMAND_NAME[];
 extern const char DIAGNOSTIC_COMMAND_NAME[];
 extern const char PASSTHROUGH_COMMAND_NAME[];
 extern const char ACCEPTANCE_FILTER_BYPASS_COMMAND_NAME[];
@@ -20,7 +21,6 @@ extern const char PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[];
 
 extern const char PAYLOAD_FORMAT_JSON_NAME[];
 extern const char PAYLOAD_FORMAT_PROTOBUF_NAME[];
-extern const char PAYLOAD_FORMAT_MESSAGEPACK_NAME[];
 
 extern const char COMMAND_RESPONSE_FIELD_NAME[];
 extern const char COMMAND_RESPONSE_MESSAGE_FIELD_NAME[];

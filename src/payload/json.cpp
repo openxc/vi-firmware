@@ -25,10 +25,10 @@ const char openxc::payload::json::PREDEFINED_OBD2_REQUESTS_COMMAND_NAME[] = "pre
 const char openxc::payload::json::MODEM_CONFIGURATION_COMMAND_NAME[] = "modem_configuration";
 const char openxc::payload::json::RTC_CONFIGURATION_COMMAND_NAME[] = "rtc_configuration";
 const char openxc::payload::json::SD_MOUNT_STATUS_COMMAND_NAME[] = "sd_mount_status";
+const char openxc::payload::json::GET_VIN_COMMAND_NAME[] = "get_vin";
 
 const char openxc::payload::json::PAYLOAD_FORMAT_JSON_NAME[] = "json";
 const char openxc::payload::json::PAYLOAD_FORMAT_PROTOBUF_NAME[] = "protobuf";
-const char openxc::payload::json::PAYLOAD_FORMAT_MESSAGEPACK_NAME[] = "messagepack";
 
 const char openxc::payload::json::COMMAND_RESPONSE_FIELD_NAME[] = "command_response";
 const char openxc::payload::json::COMMAND_RESPONSE_MESSAGE_FIELD_NAME[] = "message";
@@ -67,6 +67,14 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
     cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
                 message->diagnostic_response.pid);
 
+    if (message->diagnostic_response.total_size > 0) {
+        // These next 2 fields are only in a stitched message frame
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_FRAME_FIELD_NAME,
+                    message->diagnostic_response.frame);
+        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_TOTAL_SIZE_FIELD_NAME,
+                    message->diagnostic_response.total_size);
+    }
+
     if(message->diagnostic_response.negative_response_code != 0) {
         cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_NRC_FIELD_NAME,
                 message->diagnostic_response.negative_response_code);
@@ -98,55 +106,6 @@ static bool serializeDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
     return true;
 }
 
-static bool serializeStitchDiagnostic(openxc_VehicleMessage* message, cJSON* root) {
-    cJSON_AddNumberToObject(root, payload::json::BUS_FIELD_NAME,
-            message->diagnostic_stitch_response.bus);
-    cJSON_AddNumberToObject(root, payload::json::ID_FIELD_NAME,
-            message->diagnostic_stitch_response.message_id);
-    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_MODE_FIELD_NAME,
-            message->diagnostic_stitch_response.mode);
-    cJSON_AddBoolToObject(root, payload::json::DIAGNOSTIC_SUCCESS_FIELD_NAME,
-            message->diagnostic_stitch_response.success);
-    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_PID_FIELD_NAME,
-                message->diagnostic_stitch_response.pid);
-
-    // These next 2 fields are only in a stitched message frame
-    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_FRAME_FIELD_NAME,
-                message->diagnostic_stitch_response.frame);
-    cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_TOTAL_SIZE_FIELD_NAME,
-                message->diagnostic_stitch_response.total_size);
-
-    if(message->diagnostic_stitch_response.negative_response_code != 0) {
-        cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_NRC_FIELD_NAME,
-                message->diagnostic_stitch_response.negative_response_code);
-    }
-
-    if(message->diagnostic_stitch_response.value.type != openxc_DynamicField_Type_UNUSED) {
-        if (message->diagnostic_stitch_response.value.type == openxc_DynamicField_Type_NUM) {
-            cJSON_AddNumberToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
-                    message->diagnostic_stitch_response.value.numeric_value);
-        } else {
-            cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_VALUE_FIELD_NAME,
-                    message->diagnostic_stitch_response.value.string_value);
-        }
-    } else if(message->diagnostic_stitch_response.payload.size > 0) {
-        char encodedData[MAX_DIAGNOSTIC_PAYLOAD_SIZE];
-        const char* maxAddress = encodedData + sizeof(encodedData);
-        char* encodedDataIndex = encodedData;
-        encodedDataIndex += sprintf(encodedDataIndex, "0x");
-        for(uint8_t i = 0; i < message->diagnostic_stitch_response.payload.size &&
-                encodedDataIndex < maxAddress; i++) {
-            encodedDataIndex += snprintf(encodedDataIndex,
-                    maxAddress - encodedDataIndex,
-                    "%02x",
-                    message->diagnostic_stitch_response.payload.bytes[i]);
-        }
-        cJSON_AddStringToObject(root, payload::json::DIAGNOSTIC_PAYLOAD_FIELD_NAME,
-                encodedData);
-    }
-    return true;
-}
-
 static bool serializeCommandResponse(openxc_VehicleMessage* message,
         cJSON* root) {
     const char* typeString = NULL;
@@ -154,6 +113,8 @@ static bool serializeCommandResponse(openxc_VehicleMessage* message,
         typeString = payload::json::VERSION_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DEVICE_ID) {
         typeString = payload::json::DEVICE_ID_COMMAND_NAME;
+    } else if(message->command_response.type == openxc_ControlCommand_Type_GET_VIN) {
+        typeString = payload::json::GET_VIN_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_PLATFORM) {
         typeString = payload::json::DEVICE_PLATFORM_COMMAND_NAME;
     } else if(message->command_response.type == openxc_ControlCommand_Type_DIAGNOSTIC) {
@@ -230,6 +191,12 @@ static cJSON* serializeDynamicField(openxc_DynamicField* field) {
         value = cJSON_CreateString(field->string_value);
     }
     return value;
+}
+void dumpNum(int value);
+void dumpDouble(double value) {
+    char buff[20];
+    sprintf(buff, "%f", value);
+    debug(buff);
 }
 
 static bool serializeSimple(openxc_VehicleMessage* message, cJSON* root) {
@@ -363,6 +330,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "mode");
         if(element != NULL) {
+            debug("mode");
+            dumpNum(element->valueint);
             command->diagnostic_request.request.mode = element->valueint;
         }
 
@@ -386,12 +355,16 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "multiple_responses");
         if(element != NULL) {
+        debug("multiple_responses:");
+        dumpNum(element->valueint);
             command->diagnostic_request.request.multiple_responses =
                 bool(element->valueint);
         }
 
         element = cJSON_GetObjectItem(request, "frequency");
         if(element != NULL) {
+        debug("frequency:");
+        dumpDouble(element->valuedouble);
             command->diagnostic_request.request.frequency =
                 element->valuedouble;
         }
@@ -399,9 +372,11 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
         element = cJSON_GetObjectItem(request, "decoded_type");
         if(element != NULL) {
             if(!strcmp(element->valuestring, "obd2")) {
+                debug("decoded_type is obd2");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_OBD2;
             } else if(!strcmp(element->valuestring, "none")) {
+                debug("decoded_type is none");
                 command->diagnostic_request.request.decoded_type =
                         openxc_DiagnosticRequest_DecodedType_NONE;
             }
@@ -409,6 +384,8 @@ static void deserializeDiagnostic(cJSON* root, openxc_ControlCommand* command) {
 
         element = cJSON_GetObjectItem(request, "name");
         if(element != NULL && element->type == cJSON_String) {
+            debug("name");
+            debug(element->valuestring);
             strcpy(command->diagnostic_request.request.name,
                     element->valuestring);
         }
@@ -565,6 +542,10 @@ size_t openxc::payload::json::deserialize(uint8_t payload[], size_t length,
                         DEVICE_ID_COMMAND_NAME, strlen(DEVICE_ID_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_DEVICE_ID;
             } else if(!strncmp(commandNameObject->valuestring,
+                        GET_VIN_COMMAND_NAME, strlen(GET_VIN_COMMAND_NAME))) {
+                command->type = openxc_ControlCommand_Type_GET_VIN;
+                        }
+             else if(!strncmp(commandNameObject->valuestring,
                         DEVICE_PLATFORM_COMMAND_NAME, strlen(DEVICE_PLATFORM_COMMAND_NAME))) {
                 command->type = openxc_ControlCommand_Type_PLATFORM;
             } else if(!strncmp(commandNameObject->valuestring,
@@ -624,7 +605,7 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
     size_t finalLength = 0;
     if(root != NULL) {
         bool status = true;
-        if(message->type != openxc_VehicleMessage_Type_UNUSED) {
+        if(message->timestamp != 0) {
             cJSON_AddNumberToObject(root, "timestamp", message->timestamp);
         }
         if(message->type == openxc_VehicleMessage_Type_SIMPLE) {
@@ -633,8 +614,6 @@ int openxc::payload::json::serialize(openxc_VehicleMessage* message,
             status = serializeCan(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC) {
             status = serializeDiagnostic(message, root);
-        } else if(message->type == openxc_VehicleMessage_Type_DIAGNOSTIC_STITCH) {
-            status =serializeStitchDiagnostic(message, root);
         } else if(message->type == openxc_VehicleMessage_Type_COMMAND_RESPONSE) {
             status = serializeCommandResponse(message, root);
         } else {

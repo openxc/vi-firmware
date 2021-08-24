@@ -138,7 +138,7 @@ START_TEST (test_send_numerical)
     uint8_t snapshot[QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE) + 1];
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
-    ck_assert_str_eq((char*)snapshot, "{\"timestamp\":0,\"name\":\"test\",\"value\":42}\0");
+    ck_assert_str_eq((char*)snapshot, "{\"name\":\"test\",\"value\":42}\0");
 }
 END_TEST
 
@@ -153,7 +153,7 @@ START_TEST (test_preserve_float_precision)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":42.500000}\0");
+            "{\"name\":\"test\",\"value\":42.500000}\0");
 }
 END_TEST
 
@@ -167,7 +167,7 @@ START_TEST (test_send_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":false}\0");
+            "{\"name\":\"test\",\"value\":false}\0");
 }
 END_TEST
 
@@ -181,7 +181,7 @@ START_TEST (test_send_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"string\"}\0");
+            "{\"name\":\"test\",\"value\":\"string\"}\0");
 }
 END_TEST
 
@@ -204,7 +204,7 @@ START_TEST (test_send_evented_boolean)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":false}\0");
 }
 END_TEST
 
@@ -227,7 +227,7 @@ START_TEST (test_send_evented_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":\"event\"}\0");
 }
 END_TEST
 
@@ -249,7 +249,7 @@ START_TEST (test_send_evented_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
+            "{\"name\":\"test\",\"value\":\"value\",\"event\":43}\0");
 }
 END_TEST
 
@@ -315,7 +315,7 @@ START_TEST (test_passthrough_message)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");
+            "{\"bus\":1,\"id\":42,\"data\":\"0x123456789abcdef1\"}\0");
 }
 END_TEST
 
@@ -354,7 +354,7 @@ START_TEST (test_default_decoder)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -383,12 +383,11 @@ START_TEST (test_translate_many_signals)
     }
     fail_unless(USB_PROCESSED);
     // 8 signals sent - depends on queue size
-    //ck_assert_int_eq(11 * 34 + 2, SENT_BYTES);	// Protobuff 2 result
-    ck_assert_int_eq(676, SENT_BYTES);
+    ck_assert_int_eq(11 * 34 + 2, SENT_BYTES);
     // 1 in the output queue
     fail_if(queueEmpty());
     //ck_assert_int_eq(1 * 34, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));	// Protobuff 2 result
-    ck_assert_int_eq(96, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
+    ck_assert_int_eq(170, QUEUE_LENGTH(uint8_t, OUTPUT_QUEUE));
 }
 END_TEST
 
@@ -406,7 +405,7 @@ START_TEST (test_translate_float)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":42}\0");
+            "{\"name\":\"torque_at_transmission\",\"value\":42}\0");
 }
 END_TEST
 
@@ -465,7 +464,7 @@ START_TEST (test_translate_string)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
+            "{\"name\":\"torque_at_transmission\",\"value\":\"foo\"}\0");
 }
 END_TEST
 
@@ -549,7 +548,7 @@ START_TEST (test_preserve_last_value)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
+            "{\"name\":\"torque_at_transmission\",\"value\":-19990}\0");
 }
 END_TEST
 
@@ -566,7 +565,7 @@ START_TEST (test_dont_send_same)
     QUEUE_SNAPSHOT(uint8_t, OUTPUT_QUEUE, snapshot, sizeof(snapshot));
     snapshot[sizeof(snapshot) - 1] = NULL;
     ck_assert_str_eq((char*)snapshot,
-            "{\"timestamp\":0,\"name\":\"brake_pedal_status\",\"value\":true}\0");
+            "{\"name\":\"brake_pedal_status\",\"value\":true}\0");
 
     QUEUE_INIT(uint8_t, OUTPUT_QUEUE);
     can::read::translateSignal(testSignal,

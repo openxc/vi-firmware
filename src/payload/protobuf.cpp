@@ -10,6 +10,11 @@ extern void dumpPayload(unsigned char *payload, size_t length);
 
 size_t openxc::payload::protobuf::deserialize(uint8_t payload[], size_t length,
         openxc_VehicleMessage* message) {
+    if (payload[0] > (length-1)) {   // We do not have a complete message yet
+        // For now will only accepts lengths <256
+        return 0;
+    }
+
     pb_istream_t stream = pb_istream_from_buffer(payload, length);
     if(!pb_decode_delimited(&stream, openxc_VehicleMessage_fields, message)) {
         debug("Protobuf decoding failed with %s", PB_GET_ERROR(&stream));

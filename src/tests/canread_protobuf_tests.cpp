@@ -5,6 +5,7 @@
 
 #include "signals.h"
 #include "config.h"
+#include "payload/protobuf.h"
 #include "can/canutil.h"
 #include "can/canread.h"
 #include "can/canwrite.h"
@@ -177,6 +178,28 @@ START_TEST (test_translate_float)
 }
 END_TEST
 
+START_TEST (test_reading_protobuf_buffer_length_insufficient)
+{
+    const int pLEN = 5;
+    uint8_t payload[30];
+    openxc_VehicleMessage message;
+    payload[0] = pLEN;
+    int result = openxc::payload::protobuf::deserialize(payload, pLEN, &message);
+    ck_assert_int_eq(result, 0);
+}
+END_TEST
+
+START_TEST (test_reading_protobuf_buffer_length_match)
+{
+    uint8_t payload[] = {0x06, 0x08, 0x04, 0x2a, 0x02, 0x08, 0x02};  // Get Platform Command
+    int pLEN = sizeof(payload)/sizeof(payload[0]);
+    openxc_VehicleMessage message;
+
+    int result = openxc::payload::protobuf::deserialize(payload, pLEN, &message);
+    ck_assert_int_eq(result, pLEN);
+}
+END_TEST
+
 Suite* canreadSuite(void) {
     Suite* s = suite_create("canread_protobuf");
 
@@ -195,6 +218,11 @@ Suite* canreadSuite(void) {
     tcase_add_test(tc_translate, test_translate_string);
     tcase_add_test(tc_translate, test_translate_bool);
     suite_add_tcase(s, tc_translate);
+
+    TCase *tc_reading = tcase_create("reading");
+    tcase_add_test(tc_reading, test_reading_protobuf_buffer_length_insufficient);
+    tcase_add_test(tc_reading, test_reading_protobuf_buffer_length_match);
+    suite_add_tcase(s, tc_reading);
 
     return s;
 }

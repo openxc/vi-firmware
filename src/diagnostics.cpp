@@ -40,15 +40,12 @@ unsigned char vinBuffer[VIN_STORAGE_LENGTH] = {0};
 bool vinComplete = false;
 bool vinCommandInProgress = false;
 int selector = -1;
+
 void dumpNum(int);
+void dumpPayload(unsigned char *, size_t);
+// void sendCommandResponse(openxc_ControlCommand_Type commandType,
+//     bool status, char* responseMessage, size_t responseMessageLength);
 
-
-//  receiveCanMessage - called from vi_firmware every time a CanMessage
-//                  is QUEUE_POP from the busses' receiveQueue
-// MULTIFRAME  0       The Old way Before 2020 (no multiframe messages)
-// MULTIFRAME  1       Multi-frame stitched message feature
-//
-#define MULTIFRAME  1
 
 static bool timedOut(ActiveDiagnosticRequest* request) {
     // don't use staggered start with the timeout clock
@@ -307,8 +304,6 @@ static openxc_VehicleMessage wrapDiagnosticResponseWithSabot(CanBus* bus,
     return message;
 }
 
-void dumpPayload2(unsigned char *, size_t);
-
 static int prevFrames[] = {-1,-1,-1,-1,-1,-1,-1,-1}; // 7e8-7ef
 static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
         const ActiveDiagnosticRequest* request,
@@ -356,12 +351,13 @@ static openxc_VehicleMessage wrapDiagnosticStitchResponseWithSabot(CanBus* bus,
     return message;
 }
 
-#if (MULTIFRAME != 0)
 // The next 2 methods are the origial way that multi-frame
 // stitching was achieved.  It has been replaced with a new
-// openxc.proto file and uses a new message type.
-// These are here for reference until we know the new messages are working
-// 6/15/2020
+// openxc.proto file and uses a new message type.  Dec 2021
+// Unfortunately it looks like this method is still being used
+// for emulated diagnostic Responses which means that protobuf
+// emulated stitch messages will not work.
+
 const int MAX_MULTI_FRAME_MESSAGE_SIZE = 300;
 
 static void sendPartialMessage(long timestamp,
@@ -420,8 +416,6 @@ static void sendPartialMessage(long timestamp,
     pipeline::sendMessage(pipeline,
         (uint8_t*)messageBuffer, messageLen, MessageClass::SIMPLE);
 }
-
-#endif
 
 bool openxc::diagnostics::haveVINfromCan() {
     return vinComplete;
@@ -570,8 +564,10 @@ static void relayDiagnosticResponse(DiagnosticsManager* manager,
         request->callback(manager, request, response, parsed_value);
     }
 }
-void sendCommandResponse(openxc_ControlCommand_Type commandType,
-    bool status, char* responseMessage, size_t responseMessageLength);
+
+//  receiveCanMessage - called from vi_firmware every time a CanMessage
+//                  is QUEUE_POP from the busses' receiveQueue
+
 static void receiveCanMessage(DiagnosticsManager* manager,
         CanBus* bus,
         ActiveDiagnosticRequest* entry,
@@ -583,25 +579,18 @@ static void receiveCanMessage(DiagnosticsManager* manager,
                 // coupled?
                 &manager->shims[bus->address - 1],
                 &entry->handle, message->id, message->data, message->length);
-                debug("Raw Message for get_vin");
-                debug((const char*)message->data);
+                debug("Raw Msg diag RESPONSE");
+                dumpPayload((unsigned char*)message->data, message->length);
+
                 // If this is a VIN command we don't want to send a diagnostic response.
                 if(vinCommandInProgress == true) {
                     openxc::diagnostics::checkForVinCommand(message);
                     return;
                 }
         if (response.multi_frame) {
-#if (MULTIFRAME != 0)
             relayDiagnosticResponse(manager, entry, &response, pipeline, true);   // Added 6/11/2020
-#endif
             if (!response.completed) {
                 time::tick(&entry->timeoutClock);
-            } else {
-#if (MULTIFRAME == 0)
-                // This is the pre 2020 Way of sending a Diagnostic Response
-                // (all at once)
-                relayDiagnosticResponse(manager, entry, &response, pipeline, false);
-#endif
             }
         } else if (response.completed && entry->handle.completed) {
             if(entry->handle.success) {
@@ -994,20 +983,15 @@ bool openxc::diagnostics::isSupportedPID(int requestMode, int requestPID)
 
 bool openxc::diagnostics::isStitchPID(int requestMode, int requestPID)
 {
-#if (MULTIFRAME==1)
     if ((requestMode == 0x22) && 
         ((requestPID == 0xde00) || (requestPID == 0xde01))) {
         return true;
     }
-#endif
     return false;
 }
 
-bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, Pipeline* pipeline) {
-#if (MULTIFRAME!=1)
-    return false;
-#else
-
+bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode, int requestPID, Pipeline* pipeline)
+{
     if (requestPID == 0xde00) {
         char emulPayload[] = {(char)0x62, (char)0xDE, (char)0x00, 
                                 (char)0x22, (char)0x2a, (char)0x04};
@@ -1063,7 +1047,6 @@ bool openxc::diagnostics::generateAndSendEmulatedStitchMessages(int requestMode,
                            pipeline);
     }
     return true;
-#endif
 }
 
 void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicleMessage, bool isSuccess)
@@ -1084,11 +1067,9 @@ void openxc::diagnostics::generateEmulatorPayload(openxc_VehicleMessage* vehicle
 
 bool openxc::diagnostics::isVINPid(int requestMode, int requestPID)
 {
-#if (MULTIFRAME==1)
     if ((requestMode == 9) && (requestPID == 2)) {
         return true;
     }
-#endif
     return false; 
 }
 
@@ -1115,11 +1096,8 @@ static const char *VINArray[] = {
             "1G6CD1184H4323745"    // 1987 Cadillac Deville
 };
 
-bool openxc::diagnostics::generateAndSendVINStitchMessages(int messageId, int requestMode, int requestPID, Pipeline* pipeline) {
-#if (MULTIFRAME!=1)
-    return false;
-#endif
-
+bool openxc::diagnostics::generateAndSendVINStitchMessages(int messageId, int requestMode, int requestPID, Pipeline* pipeline)
+{
     int sampleSize = sizeof(VINArray) / sizeof(VINArray[0]);
     int selection = rand() % sampleSize;
     const int packetSize = 4;       // Send max "packetSize" ascii per message

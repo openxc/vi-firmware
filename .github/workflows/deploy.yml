@@ -1,0 +1,39 @@
+name: Releases
+
+on: 
+  push:
+    branches: 
+      - master
+    tags:
+    - '*'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set Up Python 3.6
+      run: |
+          sudo apt-get update -qq
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update -qq
+          sudo apt-get install python3.6 -y
+          sudo rm /usr/bin/python3
+          sudo ln -s /usr/bin/python3.6 /usr/bin/python3
+          wget https://bootstrap.pypa.io/get-pip.py
+          sudo python3 get-pip.py
+          sudo apt-get install -qq -y libsubunit-dev
+      # Runs a single command using the runners shell
+    - name: Bootstrap
+      run: |
+          script/bootstrap.sh
+          
+    - name: Build
+      run: |
+        echo "n" | fab release:skip_tests=True
+        
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "./release/openxc-vi-firmware-v*.*.*.zip"
+        token: ${{ secrets.GH_TOKEN }}

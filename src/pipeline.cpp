@@ -194,6 +194,14 @@ void openxc::pipeline::publish(openxc_VehicleMessage* message,
     } else {
         debug("Trying to serialize unrecognized type: %d", message->type);
     }
+
+    // Send a SYNC Message Jan 2022!!!
+
+    static int msgCounter = 0;
+    if ((msgCounter & 0x3f) == 0x3f) {  // Send a sync message every 63 messages
+        sendSyncMessage(pipeline);
+    }
+    msgCounter++;
 }
 
 void openxc::pipeline::sendMessage(Pipeline* pipeline, uint8_t* message,
@@ -313,4 +321,15 @@ void openxc::pipeline::logStatistics(Pipeline* pipeline) {
             lastTimeLogged = time::systemTimeMs();
         }
     }
+}
+
+
+void openxc::pipeline::sendSyncMessage(Pipeline* pipeline) {
+    unsigned char syncMessagePayload[] = {0x07, 'S', 'Y', 'N', 'C', 'M', 'S', 'G' };
+
+    MessageClass messageClass = MessageClass::CAN;
+
+    sendMessage(pipeline, syncMessagePayload, sizeof(syncMessagePayload), messageClass);
+    debug("Sent Sync Message");
+
 }

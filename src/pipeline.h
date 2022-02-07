@@ -97,6 +97,7 @@ void sendMessage(Pipeline* pipeline, uint8_t* message, int messageSize,
 void process(Pipeline* pipeline);
 
 void logStatistics(Pipeline* pipeline);
+void sendSyncMessage(Pipeline* pipeline);
 
 } // namespace interface
 } // namespace openxc

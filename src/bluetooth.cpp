@@ -169,6 +169,7 @@ static void setIoDirection() {
 #endif
 
 static void setStatus(bool enabled) {
+// setStatus will only run if BlueTooth support is enabled
 #ifdef BLUETOOTH_ENABLE_SUPPORT
     enabled = BLUETOOTH_ENABLE_PIN_POLARITY ? enabled : !enabled;
     debug("Turning Bluetooth %s", enabled ? "on" : "off");
@@ -193,6 +194,7 @@ void openxc::bluetooth::start(UartDevice* device) {
 }
 
 void openxc::bluetooth::initialize(UartDevice* device) {
+// Initializing Bluetooth in disabled state for UART device
 #ifdef BLUETOOTH_SUPPORT
     debug("Initializing Bluetooth in disabled state...");
     setStatus(false);

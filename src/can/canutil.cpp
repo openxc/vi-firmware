@@ -46,6 +46,7 @@ void openxc::can::initializeCommon(CanBus* bus) {
 }
 
 void openxc::can::destroy(CanBus* bus) {
+// Possible derived class
 }
 
 bool openxc::can::busActive(CanBus* bus) {

@@ -92,6 +92,8 @@ void openxc::server_task::firmwareCheck(TelitDevice* device) {
                     //timer = uptimeMs();
                     state = 0;
                     break;
+                //default: //Do nothing by default
+                    //break;
             }
             break;
     }
@@ -220,6 +222,8 @@ void openxc::server_task::flushDataBuffer(TelitDevice* device) {
                     state = 0;
                     closeSocket(POST_DATA_SOCKET);
                     break;
+                //default: //Do nothing by default
+                    //break;
             }
             break;
     }

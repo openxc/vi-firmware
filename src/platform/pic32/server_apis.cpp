@@ -79,6 +79,8 @@ API_RETURN openxc::server_api::serverPOSTdata(char* deviceId, char* host, char* 
                     ret = Failed;
                     state = 0;
                     break;
+                //default: //Do nothing by default
+                    //break;
             }
             break;
     }
@@ -140,6 +142,8 @@ API_RETURN openxc::server_api::serverGETfirmware(char* deviceId, char* host) {
                     ret = Failed;
                     state = 0;
                     break;
+                //default: //Do nothing by default
+                    //break;
             }
             break;
     }
@@ -199,6 +203,8 @@ API_RETURN openxc::server_api::serverGETcommands(char* deviceId, char* host, uin
                     ret = Failed;
                     state = 0;
                     break;
+                //default: //Do nothing by default
+                    //break;
             }
             break;
     }

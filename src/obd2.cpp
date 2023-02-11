@@ -45,7 +45,7 @@ const Obd2Pid OBD2_PIDS[] = {
     { pid: 0x5, name: "engine_coolant_temperature", frequency: 1 },
     { pid: 0x33, name: "barometric_pressure", frequency: 1 },
     { pid: 0x4c, name: "commanded_throttle_position", frequency: 1 },
-    { pid: 0x27, name: "fuel_level", frequency: 1 },
+    { pid: 0x2f, name: "fuel_level", frequency: 1 },
     { pid: 0xf, name: "intake_air_temperature", frequency: 1 },
     { pid: 0xb, name: "intake_manifold_pressure", frequency: 1 },
     { pid: 0x1f, name: "running_time", frequency: 1 },

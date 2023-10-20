@@ -59,7 +59,7 @@ show_separator = $(info -------------------------)
 
 BASE_TARGET = vi-firmware
 OBJDIR_ROOT = build
-DEPENDENCIES_FOLDER = ../dependencies
+DEPENDENCIES_FOLDER = /usr/lib
 OBJDIR = $(OBJDIR_ROOT)
 
 # 0 or 1

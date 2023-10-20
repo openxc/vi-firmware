@@ -3,7 +3,7 @@
 #include "telit_he910.h"
 extern "C"
 {
-#include "flash.h"
+#include "/usr/lib/mpide/hardware/pic32/libraries/EEPROM/utility/flash.h"
 }
 
 using openxc::config::getConfiguration;
